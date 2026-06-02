@@ -56,7 +56,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@44ac965b76ffb60da8938bf54b79c9c15c59c838 # v2.13.0
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
           cache: true
@@ -81,7 +81,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@44ac965b76ffb60da8938bf54b79c9c15c59c838
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
           cache: true
@@ -123,7 +123,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@44ac965b76ffb60da8938bf54b79c9c15c59c838
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
           cache: true
