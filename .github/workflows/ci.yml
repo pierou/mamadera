@@ -87,7 +87,7 @@ jobs:
           cache: true
 
       - name: Setup Java
-        uses: actions/setup-java@99b8673ff64fbf99d8d325f52d6a8154f4094f9d # v4.2.2
+        uses: actions/setup-java@7aac9d48f7c97b1f12ed15b7275012f195717b34 # v4.3.1
         with:
           distribution: 'temurin'
           java-version: '17'
