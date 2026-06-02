@@ -27,24 +27,23 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Setup Node (pour outils d'audit)
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install audit tools
-        run: |
-          npm install -g @trivy/cli @semgrep/semgrep gitleaks
-
       - name: Trivy (vuln dépendances)
-        run: trivy fs --severity HIGH,CRITICAL --exit-code 1 .
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
 
-      - name: Gitleaks (detection secrets dans l'historique)
-        run: gitleaks detect --source=. --no-git --verbose || true
+      - name: Gitleaks (detection secrets)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Semgrep (SAST basique)
-        run: semgrep --config auto --error . || true
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: 'auto'
+        continue-on-error: true
 
   # 2. 🧪 Lint & Tests
   lint-test:
