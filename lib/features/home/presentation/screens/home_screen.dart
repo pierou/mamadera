@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/theme.dart';
-import '../../../../widgets/track_button.dart';
 import '../../../../widgets/bottom_nav.dart';
+import '../../../../widgets/track_button.dart';
 import '../../../history/presentation/screens/history_screen.dart';
 import '../../../menu/menu_screen.dart';
 import '../providers/nav_provider.dart';
@@ -56,68 +57,68 @@ class _HomeContent extends ConsumerWidget {
       builder: (context) {
         return Consumer(
           builder: (context, ref, child) {
-    return Padding(
+            return Padding(
               padding: const EdgeInsets.all(24),
               child: SingleChildScrollView(
                 child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-                  const Text(
-                    'Type de soin',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-          ),
-          ),
-                  const SizedBox(height: 16),
-                  _buildHealthSubtypeTile(
-                    context: context,
-                    ref: ref,
-                    icon: Icons.remove_red_eye,
-                    label: 'Nettoyage des yeux',
-                    note: 'nettoyage_yeux',
-          ),
-                  _buildHealthSubtypeTile(
-                    context: context,
-                    ref: ref,
-                    icon: Icons.circle,
-                    label: 'Nettoyage du nombril',
-                    note: 'nettoyage_nombril',
-          ),
-                  _buildHealthSubtypeTile(
-                    context: context,
-                    ref: ref,
-                    icon: Icons.face,
-                    label: 'Nettoyage du visage',
-                    note: 'nettoyage_visage',
-      ),
-                  _buildHealthSubtypeTile(
-                    context: context,
-                    ref: ref,
-                    icon: Icons.arrow_upward,
-                    label: 'Nettoyage du nez',
-                    note: 'nettoyage_nez',
-                  ),
-                  _buildHealthSubtypeTile(
-                    context: context,
-                    ref: ref,
-                    icon: Icons.wb_sunny,
-                    label: 'Vitamine D',
-                    note: 'vitamine_d',
-                  ),
-                  _buildHealthSubtypeTile(
-                    context: context,
-                    ref: ref,
-                    icon: Icons.healing,
-                    label: 'Vitamine K',
-                    note: 'vitamine_k',
-                  ),
-                ],
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Type de soin',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildHealthSubtypeTile(
+                      context: context,
+                      ref: ref,
+                      icon: Icons.remove_red_eye,
+                      label: 'Nettoyage des yeux',
+                      note: 'nettoyage_yeux',
+                    ),
+                    _buildHealthSubtypeTile(
+                      context: context,
+                      ref: ref,
+                      icon: Icons.circle,
+                      label: 'Nettoyage du nombril',
+                      note: 'nettoyage_nombril',
+                    ),
+                    _buildHealthSubtypeTile(
+                      context: context,
+                      ref: ref,
+                      icon: Icons.face,
+                      label: 'Nettoyage du visage',
+                      note: 'nettoyage_visage',
+                    ),
+                    _buildHealthSubtypeTile(
+                      context: context,
+                      ref: ref,
+                      icon: Icons.arrow_upward,
+                      label: 'Nettoyage du nez',
+                      note: 'nettoyage_nez',
+                    ),
+                    _buildHealthSubtypeTile(
+                      context: context,
+                      ref: ref,
+                      icon: Icons.wb_sunny,
+                      label: 'Vitamine D',
+                      note: 'vitamine_d',
+                    ),
+                    _buildHealthSubtypeTile(
+                      context: context,
+                      ref: ref,
+                      icon: Icons.healing,
+                      label: 'Vitamine K',
+                      note: 'vitamine_k',
+                    ),
+                  ],
+                ),
               ),
-            ),
-    );
+            );
           },
         );
       },

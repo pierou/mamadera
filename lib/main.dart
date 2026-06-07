@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mamadera/features/home/presentation/screens/home_screen.dart';
+import 'features/home/presentation/screens/home_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -20,4 +20,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

@@ -1,4 +1,3 @@
-// lib/core/theme.dart
 import 'package:flutter/material.dart';
 
 class AppTheme {
@@ -14,18 +13,15 @@ class AppTheme {
         useMaterial3: true,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: background,
-        colorScheme: ColorScheme.dark(
+        colorScheme: const ColorScheme.dark(
           primary: sante,
           onSurface: Colors.white,
-          surfaceVariant: const Color(0xFF3A3A3A),
+          surfaceContainerHighest: Color(0xFF3A3A3A),
         ),
         textTheme: const TextTheme(
-          headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: textPrimary),
+          headlineLarge: TextStyle(
+              fontSize: 32, fontWeight: FontWeight.bold, color: textPrimary),
           bodyLarge: TextStyle(fontSize: 20, color: textSecondary),
-        ),
-        buttonTheme: const ButtonThemeData(
-          buttonColor: Colors.transparent,
-          textTheme: ButtonTextTheme.primary,
         ),
       );
 }

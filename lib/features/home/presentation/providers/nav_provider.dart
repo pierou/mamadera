@@ -1,11 +1,11 @@
-import 'package:riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final navIndexProvider = StateNotifierProvider<NavIndexNotifier, int>(
-  (ref) => NavIndexNotifier(),
+final navIndexProvider = NotifierProvider<NavIndexNotifier, int>(
+  NavIndexNotifier.new,
 );
 
-class NavIndexNotifier extends StateNotifier<int> {
-  NavIndexNotifier() : super(0);
-
+class NavIndexNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
   void setIndex(int index) => state = index;
 }

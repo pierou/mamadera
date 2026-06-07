@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/entities/tracking_event.dart';
 import 'history_repository_provider.dart';
+
 final selectedFilterProvider =
     NotifierProvider<FilterNotifier, String>(FilterNotifier.new);
 
@@ -16,17 +17,17 @@ class FilterNotifier extends Notifier<String> {
 }
 
 class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
-  final String _filter;
 
   HistoryNotifier(this._filter);
+  final String _filter;
 
   @override
   Future<List<TrackingEvent>> build() async {
     return _fetchWithTimeout(() async {
       final repository = ref.read(historyRepositoryProvider);
       return _filter == 'all'
-        ? await repository.getAllEventsOrdered()
-        : await repository.getEventsByType(_filter);
+          ? await repository.getAllEventsOrdered()
+          : await repository.getEventsByType(_filter);
     });
   }
 
@@ -39,7 +40,7 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
           Exception('Délai d\'attente dépassé (${timeout.inSeconds}s)'),
           StackTrace.current,
         );
-}
+      }
     });
 
     try {
@@ -55,10 +56,10 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
   }
 }
 
-HistoryNotifier _historyNotifierFactory(String filter) => HistoryNotifier(filter);
+HistoryNotifier _historyNotifierFactory(String filter) =>
+    HistoryNotifier(filter);
 
-final historyNotifierProvider =
-    AsyncNotifierProvider.autoDispose.family<HistoryNotifier, List<TrackingEvent>, String>(
+final historyNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<HistoryNotifier, List<TrackingEvent>, String>(
   _historyNotifierFactory,
 );
-

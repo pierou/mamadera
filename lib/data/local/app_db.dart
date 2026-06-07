@@ -18,19 +18,20 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => 1;
 
   Future<List<TrackingEvent>> getEvents() => select(trackingEvents).get();
-  Future<int> insertEvent(TrackingEventsCompanion event) => into(trackingEvents).insert(event);
+  Future<int> insertEvent(TrackingEventsCompanion event) =>
+      into(trackingEvents).insert(event);
   Future<List<TrackingEvent>> getFeedingEvents() {
-  return (select(trackingEvents)
-        ..where((t) => t.type.isIn(['sein', 'bib']))
-        ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
-      .get();
-}
+    return (select(trackingEvents)
+          ..where((t) => t.type.isIn(['sein', 'bib']))
+          ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
+        .get();
+  }
 
   Future<List<TrackingEvent>> getAllEventsOrdered() {
     return (select(trackingEvents)
           ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
         .get();
-}
+  }
 
   Future<List<TrackingEvent>> getEventsByType(String type) {
     return (select(trackingEvents)
@@ -39,4 +40,3 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 }
-

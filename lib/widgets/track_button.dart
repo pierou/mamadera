@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../core/theme.dart';
 
 class TrackButton extends StatefulWidget {
+
+  const TrackButton(
+      {required this.label, required this.color, required this.onTap, super.key});
   final String label;
   final Color color;
   final VoidCallback onTap;
-
-  const TrackButton({super.key, required this.label, required this.color, required this.onTap});
 
   @override
   State<TrackButton> createState() => _TrackButtonState();
@@ -27,17 +28,21 @@ class _TrackButtonState extends State<TrackButton> {
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
         child: Container(
-        width: double.infinity,
-        height: 180,
-        decoration: BoxDecoration(
+          width: double.infinity,
+          height: 180,
+          decoration: BoxDecoration(
             color: widget.color,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4))],
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              const BoxShadow(
+                  color: Colors.black26, blurRadius: 8, offset: Offset(0, 4))
+            ],
+          ),
+          child: Center(
+            child: Text(widget.label,
+                style: AppTheme.theme.textTheme.headlineLarge),
+          ),
         ),
-        child: Center(
-            child: Text(widget.label, style: AppTheme.theme.textTheme.headlineLarge),
-        ),
-      ),
       ),
     );
   }

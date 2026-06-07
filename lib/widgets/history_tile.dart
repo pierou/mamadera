@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 
 class HistoryTile extends StatelessWidget {
+
+  const HistoryTile({
+    required this.type, required this.time, super.key,
+    this.notes,
+    this.duration,
+  });
   final String type;
   final String time;
   final String? notes;
   final double? duration;
-
-  const HistoryTile({
-    super.key,
-    required this.type,
-    required this.time,
-    this.notes,
-    this.duration,
-  });
 
   IconData _getIcon() {
     switch (type) {
@@ -76,9 +74,9 @@ class HistoryTile extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (duration != null)
-              Text('Durée: ${duration!.toInt()} min'),
-            if (type != 'sante' && notes != null && notes!.isNotEmpty) Text(notes!),
+            if (duration != null) Text('Durée: ${duration!.toInt()} min'),
+            if (type != 'sante' && notes != null && notes!.isNotEmpty)
+              Text(notes!),
           ],
         ),
         trailing: Text(time),

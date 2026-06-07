@@ -25,7 +25,7 @@ class HistoryScreen extends ConsumerWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -58,8 +58,8 @@ class HistoryScreen extends ConsumerWidget {
                   itemCount: events.length,
                   itemBuilder: (context, index) {
                     final event = events[index];
-                    final timeFormatted = DateFormat('dd/MM/yyyy HH:mm')
-                        .format(event.timestamp);
+                    final timeFormatted =
+                        DateFormat('dd/MM/yyyy HH:mm').format(event.timestamp);
                     return HistoryTile(
                       type: event.type,
                       time: timeFormatted,

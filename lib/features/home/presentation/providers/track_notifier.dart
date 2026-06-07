@@ -7,7 +7,7 @@ final trackNotifierProvider = AsyncNotifierProvider<TrackNotifier, void>(
 
 class TrackNotifier extends AsyncNotifier<void> {
   @override
-  Future<void> build() async => null;
+  Future<void> build() async {}
 
   Future<void> track({
     required String type,
@@ -25,4 +25,3 @@ class TrackNotifier extends AsyncNotifier<void> {
     });
   }
 }
-
