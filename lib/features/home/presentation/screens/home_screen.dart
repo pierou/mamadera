@@ -48,7 +48,7 @@ class _HomeContent extends ConsumerWidget {
   }
 
   void _showHealthSubtypeDialog(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppTheme.background,
       shape: const RoundedRectangleBorder(
@@ -180,3 +180,4 @@ class _HomeContent extends ConsumerWidget {
     );
   }
 }
+
