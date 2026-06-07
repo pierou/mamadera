@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../data/local/database.dart';
-import '../../widgets/history_tile.dart';
+import '../../../../widgets/history_tile.dart';
+import '../providers/history_notifier.dart';
 
-class HistoryScreen extends StatefulWidget {
+class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
-
-  @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
-}
-
-class _HistoryScreenState extends State<HistoryScreen> {
-  String _selectedFilter = 'all';
-  final DatabaseService _dbService = DatabaseService();
 
   static const List<Map<String, dynamic>> _filters = [
     {'value': 'all', 'label': 'Tous'},
@@ -23,7 +16,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedFilter = ref.watch(selectedFilterProvider);
+    final eventsAsync = ref.watch(historyNotifierProvider(selectedFilter));
+
     return Scaffold(
       appBar: AppBar(title: const Text('Historique')),
       body: Column(
@@ -34,16 +30,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: _filters.map((filter) {
-                  final isSelected = _selectedFilter == filter['value'];
+                  final isSelected = selectedFilter == filter['value'];
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: FilterChip(
                       label: Text(filter['label'] as String),
                       selected: isSelected,
                       onSelected: (selected) {
-                        setState(() {
-                          _selectedFilter = filter['value'] as String;
-                        });
+                        ref
+                            .read(selectedFilterProvider.notifier)
+                            .setFilter(filter['value'] as String);
                       },
                     ),
                   );
@@ -53,18 +49,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           const Divider(height: 1),
           Expanded(
-            child: FutureBuilder(
-              future: _selectedFilter == 'all'
-                  ? _dbService.database.getAllEventsOrdered()
-                  : _dbService.database.getEventsByType(_selectedFilter),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('Erreur: ${snapshot.error}'));
-                }
-                final events = snapshot.data ?? [];
+            child: eventsAsync.when(
+              data: (events) {
                 if (events.isEmpty) {
                   return const Center(child: Text('Aucun événement'));
                 }
@@ -83,6 +69,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   },
                 );
               },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Erreur: $error')),
             ),
           ),
         ],

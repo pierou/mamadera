@@ -153,7 +153,7 @@ jobs:
       contents: write
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@9c19ed3fe4e01f4c8c2d5e4d0a3e8a0e7c3e5e0e # v3.0.0
+        uses: actions/download-artifact@v3
 
       - name: Create Release
         env:

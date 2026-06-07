@@ -1,5 +1,5 @@
 name: mamadera
-description: "A new Flutter project."
+description: Privacy-first newborn tracking app
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -19,10 +19,11 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.12.1
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.44.0"
 
 # Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
+# To automatically upgrade the package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
@@ -30,37 +31,50 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  riverpod: ^3.0.0
+  flutter_riverpod: ^3.0.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  drift: ^2.33.0
-  sqflite_common_ffi: ^2.4.1
+  # Local Storage
+  flutter_secure_storage: ^10.0.0
+  drift: ^2.22.0
+
+  sqflite_common_ffi: ^2.3.7+1
   sqlcipher_flutter_libs: ^0.7.0+eol
-  intl: any
+
+  # UI & Routing
+  go_router: ^17.0.0
+  intl: ^0.20.2
+
+  # Utilities
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+  logger: ^2.4.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  drift_dev: ^2.0.0
-  build_runner: ^2.0.0
-
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
   flutter_lints: ^6.0.0
-
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
+  freezed: ^3.0.0
+  drift_dev: ^2.28.0
+  json_serializable: ^6.9.0
+  mockito: ^5.4.4
+  build_runner: ^2.4.13
+# For information on the generic Dart part of this pubspec, see
+# https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
 
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
+  # The following line ensures the Material Icons font is
+  # included with your application.
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
@@ -69,7 +83,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
+  # https://flutter.dev/to/resolution-aware-assets
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
