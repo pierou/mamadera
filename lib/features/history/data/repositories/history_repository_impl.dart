@@ -1,13 +1,15 @@
 import '../../../../core/entities/tracking_event.dart';
+import '../../../../core/services/encryption_service.dart';
 import '../../../../data/local/database.dart';
 import '../../domain/repositories/history_repository.dart';
 
 class HistoryRepositoryImpl implements HistoryRepository {
-  // Injection de dépendance pour la testabilité
-  HistoryRepositoryImpl({DatabaseService? dbService})
+  // Injection de dépendance pour la testabilité et le chiffrement
+  HistoryRepositoryImpl({required this.encryption, DatabaseService? dbService})
       : _dbService = dbService ?? DatabaseService();
 
-  final DatabaseService _dbService;
+  final EncryptionService encryption;
+  late final DatabaseService _dbService;
 
   @override
   Future<List<TrackingEvent>> getAllEventsOrdered() async {
@@ -19,7 +21,7 @@ class HistoryRepositoryImpl implements HistoryRepository {
               type: e.type,
               timestamp: e.timestamp,
               duration: e.duration,
-              notes: e.notes,
+              notes: encryption.decrypt(e.notes),
             ))
         .toList();
   }
@@ -34,9 +36,10 @@ class HistoryRepositoryImpl implements HistoryRepository {
               type: e.type,
               timestamp: e.timestamp,
               duration: e.duration,
-              notes: e.notes,
+              notes: encryption.decrypt(e.notes),
             ))
         .toList();
   }
 }
+
 

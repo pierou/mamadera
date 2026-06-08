@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
-
+import '../../core/services/encryption_migration.dart';
+import '../../core/services/encryption_service.dart';
 import 'app_db.dart';
 
 Future<LazyDatabase> _createConnection() async {
@@ -14,12 +15,12 @@ Future<LazyDatabase> _createConnection() async {
 }
 
 class DatabaseService {
-
   DatabaseService._internal() {
     _databaseFuture = _initDatabase();
   }
 
   factory DatabaseService() => _instance;
+
   static final DatabaseService _instance = DatabaseService._internal();
   late final Future<AppDatabase> _databaseFuture;
 
@@ -27,8 +28,18 @@ class DatabaseService {
     return _databaseFuture;
   }
 
+  /// Lance la migration des notes en clair vers les notes chiffrées.
+  /// Retourne le nombre de notes migrées.
+  static Future<int> runMigration(EncryptionService encryption) async {
+    final db = await _instance.database;
+    final migration = EncryptionMigration(db, encryption);
+    return migration.migratePlaintextNotes();
+  }
+
   Future<AppDatabase> _initDatabase() async {
     final connection = await _createConnection();
     return AppDatabase(connection);
   }
+
 }
+

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/entities/tracking_event.dart' as entity;
+import 'package:mamadera/core/services/encryption_service.dart';
 import 'package:mamadera/data/local/app_db.dart' as drift;
 import 'package:mamadera/data/local/database.dart';
 import 'package:mamadera/features/history/data/repositories/history_repository_impl.dart';
@@ -8,23 +9,32 @@ import 'package:mockito/mockito.dart';
 
 import 'history_repository_impl_test.mocks.dart';
 
-@GenerateMocks([DatabaseService, drift.AppDatabase])
+@GenerateMocks([DatabaseService, drift.AppDatabase, EncryptionService])
 void main() {
   late HistoryRepositoryImpl repository;
   late MockDatabaseService mockDbService;
   late MockAppDatabase mockAppDatabase;
+  late MockEncryptionService mockEncryption;
 
-  setUp(() {
+  setUp(() async {
     mockAppDatabase = MockAppDatabase();
     mockDbService = MockDatabaseService();
-    when(mockDbService.database).thenAnswer((_) async => mockAppDatabase);
+    mockEncryption = MockEncryptionService();
 
-    repository = HistoryRepositoryImpl(dbService: mockDbService);
+    when(mockDbService.database).thenAnswer((_) async => mockAppDatabase);
+    // Le mock de déchiffrement retourne la valeur brute pour les tests
+    when(mockEncryption.decrypt(any)).thenReturn('decrypted_notes');
+
+    repository = HistoryRepositoryImpl(
+      dbService: mockDbService,
+      encryption: mockEncryption,
+    );
   });
 
   tearDown(() {
     reset(mockDbService);
     reset(mockAppDatabase);
+    reset(mockEncryption);
   });
 
   group('HistoryRepositoryImpl', () {
@@ -42,11 +52,16 @@ void main() {
             type: 'miam',
             timestamp: DateTime(2023, 10, 2),
           duration: 15,
-          notes: 'notes test',
+          notes: 'encrypted_notes_data',
         );
 
         when(mockAppDatabase.getAllEventsOrdered())
             .thenAnswer((_) async => [dbEvent1, dbEvent2]);
+
+        // Configure le mock pour retourner null sur decrypt(null) et la valeur brute sinon
+        when(mockEncryption.decrypt(null)).thenReturn(null);
+        when(mockEncryption.decrypt('encrypted_notes_data')).thenReturn('notes test');
+
         final result = await repository.getAllEventsOrdered();
 
         expect(result, isA<List<entity.TrackingEvent>>());
@@ -88,6 +103,9 @@ void main() {
 
         when(mockAppDatabase.getEventsByType('sein'))
             .thenAnswer((_) async => [dbEvent]);
+
+        when(mockEncryption.decrypt(null)).thenReturn(null);
+
         final result = await repository.getEventsByType('sein');
 
         expect(result.length, 1);

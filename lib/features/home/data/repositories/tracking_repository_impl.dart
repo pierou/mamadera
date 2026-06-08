@@ -1,28 +1,32 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:logger/logger.dart';
 
+import '../../../../core/services/encryption_service.dart';
 import '../../../../data/local/app_db.dart' hide TrackingEvent;
 import '../../../../data/local/database.dart';
 import '../../domain/entities/tracking_event.dart';
 import '../../domain/repositories/tracking_repository.dart';
 
 class TrackingRepositoryImpl implements TrackingRepository {
-  // Injection de dépendance pour la testabilité
-  TrackingRepositoryImpl({DatabaseService? dbService})
-      : _dbService = dbService ?? DatabaseService();
+  // Injection de dépendance pour la testabilité et le chiffrement
+  TrackingRepositoryImpl({
+    required this.encryption,
+    DatabaseService? dbService,
+  }) : _dbService = dbService ?? DatabaseService();
 
-  final DatabaseService _dbService;
+  final EncryptionService encryption;
+  late final DatabaseService _dbService;
   final Logger _logger = Logger();
 
   @override
   Future<List<TrackingEvent>> getAllEventsOrdered() async {
     try {
       _logger.d('getAllEventsOrdered - Starting...');
-      final db = await _dbService.database;
-      _logger.d('getAllEventsOrdered - DB acquired');
-      final events = await db.getAllEventsOrdered();
-      _logger
-          .d('getAllEventsOrdered - Query completed, ${events.length} events');
+    final db = await _dbService.database;
+    _logger.d('getAllEventsOrdered - DB acquired');
+    final events = await db.getAllEventsOrdered();
+    _logger
+        .d('getAllEventsOrdered - Query completed, ${events.length} events');
 
       return events
           .map((e) => TrackingEvent(
@@ -30,7 +34,7 @@ class TrackingRepositoryImpl implements TrackingRepository {
                 type: e.type,
                 timestamp: e.timestamp,
                 duration: e.duration,
-                notes: e.notes,
+                notes: encryption.decrypt(e.notes),
               ))
           .toList();
     } catch (e, stack) {
@@ -51,10 +55,11 @@ class TrackingRepositoryImpl implements TrackingRepository {
 
       return events
           .map((e) => TrackingEvent(
+                id: e.id,
                 type: e.type,
                 timestamp: e.timestamp,
                 duration: e.duration,
-                notes: e.notes,
+                notes: encryption.decrypt(e.notes),
               ))
           .toList();
     } catch (e, stack) {
@@ -74,11 +79,15 @@ class TrackingRepositoryImpl implements TrackingRepository {
     try {
       _logger.d('insertEvent($type) - Starting...');
       final db = await _dbService.database;
+
+      // Chiffre les notes sensibles avant insertion en DB
+      final encryptedNotes = notes != null ? encryption.encrypt(notes) : null;
+
       final companion = TrackingEventsCompanion(
         type: Value(type),
         timestamp: Value(timestamp ?? DateTime.now()),
         duration: Value(duration),
-        notes: Value(notes),
+        notes: Value(encryptedNotes),
       );
       final result = await db.insertEvent(companion);
       _logger.d('insertEvent($type) - Success, id: $result');
@@ -89,4 +98,5 @@ class TrackingRepositoryImpl implements TrackingRepository {
     }
   }
 }
+
 

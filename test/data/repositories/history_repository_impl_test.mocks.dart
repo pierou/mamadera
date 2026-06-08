@@ -7,10 +7,12 @@ import 'dart:async' as _i5;
 
 import 'package:drift/drift.dart' as _i3;
 import 'package:drift/src/runtime/executor/stream_queries.dart' as _i4;
+import 'package:encrypt/encrypt.dart' as _i6;
+import 'package:mamadera/core/services/encryption_service.dart' as _i9;
 import 'package:mamadera/data/local/app_db.dart' as _i2;
-import 'package:mamadera/data/local/database.dart' as _i6;
+import 'package:mamadera/data/local/database.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i7;
+import 'package:mockito/src/dummies.dart' as _i8;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -37,53 +39,53 @@ class _FakeAppDatabase_0 extends _i1.SmartFake implements _i2.AppDatabase {
         );
 }
 
-class _Fake$AppDatabaseManager_1 extends _i1.SmartFake
-    implements _i2.$AppDatabaseManager {
-  _Fake$AppDatabaseManager_1(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _Fake$TrackingEventsTable_2 extends _i1.SmartFake
-    implements _i2.$TrackingEventsTable {
-  _Fake$TrackingEventsTable_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeGeneratedDatabase_3 extends _i1.SmartFake
-    implements _i3.GeneratedDatabase {
-  _FakeGeneratedDatabase_3(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeDriftDatabaseOptions_4 extends _i1.SmartFake
-    implements _i3.DriftDatabaseOptions {
-  _FakeDriftDatabaseOptions_4(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeMigrationStrategy_5 extends _i1.SmartFake
+class _FakeMigrationStrategy_1 extends _i1.SmartFake
     implements _i3.MigrationStrategy {
-  _FakeMigrationStrategy_5(
+  _FakeMigrationStrategy_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _Fake$AppDatabaseManager_2 extends _i1.SmartFake
+    implements _i2.$AppDatabaseManager {
+  _Fake$AppDatabaseManager_2(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _Fake$TrackingEventsTable_3 extends _i1.SmartFake
+    implements _i2.$TrackingEventsTable {
+  _Fake$TrackingEventsTable_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeGeneratedDatabase_4 extends _i1.SmartFake
+    implements _i3.GeneratedDatabase {
+  _FakeGeneratedDatabase_4(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeDriftDatabaseOptions_5 extends _i1.SmartFake
+    implements _i3.DriftDatabaseOptions {
+  _FakeDriftDatabaseOptions_5(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -253,10 +255,20 @@ class _FakeGenerationContext_20 extends _i1.SmartFake
         );
 }
 
+class _FakeKey_21 extends _i1.SmartFake implements _i6.Key {
+  _FakeKey_21(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [DatabaseService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDatabaseService extends _i1.Mock implements _i6.DatabaseService {
+class MockDatabaseService extends _i1.Mock implements _i7.DatabaseService {
   MockDatabaseService() {
     _i1.throwOnMissingStub(this);
   }
@@ -286,9 +298,18 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
       ) as int);
 
   @override
+  _i3.MigrationStrategy get migration => (super.noSuchMethod(
+        Invocation.getter(#migration),
+        returnValue: _FakeMigrationStrategy_1(
+          this,
+          Invocation.getter(#migration),
+        ),
+      ) as _i3.MigrationStrategy);
+
+  @override
   _i2.$AppDatabaseManager get managers => (super.noSuchMethod(
         Invocation.getter(#managers),
-        returnValue: _Fake$AppDatabaseManager_1(
+        returnValue: _Fake$AppDatabaseManager_2(
           this,
           Invocation.getter(#managers),
         ),
@@ -297,7 +318,7 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
   @override
   _i2.$TrackingEventsTable get trackingEvents => (super.noSuchMethod(
         Invocation.getter(#trackingEvents),
-        returnValue: _Fake$TrackingEventsTable_2(
+        returnValue: _Fake$TrackingEventsTable_3(
           this,
           Invocation.getter(#trackingEvents),
         ),
@@ -319,7 +340,7 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
   @override
   _i3.GeneratedDatabase get attachedDatabase => (super.noSuchMethod(
         Invocation.getter(#attachedDatabase),
-        returnValue: _FakeGeneratedDatabase_3(
+        returnValue: _FakeGeneratedDatabase_4(
           this,
           Invocation.getter(#attachedDatabase),
         ),
@@ -328,20 +349,11 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
   @override
   _i3.DriftDatabaseOptions get options => (super.noSuchMethod(
         Invocation.getter(#options),
-        returnValue: _FakeDriftDatabaseOptions_4(
+        returnValue: _FakeDriftDatabaseOptions_5(
           this,
           Invocation.getter(#options),
         ),
       ) as _i3.DriftDatabaseOptions);
-
-  @override
-  _i3.MigrationStrategy get migration => (super.noSuchMethod(
-        Invocation.getter(#migration),
-        returnValue: _FakeMigrationStrategy_5(
-          this,
-          Invocation.getter(#migration),
-        ),
-      ) as _i3.MigrationStrategy);
 
   @override
   _i3.StreamQueryUpdateRules get streamUpdateRules => (super.noSuchMethod(
@@ -364,7 +376,7 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
   @override
   _i3.SqlTypes get typeMapping => (super.noSuchMethod(
         Invocation.getter(#typeMapping),
-        returnValue: _i7.dummyValue<_i3.SqlTypes>(
+        returnValue: _i8.dummyValue<_i3.SqlTypes>(
           this,
           Invocation.getter(#typeMapping),
         ),
@@ -505,8 +517,8 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
             #connect: connect,
           },
         ),
-        returnValue: _i7.ifNotNull(
-              _i7.dummyValueOrNull<Ret>(
+        returnValue: _i8.ifNotNull(
+              _i8.dummyValueOrNull<Ret>(
                 this,
                 Invocation.method(
                   #computeWithDatabase,
@@ -556,7 +568,7 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
             alias,
           ],
         ),
-        returnValue: _i7.dummyValue<T>(
+        returnValue: _i8.dummyValue<T>(
           this,
           Invocation.method(
             #alias,
@@ -606,8 +618,8 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
           #doWhenOpened,
           [fn],
         ),
-        returnValue: _i7.ifNotNull(
-              _i7.dummyValueOrNull<T>(
+        returnValue: _i8.ifNotNull(
+              _i8.dummyValueOrNull<T>(
                 this,
                 Invocation.method(
                   #doWhenOpened,
@@ -877,8 +889,8 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
           [action],
           {#requireNew: requireNew},
         ),
-        returnValue: _i7.ifNotNull(
-              _i7.dummyValueOrNull<T>(
+        returnValue: _i8.ifNotNull(
+              _i8.dummyValueOrNull<T>(
                 this,
                 Invocation.method(
                   #transaction,
@@ -905,8 +917,8 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
           #exclusively,
           [action],
         ),
-        returnValue: _i7.ifNotNull(
-              _i7.dummyValueOrNull<T>(
+        returnValue: _i8.ifNotNull(
+              _i8.dummyValueOrNull<T>(
                 this,
                 Invocation.method(
                   #exclusively,
@@ -946,8 +958,8 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
           [action],
           {#interceptor: interceptor},
         ),
-        returnValue: _i7.ifNotNull(
-              _i7.dummyValueOrNull<T>(
+        returnValue: _i8.ifNotNull(
+              _i8.dummyValueOrNull<T>(
                 this,
                 Invocation.method(
                   #runWithInterceptor,
@@ -1036,7 +1048,7 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
             amount,
           ],
         ),
-        returnValue: _i7.dummyValue<String>(
+        returnValue: _i8.dummyValue<String>(
           this,
           Invocation.method(
             #$expandVar,
@@ -1047,4 +1059,76 @@ class MockAppDatabase extends _i1.Mock implements _i2.AppDatabase {
           ),
         ),
       ) as String);
+}
+
+/// A class which mocks [EncryptionService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockEncryptionService extends _i1.Mock implements _i9.EncryptionService {
+  MockEncryptionService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i6.Key get key => (super.noSuchMethod(
+        Invocation.getter(#key),
+        returnValue: _FakeKey_21(
+          this,
+          Invocation.getter(#key),
+        ),
+      ) as _i6.Key);
+
+  @override
+  _i5.Future<void> initialize() => (super.noSuchMethod(
+        Invocation.method(
+          #initialize,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  String encrypt(String? plainText) => (super.noSuchMethod(
+        Invocation.method(
+          #encrypt,
+          [plainText],
+        ),
+        returnValue: _i8.dummyValue<String>(
+          this,
+          Invocation.method(
+            #encrypt,
+            [plainText],
+          ),
+        ),
+      ) as String);
+
+  @override
+  bool isEncrypted(String? value) => (super.noSuchMethod(
+        Invocation.method(
+          #isEncrypted,
+          [value],
+        ),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  _i5.Future<void> rotateKey() => (super.noSuchMethod(
+        Invocation.method(
+          #rotateKey,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> destroyKey() => (super.noSuchMethod(
+        Invocation.method(
+          #destroyKey,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 }
