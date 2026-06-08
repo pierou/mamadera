@@ -33,26 +33,11 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
 
   Future<T> _fetchWithTimeout<T>(Future<T> Function() fetch) async {
     const timeout = Duration(seconds: 10);
-    final completer = Completer<T>();
-    final timer = Timer(timeout, () {
-      if (!completer.isCompleted) {
-        completer.completeError(
-          Exception('Délai d\'attente dépassé (${timeout.inSeconds}s)'),
-          StackTrace.current,
-        );
-      }
-    });
-
     try {
-      final result = await fetch();
-      completer.complete(result);
-    } catch (e) {
-      completer.completeError(e);
-    } finally {
-      timer.cancel();
+      return await fetch().timeout(timeout);
+    } on TimeoutException {
+      throw Exception('Délai d\'attente dépassé (${timeout.inSeconds}s)');
     }
-
-    return completer.future;
   }
 }
 

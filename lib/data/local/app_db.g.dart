@@ -12,56 +12,34 @@ class $TrackingEventsTable extends TrackingEvents
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
-    'type',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _timestampMeta = const VerificationMeta(
-    'timestamp',
-  );
+      'type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _timestampMeta =
+      const VerificationMeta('timestamp');
   @override
   late final GeneratedColumn<DateTime> timestamp = GeneratedColumn<DateTime>(
-    'timestamp',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _durationMeta = const VerificationMeta(
-    'duration',
-  );
+      'timestamp', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _durationMeta =
+      const VerificationMeta('duration');
   @override
   late final GeneratedColumn<double> duration = GeneratedColumn<double>(
-    'duration',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-  );
+      'duration', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
-    'notes',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'notes', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [id, type, timestamp, duration, notes];
   @override
@@ -70,10 +48,8 @@ class $TrackingEventsTable extends TrackingEvents
   String get actualTableName => $name;
   static const String $name = 'tracking_events';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<TrackingEvent> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<TrackingEvent> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -81,31 +57,23 @@ class $TrackingEventsTable extends TrackingEvents
     }
     if (data.containsKey('type')) {
       context.handle(
-        _typeMeta,
-        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
-      );
+          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
     if (data.containsKey('timestamp')) {
-      context.handle(
-        _timestampMeta,
-        timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta),
-      );
+      context.handle(_timestampMeta,
+          timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta));
     } else if (isInserting) {
       context.missing(_timestampMeta);
     }
     if (data.containsKey('duration')) {
-      context.handle(
-        _durationMeta,
-        duration.isAcceptableOrUnknown(data['duration']!, _durationMeta),
-      );
+      context.handle(_durationMeta,
+          duration.isAcceptableOrUnknown(data['duration']!, _durationMeta));
     }
     if (data.containsKey('notes')) {
       context.handle(
-        _notesMeta,
-        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
-      );
+          _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
     }
     return context;
   }
@@ -116,26 +84,16 @@ class $TrackingEventsTable extends TrackingEvents
   TrackingEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TrackingEvent(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      type: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}type'],
-      )!,
-      timestamp: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}timestamp'],
-      )!,
-      duration: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}duration'],
-      ),
-      notes: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}notes'],
-      ),
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      timestamp: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}timestamp'])!,
+      duration: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}duration']),
+      notes: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}notes']),
     );
   }
 
@@ -151,13 +109,12 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
   final DateTime timestamp;
   final double? duration;
   final String? notes;
-  const TrackingEvent({
-    required this.id,
-    required this.type,
-    required this.timestamp,
-    this.duration,
-    this.notes,
-  });
+  const TrackingEvent(
+      {required this.id,
+      required this.type,
+      required this.timestamp,
+      this.duration,
+      this.notes});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -186,10 +143,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
     );
   }
 
-  factory TrackingEvent.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory TrackingEvent.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TrackingEvent(
       id: serializer.fromJson<int>(json['id']),
@@ -211,13 +166,12 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
     };
   }
 
-  TrackingEvent copyWith({
-    int? id,
-    String? type,
-    DateTime? timestamp,
-    Value<double?> duration = const Value.absent(),
-    Value<String?> notes = const Value.absent(),
-  }) =>
+  TrackingEvent copyWith(
+          {int? id,
+          String? type,
+          DateTime? timestamp,
+          Value<double?> duration = const Value.absent(),
+          Value<String?> notes = const Value.absent()}) =>
       TrackingEvent(
         id: id ?? this.id,
         type: type ?? this.type,
@@ -297,13 +251,12 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     });
   }
 
-  TrackingEventsCompanion copyWith({
-    Value<int>? id,
-    Value<String>? type,
-    Value<DateTime>? timestamp,
-    Value<double?>? duration,
-    Value<String?>? notes,
-  }) {
+  TrackingEventsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? type,
+      Value<DateTime>? timestamp,
+      Value<double?>? duration,
+      Value<String?>? notes}) {
     return TrackingEventsCompanion(
       id: id ?? this.id,
       type: type ?? this.type,
@@ -385,29 +338,19 @@ class $$TrackingEventsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-        column: $table.id,
-        builder: (column) => ColumnFilters(column),
-      );
+      column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get type => $composableBuilder(
-        column: $table.type,
-        builder: (column) => ColumnFilters(column),
-      );
+      column: $table.type, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get timestamp => $composableBuilder(
-        column: $table.timestamp,
-        builder: (column) => ColumnFilters(column),
-      );
+      column: $table.timestamp, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<double> get duration => $composableBuilder(
-        column: $table.duration,
-        builder: (column) => ColumnFilters(column),
-      );
+      column: $table.duration, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get notes => $composableBuilder(
-        column: $table.notes,
-        builder: (column) => ColumnFilters(column),
-      );
+      column: $table.notes, builder: (column) => ColumnFilters(column));
 }
 
 class $$TrackingEventsTableOrderingComposer
@@ -420,29 +363,19 @@ class $$TrackingEventsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-        column: $table.id,
-        builder: (column) => ColumnOrderings(column),
-      );
+      column: $table.id, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get type => $composableBuilder(
-        column: $table.type,
-        builder: (column) => ColumnOrderings(column),
-      );
+      column: $table.type, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get timestamp => $composableBuilder(
-        column: $table.timestamp,
-        builder: (column) => ColumnOrderings(column),
-      );
+      column: $table.timestamp, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<double> get duration => $composableBuilder(
-        column: $table.duration,
-        builder: (column) => ColumnOrderings(column),
-      );
+      column: $table.duration, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get notes => $composableBuilder(
-        column: $table.notes,
-        builder: (column) => ColumnOrderings(column),
-      );
+      column: $table.notes, builder: (column) => ColumnOrderings(column));
 }
 
 class $$TrackingEventsTableAnnotationComposer
@@ -481,57 +414,54 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
     $$TrackingEventsTableUpdateCompanionBuilder,
     (
       TrackingEvent,
-      BaseReferences<_$AppDatabase, $TrackingEventsTable, TrackingEvent>,
+      BaseReferences<_$AppDatabase, $TrackingEventsTable, TrackingEvent>
     ),
     TrackingEvent,
     PrefetchHooks Function()> {
   $$TrackingEventsTableTableManager(
-    _$AppDatabase db,
-    $TrackingEventsTable table,
-  ) : super(
-          TableManagerState(
-            db: db,
-            table: table,
-            createFilteringComposer: () =>
-                $$TrackingEventsTableFilterComposer($db: db, $table: table),
-            createOrderingComposer: () =>
-                $$TrackingEventsTableOrderingComposer($db: db, $table: table),
-            createComputedFieldComposer: () =>
-                $$TrackingEventsTableAnnotationComposer($db: db, $table: table),
-            updateCompanionCallback: ({
-              Value<int> id = const Value.absent(),
-              Value<String> type = const Value.absent(),
-              Value<DateTime> timestamp = const Value.absent(),
-              Value<double?> duration = const Value.absent(),
-              Value<String?> notes = const Value.absent(),
-            }) =>
-                TrackingEventsCompanion(
-              id: id,
-              type: type,
-              timestamp: timestamp,
-              duration: duration,
-              notes: notes,
-            ),
-            createCompanionCallback: ({
-              Value<int> id = const Value.absent(),
-              required String type,
-              required DateTime timestamp,
-              Value<double?> duration = const Value.absent(),
-              Value<String?> notes = const Value.absent(),
-            }) =>
-                TrackingEventsCompanion.insert(
-              id: id,
-              type: type,
-              timestamp: timestamp,
-              duration: duration,
-              notes: notes,
-            ),
-            withReferenceMapper: (p0) => p0
-                .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-                .toList(),
-            prefetchHooksCallback: null,
+      _$AppDatabase db, $TrackingEventsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TrackingEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TrackingEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TrackingEventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> type = const Value.absent(),
+            Value<DateTime> timestamp = const Value.absent(),
+            Value<double?> duration = const Value.absent(),
+            Value<String?> notes = const Value.absent(),
+          }) =>
+              TrackingEventsCompanion(
+            id: id,
+            type: type,
+            timestamp: timestamp,
+            duration: duration,
+            notes: notes,
           ),
-        );
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String type,
+            required DateTime timestamp,
+            Value<double?> duration = const Value.absent(),
+            Value<String?> notes = const Value.absent(),
+          }) =>
+              TrackingEventsCompanion.insert(
+            id: id,
+            type: type,
+            timestamp: timestamp,
+            duration: duration,
+            notes: notes,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
 }
 
 typedef $$TrackingEventsTableProcessedTableManager = ProcessedTableManager<
@@ -545,7 +475,7 @@ typedef $$TrackingEventsTableProcessedTableManager = ProcessedTableManager<
     $$TrackingEventsTableUpdateCompanionBuilder,
     (
       TrackingEvent,
-      BaseReferences<_$AppDatabase, $TrackingEventsTable, TrackingEvent>,
+      BaseReferences<_$AppDatabase, $TrackingEventsTable, TrackingEvent>
     ),
     TrackingEvent,
     PrefetchHooks Function()>;

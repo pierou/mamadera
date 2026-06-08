@@ -7,7 +7,11 @@ import '../../domain/entities/tracking_event.dart';
 import '../../domain/repositories/tracking_repository.dart';
 
 class TrackingRepositoryImpl implements TrackingRepository {
-  final DatabaseService _dbService = DatabaseService();
+  // Injection de dépendance pour la testabilité
+  TrackingRepositoryImpl({DatabaseService? dbService})
+      : _dbService = dbService ?? DatabaseService();
+
+  final DatabaseService _dbService;
   final Logger _logger = Logger();
 
   @override
@@ -85,3 +89,4 @@ class TrackingRepositoryImpl implements TrackingRepository {
     }
   }
 }
+

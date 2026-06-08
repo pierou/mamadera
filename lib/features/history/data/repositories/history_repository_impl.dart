@@ -3,7 +3,11 @@ import '../../../../data/local/database.dart';
 import '../../domain/repositories/history_repository.dart';
 
 class HistoryRepositoryImpl implements HistoryRepository {
-  final DatabaseService _dbService = DatabaseService();
+  // Injection de dépendance pour la testabilité
+  HistoryRepositoryImpl({DatabaseService? dbService})
+      : _dbService = dbService ?? DatabaseService();
+
+  final DatabaseService _dbService;
 
   @override
   Future<List<TrackingEvent>> getAllEventsOrdered() async {
@@ -35,3 +39,4 @@ class HistoryRepositoryImpl implements HistoryRepository {
         .toList();
   }
 }
+
