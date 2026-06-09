@@ -16,7 +16,7 @@ void main() {
 
     // Simule une clé maître existante (32 octets en base64)
     when(mockStorage.read(key: 'mamadera_master_key')).thenAnswer((_) async =>
-        'YmFzZTY0LWVuY29kZWQtbWFzdGVyLWtleS1mb3ItYWVzMjU2'); // 32 chars base64
+        'YmFzZTY0LWVuY29kZWQtbWFzdGVyLWtleS1mb3ItYWVzMjU2'); // gitleaks:allow — mock key for tests, not a real secret
 
     encryption = EncryptionService(mockStorage);
   });
