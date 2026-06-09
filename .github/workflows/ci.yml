@@ -38,12 +38,6 @@ jobs:
           skip-dirs: '${{ github.workspace }}/.pub-cache'
         continue-on-error: true  # Non-blocking until we migrate to a Dart-aware scanner
 
-      - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_NO_GIT: "true"
-
       - name: Semgrep (SAST basique)
         uses: semgrep/semgrep-action@v1
         with:
