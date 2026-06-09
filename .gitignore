@@ -10,7 +10,12 @@
 .history
 .svn/
 .swiftpm/
+.continue
 migrate_working_dir/
+*.pbxproj
+*.xcworkspace
+*.xcuserdata
+*.hprof
 
 # IntelliJ related
 *.iml
@@ -26,7 +31,10 @@ migrate_working_dir/
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
+ios/Pods/
+ios/.symlinks/
 .dart_tool/
+.packages
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
