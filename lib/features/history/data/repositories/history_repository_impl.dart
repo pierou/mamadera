@@ -41,5 +41,3 @@ class HistoryRepositoryImpl implements HistoryRepository {
         .toList();
   }
 }
-
-

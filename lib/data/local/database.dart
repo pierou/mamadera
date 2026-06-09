@@ -40,6 +40,4 @@ class DatabaseService {
     final connection = await _createConnection();
     return AppDatabase(connection);
   }
-
 }
-

@@ -22,11 +22,11 @@ class TrackingRepositoryImpl implements TrackingRepository {
   Future<List<TrackingEvent>> getAllEventsOrdered() async {
     try {
       _logger.d('getAllEventsOrdered - Starting...');
-    final db = await _dbService.database;
-    _logger.d('getAllEventsOrdered - DB acquired');
-    final events = await db.getAllEventsOrdered();
-    _logger
-        .d('getAllEventsOrdered - Query completed, ${events.length} events');
+      final db = await _dbService.database;
+      _logger.d('getAllEventsOrdered - DB acquired');
+      final events = await db.getAllEventsOrdered();
+      _logger
+          .d('getAllEventsOrdered - Query completed, ${events.length} events');
 
       return events
           .map((e) => TrackingEvent(
@@ -98,5 +98,3 @@ class TrackingRepositoryImpl implements TrackingRepository {
     }
   }
 }
-
-

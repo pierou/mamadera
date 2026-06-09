@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import '../core/theme.dart';
 
 class TrackButton extends StatefulWidget {
-
   const TrackButton(
-      {required this.label, required this.color, required this.onTap, super.key});
+      {required this.label,
+      required this.color,
+      required this.onTap,
+      super.key});
   final String label;
   final Color color;
   final VoidCallback onTap;

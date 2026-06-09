@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 // ignore_for_file: avoid_classes_with_only_static_members
 class AppTheme {
   const AppTheme();
@@ -27,4 +28,3 @@ class AppTheme {
         ),
       );
 }
-

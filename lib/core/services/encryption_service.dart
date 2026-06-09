@@ -92,7 +92,9 @@ class EncryptionService {
 
     final parts = value.split(':');
     // Format minimal : iv_base64:ciphertext_base64
-    return parts.length >= 2 && _isValidBase64(parts[0]) && _isValidBase64(parts[1]);
+    return parts.length >= 2 &&
+        _isValidBase64(parts[0]) &&
+        _isValidBase64(parts[1]);
   }
 
   bool _isValidBase64(String str) {
@@ -118,5 +120,3 @@ class EncryptionService {
     _cachedKey = null;
   }
 }
-
-

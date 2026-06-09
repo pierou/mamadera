@@ -20,7 +20,6 @@ class TrackingEvent extends Equatable {
   List<Object?> get props => [id, type, timestamp, duration, notes];
 
   @override
-  String toString() => 'TrackingEvent(id: $id, type: $type, timestamp: $timestamp, duration: $duration, notes: $notes)';
+  String toString() =>
+      'TrackingEvent(id: $id, type: $type, timestamp: $timestamp, duration: $duration, notes: $notes)';
 }
-
-

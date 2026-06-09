@@ -49,7 +49,9 @@ void main() {
         expect(baseEvent, equals(baseEvent));
       });
 
-      test('doit retourner vrai pour deux instances différentes mais aux valeurs identiques', () {
+      test(
+          'doit retourner vrai pour deux instances différentes mais aux valeurs identiques',
+          () {
         final duplicate = TrackingEvent(
           type: 'break',
           timestamp: baseTimestamp,
@@ -97,9 +99,9 @@ void main() {
           duration: 1,
           notes: 'Info de debug',
         );
-        
+
         final stringRepresentation = event.toString();
-        
+
         expect(stringRepresentation, contains('TrackingEvent'));
         expect(stringRepresentation, contains('type: test'));
         expect(stringRepresentation, contains('id: 5'));

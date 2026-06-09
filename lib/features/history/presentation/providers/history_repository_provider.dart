@@ -10,4 +10,3 @@ final historyRepositoryProvider = Provider<HistoryRepository>(
     return HistoryRepositoryImpl(encryption: encryption);
   },
 );
-

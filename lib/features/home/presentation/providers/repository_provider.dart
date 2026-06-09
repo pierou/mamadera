@@ -10,4 +10,3 @@ final trackingRepositoryProvider = Provider<TrackingRepository>(
     return TrackingRepositoryImpl(encryption: encryption);
   },
 );
-

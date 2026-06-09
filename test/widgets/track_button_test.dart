@@ -9,7 +9,9 @@ void main() {
       // Arrange: créer un TrackButton avec un label spécifique
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: TrackButton(label: 'Test Label', color: Colors.blue, onTap: () {})),
+          home: Scaffold(
+              body: TrackButton(
+                  label: 'Test Label', color: Colors.blue, onTap: () {})),
         ),
       );
 
@@ -22,7 +24,9 @@ void main() {
       const Color buttonColor = Colors.red;
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: TrackButton(label: 'Test', color: buttonColor, onTap: () {})),
+          home: Scaffold(
+              body:
+                  TrackButton(label: 'Test', color: buttonColor, onTap: () {})),
         ),
       );
 
@@ -33,11 +37,14 @@ void main() {
       expect(boxDeco.color, equals(buttonColor));
     });
 
-    testWidgets('Scale animation au press (tapDown → scale 0.95)', (WidgetTester tester) async {
+    testWidgets('Scale animation au press (tapDown → scale 0.95)',
+        (WidgetTester tester) async {
       // Arrange: créer le widget et attendre la première frame
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: TrackButton(label: 'Test', color: Colors.blue, onTap: () {})),
+          home: Scaffold(
+              body:
+                  TrackButton(label: 'Test', color: Colors.blue, onTap: () {})),
         ),
       );
 
@@ -54,7 +61,11 @@ void main() {
       var tapped = false;
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: TrackButton(label: 'Test', color: Colors.blue, onTap: () => tapped = true)),
+          home: Scaffold(
+              body: TrackButton(
+                  label: 'Test',
+                  color: Colors.blue,
+                  onTap: () => tapped = true)),
         ),
       );
 
@@ -66,6 +77,3 @@ void main() {
     });
   });
 }
-
-
-

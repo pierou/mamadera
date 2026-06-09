@@ -42,15 +42,15 @@ void main() {
       test('retourne une liste d\'événements triés en succès', () async {
         final dbEvent1 = drift.TrackingEvent(
           id: 2,
-            type: 'dodo',
-            timestamp: DateTime(2023, 10, 1),
+          type: 'dodo',
+          timestamp: DateTime(2023, 10, 1),
           duration: 30,
           notes: null,
         );
         final dbEvent2 = drift.TrackingEvent(
           id: 1,
-            type: 'miam',
-            timestamp: DateTime(2023, 10, 2),
+          type: 'miam',
+          timestamp: DateTime(2023, 10, 2),
           duration: 15,
           notes: 'encrypted_notes_data',
         );
@@ -60,7 +60,8 @@ void main() {
 
         // Configure le mock pour retourner null sur decrypt(null) et la valeur brute sinon
         when(mockEncryption.decrypt(null)).thenReturn(null);
-        when(mockEncryption.decrypt('encrypted_notes_data')).thenReturn('notes test');
+        when(mockEncryption.decrypt('encrypted_notes_data'))
+            .thenReturn('notes test');
 
         final result = await repository.getAllEventsOrdered();
 
@@ -95,8 +96,8 @@ void main() {
       test('filtre correctement par type en succès', () async {
         final dbEvent = drift.TrackingEvent(
           id: 1,
-            type: 'sein',
-            timestamp: DateTime.now(),
+          type: 'sein',
+          timestamp: DateTime.now(),
           duration: 12,
           notes: null,
         );
@@ -140,4 +141,3 @@ void main() {
     });
   });
 }
-

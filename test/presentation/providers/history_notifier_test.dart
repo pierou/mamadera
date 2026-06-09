@@ -1,4 +1,3 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/entities/tracking_event.dart';
@@ -64,8 +63,7 @@ void main() {
       when(mockRepository.getAllEventsOrdered())
           .thenAnswer((_) async => [event1, event2]);
 
-      final state =
-          await container.read(historyNotifierProvider('all').future);
+      final state = await container.read(historyNotifierProvider('all').future);
 
       expect(state, hasLength(2));
       expect(state[0].type, 'miam');
@@ -77,8 +75,7 @@ void main() {
     test('retourne une liste vide si aucun événement', () async {
       when(mockRepository.getAllEventsOrdered()).thenAnswer((_) async => []);
 
-      final state =
-          await container.read(historyNotifierProvider('all').future);
+      final state = await container.read(historyNotifierProvider('all').future);
 
       expect(state, isEmpty);
       verify(mockRepository.getAllEventsOrdered()).called(1);
@@ -124,8 +121,7 @@ void main() {
       expect(initial, isA<AsyncLoading<List<TrackingEvent>>>());
 
       // Après résolution, l'état devrait être data
-      final data =
-          await container.read(historyNotifierProvider('all').future);
+      final data = await container.read(historyNotifierProvider('all').future);
       expect(data, isNotEmpty);
       expect(
         container.read(historyNotifierProvider('all')),
@@ -181,12 +177,10 @@ void main() {
         return [eventRapide];
       });
 
-      final state =
-          await container.read(historyNotifierProvider('all').future);
+      final state = await container.read(historyNotifierProvider('all').future);
 
       expect(state, hasLength(1));
       expect(state[0].type, 'rapide');
     });
   });
 }
-

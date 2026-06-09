@@ -21,9 +21,11 @@ class EncryptionMigration {
       if (event.notes != null && !_encryption.isEncrypted(event.notes)) {
         // La note est en clair → on la chiffre et on met à jour
         final encryptedNotes = _encryption.encrypt(event.notes!);
-        await (_db.update(_db.trackingEvents)..where(
-          (t) => t.id.equals(event.id),
-        )).write(TrackingEventsCompanion(
+        await (_db.update(_db.trackingEvents)
+              ..where(
+                (t) => t.id.equals(event.id),
+              ))
+            .write(TrackingEventsCompanion(
           notes: Value(encryptedNotes),
         ));
 
@@ -34,5 +36,3 @@ class EncryptionMigration {
     return migratedCount;
   }
 }
-
-

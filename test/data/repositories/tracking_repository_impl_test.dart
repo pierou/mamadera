@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/features/home/presentation/screens/home_screen.dart';
+
 void main() {
   testWidgets('HomeScreen displays track buttons', (WidgetTester tester) async {
     await tester.pumpWidget(
@@ -18,6 +19,3 @@ void main() {
     expect(find.text('Dodo'), findsOneWidget);
   });
 }
-
-
-

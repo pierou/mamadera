@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class HistoryTile extends StatelessWidget {
-
   const HistoryTile({
-    required this.type, required this.time, super.key,
+    required this.type,
+    required this.time,
+    super.key,
     this.notes,
     this.duration,
   });

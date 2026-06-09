@@ -5,7 +5,8 @@ import 'package:mamadera/widgets/bottom_nav.dart';
 
 void main() {
   group('AppBottomNav', () {
-    testWidgets('Affiche 3 items : Accueil, Historique, Menu', (WidgetTester tester) async {
+    testWidgets('Affiche 3 items : Accueil, Historique, Menu',
+        (WidgetTester tester) async {
       // Arrange
       await tester.pumpWidget(
         MaterialApp(
@@ -21,7 +22,8 @@ void main() {
       expect(find.text('Menu'), findsOneWidget);
     });
 
-    testWidgets('Item sélectionné correspond à currentIndex', (WidgetTester tester) async {
+    testWidgets('Item sélectionné correspond à currentIndex',
+        (WidgetTester tester) async {
       // Arrange : currentIndex = 1 → Historique est actif
       await tester.pumpWidget(
         MaterialApp(
@@ -32,7 +34,8 @@ void main() {
       );
 
       // Assert : récupérer le BottomNavigationBar et vérifier currentIndex
-      final navBar = tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
+      final navBar =
+          tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
       expect(navBar.currentIndex, equals(1));
 
       // Act & Assert : changer pour index 2 → Menu est actif
@@ -44,17 +47,20 @@ void main() {
         ),
       );
 
-      final navBarUpdated = tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
+      final navBarUpdated =
+          tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
       expect(navBarUpdated.currentIndex, equals(2));
     });
 
-    testWidgets('Callback onTap appelé avec le bon index', (WidgetTester tester) async {
+    testWidgets('Callback onTap appelé avec le bon index',
+        (WidgetTester tester) async {
       // Arrange
       int? tappedIndex;
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            bottomNavigationBar: AppBottomNav(currentIndex: 0, onTap: (index) => tappedIndex = index),
+            bottomNavigationBar: AppBottomNav(
+                currentIndex: 0, onTap: (index) => tappedIndex = index),
           ),
         ),
       );
@@ -82,4 +88,3 @@ void main() {
     });
   });
 }
-

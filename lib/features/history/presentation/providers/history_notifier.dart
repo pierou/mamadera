@@ -17,7 +17,6 @@ class FilterNotifier extends Notifier<String> {
 }
 
 class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
-
   HistoryNotifier(this._filter);
   final String _filter;
 

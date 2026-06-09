@@ -180,4 +180,3 @@ class _HomeContent extends ConsumerWidget {
     );
   }
 }
-
