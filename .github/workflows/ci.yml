@@ -39,11 +39,12 @@ jobs:
         continue-on-error: true  # Non-blocking until we migrate to a Dart-aware scanner
 
       - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v3
+        uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           no-git: true
+
       - name: Semgrep (SAST basique)
         uses: semgrep/semgrep-action@v1
         with:

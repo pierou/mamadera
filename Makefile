@@ -33,5 +33,5 @@ audit-trivy:
 
 audit-gitleaks:
 	@command -v gitleaks >/dev/null 2>&1 || { echo "⚠️ gitleaks not installed. Install from https://github.com/gitleaks/gitleaks"; exit 0; }
-	gitleaks detect --verbose
+	gitleaks detect --verbose --log-opts="--all"
 
