@@ -1,10 +1,12 @@
 .PHONY: ci lint test build-android clean check-coverage audit-trivy audit-gitleaks
 
-ci: lint test check-coverage ## Run full local CI pipeline (aligned with GitHub Actions)
-lint:
-	dart format --set-exit-if-changed lib/ test/
-	flutter analyze --fatal-infos --fatal-warnings lib/
-test:
+ci: pub-get lint test check-coverage ## Run full local CI pipeline (aligned with GitHub Actions)
+pub-get:
+	flutter pub get
+lint: pub-get
+	# Aligned with GA: analyze entire project, no format check in CI
+	flutter analyze --fatal-infos --fatal-warnings
+test: pub-get
 	# Domain & Data (unit) + Presentation (widget) as per architecture rules
 	flutter test test/domain/ test/data/ test/presentation/ --coverage
 
