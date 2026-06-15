@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mamadera/core/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 void main() {
   group('TrackingEvent', () {
@@ -8,11 +9,11 @@ void main() {
     group('Construction', () {
       test('doit être instanciable avec les paramètres requis', () {
         final event = TrackingEvent(
-          type: 'meeting',
+          type: TrackingType.miam,
           timestamp: baseTimestamp,
         );
 
-        expect(event.type, 'meeting');
+        expect(event.type, TrackingType.miam);
         expect(event.timestamp, baseTimestamp);
         expect(event.id, isNull);
         expect(event.duration, isNull);
@@ -21,14 +22,14 @@ void main() {
 
       test('doit accepter les paramètres optionnels', () {
         final event = TrackingEvent(
-          type: 'work',
+          type: TrackingType.dodo,
           timestamp: baseTimestamp,
           id: 1,
           duration: 1.5,
           notes: 'Focus sur les tests',
         );
 
-        expect(event.type, 'work');
+        expect(event.type, TrackingType.dodo);
         expect(event.timestamp, baseTimestamp);
         expect(event.id, 1);
         expect(event.duration, 1.5);
@@ -38,7 +39,7 @@ void main() {
 
     group('Equality & hashCode', () {
       final baseEvent = TrackingEvent(
-        type: 'break',
+        type: TrackingType.caca,
         timestamp: baseTimestamp,
         id: 2,
         duration: 0.5,
@@ -53,7 +54,7 @@ void main() {
           'doit retourner vrai pour deux instances différentes mais aux valeurs identiques',
           () {
         final duplicate = TrackingEvent(
-          type: 'break',
+          type: TrackingType.caca,
           timestamp: baseTimestamp,
           id: 2,
           duration: 0.5,
@@ -64,7 +65,7 @@ void main() {
 
       test('doit retourner faux si une valeur diffère', () {
         final differentEvent = TrackingEvent(
-          type: 'study',
+          type: TrackingType.sante,
           timestamp: baseTimestamp,
         );
         expect(baseEvent, isNot(equals(differentEvent)));
@@ -80,7 +81,7 @@ void main() {
 
       test('hashCode doit être identique pour des instances égales', () {
         final duplicate = TrackingEvent(
-          type: 'break',
+          type: TrackingType.caca,
           timestamp: baseTimestamp,
           id: 2,
           duration: 0.5,
@@ -93,7 +94,7 @@ void main() {
     group('toString', () {
       test('doit retourner une représentation lisible de l\'objet', () {
         final event = TrackingEvent(
-          type: 'test',
+          type: TrackingType.miam,
           timestamp: baseTimestamp,
           id: 5,
           duration: 1,
@@ -103,8 +104,8 @@ void main() {
         final stringRepresentation = event.toString();
 
         expect(stringRepresentation, contains('TrackingEvent'));
-        expect(stringRepresentation, contains('type: test'));
         expect(stringRepresentation, contains('id: 5'));
+        expect(stringRepresentation, contains('type: ${event.type}'));
         expect(stringRepresentation, contains('duration: 1.0'));
       });
     });

@@ -1,10 +1,13 @@
 import 'dart:convert';
 
 import 'package:encrypt/encrypt.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:logger/logger.dart';
 
 /// Service de chiffrement AES-GCM pour les données sensibles.
 /// La clé maître est stockée dans flutter_secure_storage (Keychain iOS / Keystore Android).
+/// Sur desktop sans keyring disponible, fallback sur une clé volatile en mémoire.
 class EncryptionService {
   /// Constructeur avec injection optionnelle du stockage sécurisé.
   EncryptionService([FlutterSecureStorage? secureStorage])
@@ -13,22 +16,43 @@ class EncryptionService {
   static const String _masterKeyName = 'mamadera_master_key';
 
   final FlutterSecureStorage _secureStorage;
+  final Logger _logger = Logger();
   Key? _cachedKey;
+  /// True si on utilise le fallback mémoire (pas de keyring disponible).
+  bool _usingMemoryFallback = false;
 
   /// Initialise ou récupère la clé maître depuis le stockage sécurisé.
+  /// Si le backend natif n'est pas disponible (ex: Linux sans GNOME Keyring),
+  /// génère une clé volatile en mémoire et log un avertissement.
   Future<void> initialize() async {
-    final existingKeyB64 = await _secureStorage.read(key: _masterKeyName);
+    try {
+      final existingKeyB64 = await _secureStorage.read(key: _masterKeyName);
 
-    if (existingKeyB64 != null && existingKeyB64.isNotEmpty) {
-      _cachedKey = Key.fromBase64(existingKeyB64);
-    } else {
-      // Génère une nouvelle clé AES-256 aléatoire
-      final newKey = Key.fromSecureRandom(32);
-      await _secureStorage.write(
-        key: _masterKeyName,
-        value: newKey.base64,
+      if (existingKeyB64 != null && existingKeyB64.isNotEmpty) {
+        _cachedKey = Key.fromBase64(existingKeyB64);
+        _logger.d('Clé maître chargée depuis le stockage sécurisé.');
+      } else {
+        // Génère une nouvelle clé AES-256 aléatoire
+        final newKey = Key.fromSecureRandom(32);
+        await _secureStorage.write(key: _masterKeyName, value: newKey.base64);
+        _cachedKey = newKey;
+        _logger.d('Nouvelle clé maître générée et stockée.');
+      }
+    } catch (e) {
+      // Sur desktop sans keyring (Linux/GNOME Keyring absent), flutter_secure_storage
+      // peut lever une exception. On fallback sur une clé volatile en mémoire.
+      _logger.w(
+        'Stockage sécurisé indisponible ($e). Fallback: clé volatile en mémoire.',
       );
+      final newKey = Key.fromSecureRandom(32);
       _cachedKey = newKey;
+      _usingMemoryFallback = true;
+
+      if (kDebugMode) {
+        debugPrint(
+          '⚠️ CLÉ VOLATILE: les données chiffrées seront perdues au redémarrage.',
+        );
+      }
     }
   }
 
@@ -42,6 +66,9 @@ class EncryptionService {
 
     return _cachedKey!;
   }
+
+  /// Retourne true si on utilise le fallback mémoire (pas de persistance).
+  bool get isUsingMemoryFallback => _usingMemoryFallback;
 
   /// Chiffre une chaîne en AES-GCM. Retourne `iv_base64:ciphertext_base64`.
   String encrypt(String plainText) {
@@ -109,14 +136,18 @@ class EncryptionService {
 
   /// Réinitialise la clé maître (pour changement de mot de passe / reset sécurité).
   Future<void> rotateKey() async {
-    await _secureStorage.delete(key: _masterKeyName);
+    if (!_usingMemoryFallback) {
+      await _secureStorage.delete(key: _masterKeyName);
+    }
     _cachedKey = null;
     await initialize(); // Génère une nouvelle clé
   }
 
   /// Supprime complètement la clé maître (logout / désinstallation sécurisée).
   Future<void> destroyKey() async {
-    await _secureStorage.delete(key: _masterKeyName);
+    if (!_usingMemoryFallback) {
+      await _secureStorage.delete(key: _masterKeyName);
+    }
     _cachedKey = null;
   }
 }

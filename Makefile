@@ -8,7 +8,7 @@ lint: pub-get
 	flutter analyze --fatal-infos --fatal-warnings
 test: pub-get
 	# Domain & Data (unit) + Presentation (widget) as per architecture rules
-	flutter test test/domain/ test/data/ test/presentation/ --coverage
+	flutter test test/shared/ test/data/ test/presentation/ test/features/ test/core/ --coverage
 
 build-android:
 	flutter build apk --release

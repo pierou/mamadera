@@ -6,6 +6,10 @@ import 'package:mockito/mockito.dart';
 
 import 'encryption_service_test.mocks.dart';
 
+/// Clé AES-256 valide (32 octets) encodée en base64, utilisée uniquement pour les tests.
+const String _validTestKeyBase64 =
+    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='; // gitleaks:allow — all-zero test key
+
 @GenerateMocks([FlutterSecureStorage])
 void main() {
   late EncryptionService encryption;
@@ -15,9 +19,9 @@ void main() {
     mockStorage = MockFlutterSecureStorage();
 
     // Simule une clé maître existante (32 octets en base64)
-    when(mockStorage.read(key: 'mamadera_master_key')).thenAnswer((_) async =>
-        'YmFzZTY0LWVuY29kZWQtbWFzdGVyLWtleS1mb3ItYWVzMjU2'); // gitleaks:allow — mock key for tests, not a real secret
-
+    when(mockStorage.read(key: 'mamadera_master_key')).thenAnswer(
+      (_) async => _validTestKeyBase64,
+    );
     encryption = EncryptionService(mockStorage);
   });
 
@@ -34,8 +38,6 @@ void main() {
     });
 
     test('encrypt/decrypt sont inverses pour une chaîne non vide', () async {
-      // Utilise une vraie clé AES-256 aléatoire pour ce test unitaire
-      encryption = EncryptionService();
       await encryption.initialize();
 
       const plainText = 'Mon bébé a bien mangé à 14h30';
@@ -50,7 +52,6 @@ void main() {
     });
 
     test('decrypt() retourne null pour une chaîne vide', () async {
-      encryption = EncryptionService();
       await encryption.initialize();
 
       expect(encryption.decrypt(null), isNull);
@@ -58,14 +59,12 @@ void main() {
     });
 
     test('encrypt("") retourne une chaîne vide (optimisation)', () async {
-      encryption = EncryptionService();
       await encryption.initialize();
 
       expect(encryption.encrypt(''), isEmpty);
     });
 
     test('isEncrypted() détecte le format iv:ciphertext', () async {
-      encryption = EncryptionService();
       await encryption.initialize();
 
       final encrypted = encryption.encrypt('test');
@@ -76,7 +75,6 @@ void main() {
     });
 
     test('decrypt() retourne null pour des données corrompues', () async {
-      encryption = EncryptionService();
       await encryption.initialize();
 
       // Format invalide (pas de séparateur :)
@@ -89,7 +87,6 @@ void main() {
     test(
         'plusieurs chiffrement d\'une même donnée produisent des ciphertexts différents (IV unique)',
         () async {
-      encryption = EncryptionService();
       await encryption.initialize();
 
       const plainText = 'Donnée sensible';
@@ -105,9 +102,10 @@ void main() {
     });
 
     test('throw si key est accédé avant initialize()', () async {
-      encryption = EncryptionService();
+      final freshEncryption = EncryptionService(mockStorage);
 
-      expect(() => encryption.key, throwsA(isA<StateError>()));
+      expect(() => freshEncryption.key, throwsA(isA<StateError>()));
     });
   });
 }
+

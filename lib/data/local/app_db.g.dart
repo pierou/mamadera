@@ -40,8 +40,20 @@ class $TrackingEventsTable extends TrackingEvents
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
       'notes', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _wasteTypeMeta =
+      const VerificationMeta('wasteType');
   @override
-  List<GeneratedColumn> get $columns => [id, type, timestamp, duration, notes];
+  late final GeneratedColumn<String> wasteType = GeneratedColumn<String>(
+      'waste_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+      'color', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, type, timestamp, duration, notes, wasteType, color];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -75,6 +87,14 @@ class $TrackingEventsTable extends TrackingEvents
       context.handle(
           _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
     }
+    if (data.containsKey('waste_type')) {
+      context.handle(_wasteTypeMeta,
+          wasteType.isAcceptableOrUnknown(data['waste_type']!, _wasteTypeMeta));
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+          _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
+    }
     return context;
   }
 
@@ -94,6 +114,10 @@ class $TrackingEventsTable extends TrackingEvents
           .read(DriftSqlType.double, data['${effectivePrefix}duration']),
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
+      wasteType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}waste_type']),
+      color: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}color']),
     );
   }
 
@@ -109,12 +133,16 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
   final DateTime timestamp;
   final double? duration;
   final String? notes;
+  final String? wasteType;
+  final String? color;
   const TrackingEvent(
       {required this.id,
       required this.type,
       required this.timestamp,
       this.duration,
-      this.notes});
+      this.notes,
+      this.wasteType,
+      this.color});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -126,6 +154,12 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || wasteType != null) {
+      map['waste_type'] = Variable<String>(wasteType);
+    }
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
     }
     return map;
   }
@@ -140,6 +174,11 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           : Value(duration),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      wasteType: wasteType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(wasteType),
+      color:
+          color == null && nullToAbsent ? const Value.absent() : Value(color),
     );
   }
 
@@ -152,6 +191,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       timestamp: serializer.fromJson<DateTime>(json['timestamp']),
       duration: serializer.fromJson<double?>(json['duration']),
       notes: serializer.fromJson<String?>(json['notes']),
+      wasteType: serializer.fromJson<String?>(json['wasteType']),
+      color: serializer.fromJson<String?>(json['color']),
     );
   }
   @override
@@ -163,6 +204,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       'timestamp': serializer.toJson<DateTime>(timestamp),
       'duration': serializer.toJson<double?>(duration),
       'notes': serializer.toJson<String?>(notes),
+      'wasteType': serializer.toJson<String?>(wasteType),
+      'color': serializer.toJson<String?>(color),
     };
   }
 
@@ -171,13 +214,17 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           String? type,
           DateTime? timestamp,
           Value<double?> duration = const Value.absent(),
-          Value<String?> notes = const Value.absent()}) =>
+          Value<String?> notes = const Value.absent(),
+          Value<String?> wasteType = const Value.absent(),
+          Value<String?> color = const Value.absent()}) =>
       TrackingEvent(
         id: id ?? this.id,
         type: type ?? this.type,
         timestamp: timestamp ?? this.timestamp,
         duration: duration.present ? duration.value : this.duration,
         notes: notes.present ? notes.value : this.notes,
+        wasteType: wasteType.present ? wasteType.value : this.wasteType,
+        color: color.present ? color.value : this.color,
       );
   TrackingEvent copyWithCompanion(TrackingEventsCompanion data) {
     return TrackingEvent(
@@ -186,6 +233,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
       duration: data.duration.present ? data.duration.value : this.duration,
       notes: data.notes.present ? data.notes.value : this.notes,
+      wasteType: data.wasteType.present ? data.wasteType.value : this.wasteType,
+      color: data.color.present ? data.color.value : this.color,
     );
   }
 
@@ -196,13 +245,16 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           ..write('type: $type, ')
           ..write('timestamp: $timestamp, ')
           ..write('duration: $duration, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('wasteType: $wasteType, ')
+          ..write('color: $color')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, type, timestamp, duration, notes);
+  int get hashCode =>
+      Object.hash(id, type, timestamp, duration, notes, wasteType, color);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -211,7 +263,9 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           other.type == this.type &&
           other.timestamp == this.timestamp &&
           other.duration == this.duration &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.wasteType == this.wasteType &&
+          other.color == this.color);
 }
 
 class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
@@ -220,12 +274,16 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
   final Value<DateTime> timestamp;
   final Value<double?> duration;
   final Value<String?> notes;
+  final Value<String?> wasteType;
+  final Value<String?> color;
   const TrackingEventsCompanion({
     this.id = const Value.absent(),
     this.type = const Value.absent(),
     this.timestamp = const Value.absent(),
     this.duration = const Value.absent(),
     this.notes = const Value.absent(),
+    this.wasteType = const Value.absent(),
+    this.color = const Value.absent(),
   });
   TrackingEventsCompanion.insert({
     this.id = const Value.absent(),
@@ -233,6 +291,8 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     required DateTime timestamp,
     this.duration = const Value.absent(),
     this.notes = const Value.absent(),
+    this.wasteType = const Value.absent(),
+    this.color = const Value.absent(),
   })  : type = Value(type),
         timestamp = Value(timestamp);
   static Insertable<TrackingEvent> custom({
@@ -241,6 +301,8 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     Expression<DateTime>? timestamp,
     Expression<double>? duration,
     Expression<String>? notes,
+    Expression<String>? wasteType,
+    Expression<String>? color,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -248,6 +310,8 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       if (timestamp != null) 'timestamp': timestamp,
       if (duration != null) 'duration': duration,
       if (notes != null) 'notes': notes,
+      if (wasteType != null) 'waste_type': wasteType,
+      if (color != null) 'color': color,
     });
   }
 
@@ -256,13 +320,17 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       Value<String>? type,
       Value<DateTime>? timestamp,
       Value<double?>? duration,
-      Value<String?>? notes}) {
+      Value<String?>? notes,
+      Value<String?>? wasteType,
+      Value<String?>? color}) {
     return TrackingEventsCompanion(
       id: id ?? this.id,
       type: type ?? this.type,
       timestamp: timestamp ?? this.timestamp,
       duration: duration ?? this.duration,
       notes: notes ?? this.notes,
+      wasteType: wasteType ?? this.wasteType,
+      color: color ?? this.color,
     );
   }
 
@@ -284,6 +352,12 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (wasteType.present) {
+      map['waste_type'] = Variable<String>(wasteType.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
     return map;
   }
 
@@ -294,7 +368,9 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
           ..write('type: $type, ')
           ..write('timestamp: $timestamp, ')
           ..write('duration: $duration, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('wasteType: $wasteType, ')
+          ..write('color: $color')
           ..write(')'))
         .toString();
   }
@@ -318,6 +394,8 @@ typedef $$TrackingEventsTableCreateCompanionBuilder = TrackingEventsCompanion
   required DateTime timestamp,
   Value<double?> duration,
   Value<String?> notes,
+  Value<String?> wasteType,
+  Value<String?> color,
 });
 typedef $$TrackingEventsTableUpdateCompanionBuilder = TrackingEventsCompanion
     Function({
@@ -326,6 +404,8 @@ typedef $$TrackingEventsTableUpdateCompanionBuilder = TrackingEventsCompanion
   Value<DateTime> timestamp,
   Value<double?> duration,
   Value<String?> notes,
+  Value<String?> wasteType,
+  Value<String?> color,
 });
 
 class $$TrackingEventsTableFilterComposer
@@ -351,6 +431,12 @@ class $$TrackingEventsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get wasteType => $composableBuilder(
+      column: $table.wasteType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnFilters(column));
 }
 
 class $$TrackingEventsTableOrderingComposer
@@ -376,6 +462,12 @@ class $$TrackingEventsTableOrderingComposer
 
   ColumnOrderings<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get wasteType => $composableBuilder(
+      column: $table.wasteType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnOrderings(column));
 }
 
 class $$TrackingEventsTableAnnotationComposer
@@ -401,6 +493,12 @@ class $$TrackingEventsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get wasteType =>
+      $composableBuilder(column: $table.wasteType, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
 }
 
 class $$TrackingEventsTableTableManager extends RootTableManager<
@@ -435,6 +533,8 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             Value<DateTime> timestamp = const Value.absent(),
             Value<double?> duration = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<String?> wasteType = const Value.absent(),
+            Value<String?> color = const Value.absent(),
           }) =>
               TrackingEventsCompanion(
             id: id,
@@ -442,6 +542,8 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             timestamp: timestamp,
             duration: duration,
             notes: notes,
+            wasteType: wasteType,
+            color: color,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -449,6 +551,8 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             required DateTime timestamp,
             Value<double?> duration = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<String?> wasteType = const Value.absent(),
+            Value<String?> color = const Value.absent(),
           }) =>
               TrackingEventsCompanion.insert(
             id: id,
@@ -456,6 +560,8 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             timestamp: timestamp,
             duration: duration,
             notes: notes,
+            wasteType: wasteType,
+            color: color,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

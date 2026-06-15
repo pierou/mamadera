@@ -5,10 +5,11 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
 
-import 'package:mamadera/features/home/domain/entities/tracking_event.dart'
-    as _i4;
 import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart'
     as _i2;
+import 'package:mamadera/shared/domain/entities/tracking_enums.dart' as _i6;
+import 'package:mamadera/shared/domain/entities/tracking_event.dart' as _i4;
+import 'package:mamadera/shared/domain/entities/tracking_type.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -47,7 +48,7 @@ class MockTrackingRepository extends _i1.Mock
       ) as _i3.Future<List<_i4.TrackingEvent>>);
 
   @override
-  _i3.Future<List<_i4.TrackingEvent>> getEventsByType(String? type) =>
+  _i3.Future<List<_i4.TrackingEvent>> getEventsByType(_i5.TrackingType? type) =>
       (super.noSuchMethod(
         Invocation.method(
           #getEventsByType,
@@ -59,10 +60,13 @@ class MockTrackingRepository extends _i1.Mock
 
   @override
   _i3.Future<int> insertEvent({
-    required String? type,
+    required _i5.TrackingType? type,
     DateTime? timestamp,
     double? duration,
     String? notes,
+    _i6.WasteType? wasteType,
+    _i6.PipiColor? pipiColor,
+    _i6.CacaColor? cacaColor,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -73,6 +77,9 @@ class MockTrackingRepository extends _i1.Mock
             #timestamp: timestamp,
             #duration: duration,
             #notes: notes,
+            #wasteType: wasteType,
+            #pipiColor: pipiColor,
+            #cacaColor: cacaColor,
           },
         ),
         returnValue: _i3.Future<int>.value(0),

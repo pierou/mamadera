@@ -1,38 +1,33 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mamadera/core/entities/tracking_event.dart' as entity;
 import 'package:mamadera/core/services/encryption_service.dart';
 import 'package:mamadera/data/local/app_db.dart' as drift;
-import 'package:mamadera/data/local/database.dart';
 import 'package:mamadera/features/history/data/repositories/history_repository_impl.dart';
+import 'package:mamadera/shared/domain/entities/tracking_event.dart' as entity;
+import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
 import 'history_repository_impl_test.mocks.dart';
 
-@GenerateMocks([DatabaseService, drift.AppDatabase, EncryptionService])
+@GenerateMocks([drift.AppDatabase, EncryptionService])
 void main() {
   late HistoryRepositoryImpl repository;
-  late MockDatabaseService mockDbService;
   late MockAppDatabase mockAppDatabase;
   late MockEncryptionService mockEncryption;
 
   setUp(() async {
     mockAppDatabase = MockAppDatabase();
-    mockDbService = MockDatabaseService();
     mockEncryption = MockEncryptionService();
-
-    when(mockDbService.database).thenAnswer((_) async => mockAppDatabase);
     // Le mock de déchiffrement retourne la valeur brute pour les tests
     when(mockEncryption.decrypt(any)).thenReturn('decrypted_notes');
 
     repository = HistoryRepositoryImpl(
-      dbService: mockDbService,
+      database: mockAppDatabase,
       encryption: mockEncryption,
     );
   });
 
   tearDown(() {
-    reset(mockDbService);
     reset(mockAppDatabase);
     reset(mockEncryption);
   });
@@ -75,7 +70,6 @@ void main() {
         expect(result[1].type, 'miam');
         expect(result[1].notes, 'notes test');
 
-        verify(mockDbService.database).called(1);
         verify(mockAppDatabase.getAllEventsOrdered()).called(1);
       });
 
@@ -87,8 +81,6 @@ void main() {
           () => repository.getAllEventsOrdered(),
           throwsA(isA<Exception>()),
         );
-
-        // Les verify() ne peuvent pas être appelés après une exception
       });
     });
 
@@ -96,48 +88,45 @@ void main() {
       test('filtre correctement par type en succès', () async {
         final dbEvent = drift.TrackingEvent(
           id: 1,
-          type: 'sein',
+          type: 'miam',
           timestamp: DateTime.now(),
           duration: 12,
           notes: null,
         );
 
-        when(mockAppDatabase.getEventsByType('sein'))
+        when(mockAppDatabase.getEventsByType('miam'))
             .thenAnswer((_) async => [dbEvent]);
 
         when(mockEncryption.decrypt(null)).thenReturn(null);
 
-        final result = await repository.getEventsByType('sein');
+        final result = await repository.getEventsByType(TrackingType.miam);
 
         expect(result.length, 1);
-        expect(result[0].type, 'sein');
+        expect(result[0].type.name, 'miam');
         expect(result[0].duration, 12.0);
 
-        verify(mockDbService.database).called(1);
-        verify(mockAppDatabase.getEventsByType('sein')).called(1);
+        verify(mockAppDatabase.getEventsByType('miam')).called(1);
       });
 
       test('retourne une liste vide pour un type inexistant', () async {
-        when(mockAppDatabase.getEventsByType('bib'))
+        when(mockAppDatabase.getEventsByType('dodo'))
             .thenAnswer((_) async => []);
-        final result = await repository.getEventsByType('bib');
+        final result = await repository.getEventsByType(TrackingType.dodo);
 
         expect(result, isEmpty);
-        verify(mockDbService.database).called(1);
-        verify(mockAppDatabase.getEventsByType('bib')).called(1);
+        verify(mockAppDatabase.getEventsByType('dodo')).called(1);
       });
 
       test('rethrow en cas d\'erreur de requête', () async {
-        when(mockAppDatabase.getEventsByType('bib'))
+        when(mockAppDatabase.getEventsByType('caca'))
             .thenThrow(Exception('Invalid Query'));
 
         expect(
-          () => repository.getEventsByType('bib'),
+          () => repository.getEventsByType(TrackingType.caca),
           throwsA(isA<Exception>()),
         );
-
-        // Les verify() ne peuvent pas être appelés après une exception
       });
     });
   });
 }
+

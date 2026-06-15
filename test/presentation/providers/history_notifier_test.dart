@@ -1,9 +1,12 @@
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mamadera/core/entities/tracking_event.dart';
 import 'package:mamadera/features/history/domain/repositories/history_repository.dart';
 import 'package:mamadera/features/history/presentation/providers/history_notifier.dart';
 import 'package:mamadera/features/history/presentation/providers/history_repository_provider.dart';
+import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
+import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -16,40 +19,42 @@ void main() {
 
   final event1 = TrackingEvent(
     id: 1,
-    type: 'miam',
-    timestamp: DateTime(2023, 1, 1),
+    type: TrackingType.miam,
+    timestamp: DateTime.utc(2023, 1, 1),
   );
   final event2 = TrackingEvent(
     id: 2,
-    type: 'dodo',
-    timestamp: DateTime(2023, 1, 2),
+    type: TrackingType.dodo,
+    timestamp: DateTime.utc(2023, 1, 2),
   );
   final event3 = TrackingEvent(
     id: 3,
-    type: 'miam',
-    timestamp: DateTime(2023, 1, 3),
+    type: TrackingType.miam,
+    timestamp: DateTime.utc(2023, 1, 3),
   );
   final eventDodo = TrackingEvent(
     id: 2,
-    type: 'dodo',
-    timestamp: DateTime(2023, 1, 2),
+    type: TrackingType.dodo,
+    timestamp: DateTime.utc(2023, 1, 2),
   );
   final eventTest = TrackingEvent(
     id: 1,
-    type: 'test',
-    timestamp: DateTime(2023, 1, 1),
+    type: TrackingType.sante,
+    timestamp: DateTime.utc(2023, 1, 1),
   );
   final eventRapide = TrackingEvent(
     id: 1,
-    type: 'rapide',
-    timestamp: DateTime(2023, 1, 1),
+    type: TrackingType.caca,
+    timestamp: DateTime.utc(2023, 1, 1),
   );
 
   setUp(() {
     mockRepository = MockHistoryRepository();
     container = ProviderContainer(
       overrides: [
-        historyRepositoryProvider.overrideWithValue(mockRepository),
+        historyRepositoryProvider.overrideWith(
+          (_) async => mockRepository,
+        ),
       ],
     );
   });
@@ -63,11 +68,12 @@ void main() {
       when(mockRepository.getAllEventsOrdered())
           .thenAnswer((_) async => [event1, event2]);
 
-      final state = await container.read(historyNotifierProvider('all').future);
+      final state =
+          await container.read(historyNotifierProvider(HistoryFilter.all).future);
 
       expect(state, hasLength(2));
-      expect(state[0].type, 'miam');
-      expect(state[1].type, 'dodo');
+      expect(state[0].type, TrackingType.miam);
+      expect(state[1].type, TrackingType.dodo);
 
       verify(mockRepository.getAllEventsOrdered()).called(1);
     });
@@ -75,7 +81,8 @@ void main() {
     test('retourne une liste vide si aucun événement', () async {
       when(mockRepository.getAllEventsOrdered()).thenAnswer((_) async => []);
 
-      final state = await container.read(historyNotifierProvider('all').future);
+      final state =
+          await container.read(historyNotifierProvider(HistoryFilter.all).future);
 
       expect(state, isEmpty);
       verify(mockRepository.getAllEventsOrdered()).called(1);
@@ -84,30 +91,30 @@ void main() {
 
   group('HistoryNotifier avec filtre type', () {
     test('appelle getEventsByType() avec le bon filtre', () async {
-      when(mockRepository.getEventsByType('miam'))
+      when(mockRepository.getEventsByType(TrackingType.miam))
           .thenAnswer((_) async => [event1, event3]);
 
       final state =
-          await container.read(historyNotifierProvider('miam').future);
+          await container.read(historyNotifierProvider(HistoryFilter.miam).future);
 
       expect(state, hasLength(2));
       for (final event in state) {
-        expect(event.type, 'miam');
+        expect(event.type, TrackingType.miam);
       }
 
-      verify(mockRepository.getEventsByType('miam')).called(1);
+      verify(mockRepository.getEventsByType(TrackingType.miam)).called(1);
     });
 
     test('appelle getEventsByType() pour différents types', () async {
-      when(mockRepository.getEventsByType('dodo'))
+      when(mockRepository.getEventsByType(TrackingType.dodo))
           .thenAnswer((_) async => [eventDodo]);
 
       final state =
-          await container.read(historyNotifierProvider('dodo').future);
+          await container.read(historyNotifierProvider(HistoryFilter.dodo).future);
 
       expect(state, hasLength(1));
-      expect(state[0].type, 'dodo');
-      verify(mockRepository.getEventsByType('dodo')).called(1);
+      expect(state[0].type, TrackingType.dodo);
+      verify(mockRepository.getEventsByType(TrackingType.dodo)).called(1);
     });
   });
 
@@ -117,14 +124,15 @@ void main() {
           .thenAnswer((_) async => [eventTest]);
 
       // Au démarrage, l'état devrait être loading
-      final initial = container.read(historyNotifierProvider('all'));
+      final initial = container.read(historyNotifierProvider(HistoryFilter.all));
       expect(initial, isA<AsyncLoading<List<TrackingEvent>>>());
 
       // Après résolution, l'état devrait être data
-      final data = await container.read(historyNotifierProvider('all').future);
+      final data =
+          await container.read(historyNotifierProvider(HistoryFilter.all).future);
       expect(data, isNotEmpty);
       expect(
-        container.read(historyNotifierProvider('all')),
+        container.read(historyNotifierProvider(HistoryFilter.all)),
         isA<AsyncData<List<TrackingEvent>>>(),
       );
     });
@@ -134,7 +142,7 @@ void main() {
           .thenThrow(Exception('Erreur de connexion'));
 
       // On déclenche le build
-      final initialState = container.read(historyNotifierProvider('all'));
+      final initialState = container.read(historyNotifierProvider(HistoryFilter.all));
       expect(initialState, isA<AsyncLoading<List<TrackingEvent>>>());
 
       // Attendre que les événements se propagent
@@ -142,7 +150,7 @@ void main() {
 
       // Le test passe si le provider ne s'écrase pas
       // (Le vrai test de l'erreur est vérifié via le mock)
-      final finalState = container.read(historyNotifierProvider('all'));
+      final finalState = container.read(historyNotifierProvider(HistoryFilter.all));
       // State peut être loading, error, ou data selon la timing
       expect(finalState, isA<AsyncValue<List<TrackingEvent>>>());
     });
@@ -159,14 +167,14 @@ void main() {
         });
 
         // On déclenche le build
-        final initialState = container.read(historyNotifierProvider('all'));
+        final initialState = container.read(historyNotifierProvider(HistoryFilter.all));
         expect(initialState, isA<AsyncLoading<List<TrackingEvent>>>());
 
         // Attendre que le timeout soit déclenché (~10s + marge)
         await Future<void>.delayed(const Duration(seconds: 12));
 
         // Vérifier que l'état a changé
-        final finalState = container.read(historyNotifierProvider('all'));
+        final finalState = container.read(historyNotifierProvider(HistoryFilter.all));
         expect(finalState, isA<AsyncValue<List<TrackingEvent>>>());
       },
     );
@@ -177,10 +185,12 @@ void main() {
         return [eventRapide];
       });
 
-      final state = await container.read(historyNotifierProvider('all').future);
+      final state =
+          await container.read(historyNotifierProvider(HistoryFilter.all).future);
 
       expect(state, hasLength(1));
-      expect(state[0].type, 'rapide');
+      expect(state[0].type, TrackingType.caca);
     });
   });
 }
+

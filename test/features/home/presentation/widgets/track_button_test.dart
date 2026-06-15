@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:mamadera/widgets/track_button.dart';
+import 'package:mamadera/features/home/presentation/widgets/track_button.dart';
 
 void main() {
   group('TrackButton', () {
@@ -21,7 +21,7 @@ void main() {
 
     testWidgets('Applique la couleur donnée', (WidgetTester tester) async {
       // Arrange
-      const Color buttonColor = Colors.red;
+      const buttonColor = Colors.red;
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -76,4 +76,46 @@ void main() {
       expect(tapped, isTrue);
     });
   });
+
+// test/widgets/track_button_test.dart - Nouveaux tests
+
+group('TrackButton Long Press', () {
+  testWidgets('onLongPress appelé lors d\'un maintien du clic', (WidgetTester tester) async {
+    var longPressed = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TrackButton(
+            label: 'Test',
+            color: Colors.blue,
+            onTap: () {},
+            onLongPress: () => longPressed = true,
+          ),
+        ),
+      ),
+    );
+
+    // Simuler un long press (maintien de 750ms par défaut)
+    await tester.longPress(find.text('Test'));
+
+    expect(longPressed, isTrue);
+  });
+
+  testWidgets('onLongPress optionnel : pas d\'erreur si non fourni', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TrackButton(
+            label: 'Test',
+            color: Colors.blue,
+            onTap: () {},
+          ),
+        ),
+      ),
+    );
+
+    // Pas d'erreur si onLongPress n'est pas défini
+    expect(find.byType(TrackButton), findsOneWidget);
+  });
+});
 }

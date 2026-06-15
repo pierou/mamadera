@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
 
+import '../../../../shared/domain/entities/tracking_enums.dart';
+
 part 'app_db.g.dart'; // Généré par build_runner
 
 class TrackingEvents extends Table {
@@ -8,6 +10,8 @@ class TrackingEvents extends Table {
   DateTimeColumn get timestamp => dateTime()();
   RealColumn get duration => real().nullable()(); // en minutes (dodo, sein)
   TextColumn get notes => text().nullable()();
+  TextColumn get wasteType => text().nullable()(); // pipi, caca, les_deux
+  TextColumn get color => text().nullable()();     // couleur de la selle ou pipe-délimitée (pipi|caca)
 }
 
 @DriftDatabase(tables: [TrackingEvents])
@@ -15,11 +19,9 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
-  /// - idx_tracking_events_type : filtrage par type → getEventsByType(), getFeedingEvents()
-  /// - idx_tracking_events_timestamp_type : tri chronologique + type → getAllEventsOrdered()
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (Migrator m) async {
@@ -30,14 +32,24 @@ class AppDatabase extends _$AppDatabase {
           await m.database.customStatement(
               'CREATE INDEX IF NOT EXISTS idx_tracking_events_timestamp_type ON tracking_events(timestamp DESC, type)');
         },
+        onUpgrade: (Migrator m, int from, int to) async {
+          if (from < 2) {
+            // Ajout des colonnes wasteType et color pour les installations existantes
+            await m.addColumn(trackingEvents, trackingEvents.wasteType);
+            await m.addColumn(trackingEvents, trackingEvents.color);
+          }
+        },
       );
+
   Future<List<TrackingEvent>> getEvents() => select(trackingEvents).get();
 
   Future<int> insertEvent(TrackingEventsCompanion event) =>
       into(trackingEvents).insert(event);
+
+  /// Retourne uniquement les événements d'alimentation (sein ou biberon).
   Future<List<TrackingEvent>> getFeedingEvents() {
     return (select(trackingEvents)
-          ..where((t) => t.type.isIn(['sein', 'bib']))
+          ..where((t) => t.type.isIn(FeedingSubtype.values.map((e) => e.name).toList()))
           ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
         .get();
   }
@@ -54,4 +66,17 @@ class AppDatabase extends _$AppDatabase {
           ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
         .get();
   }
+
+  /// Met à jour un événement existant par son ID.
+  Future<int> updateEvent(int id, TrackingEventsCompanion companion) {
+    return (update(trackingEvents)..where((t) => t.id.equals(id))).write(companion);
+  }
+
+  /// Supprime un événement par son ID. Retourne true si une ligne a été supprimée.
+  Future<bool> deleteEvent(int id) async {
+    final deleted = await (delete(trackingEvents)..where((t) => t.id.equals(id))).go();
+    return deleted > 0;
+  }
 }
+
+

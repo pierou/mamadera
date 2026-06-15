@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
-import '../core/theme.dart';
+import '../../../../core/theme.dart';
 
 class TrackButton extends StatefulWidget {
-  const TrackButton(
-      {required this.label,
+  const TrackButton({
+    required this.label,
       required this.color,
       required this.onTap,
-      super.key});
+    this.onLongPress,
+    super.key,
+  });
+
   final String label;
   final Color color;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   State<TrackButton> createState() => _TrackButtonState();
@@ -25,6 +29,7 @@ class _TrackButtonState extends State<TrackButton> {
       onTapUp: (_) => setState(() => _isPressed = false),
       onTapCancel: () => setState(() => _isPressed = false),
       onTap: widget.onTap,
+      onLongPress: widget.onLongPress,
       child: AnimatedScale(
         scale: _isPressed ? 0.95 : 1.0,
         duration: const Duration(milliseconds: 120),

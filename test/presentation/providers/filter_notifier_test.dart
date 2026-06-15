@@ -2,6 +2,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/features/history/presentation/providers/history_notifier.dart';
+import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 
 void main() {
   group('FilterNotifier', () {
@@ -15,13 +16,13 @@ void main() {
       final container = ProviderContainer();
       final notifier = container.read(selectedFilterProvider.notifier);
 
-      notifier.setFilter('miam');
+      notifier.setFilter('miam' as HistoryFilter);
       expect(container.read(selectedFilterProvider), 'miam');
 
-      notifier.setFilter('dodo');
+      notifier.setFilter('dodo' as HistoryFilter);
       expect(container.read(selectedFilterProvider), 'dodo');
 
-      notifier.setFilter('all');
+      notifier.setFilter('all' as HistoryFilter);
       expect(container.read(selectedFilterProvider), 'all');
 
       container.dispose();
@@ -31,13 +32,13 @@ void main() {
       final container = ProviderContainer();
       final notifier = container.read(selectedFilterProvider.notifier);
 
-      notifier.setFilter('caca');
+      notifier.setFilter('caca' as HistoryFilter);
       expect(container.read(selectedFilterProvider), 'caca');
 
-      notifier.setFilter('sein');
+      notifier.setFilter('sein' as HistoryFilter);
       expect(container.read(selectedFilterProvider), 'sein');
 
-      notifier.setFilter('biberon');
+      notifier.setFilter('biberon' as HistoryFilter);
       expect(container.read(selectedFilterProvider), 'biberon');
 
       container.dispose();
@@ -48,7 +49,7 @@ void main() {
       final notifier = container.read(selectedFilterProvider.notifier);
 
       final filtres = ['miam', 'dodo', 'caca', 'sein', 'all'];
-      filtres.forEach(notifier.setFilter);
+      filtres.forEach(notifier.setFilter as void Function(String element));
 
       expect(container.read(selectedFilterProvider), 'all');
       container.dispose();
@@ -58,7 +59,7 @@ void main() {
       final container = ProviderContainer();
       final notifier = container.read(selectedFilterProvider.notifier);
 
-      notifier.setFilter('');
+      notifier.setFilter('' as HistoryFilter);
       expect(container.read(selectedFilterProvider), '');
 
       container.dispose();
