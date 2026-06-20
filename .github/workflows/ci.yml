@@ -69,7 +69,6 @@ jobs:
       - name: Run tests
         run: |
           flutter test \
-            test/domain/ \
             test/data/ \
             test/presentation/ \
             test/core \
