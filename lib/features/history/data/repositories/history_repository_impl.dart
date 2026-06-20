@@ -50,7 +50,7 @@ class HistoryRepositoryImpl implements HistoryRepository {
         type: TrackingType.fromString(row.type), // Convertit String → enum
         timestamp: row.timestamp,
         duration: row.duration,
-      notes: encryption.decrypt(row.notes!),
+      notes: row.notes != null ? encryption.decrypt(row.notes) : null,
       wasteType: wasteType,
       pipiColor: pipiColor,
       cacaColor: cacaColor,

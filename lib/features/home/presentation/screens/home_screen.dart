@@ -98,15 +98,22 @@ void _onTapDodo(BuildContext context, WidgetRef ref) {
    }
  }
 
-  void _showHealthSubtypeDialog(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet<void>(
+  Future<void> _showHealthSubtypeDialog(BuildContext context, WidgetRef ref) async {
+    final result = await showModalBottomSheet<Map<String, dynamic>?>(
       context: context,
       backgroundColor: AppTheme.background,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) => const HealthSubtypeDialog(),
-            );
+    );
+
+    if (result != null && context.mounted) {
+      await ref.read(trackNotifierProvider.notifier).track(
+           type: TrackingType.sante,
+           notes: result['notes'] as String?,
+         );
+    }
   }
 
   @override

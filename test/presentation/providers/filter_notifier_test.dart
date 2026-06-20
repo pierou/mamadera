@@ -6,40 +6,20 @@ import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 
 void main() {
   group('FilterNotifier', () {
-    test('état initial = "all"', () {
+    test('état initial = HistoryFilter.all', () {
       final container = ProviderContainer();
-      expect(container.read(selectedFilterProvider), 'all');
+      expect(container.read(selectedFilterProvider), HistoryFilter.all);
       container.dispose();
     });
 
-    test('setFilter() change le filtre', () {
+    test('setFilter() change le filtre vers chaque enum valide', () {
       final container = ProviderContainer();
       final notifier = container.read(selectedFilterProvider.notifier);
 
-      notifier.setFilter('miam' as HistoryFilter);
-      expect(container.read(selectedFilterProvider), 'miam');
-
-      notifier.setFilter('dodo' as HistoryFilter);
-      expect(container.read(selectedFilterProvider), 'dodo');
-
-      notifier.setFilter('all' as HistoryFilter);
-      expect(container.read(selectedFilterProvider), 'all');
-
-      container.dispose();
-    });
-
-    test('setFilter() peut recevoir n\'importe quelle chaîne', () {
-      final container = ProviderContainer();
-      final notifier = container.read(selectedFilterProvider.notifier);
-
-      notifier.setFilter('caca' as HistoryFilter);
-      expect(container.read(selectedFilterProvider), 'caca');
-
-      notifier.setFilter('sein' as HistoryFilter);
-      expect(container.read(selectedFilterProvider), 'sein');
-
-      notifier.setFilter('biberon' as HistoryFilter);
-      expect(container.read(selectedFilterProvider), 'biberon');
+      for (final filter in HistoryFilter.values) {
+        notifier.setFilter(filter);
+        expect(container.read(selectedFilterProvider), filter);
+      }
 
       container.dispose();
     });
@@ -48,21 +28,28 @@ void main() {
       final container = ProviderContainer();
       final notifier = container.read(selectedFilterProvider.notifier);
 
-      final filtres = ['miam', 'dodo', 'caca', 'sein', 'all'];
-      filtres.forEach(notifier.setFilter as void Function(String element));
+      HistoryFilter.values.forEach(notifier.setFilter);
+      // Dernier filtre appliqué est le dernier de l'enum.
+      expect(
+        container.read(selectedFilterProvider),
+        HistoryFilter.values.last,
+      );
 
-      expect(container.read(selectedFilterProvider), 'all');
       container.dispose();
     });
 
-    test('setFilter() avec chaîne vide fonctionne', () {
+    test('setFilter(HistoryFilter.all) réinitialise sur "Tous"', () {
       final container = ProviderContainer();
       final notifier = container.read(selectedFilterProvider.notifier);
 
-      notifier.setFilter('' as HistoryFilter);
-      expect(container.read(selectedFilterProvider), '');
+      notifier.setFilter(HistoryFilter.miam);
+      expect(container.read(selectedFilterProvider), HistoryFilter.miam);
+
+      notifier.setFilter(HistoryFilter.all);
+      expect(container.read(selectedFilterProvider), HistoryFilter.all);
 
       container.dispose();
     });
   });
 }
+

@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart';
 import '../../data/local/app_db.dart' hide TrackingEvent;
 import 'encryption_service.dart';
 
@@ -12,22 +11,16 @@ class EncryptionMigration {
 
   /// Vérifie et migère toutes les notes non chiffrées vers le format chiffré.
   Future<int> migratePlaintextNotes() async {
-    // Récupère tous les événements avec des notes
-    final allEvents = await _db.select(_db.trackingEvents).get();
+    // Utilise getAllTrackingEvents pour itérer sans tri (plus rapide, pas besoin d'ordre)
+    final allEvents = await _db.getAllTrackingEvents();
 
     var migratedCount = 0;
 
     for (final event in allEvents) {
       if (event.notes != null && !_encryption.isEncrypted(event.notes)) {
-        // La note est en clair → on la chiffre et on met à jour
+        // La note est en clair → on la chiffre et on met à jour via helper dédié
         final encryptedNotes = _encryption.encrypt(event.notes!);
-        await (_db.update(_db.trackingEvents)
-              ..where(
-                (t) => t.id.equals(event.id),
-              ))
-            .write(TrackingEventsCompanion(
-          notes: Value(encryptedNotes),
-        ));
+        await _db.updateNotesForEvent(event.id, encryptedNotes);
 
         migratedCount++;
       }
@@ -36,3 +29,5 @@ class EncryptionMigration {
     return migratedCount;
   }
 }
+
+

@@ -1,4 +1,4 @@
-.PHONY: ci lint test build-android clean check-coverage audit-trivy audit-gitleaks
+.PHONY: ci lint test build-android clean codegen check-coverage audit-trivy audit-gitleaks
 
 ci: pub-get lint test check-coverage ## Run full local CI pipeline (aligned with GitHub Actions)
 pub-get:
@@ -21,10 +21,18 @@ check-coverage: test
 	@command -v lcov >/dev/null 2>&1 || { echo "❌ lcov not installed. Run: sudo apt-get install -y lcov"; exit 1; }
 	@lcov --remove coverage/lcov.info \
 		'lib/generated/*' \
+		'*_freezed.dart' \
+		'*.g.dart' \
 		'test/*' \
 		'/tmp/*' \
 		-o coverage/lcov.info.cleaned 2>/dev/null || true
 	@grep "lines\%" coverage/lcov.info.cleaned | awk '{print $$4}' | cut -d'.' -f1 | xargs -I {} sh -c '[ "{}" -ge 80 ] && echo "✅ Coverage ≥ 80%: {}%" || (echo "❌ Coverage below 80%: {}%" && exit 1)'
+
+# 🏗️ Code generation for freezed, drift, json_serializable models
+codegen:
+	@echo "Running build_runner..."
+	dart run build_runner build --delete-conflicting-outputs
+	@echo "✅ Code generation complete. Run 'make lint' to verify."
 
 # 🔍 Security audit helpers (run these before pushing to catch CI failures)
 audit-trivy:

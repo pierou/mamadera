@@ -77,6 +77,19 @@ class AppDatabase extends _$AppDatabase {
     final deleted = await (delete(trackingEvents)..where((t) => t.id.equals(id))).go();
     return deleted > 0;
   }
+
+  // ignore: comment_references
+  /// Retourne tous les événements sans tri spécifique.
+  /// Utilisé par EncryptionMigration pour itérer sur l'intégralité de la table.
+  Future<List<TrackingEvent>> getAllTrackingEvents() => select(trackingEvents).get();
+
+  // ignore: comment_references
+  /// Met à jour uniquement le champ notes d'un événement par son ID.
+  /// Utilisé exclusivement par EncryptionMigration pour re-chiffrer des notes en clair.
+  Future<int> updateNotesForEvent(int id, String? newNotes) {
+    return (update(trackingEvents)..where((t) => t.id.equals(id)))
+        .write(TrackingEventsCompanion(notes: Value(newNotes)));
+  }
 }
 
 

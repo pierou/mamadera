@@ -72,6 +72,9 @@ jobs:
             test/domain/ \
             test/data/ \
             test/presentation/ \
+            test/core \
+            test/features \
+            test/shared \
           --coverage
 
       - name: Install lcov tools
@@ -84,6 +87,7 @@ jobs:
             'lib/generated/*' \
             'test/*' \
             '/tmp/*' \
+            '*.g.dart'
             -o coverage/lcov.info.cleaned 2>/dev/null || true
             
           # Verify threshold ≥ 80%

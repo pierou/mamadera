@@ -78,8 +78,8 @@ void main() {
 
       // Caca est sélectionné par défaut, ses couleurs sont visibles
       expect(find.text('Mécônium'), findsOneWidget);
-      expect(find.textContaining('transition'), findsOneWidget);
-      expect(find.textContaining('lait maternel'), findsOneWidget);
+      expect(find.text('Vert olive'), findsOneWidget);
+      expect(find.text('Jaune moutarde'), findsOneWidget);
     });
 
     testWidgets('bouton Enregistrer est présent', (tester) async {
@@ -137,10 +137,9 @@ void main() {
       expect(color!.value, 'jaune_clair');
     });
 
-    test('byValue retourne le premier par défaut si valeur inconnue', () {
-      final color = PipiColor.byValue('inconnu');
-      expect(color, isNotNull);
-      expect(color!.value, 'incolore'); // default to first
+    test('fromDbValue retourne le premier par défaut si valeur inconnue', () {
+      final color = PipiColor.fromDbValue('inconnu');
+      expect(color.value, 'incolore'); // default to first
     });
 
     test('values contient 4 couleurs', () {
@@ -155,10 +154,9 @@ void main() {
       expect(color!.value, 'meconium');
     });
 
-    test('byValue retourne jaune_moutarde par défaut si valeur inconnue', () {
-      final color = CacaColor.byValue('inconnu');
-      expect(color, isNotNull);
-      expect(color!.value, 'jaune_moutarde'); // default to index 2
+    test('fromDbValue retourne jaune_moutarde par défaut si valeur inconnue', () {
+      final color = CacaColor.fromDbValue('inconnu');
+      expect(color.value, 'jaune_moutarde'); // default to index 2
     });
 
     test('values contient 4 couleurs', () {

@@ -135,6 +135,19 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     // Parse le wasteType initial depuis la valeur DB (backward compat)
     _wasteType = WasteType.fromDbValue(widget.initialWasteType);
 
+    // Fallback : si pas de wasteType explicite mais qu'on est sur un type pipi/caca,
+    // on initialise avec une valeur par défaut cohérente pour l'UX.
+    if (_wasteType == null) {
+      switch (_normalizedType) {
+        case 'pipi':
+          _wasteType = WasteType.pipi;
+        case 'caca':
+          _wasteType = WasteType.caca;
+        default:
+          break;
+      }
+    }
+
     // Parse les couleurs initiales (format pipi|caca pour les_deux)
     if (widget.initialColor != null && widget.initialColor!.isNotEmpty) {
       final parts = widget.initialColor!.split('|');
@@ -331,28 +344,32 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
               const SizedBox(height: 20),
             ],
 
-            // --- Type de selle & couleurs (uniquement pour caca) — utilise l'enum WasteType ---
-            if (_normalizedType == 'caca') ...[
-              _buildSectionTitle('Type'),
-              Row(
-                children: [
-                  for (final type in WasteType.values)
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: FilterChip(
-                          label: Text(_wasteTypeLabel(type)),
-                          selected: _wasteType == type,
-                          onSelected: (_) => setState(() => _wasteType = type),
+            // --- Type de selle & couleurs (pour caca et pipi) — utilise l'enum WasteType ---
+            if (_normalizedType == 'caca' || _normalizedType == 'pipi') ...[
+              // WasteType selector : uniquement pour caca (permet de switcher vers pipi/lesDeux)
+              if (_normalizedType == 'caca') ...[
+                _buildSectionTitle('Type'),
+                Row(
+                  children: [
+                    for (final type in WasteType.values)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: FilterChip(
+                            label: Text(_wasteTypeLabel(type)),
+                            selected: _wasteType == type,
+                            onSelected: (_) => setState(() => _wasteType = type),
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
 
-              // Couleur pipi (conditionnelle via enum)
-              if (_wasteType == WasteType.pipi ||
+              // Couleur pipi (toujours visible pour pipi ; conditionnelle pour caca selon wasteType)
+              if (_normalizedType == 'pipi' ||
+                  _wasteType == WasteType.pipi ||
                   _wasteType == WasteType.lesDeux) ...[
                 _buildSectionTitle('Couleur du pipi'),
                 Wrap(
@@ -389,8 +406,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
               ],
             ],
 
-            // --- Notes (tous les types sauf sante qui a des sous-types fixes) ---
-            if (_normalizedType != 'sante') ...[
+            // --- Notes (tous les types sauf sante et dodo) ---
+            if (_normalizedType != 'sante' && _normalizedType != 'dodo') ...[
               const SizedBox(height: 20),
               _buildSectionTitle('Notes'),
               TextFormField(
@@ -415,8 +432,9 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             if (_normalizedType == 'sante') ...[
               const SizedBox(height: 20),
               _buildSectionTitle('Type de soin'),
+              // Utilise _notesController.text (mutable via setState) au lieu de widget.initialNotes (immutable)
               ...HealthSubtype.values.map((subtype) {
-                final isSelected = widget.initialNotes == subtype.value;
+                final isSelected = _notesController.text == subtype.value;
                 return ListTile(
                   leading: Icon(_getHealthIcon(subtype.value),
                       color: isSelected ? Colors.greenAccent : null),

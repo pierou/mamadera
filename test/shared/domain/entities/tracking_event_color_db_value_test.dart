@@ -1,0 +1,103 @@
+// ignore_for_file: lines_longer_than_80_chars // Tests du getter colorDbValue de TrackingEvent
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
+import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/tracking_type.dart';
+
+void main() {
+  group('TrackingEvent.colorDbValue', () {
+    final baseTimestamp = DateTime.utc(2023, 10, 25);
+
+    // ── pipi → retourne pipiColor.value (ou null si non sélectionné) ───
+    test('wasteType=pipi avec pipiColor sélectionnée → pipiColor.value', () {
+      final event = TrackingEvent(
+        type: TrackingType.caca,
+        timestamp: baseTimestamp,
+        wasteType: WasteType.pipi,
+        pipiColor: PipiColor.jauneClair,
+      );
+
+      expect(event.colorDbValue, equals('jaune_clair'));
+    });
+
+    test('wasteType=pipi sans pipiColor → null', () {
+      final event = TrackingEvent(
+        type: TrackingType.caca,
+        timestamp: baseTimestamp,
+        wasteType: WasteType.pipi,
+      );
+
+      expect(event.colorDbValue, isNull);
+    });
+
+    // ── caca → retourne cacaColor.value (ou null si non sélectionné) ───
+    test('wasteType=caca avec cacaColor sélectionnée → cacaColor.value', () {
+      final event = TrackingEvent(
+        type: TrackingType.caca,
+        timestamp: baseTimestamp,
+        wasteType: WasteType.caca,
+        cacaColor: CacaColor.vertOlive,
+      );
+
+      expect(event.colorDbValue, equals('vert_olive'));
+    });
+
+    test('wasteType=caca sans cacaColor → null', () {
+      final event = TrackingEvent(
+        type: TrackingType.caca,
+        timestamp: baseTimestamp,
+        wasteType: WasteType.caca,
+      );
+
+      expect(event.colorDbValue, isNull);
+    });
+
+    // ── lesDeux → format pipe-délimité ou fallback单方 ────────────────
+    test('wasteType=lesDeux avec pipiColor et cacaColor → "pipi|caca"', () {
+      final event = TrackingEvent(
+        type: TrackingType.caca,
+        timestamp: baseTimestamp,
+        wasteType: WasteType.lesDeux,
+        pipiColor: PipiColor.incolore,
+        cacaColor: CacaColor.jauneMoutarde,
+      );
+
+      expect(event.colorDbValue, equals('incolore|jaune_moutarde'));
+    });
+
+    test('wasteType=lesDeux avec pipiColor seulement → pipiColor.value', () {
+      final event = TrackingEvent(
+        type: TrackingType.caca,
+        timestamp: baseTimestamp,
+        wasteType: WasteType.lesDeux,
+        pipiColor: PipiColor.jauneFonce,
+      );
+
+      expect(event.colorDbValue, equals('jaune_fonce'));
+    });
+
+    test('wasteType=lesDeux avec cacaColor seulement → cacaColor.value', () {
+      final event = TrackingEvent(
+        type: TrackingType.caca,
+        timestamp: baseTimestamp,
+        wasteType: WasteType.lesDeux,
+        cacaColor: CacaColor.meconium,
+      );
+
+      expect(event.colorDbValue, equals('meconium'));
+    });
+
+    // ── wasteType null → toujours null, peu importe les couleurs ──────
+    test('wasteType=null (même avec des couleurs) → null', () {
+      final event = TrackingEvent(
+        type: TrackingType.caca,
+        timestamp: baseTimestamp,
+        pipiColor: PipiColor.roseUrates,
+        cacaColor: CacaColor.jauneClair,
+      );
+
+      expect(event.colorDbValue, isNull);
+    });
+  });
+}

@@ -35,74 +35,82 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Durée du sommeil',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 32),
-          Center(
-            child: Text(
-              _formatDuration(_selectedMinutes),
-              style: const TextStyle(
-                fontSize: 56,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Durée du sommeil',
+              style: TextStyle(
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.dodo,
+                color: AppTheme.textPrimary,
               ),
             ),
-          ),
-          const SizedBox(height: 32),
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              activeTrackColor: AppTheme.dodo,
-              inactiveTrackColor: Colors.grey.shade700,
-              thumbColor: AppTheme.dodo,
-              overlayColor: AppTheme.dodo.withValues(alpha: 0.2),
-              trackHeight: 4,
-            ),
-            child: Slider(
-              value: _selectedMinutes.clamp(0.0, 480.0),
-              min: 0,
-              max: 480, // 8 heures max
-              divisions: 96, // pas de 5 minutes
-              label: _formatDuration(_selectedMinutes),
-              onChanged: (value) {
-                setState(() => _selectedMinutes = value);
-              },
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Annuler', style: TextStyle(color: AppTheme.textSecondary)),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  widget.onDurationSelected(_selectedMinutes);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.dodo,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            const SizedBox(height: 32),
+            Center(
+              child: Text(
+                _formatDuration(_selectedMinutes),
+                style: const TextStyle(
+                  fontSize: 56,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.dodo,
                 ),
-                child: const Text('Confirmer'),
               ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 32),
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: AppTheme.dodo,
+                inactiveTrackColor: Colors.grey.shade700,
+                thumbColor: AppTheme.dodo,
+                overlayColor: AppTheme.dodo.withValues(alpha: 0.2),
+                trackHeight: 4,
+              ),
+              child: Slider(
+                value: _selectedMinutes.clamp(0.0, 480.0),
+                min: 0,
+                max: 480, // 8 heures max
+                divisions: 96, // pas de 5 minutes
+                label: _formatDuration(_selectedMinutes),
+                onChanged: (value) {
+                  setState(() => _selectedMinutes = value);
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Annuler', style: TextStyle(color: AppTheme.textSecondary)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      widget.onDurationSelected(_selectedMinutes);
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.dodo,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                    child: const Text('Confirmer'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
