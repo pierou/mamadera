@@ -32,13 +32,6 @@ class AppDatabase extends _$AppDatabase {
           await m.database.customStatement(
               'CREATE INDEX IF NOT EXISTS idx_tracking_events_timestamp_type ON tracking_events(timestamp DESC, type)');
         },
-        onUpgrade: (Migrator m, int from, int to) async {
-          if (from < 2) {
-            // Ajout des colonnes wasteType et color pour les installations existantes
-            await m.addColumn(trackingEvents, trackingEvents.wasteType);
-            await m.addColumn(trackingEvents, trackingEvents.color);
-          }
-        },
       );
 
   Future<List<TrackingEvent>> getEvents() => select(trackingEvents).get();
@@ -78,14 +71,10 @@ class AppDatabase extends _$AppDatabase {
     return deleted > 0;
   }
 
-  // ignore: comment_references
   /// Retourne tous les événements sans tri spécifique.
-  /// Utilisé par EncryptionMigration pour itérer sur l'intégralité de la table.
   Future<List<TrackingEvent>> getAllTrackingEvents() => select(trackingEvents).get();
 
-  // ignore: comment_references
   /// Met à jour uniquement le champ notes d'un événement par son ID.
-  /// Utilisé exclusivement par EncryptionMigration pour re-chiffrer des notes en clair.
   Future<int> updateNotesForEvent(int id, String? newNotes) {
     return (update(trackingEvents)..where((t) => t.id.equals(id)))
         .write(TrackingEventsCompanion(notes: Value(newNotes)));
