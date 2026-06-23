@@ -84,7 +84,7 @@ jobs:
           MIN_COVERAGE=80
 
           # Clean coverage report (exclude generated/test files)
-          lcov --remove coverage/lcov.info \
+          lcov --ignore-errors unused --remove coverage/lcov.info \
             'lib/generated/*' \
             '*_freezed.dart' \
             '*.g.dart' \

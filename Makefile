@@ -20,7 +20,7 @@ clean:
 check-coverage: test
 	@MIN_COVERAGE=80; \
 	command -v lcov >/dev/null 2>&1 || { echo "❌ lcov not installed. Run: sudo apt-get install -y lcov"; exit 1; }; \
-	lcov --remove coverage/lcov.info 'lib/generated/*' '*_freezed.dart' '*.g.dart' 'test/*' '/tmp/*' -o coverage/lcov.info.cleaned 2>/dev/null || true; \
+	lcov --ignore-errors unused --remove coverage/lcov.info 'lib/generated/*' '*_freezed.dart' '*.g.dart' 'test/*' '/tmp/*' -o coverage/lcov.info.cleaned; \
 	ACTUAL=$$(lcov --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $$2}' | cut -d'.' -f1); \
 	echo "Actual: $${ACTUAL}% / Required: $${MIN_COVERAGE}%"; \
 	if [ "$${ACTUAL}" -ge $${MIN_COVERAGE} ]; then \
