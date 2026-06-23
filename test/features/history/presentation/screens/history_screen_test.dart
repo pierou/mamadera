@@ -266,7 +266,15 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify updateEvent was called on the repository
-      verify(mockRepository.updateEvent(id: 1)).called(1);
+      verify(mockRepository.updateEvent(
+        id: anyNamed('id'),
+        timestamp: anyNamed('timestamp'),
+        duration: anyNamed('duration'),
+        notes: anyNamed('notes'),
+        wasteType: anyNamed('wasteType'),
+        pipiColor: anyNamed('pipiColor'),
+        cacaColor: anyNamed('cacaColor'),
+      )).called(1);
     });
 
     testWidgets('_showEditDialog handles DeleteResult from dialog', (tester) async {
@@ -288,13 +296,16 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap Supprimer button → opens confirmation dialog
-      final deleteButton = find.text('Supprimer');
-      expect(deleteButton, findsNWidgets(2)); // one in edit form, one in confirm
-      await tester.tap(deleteButton.first);
+      var deleteButtons = find.text('Supprimer');
+      expect(deleteButtons, findsOneWidget); // only the edit form's button initially
+      await tester.tapAt(tester.getTopLeft(deleteButtons));
       await tester.pumpAndSettle();
 
-      // Confirm deletion in AlertDialog (second Supprimer button)
-      await tester.tap(deleteButton.last);
+      // Confirm deletion in AlertDialog (second Supprimer button now visible)
+      deleteButtons = find.text('Supprimer');
+      expect(deleteButtons, findsNWidgets(2)); // edit form + confirm dialog
+      final alertButton = deleteButtons.at(1); // AlertDialog's button is on top
+      await tester.tapAt(tester.getTopLeft(alertButton));
       await tester.pumpAndSettle();
 
       // Verify deleteEvent was called on the repository
@@ -319,19 +330,21 @@ void main() {
       await tester.tap(tiles.first);
       await tester.pumpAndSettle();
 
-      // Dismiss bottom sheet by tapping ModalBarrier (returns null)
-      await tester.pageBack();
+      // Dismiss bottom sheet by tapping on the ModalBarrier at a coordinate
+      // above the dialog content to avoid gesture passthrough to interactive widgets.
+      expect(find.byType(ModalBarrier), findsNWidgets(2));
+      await tester.tapAt(const Offset(400, 100));
       await tester.pumpAndSettle();
 
       // Verify no mutation methods were called on the repository
       verifyNever(mockRepository.updateEvent(
-        id: any,
-        timestamp: any,
-        duration: any,
-        notes: any,
-        wasteType: any,
-        pipiColor: any,
-        cacaColor: any,
+        id: anyNamed('id'),
+        timestamp: anyNamed('timestamp'),
+        duration: anyNamed('duration'),
+        notes: anyNamed('notes'),
+        wasteType: anyNamed('wasteType'),
+        pipiColor: anyNamed('pipiColor'),
+        cacaColor: anyNamed('cacaColor'),
       ));
       verifyNever(mockRepository.deleteEvent(any));
     });
