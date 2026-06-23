@@ -93,7 +93,7 @@ jobs:
             -o coverage/lcov.info.cleaned 2>/dev/null || true
 
           # Extract actual line coverage from lcov --summary stdout
-          ACTUAL=$(lcov --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $$2}' | cut -d'.' -f1)
+          ACTUAL=$(lcov --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $2}' | cut -d'.' -f1)
 
           if [ "$ACTUAL" -ge $MIN_COVERAGE ]; then
             echo "✅ Coverage OK: ${ACTUAL}% (minimum: ${MIN_COVERAGE}%)"
