@@ -18,15 +18,20 @@ clean:
 
 # Optional: enforce minimum coverage threshold locally (now part of ci)
 check-coverage: test
-	@command -v lcov >/dev/null 2>&1 || { echo "❌ lcov not installed. Run: sudo apt-get install -y lcov"; exit 1; }
-	@lcov --remove coverage/lcov.info \
-		'lib/generated/*' \
-		'*_freezed.dart' \
-		'*.g.dart' \
-		'test/*' \
-		'/tmp/*' \
-		-o coverage/lcov.info.cleaned 2>/dev/null || true
-	@grep "lines\%" coverage/lcov.info.cleaned | awk '{print $$4}' | cut -d'.' -f1 | xargs -I {} sh -c '[ "{}" -ge 80 ] && echo "✅ Coverage ≥ 80%: {}%" || (echo "❌ Coverage below 80%: {}%" && exit 1)'
+	@MIN_COVERAGE=80; \
+	command -v lcov >/dev/null 2>&1 || { echo "❌ lcov not installed. Run: sudo apt-get install -y lcov"; exit 1; }; \
+	lcov --remove coverage/lcov.info 'lib/generated/*' '*_freezed.dart' '*.g.dart' 'test/*' '/tmp/*' -o coverage/lcov.info.cleaned 2>/dev/null || true; \
+	ACTUAL=$$(lcov --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $$2}' | cut -d'.' -f1); \
+	echo "Actual: $${ACTUAL}% / Required: $${MIN_COVERAGE}%"; \
+	if [ "$${ACTUAL}" -ge $${MIN_COVERAGE} ]; then \
+		echo "✅ Coverage OK: $${ACTUAL}% (minimum: $${MIN_COVERAGE}%)"; \
+	else \
+		echo "❌ Coverage failure!"; \
+		echo "   Actual coverage:  $${ACTUAL}%"; \
+		echo "   Required minimum: $${MIN_COVERAGE}%"; \
+		echo "To fix this, add tests for untested code."; \
+		exit 1; \
+	fi
 
 # 🏗️ Code generation for freezed, drift, json_serializable models
 codegen:

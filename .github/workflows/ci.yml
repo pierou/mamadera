@@ -81,16 +81,31 @@ jobs:
 
       - name: Check Coverage Threshold
         run: |
+          MIN_COVERAGE=80
+
           # Clean coverage report (exclude generated/test files)
           lcov --remove coverage/lcov.info \
             'lib/generated/*' \
+            '*_freezed.dart' \
+            '*.g.dart' \
             'test/*' \
             '/tmp/*' \
-            '*.g.dart'
             -o coverage/lcov.info.cleaned 2>/dev/null || true
-            
-          # Verify threshold ≥ 80%
-          grep "lines\%" coverage/lcov.info.cleaned | awk '{print $$4}' | cut -d'.' -f1 | xargs -I {} sh -c '[ "{}" -ge 80 ] && echo "✅ Coverage ≥ 80%: {}%" || (echo "❌ Coverage below 80%: {}%" && exit 1)'
+
+          # Extract actual line coverage from lcov --summary stdout
+          ACTUAL=$(lcov --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $$2}' | cut -d'.' -f1)
+
+          if [ "$ACTUAL" -ge $MIN_COVERAGE ]; then
+            echo "✅ Coverage OK: ${ACTUAL}% (minimum: ${MIN_COVERAGE}%)"
+          else
+            echo "❌ Coverage failure!"
+            echo "   Actual coverage:  ${ACTUAL}%"
+            echo "   Required minimum: ${MIN_COVERAGE}%"
+            echo ""
+            echo "To fix this, add tests for untested code or run locally with:"
+            echo "  make check-coverage"
+            exit 1
+          fi
 
   # 3. 🤖 Build Android (Reproductible & Signé)
   build-android:
