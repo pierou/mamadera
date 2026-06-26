@@ -4,7 +4,8 @@ import 'package:mamadera/core/providers/database_provider.dart';
 import 'package:mamadera/core/providers/encryption_provider.dart';
 import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart';
 import 'package:mamadera/features/home/presentation/providers/repository_provider.dart';
-import 'package:mamadera/shared/domain/entities/tracking_type.dart';
+import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
+import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mockito/mockito.dart';
 
 import '../../../../data/repositories/tracking_repository_impl_test.mocks.dart';
@@ -110,8 +111,13 @@ void main() {
       expect(repo, isA<TrackingRepository>());
 
       // Mais les opérations sur le repo propagent l'erreur de la DB
+      final testEvent = FeedingEvent(
+        timestamp: DateTime.now(),
+        subtype: FeedingSubtype.sein,
+        duration: 10,
+      );
       expect(
-        () => repo.insertEvent(type: TrackingType.miam),
+        () => repo.insertEvent(testEvent),
         throwsA(anything),
       );
 

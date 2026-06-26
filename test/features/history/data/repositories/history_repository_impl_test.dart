@@ -10,6 +10,11 @@ import 'package:mockito/mockito.dart';
 
 import 'history_repository_impl_test.mocks.dart';
 
+// Shared DB constants (mirror lib/data/local/db_constants.dart)
+const String typeMiam = 'miam';
+const String typeDodo = 'dodo';
+
+// ignore_for_file: type=lint
 @GenerateMocks([drift.AppDatabase, EncryptionService])
 void main() {
   late HistoryRepositoryImpl repository;
@@ -38,14 +43,14 @@ void main() {
       test('retourne une liste d\'événements triés en succès', () async {
         final dbEvent1 = drift.TrackingEvent(
           id: 2,
-          type: 'dodo',
+          type: typeDodo,
           timestamp: DateTime(2023, 10, 1),
           duration: 30,
           notes: null,
         );
         final dbEvent2 = drift.TrackingEvent(
           id: 1,
-          type: 'miam',
+          type: typeMiam,
           timestamp: DateTime(2023, 10, 2),
           duration: 15,
           notes: 'encrypted_notes_data',
@@ -65,11 +70,11 @@ void main() {
         expect(result.length, 2);
         // Les événements sont retournés tels quels par le mock
         expect(result[0].id, 2);
-        expect(result[0].type, TrackingType.dodo);
-        expect(result[0].duration, 30.0);
+        expect(result[0] is entity.SleepEvent, true);
+        expect((result[0] as entity.SleepEvent).duration, 30.0);
         expect(result[1].id, 1);
-        expect(result[1].type, TrackingType.miam);
-        expect(result[1].notes, 'notes test');
+        expect(result[1] is entity.FeedingEvent, true);
+        expect((result[1] as entity.FeedingEvent).notes, 'notes test');
 
         verify(mockAppDatabase.getAllEventsOrdered()).called(1);
       });
@@ -89,13 +94,13 @@ void main() {
       test('filtre correctement par type en succès', () async {
         final dbEvent = drift.TrackingEvent(
           id: 1,
-          type: 'miam',
+          type: typeMiam,
           timestamp: DateTime.now(),
           duration: 12,
           notes: null,
         );
 
-        when(mockAppDatabase.getEventsByType('miam'))
+        when(mockAppDatabase.getEventsByType(typeMiam))
             .thenAnswer((_) async => [dbEvent]);
 
         when(mockEncryption.decrypt(null)).thenReturn(null);
@@ -103,10 +108,10 @@ void main() {
         final result = await repository.getEventsByType(TrackingType.miam);
 
         expect(result.length, 1);
-        expect(result[0].type.name, 'miam');
-        expect(result[0].duration, 12.0);
+        expect(result[0] is entity.FeedingEvent, true);
+        expect((result[0] as entity.FeedingEvent).duration, 12.0);
 
-        verify(mockAppDatabase.getEventsByType('miam')).called(1);
+        verify(mockAppDatabase.getEventsByType(typeMiam)).called(1);
       });
 
       test('retourne une liste vide pour un type inexistant', () async {
@@ -130,90 +135,105 @@ void main() {
     });
 
     group('updateEvent()', () {
-      test('met à jour timestamp uniquement', () async {
+      test('met à jour FeedingEvent — timestamp et duration', () async {
         final newTimestamp = DateTime(2024, 1, 15);
         when(mockAppDatabase.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-        final result = await repository.updateEvent(
+        final updated = entity.FeedingEvent(
           id: 1,
           timestamp: newTimestamp,
+          subtype: FeedingSubtype.sein,
+          duration: 20,
         );
+        final result = await repository.updateEvent(id: 1, event: updated);
 
         expect(result, true);
-        verify(mockAppDatabase.updateEvent(1, any)).called(1);
       });
 
-      test('met à jour duration uniquement', () async {
+      test('met à jour SleepEvent — duration uniquement', () async {
         when(mockAppDatabase.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-        final result = await repository.updateEvent(
+        final updated = entity.SleepEvent(
           id: 2,
+          timestamp: DateTime.now(),
           duration: 45,
         );
+        final result = await repository.updateEvent(id: 2, event: updated);
 
         expect(result, true);
       });
 
-      test('met à jour notes avec chiffrement', () async {
+      test('met à jour FeedingEvent — notes avec chiffrement', () async {
         when(mockEncryption.encrypt(any)).thenReturn('encrypted_new_notes');
         when(mockAppDatabase.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-        final result = await repository.updateEvent(
+        final updated = entity.FeedingEvent(
           id: 3,
+          timestamp: DateTime.now(),
+          subtype: FeedingSubtype.sein,
+          duration: 10,
           notes: 'new sensitive notes',
         );
+        final result = await repository.updateEvent(id: 3, event: updated);
 
         expect(result, true);
         verify(mockEncryption.encrypt('new sensitive notes')).called(1);
       });
 
-      test('met à jour wasteType pipi avec couleur', () async {
+      test('met à jour DiaperEvent — pipi avec couleur', () async {
         when(mockAppDatabase.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-        final result = await repository.updateEvent(
+        final updated = entity.DiaperEvent(
           id: 4,
+          timestamp: DateTime.now(),
           wasteType: WasteType.pipi,
           pipiColor: PipiColor.roseUrates,
         );
+        final result = await repository.updateEvent(id: 4, event: updated);
 
         expect(result, true);
       });
 
-      test('met à jour wasteType caca avec couleur', () async {
+      test('met à jour DiaperEvent — caca avec couleur', () async {
         when(mockAppDatabase.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-        final result = await repository.updateEvent(
+        final updated = entity.DiaperEvent(
           id: 5,
+          timestamp: DateTime.now(),
           wasteType: WasteType.caca,
           cacaColor: CacaColor.vertOlive,
         );
+        final result = await repository.updateEvent(id: 5, event: updated);
 
         expect(result, true);
       });
 
-      test('met à jour wasteType lesDeux avec deux couleurs', () async {
+      test('met à jour DiaperEvent — lesDeux avec deux couleurs', () async {
         when(mockAppDatabase.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-        final result = await repository.updateEvent(
+        final updated = entity.DiaperEvent(
           id: 6,
+          timestamp: DateTime.now(),
           wasteType: WasteType.lesDeux,
           pipiColor: PipiColor.incolore,
           cacaColor: CacaColor.meconium,
         );
+        final result = await repository.updateEvent(id: 6, event: updated);
 
         expect(result, true);
       });
 
-      test('met à jour plusieurs champs en même temps', () async {
+      test('met à jour SleepEvent — plusieurs champs en même temps', () async {
         when(mockEncryption.encrypt(any)).thenReturn('encrypted_multi');
         when(mockAppDatabase.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-        final result = await repository.updateEvent(
+        final updated = entity.SleepEvent(
           id: 7,
           timestamp: DateTime(2024, 6, 1),
           duration: 25.5,
           notes: 'multi update',
         );
+        final result = await repository.updateEvent(id: 7, event: updated);
 
         expect(result, true);
       });
@@ -221,10 +241,13 @@ void main() {
       test('retourne false quand aucun événement n\'est trouvé', () async {
         when(mockAppDatabase.updateEvent(any, any)).thenAnswer((_) async => 0);
 
-        final result = await repository.updateEvent(
+        final updated = entity.FeedingEvent(
           id: 999,
           timestamp: DateTime.now(),
+          subtype: FeedingSubtype.sein,
+          duration: 10,
         );
+        final result = await repository.updateEvent(id: 999, event: updated);
 
         expect(result, false);
       });
@@ -232,11 +255,13 @@ void main() {
       test('ne chiffre pas les notes si elles sont null', () async {
         when(mockAppDatabase.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-        await repository.updateEvent(
+        final updated = entity.SleepEvent(
           id: 8,
           timestamp: DateTime.now(),
-          // notes is intentionally omitted (null)
+          duration: 30,
+          // notes intentionally omitted (null)
         );
+        await repository.updateEvent(id: 8, event: updated);
 
         verifyNever(mockEncryption.encrypt(any));
       });

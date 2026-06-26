@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
+import '../../domain/repositories/history_repository.dart';
 import 'history_repository_provider.dart';
 
 final selectedFilterProvider =
@@ -46,27 +47,24 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final repository = await ref.read(historyRepositoryProvider.future);
-      await repository.updateEvent(
-        id: event.id!,
-        timestamp: event.timestamp,
-        duration: event.duration,
-        notes: event.notes,
-        wasteType: event.wasteType,
-        pipiColor: event.pipiColor,
-        cacaColor: event.cacaColor,
-      );
-      if (_filter == HistoryFilter.all) {
-        return repository.getAllEventsOrdered();
-      }
-      final type = switch (_filter) {
-        HistoryFilter.miam => TrackingType.miam,
-        HistoryFilter.dodo => TrackingType.dodo,
-        HistoryFilter.caca => TrackingType.caca,
-        HistoryFilter.sante => TrackingType.sante,
-        HistoryFilter.all => throw StateError('unexpected all filter in updateEvent'),
-      };
-      return repository.getEventsByType(type);
+      await repository.updateEvent(id: event.id!, event: event);
+      return _fetchEvents(repository);
     });
+  }
+
+  /// Fetch events based on current filter.
+  Future<List<TrackingEvent>> _fetchEvents(HistoryRepository repository) async {
+    if (_filter == HistoryFilter.all) {
+      return repository.getAllEventsOrdered();
+    }
+    final type = switch (_filter) {
+      HistoryFilter.miam => TrackingType.miam,
+      HistoryFilter.dodo => TrackingType.dodo,
+      HistoryFilter.caca => TrackingType.caca,
+      HistoryFilter.sante => TrackingType.sante,
+      HistoryFilter.all => throw StateError('unexpected all filter'),
+    };
+    return repository.getEventsByType(type);
   }
 
   /// Supprime un événement par son ID et rafraîchit la liste.

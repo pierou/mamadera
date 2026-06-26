@@ -102,7 +102,7 @@ class HealthSubtypeDialog extends ConsumerWidget {
   void _onSubmit(BuildContext context, WidgetRef ref) {
     final state = ref.read(healthSubtypeDialogProvider);
     if (state != null) {
-      Navigator.pop(context, {'notes': state.value});
+      Navigator.pop(context, {'subtype': state});
     } else {
       // Si aucun sous-type sélectionné, on affiche un message d'erreur.
       ScaffoldMessenger.of(context).showSnackBar(

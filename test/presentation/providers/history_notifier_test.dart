@@ -17,35 +17,38 @@ void main() {
   late MockHistoryRepository mockRepository;
   late ProviderContainer container;
 
-  final event1 = TrackingEvent(
+  final event1 = FeedingEvent(
     id: 1,
-    type: TrackingType.miam,
     timestamp: DateTime.utc(2023, 1, 1),
+    subtype: FeedingSubtype.sein,
+    duration: 15,
   );
-  final event2 = TrackingEvent(
+  final event2 = SleepEvent(
     id: 2,
-    type: TrackingType.dodo,
     timestamp: DateTime.utc(2023, 1, 2),
+    duration: 60,
   );
-  final event3 = TrackingEvent(
+  final event3 = FeedingEvent(
     id: 3,
-    type: TrackingType.miam,
     timestamp: DateTime.utc(2023, 1, 3),
+    subtype: FeedingSubtype.bib,
+    duration: 120,
   );
-  final eventDodo = TrackingEvent(
+  final eventDodo = SleepEvent(
     id: 2,
-    type: TrackingType.dodo,
     timestamp: DateTime.utc(2023, 1, 2),
+    duration: 45,
   );
-  final eventTest = TrackingEvent(
+  final eventTest = HealthEvent(
     id: 1,
-    type: TrackingType.sante,
     timestamp: DateTime.utc(2023, 1, 1),
+    subtype: HealthSubtype.nettoyageYeux,
   );
-  final eventRapide = TrackingEvent(
+  final eventRapide = DiaperEvent(
     id: 1,
-    type: TrackingType.caca,
     timestamp: DateTime.utc(2023, 1, 1),
+    wasteType: WasteType.caca,
+    cacaColor: CacaColor.vertOlive,
   );
 
   setUp(() {
@@ -72,8 +75,8 @@ void main() {
           await container.read(historyNotifierProvider(HistoryFilter.all).future);
 
       expect(state, hasLength(2));
-      expect(state[0].type, TrackingType.miam);
-      expect(state[1].type, TrackingType.dodo);
+      expect(state[0].trackingType, TrackingType.miam);
+      expect(state[1].trackingType, TrackingType.dodo);
 
       verify(mockRepository.getAllEventsOrdered()).called(1);
     });
@@ -99,7 +102,7 @@ void main() {
 
       expect(state, hasLength(2));
       for (final event in state) {
-        expect(event.type, TrackingType.miam);
+        expect(event.trackingType, TrackingType.miam);
       }
 
       verify(mockRepository.getEventsByType(TrackingType.miam)).called(1);
@@ -113,7 +116,7 @@ void main() {
           await container.read(historyNotifierProvider(HistoryFilter.dodo).future);
 
       expect(state, hasLength(1));
-      expect(state[0].type, TrackingType.dodo);
+      expect(state[0].trackingType, TrackingType.dodo);
       verify(mockRepository.getEventsByType(TrackingType.dodo)).called(1);
     });
   });
@@ -189,7 +192,7 @@ void main() {
           await container.read(historyNotifierProvider(HistoryFilter.all).future);
 
       expect(state, hasLength(1));
-      expect(state[0].type, TrackingType.caca);
+      expect(state[0].trackingType, TrackingType.caca);
     });
   });
 }

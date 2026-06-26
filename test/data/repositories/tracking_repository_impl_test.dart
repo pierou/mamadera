@@ -4,6 +4,7 @@ import 'package:mamadera/core/services/encryption_service.dart';
 import 'package:mamadera/data/local/app_db.dart' as db_app;
 import 'package:mamadera/features/home/data/repositories/tracking_repository_impl.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
+import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -26,10 +27,15 @@ void main() {
   });
 
   group('insertEvent', () {
-    test('insère un événement simple (miam)', () async {
+    test('insère un événement simple (FeedingEvent)', () async {
       when(mockDb.insertEvent(any)).thenAnswer((_) async => 1);
 
-      final id = await repository.insertEvent(type: TrackingType.miam);
+      final event = FeedingEvent(
+        timestamp: DateTime.now(),
+        subtype: FeedingSubtype.sein,
+        duration: 30,
+      );
+      final id = await repository.insertEvent(event);
 
       expect(id, equals(1));
       verify(mockDb.insertEvent(any)).called(1);
@@ -39,28 +45,39 @@ void main() {
       when(mockEncryption.encrypt(any)).thenReturn('encrypted_notes');
       when(mockDb.insertEvent(any)).thenAnswer((_) async => 2);
 
-      await repository.insertEvent(type: TrackingType.miam, notes: 'sensitive note');
+      final event = FeedingEvent(
+        timestamp: DateTime.now(),
+        subtype: FeedingSubtype.sein,
+        duration: 15,
+        notes: 'sensitive note',
+      );
+      await repository.insertEvent(event);
 
       verify(mockEncryption.encrypt('sensitive note')).called(1);
     });
 
-    test('insère avec duration (dodo)', () async {
+    test('insère avec duration (SleepEvent)', () async {
       when(mockDb.insertEvent(any)).thenAnswer((_) async => 3);
 
-      final id = await repository.insertEvent(type: TrackingType.dodo, duration: 60);
+      final event = SleepEvent(
+        timestamp: DateTime.now(),
+        duration: 60,
+      );
+      final id = await repository.insertEvent(event);
 
       expect(id, equals(3));
     });
 
-    test('insère avec wasteType et couleurs (caca)', () async {
+    test('insère avec wasteType et couleurs (DiaperEvent)', () async {
       when(mockDb.insertEvent(any)).thenAnswer((_) async => 4);
 
-      final id = await repository.insertEvent(
-        type: TrackingType.caca,
+      final event = DiaperEvent(
+        timestamp: DateTime.now(),
         wasteType: WasteType.pipi,
         pipiColor: PipiColor.jauneClair,
         cacaColor: CacaColor.meconium,
       );
+      final id = await repository.insertEvent(event);
 
       expect(id, equals(4));
     });
@@ -68,8 +85,13 @@ void main() {
     test('propage l\'exception du database', () async {
       when(mockDb.insertEvent(any)).thenThrow(Exception('DB error'));
 
+      final event = FeedingEvent(
+        timestamp: DateTime.now(),
+        subtype: FeedingSubtype.sein,
+        duration: 10,
+      );
       expect(
-        () => repository.insertEvent(type: TrackingType.miam),
+        () => repository.insertEvent(event),
         throwsA(isA<Exception>()),
       );
     });
@@ -102,7 +124,7 @@ void main() {
         final events = await repository.getAllEventsOrdered();
 
         expect(events.length, equals(1));
-        expect(events.first.notes, equals('decrypted note'));
+        expect((events.first as FeedingEvent).notes, equals('decrypted note'));
       });
 
       test('mappe WasteType.pipi avec pipiColor', () async {
@@ -122,9 +144,10 @@ void main() {
         final events = await repository.getAllEventsOrdered();
 
         expect(events.length, equals(1));
-        expect(events.first.wasteType, equals(WasteType.pipi));
-        expect(events.first.pipiColor, isNotNull);
-        expect(events.first.pipiColor?.value, equals(PipiColor.jauneClair.value));
+        final diaper = events.first as DiaperEvent;
+        expect(diaper.wasteType, equals(WasteType.pipi));
+        expect(diaper.pipiColor, isNotNull);
+        expect(diaper.pipiColor?.value, equals(PipiColor.jauneClair.value));
       });
 
       test('mappe WasteType.caca avec cacaColor', () async {
@@ -144,9 +167,10 @@ void main() {
         final events = await repository.getAllEventsOrdered();
 
         expect(events.length, equals(1));
-        expect(events.first.wasteType, equals(WasteType.caca));
-        expect(events.first.cacaColor, isNotNull);
-        expect(events.first.cacaColor?.value, equals(CacaColor.meconium.value));
+        final diaper = events.first as DiaperEvent;
+        expect(diaper.wasteType, equals(WasteType.caca));
+        expect(diaper.cacaColor, isNotNull);
+        expect(diaper.cacaColor?.value, equals(CacaColor.meconium.value));
       });
 
       test('mappe WasteType.lesDeux avec couleurs pipe-délimitées', () async {
@@ -167,9 +191,10 @@ void main() {
         final events = await repository.getAllEventsOrdered();
 
         expect(events.length, equals(1));
-        expect(events.first.wasteType, equals(WasteType.lesDeux));
-        expect(events.first.pipiColor?.value, equals(PipiColor.jauneFonce.value));
-        expect(events.first.cacaColor?.value, equals(CacaColor.vertOlive.value));
+        final diaper = events.first as DiaperEvent;
+        expect(diaper.wasteType, equals(WasteType.lesDeux));
+        expect(diaper.pipiColor?.value, equals(PipiColor.jauneFonce.value));
+        expect(diaper.cacaColor?.value, equals(CacaColor.vertOlive.value));
       });
 
       test('mappe WasteType.lesDeux avec fallback couleur unique', () async {
@@ -189,8 +214,9 @@ void main() {
         final events = await repository.getAllEventsOrdered();
 
         expect(events.length, equals(1));
-        expect(events.first.wasteType, equals(WasteType.lesDeux));
-        expect(events.first.pipiColor, isNotNull);
+        final diaper = events.first as DiaperEvent;
+        expect(diaper.wasteType, equals(WasteType.lesDeux));
+        expect(diaper.pipiColor, isNotNull);
       });
 
       test('ignore couleur nulle', () async {
@@ -210,8 +236,9 @@ void main() {
         final events = await repository.getAllEventsOrdered();
 
         expect(events.length, equals(1));
-        expect(events.first.pipiColor, isNull);
-        expect(events.first.cacaColor, isNull);
+        final diaper = events.first as DiaperEvent;
+        expect(diaper.pipiColor, isNull);
+        expect(diaper.cacaColor, isNull);
       });
 
       test('ignore couleur vide', () async {
@@ -230,18 +257,19 @@ void main() {
         final events = await repository.getAllEventsOrdered();
 
         expect(events.length, equals(1));
-        expect(events.first.pipiColor, isNull);
-        expect(events.first.cacaColor, isNull);
+        final diaper = events.first as DiaperEvent;
+        expect(diaper.pipiColor, isNull);
+        expect(diaper.cacaColor, isNull);
       });
 
       test('propage l\'exception du database', () async {
-      when(mockDb.getAllEventsOrdered()).thenThrow(Exception('DB error'));
+        when(mockDb.getAllEventsOrdered()).thenThrow(Exception('DB error'));
 
-      expect(
-        () => repository.getAllEventsOrdered(),
-        throwsA(isA<Exception>()),
-      );
-    });
+        expect(
+          () => repository.getAllEventsOrdered(),
+          throwsA(isA<Exception>()),
+        );
+      });
   });
 
   group('getEventsByType', () {
@@ -271,8 +299,9 @@ void main() {
       final events = await repository.getEventsByType(TrackingType.caca);
 
       expect(events.length, equals(1));
-      expect(events.first.wasteType, equals(WasteType.pipi));
-      expect(events.first.pipiColor?.value, equals(PipiColor.roseUrates.value));
+      final diaper = events.first as DiaperEvent;
+      expect(diaper.wasteType, equals(WasteType.pipi));
+      expect(diaper.pipiColor?.value, equals(PipiColor.roseUrates.value));
     });
 
     test('propage l\'exception du database', () async {

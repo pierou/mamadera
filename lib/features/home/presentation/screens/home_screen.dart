@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// ignore: implementation_imports
+import 'package:logger/logger.dart' show Logger;
+
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
@@ -13,6 +16,8 @@ import '../widgets/duration_picker_dialog.dart';
 import '../widgets/health_subtype_dialog.dart';
 import '../widgets/track_button.dart';
 import '../widgets/waste_dialog.dart';
+
+final _log = Logger();
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -53,7 +58,11 @@ class _HomeContent extends ConsumerWidget {
       return;
     }
 
-    ref.read(trackNotifierProvider.notifier).track(type: eventType);
+    // Miam tracking — default to sein (breastfeeding), no subtype dialog needed
+    ref.read(trackNotifierProvider.notifier).track(
+      type: TrackingType.miam,
+      feedingSubtype: FeedingSubtype.sein,
+    );
   }
 
 void _onTapDodo(BuildContext context, WidgetRef ref) {
@@ -70,7 +79,7 @@ void _onTapDodo(BuildContext context, WidgetRef ref) {
               type: TrackingType.dodo,
                  duration: minutes,
                );
-           debugPrint('✅ Dodo enregistré avec durée : $minutes min');
+           _log.d('Dodo enregistré avec durée : $minutes min');
          },
        );
      },
@@ -109,9 +118,10 @@ void _onTapDodo(BuildContext context, WidgetRef ref) {
     );
 
     if (result != null && context.mounted) {
+      final subtype = result['subtype'] as HealthSubtype;
       await ref.read(trackNotifierProvider.notifier).track(
            type: TrackingType.sante,
-           notes: result['notes'] as String?,
+           healthSubtype: subtype,
          );
     }
   }

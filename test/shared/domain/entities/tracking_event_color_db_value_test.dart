@@ -1,18 +1,16 @@
-// ignore_for_file: lines_longer_than_80_chars // Tests du getter colorDbValue de TrackingEvent
+// ignore_for_file: lines_longer_than_80_chars // Tests du getter colorDbValue de DiaperEvent
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
-import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 void main() {
-  group('TrackingEvent.colorDbValue', () {
+  group('DiaperEvent.colorDbValue', () {
     final baseTimestamp = DateTime.utc(2023, 10, 25);
 
     // ── pipi → retourne pipiColor.value (ou null si non sélectionné) ───
     test('wasteType=pipi avec pipiColor sélectionnée → pipiColor.value', () {
-      final event = TrackingEvent(
-        type: TrackingType.caca,
+      final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.pipi,
         pipiColor: PipiColor.jauneClair,
@@ -22,8 +20,7 @@ void main() {
     });
 
     test('wasteType=pipi sans pipiColor → null', () {
-      final event = TrackingEvent(
-        type: TrackingType.caca,
+      final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.pipi,
       );
@@ -33,8 +30,7 @@ void main() {
 
     // ── caca → retourne cacaColor.value (ou null si non sélectionné) ───
     test('wasteType=caca avec cacaColor sélectionnée → cacaColor.value', () {
-      final event = TrackingEvent(
-        type: TrackingType.caca,
+      final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.caca,
         cacaColor: CacaColor.vertOlive,
@@ -44,8 +40,7 @@ void main() {
     });
 
     test('wasteType=caca sans cacaColor → null', () {
-      final event = TrackingEvent(
-        type: TrackingType.caca,
+      final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.caca,
       );
@@ -55,8 +50,7 @@ void main() {
 
     // ── lesDeux → format pipe-délimité ou fallback单方 ────────────────
     test('wasteType=lesDeux avec pipiColor et cacaColor → "pipi|caca"', () {
-      final event = TrackingEvent(
-        type: TrackingType.caca,
+      final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.lesDeux,
         pipiColor: PipiColor.incolore,
@@ -67,8 +61,7 @@ void main() {
     });
 
     test('wasteType=lesDeux avec pipiColor seulement → pipiColor.value', () {
-      final event = TrackingEvent(
-        type: TrackingType.caca,
+      final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.lesDeux,
         pipiColor: PipiColor.jauneFonce,
@@ -78,8 +71,7 @@ void main() {
     });
 
     test('wasteType=lesDeux avec cacaColor seulement → cacaColor.value', () {
-      final event = TrackingEvent(
-        type: TrackingType.caca,
+      final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.lesDeux,
         cacaColor: CacaColor.meconium,
@@ -90,8 +82,7 @@ void main() {
 
     // ── wasteType null → toujours null, peu importe les couleurs ──────
     test('wasteType=null (même avec des couleurs) → null', () {
-      final event = TrackingEvent(
-        type: TrackingType.caca,
+      final event = DiaperEvent(
         timestamp: baseTimestamp,
         pipiColor: PipiColor.roseUrates,
         cacaColor: CacaColor.jauneClair,

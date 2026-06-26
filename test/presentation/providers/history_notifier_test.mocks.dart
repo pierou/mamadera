@@ -7,7 +7,6 @@ import 'dart:async' as _i3;
 
 import 'package:mamadera/features/history/domain/repositories/history_repository.dart'
     as _i2;
-import 'package:mamadera/shared/domain/entities/tracking_enums.dart' as _i6;
 import 'package:mamadera/shared/domain/entities/tracking_event.dart' as _i4;
 import 'package:mamadera/shared/domain/entities/tracking_type.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
@@ -60,12 +59,7 @@ class MockHistoryRepository extends _i1.Mock implements _i2.HistoryRepository {
   @override
   _i3.Future<bool> updateEvent({
     required int? id,
-    DateTime? timestamp,
-    double? duration,
-    String? notes,
-    _i6.WasteType? wasteType,
-    _i6.PipiColor? pipiColor,
-    _i6.CacaColor? cacaColor,
+    required _i4.TrackingEvent? event,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -73,12 +67,7 @@ class MockHistoryRepository extends _i1.Mock implements _i2.HistoryRepository {
           [],
           {
             #id: id,
-            #timestamp: timestamp,
-            #duration: duration,
-            #notes: notes,
-            #wasteType: wasteType,
-            #pipiColor: pipiColor,
-            #cacaColor: cacaColor,
+            #event: event,
           },
         ),
         returnValue: _i3.Future<bool>.value(false),

@@ -4,6 +4,7 @@ import 'package:mamadera/features/home/domain/repositories/tracking_repository.d
 import 'package:mamadera/features/home/presentation/providers/repository_provider.dart';
 import 'package:mamadera/features/home/presentation/providers/track_notifier.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
+import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -17,32 +18,22 @@ void main() {
 
   setUp(() {
     mockRepository = MockTrackingRepository();
-    // Stub par défaut : insertEvent retourne toujours un ID valide.
-    when(
-      mockRepository.insertEvent(
-        type: anyNamed('type'),
-        timestamp: anyNamed('timestamp'),
-        duration: anyNamed('duration'),
-        notes: anyNamed('notes'),
-        wasteType: anyNamed('wasteType'),
-        pipiColor: anyNamed('pipiColor'),
-        cacaColor: anyNamed('cacaColor'),
-        ),
-    ).thenAnswer((_) async => 1);
+    // Stub par défaut : insertEvent(event) retourne toujours un ID valide.
+    when(mockRepository.insertEvent(any)).thenAnswer((_) async => 1);
 
     container = ProviderContainer(
       overrides: [
         trackingRepositoryProvider.overrideWithValue(AsyncData(mockRepository)),
       ],
-      );
-    });
+    );
+  });
 
   tearDown(() {
     container.dispose();
   });
 
   group('TrackNotifier.track()', () {
-    test('appelle le repository avec les bons paramètres', () async {
+    test('appelle le repository avec un FeedingEvent pour type=miam', () async {
       final notifier = container.read(trackNotifierProvider.notifier);
       await notifier.track(
         type: TrackingType.miam,
@@ -50,17 +41,14 @@ void main() {
         notes: 'notes de test',
       );
 
-      verify(
-        mockRepository.insertEvent(
-          type: TrackingType.miam,
-          timestamp: anyNamed('timestamp'),
-          duration: 10,
-          notes: 'notes de test',
-          wasteType: null as WasteType?,
-          pipiColor: null as PipiColor?,
-          cacaColor: null as CacaColor?,
-        ),
-      ).called(1);
+      // Capturer l'événement passé à insertEvent pour vérifier le contenu.
+      final captured = verify(mockRepository.insertEvent(captureAny)).captured;
+      expect(captured, hasLength(1));
+      final event = captured.first as TrackingEvent;
+      expect(event, isA<FeedingEvent>());
+      expect((event as FeedingEvent).subtype, equals(FeedingSubtype.sein));
+      expect(event.duration, equals(10.0));
+      expect(event.notes, equals('notes de test'));
     });
 
     test('transition état loading → data en cas de succès', () async {
@@ -73,17 +61,7 @@ void main() {
     });
 
     test('transition état loading → error en cas d\'échec', () async {
-      when(
-        mockRepository.insertEvent(
-          type: TrackingType.caca,
-          timestamp: anyNamed('timestamp'),
-          duration: anyNamed('duration'),
-          notes: anyNamed('notes'),
-          wasteType: anyNamed('wasteType'),
-          pipiColor: anyNamed('pipiColor'),
-          cacaColor: anyNamed('cacaColor'),
-        ),
-      ).thenThrow(Exception('Erreur de base de données'));
+      when(mockRepository.insertEvent(any)).thenThrow(Exception('Erreur de base de données'));
 
       final notifier = container.read(trackNotifierProvider.notifier);
       await notifier.track(type: TrackingType.caca);
@@ -100,17 +78,12 @@ void main() {
       final notifier = container.read(trackNotifierProvider.notifier);
       await notifier.track(type: TrackingType.miam);
 
-      verify(
-        mockRepository.insertEvent(
-          type: TrackingType.miam,
-          timestamp: anyNamed('timestamp'),
-          duration: null as double?,
-          notes: null as String?,
-          wasteType: null as WasteType?,
-          pipiColor: null as PipiColor?,
-          cacaColor: null as CacaColor?,
-        ),
-      ).called(1);
+      final captured = verify(mockRepository.insertEvent(captureAny)).captured;
+      expect(captured, hasLength(1));
+      final event = captured.first as TrackingEvent;
+      expect(event, isA<FeedingEvent>());
+      // Valeurs par défaut : sein, duration 0.0, notes null
+      expect((event as FeedingEvent).subtype, equals(FeedingSubtype.sein));
 
       expect(container.read(trackNotifierProvider), isA<AsyncData<void>>());
     });
@@ -124,19 +97,54 @@ void main() {
         cacaColor: CacaColor.meconium,
       );
 
-      verify(
-        mockRepository.insertEvent(
-          type: TrackingType.caca,
-          timestamp: anyNamed('timestamp'),
-          duration: null as double?,
-          notes: null as String?,
-          wasteType: WasteType.pipi,
-          pipiColor: PipiColor.jauneClair,
-          cacaColor: CacaColor.meconium,
-        ),
-      ).called(1);
+      final captured = verify(mockRepository.insertEvent(captureAny)).captured;
+      expect(captured, hasLength(1));
+      final event = captured.first as TrackingEvent;
+      expect(event, isA<DiaperEvent>());
+      expect((event as DiaperEvent).wasteType, equals(WasteType.pipi));
+      expect(event.pipiColor, equals(PipiColor.jauneClair));
+      expect(event.cacaColor, equals(CacaColor.meconium));
 
       expect(container.read(trackNotifierProvider), isA<AsyncData<void>>());
+    });
+
+    test('track() avec SleepEvent pour type=dodo', () async {
+      final notifier = container.read(trackNotifierProvider.notifier);
+      await notifier.track(
+        type: TrackingType.dodo,
+        duration: 90,
+        notes: 'bonne sieste',
+      );
+
+      final captured = verify(mockRepository.insertEvent(captureAny)).captured;
+      expect(captured, hasLength(1));
+      final event = captured.first as TrackingEvent;
+      expect(event, isA<SleepEvent>());
+      expect((event as SleepEvent).duration, equals(90.0));
+      expect(event.notes, equals('bonne sieste'));
+    });
+
+    test('track() avec HealthEvent pour type=sante', () async {
+      final notifier = container.read(trackNotifierProvider.notifier);
+      await notifier.track(
+        type: TrackingType.sante,
+        healthSubtype: HealthSubtype.vitamineD,
+        notes: 'dose quotidienne',
+      );
+
+      final captured = verify(mockRepository.insertEvent(captureAny)).captured;
+      expect(captured, hasLength(1));
+      final event = captured.first as TrackingEvent;
+      expect(event, isA<HealthEvent>());
+      expect((event as HealthEvent).subtype, equals(HealthSubtype.vitamineD));
+      expect(event.notes, equals('dose quotidienne'));
+    });
+
+    test('insertEvent est appelé exactement une fois par track()', () async {
+      final notifier = container.read(trackNotifierProvider.notifier);
+      await notifier.track(type: TrackingType.miam);
+
+      verify(mockRepository.insertEvent(any)).called(1);
     });
   });
 }

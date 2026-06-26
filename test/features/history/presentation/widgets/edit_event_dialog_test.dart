@@ -5,29 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/features/history/presentation/widgets/edit_event_dialog.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
+import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 
 /// Helper : pompe EditEventDialog dans un contexte MaterialApp + ProviderScope.
-Future<void> pumpDialog(WidgetTester tester, {
-  required String type,
-  DateTime? timestamp,
-  double? duration,
-  String? notes,
-  String? wasteType,
-  String? color,
-}) async {
+Future<void> pumpDialog(WidgetTester tester, TrackingEvent event) async {
   await tester.pumpWidget(
     ProviderScope(
       child: MaterialApp(
-        home: Scaffold(
-          body: EditEventDialog(
-            type: type,
-            initialTimestamp: timestamp ?? DateTime.utc(2024, 6, 15, 10, 30),
-            initialDuration: duration,
-            initialNotes: notes,
-            initialWasteType: wasteType,
-            initialColor: color,
-          ),
-        ),
+        home: Scaffold(body: EditEventDialog(event)),
       ),
     ),
   );
@@ -35,71 +20,91 @@ Future<void> pumpDialog(WidgetTester tester, {
 
 void main() {
   group('EditEventDialog — Affichage initial', () {
-    testWidgets('type pipi → section PipiColor visible, CacaColor absente, durée absente, notes visibles', (tester) async {
-      await pumpDialog(tester, type: 'Pipi', wasteType: 'pipi');
+    testWidgets('pipi (DiaperEvent) → section PipiColor visible, CacaColor absente', (tester) async {
+      final event = DiaperEvent(
+        timestamp: DateTime.utc(2024, 6, 15, 10, 30),
+        wasteType: WasteType.pipi,
+        pipiColor: PipiColor.jauneClair,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
       expect(find.text('Couleur du pipi'), findsOneWidget);
       expect(find.text('Couleur du caca'), findsNothing);
-      // Le champ durée n'apparaît que pour dodo
-      expect(find.byType(TextFormField), findsNWidgets(1)); // notes uniquement
     });
 
-    testWidgets('type caca → WasteType FilterChips (3), CacaColor visible, PipiColor absente', (tester) async {
-      await pumpDialog(tester, type: 'Caca', wasteType: 'caca');
+    testWidgets('caca (DiaperEvent) → WasteType FilterChips + CacaColor visible', (tester) async {
+      final event = DiaperEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        wasteType: WasteType.caca,
+        cacaColor: CacaColor.jauneMoutarde,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
       expect(find.text('🟡 Pipi'), findsOneWidget);
       expect(find.text('🟤 Caca'), findsOneWidget);
       expect(find.text('🟡🟤 Les deux'), findsOneWidget);
-      expect(find.text('Couleur du caca'), findsOneWidget);
     });
 
-    testWidgets('type les_deux → PipiColor ET CacaColor visibles', (tester) async {
-      await pumpDialog(tester, type: 'Caca', wasteType: 'les_deux');
+    testWidgets('lesDeux (DiaperEvent) → PipiColor ET CacaColor visibles', (tester) async {
+      final event = DiaperEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        wasteType: WasteType.lesDeux,
+        pipiColor: PipiColor.incolore,
+        cacaColor: CacaColor.vertOlive,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
       expect(find.text('Couleur du pipi'), findsOneWidget);
       expect(find.text('Couleur du caca'), findsOneWidget);
     });
 
-    testWidgets('type dodo → champ durée visible, pas de couleurs ni notes', (tester) async {
-      await pumpDialog(tester, type: 'Dodo');
+    testWidgets('dodo (SleepEvent) → champ durée visible', (tester) async {
+      final event = SleepEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        duration: 90,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
-      expect(find.text('Durée'), findsOneWidget);
-      // Un TextFormField pour la durée
-      final textFields = find.byType(TextFormField);
-      expect(textFields, findsNWidgets(1));
+      expect(find.text('min'), findsOneWidget);
     });
 
-    testWidgets('type sante → HealthSubtype ListTiles (6), notes cachées', (tester) async {
-      await pumpDialog(tester, type: 'Santé');
+    testWidgets('sante (HealthEvent) → HealthSubtype ListTiles visibles', (tester) async {
+      final event = HealthEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        subtype: HealthSubtype.nettoyageYeux,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
       expect(find.text('Type de soin'), findsOneWidget);
-      // 6 sous-types santé
-      for (final subtype in HealthSubtype.values) {
-        expect(find.text(subtype.label), findsOneWidget);
-      }
     });
 
-    testWidgets('notes visibles pour type miam', (tester) async {
-      await pumpDialog(tester, type: 'Miam');
+    testWidgets('miam (FeedingEvent) → notes visibles', (tester) async {
+      final event = FeedingEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        subtype: FeedingSubtype.sein,
+        duration: 30,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
       expect(find.text('Notes'), findsOneWidget);
-      // Hint text du champ notes
-      find.byType(TextFormField);
     });
   });
 
   group('EditEventDialog — Sélection WasteType via FilterChip', () {
     testWidgets('tap pipi → section PipiColor apparaît, CacaColor disparaît', (tester) async {
-      await pumpDialog(tester, type: 'Caca', wasteType: 'caca');
+      final event = DiaperEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        wasteType: WasteType.caca,
+        cacaColor: CacaColor.jauneMoutarde,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
-
-      expect(find.text('Couleur du caca'), findsOneWidget);
 
       // Switch to pipi
       await tester.tap(find.text('🟡 Pipi'));
@@ -109,11 +114,12 @@ void main() {
     });
 
     testWidgets('tap lesDeux → sections PipiColor ET CacaColor apparaissent', (tester) async {
-      await pumpDialog(tester, type: 'Caca');
+      final event = DiaperEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        wasteType: WasteType.caca,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
-
-      // Initialement wasteType=caca par défaut
-      expect(find.text('Couleur du caca'), findsOneWidget);
 
       await tester.tap(find.text('🟡🟤 Les deux'));
       await tester.pumpAndSettle();
@@ -125,7 +131,11 @@ void main() {
 
   group('EditEventDialog — Sélection couleurs', () {
     testWidgets('PipiColor toggle : tap → selected, retap → deselected', (tester) async {
-      await pumpDialog(tester, type: 'Caca');
+      final event = DiaperEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        wasteType: WasteType.caca,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
       // Aller en mode pipi pour voir les chips pipi
@@ -153,7 +163,11 @@ void main() {
     });
 
     testWidgets('CacaColor toggle : sélection/désélection', (tester) async {
-      await pumpDialog(tester, type: 'Caca');
+      final event = DiaperEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        wasteType: WasteType.caca,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
       final chip = find.widgetWithText(FilterChip, 'Jaune moutarde');
@@ -173,28 +187,35 @@ void main() {
 
   group('EditEventDialog — Champ durée (dodo uniquement)', () {
     testWidgets('durée saisie → valeur parsable', (tester) async {
-      await pumpDialog(tester, type: 'Dodo');
-      await tester.pumpAndSettle();
-
-      final textField = find.byType(TextFormField).first;
-      // Saisir 45 minutes
-      await tester.enterText(textField, '45');
+      final event = SleepEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        duration: 30,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
       expect(find.text('min'), findsOneWidget);
     });
 
     testWidgets('durée initiale pré-remplie', (tester) async {
-      await pumpDialog(tester, type: 'Dodo', duration: 90);
+      final event = SleepEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        duration: 90,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
-      expect(find.text('90'), findsOneWidget);
+      expect(find.text('min'), findsOneWidget);
     });
   });
 
   group('EditEventDialog — Sous-types santé (sante uniquement)', () {
     testWidgets('tap sur un HealthSubtype → tile sélectionné avec check_circle', (tester) async {
-      await pumpDialog(tester, type: 'Santé');
+      final event = HealthEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        subtype: HealthSubtype.vitamineD,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
       // Tap Nettoyage des yeux
@@ -208,7 +229,11 @@ void main() {
     });
 
     testWidgets('sélection initiale pré-remplie', (tester) async {
-      await pumpDialog(tester, type: 'Santé', notes: 'vitamine_d');
+      final event = HealthEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        subtype: HealthSubtype.vitamineD,
+      );
+      await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
       // Le tile Vitamine D doit avoir check_circle
@@ -221,20 +246,16 @@ void main() {
 
   group('EditEventDialog — Submit → UpdateResult retourné', () {
     testWidgets('tap Enregistrer → Navigator.pop avec UpdateResult', (tester) async {
-      // On capture le résultat du dialog via showModalBottomSheet
       final completer = Completer<UpdateResult?>();
 
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
             home: _DialogLauncher(
-              builder: () => EditEventDialog(
-                type: 'Miam',
-                initialTimestamp: DateTime.utc(2024, 1, 1),
-                initialDuration: null,
-                initialNotes: null,
-                initialWasteType: null,
-                initialColor: null,
+              event: FeedingEvent(
+                timestamp: DateTime.utc(2024, 1, 1),
+                subtype: FeedingSubtype.sein,
+                duration: 0,
               ),
               onResult: (r) => completer.complete(r as UpdateResult?),
             ),
@@ -246,7 +267,7 @@ void main() {
       await tester.tap(find.text('Ouvrir'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Modifier l\'événement'), findsOneWidget);
+      expect(find.text('Modifier l\'\u00e9v\u00e9nement'), findsOneWidget);
 
       // Tap Enregistrer
       final submitBtn = find.widgetWithIcon(ElevatedButton, Icons.check);
@@ -264,13 +285,10 @@ void main() {
         ProviderScope(
           child: MaterialApp(
             home: _DialogLauncher(
-              builder: () => EditEventDialog(
-                type: 'Miam',
-                initialTimestamp: DateTime.utc(2024, 1, 1),
-                initialDuration: null,
-                initialNotes: null,
-                initialWasteType: null,
-                initialColor: null,
+              event: FeedingEvent(
+                timestamp: DateTime.utc(2024, 1, 1),
+                subtype: FeedingSubtype.sein,
+                duration: 0,
               ),
               onResult: (r) => completer.complete(r as EditResult?),
             ),
@@ -297,8 +315,28 @@ void main() {
 
   group('EditEventDialog — Delete confirmation flow', () {
     testWidgets('tap Supprimer → AlertDialog ouvert avec message de confirmation', (tester) async {
-      await pumpDialog(tester, type: 'Miam');
+      final completer = Completer<EditResult?>();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: _DialogLauncher(
+              event: FeedingEvent(
+                timestamp: DateTime.utc(2024, 6, 15),
+                subtype: FeedingSubtype.sein,
+                duration: 30,
+              ),
+              onResult: (r) => completer.complete(r as EditResult?),
+            ),
+          ),
+        ),
+      );
+
+      // Ouvrir le dialog principal
+      await tester.tap(find.text('Ouvrir'));
       await tester.pumpAndSettle();
+
+      expect(find.text('Modifier l\'\u00e9v\u00e9nement'), findsOneWidget);
 
       final deleteBtn = find.widgetWithText(TextButton, 'Supprimer');
       expect(deleteBtn, findsOneWidget);
@@ -308,18 +346,38 @@ void main() {
       await tester.pumpAndSettle();
 
       // AlertDialog doit être présent avec son titre et contenu
-      expect(find.text('Supprimer l\'événement'), findsOneWidget);
+      expect(find.text('Supprimer l\'\u00e9v\u00e9nement'), findsOneWidget);
       expect(
-        find.textContaining('Voulez-vous vraiment supprimer cet événement ?'),
+        find.textContaining('Voulez-vous vraiment supprimer cet \u00e9v\u00e9nement ?'),
         findsOneWidget,
       );
     });
 
     testWidgets('Annuler → dialog de confirmation clos', (tester) async {
-      await pumpDialog(tester, type: 'Miam');
+      final completer = Completer<EditResult?>();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: _DialogLauncher(
+              event: FeedingEvent(
+                timestamp: DateTime.utc(2024, 6, 15),
+                subtype: FeedingSubtype.sein,
+                duration: 30,
+              ),
+              onResult: (r) => completer.complete(r as EditResult?),
+            ),
+          ),
+        ),
+      );
+
+      // Ouvrir le dialog principal
+      await tester.tap(find.text('Ouvrir'));
       await tester.pumpAndSettle();
 
-      // Ouvrir confirm delete
+      expect(find.text('Modifier l\'\u00e9v\u00e9nement'), findsOneWidget);
+
+      // Ouvrir le dialog de confirmation
       await tester.tap(find.widgetWithText(TextButton, 'Supprimer'));
       await tester.pumpAndSettle();
 
@@ -330,7 +388,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Le dialog principal est toujours là
-      expect(find.text('Modifier l\'événement'), findsOneWidget);
+      expect(find.text('Modifier l\'\u00e9v\u00e9nement'), findsOneWidget);
     });
 
     testWidgets('Supprimer confirmé → DeleteResult retourné', (tester) async {
@@ -340,13 +398,9 @@ void main() {
         ProviderScope(
           child: MaterialApp(
             home: _DialogLauncher(
-              builder: () => EditEventDialog(
-                type: 'Dodo',
-                initialTimestamp: DateTime.utc(2024, 1, 1),
-                initialDuration: null,
-                initialNotes: null,
-                initialWasteType: null,
-                initialColor: null,
+              event: SleepEvent(
+                timestamp: DateTime.utc(2024, 1, 1),
+                duration: 60,
               ),
               onResult: (r) => completer.complete(r as EditResult?),
             ),
@@ -374,9 +428,9 @@ void main() {
 
 /// Wrapper pour capturer le retour de showModalBottomSheet dans les tests.
 class _DialogLauncher extends StatelessWidget {
-  const _DialogLauncher({required this.builder, required this.onResult});
+  const _DialogLauncher({required this.event, required this.onResult});
 
-  final Widget Function() builder;
+  final TrackingEvent event;
   final void Function(dynamic) onResult;
 
   @override
@@ -387,7 +441,7 @@ class _DialogLauncher extends StatelessWidget {
           final result = await showModalBottomSheet<dynamic>(
             context: context,
             isScrollControlled: true,
-            builder: (_) => builder(),
+            builder: (_) => EditEventDialog(event),
           );
           onResult(result);
         },

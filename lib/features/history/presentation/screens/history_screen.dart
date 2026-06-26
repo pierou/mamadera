@@ -35,14 +35,7 @@ class HistoryScreen extends ConsumerWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => EditEventDialog(
-        type: event.type.label,
-        initialTimestamp: event.timestamp,
-        initialDuration: event.duration,
-        initialNotes: event.notes,
-        initialWasteType: event.wasteType?.dbValue, // backward compat pour le dialog
-        initialColor: event.colorDbValue,
-      ),
+      builder: (_) => EditEventDialog(event),
     );
 
     if (!context.mounted) {
@@ -52,28 +45,58 @@ class HistoryScreen extends ConsumerWidget {
     // Gestion du résultat selon le type (update ou delete) via sealed class
     switch (result) {
       case UpdateResult(): {
-        // Construit l'événement mis à jour en conservant le type et l'ID inchangés
-        final updated = TrackingEvent(
-          id: event.id!,
-          type: event.type,
-          timestamp: result.timestamp ?? event.timestamp,
-          duration: result.duration,
-          notes: result.notes,
-          wasteType: result.wasteTypeEnum,
-          pipiColor: result.pipiColorEnum,
-          cacaColor: result.cacaColorEnum,
-        );
-
+        final updated = _applyUpdate(result, event);
         await ref.read(historyNotifierProvider(selectedFilter).notifier).updateEvent(updated);
       }
       case DeleteResult(): {
-        // Supprime l'événement
         if (event.id != null) {
           await ref.read(historyNotifierProvider(selectedFilter).notifier).deleteEvent(event.id!);
         }
       }
       case null:
         break;
+    }
+  }
+
+  /// Applique les modifications retournées par le dialog sur l'événement original.
+  TrackingEvent _applyUpdate(UpdateResult result, TrackingEvent event) {
+    final ts = result.timestamp ?? event.timestamp;
+    switch (event) {
+      case FeedingEvent():
+        return FeedingEvent(
+          id: event.id!,
+          timestamp: ts,
+          subtype: event.subtype,
+          duration: result.duration ?? event.duration,
+          notes: result.notes ?? event.notes,
+        );
+      case SleepEvent():
+        return SleepEvent(
+          id: event.id!,
+          timestamp: ts,
+          duration: result.duration ?? event.duration,
+          notes: result.notes ?? event.notes,
+        );
+      case DiaperEvent():
+        return DiaperEvent(
+          id: event.id!,
+          timestamp: ts,
+          wasteType: result.wasteType ?? event.wasteType,
+          pipiColor: result.pipiColor ?? event.pipiColor,
+          cacaColor: result.cacaColor ?? event.cacaColor,
+          notes: result.notes ?? event.notes,
+        );
+      case HealthEvent():
+        // Pour health, les notes contiennent le subtype value. Si changé, créer nouveau subtype.
+        final subtype = result.notes != null
+            ? (HealthSubtype.byValue(result.notes!) ?? event.subtype)
+            : event.subtype;
+        return HealthEvent(
+          id: event.id!,
+          timestamp: ts,
+          subtype: subtype,
+          notes: result.notes,
+        );
     }
   }
 
@@ -122,12 +145,8 @@ class HistoryScreen extends ConsumerWidget {
                         DateFormat('dd/MM/yyyy HH:mm').format(event.timestamp);
                     // Skip if no id (shouldn't happen in DB-fetched data, but safe guard)
                     return HistoryTile(
-                      type: event.type.label,
+                      event: event,
                       time: timeFormatted,
-                      notes: event.notes,
-                      duration: event.duration,
-                      wasteType: event.wasteType?.dbValue, // backward compat pour le tile
-                      color: event.colorDbValue,
                       onTap: () => _showEditDialog(context, ref, event, selectedFilter),
                     );
                   },

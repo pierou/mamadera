@@ -7,7 +7,6 @@ import 'dart:async' as _i3;
 
 import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart'
     as _i2;
-import 'package:mamadera/shared/domain/entities/tracking_enums.dart' as _i6;
 import 'package:mamadera/shared/domain/entities/tracking_event.dart' as _i4;
 import 'package:mamadera/shared/domain/entities/tracking_type.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
@@ -59,28 +58,10 @@ class MockTrackingRepository extends _i1.Mock
       ) as _i3.Future<List<_i4.TrackingEvent>>);
 
   @override
-  _i3.Future<int> insertEvent({
-    required _i5.TrackingType? type,
-    DateTime? timestamp,
-    double? duration,
-    String? notes,
-    _i6.WasteType? wasteType,
-    _i6.PipiColor? pipiColor,
-    _i6.CacaColor? cacaColor,
-  }) =>
-      (super.noSuchMethod(
+  _i3.Future<int> insertEvent(_i4.TrackingEvent? event) => (super.noSuchMethod(
         Invocation.method(
           #insertEvent,
-          [],
-          {
-            #type: type,
-            #timestamp: timestamp,
-            #duration: duration,
-            #notes: notes,
-            #wasteType: wasteType,
-            #pipiColor: pipiColor,
-            #cacaColor: cacaColor,
-          },
+          [event],
         ),
         returnValue: _i3.Future<int>.value(0),
       ) as _i3.Future<int>);

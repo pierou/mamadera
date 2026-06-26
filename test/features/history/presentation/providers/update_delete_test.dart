@@ -18,16 +18,15 @@ void main() {
   late MockHistoryRepository mockRepository;
   late ProviderContainer container;
 
-  // Fixtures synthétiques : id ronds, timestamps simples
-  final event1 = TrackingEvent(
+  // Fixtures synthétiques : id ronds, timestamps simples — using typed subtypes
+  final event1 = FeedingEvent(
     id: 10,
-    type: TrackingType.miam,
     timestamp: DateTime.utc(2024, 1, 1),
+    subtype: FeedingSubtype.sein,
     duration: 15,
   );
-  final event2 = TrackingEvent(
+  final event2 = SleepEvent(
     id: 20,
-    type: TrackingType.dodo,
     timestamp: DateTime.utc(2024, 1, 2),
     duration: 60,
   );
@@ -47,12 +46,12 @@ void main() {
 
   group('updateEvent()', () {
     test('succès → transition loading→data (filtre all)', () async {
-      when(mockRepository.updateEvent(id: anyNamed('id')))
+      when(mockRepository.updateEvent(id: anyNamed('id'), event: anyNamed('event')))
           .thenAnswer((_) async => true);
-      final updated = TrackingEvent(
+      final updated = FeedingEvent(
         id: 10,
-        type: TrackingType.miam,
         timestamp: DateTime.utc(2024, 6, 1), // Timestamp modifié
+        subtype: FeedingSubtype.sein,
         duration: 30, // Durée augmentée
       );
 
@@ -87,12 +86,12 @@ void main() {
     });
 
     test('succès → transition loading→data (filtre type miam)', () async {
-      when(mockRepository.updateEvent(id: anyNamed('id')))
+      when(mockRepository.updateEvent(id: anyNamed('id'), event: anyNamed('event')))
           .thenAnswer((_) async => true);
-      final updated = TrackingEvent(
+      final updated = FeedingEvent(
         id: 10,
-        type: TrackingType.miam,
         timestamp: DateTime.utc(2024, 3, 1),
+        subtype: FeedingSubtype.sein,
         duration: 25,
         notes: 'note ajoutée',
       );
@@ -123,34 +122,27 @@ void main() {
     });
 
     test('erreur repo → AsyncError avec message préservé', () async {
-      // Le notifier passe TOUS les params nommés à updateEvent, donc le stub doit aussi.
-      when(mockRepository.updateEvent(
-        id: anyNamed('id'),
-        timestamp: anyNamed('timestamp'),
-        duration: anyNamed('duration'),
-        notes: anyNamed('notes'),
-        wasteType: anyNamed('wasteType'),
-        pipiColor: anyNamed('pipiColor'),
-        cacaColor: anyNamed('cacaColor'),
-      )).thenThrow(Exception('Erreur réseau'));
+      // Le notifier passe event complet à updateEvent.
+      when(mockRepository.updateEvent(id: anyNamed('id'), event: anyNamed('event')))
+          .thenThrow(Exception('Erreur réseau'));
 
-      final event = TrackingEvent(
+      final santeEvent = HealthEvent(
         id: 50,
-        type: TrackingType.sante,
         timestamp: DateTime.utc(2024, 1, 1),
+        subtype: HealthSubtype.nettoyageYeux,
         notes: 'vaccin',
       );
 
       // Build initial stable avant erreur de mise à jour
       when(mockRepository.getEventsByType(TrackingType.sante))
-          .thenAnswer((_) async => [event]);
+          .thenAnswer((_) async => [santeEvent]);
       final notifier = container.read(
         historyNotifierProvider(HistoryFilter.sante).notifier,
       );
       await notifier.future;
 
       // Lancer l'update qui va échouer → capture la future pour observer transitions
-      final updateFuture = notifier.updateEvent(event);
+      final updateFuture = notifier.updateEvent(santeEvent);
 
       expect(
         container.read(historyNotifierProvider(HistoryFilter.sante)),
@@ -205,10 +197,10 @@ void main() {
 
     test('succès → transition loading→data (filtre type dodo)', () async {
       when(mockRepository.deleteEvent(any)).thenAnswer((_) async => true);
-      final remaining = TrackingEvent(
+      final remaining = SleepEvent(
         id: 30,
-        type: TrackingType.dodo,
         timestamp: DateTime.utc(2024, 1, 3),
+        duration: 45,
       );
 
       var callCount = 0;

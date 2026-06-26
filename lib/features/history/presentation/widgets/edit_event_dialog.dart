@@ -3,83 +3,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
+import '../../../../shared/domain/entities/tracking_event.dart';
 
 /// Résultat retourné par le formulaire d'édition (sealed class).
 sealed class EditResult {
   const EditResult();
 }
 
-/// Données de mise à jour d'un événement.
+/// Données de mise à jour d'un événement — utilise des enums typés directement.
 class UpdateResult extends EditResult {
   const UpdateResult({
     this.timestamp,
     this.duration,
     this.notes,
     this.wasteType,
-    this.color,
+    this.pipiColor,
+    this.cacaColor,
   });
 
   final DateTime? timestamp;
   final double? duration;
-  final String? notes; // health subtypes stockés ici ('nettoyage_yeux'...)
-  final String? wasteType; // backward compat : valeur DB snake_case
-  final String? color; // backward compat : couleur ou pipe-délimitée
-
-  /// Retourne le WasteType typed à partir de la valeur DB.
-  WasteType? get wasteTypeEnum => WasteType.fromDbValue(wasteType);
-
-  /// Parse les couleurs initiales depuis le format DB (pipe-délimité pour les_deux).
-  PipiColor? get pipiColorEnum {
-    if (wasteTypeEnum != WasteType.pipi && wasteTypeEnum != WasteType.lesDeux) {
-      return null;
-    }
-    final parts = color?.split('|') ?? [];
-    final value = parts.isNotEmpty ? parts.first.trim() : null;
-    return value != null ? PipiColor.byValue(value) : null;
-  }
-
-  /// Parse les couleurs initiales depuis le format DB (pipe-délimité pour les_deux).
-  CacaColor? get cacaColorEnum {
-    if (wasteTypeEnum != WasteType.caca && wasteTypeEnum != WasteType.lesDeux) {
-      return null;
-    }
-    final parts = color?.split('|') ?? [];
-    String value;
-    if (wasteTypeEnum == WasteType.lesDeux && parts.length >= 2) {
-      value = parts[1].trim();
-    } else if (parts.isNotEmpty) {
-      value = parts.first.trim();
-    } else {
-      return null;
-    }
-    return CacaColor.byValue(value);
-  }
-
-  /// Retourne la valeur DB formatée pour color.
-  String? get colorDbValue => _buildColorString();
-
-  String? _buildColorString() {
-    final wt = wasteTypeEnum ?? WasteType.fromDbValue(wasteType);
-    if (wt == null) {
-      return null;
-    }
-    switch (wt) {
-      case WasteType.pipi:
-        return pipiColorEnum?.value;
-      case WasteType.caca:
-        return cacaColorEnum?.value;
-      case WasteType.lesDeux:
-        final p = pipiColorEnum?.value ?? '';
-        final c = cacaColorEnum?.value ?? '';
-        if (p.isNotEmpty && c.isNotEmpty) {
-          return '$p|$c';
-        }
-        return p.isEmpty ? c : p;
-    }
-  }
-
-  /// Retourne le HealthSubtype correspondant aux notes.
-  HealthSubtype? get healthSubtype => HealthSubtype.byValue(notes!);
+  final String? notes; // health subtype value ('nettoyage_yeux'...) ou note libre
+  final WasteType? wasteType;
+  final PipiColor? pipiColor;
+  final CacaColor? cacaColor;
 }
 
 /// Signal de suppression d'un événement.
@@ -89,24 +36,10 @@ class DeleteResult extends EditResult {
 
 /// Bottom sheet pour éditer les champs modifiables d'un événement.
 class EditEventDialog extends ConsumerStatefulWidget {
-  const EditEventDialog({
-    required this.type,
-    required this.initialTimestamp,
-    required this.initialDuration,
-    required this.initialNotes,
-    required this.initialWasteType,
-    required this.initialColor,
-    super.key,
-  });
+  const EditEventDialog(this.event, {super.key});
 
-  /// Type de l'événement (non modifiable dans ce formulaire).
-  final String type; // label affiché (ex: 'Caca', 'Miam')
-  final DateTime initialTimestamp;
-  final double? initialDuration;
-  final String?
-      initialNotes; // health subtypes stockés ici ('nettoyage_yeux'...)
-  final String? initialWasteType; // backward compat : valeur DB snake_case
-  final String? initialColor; // backward compat : couleur ou pipe-délimitée
+  /// Événement typé à modifier.
+  final TrackingEvent event;
 
   @override
   ConsumerState<EditEventDialog> createState() => _EditEventDialogState();
@@ -123,55 +56,52 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   CacaColor? _cacaColor;
 
   /// Version normalisée en minuscule pour les comparaisons.
-  String get _normalizedType => widget.type.toLowerCase().replaceAll('é', 'e');
+  String get _normalizedType {
+    switch (widget.event) {
+      case FeedingEvent():
+        return 'miam';
+      case SleepEvent():
+        return 'dodo';
+      case DiaperEvent():
+        final dt = widget.event as DiaperEvent;
+        if (dt.wasteType == WasteType.pipi) return 'pipi';
+        return 'caca';
+      case HealthEvent():
+        return 'sante';
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _selectedDate = widget.initialTimestamp;
-    _notesController = TextEditingController(text: widget.initialNotes ?? '');
-    _duration = widget.initialDuration;
+    _selectedDate = widget.event.timestamp;
+    _duration = null;
+    _notesController = TextEditingController(text: '');
+    _wasteType = null;
+    _pipiColor = null;
+    _cacaColor = null;
 
-    // Parse le wasteType initial depuis la valeur DB (backward compat)
-    _wasteType = WasteType.fromDbValue(widget.initialWasteType);
-
-    // Fallback : si pas de wasteType explicite mais qu'on est sur un type pipi/caca,
-    // on initialise avec une valeur par défaut cohérente pour l'UX.
-    if (_wasteType == null) {
-      switch (_normalizedType) {
-        case 'pipi':
-          _wasteType = WasteType.pipi;
-        case 'caca':
-          _wasteType = WasteType.caca;
-        default:
-          break;
-      }
+    // Initialise les champs selon le type d'événement (exhaustive switch).
+    switch (widget.event) {
+      case FeedingEvent():
+        final e = widget.event as FeedingEvent;
+        _duration = e.duration;
+        _notesController.text = e.notes ?? '';
+      case SleepEvent():
+        final e = widget.event as SleepEvent;
+        _duration = e.duration;
+        // sleep n'a pas de notes dans le dialog (sauf si on veut en ajouter).
+      case DiaperEvent():
+        final e = widget.event as DiaperEvent;
+        _wasteType = e.wasteType;
+        _pipiColor = e.pipiColor;
+        _cacaColor = e.cacaColor;
+        _notesController.text = e.notes ?? '';
+      case HealthEvent():
+        final e = widget.event as HealthEvent;
+        // Le subtype est stocké dans notes pour le health screen.
+        _notesController.text = e.subtype.value;
     }
-
-    // Parse les couleurs initiales (format pipi|caca pour les_deux)
-    if (widget.initialColor != null && widget.initialColor!.isNotEmpty) {
-      final parts = widget.initialColor!.split('|');
-
-      switch (_wasteType) {
-        case WasteType.pipi:
-          _pipiColor = PipiColor.byValue(parts.first.trim());
-        case WasteType.caca:
-          _cacaColor = CacaColor.byValue(parts.first.trim());
-        case WasteType.lesDeux:
-          if (parts.length >= 2) {
-            _pipiColor = PipiColor.byValue(parts[0].trim());
-            _cacaColor = CacaColor.byValue(parts[1].trim());
-          } else if (parts.isNotEmpty) {
-            // Fallback : essaie d'abord comme couleur pipi, puis caca
-            _pipiColor = PipiColor.byValue(parts.first.trim()) ??
-                CacaColor.byValue(parts.first.trim()) as PipiColor?;
-          }
-        case null:
-          break;
-      }
-    }
-
-    // Si les notes correspondent à un HealthSubtype, on met en surbrillance le bon item
   }
 
   @override
@@ -212,33 +142,12 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     final result = UpdateResult(
       timestamp: _selectedDate,
       duration: _duration,
-      notes:
-          _notesController.text.isEmpty ? null : _notesController.text.trim(),
-      wasteType:
-          _wasteType?.dbValue ?? widget.initialWasteType, // backward compat
-      color: _buildColorDbString() ?? widget.initialColor, // backward compat
+      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      wasteType: _wasteType,
+      pipiColor: _pipiColor,
+      cacaColor: _cacaColor,
     );
     Navigator.pop(context, result);
-  }
-
-  /// Construit la chaîne de couleur finale selon le wasteType (format DB).
-  String? _buildColorDbString() {
-    if (_wasteType == null) {
-      return null;
-    }
-    switch (_wasteType!) {
-      case WasteType.pipi:
-        return _pipiColor?.value;
-      case WasteType.caca:
-        return _cacaColor?.value;
-      case WasteType.lesDeux:
-        final p = _pipiColor?.value ?? '';
-        final c = _cacaColor?.value ?? '';
-        if (p.isNotEmpty && c.isNotEmpty) {
-          return '$p|$c';
-        }
-        return p.isEmpty ? c : p;
-    }
   }
 
   /// Ouvre un dialogue de confirmation avant suppression.

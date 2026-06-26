@@ -9,5 +9,5 @@
       }
     ]
   },
-  "_comment": "Pre-commit hook — blocks agent from staging, committing, or pushing code that fails\nlint analysis, test suite, or coverage threshold (≥80%). Trigger: PreToolUse event on\n`git add`, `git commit`, or `git push`. Timeout: 120s. Runs \`make ci\` which matches CI pipeline exactly."
+  "_comment": "Pre-commit hook — blocks agent from staging, committing, or pushing code that fails lint analysis, test suite, or coverage threshold (≥80%). Trigger: PreToolUse event on `git add`, `git commit`, or `git push`. Timeout: 120s. Runs /`make ci` which matches CI pipeline exactly."
 }

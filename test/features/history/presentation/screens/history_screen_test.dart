@@ -7,6 +7,7 @@ import 'package:mamadera/features/history/domain/repositories/history_repository
 import 'package:mamadera/features/history/presentation/providers/history_repository_provider.dart';
 import 'package:mamadera/features/history/presentation/screens/history_screen.dart';
 import 'package:mamadera/features/history/presentation/widgets/history_tile.dart';
+import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 import 'package:mockito/annotations.dart';
@@ -20,15 +21,16 @@ void main() {
 
   // Fixtures synthétiques (non-const car DateTime.utc n'est pas const)
   final testEvents = [
-    TrackingEvent(
+    FeedingEvent(
       id: 1,
-      type: TrackingType.miam,
       timestamp: DateTime.utc(2024, 1, 1, 8, 0),
+      subtype: FeedingSubtype.sein,
+      duration: 30,
     ),
-    TrackingEvent(
+    SleepEvent(
       id: 2,
-      type: TrackingType.dodo,
       timestamp: DateTime.utc(2024, 1, 1, 9, 30),
+      duration: 60,
     ),
   ];
 
@@ -47,7 +49,8 @@ void main() {
         .thenAnswer((_) async => [testEvents.last]);
 
     // Stubs for _showEditDialog mutation calls (unstubbed NiceMocks return null/0)
-    when(mockRepository.updateEvent(id: anyNamed('id'))).thenAnswer((_) async => true);
+    when(mockRepository.updateEvent(id: anyNamed('id'), event: anyNamed('event')))
+        .thenAnswer((_) async => true);
     when(mockRepository.deleteEvent(any)).thenAnswer((_) async => true);
   });
 
@@ -268,12 +271,7 @@ void main() {
       // Verify updateEvent was called on the repository
       verify(mockRepository.updateEvent(
         id: anyNamed('id'),
-        timestamp: anyNamed('timestamp'),
-        duration: anyNamed('duration'),
-        notes: anyNamed('notes'),
-        wasteType: anyNamed('wasteType'),
-        pipiColor: anyNamed('pipiColor'),
-        cacaColor: anyNamed('cacaColor'),
+        event: anyNamed('event'),
       )).called(1);
     });
 
@@ -339,12 +337,7 @@ void main() {
       // Verify no mutation methods were called on the repository
       verifyNever(mockRepository.updateEvent(
         id: anyNamed('id'),
-        timestamp: anyNamed('timestamp'),
-        duration: anyNamed('duration'),
-        notes: anyNamed('notes'),
-        wasteType: anyNamed('wasteType'),
-        pipiColor: anyNamed('pipiColor'),
-        cacaColor: anyNamed('cacaColor'),
+        event: anyNamed('event'),
       ));
       verifyNever(mockRepository.deleteEvent(any));
     });

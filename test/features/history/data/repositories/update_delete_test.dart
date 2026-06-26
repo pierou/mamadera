@@ -4,6 +4,7 @@ import 'package:mamadera/core/services/encryption_service.dart';
 import 'package:mamadera/data/local/app_db.dart' as db_app;
 import 'package:mamadera/features/history/data/repositories/history_repository_impl.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
+import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -29,53 +30,64 @@ void main() {
   });
 
   group('updateEvent()', () {
-    test('tous les champs fournis → true + encrypt appelé', () async {
+    test('tous les champs fournis (FeedingEvent) → true + encrypt appelé', () async {
       when(mockDb.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-      final result = await repository.updateEvent(
+      final event = FeedingEvent(
         id: 42,
         timestamp: DateTime(2025, 1, 1),
+        subtype: FeedingSubtype.sein,
         duration: 30.0,
         notes: 'une note',
-        wasteType: WasteType.pipi,
-        pipiColor: PipiColor.jauneClair,
       );
+      final result = await repository.updateEvent(id: 42, event: event);
 
       expect(result, isTrue);
       verify(mockEncryption.encrypt('une note')).called(1);
     });
 
-    test("partiel : seul timestamp fourni → pas d'encryptage", () async {
+    test("partiel : SleepEvent avec timestamp seulement → pas d'encryptage", () async {
       when(mockDb.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-      final result = await repository.updateEvent(
+      final event = SleepEvent(
         id: 10,
         timestamp: DateTime(2025, 6, 15),
+        duration: 45.0,
       );
+      final result = await repository.updateEvent(id: 10, event: event);
 
       expect(result, isTrue);
       // Pas de notes → encrypt ne doit jamais être appelé (privacy-first)
       verifyNever(mockEncryption.encrypt(any));
     });
 
-    test('partiel : seule notes fournie → encrypt + absent sur autres', () async {
+    test('FeedingEvent avec seule note fournie → encrypt + absent sur autres', () async {
       when(mockDb.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-      final result = await repository.updateEvent(id: 5, notes: 'seule note');
+      final event = FeedingEvent(
+        id: 5,
+        timestamp: DateTime.now(),
+        subtype: FeedingSubtype.sein,
+        duration: 0.0,
+        notes: 'seule note',
+      );
+      final result = await repository.updateEvent(id: 5, event: event);
 
       expect(result, isTrue);
       verify(mockEncryption.encrypt('seule note')).called(1);
     });
 
-    test('wasteType.lesDeux + pipiColor + cacaColor → true', () async {
+    test('DiaperEvent.lesDeux + pipiColor + cacaColor → true', () async {
       when(mockDb.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-      final result = await repository.updateEvent(
+      final event = DiaperEvent(
         id: 7,
+        timestamp: DateTime.now(),
         wasteType: WasteType.lesDeux,
         pipiColor: PipiColor.jauneFonce,
         cacaColor: CacaColor.vertOlive,
       );
+      final result = await repository.updateEvent(id: 7, event: event);
 
       expect(result, isTrue);
     });
@@ -83,19 +95,26 @@ void main() {
     test('événement inexistant (DB retourne 0) → false', () async {
       when(mockDb.updateEvent(any, any)).thenAnswer((_) async => 0);
 
-      final result = await repository.updateEvent(id: -1, duration: 15.0);
+      final event = FeedingEvent(
+        id: -1,
+        timestamp: DateTime.now(),
+        subtype: FeedingSubtype.sein,
+        duration: 15.0,
+      );
+      final result = await repository.updateEvent(id: -1, event: event);
 
       expect(result, isFalse);
     });
 
-    test('notes explicite null → pas d\'encryptage (privacy-first)', () async {
+    test('HealthEvent sans notes explicite → pas d\'encryptage (privacy-first)', () async {
       when(mockDb.updateEvent(any, any)).thenAnswer((_) async => 1);
 
-      final result = await repository.updateEvent(
+      final event = HealthEvent(
         id: 99,
-        notes: null, // explicitement null — ne doit rien encrypter
-        duration: 5.0,
+        timestamp: DateTime.now(),
+        subtype: HealthSubtype.nettoyageYeux,
       );
+      final result = await repository.updateEvent(id: 99, event: event);
 
       expect(result, isTrue);
       verifyNever(mockEncryption.encrypt(any));
