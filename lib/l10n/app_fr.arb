@@ -1,0 +1,102 @@
+{
+  "@@locale": "fr",
+
+  "appTitle": "Mamadera",
+
+  "navHome": "Accueil",
+  "navHistory": "Historique",
+  "navMenu": "Menu",
+
+  "homeButtonMiam": "Miam",
+  "homeButtonSante": "Santé",
+  "homeButtonCaca": "Caca",
+  "homeButtonDodo": "Dodo",
+
+  "durationPickerTitle": "Durée du sommeil",
+  "cancelButton": "Annuler",
+  "confirmButton": "Confirmer",
+  "@durationFormatHoursMinutes": {
+    "placeholders": {
+      "hours": {},
+      "minutes": {}
+    }
+  },
+  "durationFormatHoursMinutes": "{hours}h{minutes}",
+  "@durationFormatMinutes": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "durationFormatMinutes": "{minutes} min",
+
+  "healthSubtypeDialogTitle": "Type de soin",
+  "saveButton": "Enregistrer",
+  "healthSubtypeRequiredError": "Veuillez sélectionner un type de soin",
+
+  "healthNettoyageYeux": "Nettoyage des yeux",
+  "healthNettoyageNombril": "Nettoyage du nombril",
+  "healthNettoyageVisage": "Nettoyage du visage",
+  "healthNettoyageNez": "Nettoyage du nez",
+  "healthVitamineD": "Vitamine D",
+  "healthVitamineK": "Vitamine K",
+
+  "wasteDialogTitle": "Type de selle",
+  "pipiColorSectionTitle": "Couleur du pipi",
+  "cacaColorSectionTitle": "Couleur du caca",
+
+  "wasteTypePipi": "🟡 Pipi",
+  "wasteTypeCaca": "🟤 Caca",
+  "wasteTypeLesDeux": "🟡🟤 Les deux",
+
+  "pipiColorIncolore": "Incolore",
+  "pipiColorJauneClair": "Jaune clair",
+  "pipiColorJauneFonce": "Jaune foncé",
+  "pipiColorRoseUrates": "Rose/Orange (urates)",
+
+  "cacaColorMeconium": "Mécônium",
+  "cacaColorVertOlive": "Vert olive",
+  "cacaColorJauneMoutarde": "Jaune moutarde",
+  "cacaColorJauneClair": "Jaune clair",
+
+  "historyTitle": "Historique",
+  "filterAll": "Tous",
+  "filterMiam": "Miam",
+  "filterDodo": "Sommeil",
+  "filterCaca": "Caca",
+  "filterSante": "Santé",
+
+  "noEvents": "Aucun événement",
+  "@errorMessage": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "errorMessage": "Erreur: {error}",
+
+  "typeLabelMiam": "Miam",
+  "typeLabelSommeil": "Sommeil",
+  "typeLabelPipi": "Pipi",
+  "typeLabelCaca": "Caca",
+  "typeLabelPipiEtCaca": "Pipi & Caca",
+
+  "durationPrefix": "Durée: {minutes} min",
+  "@@durationPrefix_minutes_comment": "Minutes placeholder for duration display",
+
+  "editDialogTitle": "Modifier l'événement",
+  "editDateSectionTitle": "Date et heure",
+  "editDurationSectionTitle": "Durée",
+  "editTypeSectionTitle": "Type",
+  "editPipiColorSectionTitle": "Couleur du pipi",
+  "editCacaColorSectionTitle": "Couleur du caca",
+  "editNotesLabel": "Notes",
+  "editNotesHint": "Ajouter une note...",
+  "minutesHintText": "Minutes",
+  "minuteSuffix": "min",
+
+  "deleteDialogTitle": "Supprimer l'événement",
+  "deleteDialogContent": "Voulez-vous vraiment supprimer cet événement ? Cette action est irréversible.",
+  "deleteButton": "Supprimer",
+
+  "menuTitle": "Menu",
+  "settingsBodyText": "Paramètres"
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 
@@ -100,16 +101,16 @@ class WasteDialog extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Titre
-            const Text('Type de selle', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text(context.l.wasteDialogTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
             const SizedBox(height: 16),
 
             // Sélection du type (chips radio) — utilise l'enum WasteType au lieu de strings
-            _buildTypeChips(ref, state.selectedType),
+            _buildTypeChips(context, ref, state.selectedType),
             const SizedBox(height: 24),
 
             // Section couleur pipi (conditionnelle, typée via enum)
             if (state.selectedType == WasteType.pipi || state.selectedType == WasteType.lesDeux) ...[
-              const Text('Couleur du pipi', style: TextStyle(fontSize: 16, color: Colors.white70)),
+              Text(context.l.pipiColorSectionTitle, style: const TextStyle(fontSize: 16, color: Colors.white70)),
               const SizedBox(height: 8),
               _buildPipiColorChips(ref, state.pipiColor),
             ],
@@ -118,7 +119,7 @@ class WasteDialog extends ConsumerWidget {
 
             // Section couleur caca (conditionnelle, typée via enum)
             if (state.selectedType == WasteType.caca || state.selectedType == WasteType.lesDeux) ...[
-              const Text('Couleur du caca', style: TextStyle(fontSize: 16, color: Colors.white70)),
+              Text(context.l.cacaColorSectionTitle, style: const TextStyle(fontSize: 16, color: Colors.white70)),
               const SizedBox(height: 8),
               _buildCacaColorChips(ref, state.cacaColor),
             ],
@@ -131,7 +132,7 @@ class WasteDialog extends ConsumerWidget {
               child: ElevatedButton.icon(
                 onPressed: () => _onSubmit(context, ref),
                 icon: const Icon(Icons.check, color: Colors.black),
-                label: const Text('Enregistrer', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                label: Text(context.l.saveButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.sante,
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -145,14 +146,14 @@ class WasteDialog extends ConsumerWidget {
     );
   }
 
-  Widget _buildTypeChips(WidgetRef ref, WasteType selectedType) {
+  Widget _buildTypeChips(BuildContext context, WidgetRef ref, WasteType selectedType) {
     return Wrap(spacing: 8, runSpacing: 8, children: WasteType.values.map((type) {
       final isSelected = type == selectedType;
       return _ChipRadio(
         label: switch (type) {
-          WasteType.pipi => '🟡 Pipi',
-          WasteType.caca => '🟤 Caca',
-          WasteType.lesDeux => '🟡🟤 Les deux',
+          WasteType.pipi => context.l.wasteTypePipi,
+          WasteType.caca => context.l.wasteTypeCaca,
+          WasteType.lesDeux => context.l.wasteTypeLesDeux,
         },
         isSelected: isSelected,
         onTap: () => ref.read(_wasteDialogStateProvider.notifier).setSelectedType(type),

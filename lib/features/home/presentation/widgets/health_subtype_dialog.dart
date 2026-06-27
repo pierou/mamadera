@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 
@@ -38,7 +39,10 @@ class HealthSubtypeDialog extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Type de soin', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text(
+              context.l.healthSubtypeDialogTitle,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
             const SizedBox(height: 16),
 
             // Liste des sous-types santé — utilise l'enum HealthSubtype au lieu de strings
@@ -70,7 +74,7 @@ class HealthSubtypeDialog extends ConsumerWidget {
               child: ElevatedButton.icon(
                 onPressed: () => _onSubmit(context, ref),
                 icon: const Icon(Icons.check, color: Colors.black),
-                label: const Text('Enregistrer', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                label: Text(context.l.saveButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.sante,
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -106,7 +110,7 @@ class HealthSubtypeDialog extends ConsumerWidget {
     } else {
       // Si aucun sous-type sélectionné, on affiche un message d'erreur.
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez sélectionner un type de soin')),
+        SnackBar(content: Text(context.l.healthSubtypeRequiredError)),
       );
     }
   }

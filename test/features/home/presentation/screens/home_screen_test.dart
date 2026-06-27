@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:mamadera/l10n/app_localizations.dart';
+
 import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart';
 import 'package:mamadera/features/home/presentation/providers/repository_provider.dart';
@@ -33,7 +37,18 @@ void main() {
         overrides: [
           trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
         ],
-        child: MaterialApp(theme: AppTheme.theme, home: const HomeScreen()),
+        child: MaterialApp(
+          locale: const Locale('fr'),
+          supportedLocales: const [Locale('fr')],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          theme: AppTheme.theme,
+          home: const HomeScreen(),
+        ),
       ),
     );
   }

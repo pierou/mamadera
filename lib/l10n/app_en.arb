@@ -1,0 +1,102 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Mamadera",
+
+  "navHome": "Home",
+  "navHistory": "History",
+  "navMenu": "Menu",
+
+  "homeButtonMiam": "Feeding",
+  "homeButtonSante": "Health",
+  "homeButtonCaca": "Diaper",
+  "homeButtonDodo": "Sleep",
+
+  "durationPickerTitle": "Sleep Duration",
+  "cancelButton": "Cancel",
+  "confirmButton": "Confirm",
+  "@durationFormatHoursMinutes": {
+    "placeholders": {
+      "hours": {},
+      "minutes": {}
+    }
+  },
+  "durationFormatHoursMinutes": "{hours}h {minutes}m",
+  "@durationFormatMinutes": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "durationFormatMinutes": "{minutes} min",
+
+  "healthSubtypeDialogTitle": "Care Type",
+  "saveButton": "Save",
+  "healthSubtypeRequiredError": "Please select a care type",
+
+  "healthNettoyageYeux": "Eye Cleaning",
+  "healthNettoyageNombril": "Navel Care",
+  "healthNettoyageVisage": "Face Cleaning",
+  "healthNettoyageNez": "Nose Cleaning",
+  "healthVitamineD": "Vitamin D",
+  "healthVitamineK": "Vitamin K",
+
+  "wasteDialogTitle": "Diaper Type",
+  "pipiColorSectionTitle": "Urine Color",
+  "cacaColorSectionTitle": "Stool Color",
+
+  "wasteTypePipi": "🟡 Pee",
+  "wasteTypeCaca": "🟤 Poop",
+  "wasteTypeLesDeux": "🟡🟤 Both",
+
+  "pipiColorIncolore": "Clear",
+  "pipiColorJauneClair": "Light Yellow",
+  "pipiColorJauneFonce": "Dark Yellow",
+  "pipiColorRoseUrates": "Pink/Orange (urates)",
+
+  "cacaColorMeconium": "Meconium",
+  "cacaColorVertOlive": "Olive Green",
+  "cacaColorJauneMoutarde": "Mustard Yellow",
+  "cacaColorJauneClair": "Light Yellow",
+
+  "historyTitle": "History",
+  "filterAll": "All",
+  "filterMiam": "Feeding",
+  "filterDodo": "Sleep",
+  "filterCaca": "Diaper",
+  "filterSante": "Health",
+
+  "noEvents": "No events",
+  "@errorMessage": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "errorMessage": "Error: {error}",
+
+  "typeLabelMiam": "Feeding",
+  "typeLabelSommeil": "Sleep",
+  "typeLabelPipi": "Pee",
+  "typeLabelCaca": "Poop",
+  "typeLabelPipiEtCaca": "Pee & Poop",
+
+  "durationPrefix": "Duration: {minutes} min",
+  "@@durationPrefix_minutes_comment": "Minutes placeholder for duration display",
+
+  "editDialogTitle": "Edit Event",
+  "editDateSectionTitle": "Date and Time",
+  "editDurationSectionTitle": "Duration",
+  "editTypeSectionTitle": "Type",
+  "editPipiColorSectionTitle": "Urine Color",
+  "editCacaColorSectionTitle": "Stool Color",
+  "editNotesLabel": "Notes",
+  "editNotesHint": "Add a note...",
+  "minutesHintText": "Minutes",
+  "minuteSuffix": "min",
+
+  "deleteDialogTitle": "Delete Event",
+  "deleteDialogContent": "Are you sure you want to delete this event? This action cannot be undone.",
+  "deleteButton": "Delete",
+
+  "menuTitle": "Menu",
+  "settingsBodyText": "Settings"
+}

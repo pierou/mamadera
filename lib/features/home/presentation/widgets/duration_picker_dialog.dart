@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 
 class DurationPickerDialog extends StatefulWidget {
@@ -42,9 +44,9 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Durée du sommeil',
-              style: TextStyle(
+            Text(
+              context.l.durationPickerTitle,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimary,
@@ -88,7 +90,7 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
                 Flexible(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Annuler', style: TextStyle(color: AppTheme.textSecondary)),
+                    child: Text(context.l.cancelButton, style: const TextStyle(color: AppTheme.textSecondary)),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -104,7 +106,7 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     ),
-                    child: const Text('Confirmer'),
+                    child: Text(context.l.confirmButton),
                   ),
                 ),
               ],

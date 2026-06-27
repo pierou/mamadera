@@ -1,16 +1,29 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:mamadera/features/home/presentation/widgets/duration_picker_dialog.dart';
+import 'package:mamadera/l10n/app_localizations.dart';
 
 void main() {
   group('DurationPickerDialog', () {
     // Helper pour pump le dialog dans un MaterialApp minimal
     Future<void> pumpDialog(WidgetTester tester, DurationPickerDialog dialog) =>
         tester.pumpWidget(
-          ProviderScope(child: MaterialApp(home: Scaffold(body: dialog))),
+          ProviderScope(child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: Scaffold(body: dialog),
+          )),
         );
 
     testWidgets('affiche "30 min" par défaut quand initialMinutes non spécifié', (tester) async {

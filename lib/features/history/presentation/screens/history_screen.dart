@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+
+import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/l10n/date_localization.dart';
 
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
@@ -106,7 +108,7 @@ class HistoryScreen extends ConsumerWidget {
     final eventsAsync = ref.watch(historyNotifierProvider(selectedFilter));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Historique')),
+      appBar: AppBar(title: Text(context.l.historyTitle)),
       body: Column(
         children: [
           Padding(
@@ -119,7 +121,7 @@ class HistoryScreen extends ConsumerWidget {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: FilterChip(
-                      label: Text(filter.label),
+                      label: Text(getHistoryFilterLabel(context, filter)),
                       selected: isSelected,
                       onSelected: (_) {
                         ref.read(selectedFilterProvider.notifier).setFilter(filter);
@@ -135,14 +137,14 @@ class HistoryScreen extends ConsumerWidget {
             child: eventsAsync.when(
               data: (events) {
                 if (events.isEmpty) {
-                  return const Center(child: Text('Aucun événement'));
+                  return Center(child: Text(context.l.noEvents));
                 }
                 return ListView.builder(
                   itemCount: events.length,
                   itemBuilder: (context, index) {
                     final event = events[index];
                     final timeFormatted =
-                        DateFormat('dd/MM/yyyy HH:mm').format(event.timestamp);
+                        formatDate(context, event.timestamp);
                     // Skip if no id (shouldn't happen in DB-fetched data, but safe guard)
                     return HistoryTile(
                       event: event,
@@ -153,7 +155,7 @@ class HistoryScreen extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text('Erreur: $error')),
+              error: (error, stack) => Center(child: Text(context.l.errorMessage(error.toString()))),
             ),
           ),
         ],

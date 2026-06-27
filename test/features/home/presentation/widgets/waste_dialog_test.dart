@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:mamadera/features/home/presentation/widgets/waste_dialog.dart';
+import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 
 void main() {
@@ -10,6 +13,14 @@ void main() {
     Future<void> pumpDialog(WidgetTester tester) => tester.pumpWidget(
       const ProviderScope(
         child: MaterialApp(
+          locale: Locale('fr'),
+          supportedLocales: [Locale('fr')],
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: Scaffold(body: WasteDialog()),
         ),
       ),

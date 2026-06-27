@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/encryption_provider.dart';
 import 'package:mamadera/core/services/encryption_service.dart';
+import 'package:mamadera/features/home/presentation/widgets/track_button.dart';
 import 'package:mamadera/main.dart';
 
 void main() {
@@ -37,8 +38,8 @@ void main() {
         ),
       );
 
-      // HomeScreen displays buttons with tracking type labels
-      expect(find.text('Miam'), findsWidgets);
+      // HomeScreen displays 4 tracking buttons (one per TrackingType)
+      expect(find.byType(TrackButton), findsNWidgets(4));
     });
 
     testWidgets('displays feature categories', (tester) async {
@@ -48,10 +49,8 @@ void main() {
         ),
       );
 
-      // The widget_test.dart pattern shows these texts exist on the home screen
-      expect(find.text('Santé'), findsWidgets);
-      expect(find.text('Caca'), findsWidgets);
-      expect(find.text('Dodo'), findsWidgets);
+      // The home screen shows 4 TrackButtons for Miam, Santé, Caca, Dodo
+      expect(find.byType(TrackButton), findsNWidgets(4));
     });
   });
 

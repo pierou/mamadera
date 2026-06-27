@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ignore: implementation_imports
 import 'package:logger/logger.dart' show Logger;
 
+import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
@@ -136,22 +137,22 @@ void _onTapDodo(BuildContext context, WidgetRef ref) {
         crossAxisSpacing: 16,
         children: [
           TrackButton(
-            label: 'Miam',
+            label: context.l.homeButtonMiam,
             color: AppTheme.miam,
-            onTap: () => _onTrack(context, ref, 'Miam'),
+            onTap: () => _onTrack(context, ref, TrackingType.miam.name),
           ),
           TrackButton(
-            label: 'Santé',
+            label: context.l.homeButtonSante,
             color: AppTheme.sante,
-            onTap: () => _onTrack(context, ref, 'Santé'),
+            onTap: () => _onTrack(context, ref, TrackingType.sante.name),
           ),
           TrackButton(
-            label: 'Caca',
+            label: context.l.homeButtonCaca,
             color: AppTheme.caca,
-            onTap: () => _onTrack(context, ref, 'Caca'),
+            onTap: () => _onTrack(context, ref, TrackingType.caca.name),
           ),
           TrackButton(
-            label: 'Dodo',
+            label: context.l.homeButtonDodo,
             color: AppTheme.dodo,
             onTap: () => _onTapDodo(context, ref),
           ),

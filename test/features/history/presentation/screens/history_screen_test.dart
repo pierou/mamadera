@@ -1,12 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mamadera/core/providers/locale_provider.dart';
 import 'package:mamadera/features/history/domain/repositories/history_repository.dart';
 import 'package:mamadera/features/history/presentation/providers/history_repository_provider.dart';
 import 'package:mamadera/features/history/presentation/screens/history_screen.dart';
 import 'package:mamadera/features/history/presentation/widgets/history_tile.dart';
+import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
@@ -14,6 +17,11 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
 import 'history_screen_test.mocks.dart';
+
+// Test locale notifier that returns French locale for consistent string assertions
+class _TestLocaleNotifier extends LocaleNotifier {
+  Locale? get current => const Locale('fr'); // not overriding, just a test helper property
+}
 
 @GenerateNiceMocks([MockSpec<HistoryRepository>()])
 void main() {
@@ -63,7 +71,17 @@ void main() {
               (_) async => mockRepository,
             ),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -78,8 +96,19 @@ void main() {
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
+             localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -95,8 +124,19 @@ void main() {
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
+             localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -115,8 +155,19 @@ void main() {
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
+             localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -138,8 +189,19 @@ void main() {
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
+             localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
 
@@ -165,8 +227,19 @@ void main() {
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
+             localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -181,8 +254,19 @@ void main() {
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
+             localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -202,8 +286,19 @@ void main() {
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
+             localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -228,8 +323,19 @@ void main() {
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
+             localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -251,8 +357,19 @@ void main() {
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
+             localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -282,8 +399,19 @@ void main() {
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
+             localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -317,8 +445,19 @@ void main() {
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
+             localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
-          child: const MaterialApp(home: HistoryScreen()),
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
         ),
       );
       await tester.pumpAndSettle();

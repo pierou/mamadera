@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/l10n/date_localization.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
@@ -155,20 +157,20 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Supprimer l\'événement'),
-        content: const Text(
-          'Voulez-vous vraiment supprimer cet événement ? Cette action est irréversible.',
+        title: Text(context.l.deleteDialogTitle),
+        content: Text(
+          context.l.deleteDialogContent,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
+            child: Text(context.l.cancelButton),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child:
-                const Text('Supprimer', style: TextStyle(color: Colors.white)),
+                Text(context.l.deleteButton, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -188,7 +190,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Modifier l\'événement',
+            Text(context.l.editDialogTitle,
                 style: Theme.of(context)
                     .textTheme
                     .headlineSmall
@@ -196,7 +198,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             const SizedBox(height: 24),
 
             // --- Date & Heure ---
-            _buildSectionTitle('Date et heure'),
+            _buildSectionTitle(context.l.editDateSectionTitle),
             InkWell(
               onTap: _pickDate,
               borderRadius: BorderRadius.circular(8),
@@ -223,7 +225,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
 
             // --- Durée (uniquement pour dodo) — utilise l'enum au lieu de string comparison ---
             if (_normalizedType == 'dodo') ...[
-              _buildSectionTitle('Durée'),
+              _buildSectionTitle(context.l.editDurationSectionTitle),
               Row(
                 children: [
                   Expanded(
@@ -234,13 +236,13 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface),
                       decoration: InputDecoration(
-                        hintText: 'Minutes',
+                        hintText: context.l.minutesHintText,
                         hintStyle: const TextStyle(color: Colors.black38),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8)),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 4),
-                        suffixText: 'min',
+                        suffixText: context.l.minuteSuffix,
                       ),
                       onChanged: (value) {
                         _duration =
@@ -257,7 +259,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             if (_normalizedType == 'caca' || _normalizedType == 'pipi') ...[
               // WasteType selector : uniquement pour caca (permet de switcher vers pipi/lesDeux)
               if (_normalizedType == 'caca') ...[
-                _buildSectionTitle('Type'),
+                _buildSectionTitle(context.l.editTypeSectionTitle),
                 Row(
                   children: [
                     for (final type in WasteType.values)
@@ -280,7 +282,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
               if (_normalizedType == 'pipi' ||
                   _wasteType == WasteType.pipi ||
                   _wasteType == WasteType.lesDeux) ...[
-                _buildSectionTitle('Couleur du pipi'),
+                _buildSectionTitle(context.l.editPipiColorSectionTitle),
                 Wrap(
                   spacing: 8,
                   runSpacing: 4,
@@ -299,7 +301,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
               // Couleur caca (conditionnelle via enum)
               if (_wasteType == WasteType.caca ||
                   _wasteType == WasteType.lesDeux) ...[
-                _buildSectionTitle('Couleur du caca'),
+                _buildSectionTitle(context.l.editCacaColorSectionTitle),
                 Wrap(
                   spacing: 8,
                   runSpacing: 4,
@@ -318,7 +320,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             // --- Notes (tous les types sauf sante et dodo) ---
             if (_normalizedType != 'sante' && _normalizedType != 'dodo') ...[
               const SizedBox(height: 20),
-              _buildSectionTitle('Notes'),
+              _buildSectionTitle(context.l.editNotesLabel),
               TextFormField(
                 controller: _notesController,
                 maxLines: 3,
@@ -327,7 +329,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
                     .bodyMedium
                     ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
                 decoration: InputDecoration(
-                  hintText: 'Ajouter une note...',
+                  hintText: context.l.editNotesHint,
                   hintStyle: const TextStyle(color: Colors.black38),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8)),
@@ -340,7 +342,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             // --- Sous-type santé (pour sante) — utilise l'enum HealthSubtype au lieu de strings ---
             if (_normalizedType == 'sante') ...[
               const SizedBox(height: 20),
-              _buildSectionTitle('Type de soin'),
+              _buildSectionTitle(context.l.healthSubtypeDialogTitle),
               // Utilise _notesController.text (mutable via setState) au lieu de widget.initialNotes (immutable)
               ...HealthSubtype.values.map((subtype) {
                 final isSelected = _notesController.text == subtype.value;
@@ -372,9 +374,9 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
               child: ElevatedButton.icon(
                 onPressed: _submit,
                 icon: const Icon(Icons.check, color: Colors.black),
-                label: const Text('Enregistrer',
+                label: Text(context.l.saveButton,
                     style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
                       Theme.of(context).colorScheme.primaryContainer,
@@ -391,8 +393,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
               onPressed: _confirmDelete,
               icon: const Icon(Icons.delete_outline,
                   color: Colors.redAccent, size: 20),
-              label: const Text('Supprimer',
-                  style: TextStyle(fontSize: 14, color: Colors.redAccent)),
+              label: Text(context.l.deleteButton,
+                  style: const TextStyle(fontSize: 14, color: Colors.redAccent)),
               style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12)),
             ),
@@ -413,23 +415,19 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   }
 
   String _formatDateTime(DateTime dt) {
-    final day = dt.day.toString().padLeft(2, '0');
-    final month = dt.month.toString().padLeft(2, '0');
-    final hour = dt.hour.toString().padLeft(2, '0');
-    final minute = dt.minute.toString().padLeft(2, '0');
-    return '$day/$month/${dt.year} $hour:$minute';
+    return formatDate(context, dt);
   }
 
   /// Retourne le label d'un WasteType via l'enum.
   String _wasteTypeLabel(WasteType type) {
     switch (type) {
       case WasteType.pipi:
-        return '🟡 Pipi';
+        return context.l.wasteTypePipi;
 
       case WasteType.caca:
-        return '🟤 Caca';
+        return context.l.wasteTypeCaca;
       case WasteType.lesDeux:
-        return '🟡🟤 Les deux';
+        return context.l.wasteTypeLesDeux;
     }
   }
 

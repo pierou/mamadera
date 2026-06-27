@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mamadera/features/home/presentation/widgets/bottom_nav.dart';
+import 'package:mamadera/l10n/app_localizations.dart';
 
 void main() {
   group('AppBottomNav', () {
@@ -10,6 +12,14 @@ void main() {
       // Arrange
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('fr'),
+          supportedLocales: const [Locale('fr')],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: Scaffold(
             bottomNavigationBar: AppBottomNav(currentIndex: 0, onTap: (_) {}),
           ),
@@ -27,6 +37,14 @@ void main() {
       // Arrange : currentIndex = 1 → Historique est actif
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('fr'),
+          supportedLocales: const [Locale('fr')],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: Scaffold(
             bottomNavigationBar: AppBottomNav(currentIndex: 1, onTap: (_) {}),
           ),
@@ -41,6 +59,14 @@ void main() {
       // Act & Assert : changer pour index 2 → Menu est actif
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('fr'),
+          supportedLocales: const [Locale('fr')],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: Scaffold(
             bottomNavigationBar: AppBottomNav(currentIndex: 2, onTap: (_) {}),
           ),
@@ -58,6 +84,14 @@ void main() {
       int? tappedIndex;
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('fr'),
+          supportedLocales: const [Locale('fr')],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: Scaffold(
             bottomNavigationBar: AppBottomNav(
                 currentIndex: 0, onTap: (index) => tappedIndex = index),

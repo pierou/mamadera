@@ -1,9 +1,14 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers/encryption_provider.dart';
+import 'core/providers/locale_provider.dart';
 import 'core/services/encryption_service.dart';
 import 'features/home/presentation/screens/home_screen.dart';
+import 'l10n/app_localizations.dart';
 
 void main() async {
   // Assure que les bindings natifs sont initialisés avant Flutter
@@ -27,13 +32,28 @@ void main() async {
   ));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final localeState = ref.watch(localeProvider);
+    final locale = localeState.when(
+      data: (pref) => ui.Locale(pref.languageCode),
+      loading: () => null,
+      error: (_, __) => null,
+    );
+
     return MaterialApp(
       title: 'Mamadera',
+      locale: locale,
+      supportedLocales: const [ui.Locale('fr'), ui.Locale('en')],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
