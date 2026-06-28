@@ -98,5 +98,8 @@
   "deleteButton": "Delete",
 
   "menuTitle": "Menu",
-  "settingsBodyText": "Settings"
+  "settingsBodyText": "Settings",
+  "languageSectionTitle": "Language",
+  "languageEnglish": "English",
+  "languageFrench": "Français"
 }

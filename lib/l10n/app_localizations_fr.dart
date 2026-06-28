@@ -212,4 +212,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsBodyText => 'Paramètres';
+
+  @override
+  String get languageSectionTitle => 'Langue';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageFrench => 'Français';
 }

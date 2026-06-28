@@ -487,6 +487,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Paramètres'**
   String get settingsBodyText;
+
+  /// No description provided for @languageSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langue'**
+  String get languageSectionTitle;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In fr, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languageFrench.
+  ///
+  /// In fr, this message translates to:
+  /// **'Français'**
+  String get languageFrench;
 }
 
 class _AppLocalizationsDelegate

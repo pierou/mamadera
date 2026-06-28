@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/features/history/presentation/widgets/history_tile.dart';
+import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 
 void main() {
-  /// Helper: pump HistoryTile inside a minimal MaterialApp + ProviderScope.
+  /// Helper: pump HistoryTile inside a minimal MaterialApp + ProviderScope with FR locale.
   Future<void> pumpTile(WidgetTester tester, TrackingEvent event,
       {VoidCallback? onTap}) async {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
+          locale: const Locale('fr'),
+          supportedLocales: const [Locale('fr')],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: Scaffold(
             body: HistoryTile(
               event: event,
@@ -120,7 +130,7 @@ void main() {
         tester,
         HealthEvent(timestamp: DateTime.utc(2024), subtype: HealthSubtype.nettoyageYeux),
       );
-      // Health subtype label is displayed directly from the entity
+      // context.l resolves to FR locale which returns "Nettoyage des yeux" for healthSubtypeNameetyageYeux
       expect(find.text('Nettoyage des yeux'), findsOneWidget);
     });
   });
@@ -131,6 +141,7 @@ void main() {
         tester,
         FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.bib, duration: 30.5),
       );
+      // context.l.durationPrefix(30) returns "Durée: 30 min" in FR locale
       expect(find.text('Durée: 30 min'), findsOneWidget);
     });
 

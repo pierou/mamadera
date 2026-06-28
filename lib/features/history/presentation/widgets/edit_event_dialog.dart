@@ -288,7 +288,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
                   runSpacing: 4,
                   children: PipiColor.values.map((c) {
                     return FilterChip(
-                      label: Text(c.label),
+                      label: Text(_resolvePipiLabel(context, c)),
                       selected: _pipiColor == c,
                       onSelected: (_) => setState(
                           () => _pipiColor = _pipiColor == c ? null : c),
@@ -307,7 +307,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
                   runSpacing: 4,
                   children: CacaColor.values.map((c) {
                     return FilterChip(
-                      label: Text(c.label),
+                      label: Text(_resolveCacaLabel(context, c)),
                       selected: _cacaColor == c,
                       onSelected: (_) => setState(
                           () => _cacaColor = _cacaColor == c ? null : c),
@@ -349,7 +349,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
                 return ListTile(
                   leading: Icon(_getHealthIcon(subtype.value),
                       color: isSelected ? Colors.greenAccent : null),
-                  title: Text(subtype.label,
+                  title: Text(_resolveHealthLabel(context, subtype),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface)),
                   trailing: isSelected
@@ -416,6 +416,58 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
 
   String _formatDateTime(DateTime dt) {
     return formatDate(context, dt);
+  }
+
+  /// Résout le label localisé pour un PipiColor via son labelKey.
+  String _resolvePipiLabel(BuildContext ctx, PipiColor c) {
+    switch (c.labelKey) {
+      case 'pipiColorIncolore':
+        return ctx.l.pipiColorIncolore;
+      case 'pipiColorJauneClair':
+        return ctx.l.pipiColorJauneClair;
+      case 'pipiColorJauneFonce':
+        return ctx.l.pipiColorJauneFonce;
+      case 'pipiColorRoseUrates':
+        return ctx.l.pipiColorRoseUrates;
+      default:
+        return c.label;
+    }
+  }
+
+  /// Résout le label localisé pour un CacaColor via son labelKey.
+  String _resolveCacaLabel(BuildContext ctx, CacaColor c) {
+    switch (c.labelKey) {
+      case 'cacaColorMeconium':
+        return ctx.l.cacaColorMeconium;
+      case 'cacaColorVertOlive':
+        return ctx.l.cacaColorVertOlive;
+      case 'cacaColorJauneMoutarde':
+        return ctx.l.cacaColorJauneMoutarde;
+      case 'cacaColorJauneClair':
+        return ctx.l.cacaColorJauneClair;
+      default:
+        return c.label;
+    }
+  }
+
+  /// Résout le label localisé pour un HealthSubtype via son labelKey.
+  String _resolveHealthLabel(BuildContext ctx, HealthSubtype subtype) {
+    switch (subtype.labelKey) {
+      case 'healthNettoyageYeux':
+        return ctx.l.healthNettoyageYeux;
+      case 'healthNettoyageNombril':
+        return ctx.l.healthNettoyageNombril;
+      case 'healthNettoyageVisage':
+        return ctx.l.healthNettoyageVisage;
+      case 'healthNettoyageNez':
+        return ctx.l.healthNettoyageNez;
+      case 'healthVitamineD':
+        return ctx.l.healthVitamineD;
+      case 'healthVitamineK':
+        return ctx.l.healthVitamineK;
+      default:
+        return subtype.label;
+    }
   }
 
   /// Retourne le label d'un WasteType via l'enum.

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 
@@ -31,23 +32,53 @@ class HistoryTile extends StatelessWidget {
     }
   }
 
-  String get _typeLabel {
+  String _resolveLabelKey(BuildContext context, String labelKey) {
+    switch (labelKey) {
+      case 'healthNettoyageYeux':
+        return context.l.healthNettoyageYeux;
+      case 'healthNettoyageNombril':
+        return context.l.healthNettoyageNombril;
+      case 'healthNettoyageVisage':
+        return context.l.healthNettoyageVisage;
+      case 'healthNettoyageNez':
+        return context.l.healthNettoyageNez;
+      case 'healthVitamineD':
+        return context.l.healthVitamineD;
+      case 'healthVitamineK':
+        return context.l.healthVitamineK;
+      default:
+        // Fallback for non-health label keys — resolve via reflection-like lookup
+        if (labelKey.startsWith('typeLabel')) {
+          final type = labelKey.replaceAll('typeLabel', '');
+          switch (type) {
+            case 'Miam': return context.l.typeLabelMiam;
+            case 'Sommeil': return context.l.typeLabelSommeil;
+            case 'Pipi': return context.l.typeLabelPipi;
+            case 'Caca': return context.l.typeLabelCaca;
+          }
+        }
+        // Last resort: return the key itself
+        return labelKey;
+    }
+  }
+
+  String _typeLabel(BuildContext context) {
     switch (event) {
       case FeedingEvent():
-        return 'Miam';
+        return context.l.typeLabelMiam;
       case SleepEvent():
-        return 'Sommeil';
+        return context.l.typeLabelSommeil;
       case final DiaperEvent diaper:
         switch (diaper.wasteType) {
           case WasteType.pipi:
-            return 'Pipi';
+            return context.l.typeLabelPipi;
           case WasteType.lesDeux:
-            return 'Pipi & Caca';
+            return context.l.typeLabelPipiEtCaca;
           default:
-            return 'Caca';
+            return context.l.typeLabelCaca;
         }
       case final HealthEvent health:
-        return health.subtype.label;
+        return _resolveLabelKey(context, health.subtype.labelKey);
     }
   }
 
@@ -76,25 +107,31 @@ class HistoryTile extends StatelessWidget {
   }
 
 
-  /// Parse les couleurs depuis un DiaperEvent et retourne une liste de paires (label, color).
-  List<MapEntry<String, Color>> _parseColors() {
+  /// Parse les couleurs depuis un DiaperEvent et retourne une liste de paires (localized label, color).
+  List<MapEntry<String, Color>> _parseColors(BuildContext context) {
     if (event is! DiaperEvent) return [];
     final diaper = event as DiaperEvent;
 
     final colors = <MapEntry<String, Color>>[];
     if (diaper.pipiColor != null) {
-      colors.add(MapEntry(diaper.pipiColor!.label, Color(diaper.pipiColor!.colorHex)));
+      colors.add(MapEntry(
+        _resolveLabelKey(context, diaper.pipiColor!.labelKey),
+        Color(diaper.pipiColor!.colorHex),
+      ));
     }
     if (diaper.cacaColor != null) {
-      colors.add(MapEntry(diaper.cacaColor!.label, Color(diaper.cacaColor!.colorHex)));
+      colors.add(MapEntry(
+        _resolveLabelKey(context, diaper.cacaColor!.labelKey),
+        Color(diaper.cacaColor!.colorHex),
+      ));
     }
     return colors;
   }
 
   bool get _hasWasteDetails => event is DiaperEvent && (event as DiaperEvent).wasteType != null;
 
-  Widget _buildColorIndicator() {
-    final parsedColors = _parseColors();
+  Widget _buildColorIndicator(BuildContext context) {
+    final parsedColors = _parseColors(context);
     if (parsedColors.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -131,13 +168,14 @@ class HistoryTile extends StatelessWidget {
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           child: Icon(_icon, color: Theme.of(context).colorScheme.primary),
         ),
-        title: Text(_typeLabel),
+        title: Text(_typeLabel(context)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_duration != null) Text('Durée: ${_duration!.toInt()} min'),
+            if (_duration != null)
+              Text(context.l.durationPrefix(_duration!.toInt())),
             if (_hasWasteDetails) ...[
-              _buildColorIndicator(),
+              _buildColorIndicator(context),
             ],
             if (event is! HealthEvent && _notes != null && _notes!.isNotEmpty)
               Text(_notes!),

@@ -98,5 +98,8 @@
   "deleteButton": "Supprimer",
 
   "menuTitle": "Menu",
-  "settingsBodyText": "Paramètres"
+  "settingsBodyText": "Paramètres",
+  "languageSectionTitle": "Langue",
+  "languageEnglish": "English",
+  "languageFrench": "Français"
 }
