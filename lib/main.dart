@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers/encryption_provider.dart';
 import 'core/providers/locale_provider.dart';
+import 'core/providers/theme_provider.dart';
 import 'core/services/encryption_service.dart';
+import 'core/theme.dart';
 import 'features/home/presentation/screens/home_screen.dart';
 import 'l10n/app_localizations.dart';
 
@@ -44,6 +46,13 @@ class MyApp extends ConsumerWidget {
       error: (_, __) => null,
     );
 
+    final themeNotifier = ref.read(themeProvider.notifier);
+    final themeMode = ref.watch(themeProvider).when(
+          data: (pref) => themeNotifier.resolveThemeMode(),
+          loading: () => ThemeMode.system,
+          error: (_, __) => ThemeMode.system,
+        );
+
     return MaterialApp(
       title: 'Mamadera',
       locale: locale,
@@ -54,9 +63,9 @@ class MyApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeMode,
       home: const HomeScreen(),
     );
   }

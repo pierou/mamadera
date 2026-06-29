@@ -18,17 +18,16 @@ void main() {
       expect(find.byType(MaterialApp), findsOneWidget);
     });
 
-    testWidgets('theme uses deepPurple seed color', (tester) async {
+    testWidgets('theme uses AppTheme with sante as primary color', (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
           child: MyApp(),
         ),
       );
 
-      // Verify the MaterialApp's theme ColorScheme matches one built from deepPurple seed
+      // Verify the MaterialApp's theme matches AppTheme.theme
       final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
-      final expectedColorScheme = ColorScheme.fromSeed(seedColor: Colors.deepPurple);
-      expect(materialApp.theme?.colorScheme, expectedColorScheme);
+      expect(materialApp.theme?.colorScheme.primary, equals(const Color.fromARGB(255, 34, 252, 0)));
     });
 
     testWidgets('HomeScreen is set as home route', (tester) async {

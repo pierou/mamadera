@@ -9,12 +9,13 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTap,
-      backgroundColor: const Color(0xFF2D2D2D),
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.grey,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      selectedItemColor: theme.colorScheme.primary,
+      unselectedItemColor: theme.colorScheme.onSurfaceVariant,
       type: BottomNavigationBarType.fixed,
       items: [
         BottomNavigationBarItem(icon: const Icon(Icons.home), label: context.l.navHome),
