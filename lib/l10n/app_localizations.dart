@@ -505,6 +505,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Français'**
   String get languageFrench;
+
+  /// No description provided for @themeSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Thème'**
+  String get themeSectionTitle;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Système'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clair'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sombre'**
+  String get themeDark;
 }
 
 class _AppLocalizationsDelegate

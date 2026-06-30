@@ -101,5 +101,10 @@
   "settingsBodyText": "Settings",
   "languageSectionTitle": "Language",
   "languageEnglish": "English",
-  "languageFrench": "Français"
+  "languageFrench": "Français",
+
+  "themeSectionTitle": "Theme",
+  "themeSystem": "Follow system",
+  "themeLight": "Light",
+  "themeDark": "Dark"
 }

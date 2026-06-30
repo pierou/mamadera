@@ -30,8 +30,8 @@ void main() {
       expect(AppTheme.dodo, equals(const Color.fromARGB(255, 39, 159, 234)));
     });
 
-    test('textPrimary is Colors.black', () {
-      expect(AppTheme.textPrimary, equals(Colors.black));
+    test('textPrimary is Colors.white', () {
+      expect(AppTheme.textPrimary, equals(Colors.white));
     });
 
     test('textSecondary is light gray', () {
@@ -71,12 +71,12 @@ void main() {
       expect(theme.colorScheme.onSurface, equals(Colors.white));
     });
 
-    test('surfaceContainerHighest is dark gray', () {
+    test('surfaceContainerHighest matches dialogBackground constant', () {
       final theme = AppTheme.theme;
 
       expect(
         theme.colorScheme.surfaceContainerHighest,
-        equals(const Color(0xFF3A3A3A)),
+        equals(AppTheme.dialogBackground),
       );
     });
 
@@ -93,7 +93,7 @@ void main() {
     test('bodyLarge text style has correct fontSize', () {
       final theme = AppTheme.theme;
 
-      expect(theme.textTheme.bodyLarge?.fontSize, equals(20.0));
+      expect(theme.textTheme.bodyLarge?.fontSize, equals(18.0));
     });
 
     test('AppTheme can be instantiated with const constructor', () {

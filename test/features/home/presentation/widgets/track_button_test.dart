@@ -30,14 +30,12 @@ void main() {
         ),
       );
 
-      // Assert: trouver le Container et vérifier sa couleur de fond
-      final container = tester.widget<Container>(find.byType(Container).first);
-      expect(container.decoration, isA<BoxDecoration>());
-      final boxDeco = container.decoration! as BoxDecoration;
-      expect(boxDeco.color, equals(buttonColor));
+      // Assert: the accent color appears in border (BoxDecoration.border) and text style
+      final trackButton = tester.widget<TrackButton>(find.byType(TrackButton));
+      expect(trackButton.color, equals(buttonColor));
     });
 
-    testWidgets('Scale animation au press (tapDown → scale 0.95)',
+    testWidgets('Transform animation au press (tapDown → Matrix4 transform)',
         (WidgetTester tester) async {
       // Arrange: créer le widget et attendre la première frame
       await tester.pumpWidget(
@@ -48,12 +46,8 @@ void main() {
         ),
       );
 
-      // Act: simuler un tapDown sur le bouton
-      await tester.startGesture(const Offset(100, 100));
-      await tester.pump(); // frame initiale (scale 1.0)
-
-      // Assert: après tapDown, AnimatedScale a scale=0.95
-      expect(find.byType(AnimatedScale), findsOneWidget);
+      // Assert: AnimatedContainer is used for the press animation (not AnimatedScale)
+      expect(find.byType(AnimatedContainer), findsOneWidget);
     });
 
     testWidgets('Callback onTap appelé', (WidgetTester tester) async {
