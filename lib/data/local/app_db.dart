@@ -15,12 +15,9 @@ class TrackingEvents extends Table {
 }
 
 class ReminderDismissals extends Table {
-TextColumn get itemId => text()();
+  TextColumn get itemId => text().unique()();
 
   DateTimeColumn get dismissedAt => dateTime()();
-
-  @override
-  List<String> get tableConstraints => ['PRIMARY KEY ("itemId")'];
 }
 
 @DriftDatabase(tables: [TrackingEvents, ReminderDismissals])
