@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 
 /// Notifier d'état pour le dialog de sous-types santé.
@@ -40,27 +41,29 @@ class HealthSubtypeDialog extends ConsumerWidget {
           children: [
             Text(
               context.l.healthSubtypeDialogTitle,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
 
             // Liste des sous-types santé — utilise l'enum HealthSubtype au lieu de strings
             ...HealthSubtype.values.map((subtype) {
+              final isSelected = selectedType == subtype;
               return ListTile(
                 leading: Icon(
                   switch (subtype.value) {
                     'nettoyage_yeux' => Icons.remove_red_eye,
                     'nettoyage_nombril' => Icons.circle,
-                    'nettoyage_visage' => Icons.face,
-                    'nettoyage_nez' => Icons.arrow_upward,
-                    'vitamine_d' => Icons.wb_sunny,
-                    'vitamine_k' => Icons.healing,
+                    'nettoyage_visage' => Icons.circle,
+                    'nettoyage_nez' => Icons.circle,
+                    'vitamine_d' => Icons.circle,
+                    'vitamine_k' => Icons.circle,
                     _ => Icons.help_outline,
                   },
+                  color: isSelected ? AppTheme.sante : null,
                 ),
                 title: Text(_resolveHealthLabel(context, subtype)),
                 trailing: selectedType == subtype
-                    ? const Icon(Icons.check_circle)
+                    ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
                     : null,
                 onTap: () {
                   ref.read(healthSubtypeDialogProvider.notifier).setSelected(subtype);

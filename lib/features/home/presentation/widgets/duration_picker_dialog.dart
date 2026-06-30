@@ -46,11 +46,7 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
           children: [
             Text(
               context.l.durationPickerTitle,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
-              ),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 32),
             Center(
@@ -67,7 +63,7 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
                 activeTrackColor: AppTheme.dodo,
-                inactiveTrackColor: Colors.grey.shade700,
+                inactiveTrackColor: Theme.of(context).colorScheme.outline,
                 thumbColor: AppTheme.dodo,
                 overlayColor: AppTheme.dodo.withValues(alpha: 0.2),
                 trackHeight: 4,
@@ -85,12 +81,12 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
             ),
             const SizedBox(height: 24),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Flexible(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(context.l.cancelButton, style: const TextStyle(color: AppTheme.textSecondary)),
+                    child: Text(context.l.cancelButton),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -101,11 +97,7 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
                       widget.onDurationSelected(_selectedMinutes);
                       Navigator.pop(context);
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.dodo,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
+                    style: ElevatedButton.styleFrom( padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
                     child: Text(context.l.confirmButton),
                   ),
                 ),

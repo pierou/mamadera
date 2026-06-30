@@ -221,4 +221,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get languageFrench => 'Français';
+
+  @override
+  String get themeSectionTitle => 'Thème';
+
+  @override
+  String get themeSystem => 'Système';
+
+  @override
+  String get themeLight => 'Clair';
+
+  @override
+  String get themeDark => 'Sombre';
 }

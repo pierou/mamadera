@@ -168,9 +168,11 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child:
-                Text(context.l.deleteButton, style: const TextStyle(color: Colors.white)),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: Text(context.l.deleteButton),
           ),
         ],
       ),
@@ -190,12 +192,10 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(context.l.editDialogTitle,
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
+            Text(
+              context.l.editDialogTitle,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
 
             // --- Date & Heure ---
             _buildSectionTitle(context.l.editDateSectionTitle),
@@ -206,8 +206,9 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                 decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white30),
-                    borderRadius: BorderRadius.circular(8)),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                ),
                 child: Row(
                   children: [
                     Icon(Icons.calendar_today,
@@ -215,8 +216,10 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
                     const SizedBox(width: 12),
                     Text(_formatDateTime(_selectedDate)),
                     const Spacer(),
-                    const Icon(Icons.edit_outlined,
-                        size: 18, color: Colors.white54),
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ],
                 ),
               ),
@@ -237,9 +240,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
                           color: Theme.of(context).colorScheme.onSurface),
                       decoration: InputDecoration(
                         hintText: context.l.minutesHintText,
-                        hintStyle: const TextStyle(color: Colors.black38),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8)),
+                        // hintStyle now uses theme default
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 4),
                         suffixText: context.l.minuteSuffix,
@@ -348,13 +349,11 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
                 final isSelected = _notesController.text == subtype.value;
                 return ListTile(
                   leading: Icon(_getHealthIcon(subtype.value),
-                      color: isSelected ? Colors.greenAccent : null),
-                  title: Text(_resolveHealthLabel(context, subtype),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface)),
+                      color: isSelected ? AppTheme.sante : null),
+                  title: Text(_resolveHealthLabel(context, subtype), style: Theme.of(context).textTheme.bodyMedium),
                   trailing: isSelected
-                      ? const Icon(Icons.check_circle,
-                          color: Colors.greenAccent)
+                      ? Icon(Icons.check_circle,
+                          color: Theme.of(context).colorScheme.primary)
                       : null,
                   tileColor: isSelected
                       ? AppTheme.sante.withValues(alpha: 0.15)
@@ -373,30 +372,25 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _submit,
-                icon: const Icon(Icons.check, color: Colors.black),
-                label: Text(context.l.saveButton,
-                    style:
-                        const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
+                icon: const Icon(Icons.check),
+                label: Text(context.l.saveButton),
+                style: ElevatedButton.styleFrom( padding: const EdgeInsets.symmetric(vertical: 14)),
               ),
             ),
 
             // Bouton Supprimer (séparé visuellement)
             const SizedBox(height: 8),
-            TextButton.icon(
-              onPressed: _confirmDelete,
-              icon: const Icon(Icons.delete_outline,
-                  color: Colors.redAccent, size: 20),
-              label: Text(context.l.deleteButton,
-                  style: const TextStyle(fontSize: 14, color: Colors.redAccent)),
-              style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12)),
+            Center(
+              child: TextButton.icon(
+                onPressed: _confirmDelete,
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: Theme.of(context).colorScheme.error,
+                  size: 20,
+                ),
+                label: Text(context.l.deleteButton,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              ),
             ),
           ],
         ),

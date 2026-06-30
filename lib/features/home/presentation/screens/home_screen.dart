@@ -69,7 +69,7 @@ class _HomeContent extends ConsumerWidget {
 void _onTapDodo(BuildContext context, WidgetRef ref) {
    showModalBottomSheet<void>(
      context: context,
-     backgroundColor: AppTheme.background,
+     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
      shape: const RoundedRectangleBorder(
        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
      ),
@@ -90,7 +90,7 @@ void _onTapDodo(BuildContext context, WidgetRef ref) {
  Future<void> _showWasteDialog(BuildContext context, WidgetRef ref) async {
    final result = await showModalBottomSheet<Map<String, dynamic>?>(
      context: context,
-     backgroundColor: AppTheme.background,
+     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
      shape: const RoundedRectangleBorder(
        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
      ),
@@ -111,7 +111,7 @@ void _onTapDodo(BuildContext context, WidgetRef ref) {
   Future<void> _showHealthSubtypeDialog(BuildContext context, WidgetRef ref) async {
     final result = await showModalBottomSheet<Map<String, dynamic>?>(
       context: context,
-      backgroundColor: AppTheme.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),

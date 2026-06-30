@@ -101,7 +101,10 @@ class WasteDialog extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Titre
-            Text(context.l.wasteDialogTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text(
+              context.l.wasteDialogTitle,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
 
             // Sélection du type (chips radio) — utilise l'enum WasteType au lieu de strings
@@ -110,18 +113,20 @@ class WasteDialog extends ConsumerWidget {
 
             // Section couleur pipi (conditionnelle, typée via enum)
             if (state.selectedType == WasteType.pipi || state.selectedType == WasteType.lesDeux) ...[
-              Text(context.l.pipiColorSectionTitle, style: const TextStyle(fontSize: 16, color: Colors.white70)),
+              Text(context.l.pipiColorSectionTitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              _buildPipiColorChips(ref, state.pipiColor),
+              _buildPipiColorChips(context, ref, state.pipiColor),
             ],
 
             if (state.selectedType == WasteType.lesDeux) const SizedBox(height: 24),
 
             // Section couleur caca (conditionnelle, typée via enum)
             if (state.selectedType == WasteType.caca || state.selectedType == WasteType.lesDeux) ...[
-              Text(context.l.cacaColorSectionTitle, style: const TextStyle(fontSize: 16, color: Colors.white70)),
+              Text(context.l.cacaColorSectionTitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              _buildCacaColorChips(ref, state.cacaColor),
+              _buildCacaColorChips(context, ref, state.cacaColor),
             ],
 
             const SizedBox(height: 24),
@@ -131,13 +136,9 @@ class WasteDialog extends ConsumerWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () => _onSubmit(context, ref),
-                icon: const Icon(Icons.check, color: Colors.black),
-                label: Text(context.l.saveButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.sante,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                icon: const Icon(Icons.check),
+                label: Text(context.l.saveButton),
+                style: ElevatedButton.styleFrom( padding: const EdgeInsets.symmetric(vertical: 14)),
               ),
             ),
           ],
@@ -161,32 +162,36 @@ class WasteDialog extends ConsumerWidget {
     }).toList());
   }
 
-  Widget _buildPipiColorChips(WidgetRef ref, PipiColor? selectedColor) {
+  Widget _buildPipiColorChips(BuildContext context, WidgetRef ref, PipiColor? selectedColor) {
     return Wrap(spacing: 8, runSpacing: 8, children: PipiColor.values.map((c) {
       final isSelected = c == selectedColor;
       return FilterChip(
         label: Text(c.label),
         selected: isSelected,
         onSelected: (_) => ref.read(_wasteDialogStateProvider.notifier).setPipiColor(isSelected ? null : c),
-        backgroundColor: AppTheme.background.withValues(alpha: 0.8),
+        backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.8),
         selectedColor: Color(c.colorHex).withValues(alpha: 0.3),
         checkmarkColor: Colors.white,
-        labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.white70),
+        labelStyle: TextStyle(
+          color: isSelected ? Colors.white : null,
+        ),
       );
     }).toList());
   }
 
-  Widget _buildCacaColorChips(WidgetRef ref, CacaColor? selectedColor) {
+  Widget _buildCacaColorChips(BuildContext context, WidgetRef ref, CacaColor? selectedColor) {
     return Wrap(spacing: 8, runSpacing: 8, children: CacaColor.values.map((c) {
       final isSelected = c == selectedColor;
       return FilterChip(
         label: Text(c.label),
         selected: isSelected,
         onSelected: (_) => ref.read(_wasteDialogStateProvider.notifier).setCacaColor(isSelected ? null : c),
-        backgroundColor: AppTheme.background.withValues(alpha: 0.8),
+        backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.8),
         selectedColor: Color(c.colorHex).withValues(alpha: 0.3),
         checkmarkColor: Colors.white,
-        labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.white70),
+        labelStyle: TextStyle(
+          color: isSelected ? Colors.white : null,
+        ),
       );
     }).toList());
   }
@@ -212,7 +217,7 @@ class _ChipRadio extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.sante.withValues(alpha: 0.3) : AppTheme.background.withValues(alpha: 0.5),
+          color: isSelected ? AppTheme.sante.withValues(alpha: 0.3) : Theme.of(context).cardColor.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: isSelected ? AppTheme.sante : Colors.transparent, width: 2),
         ),

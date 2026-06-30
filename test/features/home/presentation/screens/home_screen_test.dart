@@ -71,16 +71,11 @@ void main() {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
-      final colors = <Color>{};
-      for (final match in tester.widgetList<Container>(find.byType(Container))) {
-        if (match.decoration is BoxDecoration) {
-          final deco = match.decoration! as BoxDecoration;
-          if (deco.color != null && deco.color != Colors.transparent) {
-            colors.add(deco.color!);
-          }
-        }
-      }
+      // TrackButtons now use outlined cards with accent-colored borders and text
+      final trackButtons = tester.widgetList<TrackButton>(find.byType(TrackButton)).toList();
+      expect(trackButtons.length, 4);
 
+      final colors = trackButtons.map((b) => b.color).toSet();
       expect(colors.contains(AppTheme.miam), isTrue, reason: 'Miam');
       expect(colors.contains(AppTheme.sante), isTrue, reason: 'Sant\u00e9');
       expect(colors.contains(AppTheme.caca), isTrue, reason: 'Caca');
