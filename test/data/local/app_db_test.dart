@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 2', () {
-      expect(db.schemaVersion, equals(2));
+    test('schemaVersion is 3', () {
+      expect(db.schemaVersion, equals(3));
     });
   });
 

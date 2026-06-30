@@ -15,8 +15,12 @@ class TrackingEvents extends Table {
 }
 
 class ReminderDismissals extends Table {
-  TextColumn get itemId => text().customConstraint('PRIMARY KEY NOT NULL')();
+TextColumn get itemId => text()();
+
   DateTimeColumn get dismissedAt => dateTime()();
+
+  @override
+  List<String> get tableConstraints => ['PRIMARY KEY ("itemId")'];
 }
 
 @DriftDatabase(tables: [TrackingEvents, ReminderDismissals])
@@ -36,6 +40,17 @@ class AppDatabase extends _$AppDatabase {
               'CREATE INDEX IF NOT EXISTS idx_tracking_events_type ON tracking_events(type)');
           await m.database.customStatement(
               'CREATE INDEX IF NOT EXISTS idx_tracking_events_timestamp_type ON tracking_events(timestamp DESC, type)');
+        },
+        onUpgrade: (Migrator m, int from, int to) async {
+          // v2 → v3 : ajout de la table reminder_dismissals
+          if (from < 3) {
+            await m.createTable(reminderDismissals);
+            // Recréer les indexes si absents (sécurisé avec IF NOT EXISTS)
+            await m.database.customStatement(
+                'CREATE INDEX IF NOT EXISTS idx_tracking_events_type ON tracking_events(type)');
+            await m.database.customStatement(
+                'CREATE INDEX IF NOT EXISTS idx_tracking_events_timestamp_type ON tracking_events(timestamp DESC, type)');
+          }
         },
       );
 

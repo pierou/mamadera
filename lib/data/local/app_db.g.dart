@@ -386,9 +386,7 @@ class $ReminderDismissalsTable extends ReminderDismissals
   @override
   late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
       'item_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'PRIMARY KEY NOT NULL');
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _dismissedAtMeta =
       const VerificationMeta('dismissedAt');
   @override
@@ -425,7 +423,7 @@ class $ReminderDismissalsTable extends ReminderDismissals
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {itemId};
+  Set<GeneratedColumn> get $primaryKey => const {};
   @override
   ReminderDismissal map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
