@@ -14,12 +14,17 @@ class TrackingEvents extends Table {
   TextColumn get color => text().nullable()();     // couleur de la selle ou pipe-délimitée (pipi|caca)
 }
 
-@DriftDatabase(tables: [TrackingEvents])
+class ReminderDismissals extends Table {
+  TextColumn get itemId => text().customConstraint('PRIMARY KEY NOT NULL')();
+  DateTimeColumn get dismissedAt => dateTime()();
+}
+
+@DriftDatabase(tables: [TrackingEvents, ReminderDismissals])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
   @override
