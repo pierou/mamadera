@@ -6,6 +6,7 @@ class TrackButton extends StatefulWidget {
     required this.color,
     required this.onTap,
     this.onLongPress,
+    this.pendingReminders,
     super.key,
   });
 
@@ -13,6 +14,10 @@ class TrackButton extends StatefulWidget {
   final Color color;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
+
+  /// Number of pending reminders to display as an amber badge dot.
+  /// `null` or `0` hides the badge entirely.
+  final int? pendingReminders;
 
   @override
   State<TrackButton> createState() => _TrackButtonState();
@@ -35,7 +40,9 @@ class _TrackButtonState extends State<TrackButton> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
           curve: Curves.easeOut,
-          transform: Matrix4.identity()..scaleByDouble(_isPressed ? 0.97 : 1.0, _isPressed ? 0.97 : 1.0, 1, 1),
+          transform: Matrix4.identity()
+            ..scaleByDouble(
+                _isPressed ? 0.97 : 1.0, _isPressed ? 0.97 : 1.0, 1, 1),
           width: double.infinity,
           height: 180,
           decoration: BoxDecoration(
@@ -44,11 +51,30 @@ class _TrackButtonState extends State<TrackButton> {
             border: Border.all(color: widget.color, width: 2),
           ),
           child: Center(
-            child: Text(
-              widget.label,
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: widget.color,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Text(
+                  widget.label,
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                        color: widget.color,
+                      ),
+                ),
+                if (widget.pendingReminders != null &&
+                    widget.pendingReminders! > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: const BoxDecoration(
+                        color: Color.fromARGB(255, 234, 179, 8),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
                   ),
+              ],
             ),
           ),
         ),

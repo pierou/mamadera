@@ -10,6 +10,7 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../history/presentation/screens/history_screen.dart';
 import '../../../menu/menu_screen.dart';
+import '../../../reminders/presentation/providers/reminder_notifier.dart';
 import '../providers/nav_provider.dart';
 import '../providers/track_notifier.dart';
 import '../widgets/bottom_nav.dart';
@@ -129,6 +130,10 @@ void _onTapDodo(BuildContext context, WidgetRef ref) {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Watch pending reminder counts per TrackingType.
+    final remindersAsync = ref.watch(reminderNotifierProvider);
+    final pendingByType = remindersAsync.value ?? const <TrackingType, int>{};
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: GridView.count(
@@ -139,21 +144,25 @@ void _onTapDodo(BuildContext context, WidgetRef ref) {
           TrackButton(
             label: context.l.homeButtonMiam,
             color: AppTheme.miam,
+            pendingReminders: pendingByType[TrackingType.miam],
             onTap: () => _onTrack(context, ref, TrackingType.miam.name),
           ),
           TrackButton(
             label: context.l.homeButtonSante,
             color: AppTheme.sante,
+            pendingReminders: pendingByType[TrackingType.sante],
             onTap: () => _onTrack(context, ref, TrackingType.sante.name),
           ),
           TrackButton(
             label: context.l.homeButtonCaca,
             color: AppTheme.caca,
+            pendingReminders: pendingByType[TrackingType.caca],
             onTap: () => _onTrack(context, ref, TrackingType.caca.name),
           ),
           TrackButton(
             label: context.l.homeButtonDodo,
             color: AppTheme.dodo,
+            pendingReminders: pendingByType[TrackingType.dodo],
             onTap: () => _onTapDodo(context, ref),
           ),
         ],

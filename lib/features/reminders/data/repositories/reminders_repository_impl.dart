@@ -51,14 +51,17 @@ class RemindersRepositoryImpl implements RemindersRepository {
     try {
       _logger.d('saveDismissalTime($itemId, $dismissedAt)');
 
-      // Use the generated companion class directly for upsert.
-      final row = db_app.ReminderDismissalsCompanion.insert(
-        itemId: itemId,
-        dismissedAt: dismissedAt,
+      // Manual upsert: delete existing row then insert new one.
+      await database.customStatement(
+        'DELETE FROM reminder_dismissals WHERE item_id = ?',
+        [itemId],
       );
-
-      // Upsert on conflict (item_id is PK): replace old dismissal with new one.
-      await database.into(database.reminderDismissals).insertOnConflictUpdate(row);
+      await database.into(database.reminderDismissals).insert(
+        db_app.ReminderDismissalsCompanion.insert(
+          itemId: itemId,
+          dismissedAt: dismissedAt,
+        ),
+      );
     } catch (e, stack) {
       _logger.e(
         'saveDismissalTime error',
