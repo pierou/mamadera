@@ -65,4 +65,18 @@ class MockTrackingRepository extends _i1.Mock
         ),
         returnValue: _i3.Future<int>.value(0),
       ) as _i3.Future<int>);
+
+  @override
+  _i3.Future<DateTime?> getLastEventByTypeAndSubtype(
+    _i5.TrackingType? type, {
+    String? subtypeValue,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getLastEventByTypeAndSubtype,
+          [type],
+          {#subtypeValue: subtypeValue},
+        ),
+        returnValue: _i3.Future<DateTime?>.value(),
+      ) as _i3.Future<DateTime?>);
 }

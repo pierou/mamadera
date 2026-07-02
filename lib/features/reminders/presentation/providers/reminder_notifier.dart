@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/domain/entities/tracking_type.dart';
+import '../../../home/presentation/providers/repository_provider.dart';
 import '../../domain/entities/reminders_state.dart';
 import 'reminder_providers.dart';
 
@@ -48,6 +49,24 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, int>> {
   Future<Map<TrackingType, int>> _checkDue() async {
     final service = await ref.read(remindersServiceProvider.future);
     final result = await service.checkDue();
+
+    // Enrich each ReminderStatus with lastEventAt from the tracking repository.
+    if (result case RemindersDue(items: final List<ReminderStatus> originalItems)) {
+      final trackingRepo = await ref.read(trackingRepositoryProvider.future);
+      final items = List<ReminderStatus>.from(originalItems);
+      for (final (index, status) in items.indexed) {
+        final lastEventAt = await trackingRepo.getLastEventByTypeAndSubtype(
+          status.item.trackingType,
+          subtypeValue: status.item.subtypeValue,
+        );
+        // Replace with enriched copy
+        items[index] = ReminderStatus(
+          item: status.item,
+          lastDismissedAt: status.lastDismissedAt,
+          lastEventAt: lastEventAt,
+        );
+      }
+    }
 
     return switch (result) {
       RemindersAllCompleted() => {},

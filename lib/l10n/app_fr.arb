@@ -40,6 +40,15 @@
   "healthVitamineD": "Vitamine D",
   "healthVitamineK": "Vitamine K",
 
+  "reminderVitaminD": "Vit. D",
+  "reminderVitaminK": "Vit. K",
+  "reminderEyeCleaning": "Yeux",
+  "reminderFaceCleaning": "Visage",
+
+  "yesterday": "Hier",
+  "daysAgo": " jours",
+  "lastTracked": "Dernière activité: ",
+
   "wasteDialogTitle": "Type de selle",
   "pipiColorSectionTitle": "Couleur du pipi",
   "cacaColorSectionTitle": "Couleur du caca",

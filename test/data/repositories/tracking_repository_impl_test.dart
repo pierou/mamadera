@@ -313,4 +313,135 @@ void main() {
       );
     });
   });
+
+  group('getLastEventByTypeAndSubtype', () {
+    test('retourne null quand aucun événement du type', () async {
+      when(mockDb.getEventsByType(any)).thenAnswer((_) async => []);
+
+      final result = await repository.getLastEventByTypeAndSubtype(
+        TrackingType.sante,
+        subtypeValue: 'vitamine_d',
+      );
+
+      expect(result, isNull);
+      verify(mockDb.getEventsByType('sante')).called(1);
+    });
+
+    test('retourne le timestamp de l\'événement le plus récent sans filtre sous-type', () async {
+      when(mockDb.getEventsByType(any)).thenAnswer((_) async => [
+        db_app.TrackingEvent(
+          id: 2,
+          type: 'miam',
+          timestamp: DateTime.utc(2024, 6, 1),
+          duration: null,
+          notes: null,
+          wasteType: null,
+          color: null,
+        ),
+      ]);
+
+      final result = await repository.getLastEventByTypeAndSubtype(TrackingType.miam);
+
+      expect(result, equals(DateTime.utc(2024, 6, 1)));
+    });
+
+    test('retourne le timestamp de l\'événement le plus récent sans filtre sous-type (multiple events)', () async {
+      when(mockEncryption.decrypt(any)).thenReturn(null);
+      final older = DateTime.utc(2024, 1, 1);
+      final newer = DateTime.utc(2024, 6, 1);
+      // Drift returns DESC by timestamp — newest first
+      when(mockDb.getEventsByType(any)).thenAnswer((_) async => [
+        db_app.TrackingEvent(
+          id: 2,
+          type: 'miam',
+          timestamp: newer,
+          duration: null,
+          notes: null,
+          wasteType: null,
+          color: null,
+        ),
+        db_app.TrackingEvent(
+          id: 1,
+          type: 'miam',
+          timestamp: older,
+          duration: null,
+          notes: null,
+          wasteType: null,
+          color: null,
+        ),
+      ]);
+
+      final result = await repository.getLastEventByTypeAndSubtype(TrackingType.miam);
+
+      expect(result, equals(newer));
+    });
+
+    test('filtre HealthEvents par sous-type et retourne le plus récent', () async {
+      // Decrypt passes through notes so HealthSubtype.byValue() can parse them
+      when(mockEncryption.decrypt(any)).thenAnswer((invocation) =>
+          invocation.positionalArguments.first as String);
+      final olderVitD = DateTime.utc(2024, 1, 15);
+      final newerVitK = DateTime.utc(2024, 3, 20);
+      when(mockDb.getEventsByType(any)).thenAnswer((_) async => [
+        db_app.TrackingEvent(
+          id: 1,
+          type: 'sante',
+          timestamp: olderVitD,
+          duration: null,
+          notes: 'vitamine_d',
+          wasteType: null,
+          color: null,
+        ),
+        db_app.TrackingEvent(
+          id: 2,
+          type: 'sante',
+          timestamp: newerVitK,
+          duration: null,
+          notes: 'vitamine_k',
+          wasteType: null,
+          color: null,
+        ),
+      ]);
+
+      final result = await repository.getLastEventByTypeAndSubtype(
+        TrackingType.sante,
+        subtypeValue: 'vitamine_d',
+      );
+
+      expect(result, equals(olderVitD));
+    });
+
+    test('retourne null quand le filtre sous-type ne correspond à rien', () async {
+      // Decrypt passes through notes so HealthSubtype.byValue() can parse them
+      when(mockEncryption.decrypt(any)).thenAnswer((invocation) =>
+          invocation.positionalArguments.first as String);
+      when(mockDb.getEventsByType(any)).thenAnswer((_) async => [
+        db_app.TrackingEvent(
+          id: 1,
+          type: 'sante',
+          timestamp: DateTime.utc(2024),
+          duration: null,
+          notes: 'vitamine_d',
+          wasteType: null,
+          color: null,
+        ),
+      ]);
+
+      final result = await repository.getLastEventByTypeAndSubtype(
+        TrackingType.sante,
+        subtypeValue: 'nettoyage_yeux',
+      );
+
+      expect(result, isNull);
+    });
+
+    test('propage l\'exception du database avec logging', () async {
+      when(mockDb.getEventsByType(any)).thenThrow(Exception('DB error'));
+
+      await expectLater(
+        repository.getLastEventByTypeAndSubtype(TrackingType.sante),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
 }

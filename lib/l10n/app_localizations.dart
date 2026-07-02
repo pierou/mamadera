@@ -230,6 +230,48 @@ abstract class AppLocalizations {
   /// **'Vitamine K'**
   String get healthVitamineK;
 
+  /// No description provided for @reminderVitaminD.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vit. D'**
+  String get reminderVitaminD;
+
+  /// No description provided for @reminderVitaminK.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vit. K'**
+  String get reminderVitaminK;
+
+  /// No description provided for @reminderEyeCleaning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Yeux'**
+  String get reminderEyeCleaning;
+
+  /// No description provided for @reminderFaceCleaning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visage'**
+  String get reminderFaceCleaning;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hier'**
+  String get yesterday;
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **' jours'**
+  String get daysAgo;
+
+  /// No description provided for @lastTracked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière activité: '**
+  String get lastTracked;
+
   /// No description provided for @wasteDialogTitle.
   ///
   /// In fr, this message translates to:

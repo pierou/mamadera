@@ -6,10 +6,14 @@ class ReminderStatus {
   const ReminderStatus({
     required this.item,
     this.lastDismissedAt,
+    this.lastEventAt,
   });
   final ReminderItem item;
   /// When the user last dismissed this reminder (for cooldown tracking).
   final DateTime? lastDismissedAt;
+  /// Timestamp of the most recent tracked event matching this reminder's subtype.
+  /// Used to display "last done X ago" when no reminders are pending.
+  final DateTime? lastEventAt;
 }
 
 /// Sealed state for the reminders system.

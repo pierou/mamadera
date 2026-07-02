@@ -3,6 +3,274 @@
 part of 'app_db.dart';
 
 // ignore_for_file: type=lint
+class $BabyProfilesTable extends BabyProfiles
+    with TableInfo<$BabyProfilesTable, BabyProfile> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BabyProfilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _birthDateMeta =
+      const VerificationMeta('birthDate');
+  @override
+  late final GeneratedColumn<int> birthDate = GeneratedColumn<int>(
+      'birth_date', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isActiveMeta =
+      const VerificationMeta('isActive');
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+      'is_active', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_active" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  @override
+  List<GeneratedColumn> get $columns => [id, name, birthDate, isActive];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'baby_profiles';
+  @override
+  VerificationContext validateIntegrity(Insertable<BabyProfile> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('birth_date')) {
+      context.handle(_birthDateMeta,
+          birthDate.isAcceptableOrUnknown(data['birth_date']!, _birthDateMeta));
+    } else if (isInserting) {
+      context.missing(_birthDateMeta);
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(_isActiveMeta,
+          isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BabyProfile map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BabyProfile(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      birthDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}birth_date'])!,
+      isActive: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
+    );
+  }
+
+  @override
+  $BabyProfilesTable createAlias(String alias) {
+    return $BabyProfilesTable(attachedDatabase, alias);
+  }
+}
+
+class BabyProfile extends DataClass implements Insertable<BabyProfile> {
+  final String id;
+  final String name;
+  final int birthDate;
+  final bool isActive;
+  const BabyProfile(
+      {required this.id,
+      required this.name,
+      required this.birthDate,
+      required this.isActive});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['birth_date'] = Variable<int>(birthDate);
+    map['is_active'] = Variable<bool>(isActive);
+    return map;
+  }
+
+  BabyProfilesCompanion toCompanion(bool nullToAbsent) {
+    return BabyProfilesCompanion(
+      id: Value(id),
+      name: Value(name),
+      birthDate: Value(birthDate),
+      isActive: Value(isActive),
+    );
+  }
+
+  factory BabyProfile.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BabyProfile(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      birthDate: serializer.fromJson<int>(json['birthDate']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'birthDate': serializer.toJson<int>(birthDate),
+      'isActive': serializer.toJson<bool>(isActive),
+    };
+  }
+
+  BabyProfile copyWith(
+          {String? id, String? name, int? birthDate, bool? isActive}) =>
+      BabyProfile(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        birthDate: birthDate ?? this.birthDate,
+        isActive: isActive ?? this.isActive,
+      );
+  BabyProfile copyWithCompanion(BabyProfilesCompanion data) {
+    return BabyProfile(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      birthDate: data.birthDate.present ? data.birthDate.value : this.birthDate,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BabyProfile(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('birthDate: $birthDate, ')
+          ..write('isActive: $isActive')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, birthDate, isActive);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BabyProfile &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.birthDate == this.birthDate &&
+          other.isActive == this.isActive);
+}
+
+class BabyProfilesCompanion extends UpdateCompanion<BabyProfile> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<int> birthDate;
+  final Value<bool> isActive;
+  final Value<int> rowid;
+  const BabyProfilesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.birthDate = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BabyProfilesCompanion.insert({
+    required String id,
+    required String name,
+    required int birthDate,
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        name = Value(name),
+        birthDate = Value(birthDate);
+  static Insertable<BabyProfile> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<int>? birthDate,
+    Expression<bool>? isActive,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (birthDate != null) 'birth_date': birthDate,
+      if (isActive != null) 'is_active': isActive,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BabyProfilesCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? name,
+      Value<int>? birthDate,
+      Value<bool>? isActive,
+      Value<int>? rowid}) {
+    return BabyProfilesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      birthDate: birthDate ?? this.birthDate,
+      isActive: isActive ?? this.isActive,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (birthDate.present) {
+      map['birth_date'] = Variable<int>(birthDate.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BabyProfilesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('birthDate: $birthDate, ')
+          ..write('isActive: $isActive, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $TrackingEventsTable extends TrackingEvents
     with TableInfo<$TrackingEventsTable, TrackingEvent> {
   @override
@@ -51,9 +319,14 @@ class $TrackingEventsTable extends TrackingEvents
   late final GeneratedColumn<String> color = GeneratedColumn<String>(
       'color', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _babyIdMeta = const VerificationMeta('babyId');
+  @override
+  late final GeneratedColumn<String> babyId = GeneratedColumn<String>(
+      'baby_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, type, timestamp, duration, notes, wasteType, color];
+      [id, type, timestamp, duration, notes, wasteType, color, babyId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -95,6 +368,10 @@ class $TrackingEventsTable extends TrackingEvents
       context.handle(
           _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
     }
+    if (data.containsKey('baby_id')) {
+      context.handle(_babyIdMeta,
+          babyId.isAcceptableOrUnknown(data['baby_id']!, _babyIdMeta));
+    }
     return context;
   }
 
@@ -118,6 +395,8 @@ class $TrackingEventsTable extends TrackingEvents
           .read(DriftSqlType.string, data['${effectivePrefix}waste_type']),
       color: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}color']),
+      babyId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}baby_id']),
     );
   }
 
@@ -135,6 +414,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
   final String? notes;
   final String? wasteType;
   final String? color;
+  final String? babyId;
   const TrackingEvent(
       {required this.id,
       required this.type,
@@ -142,7 +422,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       this.duration,
       this.notes,
       this.wasteType,
-      this.color});
+      this.color,
+      this.babyId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -160,6 +441,9 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
     }
     if (!nullToAbsent || color != null) {
       map['color'] = Variable<String>(color);
+    }
+    if (!nullToAbsent || babyId != null) {
+      map['baby_id'] = Variable<String>(babyId);
     }
     return map;
   }
@@ -179,6 +463,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           : Value(wasteType),
       color:
           color == null && nullToAbsent ? const Value.absent() : Value(color),
+      babyId:
+          babyId == null && nullToAbsent ? const Value.absent() : Value(babyId),
     );
   }
 
@@ -193,6 +479,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       notes: serializer.fromJson<String?>(json['notes']),
       wasteType: serializer.fromJson<String?>(json['wasteType']),
       color: serializer.fromJson<String?>(json['color']),
+      babyId: serializer.fromJson<String?>(json['babyId']),
     );
   }
   @override
@@ -206,6 +493,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       'notes': serializer.toJson<String?>(notes),
       'wasteType': serializer.toJson<String?>(wasteType),
       'color': serializer.toJson<String?>(color),
+      'babyId': serializer.toJson<String?>(babyId),
     };
   }
 
@@ -216,7 +504,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           Value<double?> duration = const Value.absent(),
           Value<String?> notes = const Value.absent(),
           Value<String?> wasteType = const Value.absent(),
-          Value<String?> color = const Value.absent()}) =>
+          Value<String?> color = const Value.absent(),
+          Value<String?> babyId = const Value.absent()}) =>
       TrackingEvent(
         id: id ?? this.id,
         type: type ?? this.type,
@@ -225,6 +514,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
         notes: notes.present ? notes.value : this.notes,
         wasteType: wasteType.present ? wasteType.value : this.wasteType,
         color: color.present ? color.value : this.color,
+        babyId: babyId.present ? babyId.value : this.babyId,
       );
   TrackingEvent copyWithCompanion(TrackingEventsCompanion data) {
     return TrackingEvent(
@@ -235,6 +525,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       notes: data.notes.present ? data.notes.value : this.notes,
       wasteType: data.wasteType.present ? data.wasteType.value : this.wasteType,
       color: data.color.present ? data.color.value : this.color,
+      babyId: data.babyId.present ? data.babyId.value : this.babyId,
     );
   }
 
@@ -247,14 +538,15 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           ..write('duration: $duration, ')
           ..write('notes: $notes, ')
           ..write('wasteType: $wasteType, ')
-          ..write('color: $color')
+          ..write('color: $color, ')
+          ..write('babyId: $babyId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, type, timestamp, duration, notes, wasteType, color);
+  int get hashCode => Object.hash(
+      id, type, timestamp, duration, notes, wasteType, color, babyId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -265,7 +557,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           other.duration == this.duration &&
           other.notes == this.notes &&
           other.wasteType == this.wasteType &&
-          other.color == this.color);
+          other.color == this.color &&
+          other.babyId == this.babyId);
 }
 
 class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
@@ -276,6 +569,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
   final Value<String?> notes;
   final Value<String?> wasteType;
   final Value<String?> color;
+  final Value<String?> babyId;
   const TrackingEventsCompanion({
     this.id = const Value.absent(),
     this.type = const Value.absent(),
@@ -284,6 +578,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     this.notes = const Value.absent(),
     this.wasteType = const Value.absent(),
     this.color = const Value.absent(),
+    this.babyId = const Value.absent(),
   });
   TrackingEventsCompanion.insert({
     this.id = const Value.absent(),
@@ -293,6 +588,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     this.notes = const Value.absent(),
     this.wasteType = const Value.absent(),
     this.color = const Value.absent(),
+    this.babyId = const Value.absent(),
   })  : type = Value(type),
         timestamp = Value(timestamp);
   static Insertable<TrackingEvent> custom({
@@ -303,6 +599,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     Expression<String>? notes,
     Expression<String>? wasteType,
     Expression<String>? color,
+    Expression<String>? babyId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -312,6 +609,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       if (notes != null) 'notes': notes,
       if (wasteType != null) 'waste_type': wasteType,
       if (color != null) 'color': color,
+      if (babyId != null) 'baby_id': babyId,
     });
   }
 
@@ -322,7 +620,8 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       Value<double?>? duration,
       Value<String?>? notes,
       Value<String?>? wasteType,
-      Value<String?>? color}) {
+      Value<String?>? color,
+      Value<String?>? babyId}) {
     return TrackingEventsCompanion(
       id: id ?? this.id,
       type: type ?? this.type,
@@ -331,6 +630,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       notes: notes ?? this.notes,
       wasteType: wasteType ?? this.wasteType,
       color: color ?? this.color,
+      babyId: babyId ?? this.babyId,
     );
   }
 
@@ -358,6 +658,9 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     if (color.present) {
       map['color'] = Variable<String>(color.value);
     }
+    if (babyId.present) {
+      map['baby_id'] = Variable<String>(babyId.value);
+    }
     return map;
   }
 
@@ -370,7 +673,8 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
           ..write('duration: $duration, ')
           ..write('notes: $notes, ')
           ..write('wasteType: $wasteType, ')
-          ..write('color: $color')
+          ..write('color: $color, ')
+          ..write('babyId: $babyId')
           ..write(')'))
         .toString();
   }
@@ -579,6 +883,7 @@ class ReminderDismissalsCompanion extends UpdateCompanion<ReminderDismissal> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $BabyProfilesTable babyProfiles = $BabyProfilesTable(this);
   late final $TrackingEventsTable trackingEvents = $TrackingEventsTable(this);
   late final $ReminderDismissalsTable reminderDismissals =
       $ReminderDismissalsTable(this);
@@ -587,9 +892,167 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [trackingEvents, reminderDismissals];
+      [babyProfiles, trackingEvents, reminderDismissals];
 }
 
+typedef $$BabyProfilesTableCreateCompanionBuilder = BabyProfilesCompanion
+    Function({
+  required String id,
+  required String name,
+  required int birthDate,
+  Value<bool> isActive,
+  Value<int> rowid,
+});
+typedef $$BabyProfilesTableUpdateCompanionBuilder = BabyProfilesCompanion
+    Function({
+  Value<String> id,
+  Value<String> name,
+  Value<int> birthDate,
+  Value<bool> isActive,
+  Value<int> rowid,
+});
+
+class $$BabyProfilesTableFilterComposer
+    extends Composer<_$AppDatabase, $BabyProfilesTable> {
+  $$BabyProfilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get birthDate => $composableBuilder(
+      column: $table.birthDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnFilters(column));
+}
+
+class $$BabyProfilesTableOrderingComposer
+    extends Composer<_$AppDatabase, $BabyProfilesTable> {
+  $$BabyProfilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get birthDate => $composableBuilder(
+      column: $table.birthDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnOrderings(column));
+}
+
+class $$BabyProfilesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BabyProfilesTable> {
+  $$BabyProfilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get birthDate =>
+      $composableBuilder(column: $table.birthDate, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+}
+
+class $$BabyProfilesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $BabyProfilesTable,
+    BabyProfile,
+    $$BabyProfilesTableFilterComposer,
+    $$BabyProfilesTableOrderingComposer,
+    $$BabyProfilesTableAnnotationComposer,
+    $$BabyProfilesTableCreateCompanionBuilder,
+    $$BabyProfilesTableUpdateCompanionBuilder,
+    (
+      BabyProfile,
+      BaseReferences<_$AppDatabase, $BabyProfilesTable, BabyProfile>
+    ),
+    BabyProfile,
+    PrefetchHooks Function()> {
+  $$BabyProfilesTableTableManager(_$AppDatabase db, $BabyProfilesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BabyProfilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BabyProfilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BabyProfilesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> birthDate = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              BabyProfilesCompanion(
+            id: id,
+            name: name,
+            birthDate: birthDate,
+            isActive: isActive,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String name,
+            required int birthDate,
+            Value<bool> isActive = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              BabyProfilesCompanion.insert(
+            id: id,
+            name: name,
+            birthDate: birthDate,
+            isActive: isActive,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$BabyProfilesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $BabyProfilesTable,
+    BabyProfile,
+    $$BabyProfilesTableFilterComposer,
+    $$BabyProfilesTableOrderingComposer,
+    $$BabyProfilesTableAnnotationComposer,
+    $$BabyProfilesTableCreateCompanionBuilder,
+    $$BabyProfilesTableUpdateCompanionBuilder,
+    (
+      BabyProfile,
+      BaseReferences<_$AppDatabase, $BabyProfilesTable, BabyProfile>
+    ),
+    BabyProfile,
+    PrefetchHooks Function()>;
 typedef $$TrackingEventsTableCreateCompanionBuilder = TrackingEventsCompanion
     Function({
   Value<int> id,
@@ -599,6 +1062,7 @@ typedef $$TrackingEventsTableCreateCompanionBuilder = TrackingEventsCompanion
   Value<String?> notes,
   Value<String?> wasteType,
   Value<String?> color,
+  Value<String?> babyId,
 });
 typedef $$TrackingEventsTableUpdateCompanionBuilder = TrackingEventsCompanion
     Function({
@@ -609,6 +1073,7 @@ typedef $$TrackingEventsTableUpdateCompanionBuilder = TrackingEventsCompanion
   Value<String?> notes,
   Value<String?> wasteType,
   Value<String?> color,
+  Value<String?> babyId,
 });
 
 class $$TrackingEventsTableFilterComposer
@@ -640,6 +1105,9 @@ class $$TrackingEventsTableFilterComposer
 
   ColumnFilters<String> get color => $composableBuilder(
       column: $table.color, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get babyId => $composableBuilder(
+      column: $table.babyId, builder: (column) => ColumnFilters(column));
 }
 
 class $$TrackingEventsTableOrderingComposer
@@ -671,6 +1139,9 @@ class $$TrackingEventsTableOrderingComposer
 
   ColumnOrderings<String> get color => $composableBuilder(
       column: $table.color, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get babyId => $composableBuilder(
+      column: $table.babyId, builder: (column) => ColumnOrderings(column));
 }
 
 class $$TrackingEventsTableAnnotationComposer
@@ -702,6 +1173,9 @@ class $$TrackingEventsTableAnnotationComposer
 
   GeneratedColumn<String> get color =>
       $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get babyId =>
+      $composableBuilder(column: $table.babyId, builder: (column) => column);
 }
 
 class $$TrackingEventsTableTableManager extends RootTableManager<
@@ -738,6 +1212,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             Value<String?> notes = const Value.absent(),
             Value<String?> wasteType = const Value.absent(),
             Value<String?> color = const Value.absent(),
+            Value<String?> babyId = const Value.absent(),
           }) =>
               TrackingEventsCompanion(
             id: id,
@@ -747,6 +1222,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             notes: notes,
             wasteType: wasteType,
             color: color,
+            babyId: babyId,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -756,6 +1232,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             Value<String?> notes = const Value.absent(),
             Value<String?> wasteType = const Value.absent(),
             Value<String?> color = const Value.absent(),
+            Value<String?> babyId = const Value.absent(),
           }) =>
               TrackingEventsCompanion.insert(
             id: id,
@@ -765,6 +1242,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             notes: notes,
             wasteType: wasteType,
             color: color,
+            babyId: babyId,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -922,6 +1400,8 @@ typedef $$ReminderDismissalsTableProcessedTableManager = ProcessedTableManager<
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$BabyProfilesTableTableManager get babyProfiles =>
+      $$BabyProfilesTableTableManager(_db, _db.babyProfiles);
   $$TrackingEventsTableTableManager get trackingEvents =>
       $$TrackingEventsTableTableManager(_db, _db.trackingEvents);
   $$ReminderDismissalsTableTableManager get reminderDismissals =>

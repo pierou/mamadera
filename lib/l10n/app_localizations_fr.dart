@@ -80,6 +80,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get healthVitamineK => 'Vitamine K';
 
   @override
+  String get reminderVitaminD => 'Vit. D';
+
+  @override
+  String get reminderVitaminK => 'Vit. K';
+
+  @override
+  String get reminderEyeCleaning => 'Yeux';
+
+  @override
+  String get reminderFaceCleaning => 'Visage';
+
+  @override
+  String get yesterday => 'Hier';
+
+  @override
+  String get daysAgo => ' jours';
+
+  @override
+  String get lastTracked => 'Dernière activité: ';
+
+  @override
   String get wasteDialogTitle => 'Type de selle';
 
   @override

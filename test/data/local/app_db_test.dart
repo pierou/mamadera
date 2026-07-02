@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 3', () {
-      expect(db.schemaVersion, equals(3));
+    test('schemaVersion is 4 (baby_profiles + tracking_events.baby_id)', () {
+      expect(db.schemaVersion, equals(4));
     });
   });
 

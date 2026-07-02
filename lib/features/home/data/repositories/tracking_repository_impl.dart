@@ -107,6 +107,30 @@ class TrackingRepositoryImpl implements TrackingRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<DateTime?> getLastEventByTypeAndSubtype(TrackingType type, {String? subtypeValue}) async {
+    try {
+      final events = await getEventsByType(type);
+      if (events.isEmpty) return null;
+
+      // When a subtype is specified, filter to matching events only.
+      // For health events, the subtype value matches against HealthSubtype.value.
+      final filtered = subtypeValue != null && subtypeValue.isNotEmpty
+          ? events.where((e) {
+              if (e is! HealthEvent) return false;
+              return e.subtype.value == subtypeValue;
+            }).toList()
+          : events;
+
+      if (filtered.isEmpty) return null;
+      // Events are already ordered by timestamp DESC from the DB query.
+      return filtered.first.timestamp;
+    } catch (e, stack) {
+      _logger.e('getLastEventByTypeAndSubtype(${type.name}) - Error: $e', error: e, stackTrace: stack);
+      rethrow;
+    }
+  }
 }
 
 

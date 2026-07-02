@@ -40,6 +40,15 @@
   "healthVitamineD": "Vitamin D",
   "healthVitamineK": "Vitamin K",
 
+  "reminderVitaminD": "Vit. D",
+  "reminderVitaminK": "Vit. K",
+  "reminderEyeCleaning": "Eyes",
+  "reminderFaceCleaning": "Face",
+
+  "yesterday": "Yesterday",
+  "daysAgo": " days ago",
+  "lastTracked": "Last tracked: ",
+
   "wasteDialogTitle": "Diaper Type",
   "pipiColorSectionTitle": "Urine Color",
   "cacaColorSectionTitle": "Stool Color",

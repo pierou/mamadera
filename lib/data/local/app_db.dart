@@ -4,6 +4,16 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 
 part 'app_db.g.dart'; // Généré par build_runner
 
+class BabyProfiles extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  IntColumn get birthDate => integer()(); // Unix timestamp (milliseconds)
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class TrackingEvents extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get type => text()(); // miam, caca, dodo, sein, bib, sante
@@ -12,6 +22,7 @@ class TrackingEvents extends Table {
   TextColumn get notes => text().nullable()();
   TextColumn get wasteType => text().nullable()(); // pipi, caca, les_deux
   TextColumn get color => text().nullable()();     // couleur de la selle ou pipe-délimitée (pipi|caca)
+  TextColumn get babyId => text().nullable()();    // nullable FK to baby_profiles(id), backward compatible
 }
 
 class ReminderDismissals extends Table {
@@ -20,12 +31,12 @@ class ReminderDismissals extends Table {
   DateTimeColumn get dismissedAt => dateTime()();
 }
 
-@DriftDatabase(tables: [TrackingEvents, ReminderDismissals])
+@DriftDatabase(tables: [BabyProfiles, TrackingEvents, ReminderDismissals])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
   @override
@@ -47,6 +58,11 @@ class AppDatabase extends _$AppDatabase {
                 'CREATE INDEX IF NOT EXISTS idx_tracking_events_type ON tracking_events(type)');
             await m.database.customStatement(
                 'CREATE INDEX IF NOT EXISTS idx_tracking_events_timestamp_type ON tracking_events(timestamp DESC, type)');
+          }
+          // v3 → v4 : ajout de baby_profiles + baby_id nullable sur tracking_events (backward compatible)
+          if (from < 4) {
+            await m.createTable(babyProfiles);
+            await m.database.customStatement('ALTER TABLE tracking_events ADD COLUMN baby_id TEXT');
           }
         },
       );
@@ -95,6 +111,42 @@ class AppDatabase extends _$AppDatabase {
   Future<int> updateNotesForEvent(int id, String? newNotes) {
     return (update(trackingEvents)..where((t) => t.id.equals(id)))
         .write(TrackingEventsCompanion(notes: Value(newNotes)));
+  }
+
+  /// ── Baby Profiles Queries ────────────────────────────────────────
+
+  Future<List<BabyProfile>> getAllBabyProfiles() {
+    return (select(babyProfiles)
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .get();
+  }
+
+  /// Retourne le profil actif (premier trouvé avec is_active == true).
+  Future<BabyProfile?> getActiveBabyProfile() async {
+    final profiles = await (select(babyProfiles)
+          ..where((t) => t.isActive.equals(true)))
+        .get();
+    return profiles.isEmpty ? null : profiles.first;
+  }
+
+  Future<int> insertBabyProfile(BabyProfilesCompanion profile) =>
+      into(babyProfiles).insert(profile);
+
+  Future<int> updateBabyProfile(String id, BabyProfilesCompanion companion) {
+    return (update(babyProfiles)..where((t) => t.id.equals(id))).write(companion);
+  }
+
+  Future<bool> deleteBabyProfile(String id) async {
+    final deleted = await (delete(babyProfiles)..where((t) => t.id.equals(id))).go();
+    return deleted > 0;
+  }
+
+  /// Retourne les événements pour un bébé spécifique.
+  Future<List<TrackingEvent>> getEventsByBabyId(String babyId) {
+    return (select(trackingEvents)
+          ..where((t) => t.babyId.equals(babyId))
+          ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
+        .get();
   }
 }
 

@@ -79,6 +79,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get healthVitamineK => 'Vitamin K';
 
   @override
+  String get reminderVitaminD => 'Vit. D';
+
+  @override
+  String get reminderVitaminK => 'Vit. K';
+
+  @override
+  String get reminderEyeCleaning => 'Eyes';
+
+  @override
+  String get reminderFaceCleaning => 'Face';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String get daysAgo => ' days ago';
+
+  @override
+  String get lastTracked => 'Last tracked: ';
+
+  @override
   String get wasteDialogTitle => 'Diaper Type';
 
   @override
