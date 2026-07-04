@@ -82,8 +82,11 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     _wasteType = null;
     _pipiColor = null;
     _cacaColor = null;
+    _initEventFields();
+  }
 
-    // Initialise les champs selon le type d'événement (exhaustive switch).
+  /// Initialise les champs spécifiques au type d'événement.
+  void _initEventFields() {
     switch (widget.event) {
       case FeedingEvent():
         final e = widget.event as FeedingEvent;
@@ -92,7 +95,6 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       case SleepEvent():
         final e = widget.event as SleepEvent;
         _duration = e.duration;
-        // sleep n'a pas de notes dans le dialog (sauf si on veut en ajouter).
       case DiaperEvent():
         final e = widget.event as DiaperEvent;
         _wasteType = e.wasteType;
@@ -101,7 +103,6 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         _notesController.text = e.notes ?? '';
       case HealthEvent():
         final e = widget.event as HealthEvent;
-        // Le subtype est stocké dans notes pour le health screen.
         _notesController.text = e.subtype.value;
     }
   }
@@ -116,28 +117,35 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   Future<void> _pickDate() async {
     final date = await showDatePicker(
         context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365 * 2)),
-      lastDate: DateTime.now(),
+        initialDate: _selectedDate,
+        firstDate: DateTime.now().subtract(const Duration(days: 365 * 2)),
+        lastDate: DateTime.now());
+    if (date == null || !mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_selectedDate),
     );
-    if (date != null && mounted) {
-      final time = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(_selectedDate),
-      );
-      if (time != null && mounted) {
-        setState(() {
-          _selectedDate =
-              DateTime(date.year, date.month, date.day, time.hour, time.minute);
-        });
-      } else if (mounted) {
-        // Si l'utilisateur annule le temps mais pas la date, on garde juste la date
-        setState(() {
-          _selectedDate = DateTime(date.year, date.month, date.day,
-              _selectedDate.hour, _selectedDate.minute);
-        });
-      }
+    if (time == null) {
+      _updateToDateOnly(date);
+      return;
     }
+
+    _applyDateTime(date, time);
+  }
+
+  void _applyDateTime(DateTime date, TimeOfDay time) {
+    setState(() {
+      _selectedDate = DateTime(
+          date.year, date.month, date.day, time.hour, time.minute);
+    });
+  }
+
+  void _updateToDateOnly(DateTime date) {
+    setState(() {
+      _selectedDate = DateTime(date.year, date.month, date.day,
+          _selectedDate.hour, _selectedDate.minute);
+    });
   }
 
   void _submit() {
@@ -156,31 +164,32 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   Future<void> _confirmDelete() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(context.l.deleteDialogTitle),
-        content: Text(
-          context.l.deleteDialogContent,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.l.cancelButton),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
-            ),
-            child: Text(context.l.deleteButton),
-          ),
-        ],
-      ),
-    );
+      builder: (_) => _buildDeleteDialog());
 
     if (confirmed == true && mounted) {
       Navigator.of(context).pop(const DeleteResult());
     }
+  }
+
+  Widget _buildDeleteDialog() {
+    return AlertDialog(
+      title: Text(context.l.deleteDialogTitle),
+      content: Text(context.l.deleteDialogContent),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(context.l.cancelButton),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error,
+            foregroundColor: Theme.of(context).colorScheme.onError,
+          ),
+          child: Text(context.l.deleteButton),
+        ),
+      ],
+    );
   }
 
   @override
@@ -192,210 +201,215 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              context.l.editDialogTitle,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-
-            // --- Date & Heure ---
-            _buildSectionTitle(context.l.editDateSectionTitle),
-            InkWell(
-              onTap: _pickDate,
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Theme.of(context).colorScheme.outline),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.calendar_today,
-                        size: 20, color: Theme.of(context).colorScheme.primary),
-                    const SizedBox(width: 12),
-                    Text(_formatDateTime(_selectedDate)),
-                    const Spacer(),
-                    Icon(
-                      Icons.edit_outlined,
-                      size: 18,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // --- Durée (uniquement pour dodo) — utilise l'enum au lieu de string comparison ---
-            if (_normalizedType == 'dodo') ...[
-              _buildSectionTitle(context.l.editDurationSectionTitle),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      initialValue:
-                          _duration != null ? '${_duration!.toInt()}' : '',
-                      keyboardType: TextInputType.number,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface),
-                      decoration: InputDecoration(
-                        hintText: context.l.minutesHintText,
-                        // hintStyle now uses theme default
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
-                        suffixText: context.l.minuteSuffix,
-                      ),
-                      onChanged: (value) {
-                        _duration =
-                            value.isEmpty ? null : double.tryParse(value);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-            ],
-
-            // --- Type de selle & couleurs (pour caca et pipi) — utilise l'enum WasteType ---
-            if (_normalizedType == 'caca' || _normalizedType == 'pipi') ...[
-              // WasteType selector : uniquement pour caca (permet de switcher vers pipi/lesDeux)
-              if (_normalizedType == 'caca') ...[
-                _buildSectionTitle(context.l.editTypeSectionTitle),
-                Row(
-                  children: [
-                    for (final type in WasteType.values)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: FilterChip(
-                            label: Text(_wasteTypeLabel(type)),
-                            selected: _wasteType == type,
-                            onSelected: (_) => setState(() => _wasteType = type),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
-
-              // Couleur pipi (toujours visible pour pipi ; conditionnelle pour caca selon wasteType)
-              if (_normalizedType == 'pipi' ||
-                  _wasteType == WasteType.pipi ||
-                  _wasteType == WasteType.lesDeux) ...[
-                _buildSectionTitle(context.l.editPipiColorSectionTitle),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: PipiColor.values.map((c) {
-                    return FilterChip(
-                      label: Text(_resolvePipiLabel(context, c)),
-                      selected: _pipiColor == c,
-                      onSelected: (_) => setState(
-                          () => _pipiColor = _pipiColor == c ? null : c),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 12),
-              ],
-
-              // Couleur caca (conditionnelle via enum)
-              if (_wasteType == WasteType.caca ||
-                  _wasteType == WasteType.lesDeux) ...[
-                _buildSectionTitle(context.l.editCacaColorSectionTitle),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: CacaColor.values.map((c) {
-                    return FilterChip(
-                      label: Text(_resolveCacaLabel(context, c)),
-                      selected: _cacaColor == c,
-                      onSelected: (_) => setState(
-                          () => _cacaColor = _cacaColor == c ? null : c),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ],
-
-            // --- Notes (tous les types sauf sante et dodo) ---
-            if (_normalizedType != 'sante' && _normalizedType != 'dodo') ...[
-              const SizedBox(height: 20),
-              _buildSectionTitle(context.l.editNotesLabel),
-              TextFormField(
-                controller: _notesController,
-                maxLines: 3,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
-                decoration: InputDecoration(
-                  hintText: context.l.editNotesHint,
-                  hintStyle: const TextStyle(color: Colors.black38),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-              ),
-            ],
-
-            // --- Sous-type santé (pour sante) — utilise l'enum HealthSubtype au lieu de strings ---
-            if (_normalizedType == 'sante') ...[
-              const SizedBox(height: 20),
-              _buildSectionTitle(context.l.healthSubtypeDialogTitle),
-              // Utilise _notesController.text (mutable via setState) au lieu de widget.initialNotes (immutable)
-              ...HealthSubtype.values.map((subtype) {
-                final isSelected = _notesController.text == subtype.value;
-                return ListTile(
-                  leading: Icon(_getHealthIcon(subtype.value),
-                      color: isSelected ? AppTheme.sante : null),
-                  title: Text(_resolveHealthLabel(context, subtype), style: Theme.of(context).textTheme.bodyMedium),
-                  trailing: isSelected
-                      ? Icon(Icons.check_circle,
-                          color: Theme.of(context).colorScheme.primary)
-                      : null,
-                  tileColor: isSelected
-                      ? AppTheme.sante.withValues(alpha: 0.15)
-                      : null,
-                  onTap: () => setState(() {
-                    _notesController.text = subtype.value;
-                  }),
-                );
-              }),
-            ],
-
-            const SizedBox(height: 24),
-
-            // Bouton Enregistrer
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _submit,
-                icon: const Icon(Icons.check),
-                label: Text(context.l.saveButton),
-                style: ElevatedButton.styleFrom( padding: const EdgeInsets.symmetric(vertical: 14)),
-              ),
-            ),
-
-            // Bouton Supprimer (séparé visuellement)
-            const SizedBox(height: 8),
-            Center(
-              child: TextButton.icon(
-                onPressed: _confirmDelete,
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: Theme.of(context).colorScheme.error,
-                  size: 20,
-                ),
-                label: Text(context.l.deleteButton,
-                    style: TextStyle(color: Theme.of(context).colorScheme.error)),
-              ),
-            ),
+            _buildTitle(),
+            ..._buildDateSection(),
+            if (_normalizedType == 'dodo') ..._buildDurationSection(),
+            if (_normalizedType == 'caca' || _normalizedType == 'pipi') ..._buildWasteSections(),
+            if (_normalizedType != 'sante' && _normalizedType != 'dodo') ..._buildNotesSection(),
+            if (_normalizedType == 'sante') ..._buildHealthSubtypeSection(),
+            ..._buildActionButtons(),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildTitle() {
+    return Text(
+      context.l.editDialogTitle,
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+    );
+  }
+
+  List<Widget> _buildDateSection() {
+    return [
+      _buildSectionTitle(context.l.editDateSectionTitle),
+      _buildDateInlineAction(),
+      const SizedBox(height: 20),
+    ];
+  }
+
+  Widget _buildDateInlineAction() {
+    return InkWell(
+      onTap: _pickDate,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          border: Border.all(color: Theme.of(context).colorScheme.outline),
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+        ),
+        child: _buildDateInlineRow(),
+      ),
+    );
+  }
+
+  Widget _buildDateInlineRow() {
+    return Row(
+      children: [
+        Icon(Icons.calendar_today,
+            size: 20, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 12),
+        Text(_formatDateTime(_selectedDate)),
+        const Spacer(),
+        Icon(Icons.edit_outlined,
+            size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
+      ],
+    );
+  }
+
+  List<Widget> _buildDurationSection() {
+    return [
+      _buildSectionTitle(context.l.editDurationSectionTitle),
+      TextFormField(
+        initialValue: _duration != null ? '${_duration!.toInt()}' : '',
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          hintText: context.l.minutesHintText,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          suffixText: context.l.minuteSuffix,
+        ),
+        onChanged: (value) {
+          _duration = value.isEmpty ? null : double.tryParse(value);
+        },
+      ),
+      const SizedBox(height: 20),
+    ];
+  }
+
+  List<Widget> _buildWasteSections() {
+    final sections = <Widget>[];
+
+    if (_normalizedType == 'caca') {
+      sections.addAll([
+        _buildSectionTitle(context.l.editTypeSectionTitle),
+        Row(
+          children: [
+            for (final type in WasteType.values)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: FilterChip(
+                    label: Text(_wasteTypeLabel(type)),
+                    selected: _wasteType == type,
+                    onSelected: (_) => setState(() => _wasteType = type),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+      ]);
+    }
+
+    if (_normalizedType == 'pipi' ||
+        _wasteType == WasteType.pipi ||
+        _wasteType == WasteType.lesDeux) {
+      sections.addAll(_buildPipiColors());
+    }
+
+    if (_wasteType == WasteType.caca || _wasteType == WasteType.lesDeux) {
+      sections.addAll(_buildCacaColors());
+    }
+
+    return sections;
+  }
+
+  List<Widget> _buildPipiColors() {
+    return [
+      _buildSectionTitle(context.l.editPipiColorSectionTitle),
+      Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: PipiColor.values.map((c) => FilterChip(
+          label: Text(_resolvePipiLabel(context, c)),
+          selected: _pipiColor == c,
+          onSelected: (_) => setState(() => _pipiColor = _pipiColor == c ? null : c),
+        )).toList(),
+      ),
+      const SizedBox(height: 12),
+    ];
+  }
+
+  List<Widget> _buildCacaColors() {
+    return [
+      _buildSectionTitle(context.l.editCacaColorSectionTitle),
+      Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: CacaColor.values.map((c) => FilterChip(
+          label: Text(_resolveCacaLabel(context, c)),
+          selected: _cacaColor == c,
+          onSelected: (_) => setState(() => _cacaColor = _cacaColor == c ? null : c),
+        )).toList(),
+      ),
+    ];
+  }
+
+  List<Widget> _buildNotesSection() {
+    return [
+      const SizedBox(height: 20),
+      _buildSectionTitle(context.l.editNotesLabel),
+      TextFormField(
+        controller: _notesController,
+        maxLines: 3,
+        decoration: InputDecoration(
+          hintText: context.l.editNotesHint,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _buildHealthSubtypeSection() {
+    return [
+      const SizedBox(height: 20),
+      _buildSectionTitle(context.l.healthSubtypeDialogTitle),
+      ..._buildHealthTiles(),
+    ];
+  }
+
+  List<ListTile> _buildHealthTiles() {
+    return HealthSubtype.values.map((subtype) {
+      final isSelected = _notesController.text == subtype.value;
+      return ListTile(
+        leading: Icon(_getHealthIcon(subtype.value),
+            color: isSelected ? AppTheme.sante : null),
+        title: Text(_resolveHealthLabel(context, subtype)),
+        trailing: isSelected
+            ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+            : null,
+        tileColor: isSelected ? AppTheme.sante.withValues(alpha: 0.15) : null,
+        onTap: () => setState(() => _notesController.text = subtype.value),
+      );
+    }).toList();
+  }
+
+  List<Widget> _buildActionButtons() {
+    return [
+      const SizedBox(height: 24),
+      SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: _submit,
+          icon: const Icon(Icons.check),
+          label: Text(context.l.saveButton),
+          style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14)),
+        ),
+      ),
+      const SizedBox(height: 8),
+      Center(
+        child: TextButton.icon(
+          onPressed: _confirmDelete,
+          icon: Icon(Icons.delete_outline,
+              color: Theme.of(context).colorScheme.error, size: 20),
+          label: Text(context.l.deleteButton,
+              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        ),
+      ),
+    ];
   }
 
   Widget _buildSectionTitle(String title) {

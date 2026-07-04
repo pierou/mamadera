@@ -31,7 +31,12 @@ class ReminderDismissals extends Table {
   DateTimeColumn get dismissedAt => dateTime()();
 }
 
-@DriftDatabase(tables: [BabyProfiles, TrackingEvents, ReminderDismissals])
+class ReminderSettings extends Table {
+  TextColumn get itemId => text().unique()();
+  BoolColumn get enabled => boolean()();
+}
+
+@DriftDatabase(tables: [BabyProfiles, TrackingEvents, ReminderDismissals, ReminderSettings])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 

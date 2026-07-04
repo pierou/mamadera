@@ -6,6 +6,8 @@ pub-get:
 lint: pub-get
 	# Aligned with GA: analyze entire project, no format check in CI
 	flutter analyze --fatal-infos --fatal-warnings
+	# SonarQube S1188: functions must not exceed 20 lines
+	python3 scripts/check_function_length.py --max=20
 test: pub-get
 	# Domain & Data (unit) + Presentation (widget) as per architecture rules
 	flutter test test/shared/ test/data/ test/presentation/ test/features/ test/core/ --coverage

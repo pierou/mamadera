@@ -94,7 +94,7 @@ class TrackingRepositoryImpl implements TrackingRepository {
             timestamp: Value(event.timestamp),
             duration: const Value.absent(),
             notes: Value(encryptedNotes),
-            wasteType: const Value.absent(),
+            wasteType: Value(event.subtype.value),
             color: const Value.absent(),
           );
       }

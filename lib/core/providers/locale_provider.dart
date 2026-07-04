@@ -15,19 +15,21 @@ final localeProvider = AsyncNotifierProvider<LocaleNotifier, LocalePreference>(
   LocaleNotifier.new,
 );
 
+Future<Directory?> _getCacheDir() async {
+  try {
+    return await getApplicationDocumentsDirectory();
+  } catch (_) {
+    // Fallback: continue without persistence.
+    return null;
+  }
+}
+
 class LocaleNotifier extends AsyncNotifier<LocalePreference> {
   late final _service = ref.read(localeServiceProvider);
 
   @override
   Future<LocalePreference> build() async {
-    // Try loading saved preference first.
-    Directory? cacheDir;
-    try {
-      cacheDir = await getApplicationDocumentsDirectory();
-    } catch (_) {
-      // Fallback: continue without persistence.
-    }
-
+    final cacheDir = await _getCacheDir();
     if (cacheDir != null) {
       final service = LocaleService();
       final saved = await _loadWithFallback(service);

@@ -8,30 +8,71 @@ import 'core/providers/encryption_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/services/encryption_service.dart';
+import 'core/services/locale_service.dart';
 import 'core/theme.dart';
 import 'features/home/presentation/screens/home_screen.dart';
 import 'l10n/app_localizations.dart';
 
-void main() async {
-  // Assure que les bindings natifs sont initialisés avant Flutter
-  WidgetsFlutterBinding.ensureInitialized();
+Locale? _resolveLocale(AsyncValue<LocalePreference> localeState) {
+  return localeState.when(
+    data: (pref) => ui.Locale(pref.languageCode),
+    loading: () => null,
+    error: (_, __) => null,
+  );
+}
 
+ThemeMode _resolveThemeMode(WidgetRef ref) {
+  final themeNotifier = ref.read(themeProvider.notifier);
+  return ref.watch(themeProvider).when(
+        data: (pref) => themeNotifier.resolveThemeMode(),
+        loading: () => ThemeMode.system,
+        error: (_, __) => ThemeMode.system,
+      );
+}
+
+Widget _buildMaterialApp({
+  required Locale? locale,
+  required ThemeMode themeMode,
+}) {
+  return MaterialApp(
+    title: 'Mamadera',
+    locale: locale,
+    supportedLocales: const [ui.Locale('fr'), ui.Locale('en')],
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    theme: AppTheme.lightTheme,
+    darkTheme: AppTheme.darkTheme,
+    themeMode: themeMode,
+    home: const HomeScreen(),
+  );
+}
+
+Future<EncryptionService> _initializeEncryption() async {
   final encryption = EncryptionService();
-
-  // Initialise la clé de chiffrement (flutter_secure_storage)
   await encryption.initialize();
   if (encryption.isUsingMemoryFallback) {
     debugPrint(
       '⚠️ Mode fallback: clé volatile en mémoire (pas de keyring disponible).',
     );
   }
+  return encryption;
+}
 
-  runApp(ProviderScope(
-    overrides: [
-      encryptionServiceProvider.overrideWithValue(encryption),
-    ],
-    child: const MyApp(),
-  ));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final encryption = await _initializeEncryption();
+  runApp(
+    ProviderScope(
+      overrides: [
+        encryptionServiceProvider.overrideWithValue(encryption),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends ConsumerWidget {
@@ -39,34 +80,12 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final localeState = ref.watch(localeProvider);
-    final locale = localeState.when(
-      data: (pref) => ui.Locale(pref.languageCode),
-      loading: () => null,
-      error: (_, __) => null,
-    );
+    final locale = _resolveLocale(ref.watch(localeProvider));
+    final themeMode = _resolveThemeMode(ref);
 
-    final themeNotifier = ref.read(themeProvider.notifier);
-    final themeMode = ref.watch(themeProvider).when(
-          data: (pref) => themeNotifier.resolveThemeMode(),
-          loading: () => ThemeMode.system,
-          error: (_, __) => ThemeMode.system,
-        );
-
-    return MaterialApp(
-      title: 'Mamadera',
+    return _buildMaterialApp(
       locale: locale,
-      supportedLocales: const [ui.Locale('fr'), ui.Locale('en')],
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: const HomeScreen(),
     );
   }
 }

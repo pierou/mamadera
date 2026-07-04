@@ -32,36 +32,6 @@ class HistoryTile extends StatelessWidget {
     }
   }
 
-  String _resolveLabelKey(BuildContext context, String labelKey) {
-    switch (labelKey) {
-      case 'healthNettoyageYeux':
-        return context.l.healthNettoyageYeux;
-      case 'healthNettoyageNombril':
-        return context.l.healthNettoyageNombril;
-      case 'healthNettoyageVisage':
-        return context.l.healthNettoyageVisage;
-      case 'healthNettoyageNez':
-        return context.l.healthNettoyageNez;
-      case 'healthVitamineD':
-        return context.l.healthVitamineD;
-      case 'healthVitamineK':
-        return context.l.healthVitamineK;
-      default:
-        // Fallback for non-health label keys — resolve via reflection-like lookup
-        if (labelKey.startsWith('typeLabel')) {
-          final type = labelKey.replaceAll('typeLabel', '');
-          switch (type) {
-            case 'Miam': return context.l.typeLabelMiam;
-            case 'Sommeil': return context.l.typeLabelSommeil;
-            case 'Pipi': return context.l.typeLabelPipi;
-            case 'Caca': return context.l.typeLabelCaca;
-          }
-        }
-        // Last resort: return the key itself
-        return labelKey;
-    }
-  }
-
   String _typeLabel(BuildContext context) {
     switch (event) {
       case FeedingEvent():
@@ -106,7 +76,6 @@ class HistoryTile extends StatelessWidget {
     }
   }
 
-
   /// Parse les couleurs depuis un DiaperEvent et retourne une liste de paires (localized label, color).
   List<MapEntry<String, Color>> _parseColors(BuildContext context) {
     if (event is! DiaperEvent) return [];
@@ -130,35 +99,6 @@ class HistoryTile extends StatelessWidget {
 
   bool get _hasWasteDetails => event is DiaperEvent && (event as DiaperEvent).wasteType != null;
 
-  Widget _buildColorIndicator(BuildContext context) {
-    final parsedColors = _parseColors(context);
-    if (parsedColors.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Wrap(
-        spacing: 4,
-        runSpacing: 2,
-        children: parsedColors.map((entry) {
-          return Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              color: entry.value,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white30, width: 1),
-            ),
-            child: Tooltip(
-                message: entry.key,
-                child: const SizedBox.shrink()),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -175,7 +115,7 @@ class HistoryTile extends StatelessWidget {
             if (_duration != null)
               Text(context.l.durationPrefix(_duration!.toInt())),
             if (_hasWasteDetails) ...[
-              _buildColorIndicator(context),
+              _ColorIndicator(colors: _parseColors(context)),
             ],
             if (event is! HealthEvent && _notes != null && _notes!.isNotEmpty)
               Text(_notes!),
@@ -195,6 +135,73 @@ class HistoryTile extends StatelessWidget {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         onTap: onTap,
+      ),
+    );
+  }
+}
+
+/// Map de labels localisés pour chaque HealthSubtype.
+final Map<String, String Function(BuildContext)> _kHealthLabels = {
+  'healthNettoyageYeux': (c) => c.l.healthNettoyageYeux,
+  'healthNettoyageNombril': (c) => c.l.healthNettoyageNombril,
+  'healthNettoyageVisage': (c) => c.l.healthNettoyageVisage,
+  'healthNettoyageNez': (c) => c.l.healthNettoyageNez,
+  'healthVitamineD': (c) => c.l.healthVitamineD,
+  'healthVitamineK': (c) => c.l.healthVitamineK,
+};
+
+final Map<String, String Function(BuildContext)> _kTypeLabels = {
+  'Miam': (c) => c.l.typeLabelMiam,
+  'Sommeil': (c) => c.l.typeLabelSommeil,
+  'Pipi': (c) => c.l.typeLabelPipi,
+  'Caca': (c) => c.l.typeLabelCaca,
+};
+
+String _resolveTypeLabel(BuildContext context, String type) {
+  return _kTypeLabels[type]?.call(context) ?? '';
+}
+
+String _resolveLabelKey(BuildContext context, String labelKey) {
+  // Try health labels first.
+  final healthLabel = _kHealthLabels[labelKey]?.call(context);
+  if (healthLabel != null && healthLabel.isNotEmpty) return healthLabel;
+
+  // Fallback for typeLabel prefixed keys.
+  if (labelKey.startsWith('typeLabel')) {
+    final type = labelKey.replaceAll('typeLabel', '');
+    return _resolveTypeLabel(context, type);
+  }
+
+  return labelKey;
+}
+
+/// Widget affichant les indicateurs de couleur pour un DiaperEvent.
+class _ColorIndicator extends StatelessWidget {
+  const _ColorIndicator({required this.colors});
+
+  final List<MapEntry<String, Color>> colors;
+
+  Widget _buildDot(MapEntry<String, Color> entry) {
+    return Container(
+      width: 16,
+      height: 16,
+      decoration: BoxDecoration(
+        color: entry.value,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white30, width: 1),
+      ),
+      child: Tooltip(message: entry.key, child: const SizedBox.shrink()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 2,
+        children: colors.map(_buildDot).toList(),
       ),
     );
   }

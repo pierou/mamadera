@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 // ignore: implementation_imports
 import 'package:logger/logger.dart' show Logger;
 
@@ -9,7 +8,7 @@ import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../history/presentation/screens/history_screen.dart';
-import '../../../menu/menu_screen.dart';
+import '../../../menu/presentation/screens/menu_screen.dart';
 import '../../../reminders/domain/entities/reminders_state.dart';
 import '../../../reminders/presentation/providers/reminder_providers.dart';
 import '../providers/nav_provider.dart';

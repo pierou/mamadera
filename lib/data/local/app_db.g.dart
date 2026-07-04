@@ -880,6 +880,202 @@ class ReminderDismissalsCompanion extends UpdateCompanion<ReminderDismissal> {
   }
 }
 
+class $ReminderSettingsTable extends ReminderSettings
+    with TableInfo<$ReminderSettingsTable, ReminderSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReminderSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+      'item_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _enabledMeta =
+      const VerificationMeta('enabled');
+  @override
+  late final GeneratedColumn<bool> enabled = GeneratedColumn<bool>(
+      'enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("enabled" IN (0, 1))'));
+  @override
+  List<GeneratedColumn> get $columns => [itemId, enabled];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'reminder_settings';
+  @override
+  VerificationContext validateIntegrity(Insertable<ReminderSetting> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('item_id')) {
+      context.handle(_itemIdMeta,
+          itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta));
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('enabled')) {
+      context.handle(_enabledMeta,
+          enabled.isAcceptableOrUnknown(data['enabled']!, _enabledMeta));
+    } else if (isInserting) {
+      context.missing(_enabledMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  ReminderSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReminderSetting(
+      itemId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}item_id'])!,
+      enabled: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}enabled'])!,
+    );
+  }
+
+  @override
+  $ReminderSettingsTable createAlias(String alias) {
+    return $ReminderSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class ReminderSetting extends DataClass implements Insertable<ReminderSetting> {
+  final String itemId;
+  final bool enabled;
+  const ReminderSetting({required this.itemId, required this.enabled});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['item_id'] = Variable<String>(itemId);
+    map['enabled'] = Variable<bool>(enabled);
+    return map;
+  }
+
+  ReminderSettingsCompanion toCompanion(bool nullToAbsent) {
+    return ReminderSettingsCompanion(
+      itemId: Value(itemId),
+      enabled: Value(enabled),
+    );
+  }
+
+  factory ReminderSetting.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReminderSetting(
+      itemId: serializer.fromJson<String>(json['itemId']),
+      enabled: serializer.fromJson<bool>(json['enabled']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'itemId': serializer.toJson<String>(itemId),
+      'enabled': serializer.toJson<bool>(enabled),
+    };
+  }
+
+  ReminderSetting copyWith({String? itemId, bool? enabled}) => ReminderSetting(
+        itemId: itemId ?? this.itemId,
+        enabled: enabled ?? this.enabled,
+      );
+  ReminderSetting copyWithCompanion(ReminderSettingsCompanion data) {
+    return ReminderSetting(
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      enabled: data.enabled.present ? data.enabled.value : this.enabled,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReminderSetting(')
+          ..write('itemId: $itemId, ')
+          ..write('enabled: $enabled')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(itemId, enabled);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReminderSetting &&
+          other.itemId == this.itemId &&
+          other.enabled == this.enabled);
+}
+
+class ReminderSettingsCompanion extends UpdateCompanion<ReminderSetting> {
+  final Value<String> itemId;
+  final Value<bool> enabled;
+  final Value<int> rowid;
+  const ReminderSettingsCompanion({
+    this.itemId = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReminderSettingsCompanion.insert({
+    required String itemId,
+    required bool enabled,
+    this.rowid = const Value.absent(),
+  })  : itemId = Value(itemId),
+        enabled = Value(enabled);
+  static Insertable<ReminderSetting> custom({
+    Expression<String>? itemId,
+    Expression<bool>? enabled,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (itemId != null) 'item_id': itemId,
+      if (enabled != null) 'enabled': enabled,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReminderSettingsCompanion copyWith(
+      {Value<String>? itemId, Value<bool>? enabled, Value<int>? rowid}) {
+    return ReminderSettingsCompanion(
+      itemId: itemId ?? this.itemId,
+      enabled: enabled ?? this.enabled,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (enabled.present) {
+      map['enabled'] = Variable<bool>(enabled.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReminderSettingsCompanion(')
+          ..write('itemId: $itemId, ')
+          ..write('enabled: $enabled, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -887,12 +1083,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TrackingEventsTable trackingEvents = $TrackingEventsTable(this);
   late final $ReminderDismissalsTable reminderDismissals =
       $ReminderDismissalsTable(this);
+  late final $ReminderSettingsTable reminderSettings =
+      $ReminderSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [babyProfiles, trackingEvents, reminderDismissals];
+      [babyProfiles, trackingEvents, reminderDismissals, reminderSettings];
 }
 
 typedef $$BabyProfilesTableCreateCompanionBuilder = BabyProfilesCompanion
@@ -1396,6 +1594,135 @@ typedef $$ReminderDismissalsTableProcessedTableManager = ProcessedTableManager<
     ),
     ReminderDismissal,
     PrefetchHooks Function()>;
+typedef $$ReminderSettingsTableCreateCompanionBuilder
+    = ReminderSettingsCompanion Function({
+  required String itemId,
+  required bool enabled,
+  Value<int> rowid,
+});
+typedef $$ReminderSettingsTableUpdateCompanionBuilder
+    = ReminderSettingsCompanion Function({
+  Value<String> itemId,
+  Value<bool> enabled,
+  Value<int> rowid,
+});
+
+class $$ReminderSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $ReminderSettingsTable> {
+  $$ReminderSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get itemId => $composableBuilder(
+      column: $table.itemId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get enabled => $composableBuilder(
+      column: $table.enabled, builder: (column) => ColumnFilters(column));
+}
+
+class $$ReminderSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ReminderSettingsTable> {
+  $$ReminderSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get itemId => $composableBuilder(
+      column: $table.itemId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get enabled => $composableBuilder(
+      column: $table.enabled, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ReminderSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ReminderSettingsTable> {
+  $$ReminderSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<bool> get enabled =>
+      $composableBuilder(column: $table.enabled, builder: (column) => column);
+}
+
+class $$ReminderSettingsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ReminderSettingsTable,
+    ReminderSetting,
+    $$ReminderSettingsTableFilterComposer,
+    $$ReminderSettingsTableOrderingComposer,
+    $$ReminderSettingsTableAnnotationComposer,
+    $$ReminderSettingsTableCreateCompanionBuilder,
+    $$ReminderSettingsTableUpdateCompanionBuilder,
+    (
+      ReminderSetting,
+      BaseReferences<_$AppDatabase, $ReminderSettingsTable, ReminderSetting>
+    ),
+    ReminderSetting,
+    PrefetchHooks Function()> {
+  $$ReminderSettingsTableTableManager(
+      _$AppDatabase db, $ReminderSettingsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReminderSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReminderSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReminderSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> itemId = const Value.absent(),
+            Value<bool> enabled = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ReminderSettingsCompanion(
+            itemId: itemId,
+            enabled: enabled,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String itemId,
+            required bool enabled,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ReminderSettingsCompanion.insert(
+            itemId: itemId,
+            enabled: enabled,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ReminderSettingsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ReminderSettingsTable,
+    ReminderSetting,
+    $$ReminderSettingsTableFilterComposer,
+    $$ReminderSettingsTableOrderingComposer,
+    $$ReminderSettingsTableAnnotationComposer,
+    $$ReminderSettingsTableCreateCompanionBuilder,
+    $$ReminderSettingsTableUpdateCompanionBuilder,
+    (
+      ReminderSetting,
+      BaseReferences<_$AppDatabase, $ReminderSettingsTable, ReminderSetting>
+    ),
+    ReminderSetting,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1406,4 +1733,6 @@ class $AppDatabaseManager {
       $$TrackingEventsTableTableManager(_db, _db.trackingEvents);
   $$ReminderDismissalsTableTableManager get reminderDismissals =>
       $$ReminderDismissalsTableTableManager(_db, _db.reminderDismissals);
+  $$ReminderSettingsTableTableManager get reminderSettings =>
+      $$ReminderSettingsTableTableManager(_db, _db.reminderSettings);
 }

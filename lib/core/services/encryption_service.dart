@@ -21,6 +21,28 @@ class EncryptionService {
   /// True si on utilise le fallback mémoire (pas de keyring disponible).
   bool _usingMemoryFallback = false;
 
+  Future<Key> _generateAndStoreKey() async {
+    final newKey = Key.fromSecureRandom(32);
+    await _secureStorage.write(key: _masterKeyName, value: newKey.base64);
+    _logger.d('Nouvelle clé maître générée et stockée.');
+    return newKey;
+  }
+
+  void _fallbackToMemoryKey(Object error) {
+    _logger.w(
+      'Stockage sécurisé indisponible ($error). Fallback: clé volatile en mémoire.',
+    );
+    final newKey = Key.fromSecureRandom(32);
+    _cachedKey = newKey;
+    _usingMemoryFallback = true;
+
+    if (kDebugMode) {
+      debugPrint(
+        '⚠️ CLÉ VOLATILE: les données chiffrées seront perdues au redémarrage.',
+      );
+    }
+  }
+
   /// Initialise ou récupère la clé maître depuis le stockage sécurisé.
   /// Si le backend natif n'est pas disponible (ex: Linux sans GNOME Keyring),
   /// génère une clé volatile en mémoire et log un avertissement.
@@ -32,27 +54,10 @@ class EncryptionService {
         _cachedKey = Key.fromBase64(existingKeyB64);
         _logger.d('Clé maître chargée depuis le stockage sécurisé.');
       } else {
-        // Génère une nouvelle clé AES-256 aléatoire
-        final newKey = Key.fromSecureRandom(32);
-        await _secureStorage.write(key: _masterKeyName, value: newKey.base64);
-        _cachedKey = newKey;
-        _logger.d('Nouvelle clé maître générée et stockée.');
+        _cachedKey = await _generateAndStoreKey();
       }
     } catch (e) {
-      // Sur desktop sans keyring (Linux/GNOME Keyring absent), flutter_secure_storage
-      // peut lever une exception. On fallback sur une clé volatile en mémoire.
-      _logger.w(
-        'Stockage sécurisé indisponible ($e). Fallback: clé volatile en mémoire.',
-      );
-      final newKey = Key.fromSecureRandom(32);
-      _cachedKey = newKey;
-      _usingMemoryFallback = true;
-
-      if (kDebugMode) {
-        debugPrint(
-          '⚠️ CLÉ VOLATILE: les données chiffrées seront perdues au redémarrage.',
-        );
-      }
+      _fallbackToMemoryKey(e);
     }
   }
 
@@ -84,27 +89,31 @@ class EncryptionService {
     return '${iv.base64}:${encrypted.base64}';
   }
 
-  /// Déchiffre une chaîne format `iv_base64:ciphertext_base64`.
-  String? decrypt(String? cipherText) {
-    if (cipherText == null || cipherText.isEmpty) {
-      return null;
-    }
-
+  /// Parse `iv_base64:ciphertext_base64` → `(IV, Encrypted)` or null.
+  ({IV iv, Encrypted encrypted})? _parseCipherText(String cipherText) {
     final parts = cipherText.split(':');
-    // Le format attend exactement iv:ciphertext, mais le ciphertext peut contenir ':' dans son base64 ?
-    // Non, base64 standard ne contient pas ':'. On split donc en 2 parties max.
-    if (parts.length < 2) {
-      return null;
-    }
+    if (parts.length < 2) return null;
 
     try {
       final iv = IV.fromBase64(parts[0]);
-      // Rejoin les parties restantes au cas où (sécurité future)
       final cipherData = parts.sublist(1).join(':');
       final encryptedData = Encrypted.fromBase64(cipherData);
-      final encrypter = Encrypter(AES(key, mode: AESMode.gcm));
+      return (iv: iv, encrypted: encryptedData);
+    } catch (_) {
+      return null;
+    }
+  }
 
-      return encrypter.decrypt(encryptedData, iv: iv);
+  /// Déchiffre une chaîne format `iv_base64:ciphertext_base64`.
+  String? decrypt(String? cipherText) {
+    if (cipherText == null || cipherText.isEmpty) return null;
+
+    final parsed = _parseCipherText(cipherText);
+    if (parsed == null) return null;
+
+    try {
+      final encrypter = Encrypter(AES(key, mode: AESMode.gcm));
+      return encrypter.decrypt(parsed.encrypted, iv: parsed.iv);
     } catch (_) {
       // Échec silencieux pour éviter les fuites d'information (timing attacks)
       return null;

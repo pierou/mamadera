@@ -97,22 +97,17 @@ class HealthSubtypeDialog extends ConsumerWidget {
   }
 }
 
+/// Map de labels localisés pour chaque HealthSubtype.
+Map<String, String Function(BuildContext)> _kHealthLabels = {
+  'healthNettoyageYeux': (c) => c.l.healthNettoyageYeux,
+  'healthNettoyageNombril': (c) => c.l.healthNettoyageNombril,
+  'healthNettoyageVisage': (c) => c.l.healthNettoyageVisage,
+  'healthNettoyageNez': (c) => c.l.healthNettoyageNez,
+  'healthVitamineD': (c) => c.l.healthVitamineD,
+  'healthVitamineK': (c) => c.l.healthVitamineK,
+};
+
 /// Résout le label localisé pour un HealthSubtype via son labelKey.
 String _resolveHealthLabel(BuildContext context, HealthSubtype subtype) {
-  switch (subtype.labelKey) {
-    case 'healthNettoyageYeux':
-      return context.l.healthNettoyageYeux;
-    case 'healthNettoyageNombril':
-      return context.l.healthNettoyageNombril;
-    case 'healthNettoyageVisage':
-      return context.l.healthNettoyageVisage;
-    case 'healthNettoyageNez':
-      return context.l.healthNettoyageNez;
-    case 'healthVitamineD':
-      return context.l.healthVitamineD;
-    case 'healthVitamineK':
-      return context.l.healthVitamineK;
-    default:
-      return subtype.label;
-  }
+  return _kHealthLabels[subtype.labelKey]?.call(context) ?? subtype.label;
 }

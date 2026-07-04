@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:logger/logger.dart';
 
 // Alias for drift-generated row types (distinct from domain entities)
@@ -22,20 +23,27 @@ class RemindersRepositoryImpl implements RemindersRepository {
 
       _logger.d('getLastCompletedToday(${item.id}) — querying from $todayStart');
 
-      // Query the reminder_dismissals table for dismissals matching this item.
-      final results = await (database.select(database.reminderDismissals)
-        ..where((t) => t.itemId.equals(item.id))).get();
+      // Query tracking_events for events matching this reminder's type (+ subtype for health).
+      final type = item.trackingType.name;
+      final subtypeValue = item.subtypeValue;
+      final q = (database.select(database.trackingEvents)
+        ..where((t) {
+          final exp = t.type.equals(type) & (subtypeValue == null ? const Constant(true) : t.wasteType.equals(subtypeValue));
+          return exp;
+        })
+        ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]));
 
-      // Filter to today in-memory — Drift doesn't support DateTime comparison operators
-      // on GeneratedColumn, so we fetch by item_id and filter the small result set.
+      final results = await q.get();
+
+      // Filter to today in-memory.
       final todayResults = results.where(
-        (r) => r.dismissedAt.isAfter(todayStart.subtract(const Duration(seconds: 1))),
+        (r) => r.timestamp.isAfter(todayStart.subtract(const Duration(seconds: 1))),
       ).toList();
 
       if (todayResults.isEmpty) return null;
 
-      _logger.d('getLastCompletedToday(${item.id}) — found ${todayResults.length} dismissal(s) today');
-      return todayResults.first.dismissedAt;
+      _logger.d('getLastCompletedToday(${item.id}) — found ${todayResults.length} event(s) today');
+      return todayResults.first.timestamp;
     } catch (e, stack) {
       _logger.e(
         'getLastCompletedToday error',
