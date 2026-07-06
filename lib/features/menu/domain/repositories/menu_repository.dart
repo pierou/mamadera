@@ -14,4 +14,7 @@ abstract class MenuRepository {
 
   /// Retourne la liste des langues supportées.
   List<String> getSupportedLanguages();
+
+  /// Réinitialise la base de données (supprime le fichier SQLite physique).
+  Future<void> resetDatabase();
 }

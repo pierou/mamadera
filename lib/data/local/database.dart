@@ -25,3 +25,19 @@ Future<AppDatabase> createAppDatabase({String? directoryPath}) async {
     return AppDatabase(connection);
   }
 
+/// Réinitialise la base de données en supprimant le fichier SQLite physique.
+/// La prochaine invocation de `createAppDatabase()` reconstruira une DB fraîche avec le schéma v4.
+/// Si [directoryPath] est fourni, utilise ce chemin sinon utilise path_provider.
+Future<void> resetDatabase({String? directoryPath}) async {
+  final dbFolder = directoryPath != null
+      ? Directory(directoryPath)
+      : await getApplicationDocumentsDirectory();
+  final file = File('${dbFolder.path}/mamadera.db');
+
+  if (!await file.exists()) {
+    return; // Pas de fichier à supprimer
+  }
+
+  await file.delete();
+}
+

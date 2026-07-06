@@ -571,6 +571,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Sombre'**
   String get themeDark;
+
+  /// No description provided for @dangerZoneTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Zone de danger'**
+  String get dangerZoneTitle;
+
+  /// No description provided for @resetDatabaseButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser la base de données'**
+  String get resetDatabaseButton;
+
+  /// No description provided for @resetDatabaseConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser la base de données ?'**
+  String get resetDatabaseConfirm;
+
+  /// No description provided for @resetDatabaseWarningDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette action supprimera définitivement tous les profils bébé, événements trackés et paramètres de rappels. Seules vos préférences de langue et thème seront conservées.'**
+  String get resetDatabaseWarningDetail;
+
+  /// No description provided for @resetDatabaseSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Base de données réinitialisée. Une nouvelle base a été créée.'**
+  String get resetDatabaseSuccess;
+
+  /// No description provided for @resetDatabaseError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la réinitialisation : {error}'**
+  String resetDatabaseError(Object error);
+
+  /// No description provided for @cancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get cancel;
 }
 
 class _AppLocalizationsDelegate

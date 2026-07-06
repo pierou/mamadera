@@ -254,4 +254,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get themeDark => 'Sombre';
+
+  @override
+  String get dangerZoneTitle => 'Zone de danger';
+
+  @override
+  String get resetDatabaseButton => 'Réinitialiser la base de données';
+
+  @override
+  String get resetDatabaseConfirm => 'Réinitialiser la base de données ?';
+
+  @override
+  String get resetDatabaseWarningDetail =>
+      'Cette action supprimera définitivement tous les profils bébé, événements trackés et paramètres de rappels. Seules vos préférences de langue et thème seront conservées.';
+
+  @override
+  String get resetDatabaseSuccess =>
+      'Base de données réinitialisée. Une nouvelle base a été créée.';
+
+  @override
+  String resetDatabaseError(Object error) {
+    return 'Échec de la réinitialisation : $error';
+  }
+
+  @override
+  String get cancel => 'Annuler';
 }

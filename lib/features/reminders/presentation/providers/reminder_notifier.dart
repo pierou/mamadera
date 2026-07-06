@@ -10,17 +10,17 @@ import 'reminder_providers.dart';
 /// Polling interval for checking due reminders.
 const Duration _pollInterval = Duration(minutes: 5);
 
-/// Provider that emits a map of [TrackingType] → count of pending reminder badges.
+/// Provider that emits a map of [TrackingType] → list of pending [ReminderStatus].
 /// Polls every [_pollInterval] to re-evaluate which reminders are due.
-final reminderNotifierProvider = AsyncNotifierProvider<RemindersNotifier, Map<TrackingType, int>>(
+final reminderNotifierProvider = AsyncNotifierProvider<RemindersNotifier, Map<TrackingType, List<ReminderStatus>>>(
   RemindersNotifier.new,
 );
 
-class RemindersNotifier extends AsyncNotifier<Map<TrackingType, int>> {
+class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderStatus>>> {
   Timer? _pollTimer;
 
   @override
-  Future<Map<TrackingType, int>> build() async {
+  Future<Map<TrackingType, List<ReminderStatus>>> build() async {
     // Start periodic polling every 5 minutes.
     _startPolling();
 
@@ -45,8 +45,8 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, int>> {
     state = await AsyncValue.guard(_checkDue);
   }
 
-  /// Query the service for due reminders, then aggregate into per-[TrackingType] badge counts.
-  Future<Map<TrackingType, int>> _checkDue() async {
+  /// Query the service for due reminders, then group into per-[TrackingType] [ReminderStatus].
+  Future<Map<TrackingType, List<ReminderStatus>>> _checkDue() async {
     final service = await ref.read(remindersServiceProvider.future);
     final result = await service.checkDue();
 
@@ -70,18 +70,17 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, int>> {
 
     return switch (result) {
       RemindersAllCompleted() => {},
-      RemindersDue(:final items) => _aggregateCounts(items),
+      RemindersDue(:final items) => _groupByTrackingType(items),
     };
   }
 
-  /// Aggregate [ReminderStatus] list into per-[TrackingType] badge counts.
-  Map<TrackingType, int> _aggregateCounts(List<ReminderStatus> statuses) {
-    final counts = <TrackingType, int>{};
+  /// Group [ReminderStatus] list by [TrackingType].
+  Map<TrackingType, List<ReminderStatus>> _groupByTrackingType(List<ReminderStatus> statuses) {
+    final grouped = <TrackingType, List<ReminderStatus>>{};
     for (final status in statuses) {
-      final type = status.item.trackingType;
-      counts[type] = (counts[type] ?? 0) + 1;
+      grouped.putIfAbsent(status.item.trackingType, () => []).add(status);
     }
-    return counts;
+    return grouped;
   }
 
   /// Manually refresh reminder state (e.g., after tracking an event).

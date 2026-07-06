@@ -253,4 +253,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeDark => 'Dark';
+
+  @override
+  String get dangerZoneTitle => 'Danger Zone';
+
+  @override
+  String get resetDatabaseButton => 'Reset Database';
+
+  @override
+  String get resetDatabaseConfirm => 'Reset Database?';
+
+  @override
+  String get resetDatabaseWarningDetail =>
+      'This will permanently delete all baby profiles, tracking events, and reminder settings. Only your language and theme settings will be kept.';
+
+  @override
+  String get resetDatabaseSuccess =>
+      'Database reset. A fresh database has been created.';
+
+  @override
+  String resetDatabaseError(Object error) {
+    return 'Failed to reset: $error';
+  }
+
+  @override
+  String get cancel => 'Cancel';
 }

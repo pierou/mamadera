@@ -115,5 +115,18 @@
   "themeSectionTitle": "Theme",
   "themeSystem": "Follow system",
   "themeLight": "Light",
-  "themeDark": "Dark"
+  "themeDark": "Dark",
+
+  "dangerZoneTitle": "Danger Zone",
+  "resetDatabaseButton": "Reset Database",
+  "resetDatabaseConfirm": "Reset Database?",
+  "resetDatabaseWarningDetail": "This will permanently delete all baby profiles, tracking events, and reminder settings. Only your language and theme settings will be kept.",
+  "resetDatabaseSuccess": "Database reset. A fresh database has been created.",
+  "resetDatabaseError": "Failed to reset: {error}",
+  "@resetDatabaseError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "cancel": "Cancel"
 }

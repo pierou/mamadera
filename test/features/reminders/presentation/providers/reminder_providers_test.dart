@@ -40,11 +40,19 @@ class MockTrackingRepository implements TrackingRepository {
 
 
 void main() {
-  group('reminderStatusesProvider', () {
+  group('reminderNotifierProvider', () {
     late MockTrackingRepository mockTrackingRepo;
+    late ProviderContainer container;
 
     setUp(() {
       mockTrackingRepo = MockTrackingRepository();
+      container = ProviderContainer(overrides: [
+        repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
+      ]);
+    });
+
+    tearDown(() {
+      container.dispose();
     });
 
     testWidgets('returns empty map when RemindersAllCompleted', (tester) async {
@@ -57,12 +65,12 @@ void main() {
         repository: mockReminders,
       );
 
-      final container = ProviderContainer(overrides: [
+      container = ProviderContainer(overrides: [
         remindersServiceProvider.overrideWith((ref) => Future.value(service)),
         repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
       ]);
 
-      final result = await container.read(reminderStatusesProvider.future);
+      final result = await container.read(reminderNotifierProvider.future);
 
       expect(result, isEmpty);
       container.dispose();
@@ -84,12 +92,12 @@ void main() {
         repository: mockReminders,
       );
 
-      final container = ProviderContainer(overrides: [
+      container = ProviderContainer(overrides: [
         remindersServiceProvider.overrideWith((ref) => Future.value(service)),
         repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
       ]);
 
-      final result = await container.read(reminderStatusesProvider.future);
+      final result = await container.read(reminderNotifierProvider.future);
 
       expect(result, isNotEmpty);
       expect(result[TrackingType.sante], isNotNull);
@@ -113,12 +121,12 @@ void main() {
         repository: mockReminders,
       );
 
-      final container = ProviderContainer(overrides: [
+      container = ProviderContainer(overrides: [
         remindersServiceProvider.overrideWith((ref) => Future.value(service)),
         repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
       ]);
 
-      final result = await container.read(reminderStatusesProvider.future);
+      final result = await container.read(reminderNotifierProvider.future);
 
       // Both are TrackingType.sante, so grouped under same key
       expect(result.keys.length, equals(1));
@@ -135,15 +143,63 @@ void main() {
         repository: mockReminders,
       );
 
-      final container = ProviderContainer(overrides: [
+      container = ProviderContainer(overrides: [
         remindersServiceProvider.overrideWith((ref) => Future.value(service)),
         repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
       ]);
 
-      final result = await container.read(reminderStatusesProvider.future);
+      final result = await container.read(reminderNotifierProvider.future);
 
       expect(result[TrackingType.sante], isNotNull);
       expect(result[TrackingType.sante]!.first.lastEventAt, isNull);
+      container.dispose();
+    });
+
+    testWidgets('refresh() triggers re-evaluation of reminders', (tester) async {
+      // Set up: Vitamin D tracked initially
+      mockTrackingRepo.setLastEvent(
+        TrackingType.sante,
+        'vitamine_d',
+        DateTime.utc(2024, 6, 1),
+      );
+
+      final mockReminders = MockRemindersRepository();
+      final service = RemindersService(
+        items: [ReminderItem.vitaminD(), ReminderItem.eyeCleaning()],
+        repository: mockReminders,
+      );
+
+      container = ProviderContainer(overrides: [
+        remindersServiceProvider.overrideWith((ref) => Future.value(service)),
+        repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
+      ]);
+
+      // Initial read
+      final firstResult = await container.read(reminderNotifierProvider.future);
+      expect(firstResult[TrackingType.sante]!.length, equals(2));
+
+      // Update mock repo to simulate new event
+      mockTrackingRepo.setLastEvent(
+        TrackingType.sante,
+        'vitamine_d',
+        DateTime.now(),
+      );
+      // Mark one item as completed
+      mockReminders.lastCompletedByItem[ReminderItem.vitaminD().id] = DateTime.now();
+
+      // Refresh
+      final notifier = container.read(reminderNotifierProvider.notifier);
+      await notifier.refresh();
+
+      final secondResult = container.read(reminderNotifierProvider);
+      expect(secondResult, isA<AsyncData<Map<TrackingType, List<ReminderStatus>>>>());
+      final data = secondResult.maybeWhen(
+        data: (d) => d,
+        orElse: () => <TrackingType, List<ReminderStatus>>{},
+      );
+      // Only eyeCleaning should remain due
+      expect(data[TrackingType.sante]!.length, equals(1));
+      expect(data[TrackingType.sante]!.first.item.id, equals(ReminderItem.eyeCleaning().id));
       container.dispose();
     });
   });

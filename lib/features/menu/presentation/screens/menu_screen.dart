@@ -56,6 +56,18 @@ class MenuScreen extends ConsumerWidget {
               _buildThemeTile(context, ref, 'system', currentThemeMode, Icons.brightness_auto_outlined, Icons.brightness_1, context.l.themeSystem),
               _buildThemeTile(context, ref, 'light', currentThemeMode, Icons.light_mode_outlined, Icons.light_mode, context.l.themeLight),
               _buildThemeTile(context, ref, 'dark', currentThemeMode, Icons.dark_mode_outlined, Icons.dark_mode, context.l.themeDark),
+
+              // Danger Zone
+              const SizedBox(height: 32),
+              Text(
+                context.l.dangerZoneTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red.shade600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              _buildResetDatabaseTile(context, ref),
             ],
           ),
         ),
@@ -103,5 +115,84 @@ class MenuScreen extends ConsumerWidget {
         ref.read(menuRepositoryProvider).setThemeMode(mode);
       },
     );
+  }
+
+  Widget _buildResetDatabaseTile(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () => _showResetDatabaseDialog(context, ref),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: _dangerZoneDecoration(),
+        child: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.red.shade600),
+            const SizedBox(width: 12),
+            Expanded(child: _resetDatabaseInfo(context)),
+            Icon(Icons.chevron_right, color: Colors.red.shade600),
+          ],
+        ),
+      ),
+    );
+  }
+
+  BoxDecoration _dangerZoneDecoration() => BoxDecoration(
+        color: Colors.red.shade50,
+        border: Border.all(color: Colors.red.shade300, width: 1.5),
+        borderRadius: BorderRadius.circular(8),
+      );
+
+  Widget _resetDatabaseInfo(BuildContext context) {
+    final titleStyle = TextStyle(
+      fontWeight: FontWeight.bold,
+      color: Colors.red.shade600,
+    );
+    final descStyle = TextStyle(
+      fontSize: 12,
+      color: Colors.red.shade700,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(context.l.resetDatabaseButton, style: titleStyle),
+        const SizedBox(height: 4),
+        Text(context.l.resetDatabaseWarningDetail, style: descStyle),
+      ],
+    );
+  }
+
+  Future<void> _showResetDatabaseDialog(BuildContext context, WidgetRef ref) async {
+    final confirmTitle = context.l.resetDatabaseConfirm;
+    final confirmContent = context.l.resetDatabaseWarningDetail;
+    final confirmLabel = context.l.resetDatabaseButton;
+    final cancelLabel = context.l.cancel;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(confirmTitle),
+        content: Text(confirmContent),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(cancelLabel)),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, true), style: TextButton.styleFrom(foregroundColor: Colors.red), child: Text(confirmLabel)),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      await _performReset(context, ref);
+    }
+  }
+
+  Future<void> _performReset(BuildContext context, WidgetRef ref) async {
+    final successLabel = context.l.resetDatabaseSuccess;
+    final errorLabel = context.l.resetDatabaseError;
+    try {
+      await ref.read(menuRepositoryProvider).resetDatabase();
+      if (context.mounted) _showSnackBar(context, successLabel, Colors.green);
+    } catch (e) {
+      if (context.mounted) _showSnackBar(context, errorLabel(e.toString()), Colors.red);
+    }
+  }
+
+  void _showSnackBar(BuildContext context, String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
   }
 }

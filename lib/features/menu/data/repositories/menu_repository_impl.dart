@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../data/local/database.dart' as db_reset;
 import '../../domain/repositories/menu_repository.dart';
 
 /// Concrete implementation of [MenuRepository] that delegates to the core services via Riverpod providers.
@@ -50,4 +52,15 @@ class MenuRepositoryImpl implements MenuRepository {
 
   @override
   List<String> getSupportedLanguages() => ['fr', 'en'];
+
+  @override
+  Future<void> resetDatabase() async {
+    // Fermer la base de données si elle est déjà initialisée
+    final db = await _ref.read(databaseProvider.future);
+    await db.close();
+    // Supprimer le fichier physique SQLite
+    await db_reset.resetDatabase();
+    // Invalider le provider pour forcer une reconstruction fraîche au prochain accès
+    _ref.invalidate(databaseProvider);
+  }
 }

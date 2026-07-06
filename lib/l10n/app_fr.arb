@@ -115,5 +115,18 @@
   "themeSectionTitle": "Thème",
   "themeSystem": "Système",
   "themeLight": "Clair",
-  "themeDark": "Sombre"
+  "themeDark": "Sombre",
+
+  "dangerZoneTitle": "Zone de danger",
+  "resetDatabaseButton": "Réinitialiser la base de données",
+  "resetDatabaseConfirm": "Réinitialiser la base de données ?",
+  "resetDatabaseWarningDetail": "Cette action supprimera définitivement tous les profils bébé, événements trackés et paramètres de rappels. Seules vos préférences de langue et thème seront conservées.",
+  "resetDatabaseSuccess": "Base de données réinitialisée. Une nouvelle base a été créée.",
+  "resetDatabaseError": "Échec de la réinitialisation : {error}",
+  "@resetDatabaseError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "cancel": "Annuler"
 }
