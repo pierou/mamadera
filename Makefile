@@ -50,3 +50,14 @@ audit-gitleaks:
 	@command -v gitleaks >/dev/null 2>&1 || { echo "⚠️ gitleaks not installed. Install from https://github.com/gitleaks/gitleaks"; exit 0; }
 	gitleaks detect --verbose --log-opts="--all"
 
+# 🔍 UI rules validation (accessibility, dark mode, dynamic type)
+check-ui: pub-get
+	@echo "🎨 Checking UI rules..."
+	@# Universal checks
+	@grep -rn "Colors\.white\b\|Colors\.black\b" lib/features --include="*.dart" | grep -v "theme.dart" | grep -v "colorScheme" | grep -v "ignore_for_file" && echo "❌ Found hardcoded Colors.white/black in presentation code" || echo "✅ No hardcoded white/black colors"
+	@# Dark mode compliance - check for hardcoded colors in presentation widgets
+	@grep -rn "Colors\.grey\.shade\|Colors\.red\.shade" lib/features --include="*.dart" | grep -v "ignore_for_file" && echo "⚠️ Found hardcoded shade colors (consider theme-based)" || echo "✅ No hardcoded shade colors"
+	@# Font size checks
+	@grep -rn "fontSize:" lib/features --include="*.dart" | grep -v "theme.dart" | grep -v "ignore_for_file" | head -20
+	@echo "✅ UI rules check complete"
+
