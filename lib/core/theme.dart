@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // ignore_for_file: avoid_classes_with_only_static_members
 class AppTheme {
@@ -48,6 +49,24 @@ class AppTheme {
   static TextButtonThemeData _textButtonTheme() => TextButtonThemeData(
         style: ButtonStyle(foregroundColor: WidgetStateProperty.all(sante)),
       );
+
+  // ── Safe color utility for title text on any card background ──
+  static Color textPrimaryForTint([Color? tint]) {
+    return (tint?.computeLuminance() ?? 0) > 0.17 ? Colors.black : Colors.white;
+  }
+
+  // ── System chrome overlay style helpers ──
+  /// Returns [SystemUiOverlayStyle] for the current [ThemeData].
+  static SystemUiOverlayStyle overlayStyle(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor: theme.scaffoldBackgroundColor,
+      systemNavigationBarDividerColor: theme.colorScheme.outlineVariant,
+      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+    );
+  }
 
   // ── Dark Theme colors ────────────────────────────────────────
   static const Color darkBackground = Color(0xFF2D2D2D);

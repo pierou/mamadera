@@ -88,7 +88,9 @@ class _TrackButtonState extends State<TrackButton> {
         onTap: widget.onTap,
         onLongPress: widget.onLongPress,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
+          duration: MediaQuery.of(context).disableAnimations
+              ? Duration.zero
+              : const Duration(milliseconds: 120),
           curve: Curves.easeOut,
           transform: Matrix4.identity()
             ..scaleByDouble(
@@ -144,9 +146,7 @@ class _TrackButtonState extends State<TrackButton> {
                     child: Center(
                       child: Text(
                         _lastTrackedLabel(context)!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.grey.shade600,
-                            ),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
                   ),

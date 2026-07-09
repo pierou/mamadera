@@ -17,13 +17,13 @@ class ReminderPill extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 2),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.amber.shade700,
+        color: Theme.of(context).colorScheme.tertiary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onTertiary,
               fontWeight: FontWeight.w600,
             ),
       ),

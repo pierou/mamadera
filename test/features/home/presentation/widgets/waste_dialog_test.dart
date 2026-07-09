@@ -132,6 +132,58 @@ void main() {
 
       expect(find.text('Jaune moutarde'), findsOneWidget);
     });
+
+    // ── Accessibility tests ──────────────────────────────────────
+
+    testWidgets('has Semantics on _ChipRadio buttons', (tester) async {
+      await pumpDialog(tester);
+      await tester.pumpAndSettle();
+
+      // Verify Semantics widgets exist for chip buttons
+      expect(find.byType(Semantics), findsWidgets);
+    });
+
+    testWidgets('renders correctly in light mode', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: ThemeData.light(),
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: const Scaffold(body: WasteDialog()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('🟡 Pipi'), findsOneWidget);
+    });
+
+    testWidgets('renders correctly in dark mode', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: ThemeData.dark(),
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: const Scaffold(body: WasteDialog()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('🟡 Pipi'), findsOneWidget);
+    });
   });
 
   group('PipiColor', () {

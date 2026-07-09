@@ -52,11 +52,10 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
             Center(
               child: Text(
                 _formatDuration(_selectedMinutes),
-                style: const TextStyle(
-                  fontSize: 56,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.dodo,
-                ),
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontSize: 56,
+                      color: AppTheme.dodo,
+                    ),
               ),
             ),
             const SizedBox(height: 32),

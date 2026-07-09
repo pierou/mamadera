@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
@@ -18,14 +19,37 @@ import '../providers/track_notifier.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/duration_picker_dialog.dart';
 import '../widgets/health_subtype_dialog.dart';
+import '../widgets/onboarding_dialog.dart';
 import '../widgets/track_button.dart';
 import '../widgets/waste_dialog.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Show onboarding after first frame if no active baby
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final activeBaby = ref.read(activeBabyProvider).value;
+      if (activeBaby == null && mounted) {
+        showModalBottomSheet<Object?>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => const OnboardingWrapper(),
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final navIndex = ref.watch(navIndexProvider);
 
     return Scaffold(
@@ -42,6 +66,20 @@ class HomeScreen extends ConsumerWidget {
     HistoryScreen(),
     MenuScreen(),
   ];
+}
+
+/// Wrapper to access WidgetRef in showModalBottomSheet callback
+class OnboardingWrapper extends ConsumerWidget {
+  const OnboardingWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: const OnboardingDialog(),
+    );
+  }
 }
 
 class _HomeContent extends ConsumerWidget {

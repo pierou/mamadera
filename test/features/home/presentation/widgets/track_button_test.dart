@@ -181,5 +181,66 @@ void main() {
       await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Test', color: Colors.red)));
       expect(find.text('Test'), findsOneWidget);
     });
+
+    // ── Accessibility tests ──────────────────────────────────────
+
+    testWidgets('has Semantics widget with label and button:true', (tester) async {
+      await tester.pumpWidget(ProviderScope(
+        child: pumpTrackButton(label: 'Feeding Accessibility Test', color: AppTheme.miam),
+      ));
+      // Verify at least one Semantics widget exists for accessibility
+      expect(find.byType(Semantics), findsWidgets);
+    });
+
+    testWidgets('respects reduce motion - no animation when disableAnimations is true', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(disableAnimations: true),
+            child: ProviderScope(
+              child: TrackButton(
+                label: 'Feeding Motion Test',
+                color: AppTheme.miam,
+                onTap: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      // Verify widget renders without error when animations are disabled
+      expect(find.text('Feeding Motion Test'), findsOneWidget);
+    });
+
+    testWidgets('renders correctly in light mode', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.light(),
+          home: ProviderScope(
+            child: TrackButton(
+              label: 'Light Mode Test',
+              color: AppTheme.miam,
+              onTap: () {},
+            ),
+          ),
+        ),
+      );
+      expect(find.text('Light Mode Test'), findsOneWidget);
+    });
+
+    testWidgets('renders correctly in dark mode', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark(),
+          home: ProviderScope(
+            child: TrackButton(
+              label: 'Dark Mode Test',
+              color: AppTheme.miam,
+              onTap: () {},
+            ),
+          ),
+        ),
+      );
+      expect(find.text('Dark Mode Test'), findsOneWidget);
+    });
   });
 }

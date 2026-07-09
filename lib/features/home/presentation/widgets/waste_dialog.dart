@@ -165,15 +165,16 @@ class WasteDialog extends ConsumerWidget {
   Widget _buildPipiColorChips(BuildContext context, WidgetRef ref, PipiColor? selectedColor) {
     return Wrap(spacing: 8, runSpacing: 8, children: PipiColor.values.map((c) {
       final isSelected = c == selectedColor;
+      final cs = Theme.of(context).colorScheme;
       return FilterChip(
         label: Text(c.label),
         selected: isSelected,
         onSelected: (_) => ref.read(_wasteDialogStateProvider.notifier).setPipiColor(isSelected ? null : c),
         backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.8),
         selectedColor: Color(c.colorHex).withValues(alpha: 0.3),
-        checkmarkColor: Colors.white,
+        checkmarkColor: cs.onPrimary,
         labelStyle: TextStyle(
-          color: isSelected ? Colors.white : null,
+          color: isSelected ? cs.onPrimary : null,
         ),
       );
     }).toList());
@@ -182,15 +183,16 @@ class WasteDialog extends ConsumerWidget {
   Widget _buildCacaColorChips(BuildContext context, WidgetRef ref, CacaColor? selectedColor) {
     return Wrap(spacing: 8, runSpacing: 8, children: CacaColor.values.map((c) {
       final isSelected = c == selectedColor;
+      final cs = Theme.of(context).colorScheme;
       return FilterChip(
         label: Text(c.label),
         selected: isSelected,
         onSelected: (_) => ref.read(_wasteDialogStateProvider.notifier).setCacaColor(isSelected ? null : c),
         backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.8),
         selectedColor: Color(c.colorHex).withValues(alpha: 0.3),
-        checkmarkColor: Colors.white,
+        checkmarkColor: cs.onPrimary,
         labelStyle: TextStyle(
-          color: isSelected ? Colors.white : null,
+          color: isSelected ? cs.onPrimary : null,
         ),
       );
     }).toList());
@@ -211,17 +213,25 @@ class _ChipRadio extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.sante.withValues(alpha: 0.3) : Theme.of(context).cardColor.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? AppTheme.sante : Colors.transparent, width: 2),
+    final textTheme = Theme.of(context).textTheme;
+    return Semantics(
+      label: '$label${isSelected ? ' (selected)' : ''}',
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.sante.withValues(alpha: 0.3) : Theme.of(context).cardColor.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: isSelected ? AppTheme.sante : Colors.transparent, width: 2),
+          ),
+          child: Text(
+            label,
+            style: textTheme.bodyMedium?.copyWith(color: textTheme.bodyMedium!.color),
+          ),
         ),
-        child: Text(label, style: const TextStyle(fontSize: 14, color: Colors.white)),
       ),
     );
   }

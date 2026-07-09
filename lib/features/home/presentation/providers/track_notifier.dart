@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
@@ -28,23 +29,30 @@ class TrackNotifier extends AsyncNotifier<void> {
     FeedingSubtype? feedingSubtype,
     HealthSubtype? healthSubtype,
   }) async {
+    // Get active baby ID
+    final activeBaby = ref.read(activeBabyProvider).value;
+    final babyId = activeBaby?.id;
+
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final repository = await ref.read(trackingRepositoryProvider.future);
       final event = switch (type) {
         TrackingType.miam => FeedingEvent(
             timestamp: DateTime.now(),
+            babyId: babyId,
             subtype: feedingSubtype ?? FeedingSubtype.sein,
             duration: duration?.toDouble() ?? 0.0,
             notes: notes,
           ),
         TrackingType.dodo => SleepEvent(
             timestamp: DateTime.now(),
+            babyId: babyId,
             duration: duration?.toDouble() ?? 0.0,
             notes: notes,
           ),
         TrackingType.caca => DiaperEvent(
             timestamp: DateTime.now(),
+            babyId: babyId,
             wasteType: wasteType,
             pipiColor: pipiColor,
             cacaColor: cacaColor,
@@ -52,6 +60,7 @@ class TrackNotifier extends AsyncNotifier<void> {
           ),
         TrackingType.sante => HealthEvent(
             timestamp: DateTime.now(),
+            babyId: babyId,
             subtype: healthSubtype ?? HealthSubtype.nettoyageYeux,
             notes: notes,
           ),
