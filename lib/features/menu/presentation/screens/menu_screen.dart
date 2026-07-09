@@ -5,6 +5,7 @@ import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../providers/menu_repository_provider.dart';
+import '../widgets/baby_profile_section.dart';
 
 class MenuScreen extends ConsumerWidget {
   const MenuScreen({super.key});
@@ -33,7 +34,11 @@ class MenuScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Baby Profile Section
+              const BabyProfileSection(),
+
               // Language Section
+              const SizedBox(height: 24),
               Text(
                 context.l.languageSectionTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -63,7 +68,7 @@ class MenuScreen extends ConsumerWidget {
                 context.l.dangerZoneTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.red.shade600,
+                      color: Theme.of(context).colorScheme.error,
                     ),
               ),
               const SizedBox(height: 8),
@@ -83,11 +88,12 @@ class MenuScreen extends ConsumerWidget {
     String label,
   ) {
     final isSelected = code == currentCode;
+    final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       leading: Icon(isSelected ? Icons.language : Icons.language_outlined),
       title: Text(label),
       trailing: isSelected
-          ? const Icon(Icons.check_circle, color: Colors.greenAccent)
+          ? Icon(Icons.check_circle, color: colorScheme.primary)
           : null,
       onTap: () {
         ref.read(menuRepositoryProvider).setLanguage(code);
@@ -105,11 +111,12 @@ class MenuScreen extends ConsumerWidget {
     String label,
   ) {
     final isSelected = mode == currentMode;
+    final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       leading: Icon(isSelected ? filledIcon : outlinedIcon),
       title: Text(label),
       trailing: isSelected
-          ? const Icon(Icons.check_circle, color: Colors.greenAccent)
+          ? Icon(Icons.check_circle, color: colorScheme.primary)
           : null,
       onTap: () {
         ref.read(menuRepositoryProvider).setThemeMode(mode);
@@ -118,38 +125,42 @@ class MenuScreen extends ConsumerWidget {
   }
 
   Widget _buildResetDatabaseTile(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
-      onTap: () => _showResetDatabaseDialog(context, ref),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: _dangerZoneDecoration(),
-        child: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.red.shade600),
-            const SizedBox(width: 12),
-            Expanded(child: _resetDatabaseInfo(context)),
-            Icon(Icons.chevron_right, color: Colors.red.shade600),
-          ],
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showResetDatabaseDialog(context, ref),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: _dangerZoneDecoration(colorScheme),
+          child: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: colorScheme.error),
+              const SizedBox(width: 12),
+              Expanded(child: _resetDatabaseInfo(context, colorScheme)),
+              Icon(Icons.chevron_right, color: colorScheme.error),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  BoxDecoration _dangerZoneDecoration() => BoxDecoration(
-        color: Colors.red.shade50,
-        border: Border.all(color: Colors.red.shade300, width: 1.5),
+  BoxDecoration _dangerZoneDecoration(ColorScheme colorScheme) => BoxDecoration(
+        color: colorScheme.errorContainer.withValues(alpha: 0.2),
+        border: Border.all(color: colorScheme.errorContainer, width: 1.5),
         borderRadius: BorderRadius.circular(8),
       );
 
-  Widget _resetDatabaseInfo(BuildContext context) {
+  Widget _resetDatabaseInfo(BuildContext context, ColorScheme colorScheme) {
     final titleStyle = TextStyle(
       fontWeight: FontWeight.bold,
-      color: Colors.red.shade600,
+      color: colorScheme.error,
     );
-    final descStyle = TextStyle(
-      fontSize: 12,
-      color: Colors.red.shade700,
-    );
+    final descStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: colorScheme.error,
+        );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -161,6 +172,7 @@ class MenuScreen extends ConsumerWidget {
   }
 
   Future<void> _showResetDatabaseDialog(BuildContext context, WidgetRef ref) async {
+    final colorScheme = Theme.of(context).colorScheme;
     final confirmTitle = context.l.resetDatabaseConfirm;
     final confirmContent = context.l.resetDatabaseWarningDetail;
     final confirmLabel = context.l.resetDatabaseButton;
@@ -172,7 +184,7 @@ class MenuScreen extends ConsumerWidget {
         content: Text(confirmContent),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(cancelLabel)),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, true), style: TextButton.styleFrom(foregroundColor: Colors.red), child: Text(confirmLabel)),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, true), style: TextButton.styleFrom(foregroundColor: colorScheme.error), child: Text(confirmLabel)),
         ],
       ),
     );
@@ -186,13 +198,18 @@ class MenuScreen extends ConsumerWidget {
     final errorLabel = context.l.resetDatabaseError;
     try {
       await ref.read(menuRepositoryProvider).resetDatabase();
-      if (context.mounted) _showSnackBar(context, successLabel, Colors.green);
+      if (context.mounted) _showSnackBar(context, successLabel);
     } catch (e) {
-      if (context.mounted) _showSnackBar(context, errorLabel(e.toString()), Colors.red);
+      if (context.mounted) _showSnackBar(context, errorLabel(e.toString()), isError: true);
     }
   }
 
-  void _showSnackBar(BuildContext context, String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
+  void _showSnackBar(BuildContext context, String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
+      ),
+    );
   }
 }

@@ -613,6 +613,186 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Annuler'**
   String get cancel;
+
+  /// No description provided for @babyProfilesSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bébés'**
+  String get babyProfilesSectionTitle;
+
+  /// No description provided for @babyProfilesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun profil bébé'**
+  String get babyProfilesEmpty;
+
+  /// No description provided for @babyProfilesError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec du chargement des profils'**
+  String get babyProfilesError;
+
+  /// No description provided for @addBaby.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un bébé'**
+  String get addBaby;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le profil'**
+  String get editProfile;
+
+  /// No description provided for @babyName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du bébé'**
+  String get babyName;
+
+  /// No description provided for @birthDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date de naissance'**
+  String get birthDate;
+
+  /// No description provided for @update.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get update;
+
+  /// No description provided for @babyAddedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil bébé ajouté avec succès'**
+  String get babyAddedSuccess;
+
+  /// No description provided for @babyAddError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de l\'ajout du profil bébé'**
+  String get babyAddError;
+
+  /// No description provided for @babyUpdatedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil bébé modifié avec succès'**
+  String get babyUpdatedSuccess;
+
+  /// No description provided for @babyUpdateError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la modification du profil bébé'**
+  String get babyUpdateError;
+
+  /// No description provided for @babyDeletedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil bébé supprimé'**
+  String get babyDeletedSuccess;
+
+  /// No description provided for @babyDeleteError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la suppression du profil bébé'**
+  String get babyDeleteError;
+
+  /// No description provided for @deleteBabyConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le profil bébé ?'**
+  String get deleteBabyConfirm;
+
+  /// No description provided for @deleteBabyWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voulez-vous vraiment supprimer \'{formatName}\' ?'**
+  String deleteBabyWarning(Object formatName);
+
+  /// No description provided for @deleteBabyDataWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les événements trackés pour ce bébé seront également supprimés.'**
+  String get deleteBabyDataWarning;
+
+  /// No description provided for @delete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get delete;
+
+  /// No description provided for @dayOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'jour'**
+  String get dayOld;
+
+  /// No description provided for @daysOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'jours'**
+  String get daysOld;
+
+  /// No description provided for @monthOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'mois'**
+  String get monthOld;
+
+  /// No description provided for @monthsOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'mois'**
+  String get monthsOld;
+
+  /// No description provided for @yearOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'an'**
+  String get yearOld;
+
+  /// No description provided for @yearsOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'ans'**
+  String get yearsOld;
+
+  /// No description provided for @onboardingWelcome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue sur Mamadera !'**
+  String get onboardingWelcome;
+
+  /// No description provided for @onboardingSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créez le premier profil bébé pour commencer.'**
+  String get onboardingSubtitle;
+
+  /// No description provided for @onboardingNameHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du bébé'**
+  String get onboardingNameHint;
+
+  /// No description provided for @onboardingSaveAndContinue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer & Continuer'**
+  String get onboardingSaveAndContinue;
+
+  /// No description provided for @onboardingSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil bébé créé !'**
+  String get onboardingSuccess;
+
+  /// No description provided for @onboardingError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la création du profil bébé'**
+  String get onboardingError;
 }
 
 class _AppLocalizationsDelegate

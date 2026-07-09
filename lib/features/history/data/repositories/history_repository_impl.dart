@@ -19,15 +19,19 @@ class HistoryRepositoryImpl implements HistoryRepository {
   final db_app.AppDatabase _database;
 
   @override
-  Future<List<TrackingEvent>> getAllEventsOrdered() async {
-    final rows = await _database.getAllEventsOrdered();
+  Future<List<TrackingEvent>> getAllEventsOrdered({String? babyId}) async {
+    final rows = babyId != null
+        ? await _database.getEventsByBabyId(babyId)
+        : await _database.getAllEventsOrdered();
     return rows.map((row) => mapper.mapToEntity(row, encryption)).toList();
   }
 
   @override
-  Future<List<TrackingEvent>> getEventsByType(TrackingType type) async {
-    // La DB attend un String (nom de l'enum), on convertit
-    final rows = await _database.getEventsByType(type.name);
+  Future<List<TrackingEvent>> getEventsByType(TrackingType type, {String? babyId}) async {
+    final rows = babyId != null
+        ? await _database.getEventsByBabyId(babyId)
+            .then((events) => events.where((row) => row.type == type.name).toList())
+        : await _database.getEventsByType(type.name);
     return rows.map((row) => mapper.mapToEntity(row, encryption)).toList();
   }
 
@@ -42,7 +46,9 @@ class HistoryRepositoryImpl implements HistoryRepository {
           type: const Value(db_const.typeMiam),
           timestamp: Value(event.timestamp),
           duration: Value(event.duration),
+          subtype: Value(event.subtype.name),
           notes: Value(encryptedNotes),
+          babyId: Value(event.babyId),
           wasteType: const Value.absent(),
           color: const Value.absent(),
         );
@@ -53,6 +59,7 @@ class HistoryRepositoryImpl implements HistoryRepository {
           timestamp: Value(event.timestamp),
           duration: Value(event.duration),
           notes: Value(encryptedNotes),
+          babyId: Value(event.babyId),
           wasteType: const Value.absent(),
           color: const Value.absent(),
         );
@@ -63,6 +70,7 @@ class HistoryRepositoryImpl implements HistoryRepository {
           timestamp: Value(event.timestamp),
           duration: const Value.absent(),
           notes: Value(encryptedNotes),
+          babyId: Value(event.babyId),
           wasteType: Value(event.wasteType?.dbValue),
           color: Value(event.colorDbValue),
         );
@@ -72,7 +80,9 @@ class HistoryRepositoryImpl implements HistoryRepository {
           type: const Value(db_const.typeSante),
           timestamp: Value(event.timestamp),
           duration: const Value.absent(),
+          subtype: Value(event.subtype.value),
           notes: Value(encryptedNotes),
+          babyId: Value(event.babyId),
           wasteType: const Value.absent(),
           color: const Value.absent(),
         );

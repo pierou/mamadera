@@ -31,6 +31,7 @@ TrackingEvent _createFeedingEvent(db_app.TrackingEvent row, EncryptionService en
   return FeedingEvent(
     id: row.id,
     timestamp: row.timestamp,
+    babyId: row.babyId,
     subtype: _feedingSubtypeFromRow(row),
     duration: row.duration ?? 0.0,
     notes: encryption.decrypt(row.notes),
@@ -41,6 +42,7 @@ TrackingEvent _createSleepEvent(db_app.TrackingEvent row, EncryptionService encr
   return SleepEvent(
     id: row.id,
     timestamp: row.timestamp,
+    babyId: row.babyId,
     duration: row.duration ?? 0.0,
     notes: encryption.decrypt(row.notes),
   );
@@ -53,6 +55,7 @@ TrackingEvent _createDiaperEvent(db_app.TrackingEvent row, EncryptionService enc
   final base = DiaperEvent(
     id: row.id,
     timestamp: row.timestamp,
+    babyId: row.babyId,
     pipiColor: colors.$1,
     cacaColor: colors.$2,
     notes: encryption.decrypt(row.notes),
@@ -61,6 +64,7 @@ TrackingEvent _createDiaperEvent(db_app.TrackingEvent row, EncryptionService enc
   return isFallback ? base : DiaperEvent(
     id: row.id,
     timestamp: row.timestamp,
+    babyId: row.babyId,
     wasteType: wasteType,
     pipiColor: colors.$1,
     cacaColor: colors.$2,
@@ -69,26 +73,24 @@ TrackingEvent _createDiaperEvent(db_app.TrackingEvent row, EncryptionService enc
 }
 
 TrackingEvent _createHealthEvent(db_app.TrackingEvent row, EncryptionService encryption) {
-  final subtype = HealthSubtype.byValue(row.wasteType ?? '') ?? HealthSubtype.nettoyageYeux;
+  // Lire le subtype depuis la colonne dédiée (ou fallback pour anciennes données)
+  final subtypeValue = row.subtype ?? '';
+  final subtype = HealthSubtype.byValue(subtypeValue) ?? HealthSubtype.nettoyageYeux;
   return HealthEvent(
     id: row.id,
     timestamp: row.timestamp,
+    babyId: row.babyId,
     subtype: subtype,
     notes: encryption.decrypt(row.notes),
   );
 }
 
-/// Détermine le FeedingSubtype depuis la colonne `notes` ou fallback à `sein`.
+/// Détermine le FeedingSubtype depuis la colonne `subtype` ou fallback à `sein`.
 FeedingSubtype _feedingSubtypeFromRow(db_app.TrackingEvent row) {
-  if (row.notes != null && row.notes!.isNotEmpty) {
-    switch (row.notes!) {
-      case 'bib':
-        return FeedingSubtype.bib;
-      default:
-        // Par défaut, on considère que c'est un sein maternel
-        return FeedingSubtype.sein;
-    }
+  if (row.subtype != null && row.subtype!.isNotEmpty) {
+    return FeedingSubtype.values.byName(row.subtype!);
   }
+  // Fallback pour les anciennes données sans subtype column
   return FeedingSubtype.sein;
 }
 

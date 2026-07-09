@@ -279,4 +279,98 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get cancel => 'Annuler';
+
+  @override
+  String get babyProfilesSectionTitle => 'Bébés';
+
+  @override
+  String get babyProfilesEmpty => 'Aucun profil bébé';
+
+  @override
+  String get babyProfilesError => 'Échec du chargement des profils';
+
+  @override
+  String get addBaby => 'Ajouter un bébé';
+
+  @override
+  String get editProfile => 'Modifier le profil';
+
+  @override
+  String get babyName => 'Nom du bébé';
+
+  @override
+  String get birthDate => 'Date de naissance';
+
+  @override
+  String get update => 'Modifier';
+
+  @override
+  String get babyAddedSuccess => 'Profil bébé ajouté avec succès';
+
+  @override
+  String get babyAddError => 'Échec de l\'ajout du profil bébé';
+
+  @override
+  String get babyUpdatedSuccess => 'Profil bébé modifié avec succès';
+
+  @override
+  String get babyUpdateError => 'Échec de la modification du profil bébé';
+
+  @override
+  String get babyDeletedSuccess => 'Profil bébé supprimé';
+
+  @override
+  String get babyDeleteError => 'Échec de la suppression du profil bébé';
+
+  @override
+  String get deleteBabyConfirm => 'Supprimer le profil bébé ?';
+
+  @override
+  String deleteBabyWarning(Object formatName) {
+    return 'Voulez-vous vraiment supprimer \'$formatName\' ?';
+  }
+
+  @override
+  String get deleteBabyDataWarning =>
+      'Tous les événements trackés pour ce bébé seront également supprimés.';
+
+  @override
+  String get delete => 'Supprimer';
+
+  @override
+  String get dayOld => 'jour';
+
+  @override
+  String get daysOld => 'jours';
+
+  @override
+  String get monthOld => 'mois';
+
+  @override
+  String get monthsOld => 'mois';
+
+  @override
+  String get yearOld => 'an';
+
+  @override
+  String get yearsOld => 'ans';
+
+  @override
+  String get onboardingWelcome => 'Bienvenue sur Mamadera !';
+
+  @override
+  String get onboardingSubtitle =>
+      'Créez le premier profil bébé pour commencer.';
+
+  @override
+  String get onboardingNameHint => 'Nom du bébé';
+
+  @override
+  String get onboardingSaveAndContinue => 'Enregistrer & Continuer';
+
+  @override
+  String get onboardingSuccess => 'Profil bébé créé !';
+
+  @override
+  String get onboardingError => 'Échec de la création du profil bébé';
 }

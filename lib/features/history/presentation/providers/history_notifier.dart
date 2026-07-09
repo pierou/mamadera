@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
@@ -25,11 +26,16 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
 
   @override
   Future<List<TrackingEvent>> build() async {
+    // Watch active baby to re-fetch when it changes
+    ref.watch(activeBabyProvider);
     return _fetchWithTimeout(() async {
-      // historyRepositoryProvider est un FutureProvider → on attend l'instance.
+      // historyRepositoryProvider est un FutureProvider → on attends l'instance.
       final repository = await ref.read(historyRepositoryProvider.future);
+      final activeBaby = ref.read(activeBabyProvider).value;
+      final babyId = activeBaby?.id;
+
       if (_filter == HistoryFilter.all) {
-        return repository.getAllEventsOrdered();
+        return repository.getAllEventsOrdered(babyId: babyId);
       }
       final type = switch (_filter) {
         HistoryFilter.miam => TrackingType.miam,
@@ -38,7 +44,7 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
         HistoryFilter.sante => TrackingType.sante,
         HistoryFilter.all => throw StateError('unexpected all filter in build'),
       };
-      return repository.getEventsByType(type);
+      return repository.getEventsByType(type, babyId: babyId);
     });
   }
 
@@ -48,14 +54,15 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
     state = await AsyncValue.guard(() async {
       final repository = await ref.read(historyRepositoryProvider.future);
       await repository.updateEvent(id: event.id!, event: event);
-      return _fetchEvents(repository);
+      final activeBaby = ref.read(activeBabyProvider).value;
+      return _fetchEvents(repository, activeBaby?.id);
     });
   }
 
-  /// Fetch events based on current filter.
-  Future<List<TrackingEvent>> _fetchEvents(HistoryRepository repository) async {
+  /// Fetch events based on current filter and optional babyId.
+  Future<List<TrackingEvent>> _fetchEvents(HistoryRepository repository, String? babyId) async {
     if (_filter == HistoryFilter.all) {
-      return repository.getAllEventsOrdered();
+      return repository.getAllEventsOrdered(babyId: babyId);
     }
     final type = switch (_filter) {
       HistoryFilter.miam => TrackingType.miam,
@@ -64,7 +71,7 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
       HistoryFilter.sante => TrackingType.sante,
       HistoryFilter.all => throw StateError('unexpected all filter'),
     };
-    return repository.getEventsByType(type);
+    return repository.getEventsByType(type, babyId: babyId);
   }
 
   /// Supprime un événement par son ID et rafraîchit la liste.
@@ -73,8 +80,11 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
     state = await AsyncValue.guard(() async {
       final repository = await ref.read(historyRepositoryProvider.future);
       await repository.deleteEvent(id);
+      final activeBaby = ref.read(activeBabyProvider).value;
+      final babyId = activeBaby?.id;
+
       if (_filter == HistoryFilter.all) {
-        return repository.getAllEventsOrdered();
+        return repository.getAllEventsOrdered(babyId: babyId);
       }
       final type = switch (_filter) {
         HistoryFilter.miam => TrackingType.miam,
@@ -92,7 +102,7 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
     try {
       return await fetch().timeout(timeout);
     } on TimeoutException {
-      throw Exception('Délai d\'attente dépassé (${timeout.inSeconds}s)');
+      throw Exception("Délai d'attente dépassé (${timeout.inSeconds}s)");
     }
   }
 }

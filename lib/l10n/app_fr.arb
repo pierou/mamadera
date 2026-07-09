@@ -128,5 +128,46 @@
       "error": {}
     }
   },
-  "cancel": "Annuler"
+  "cancel": "Annuler",
+
+  "babyProfilesSectionTitle": "Bébés",
+  "babyProfilesEmpty": "Aucun profil bébé",
+  "babyProfilesError": "Échec du chargement des profils",
+
+  "addBaby": "Ajouter un bébé",
+  "editProfile": "Modifier le profil",
+  "babyName": "Nom du bébé",
+  "birthDate": "Date de naissance",
+  "update": "Modifier",
+
+  "babyAddedSuccess": "Profil bébé ajouté avec succès",
+  "babyAddError": "Échec de l'ajout du profil bébé",
+  "babyUpdatedSuccess": "Profil bébé modifié avec succès",
+  "babyUpdateError": "Échec de la modification du profil bébé",
+  "babyDeletedSuccess": "Profil bébé supprimé",
+  "babyDeleteError": "Échec de la suppression du profil bébé",
+
+  "deleteBabyConfirm": "Supprimer le profil bébé ?",
+  "deleteBabyWarning": "Voulez-vous vraiment supprimer '{formatName}' ?",
+  "@deleteBabyWarning": {
+    "placeholders": {
+      "formatName": {}
+    }
+  },
+  "deleteBabyDataWarning": "Tous les événements trackés pour ce bébé seront également supprimés.",
+  "delete": "Supprimer",
+
+  "dayOld": "jour",
+  "daysOld": "jours",
+  "monthOld": "mois",
+  "monthsOld": "mois",
+  "yearOld": "an",
+  "yearsOld": "ans",
+
+  "onboardingWelcome": "Bienvenue sur Mamadera !",
+  "onboardingSubtitle": "Créez le premier profil bébé pour commencer.",
+  "onboardingNameHint": "Nom du bébé",
+  "onboardingSaveAndContinue": "Enregistrer & Continuer",
+  "onboardingSuccess": "Profil bébé créé !",
+  "onboardingError": "Échec de la création du profil bébé"
 }

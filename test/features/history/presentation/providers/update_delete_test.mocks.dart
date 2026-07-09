@@ -31,11 +31,12 @@ import 'package:mockito/mockito.dart' as _i1;
 /// See the documentation for Mockito's code generation for more information.
 class MockHistoryRepository extends _i1.Mock implements _i2.HistoryRepository {
   @override
-  _i3.Future<List<_i4.TrackingEvent>> getAllEventsOrdered() =>
+  _i3.Future<List<_i4.TrackingEvent>> getAllEventsOrdered({String? babyId}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAllEventsOrdered,
           [],
+          {#babyId: babyId},
         ),
         returnValue:
             _i3.Future<List<_i4.TrackingEvent>>.value(<_i4.TrackingEvent>[]),
@@ -44,11 +45,15 @@ class MockHistoryRepository extends _i1.Mock implements _i2.HistoryRepository {
       ) as _i3.Future<List<_i4.TrackingEvent>>);
 
   @override
-  _i3.Future<List<_i4.TrackingEvent>> getEventsByType(_i5.TrackingType? type) =>
+  _i3.Future<List<_i4.TrackingEvent>> getEventsByType(
+    _i5.TrackingType? type, {
+    String? babyId,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getEventsByType,
           [type],
+          {#babyId: babyId},
         ),
         returnValue:
             _i3.Future<List<_i4.TrackingEvent>>.value(<_i4.TrackingEvent>[]),

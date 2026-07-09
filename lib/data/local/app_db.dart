@@ -19,8 +19,9 @@ class TrackingEvents extends Table {
   TextColumn get type => text()(); // miam, caca, dodo, sein, bib, sante
   DateTimeColumn get timestamp => dateTime()();
   RealColumn get duration => real().nullable()(); // en minutes (dodo, sein)
-  TextColumn get notes => text().nullable()();
-  TextColumn get wasteType => text().nullable()(); // pipi, caca, les_deux
+  TextColumn get subtype => text().nullable()();  // typed event subtype: 'sein'|'bib' for feeding, health subtype values
+  TextColumn get notes => text().nullable()();    // encrypted user text only
+  TextColumn get wasteType => text().nullable()(); // pipi, caca, les_deux (diaper events only)
   TextColumn get color => text().nullable()();     // couleur de la selle ou pipe-délimitée (pipi|caca)
   TextColumn get babyId => text().nullable()();    // nullable FK to baby_profiles(id), backward compatible
 }
@@ -41,7 +42,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
   @override
@@ -68,6 +69,16 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             await m.createTable(babyProfiles);
             await m.database.customStatement('ALTER TABLE tracking_events ADD COLUMN baby_id TEXT');
+          }
+          // v4 → v5 : ajout de subtype column + migration des données legacy (health subtypes dans wasteType)
+          if (from < 5) {
+            await m.database.customStatement('ALTER TABLE tracking_events ADD COLUMN subtype TEXT');
+            // Migrer les événements health: copier wasteType → subtype et effacer wasteType
+            await m.database.customStatement(
+                "UPDATE tracking_events SET subtype = waste_type, waste_type = NULL WHERE type = 'sante'");
+            // Migrer les événements feeding: définir subtype = 'sein' par défaut (bib n'était jamais persisté)
+            await m.database.customStatement(
+                "UPDATE tracking_events SET subtype = 'sein' WHERE type = 'miam' AND subtype IS NULL");
           }
         },
       );

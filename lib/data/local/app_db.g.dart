@@ -303,6 +303,12 @@ class $TrackingEventsTable extends TrackingEvents
   late final GeneratedColumn<double> duration = GeneratedColumn<double>(
       'duration', aliasedName, true,
       type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _subtypeMeta =
+      const VerificationMeta('subtype');
+  @override
+  late final GeneratedColumn<String> subtype = GeneratedColumn<String>(
+      'subtype', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -326,7 +332,7 @@ class $TrackingEventsTable extends TrackingEvents
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, type, timestamp, duration, notes, wasteType, color, babyId];
+      [id, type, timestamp, duration, subtype, notes, wasteType, color, babyId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -355,6 +361,10 @@ class $TrackingEventsTable extends TrackingEvents
     if (data.containsKey('duration')) {
       context.handle(_durationMeta,
           duration.isAcceptableOrUnknown(data['duration']!, _durationMeta));
+    }
+    if (data.containsKey('subtype')) {
+      context.handle(_subtypeMeta,
+          subtype.isAcceptableOrUnknown(data['subtype']!, _subtypeMeta));
     }
     if (data.containsKey('notes')) {
       context.handle(
@@ -389,6 +399,8 @@ class $TrackingEventsTable extends TrackingEvents
           .read(DriftSqlType.dateTime, data['${effectivePrefix}timestamp'])!,
       duration: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}duration']),
+      subtype: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}subtype']),
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
       wasteType: attachedDatabase.typeMapping
@@ -411,6 +423,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
   final String type;
   final DateTime timestamp;
   final double? duration;
+  final String? subtype;
   final String? notes;
   final String? wasteType;
   final String? color;
@@ -420,6 +433,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       required this.type,
       required this.timestamp,
       this.duration,
+      this.subtype,
       this.notes,
       this.wasteType,
       this.color,
@@ -432,6 +446,9 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
     map['timestamp'] = Variable<DateTime>(timestamp);
     if (!nullToAbsent || duration != null) {
       map['duration'] = Variable<double>(duration);
+    }
+    if (!nullToAbsent || subtype != null) {
+      map['subtype'] = Variable<String>(subtype);
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
@@ -456,6 +473,9 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       duration: duration == null && nullToAbsent
           ? const Value.absent()
           : Value(duration),
+      subtype: subtype == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subtype),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
       wasteType: wasteType == null && nullToAbsent
@@ -476,6 +496,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       type: serializer.fromJson<String>(json['type']),
       timestamp: serializer.fromJson<DateTime>(json['timestamp']),
       duration: serializer.fromJson<double?>(json['duration']),
+      subtype: serializer.fromJson<String?>(json['subtype']),
       notes: serializer.fromJson<String?>(json['notes']),
       wasteType: serializer.fromJson<String?>(json['wasteType']),
       color: serializer.fromJson<String?>(json['color']),
@@ -490,6 +511,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       'type': serializer.toJson<String>(type),
       'timestamp': serializer.toJson<DateTime>(timestamp),
       'duration': serializer.toJson<double?>(duration),
+      'subtype': serializer.toJson<String?>(subtype),
       'notes': serializer.toJson<String?>(notes),
       'wasteType': serializer.toJson<String?>(wasteType),
       'color': serializer.toJson<String?>(color),
@@ -502,6 +524,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           String? type,
           DateTime? timestamp,
           Value<double?> duration = const Value.absent(),
+          Value<String?> subtype = const Value.absent(),
           Value<String?> notes = const Value.absent(),
           Value<String?> wasteType = const Value.absent(),
           Value<String?> color = const Value.absent(),
@@ -511,6 +534,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
         type: type ?? this.type,
         timestamp: timestamp ?? this.timestamp,
         duration: duration.present ? duration.value : this.duration,
+        subtype: subtype.present ? subtype.value : this.subtype,
         notes: notes.present ? notes.value : this.notes,
         wasteType: wasteType.present ? wasteType.value : this.wasteType,
         color: color.present ? color.value : this.color,
@@ -522,6 +546,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       type: data.type.present ? data.type.value : this.type,
       timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
       duration: data.duration.present ? data.duration.value : this.duration,
+      subtype: data.subtype.present ? data.subtype.value : this.subtype,
       notes: data.notes.present ? data.notes.value : this.notes,
       wasteType: data.wasteType.present ? data.wasteType.value : this.wasteType,
       color: data.color.present ? data.color.value : this.color,
@@ -536,6 +561,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           ..write('type: $type, ')
           ..write('timestamp: $timestamp, ')
           ..write('duration: $duration, ')
+          ..write('subtype: $subtype, ')
           ..write('notes: $notes, ')
           ..write('wasteType: $wasteType, ')
           ..write('color: $color, ')
@@ -546,7 +572,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
 
   @override
   int get hashCode => Object.hash(
-      id, type, timestamp, duration, notes, wasteType, color, babyId);
+      id, type, timestamp, duration, subtype, notes, wasteType, color, babyId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -555,6 +581,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           other.type == this.type &&
           other.timestamp == this.timestamp &&
           other.duration == this.duration &&
+          other.subtype == this.subtype &&
           other.notes == this.notes &&
           other.wasteType == this.wasteType &&
           other.color == this.color &&
@@ -566,6 +593,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
   final Value<String> type;
   final Value<DateTime> timestamp;
   final Value<double?> duration;
+  final Value<String?> subtype;
   final Value<String?> notes;
   final Value<String?> wasteType;
   final Value<String?> color;
@@ -575,6 +603,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     this.type = const Value.absent(),
     this.timestamp = const Value.absent(),
     this.duration = const Value.absent(),
+    this.subtype = const Value.absent(),
     this.notes = const Value.absent(),
     this.wasteType = const Value.absent(),
     this.color = const Value.absent(),
@@ -585,6 +614,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     required String type,
     required DateTime timestamp,
     this.duration = const Value.absent(),
+    this.subtype = const Value.absent(),
     this.notes = const Value.absent(),
     this.wasteType = const Value.absent(),
     this.color = const Value.absent(),
@@ -596,6 +626,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     Expression<String>? type,
     Expression<DateTime>? timestamp,
     Expression<double>? duration,
+    Expression<String>? subtype,
     Expression<String>? notes,
     Expression<String>? wasteType,
     Expression<String>? color,
@@ -606,6 +637,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       if (type != null) 'type': type,
       if (timestamp != null) 'timestamp': timestamp,
       if (duration != null) 'duration': duration,
+      if (subtype != null) 'subtype': subtype,
       if (notes != null) 'notes': notes,
       if (wasteType != null) 'waste_type': wasteType,
       if (color != null) 'color': color,
@@ -618,6 +650,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       Value<String>? type,
       Value<DateTime>? timestamp,
       Value<double?>? duration,
+      Value<String?>? subtype,
       Value<String?>? notes,
       Value<String?>? wasteType,
       Value<String?>? color,
@@ -627,6 +660,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       type: type ?? this.type,
       timestamp: timestamp ?? this.timestamp,
       duration: duration ?? this.duration,
+      subtype: subtype ?? this.subtype,
       notes: notes ?? this.notes,
       wasteType: wasteType ?? this.wasteType,
       color: color ?? this.color,
@@ -648,6 +682,9 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     }
     if (duration.present) {
       map['duration'] = Variable<double>(duration.value);
+    }
+    if (subtype.present) {
+      map['subtype'] = Variable<String>(subtype.value);
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
@@ -671,6 +708,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
           ..write('type: $type, ')
           ..write('timestamp: $timestamp, ')
           ..write('duration: $duration, ')
+          ..write('subtype: $subtype, ')
           ..write('notes: $notes, ')
           ..write('wasteType: $wasteType, ')
           ..write('color: $color, ')
@@ -1257,6 +1295,7 @@ typedef $$TrackingEventsTableCreateCompanionBuilder = TrackingEventsCompanion
   required String type,
   required DateTime timestamp,
   Value<double?> duration,
+  Value<String?> subtype,
   Value<String?> notes,
   Value<String?> wasteType,
   Value<String?> color,
@@ -1268,6 +1307,7 @@ typedef $$TrackingEventsTableUpdateCompanionBuilder = TrackingEventsCompanion
   Value<String> type,
   Value<DateTime> timestamp,
   Value<double?> duration,
+  Value<String?> subtype,
   Value<String?> notes,
   Value<String?> wasteType,
   Value<String?> color,
@@ -1294,6 +1334,9 @@ class $$TrackingEventsTableFilterComposer
 
   ColumnFilters<double> get duration => $composableBuilder(
       column: $table.duration, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get subtype => $composableBuilder(
+      column: $table.subtype, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnFilters(column));
@@ -1329,6 +1372,9 @@ class $$TrackingEventsTableOrderingComposer
   ColumnOrderings<double> get duration => $composableBuilder(
       column: $table.duration, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get subtype => $composableBuilder(
+      column: $table.subtype, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnOrderings(column));
 
@@ -1362,6 +1408,9 @@ class $$TrackingEventsTableAnnotationComposer
 
   GeneratedColumn<double> get duration =>
       $composableBuilder(column: $table.duration, builder: (column) => column);
+
+  GeneratedColumn<String> get subtype =>
+      $composableBuilder(column: $table.subtype, builder: (column) => column);
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
@@ -1407,6 +1456,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             Value<String> type = const Value.absent(),
             Value<DateTime> timestamp = const Value.absent(),
             Value<double?> duration = const Value.absent(),
+            Value<String?> subtype = const Value.absent(),
             Value<String?> notes = const Value.absent(),
             Value<String?> wasteType = const Value.absent(),
             Value<String?> color = const Value.absent(),
@@ -1417,6 +1467,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             type: type,
             timestamp: timestamp,
             duration: duration,
+            subtype: subtype,
             notes: notes,
             wasteType: wasteType,
             color: color,
@@ -1427,6 +1478,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             required String type,
             required DateTime timestamp,
             Value<double?> duration = const Value.absent(),
+            Value<String?> subtype = const Value.absent(),
             Value<String?> notes = const Value.absent(),
             Value<String?> wasteType = const Value.absent(),
             Value<String?> color = const Value.absent(),
@@ -1437,6 +1489,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             type: type,
             timestamp: timestamp,
             duration: duration,
+            subtype: subtype,
             notes: notes,
             wasteType: wasteType,
             color: color,

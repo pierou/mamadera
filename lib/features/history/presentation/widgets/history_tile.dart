@@ -181,16 +181,19 @@ class _ColorIndicator extends StatelessWidget {
 
   final List<MapEntry<String, Color>> colors;
 
-  Widget _buildDot(MapEntry<String, Color> entry) {
-    return Container(
-      width: 16,
-      height: 16,
-      decoration: BoxDecoration(
-        color: entry.value,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white30, width: 1),
+  Widget _buildDot(BuildContext context, MapEntry<String, Color> entry) {
+    return Semantics(
+      label: entry.key,
+      child: Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          color: entry.value,
+          shape: BoxShape.circle,
+          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3), width: 1),
+        ),
+        child: Tooltip(message: entry.key, child: const SizedBox.shrink()),
       ),
-      child: Tooltip(message: entry.key, child: const SizedBox.shrink()),
     );
   }
 
@@ -201,7 +204,7 @@ class _ColorIndicator extends StatelessWidget {
       child: Wrap(
         spacing: 4,
         runSpacing: 2,
-        children: colors.map(_buildDot).toList(),
+        children: colors.map((c) => _buildDot(context, c)).toList(),
       ),
     );
   }

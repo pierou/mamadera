@@ -95,6 +95,104 @@ void main() {
         throwsA(isA<Exception>()),
       );
     });
+
+    test('ecrit le subtype pour FeedingEvent.bib dans la colonne subtype', () async {
+      when(mockDb.insertEvent(any)).thenAnswer((invocation) async {
+        final companion = invocation.positionalArguments.first as db_app.TrackingEventsCompanion;
+        // Vérifier que subtype est écrit avec 'bib'
+        expect(companion.subtype.value, equals('bib'));
+        return 1;
+      });
+
+      final event = FeedingEvent(
+        timestamp: DateTime.now(),
+        subtype: FeedingSubtype.bib,
+        duration: 20,
+      );
+      final id = await repository.insertEvent(event);
+
+      expect(id, equals(1));
+    });
+
+    test('ecrit le subtype pour HealthEvent.vitamine_d dans la colonne subtype', () async {
+      when(mockDb.insertEvent(any)).thenAnswer((invocation) async {
+        final companion = invocation.positionalArguments.first as db_app.TrackingEventsCompanion;
+        // Vérifier que health subtype est écrit dans 'subtype' et NON dans wasteType
+        expect(companion.subtype.value, equals('vitamine_d'));
+        expect(companion.wasteType.value, isNull);
+        return 1;
+      });
+
+      final event = HealthEvent(
+        timestamp: DateTime.now(),
+        subtype: HealthSubtype.vitamineD,
+      );
+      final id = await repository.insertEvent(event);
+
+      expect(id, equals(1));
+    });
+
+    test('round-trip: FeedingEvent.bib → DB row avec subtype="bib" → mapper retourne bib', () async {
+      when(mockDb.insertEvent(any)).thenAnswer((_) async => 100);
+      when(mockEncryption.decrypt(any)).thenReturn(null);
+
+      final event = FeedingEvent(
+        timestamp: DateTime.utc(2024, 5, 1),
+        subtype: FeedingSubtype.bib,
+        duration: 25,
+      );
+      final insertedId = await repository.insertEvent(event);
+      expect(insertedId, equals(100));
+
+      // Simuler la lecture depuis DB avec subtype="bib" dans la colonne dédiée
+      when(mockDb.getAllEventsOrdered()).thenAnswer((_) async => [
+        db_app.TrackingEvent(
+          id: 100,
+          type: 'miam',
+          timestamp: DateTime.utc(2024, 5, 1),
+          duration: 25,
+          subtype: 'bib', // La colonne subtype contient bien 'bib'
+          notes: null,
+          wasteType: null,
+          color: null,
+        ),
+      ]);
+
+      final events = await repository.getAllEventsOrdered();
+      expect(events.length, equals(1));
+      final readBack = events.first as FeedingEvent;
+      expect(readBack.subtype, equals(FeedingSubtype.bib));
+    });
+
+    test('round-trip: HealthEvent.nettoyage_yeux → DB row avec subtype="nettoyage_yeux" → mapper retourne nettoyageYeux', () async {
+      when(mockDb.insertEvent(any)).thenAnswer((_) async => 200);
+      when(mockEncryption.decrypt(any)).thenReturn(null);
+
+      final event = HealthEvent(
+        timestamp: DateTime.utc(2024, 6, 15),
+        subtype: HealthSubtype.nettoyageYeux,
+      );
+      await repository.insertEvent(event);
+
+      // Simuler la lecture depuis DB avec subtype="nettoyage_yeux" dans la colonne dédiée
+      when(mockDb.getAllEventsOrdered()).thenAnswer((_) async => [
+        db_app.TrackingEvent(
+          id: 200,
+          type: 'sante',
+          timestamp: DateTime.utc(2024, 6, 15),
+          duration: null,
+          subtype: 'nettoyage_yeux', // La colonne subtype contient la valeur health
+          notes: null,
+          wasteType: null,
+          color: null,
+        ),
+      ]);
+
+      final events = await repository.getAllEventsOrdered();
+      expect(events.length, equals(1));
+      final readBack = events.first as HealthEvent;
+      expect(readBack.subtype.value, equals('nettoyage_yeux'));
+    });
   });
 
   group('getAllEventsOrdered', () {
@@ -115,6 +213,7 @@ void main() {
             type: 'miam',
             timestamp: DateTime.utc(2024),
             duration: null,
+            subtype: 'sein',
             notes: 'encrypted_note_value',
             wasteType: null,
             color: null,
@@ -135,6 +234,7 @@ void main() {
             type: 'caca',
             timestamp: DateTime.utc(2024),
             duration: null,
+            subtype: null, // diaper events have no subtype
             notes: null,
             wasteType: WasteType.pipi.dbValue,
             color: PipiColor.jauneClair.value,
@@ -157,8 +257,7 @@ void main() {
             id: 1,
             type: 'caca',
             timestamp: DateTime.utc(2024),
-            duration: null,
-            notes: null,
+            duration: null,            subtype: null, // diaper events have no subtype            notes: null,
             wasteType: WasteType.caca.dbValue,
             color: CacaColor.meconium.value,
           ),
@@ -181,8 +280,7 @@ void main() {
             id: 1,
             type: 'caca',
             timestamp: DateTime.utc(2024),
-            duration: null,
-            notes: null,
+            duration: null,            subtype: null, // diaper events have no subtype            notes: null,
             wasteType: WasteType.lesDeux.dbValue,
             color: colorPipe,
           ),
@@ -205,6 +303,7 @@ void main() {
             type: 'caca',
             timestamp: DateTime.utc(2024),
             duration: null,
+            subtype: null, // diaper events have no subtype
             notes: null,
             wasteType: WasteType.lesDeux.dbValue,
             color: PipiColor.jauneClair.value,
@@ -227,6 +326,7 @@ void main() {
             type: 'caca',
             timestamp: DateTime.utc(2024),
             duration: null,
+            subtype: null, // diaper events have no subtype
             notes: null,
             wasteType: WasteType.pipi.dbValue,
             color: null,
@@ -242,12 +342,14 @@ void main() {
       });
 
       test('ignore couleur vide', () async {
+        when(mockEncryption.decrypt(any)).thenReturn(null);
         when(mockDb.getAllEventsOrdered()).thenAnswer((_) async => [
           db_app.TrackingEvent(
             id: 1,
             type: 'caca',
             timestamp: DateTime.utc(2024),
             duration: null,
+            subtype: null, // diaper events have no subtype
             notes: null,
             wasteType: WasteType.caca.dbValue,
             color: '', // empty string — should be ignored
@@ -290,6 +392,7 @@ void main() {
           type: 'caca',
           timestamp: DateTime.utc(2024),
           duration: null,
+          subtype: null, // diaper events have no subtype
           notes: null,
           wasteType: WasteType.pipi.dbValue,
           color: PipiColor.roseUrates.value,
@@ -328,12 +431,14 @@ void main() {
     });
 
     test('retourne le timestamp de l\'événement le plus récent sans filtre sous-type', () async {
+      when(mockEncryption.decrypt(any)).thenReturn(null);
       when(mockDb.getEventsByType(any)).thenAnswer((_) async => [
         db_app.TrackingEvent(
           id: 2,
           type: 'miam',
           timestamp: DateTime.utc(2024, 6, 1),
           duration: null,
+          subtype: 'sein', // feeding events have subtype
           notes: null,
           wasteType: null,
           color: null,
@@ -356,6 +461,7 @@ void main() {
           type: 'miam',
           timestamp: newer,
           duration: null,
+          subtype: 'sein', // feeding events have subtype
           notes: null,
           wasteType: null,
           color: null,
@@ -365,6 +471,7 @@ void main() {
           type: 'miam',
           timestamp: older,
           duration: null,
+          subtype: 'sein', // feeding events have subtype
           notes: null,
           wasteType: null,
           color: null,
@@ -377,9 +484,8 @@ void main() {
     });
 
     test('filtre HealthEvents par sous-type et retourne le plus récent', () async {
-      // Decrypt passes through notes so HealthSubtype.byValue() can parse them
-      when(mockEncryption.decrypt(any)).thenAnswer((invocation) =>
-          invocation.positionalArguments.first as String);
+      // Subtypes are now in the dedicated subtype column, not in encrypted notes
+      when(mockEncryption.decrypt(any)).thenReturn(null);
       final olderVitD = DateTime.utc(2024, 1, 15);
       final newerVitK = DateTime.utc(2024, 3, 20);
       when(mockDb.getEventsByType(any)).thenAnswer((_) async => [
@@ -388,7 +494,8 @@ void main() {
           type: 'sante',
           timestamp: olderVitD,
           duration: null,
-          notes: 'vitamine_d',
+          subtype: 'vitamine_d', // health subtype in dedicated column
+          notes: null,
           wasteType: null,
           color: null,
         ),
@@ -397,7 +504,8 @@ void main() {
           type: 'sante',
           timestamp: newerVitK,
           duration: null,
-          notes: 'vitamine_k',
+          subtype: 'vitamine_k', // health subtype in dedicated column
+          notes: null,
           wasteType: null,
           color: null,
         ),
@@ -412,16 +520,16 @@ void main() {
     });
 
     test('retourne null quand le filtre sous-type ne correspond à rien', () async {
-      // Decrypt passes through notes so HealthSubtype.byValue() can parse them
-      when(mockEncryption.decrypt(any)).thenAnswer((invocation) =>
-          invocation.positionalArguments.first as String);
+      // Subtypes are in dedicated column, no match for 'nettoyage_yeux'
+      when(mockEncryption.decrypt(any)).thenReturn(null);
       when(mockDb.getEventsByType(any)).thenAnswer((_) async => [
         db_app.TrackingEvent(
           id: 1,
           type: 'sante',
           timestamp: DateTime.utc(2024),
           duration: null,
-          notes: 'vitamine_d',
+          subtype: 'vitamine_d', // health subtype in dedicated column
+          notes: null,
           wasteType: null,
           color: null,
         ),

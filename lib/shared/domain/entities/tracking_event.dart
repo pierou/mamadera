@@ -9,10 +9,11 @@ import 'tracking_type.dart';
 /// unrelated event types. The [trackingType] tag on the base class allows
 /// filtering/aggregation without requiring pattern matching.
 sealed class TrackingEvent extends Equatable {
-  const TrackingEvent({required this.timestamp, this.id});
+  const TrackingEvent({required this.timestamp, this.id, this.babyId});
 
   final int? id;
   final DateTime timestamp;
+  final String? babyId;
 
   /// Discriminator tag returned by each subtype for its [TrackingType].
   TrackingType get trackingType;
@@ -21,7 +22,7 @@ sealed class TrackingEvent extends Equatable {
 /// Alimentation (miam) — tétée ou biberon.
 class FeedingEvent extends TrackingEvent {
   const FeedingEvent({
-    required super.timestamp, required this.subtype, required this.duration, super.id,
+    required super.timestamp, required this.subtype, required this.duration, super.id, super.babyId,
     this.notes,
   });
 
@@ -33,17 +34,17 @@ class FeedingEvent extends TrackingEvent {
   TrackingType get trackingType => TrackingType.miam;
 
   @override
-  List<Object?> get props => [id, timestamp, subtype, duration, notes];
+  List<Object?> get props => [id, timestamp, babyId, subtype, duration, notes];
 
   @override
   String toString() =>
-      'FeedingEvent(id: $id, timestamp: $timestamp, subtype: $subtype, duration: $duration, notes: $notes)';
+      'FeedingEvent(id: $id, timestamp: $timestamp, babyId: $babyId, subtype: $subtype, duration: $duration, notes: $notes)';
 }
 
 /// Sommeil (dodo).
 class SleepEvent extends TrackingEvent {
   const SleepEvent({
-    required super.timestamp, required this.duration, super.id,
+    required super.timestamp, required this.duration, super.id, super.babyId,
     this.notes,
   });
 
@@ -54,17 +55,17 @@ class SleepEvent extends TrackingEvent {
   TrackingType get trackingType => TrackingType.dodo;
 
   @override
-  List<Object?> get props => [id, timestamp, duration, notes];
+  List<Object?> get props => [id, timestamp, babyId, duration, notes];
 
   @override
   String toString() =>
-      'SleepEvent(id: $id, timestamp: $timestamp, duration: $duration, notes: $notes)';
+      'SleepEvent(id: $id, timestamp: $timestamp, babyId: $babyId, duration: $duration, notes: $notes)';
 }
 
 /// Caca / Pipi — type de selle + couleurs optionnelles.
 class DiaperEvent extends TrackingEvent {
   const DiaperEvent({
-    required super.timestamp, super.id,
+    required super.timestamp, super.id, super.babyId,
     this.wasteType,
     this.pipiColor,
     this.cacaColor,
@@ -100,17 +101,17 @@ class DiaperEvent extends TrackingEvent {
   TrackingType get trackingType => TrackingType.caca;
 
   @override
-  List<Object?> get props => [id, timestamp, wasteType, pipiColor, cacaColor, notes];
+  List<Object?> get props => [id, timestamp, babyId, wasteType, pipiColor, cacaColor, notes];
 
   @override
   String toString() =>
-      'DiaperEvent(id: $id, timestamp: $timestamp, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor, notes: $notes)';
+      'DiaperEvent(id: $id, timestamp: $timestamp, babyId: $babyId, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor, notes: $notes)';
 }
 
 /// Santé (sante) — soin avec sous-type typé.
 class HealthEvent extends TrackingEvent {
   const HealthEvent({
-    required super.timestamp, required this.subtype, super.id,
+    required super.timestamp, required this.subtype, super.id, super.babyId,
     this.notes,
   });
 
@@ -121,11 +122,11 @@ class HealthEvent extends TrackingEvent {
   TrackingType get trackingType => TrackingType.sante;
 
   @override
-  List<Object?> get props => [id, timestamp, subtype, notes];
+  List<Object?> get props => [id, timestamp, babyId, subtype, notes];
 
   @override
   String toString() =>
-      'HealthEvent(id: $id, timestamp: $timestamp, subtype: ${subtype.value}, notes: $notes)';
+      'HealthEvent(id: $id, timestamp: $timestamp, babyId: $babyId, subtype: ${subtype.value}, notes: $notes)';
 }
 
 

@@ -1,7 +1,8 @@
 
 -- Mamadera Database Schema
--- Version: 4
+-- Version: 5
 -- Source : lib/data/local/app_db.dart (BabyProfiles + TrackingEvents + ReminderDismissals)
+-- Changelog v5: Added `subtype` column for typed event subtype persistence (FeedingSubtype, HealthSubtype)
 
 -- ── Baby Profiles ────────────────────────────────────────────────
 
@@ -19,13 +20,14 @@ CREATE TABLE tracking_events (
     type        TEXT                              NOT NULL,
     timestamp   TIMESTAMP                         NOT NULL,
     duration    REAL,                             -- en minutes (pour dodo et sein)
-    notes       TEXT,                             -- subtype string OR encrypted user text
-    waste_type  TEXT,                             -- pipi, caca, les_deux
+    subtype     TEXT,                             -- typed event subtype: 'sein'|'bib' for feeding, 'nettoyage_yeux'|'vitamine_d'|... for health
+    notes       TEXT,                             -- encrypted user text only (no longer used for structured data)
+    waste_type  TEXT,                             -- pipi, caca, les_deux (diaper events only)
     color       TEXT,                             -- couleur de la selle ou pipe-délimitée (pipi|caca)
     baby_id     TEXT                              -- nullable FK to baby_profiles(id), backward compatible
 );
 
--- Migration: ALTER TABLE tracking_events ADD COLUMN baby_id TEXT;  -- v3 → v4 migration
+-- Migration v4 → v5: ALTER TABLE tracking_events ADD COLUMN subtype TEXT;
 
 CREATE INDEX idx_tracking_events_type ON tracking_events(type);
 

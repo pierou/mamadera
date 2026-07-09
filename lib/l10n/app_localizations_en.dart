@@ -278,4 +278,98 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancel => 'Cancel';
+
+  @override
+  String get babyProfilesSectionTitle => 'Babies';
+
+  @override
+  String get babyProfilesEmpty => 'No baby profiles yet';
+
+  @override
+  String get babyProfilesError => 'Failed to load baby profiles';
+
+  @override
+  String get addBaby => 'Add Baby';
+
+  @override
+  String get editProfile => 'Edit Profile';
+
+  @override
+  String get babyName => 'Baby Name';
+
+  @override
+  String get birthDate => 'Birth Date';
+
+  @override
+  String get update => 'Update';
+
+  @override
+  String get babyAddedSuccess => 'Baby profile added successfully';
+
+  @override
+  String get babyAddError => 'Failed to add baby profile';
+
+  @override
+  String get babyUpdatedSuccess => 'Baby profile updated successfully';
+
+  @override
+  String get babyUpdateError => 'Failed to update baby profile';
+
+  @override
+  String get babyDeletedSuccess => 'Baby profile deleted';
+
+  @override
+  String get babyDeleteError => 'Failed to delete baby profile';
+
+  @override
+  String get deleteBabyConfirm => 'Delete Baby Profile?';
+
+  @override
+  String deleteBabyWarning(Object formatName) {
+    return 'Are you sure you want to delete \'$formatName\'?';
+  }
+
+  @override
+  String get deleteBabyDataWarning =>
+      'All tracking events for this baby will also be deleted.';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get dayOld => 'day old';
+
+  @override
+  String get daysOld => 'days old';
+
+  @override
+  String get monthOld => 'month old';
+
+  @override
+  String get monthsOld => 'months old';
+
+  @override
+  String get yearOld => 'year old';
+
+  @override
+  String get yearsOld => 'years old';
+
+  @override
+  String get onboardingWelcome => 'Welcome to Mamadera!';
+
+  @override
+  String get onboardingSubtitle =>
+      'Create your first baby profile to get started.';
+
+  @override
+  String get onboardingNameHint => 'Baby\'s name';
+
+  @override
+  String get onboardingSaveAndContinue => 'Save & Continue';
+
+  @override
+  String get onboardingSuccess => 'Baby profile created!';
+
+  @override
+  String get onboardingError => 'Failed to create baby profile';
 }

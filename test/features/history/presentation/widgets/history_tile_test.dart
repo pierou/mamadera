@@ -310,5 +310,63 @@ void main() {
       // Tooltip widget should be present wrapping the color indicator
       expect(find.byType(Tooltip), findsOneWidget);
     });
+
+    testWidgets('renders correctly in light mode', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: ThemeData.light(),
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: Scaffold(
+              body: HistoryTile(
+                event: FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.sein, duration: 15),
+                time: '15/06/2024 10:30',
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('Miam'), findsOneWidget);
+    });
+
+    testWidgets('renders correctly in dark mode', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: ThemeData.dark(),
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: Scaffold(
+              body: HistoryTile(
+                event: FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.sein, duration: 15),
+                time: '15/06/2024 10:30',
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('Miam'), findsOneWidget);
+    });
+
+    testWidgets('has Semantics widgets for accessibility', (tester) async {
+      await pumpTile(
+        tester,
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.sein, duration: 15),
+      );
+      expect(find.byType(Semantics), findsWidgets);
+    });
   });
 }

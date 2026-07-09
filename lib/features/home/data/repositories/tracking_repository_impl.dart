@@ -63,7 +63,9 @@ class TrackingRepositoryImpl implements TrackingRepository {
             type: const Value(db_const.typeMiam),
             timestamp: Value(event.timestamp),
             duration: Value(event.duration),
+            subtype: Value(event.subtype.name),
             notes: Value(encryptedNotes),
+            babyId: Value(event.babyId),
             wasteType: const Value.absent(),
             color: const Value.absent(),
           );
@@ -74,6 +76,7 @@ class TrackingRepositoryImpl implements TrackingRepository {
             timestamp: Value(event.timestamp),
             duration: Value(event.duration),
             notes: Value(encryptedNotes),
+            babyId: Value(event.babyId),
             wasteType: const Value.absent(),
             color: const Value.absent(),
           );
@@ -84,6 +87,7 @@ class TrackingRepositoryImpl implements TrackingRepository {
             timestamp: Value(event.timestamp),
             duration: const Value.absent(),
             notes: Value(encryptedNotes),
+            babyId: Value(event.babyId),
             wasteType: Value(event.wasteType?.dbValue),
             color: Value(event.colorDbValue),
           );
@@ -93,8 +97,10 @@ class TrackingRepositoryImpl implements TrackingRepository {
             type: const Value(db_const.typeSante),
             timestamp: Value(event.timestamp),
             duration: const Value.absent(),
+            subtype: Value(event.subtype.value),
             notes: Value(encryptedNotes),
-            wasteType: Value(event.subtype.value),
+            babyId: Value(event.babyId),
+            wasteType: const Value.absent(),
             color: const Value.absent(),
           );
       }

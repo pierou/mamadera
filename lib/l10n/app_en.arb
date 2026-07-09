@@ -128,5 +128,46 @@
       "error": {}
     }
   },
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+
+  "babyProfilesSectionTitle": "Babies",
+  "babyProfilesEmpty": "No baby profiles yet",
+  "babyProfilesError": "Failed to load baby profiles",
+
+  "addBaby": "Add Baby",
+  "editProfile": "Edit Profile",
+  "babyName": "Baby Name",
+  "birthDate": "Birth Date",
+  "update": "Update",
+
+  "babyAddedSuccess": "Baby profile added successfully",
+  "babyAddError": "Failed to add baby profile",
+  "babyUpdatedSuccess": "Baby profile updated successfully",
+  "babyUpdateError": "Failed to update baby profile",
+  "babyDeletedSuccess": "Baby profile deleted",
+  "babyDeleteError": "Failed to delete baby profile",
+
+  "deleteBabyConfirm": "Delete Baby Profile?",
+  "deleteBabyWarning": "Are you sure you want to delete '{formatName}'?",
+  "@deleteBabyWarning": {
+    "placeholders": {
+      "formatName": {}
+    }
+  },
+  "deleteBabyDataWarning": "All tracking events for this baby will also be deleted.",
+  "delete": "Delete",
+
+  "dayOld": "day old",
+  "daysOld": "days old",
+  "monthOld": "month old",
+  "monthsOld": "months old",
+  "yearOld": "year old",
+  "yearsOld": "years old",
+
+  "onboardingWelcome": "Welcome to Mamadera!",
+  "onboardingSubtitle": "Create your first baby profile to get started.",
+  "onboardingNameHint": "Baby's name",
+  "onboardingSaveAndContinue": "Save & Continue",
+  "onboardingSuccess": "Baby profile created!",
+  "onboardingError": "Failed to create baby profile"
 }
