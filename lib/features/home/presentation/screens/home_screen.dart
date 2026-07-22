@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
-import '../../../../core/providers/active_baby_provider.dart';
+import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
@@ -32,10 +32,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Show onboarding after first frame if no active baby
+    // Show onboarding after first frame if no baby profile exists at all.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final activeBaby = ref.read(activeBabyProvider).value;
-      if (activeBaby == null && mounted) {
+      final anyExists = ref.read(anyBabyExistsProvider).value ?? false;
+      if (!anyExists && mounted) {
         showModalBottomSheet<Object?>(
           context: context,
           isScrollControlled: true,

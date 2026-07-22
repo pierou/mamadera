@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../shared/domain/entities/tracking_type.dart';
+import '../../../../../core/providers/active_baby_provider.dart';
+import '../../../../../shared/domain/entities/baby_profile.dart';
+import '../../../../../shared/domain/entities/tracking_type.dart';
 import '../../../home/presentation/providers/repository_provider.dart';
 import '../../domain/entities/reminders_state.dart';
 import 'reminder_providers.dart';
@@ -21,6 +23,14 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
 
   @override
   Future<Map<TrackingType, List<ReminderStatus>>> build() async {
+    // Re-evaluate reminders when the active baby profile changes.
+    ref.listen<AsyncValue<BabyProfile?>>(
+      activeBabyProvider,
+      (_, __) {
+        if (ref.mounted) unawaited(_tick());
+      },
+    );
+
     // Start periodic polling every 5 minutes.
     _startPolling();
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/active_baby_provider.dart';
+import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/domain/entities/baby_profile.dart';
@@ -163,9 +164,10 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
 
       await repository.insertProfile(newProfile);
       await ref.read(activeBabyProvider.notifier).refresh();
+      // Refresh the anyBabyExists provider so HomeScreen knows a profile now exists.
+      await ref.read(anyBabyExistsProvider.notifier).refresh();
 
       if (mounted) {
-        Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_locale.onboardingSuccess),

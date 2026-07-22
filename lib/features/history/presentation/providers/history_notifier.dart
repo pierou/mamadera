@@ -6,6 +6,7 @@ import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
+import '../../../reminders/presentation/providers/reminder_notifier.dart';
 import '../../domain/repositories/history_repository.dart';
 import 'history_repository_provider.dart';
 
@@ -57,6 +58,8 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
       final activeBaby = ref.read(activeBabyProvider).value;
       return _fetchEvents(repository, activeBaby?.id);
     });
+    // Refresh reminders so lastEventAt and due status are re-evaluated.
+    unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
   }
 
   /// Fetch events based on current filter and optional babyId.
@@ -95,6 +98,8 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
       };
       return repository.getEventsByType(type);
     });
+    // Refresh reminders so lastEventAt and due status are re-evaluated.
+    unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
   }
 }
 

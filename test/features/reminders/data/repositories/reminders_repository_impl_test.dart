@@ -35,7 +35,7 @@ void main() {
         await database.into(database.trackingEvents).insert(
           TrackingEventsCompanion.insert(
             type: vitaminDItem.trackingType.name,
-            wasteType: Value(vitaminDItem.subtypeValue),
+            subtype: Value(vitaminDItem.subtypeValue),
             timestamp: yesterday,
           ),
         );
@@ -49,7 +49,27 @@ void main() {
         await database.into(database.trackingEvents).insert(
           TrackingEventsCompanion.insert(
             type: vitaminDItem.trackingType.name,
-            wasteType: Value(vitaminDItem.subtypeValue),
+            subtype: Value(vitaminDItem.subtypeValue),
+            timestamp: now,
+          ),
+        );
+
+        final result = await repository.getLastCompletedToday(vitaminDItem);
+        expect(result, isNotNull);
+        expect(result!.year, equals(now.year));
+        expect(result.month, equals(now.month));
+        expect(result.day, equals(now.day));
+      });
+
+      test('returns timestamp when health event stored with subtype column only', () async {
+        // Regression test: health events store subtype in `subtype`, not `wasteType`.
+        // The query must use `t.subtype` to match reminder subtypes like 'vitamine_d'.
+        final now = DateTime.now();
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: vitaminDItem.trackingType.name,
+            subtype: Value(vitaminDItem.subtypeValue), // 'vitamine_d'
+            // wasteType is intentionally null for health events
             timestamp: now,
           ),
         );

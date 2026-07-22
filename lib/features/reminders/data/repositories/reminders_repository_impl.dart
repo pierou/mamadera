@@ -28,7 +28,7 @@ class RemindersRepositoryImpl implements RemindersRepository {
       final subtypeValue = item.subtypeValue;
       final q = (database.select(database.trackingEvents)
         ..where((t) {
-          final exp = t.type.equals(type) & (subtypeValue == null ? const Constant(true) : t.wasteType.equals(subtypeValue));
+          final exp = t.type.equals(type) & (subtypeValue == null ? const Constant(true) : t.subtype.equals(subtypeValue));
           return exp;
         })
         ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]));
