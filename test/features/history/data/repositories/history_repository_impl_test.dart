@@ -187,7 +187,8 @@ void main() {
           id: 4,
           timestamp: DateTime.now(),
           wasteType: WasteType.pipi,
-          pipiColor: PipiColor.roseUrates,
+          pipiColor:
+        pipiColorRoseUrates,
         );
         final result = await repository.updateEvent(id: 4, event: updated);
 
@@ -201,7 +202,8 @@ void main() {
           id: 5,
           timestamp: DateTime.now(),
           wasteType: WasteType.caca,
-          cacaColor: CacaColor.vertOlive,
+          cacaColor:
+        cacaColorVertOlive,
         );
         final result = await repository.updateEvent(id: 5, event: updated);
 
@@ -215,8 +217,10 @@ void main() {
           id: 6,
           timestamp: DateTime.now(),
           wasteType: WasteType.lesDeux,
-          pipiColor: PipiColor.incolore,
-          cacaColor: CacaColor.meconium,
+          pipiColor:
+        pipiColorIncolore,
+          cacaColor:
+        cacaColorMeconium,
         );
         final result = await repository.updateEvent(id: 6, event: updated);
 

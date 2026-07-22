@@ -74,8 +74,8 @@ void main() {
       final event = DiaperEvent(
         timestamp: DateTime.now(),
         wasteType: WasteType.pipi,
-        pipiColor: PipiColor.jauneClair,
-        cacaColor: CacaColor.meconium,
+        pipiColor: pipiColorJauneClair,
+        cacaColor: cacaColorMeconium,
       );
       final id = await repository.insertEvent(event);
 
@@ -237,7 +237,8 @@ void main() {
             subtype: null, // diaper events have no subtype
             notes: null,
             wasteType: WasteType.pipi.dbValue,
-            color: PipiColor.jauneClair.value,
+            color:
+        pipiColorJauneClair.value,
           ),
         ]);
 
@@ -247,7 +248,7 @@ void main() {
         final diaper = events.first as DiaperEvent;
         expect(diaper.wasteType, equals(WasteType.pipi));
         expect(diaper.pipiColor, isNotNull);
-        expect(diaper.pipiColor?.value, equals(PipiColor.jauneClair.value));
+        expect(diaper.pipiColor?.value, equals(pipiColorJauneClair.value));
       });
 
       test('mappe WasteType.caca avec cacaColor', () async {
@@ -259,7 +260,7 @@ void main() {
             timestamp: DateTime.utc(2024),
             duration: null,            subtype: null, // diaper events have no subtype            notes: null,
             wasteType: WasteType.caca.dbValue,
-            color: CacaColor.meconium.value,
+            color: cacaColorMeconium.value,
           ),
         ]);
 
@@ -269,12 +270,12 @@ void main() {
         final diaper = events.first as DiaperEvent;
         expect(diaper.wasteType, equals(WasteType.caca));
         expect(diaper.cacaColor, isNotNull);
-        expect(diaper.cacaColor?.value, equals(CacaColor.meconium.value));
+        expect(diaper.cacaColor?.value, equals(cacaColorMeconium.value));
       });
 
       test('mappe WasteType.lesDeux avec couleurs pipe-délimitées', () async {
         when(mockEncryption.decrypt(any)).thenReturn(null);
-        final colorPipe = '${PipiColor.jauneFonce.value}|${CacaColor.vertOlive.value}';
+        final colorPipe = '${pipiColorJauneFonce.value}|${cacaColorVertOlive.value}';
         when(mockDb.getAllEventsOrdered()).thenAnswer((_) async => [
           db_app.TrackingEvent(
             id: 1,
@@ -291,8 +292,8 @@ void main() {
         expect(events.length, equals(1));
         final diaper = events.first as DiaperEvent;
         expect(diaper.wasteType, equals(WasteType.lesDeux));
-        expect(diaper.pipiColor?.value, equals(PipiColor.jauneFonce.value));
-        expect(diaper.cacaColor?.value, equals(CacaColor.vertOlive.value));
+        expect(diaper.pipiColor?.value, equals(pipiColorJauneFonce.value));
+        expect(diaper.cacaColor?.value, equals(cacaColorVertOlive.value));
       });
 
       test('mappe WasteType.lesDeux avec fallback couleur unique', () async {
@@ -306,7 +307,8 @@ void main() {
             subtype: null, // diaper events have no subtype
             notes: null,
             wasteType: WasteType.lesDeux.dbValue,
-            color: PipiColor.jauneClair.value,
+            color:
+        pipiColorJauneClair.value,
           ),
         ]);
 
@@ -395,7 +397,7 @@ void main() {
           subtype: null, // diaper events have no subtype
           notes: null,
           wasteType: WasteType.pipi.dbValue,
-          color: PipiColor.roseUrates.value,
+          color: pipiColorRoseUrates.value,
         ),
       ]);
 
@@ -404,7 +406,7 @@ void main() {
       expect(events.length, equals(1));
       final diaper = events.first as DiaperEvent;
       expect(diaper.wasteType, equals(WasteType.pipi));
-      expect(diaper.pipiColor?.value, equals(PipiColor.roseUrates.value));
+      expect(diaper.pipiColor?.value, equals(pipiColorRoseUrates.value));
     });
 
     test('propage l\'exception du database', () async {

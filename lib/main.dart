@@ -3,14 +3,15 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 
 import 'core/providers/encryption_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/theme_provider.dart';
+import 'core/router.dart';
 import 'core/services/encryption_service.dart';
 import 'core/services/locale_service.dart';
 import 'core/theme.dart';
-import 'features/home/presentation/screens/home_screen.dart';
 import 'l10n/app_localizations.dart';
 
 Locale? _resolveLocale(AsyncValue<LocalePreference> localeState) {
@@ -30,34 +31,11 @@ ThemeMode _resolveThemeMode(WidgetRef ref) {
       );
 }
 
-Widget _buildMaterialApp({
-  required Locale? locale,
-  required ThemeMode themeMode,
-}) {
-  return MaterialApp(
-    title: 'Mamadera',
-    locale: locale,
-    supportedLocales: const [ui.Locale('fr'), ui.Locale('en')],
-    localizationsDelegates: const [
-      AppLocalizations.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ],
-    theme: AppTheme.lightTheme,
-    darkTheme: AppTheme.darkTheme,
-    themeMode: themeMode,
-    home: const HomeScreen(),
-  );
-}
-
 Future<EncryptionService> _initializeEncryption() async {
   final encryption = EncryptionService();
   await encryption.initialize();
   if (encryption.isUsingMemoryFallback) {
-    debugPrint(
-      '⚠️ Mode fallback: clé volatile en mémoire (pas de keyring disponible).',
-    );
+    Logger().w('⚠️ Mode fallback: clé volatile en mémoire (pas de keyring disponible).');
   }
   return encryption;
 }
@@ -83,9 +61,20 @@ class MyApp extends ConsumerWidget {
     final locale = _resolveLocale(ref.watch(localeProvider));
     final themeMode = _resolveThemeMode(ref);
 
-    return _buildMaterialApp(
+    return MaterialApp.router(
+      title: 'Mamadera',
       locale: locale,
+      supportedLocales: const [ui.Locale('fr'), ui.Locale('en')],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
+      routerConfig: router,
     );
   }
 }

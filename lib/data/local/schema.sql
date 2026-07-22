@@ -1,7 +1,8 @@
 
 -- Mamadera Database Schema
 -- Version: 5
--- Source : lib/data/local/app_db.dart (BabyProfiles + TrackingEvents + ReminderDismissals)
+-- Generated reference from lib/data/local/app_db.dart — do not edit directly.
+-- Source of truth is app_db.dart (Drift table definitions).
 -- Changelog v5: Added `subtype` column for typed event subtype persistence (FeedingSubtype, HealthSubtype)
 
 -- ── Baby Profiles ────────────────────────────────────────────────
@@ -37,5 +38,12 @@ CREATE INDEX idx_tracking_events_timestamp_type ON tracking_events(timestamp DES
 CREATE TABLE reminder_dismissals (
     item_id     TEXT PRIMARY KEY NOT NULL,         -- matches ReminderItem.id
     dismissed_at TIMESTAMP            NOT NULL     -- when the user last dismissed this reminder
+);
+
+-- ── Reminder Settings ──────────────────────────────────────────
+
+CREATE TABLE reminder_settings (
+    item_id     TEXT PRIMARY KEY NOT NULL,         -- matches ReminderItem.id
+    enabled     BOOLEAN DEFAULT 0 NOT NULL         -- whether this reminder is enabled
 );
 

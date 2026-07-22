@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mamadera/features/baby/domain/repositories/baby_profile_repository.dart';
 import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart';
 import 'package:mamadera/features/home/presentation/providers/repository_provider.dart' as repo_prov;
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
@@ -58,10 +59,10 @@ void main() {
     testWidgets('returns empty map when RemindersAllCompleted', (tester) async {
       final mockReminders = MockRemindersRepository();
       // Set all items as completed today → no reminders due
-      mockReminders.lastCompletedByItem[ReminderItem.vitaminD().id] = DateTime.now();
+      mockReminders.lastCompletedByItem[ReminderItemPresets.vitaminD.id] = DateTime.now();
 
       final service = RemindersService(
-        items: [ReminderItem.vitaminD()],
+        items: [ReminderItemPresets.vitaminD],
         repository: mockReminders,
       );
 
@@ -88,7 +89,7 @@ void main() {
       // No last completed → reminder IS due
 
       final service = RemindersService(
-        items: [ReminderItem.vitaminD()],
+        items: [ReminderItemPresets.vitaminD],
         repository: mockReminders,
       );
 
@@ -117,7 +118,7 @@ void main() {
       final mockReminders = MockRemindersRepository();
 
       final service = RemindersService(
-        items: [ReminderItem.vitaminD(), ReminderItem.eyeCleaning()],
+        items: [ReminderItemPresets.vitaminD, ReminderItemPresets.eyeCleaning],
         repository: mockReminders,
       );
 
@@ -139,7 +140,7 @@ void main() {
       final mockReminders = MockRemindersRepository();
 
       final service = RemindersService(
-        items: [ReminderItem.vitaminD()],
+        items: [ReminderItemPresets.vitaminD],
         repository: mockReminders,
       );
 
@@ -165,7 +166,7 @@ void main() {
 
       final mockReminders = MockRemindersRepository();
       final service = RemindersService(
-        items: [ReminderItem.vitaminD(), ReminderItem.eyeCleaning()],
+        items: [ReminderItemPresets.vitaminD, ReminderItemPresets.eyeCleaning],
         repository: mockReminders,
       );
 
@@ -185,7 +186,7 @@ void main() {
         DateTime.now(),
       );
       // Mark one item as completed
-      mockReminders.lastCompletedByItem[ReminderItem.vitaminD().id] = DateTime.now();
+      mockReminders.lastCompletedByItem[ReminderItemPresets.vitaminD.id] = DateTime.now();
 
       // Refresh
       final notifier = container.read(reminderNotifierProvider.notifier);
@@ -199,7 +200,7 @@ void main() {
       );
       // Only eyeCleaning should remain due
       expect(data[TrackingType.sante]!.length, equals(1));
-      expect(data[TrackingType.sante]!.first.item.id, equals(ReminderItem.eyeCleaning().id));
+      expect(data[TrackingType.sante]!.first.item.id, equals(ReminderItemPresets.eyeCleaning.id));
       container.dispose();
     });
   });
@@ -226,7 +227,7 @@ void main() {
     testWidgets('preserves lastEventAt when set', (tester) async {
       final tracked = DateTime.utc(2024, 5, 15, 10, 30, 0);
       final status = ReminderStatus(
-        item: ReminderItem.vitaminD(),
+        item: ReminderItemPresets.vitaminD,
         lastEventAt: tracked,
       );
 
@@ -234,7 +235,7 @@ void main() {
     });
 
     testWidgets('handles null lastEventAt for never-tracked events', (tester) async {
-      final status = ReminderStatus(item: ReminderItem.vitaminD());
+      final status = ReminderStatus(item: ReminderItemPresets.vitaminD);
 
       expect(status.lastEventAt, isNull);
     });
@@ -242,11 +243,56 @@ void main() {
     testWidgets('preserves lastDismissedAt for cooldown tracking', (tester) async {
       final dismissed = DateTime.utc(2024, 6, 1, 8, 0, 0);
       final status = ReminderStatus(
-        item: ReminderItem.vitaminD(),
+        item: ReminderItemPresets.vitaminD,
         lastDismissedAt: dismissed,
       );
 
       expect(status.lastDismissedAt, equals(dismissed));
+    });
+
+    testWidgets('ReminderStatus equality works correctly', (tester) async {
+      final tracked = DateTime.utc(2024, 5, 15, 10, 30, 0);
+      final status1 = ReminderStatus(
+        item: ReminderItemPresets.vitaminD,
+        lastEventAt: tracked,
+      );
+      final status2 = ReminderStatus(
+        item: ReminderItemPresets.vitaminD,
+        lastEventAt: tracked,
+      );
+
+      expect(status1, equals(status2));
+    });
+
+    testWidgets('ReminderStatus with different values are not equal', (tester) async {
+      final status1 = ReminderStatus(
+        item: ReminderItemPresets.vitaminD,
+        lastEventAt: DateTime.utc(2024, 5, 15),
+      );
+      final status2 = ReminderStatus(
+        item: ReminderItemPresets.eyeCleaning,
+        lastEventAt: DateTime.utc(2024, 5, 15),
+      );
+
+      expect(status1, isNot(equals(status2)));
+    });
+  });
+
+  group('remindersRepositoryProvider', () {
+    testWidgets('provider is a FutureProvider', (tester) async {
+      expect(
+        remindersRepositoryProvider,
+        isA<FutureProvider>(),
+      );
+    });
+  });
+
+  group('babyProfileProvider', () {
+    testWidgets('provider is a FutureProvider of BabyProfileRepository', (tester) async {
+      expect(
+        babyProfileProvider,
+        isA<FutureProvider<BabyProfileRepository>>(),
+      );
     });
   });
 }

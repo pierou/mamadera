@@ -51,7 +51,7 @@ class MenuRepositoryImpl implements MenuRepository {
   }
 
   @override
-  List<String> getSupportedLanguages() => ['fr', 'en'];
+  List<String> getSupportedLanguages() => List.unmodifiable(['fr', 'en']);
 
   @override
   Future<void> resetDatabase() async {

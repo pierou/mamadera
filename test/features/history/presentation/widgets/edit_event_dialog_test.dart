@@ -34,7 +34,8 @@ void main() {
       final event = DiaperEvent(
         timestamp: DateTime.utc(2024, 6, 15, 10, 30),
         wasteType: WasteType.pipi,
-        pipiColor: PipiColor.jauneClair,
+        pipiColor:
+        pipiColorJauneClair,
       );
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
@@ -47,7 +48,8 @@ void main() {
       final event = DiaperEvent(
         timestamp: DateTime.utc(2024, 6, 15),
         wasteType: WasteType.caca,
-        cacaColor: CacaColor.jauneMoutarde,
+        cacaColor:
+        cacaColorJauneMoutarde,
       );
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
@@ -61,8 +63,10 @@ void main() {
       final event = DiaperEvent(
         timestamp: DateTime.utc(2024, 6, 15),
         wasteType: WasteType.lesDeux,
-        pipiColor: PipiColor.incolore,
-        cacaColor: CacaColor.vertOlive,
+        pipiColor:
+        pipiColorIncolore,
+        cacaColor:
+        cacaColorVertOlive,
       );
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
@@ -111,7 +115,8 @@ void main() {
       final event = DiaperEvent(
         timestamp: DateTime.utc(2024, 6, 15),
         wasteType: WasteType.caca,
-        cacaColor: CacaColor.jauneMoutarde,
+        cacaColor:
+        cacaColorJauneMoutarde,
       );
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();

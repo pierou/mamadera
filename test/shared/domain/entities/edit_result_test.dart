@@ -13,14 +13,15 @@ void main() {
         duration: 60,
         notes: 'nettoyage_yeux',
         wasteType: WasteType.pipi,
-        pipiColor: PipiColor.jauneClair,
+        pipiColor:
+        pipiColorJauneClair,
       );
 
       expect(result.timestamp, equals(baseTimestamp));
       expect(result.duration, equals(60.0));
       expect(result.notes, equals('nettoyage_yeux'));
       expect(result.wasteType, equals(WasteType.pipi));
-      expect(result.pipiColor, equals(PipiColor.jauneClair));
+      expect(result.pipiColor, equals(pipiColorJauneClair));
     });
 
     test('construction vide → tous les champs optionnels sont null', () {
@@ -37,7 +38,7 @@ void main() {
     test('construction partielle → seuls les champs fournis sont non-null', () {
       final result = UpdateResult(
         timestamp: baseTimestamp,
-        cacaColor: CacaColor.vertOlive,
+        cacaColor: cacaColorVertOlive,
       );
 
       expect(result.timestamp, equals(baseTimestamp));
@@ -45,7 +46,7 @@ void main() {
       expect(result.notes, isNull);
       expect(result.wasteType, isNull);
       expect(result.pipiColor, isNull);
-      expect(result.cacaColor, equals(CacaColor.vertOlive));
+      expect(result.cacaColor, equals(cacaColorVertOlive));
     });
 
     // ── wasteType est déjà un enum typé (pas de parsing) ───────
@@ -60,42 +61,43 @@ void main() {
     });
 
     // ── pipiColor / cacaColor sont déjà des enums typés ────────
-    test('pipiColor=PipiColor.jauneClair → champ retourne l\'enum directement', () {
-      const result = UpdateResult(pipiColor: PipiColor.jauneClair);
+    test('pipiColor=pipiColorJauneClair → champ retourne l\'enum directement', () {
+      const result = UpdateResult(pipiColor: pipiColorJauneClair);
 
-      expect(result.pipiColor, equals(PipiColor.jauneClair));
+      expect(result.pipiColor, equals(pipiColorJauneClair));
     });
 
     test('lesDeux avec pipiColor et cacaColor → les deux champs sont typés', () {
       const result = UpdateResult(
         wasteType: WasteType.lesDeux,
-        pipiColor: PipiColor.incolore,
-        cacaColor: CacaColor.vertOlive,
+        pipiColor: pipiColorIncolore,
+        cacaColor: cacaColorVertOlive,
       );
 
       expect(result.wasteType, equals(WasteType.lesDeux));
-      expect(result.pipiColor, equals(PipiColor.incolore));
-      expect(result.cacaColor, equals(CacaColor.vertOlive));
+      expect(result.pipiColor, equals(pipiColorIncolore));
+      expect(result.cacaColor, equals(cacaColorVertOlive));
     });
 
     test('caca avec cacaColor uniquement → pipiColor reste null', () {
       const result = UpdateResult(
         wasteType: WasteType.caca,
-        cacaColor: CacaColor.jauneMoutarde,
+        cacaColor: cacaColorJauneMoutarde,
       );
 
       expect(result.wasteType, equals(WasteType.caca));
       expect(result.pipiColor, isNull);
-      expect(result.cacaColor, equals(CacaColor.jauneMoutarde));
+      expect(result.cacaColor, equals(cacaColorJauneMoutarde));
     });
 
     test('lesDeux avec seule pipiColor → caca reste null', () {
       const result = UpdateResult(
         wasteType: WasteType.lesDeux,
-        pipiColor: PipiColor.roseUrates,
+        pipiColor:
+        pipiColorRoseUrates,
       );
 
-      expect(result.pipiColor, equals(PipiColor.roseUrates));
+      expect(result.pipiColor, equals(pipiColorRoseUrates));
       expect(result.cacaColor, isNull);
     });
 
@@ -106,12 +108,14 @@ void main() {
     });
 
     test('PipiColor enum a un .dbValue getter', () {
-      const result = UpdateResult(pipiColor: PipiColor.jauneClair);
+      const result = UpdateResult(pipiColor:
+        pipiColorJauneClair);
       expect(result.pipiColor!.value, equals('jaune_clair'));
     });
 
     test('CacaColor enum a un .dbValue getter', () {
-      const result = UpdateResult(cacaColor: CacaColor.vertOlive);
+      const result = UpdateResult(cacaColor:
+        cacaColorVertOlive);
       expect(result.cacaColor!.value, equals('vert_olive'));
     });
   });

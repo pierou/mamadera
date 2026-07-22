@@ -30,11 +30,6 @@ class TrackButton extends StatefulWidget {
 class _TrackButtonState extends State<TrackButton> {
   bool _isPressed = false;
 
-  /// Check if any reminders are pending (not yet tracked this period).
-  bool get _hasPendingReminders {
-    return widget.reminders != null && widget.reminders!.isNotEmpty;
-  }
-
   String? _lastTrackedLabel(BuildContext context) {
     final items = widget.reminders ?? [];
     if (items.isEmpty) return null;
@@ -75,9 +70,6 @@ class _TrackButtonState extends State<TrackButton> {
 
   @override
   Widget build(BuildContext context) {
-    final hasPending = _hasPendingReminders;
-    final items = widget.reminders ?? [];
-
     return Semantics(
       label: widget.label,
       button: true,
@@ -87,76 +79,109 @@ class _TrackButtonState extends State<TrackButton> {
         onTapCancel: () => setState(() => _isPressed = false),
         onTap: widget.onTap,
         onLongPress: widget.onLongPress,
-        child: AnimatedContainer(
-          duration: MediaQuery.of(context).disableAnimations
-              ? Duration.zero
-              : const Duration(milliseconds: 120),
-          curve: Curves.easeOut,
-          transform: Matrix4.identity()
-            ..scaleByDouble(
-                _isPressed ? 0.97 : 1.0, _isPressed ? 0.97 : 1.0, 1, 1),
-          width: double.infinity,
-          height: 200,
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: const BorderRadius.all(Radius.circular(16)),
-            border: Border.all(color: widget.color, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Top: label (prominent)
-                Expanded(
-                  flex: hasPending ? 3 : 4,
-                  child: Center(
-                    child: Text(
-                      widget.label,
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                            color: widget.color,
-                            fontWeight: FontWeight.bold,
-                          ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+        child: _TrackButtonContent(
+          isPressed: _isPressed,
+          label: widget.label,
+          color: widget.color,
+          reminders: widget.reminders,
+          context: context,
+          pillLabelBuilder: _pillLabelFor,
+          lastTrackedLabelBuilder: _lastTrackedLabel,
+        ),
+      ),
+    );
+  }
+}
+
+/// Internal content of TrackButton, extracted to keep build method under 25 lines.
+class _TrackButtonContent extends StatelessWidget {
+  const _TrackButtonContent({
+    required this.isPressed,
+    required this.label,
+    required this.color,
+    required this.reminders,
+    required this.context,
+    required this.pillLabelBuilder,
+    required this.lastTrackedLabelBuilder,
+  });
+
+  final bool isPressed;
+  final String label;
+  final Color color;
+  final List<ReminderStatus>? reminders;
+  final BuildContext context;
+  final String Function(BuildContext, ReminderStatus) pillLabelBuilder;
+  final String? Function(BuildContext) lastTrackedLabelBuilder;
+
+  bool get _hasPendingReminders => reminders != null && reminders!.isNotEmpty;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasPending = _hasPendingReminders;
+    final items = reminders ?? [];
+
+    return AnimatedContainer(
+      duration: MediaQuery.of(this.context).disableAnimations
+          ? Duration.zero
+          : const Duration(milliseconds: 120),
+      curve: Curves.easeOut,
+      transform: Matrix4.identity()
+        ..scaleByDouble(isPressed ? 0.97 : 1.0, isPressed ? 0.97 : 1.0, 1, 1),
+      width: double.infinity,
+      height: 200,
+      decoration: BoxDecoration(
+        color: Theme.of(this.context).cardColor,
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
+        border: Border.all(color: color, width: 2),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              flex: hasPending ? 3 : 4,
+              child: Center(
+                child: Text(
+                  label,
+                  style: Theme.of(this.context).textTheme.headlineLarge?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.bold,
+                      ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            if (hasPending) ...[
+              Expanded(
+                flex: 2,
+                child: Center(
+                  child: Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      for (final status in items)
+                        ReminderPill(label: pillLabelBuilder(this.context, status)),
+                    ],
                   ),
                 ),
-
-                // Middle: pills row (when pending) or "last tracked" text
-                if (hasPending) ...[
-                  Expanded(
-                    flex: 2,
-                    child: Center(
-                      child: Wrap(
-                        spacing: 4,
-                        runSpacing: 4,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          for (final status in items)
-                            ReminderPill(label: _pillLabelFor(context, status)),
-                        ],
-                      ),
-                    ),
+              ),
+            ] else if (lastTrackedLabelBuilder(this.context) != null) ...[
+              Expanded(
+                flex: 2,
+                child: Center(
+                  child: Text(
+                    lastTrackedLabelBuilder(this.context)!,
+                    style: Theme.of(this.context).textTheme.bodySmall,
                   ),
-                ] else if (_lastTrackedLabel(context) != null) ...[
-                  Expanded(
-                    flex: 2,
-                    child: Center(
-                      child: Text(
-                        _lastTrackedLabel(context)!,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                  ),
-                ],
-
-                // Bottom spacer
-                const SizedBox(height: 4),
-              ],
-            ),
-          ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 4),
+          ],
         ),
       ),
     );

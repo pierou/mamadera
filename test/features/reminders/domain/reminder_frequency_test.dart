@@ -29,18 +29,18 @@ void main() {
 
   group('Weekly', () {
     test('is due when no last completed date', () {
-      final weekly = const Weekly(1); // Monday
+      final weekly = const Weekly(dayOfWeek: 1); // Monday
       expect(weekly.isDue(DateTime(2025, 1, 6), null), isTrue);
     });
 
     test('is not due on same day within week', () {
-      final weekly = const Weekly(1); // Monday
+      final weekly = const Weekly(dayOfWeek: 1); // Monday
       final now = DateTime(2025, 3, 17); // Monday Mar 17
       expect(weekly.isDue(now, DateTime(2025, 3, 17)), isFalse);
     });
 
     test('is due on different week', () {
-      final weekly = const Weekly(1); // Monday
+      final weekly = const Weekly(dayOfWeek: 1); // Monday
       final now = DateTime(2025, 3, 24); // Mon Mar 24 (next week)
       expect(weekly.isDue(now, DateTime(2025, 3, 17)), isTrue);
     });
@@ -48,22 +48,22 @@ void main() {
 
   group('Monthly', () {
     test('is due when no last completed date', () {
-      final monthly = const Monthly(15);
+      final monthly = const Monthly(dayOfMonth: 15);
       expect(monthly.isDue(DateTime(2025, 3, 15), null), isTrue);
     });
 
     test('is not due within same month', () {
-      final monthly = const Monthly(15);
+      final monthly = const Monthly(dayOfMonth: 15);
       expect(monthly.isDue(DateTime(2025, 3, 20), DateTime(2025, 3, 15)), isFalse);
     });
 
     test('is due in new month', () {
-      final monthly = const Monthly(15);
+      final monthly = const Monthly(dayOfMonth: 15);
       expect(monthly.isDue(DateTime(2025, 4, 1), DateTime(2025, 3, 15)), isTrue);
     });
 
     test('is due when year changes', () {
-      final monthly = const Monthly(1);
+      final monthly = const Monthly(dayOfMonth: 1);
       expect(monthly.isDue(DateTime(2026, 1, 1), DateTime(2025, 12, 31)), isTrue);
     });
   });
@@ -100,16 +100,16 @@ void main() {
   group('ReminderFrequency sealed class', () {
     test('all subclasses extend ReminderFrequency', () {
       expect(const Daily(), isA<ReminderFrequency>());
-      expect(const Weekly(1), isA<ReminderFrequency>());
-      expect(const Monthly(15), isA<ReminderFrequency>());
+      expect(const Weekly(dayOfWeek: 1), isA<ReminderFrequency>());
+      expect(const Monthly(dayOfMonth: 15), isA<ReminderFrequency>());
       expect(const CustomInterval(days: 7), isA<ReminderFrequency>());
     });
 
     test('exhaustive switch over all frequency types', () {
       final frequencies = [
         const Daily(),
-        const Weekly(3),
-        const Monthly(10),
+        const Weekly(dayOfWeek: 3),
+        const Monthly(dayOfMonth: 10),
         const CustomInterval(days: 5),
       ];
 

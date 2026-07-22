@@ -63,43 +63,46 @@ class HistoryScreen extends ConsumerWidget {
   /// Applique les modifications retournées par le dialog sur l'événement original.
   TrackingEvent _applyUpdate(UpdateResult result, TrackingEvent event) {
     final ts = result.timestamp ?? event.timestamp;
-    switch (event) {
-      case FeedingEvent():
-        return FeedingEvent(
-          id: event.id!,
-          timestamp: ts,
-          subtype: event.subtype,
-          duration: result.duration ?? event.duration,
-          notes: result.notes ?? event.notes,
-        );
-      case SleepEvent():
-        return SleepEvent(
-          id: event.id!,
-          timestamp: ts,
-          duration: result.duration ?? event.duration,
-          notes: result.notes ?? event.notes,
-        );
-      case DiaperEvent():
-        return DiaperEvent(
-          id: event.id!,
-          timestamp: ts,
-          wasteType: result.wasteType ?? event.wasteType,
-          pipiColor: result.pipiColor ?? event.pipiColor,
-          cacaColor: result.cacaColor ?? event.cacaColor,
-          notes: result.notes ?? event.notes,
-        );
-      case HealthEvent():
+    return event.map(
+      (e) => throw StateError('Cannot update base TrackingEvent'),
+      feeding: (e) => TrackingEvent.feeding(
+        id: e.id,
+        timestamp: ts,
+        subtype: e.subtype,
+        duration: result.duration ?? e.duration,
+        notes: result.notes ?? e.notes,
+        babyId: e.babyId,
+      ),
+      sleep: (e) => TrackingEvent.sleep(
+        id: e.id,
+        timestamp: ts,
+        duration: result.duration ?? e.duration,
+        notes: result.notes ?? e.notes,
+        babyId: e.babyId,
+      ),
+      diaper: (e) => TrackingEvent.diaper(
+        id: e.id,
+        timestamp: ts,
+        wasteType: result.wasteType ?? e.wasteType,
+        pipiColor: result.pipiColor ?? e.pipiColor,
+        cacaColor: result.cacaColor ?? e.cacaColor,
+        notes: result.notes ?? e.notes,
+        babyId: e.babyId,
+      ),
+      health: (e) {
         // Pour health, les notes contiennent le subtype value. Si changé, créer nouveau subtype.
         final subtype = result.notes != null
-            ? (HealthSubtype.byValue(result.notes!) ?? event.subtype)
-            : event.subtype;
-        return HealthEvent(
-          id: event.id!,
+            ? (HealthSubtype.byValue(result.notes!) ?? e.subtype)
+            : e.subtype;
+        return TrackingEvent.health(
+          id: e.id,
           timestamp: ts,
           subtype: subtype,
           notes: result.notes,
+          babyId: e.babyId,
         );
-    }
+      },
+    );
   }
 
   @override
@@ -144,7 +147,7 @@ class HistoryScreen extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final event = events[index];
                     final timeFormatted =
-                        formatDate(context, event.timestamp);
+                        formatDate(context, event.timestamp!);
                     // Skip if no id (shouldn't happen in DB-fetched data, but safe guard)
                     return HistoryTile(
                       event: event,

@@ -93,8 +93,10 @@ void main() {
       await notifier.track(
         type: TrackingType.caca,
         wasteType: WasteType.pipi,
-        pipiColor: PipiColor.jauneClair,
-        cacaColor: CacaColor.meconium,
+        pipiColor:
+        pipiColorJauneClair,
+        cacaColor:
+        cacaColorMeconium,
       );
 
       final captured = verify(mockRepository.insertEvent(captureAny)).captured;
@@ -102,8 +104,8 @@ void main() {
       final event = captured.first as TrackingEvent;
       expect(event, isA<DiaperEvent>());
       expect((event as DiaperEvent).wasteType, equals(WasteType.pipi));
-      expect(event.pipiColor, equals(PipiColor.jauneClair));
-      expect(event.cacaColor, equals(CacaColor.meconium));
+      expect(event.pipiColor, equals(pipiColorJauneClair));
+      expect(event.cacaColor, equals(cacaColorMeconium));
 
       expect(container.read(trackNotifierProvider), isA<AsyncData<void>>());
     });

@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 4 (baby_profiles + tracking_events.baby_id)', () {
-      expect(db.schemaVersion, equals(4));
+    test('schemaVersion is 5 (added subtype column for typed events)', () {
+      expect(db.schemaVersion, equals(5));
     });
   });
 
@@ -263,6 +263,103 @@ void main() {
     test('returns false when deleting non-existent id', () async {
       final deleted = await db.deleteEvent(99999);
       expect(deleted, isFalse);
+    });
+  });
+
+  group('babyProfiles', () {
+    test('can insert and retrieve baby profiles', () async {
+      final profileId = await db.insertBabyProfile(
+        BabyProfilesCompanion(
+          id: Value('test-baby-1'),
+          name: Value('Test Baby'),
+          birthDate: Value(DateTime.now().millisecondsSinceEpoch),
+          isActive: Value(true),
+        ),
+      );
+
+      expect(profileId, greaterThanOrEqualTo(1));
+
+      final profiles = await db.getAllBabyProfiles();
+      expect(profiles.length, equals(1));
+      expect(profiles.first.name, equals('Test Baby'));
+    });
+
+    test('can update baby profile', () async {
+      await db.insertBabyProfile(
+        BabyProfilesCompanion(
+          id: Value('test-baby-2'),
+          name: Value('Old Name'),
+          birthDate: Value(DateTime.now().millisecondsSinceEpoch),
+          isActive: Value(false),
+        ),
+      );
+
+      await db.updateBabyProfile(
+        'test-baby-2',
+        BabyProfilesCompanion(name: Value('New Name')),
+      );
+
+      final profiles = await db.getAllBabyProfiles();
+      expect(profiles.first.name, equals('New Name'));
+    });
+
+    test('can delete baby profile', () async {
+      await db.insertBabyProfile(
+        BabyProfilesCompanion(
+          id: Value('test-baby-3'),
+          name: Value('ToDelete'),
+          birthDate: Value(DateTime.now().millisecondsSinceEpoch),
+          isActive: Value(false),
+        ),
+      );
+
+      final deleted = await db.deleteBabyProfile('test-baby-3');
+      expect(deleted, isTrue);
+
+      final profiles = await db.getAllBabyProfiles();
+      expect(profiles.length, equals(0));
+    });
+
+    test('getActiveBabyProfile returns active profile', () async {
+      await db.insertBabyProfile(
+        BabyProfilesCompanion(
+          id: Value('active-baby'),
+          name: Value('Active Baby'),
+          birthDate: Value(DateTime.now().millisecondsSinceEpoch),
+          isActive: Value(true),
+        ),
+      );
+
+      final active = await db.getActiveBabyProfile();
+      expect(active, isA<BabyProfile>());
+      expect(active!.name, equals('Active Baby'));
+    });
+
+    test('getEventsByBabyId filters events correctly', () async {
+      await db.insertBabyProfile(
+        BabyProfilesCompanion(
+          id: Value('baby-1'),
+          name: Value('Baby 1'),
+          birthDate: Value(DateTime.now().millisecondsSinceEpoch),
+          isActive: Value(true),
+        ),
+      );
+
+      await db.insertEvent(
+        TrackingEventsCompanion(
+          type: Value('miam'),
+          timestamp: Value(DateTime.now()),
+          duration: const Value(null),
+          notes: const Value(null),
+          wasteType: const Value(null),
+          color: const Value(null),
+          babyId: Value('baby-1'),
+        ),
+      );
+
+      final events = await db.getEventsByBabyId('baby-1');
+      expect(events.length, equals(1));
+      expect(events.first.type, equals('miam'));
     });
   });
 }

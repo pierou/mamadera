@@ -1,3 +1,4 @@
+import '../entities/reminder_frequency.dart';
 import '../entities/reminder_item.dart';
 import '../entities/reminders_state.dart';
 import '../repositories/reminders_repository.dart';
@@ -35,7 +36,7 @@ class RemindersService {
       ));
     }
 
-    return dueItems.isEmpty ? RemindersAllCompleted() : RemindersDue(items: dueItems);
+    return dueItems.isEmpty ? const RemindersState.allCompleted() : RemindersState.due(items: dueItems);
   }
 
   /// Dismiss a reminder — saves the current time as its dismissal timestamp.

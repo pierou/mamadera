@@ -5,6 +5,10 @@
 /// - `label` : l'affichage utilisateur (format UI)
 library;
 
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'tracking_enums.freezed.dart';
+
 // ──────────────────────────────────────────────
 // Feeding subtypes (sous-types du type "miam")
 // ──────────────────────────────────────────────
@@ -63,160 +67,124 @@ enum WasteType {
 // ──────────────────────────────────────────────
 
 /// Couleur d'urine pour un nouveau-né.
-final class PipiColor {
-  /// Constructeur constant pour les instances immuables.
-  const PipiColor({
-    required this.value,
-    required this.label,
-    required this.colorHex,
-    required this.labelKey,
-  });
-
-  /// Convertit une valeur DB en enum avec fallback (incolore par défaut).
-  factory PipiColor.fromDbValue(String? dbValue) {
-    final result = byValue(dbValue);
-    if (result != null) return result;
-    return incolore;
-  }
-
-  // ── Valeurs stockées en base de données ───────
-
-  /// Valeur stockée en base de données (ex: 'jaune_clair').
-  final String value;
-
-  /// Label affiché à l'écran — French fallback for domain-layer safety.
-  final String label;
-
-  /// Couleur visuelle hexadécimale pour l'UI.
-  final int colorHex;
-
-  /// ARB key for resolving the localized label at presentation time.
-  final String labelKey;
-
-  // ── Instances statiques ───────────────────────
-
-  static const incolore = PipiColor(
-      value: 'incolore', label: 'Incolore', colorHex: 0xFFE8F5E9, labelKey: 'pipiColorIncolore');
-  static const jauneClair = PipiColor(
-      value: 'jaune_clair', label: 'Jaune clair', colorHex: 0xFFFEEBC8, labelKey: 'pipiColorJauneClair');
-  static const jauneFonce = PipiColor(
-      value: 'jaune_fonce', label: 'Jaune foncé', colorHex: 0xFFE6C25B, labelKey: 'pipiColorJauneFonce');
-  static const roseUrates = PipiColor(
-      value: 'rose_urates',
-      label: 'Rose/Orange (urates)',
-      colorHex: 0xFFF4A89D,
-      labelKey: 'pipiColorRoseUrates');
-
-  // ── Liste de toutes les couleurs disponibles ──
-  /// Liste statique initialisée après les constantes.
-  static final List<PipiColor> values = [
-    incolore,
-    jauneClair,
-    jauneFonce,
-    roseUrates
-  ];
-
-  /// Lookup par valeur DB. Retourne null si inconnu ou nullable.
-  static PipiColor? byValue(String? v) {
-    if (v == null || v.isEmpty) return null;
-    for (final c in values) {
-      if (c.value == v) return c;
-    }
-    return null;
-  }
+@freezed
+abstract class PipiColor with _$PipiColor {
+  const factory PipiColor({
+    required String value,
+    required String label,
+    required int colorHex,
+    required String labelKey,
+  }) = _PipiColor;
 }
+
+/// Couleur incolore/transparente.
+const pipiColorIncolore = PipiColor(
+    value: 'incolore', label: 'Incolore', colorHex: 0xFFE8F5E9, labelKey: 'pipiColorIncolore');
+
+/// Jaune pâle.
+const pipiColorJauneClair = PipiColor(
+    value: 'jaune_clair', label: 'Jaune clair', colorHex: 0xFFFEEBC8, labelKey: 'pipiColorJauneClair');
+
+/// Jaune foncé.
+const pipiColorJauneFonce = PipiColor(
+    value: 'jaune_fonce', label: 'Jaune foncé', colorHex: 0xFFE6C25B, labelKey: 'pipiColorJauneFonce');
+
+/// Rose/Orange (urates).
+const pipiColorRoseUrates = PipiColor(
+    value: 'rose_urates',
+    label: 'Rose/Orange (urates)',
+    colorHex: 0xFFF4A89D,
+    labelKey: 'pipiColorRoseUrates');
+
+/// Liste de toutes les couleurs pipi disponibles.
+const List<PipiColor> pipiColors = [
+  pipiColorIncolore,
+  pipiColorJauneClair,
+  pipiColorJauneFonce,
+  pipiColorRoseUrates,
+];
+
+/// Lookup par valeur DB. Retourne null si inconnu ou nullable.
+PipiColor? findPipiColorByValue(String? v) {
+  if (v == null || v.isEmpty) return null;
+  for (final c in pipiColors) {
+    if (c.value == v) return c;
+  }
+  return null;
+}
+
+/// Convertit une valeur DB en PipiColor avec fallback (incolore par défaut).
+PipiColor findPipiColorFromDbValue(String? dbValue) =>
+    findPipiColorByValue(dbValue) ?? pipiColorIncolore;
 
 // ──────────────────────────────────────────────
 // Caca colors
 // ──────────────────────────────────────────────
 
 /// Couleur de selle pour un nouveau-né.
-final class CacaColor {
-  /// Constructeur constant pour les instances immuables.
-  const CacaColor({
-    required this.value,
-    required this.label,
-    required this.colorHex,
-    required this.labelKey,
-  });
-
-  /// Convertit une valeur DB en enum avec fallback (jaune_moutarde par défaut).
-  factory CacaColor.fromDbValue(String? dbValue) {
-    final result = byValue(dbValue);
-    if (result != null) return result;
-    return jauneMoutarde;
-  }
-
-  // ── Valeurs stockées en base de données ───────
-
-  /// Valeur stockée en base de données (ex: 'jaune_moutarde').
-  final String value;
-
-  /// Label affiché à l'écran — French fallback for domain-layer safety.
-  final String label;
-
-  /// Couleur visuelle hexadécimale pour l'UI.
-  final int colorHex;
-
-  /// ARB key for resolving the localized label at presentation time.
-  final String labelKey;
-
-  // ── Instances statiques ───────────────────────
-
-  static const meconium = CacaColor(
-      value: 'meconium', label: 'Mécônium', colorHex: 0xFF5D4E37, labelKey: 'cacaColorMeconium');
-  static const vertOlive = CacaColor(
-      value: 'vert_olive', label: 'Vert olive', colorHex: 0xFF8A9B6C, labelKey: 'cacaColorVertOlive');
-  static const jauneMoutarde = CacaColor(
-      value: 'jaune_moutarde', label: 'Jaune moutarde', colorHex: 0xFFF5D138, labelKey: 'cacaColorJauneMoutarde');
-  static const jauneClair = CacaColor(
-      value: 'jaune_clair', label: 'Jaune clair', colorHex: 0xFFEED976, labelKey: 'cacaColorJauneClair');
-
-  // ── Liste de toutes les couleurs disponibles ──
-  /// Liste statique initialisée après les constantes.
-  static final List<CacaColor> values = [
-    meconium,
-    vertOlive,
-    jauneMoutarde,
-    jauneClair
-  ];
-
-  /// Lookup par valeur DB. Retourne null si inconnu ou nullable.
-  static CacaColor? byValue(String? v) {
-    if (v == null || v.isEmpty) return null;
-    for (final c in values) {
-      if (c.value == v) return c;
-    }
-    return null;
-  }
+@freezed
+abstract class CacaColor with _$CacaColor {
+  const factory CacaColor({
+    required String value,
+    required String label,
+    required int colorHex,
+    required String labelKey,
+  }) = _CacaColor;
 }
+
+/// Mécônium (premières selles).
+const cacaColorMeconium = CacaColor(
+    value: 'meconium', label: 'Mécônium', colorHex: 0xFF5D4E37, labelKey: 'cacaColorMeconium');
+
+/// Vert olive.
+const cacaColorVertOlive = CacaColor(
+    value: 'vert_olive', label: 'Vert olive', colorHex: 0xFF8A9B6C, labelKey: 'cacaColorVertOlive');
+
+/// Jaune moutarde (seins).
+const cacaColorJauneMoutarde = CacaColor(
+    value: 'jaune_moutarde', label: 'Jaune moutarde', colorHex: 0xFFF5D138, labelKey: 'cacaColorJauneMoutarde');
+
+/// Jaune clair.
+const cacaColorJauneClair = CacaColor(
+    value: 'jaune_clair', label: 'Jaune clair', colorHex: 0xFFEED976, labelKey: 'cacaColorJauneClair');
+
+/// Liste de toutes les couleurs caca disponibles.
+const List<CacaColor> cacaColors = [
+  cacaColorMeconium,
+  cacaColorVertOlive,
+  cacaColorJauneMoutarde,
+  cacaColorJauneClair,
+];
+
+/// Lookup par valeur DB. Retourne null si inconnu ou nullable.
+CacaColor? findCacaColorByValue(String? v) {
+  if (v == null || v.isEmpty) return null;
+  for (final c in cacaColors) {
+    if (c.value == v) return c;
+  }
+  return null;
+}
+
+/// Convertit une valeur DB en CacaColor avec fallback (jaune_moutarde par défaut).
+CacaColor findCacaColorFromDbValue(String? dbValue) =>
+    findCacaColorByValue(dbValue) ?? cacaColorJauneMoutarde;
 
 // ──────────────────────────────────────────────
 // Health subtypes (stockés dans la colonne notes)
 // ──────────────────────────────────────────────
 
 /// Sous-type de soin santé.
-final class HealthSubtype {
-  /// Constructeur constant pour les instances immuables.
-  const HealthSubtype({
-    required this.value,
-    required this.label,
-    required this.labelKey,
-  });
+@freezed
+abstract class HealthSubtype with _$HealthSubtype {
+  const factory HealthSubtype({
+    required String value,
+    required String label,
+    required String labelKey,
+  }) = _HealthSubtype;
 
   // ── Valeurs stockées en base de données ───────
 
   /// Valeur stockée en base de données (ex: 'nettoyage_yeux').
-  final String value;
-
-  /// Label affiché à l'écran — French fallback for domain-layer safety.
-  final String label;
-
-  /// ARB key for resolving the localized label at presentation time.
-  final String labelKey;
-
-  // ── Instances statiques ───────────────────────
-
   static const nettoyageYeux = HealthSubtype(
       value: 'nettoyage_yeux', label: 'Nettoyage des yeux', labelKey: 'healthNettoyageYeux');
   static const nettoyageNombril = HealthSubtype(

@@ -7,46 +7,36 @@
 
 library;
 
-final class BabyProfile {
-  /// Constructeur pour créer un profil bébé immuable.
-  const BabyProfile({
-    required this.id,
-    required this.name,
-    required this.birthDate,
-    this.isActive = true,
-  });
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  /// Identifiant unique (UUID recommandé).
-  final String id;
+part 'baby_profile.freezed.dart';
 
-  /// Nom affiché du bébé dans l'UI.
-  final String name;
-
-  /// Date de naissance — utilisée pour calculer les reminders mensuels et l'âge.
-  final DateTime birthDate;
-
-  /// Indique si ce profil est le bébé actif (suivi courant).
-  /// Un seul profil devrait être actif à la fois.
-  final bool isActive;
-
-  /// Jour du mois de naissance — utilisé pour les reminders mensuels basés sur la date de naissance.
-  /// Ex: né le 15 mars → `birthDayOfMonth` = 15 → Vitamine K due le 15 de chaque mois.
-  int get birthDayOfMonth => birthDate.day;
-
-  /// Clone ce profil avec des propriétés modifiées (pour mises à jour immuables).
-  BabyProfile copyWith({
-    String? name,
-    DateTime? birthDate,
-    bool? isActive,
-  }) {
-    return BabyProfile(
-      id: id,
-      name: name ?? this.name,
-      birthDate: birthDate ?? this.birthDate,
-      isActive: isActive ?? this.isActive,
-    );
-  }
-
-  @override
-  String toString() => 'BabyProfile(id: $id, name: $name, birthDate: $birthDate)';
+/// @freezed BabyProfile model
+@freezed
+abstract class BabyProfile with _$BabyProfile {
+  const factory BabyProfile({
+    required String id,
+    required String name,
+    required DateTime birthDate,
+    @Default(true) bool isActive,
+  }) = _BabyProfile;
 }
+
+/// Clone this profile with updated fields.
+BabyProfile babyProfileUpdated(
+  BabyProfile profile, {
+  String? name,
+  DateTime? birthDate,
+  bool? isActive,
+}) {
+  return BabyProfile(
+    id: profile.id,
+    name: name ?? profile.name,
+    birthDate: birthDate ?? profile.birthDate,
+    isActive: isActive ?? profile.isActive,
+  );
+}
+
+/// Jour du mois de naissance — utilisé pour les reminders mensuels basés sur la date de naissance.
+/// Ex: né le 15 mars → `birthDayOfMonth` = 15 → Vitamine K due le 15 de chaque mois.
+int babyProfileBirthDayOfMonth(DateTime birthDate) => birthDate.day;

@@ -9,20 +9,18 @@ import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
-import '../../../history/presentation/screens/history_screen.dart';
-import '../../../menu/presentation/screens/menu_screen.dart';
 import '../../../reminders/domain/entities/reminders_state.dart';
 import '../../../reminders/presentation/providers/reminder_notifier.dart';
 import '../../../reminders/presentation/providers/reminder_providers.dart';
-import '../providers/nav_provider.dart';
 import '../providers/track_notifier.dart';
-import '../widgets/bottom_nav.dart';
 import '../widgets/duration_picker_dialog.dart';
 import '../widgets/health_subtype_dialog.dart';
 import '../widgets/onboarding_dialog.dart';
 import '../widgets/track_button.dart';
 import '../widgets/waste_dialog.dart';
 
+/// Home screen content — rendered by go_router ShellRoute.
+/// AppShell (router.dart) provides the Scaffold + bottom navigation bar.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -50,22 +48,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final navIndex = ref.watch(navIndexProvider);
-
-    return Scaffold(
-      body: _screens[navIndex],
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: navIndex,
-        onTap: (index) => ref.read(navIndexProvider.notifier).setIndex(index),
-      ),
-    );
+    return const _HomeContent();
   }
-
-  static const List<Widget> _screens = [
-    _HomeContent(),
-    HistoryScreen(),
-    MenuScreen(),
-  ];
 }
 
 /// Wrapper to access WidgetRef in showModalBottomSheet callback
@@ -110,7 +94,7 @@ class _HomeContent extends ConsumerWidget {
   }
 
 Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
-   final minutes = await showModalBottomSheet<int>(
+   final minutes = await showModalBottomSheet<double>(
      context: context,
      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
      shape: const RoundedRectangleBorder(
@@ -132,7 +116,7 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
    if (minutes != null && context.mounted) {
      await ref.read(trackNotifierProvider.notifier).track(
         type: TrackingType.dodo,
-       duration: minutes.toDouble(),
+       duration: minutes,
      );
      if (context.mounted) {
        unawaited(ref.read(reminderNotifierProvider.notifier).refresh());

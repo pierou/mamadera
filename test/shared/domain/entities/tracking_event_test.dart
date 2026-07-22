@@ -67,12 +67,14 @@ void main() {
         final event = DiaperEvent(
           timestamp: baseTimestamp,
           wasteType: WasteType.pipi,
-          pipiColor: PipiColor.jauneClair,
+          pipiColor:
+        pipiColorJauneClair,
         );
 
         expect(event.trackingType, TrackingType.caca);
         expect(event.wasteType, WasteType.pipi);
-        expect(event.pipiColor, PipiColor.jauneClair);
+        expect(event.pipiColor,
+        pipiColorJauneClair);
       });
     });
 
@@ -141,6 +143,7 @@ void main() {
     });
 
     group('toString', () {
+      // Freezed generates "TrackingEvent.feeding(...)" for union subtypes.
       test('FeedingEvent doit retourner une représentation lisible de l\'objet', () {
         final event = FeedingEvent(
           timestamp: baseTimestamp,
@@ -152,7 +155,7 @@ void main() {
 
         final stringRepresentation = event.toString();
 
-        expect(stringRepresentation, contains('FeedingEvent'));
+        expect(stringRepresentation, contains('TrackingEvent.feeding'));
         expect(stringRepresentation, contains('id: 5'));
         expect(stringRepresentation, contains('duration: 30.0'));
       });
@@ -164,7 +167,7 @@ void main() {
           id: 10,
         );
 
-        expect(event.toString(), contains('SleepEvent'));
+        expect(event.toString(), contains('TrackingEvent.sleep'));
       });
 
       test('DiaperEvent doit retourner une représentation lisible de l\'objet', () {
@@ -174,7 +177,7 @@ void main() {
           id: 15,
         );
 
-        expect(event.toString(), contains('DiaperEvent'));
+        expect(event.toString(), contains('TrackingEvent.diaper'));
       });
 
       test('HealthEvent doit retourner une représentation lisible de l\'objet', () {
@@ -184,7 +187,7 @@ void main() {
           id: 20,
         );
 
-        expect(event.toString(), contains('HealthEvent'));
+        expect(event.toString(), contains('TrackingEvent.health'));
       });
     });
   });

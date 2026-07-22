@@ -28,7 +28,7 @@ When suggesting features: always propose local/offline solutions first. If cloud
 | Framework | Flutter 3.x / Dart 3.x (null-safe, records, pattern matching, sealed classes) |
 | State Management | `flutter_riverpod` — `StateNotifier` + `AsyncNotifier` only. No mixin-based state mgmt |
 | Routing | `go_router` |
-| Local DB | `drift` (SQLite), schema in [`lib/data/local/schema.sql`](lib/data/local/schema.sql) |
+| Local DB | `drift` (SQLite), DDL source of truth: [`lib/data/local/app_db.dart`](lib/data/local/app_db.dart) (schema.sql is a generated reference) |
 | Encryption | `flutter_secure_storage` + AES-GCM via `encrypt` package |
 | Models | `freezed` + `json_annotation` + `build_runner` codegen |
 | Lints | `flutter_lints` (recommended) + custom strict rules in [`analysis_options.yaml`](analysis_options.yaml) |

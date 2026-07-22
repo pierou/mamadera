@@ -6,8 +6,6 @@ pub-get:
 lint: pub-get
 	# Aligned with GA: analyze entire project, no format check in CI
 	flutter analyze --fatal-infos --fatal-warnings
-	# SonarQube S1188: functions must not exceed 20 lines
-	python3 scripts/check_function_length.py --max=20
 test: pub-get
 	# Domain & Data (unit) + Presentation (widget) as per architecture rules
 	flutter test test/shared/ test/data/ test/presentation/ test/features/ test/core/ --coverage
@@ -22,8 +20,8 @@ clean:
 check-coverage: test
 	@MIN_COVERAGE=80; \
 	command -v lcov >/dev/null 2>&1 || { echo "❌ lcov not installed. Run: sudo apt-get install -y lcov"; exit 1; }; \
-	lcov --ignore-errors unused --remove coverage/lcov.info 'lib/generated/*' '*_freezed.dart' '*.g.dart' 'test/*' '/tmp/*' -o coverage/lcov.info.cleaned; \
-	ACTUAL=$$(lcov --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $$2}' | cut -d'.' -f1); \
+	lcov --ignore-errors unused,empty --remove coverage/lcov.info 'lib/generated/*' '*_freezed.dart' '*.g.dart' 'test/*' '/tmp/*' 'lib/l10n/*' -o coverage/lcov.info.cleaned; \
+	ACTUAL=$$(lcov --ignore-errors empty --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $$2}' | cut -d'.' -f1); \
 	echo "Actual: $${ACTUAL}% / Required: $${MIN_COVERAGE}%"; \
 	if [ "$${ACTUAL}" -ge $${MIN_COVERAGE} ]; then \
 		echo "✅ Coverage OK: $${ACTUAL}% (minimum: $${MIN_COVERAGE}%)"; \

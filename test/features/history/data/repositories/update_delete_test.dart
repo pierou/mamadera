@@ -84,8 +84,10 @@ void main() {
         id: 7,
         timestamp: DateTime.now(),
         wasteType: WasteType.lesDeux,
-        pipiColor: PipiColor.jauneFonce,
-        cacaColor: CacaColor.vertOlive,
+        pipiColor:
+        pipiColorJauneFonce,
+        cacaColor:
+        cacaColorVertOlive,
       );
       final result = await repository.updateEvent(id: 7, event: event);
 

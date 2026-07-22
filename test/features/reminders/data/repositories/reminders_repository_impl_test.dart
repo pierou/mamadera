@@ -22,25 +22,37 @@ void main() {
       await database.close();
     });
 
-    final vitaminDItem = ReminderItem.vitaminD();
+    final vitaminDItem = ReminderItemPresets.vitaminD;
 
     group('getLastCompletedToday', () {
-      test('returns null when no dismissals exist', () async {
+      test('returns null when no tracking events exist', () async {
         final result = await repository.getLastCompletedToday(vitaminDItem);
         expect(result, isNull);
       });
 
-      test('returns null for dismissal from yesterday', () async {
+      test('returns null for event from yesterday', () async {
         final yesterday = DateTime.now().subtract(const Duration(days: 1));
-        await repository.saveDismissalTime(vitaminDItem.id, yesterday);
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: vitaminDItem.trackingType.name,
+            wasteType: Value(vitaminDItem.subtypeValue),
+            timestamp: yesterday,
+          ),
+        );
 
         final result = await repository.getLastCompletedToday(vitaminDItem);
         expect(result, isNull);
       });
 
-      test('returns dismissal time from today', () async {
+      test('returns event timestamp from today', () async {
         final now = DateTime.now();
-        await repository.saveDismissalTime(vitaminDItem.id, now);
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: vitaminDItem.trackingType.name,
+            wasteType: Value(vitaminDItem.subtypeValue),
+            timestamp: now,
+          ),
+        );
 
         final result = await repository.getLastCompletedToday(vitaminDItem);
         expect(result, isNotNull);
@@ -49,9 +61,15 @@ void main() {
         expect(result.day, equals(now.day));
       });
 
-      test('returns null for different item ID', () async {
-        final vitaminK = ReminderItem.vitaminK();
-        await repository.saveDismissalTime(vitaminDItem.id, DateTime.now());
+      test('returns null for different tracking type', () async {
+        final vitaminK = ReminderItemPresets.vitaminK();
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: vitaminDItem.trackingType.name,
+            wasteType: Value(vitaminDItem.subtypeValue),
+            timestamp: DateTime.now(),
+          ),
+        );
 
         final result = await repository.getLastCompletedToday(vitaminK);
         expect(result, isNull);
@@ -80,7 +98,7 @@ void main() {
       });
 
       test('stores different items independently', () async {
-        final vitaminK = ReminderItem.vitaminK();
+        final vitaminK = ReminderItemPresets.vitaminK();
         final nowD = DateTime.now();
         final nowK = DateTime.now().add(const Duration(hours: 1));
 

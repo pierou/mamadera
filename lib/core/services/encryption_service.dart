@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:encrypt/encrypt.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 
@@ -36,11 +35,7 @@ class EncryptionService {
     _cachedKey = newKey;
     _usingMemoryFallback = true;
 
-    if (kDebugMode) {
-      debugPrint(
-        '⚠️ CLÉ VOLATILE: les données chiffrées seront perdues au redémarrage.',
-      );
-    }
+    _logger.w('⚠️ CLÉ VOLATILE: les données chiffrées seront perdues au redémarrage.');
   }
 
   /// Initialise ou récupère la clé maître depuis le stockage sécurisé.

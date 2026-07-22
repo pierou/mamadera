@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/l10n/date_localization.dart';
@@ -7,33 +8,21 @@ import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 
+part 'edit_event_dialog.freezed.dart';
+
 /// Résultat retourné par le formulaire d'édition (sealed class).
-sealed class EditResult {
-  const EditResult();
-}
+@freezed
+sealed class EditResult with _$EditResult {
+  const factory EditResult.update({
+    DateTime? timestamp,
+    double? duration,
+    String? notes,
+    WasteType? wasteType,
+    PipiColor? pipiColor,
+    CacaColor? cacaColor,
+  }) = UpdateResult;
 
-/// Données de mise à jour d'un événement — utilise des enums typés directement.
-class UpdateResult extends EditResult {
-  const UpdateResult({
-    this.timestamp,
-    this.duration,
-    this.notes,
-    this.wasteType,
-    this.pipiColor,
-    this.cacaColor,
-  });
-
-  final DateTime? timestamp;
-  final double? duration;
-  final String? notes; // health subtype value ('nettoyage_yeux'...) ou note libre
-  final WasteType? wasteType;
-  final PipiColor? pipiColor;
-  final CacaColor? cacaColor;
-}
-
-/// Signal de suppression d'un événement.
-class DeleteResult extends EditResult {
-  const DeleteResult();
+  const factory EditResult.delete() = DeleteResult;
 }
 
 /// Bottom sheet pour éditer les champs modifiables d'un événement.
@@ -59,24 +48,22 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
 
   /// Version normalisée en minuscule pour les comparaisons.
   String get _normalizedType {
-    switch (widget.event) {
-      case FeedingEvent():
-        return 'miam';
-      case SleepEvent():
-        return 'dodo';
-      case DiaperEvent():
-        final dt = widget.event as DiaperEvent;
-        if (dt.wasteType == WasteType.pipi) return 'pipi';
+    return widget.event.map(
+      (e) => 'unknown',
+      feeding: (_) => 'miam',
+      sleep: (_) => 'dodo',
+      diaper: (e) {
+        if (e.wasteType == WasteType.pipi) return 'pipi';
         return 'caca';
-      case HealthEvent():
-        return 'sante';
-    }
+      },
+      health: (_) => 'sante',
+    );
   }
 
   @override
   void initState() {
     super.initState();
-    _selectedDate = widget.event.timestamp;
+    _selectedDate = widget.event.timestamp!;
     _duration = null;
     _notesController = TextEditingController(text: '');
     _wasteType = null;
@@ -87,24 +74,25 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
 
   /// Initialise les champs spécifiques au type d'événement.
   void _initEventFields() {
-    switch (widget.event) {
-      case FeedingEvent():
-        final e = widget.event as FeedingEvent;
+    widget.event.map(
+      (e) {},
+      feeding: (e) {
         _duration = e.duration;
         _notesController.text = e.notes ?? '';
-      case SleepEvent():
-        final e = widget.event as SleepEvent;
+      },
+      sleep: (e) {
         _duration = e.duration;
-      case DiaperEvent():
-        final e = widget.event as DiaperEvent;
+      },
+      diaper: (e) {
         _wasteType = e.wasteType;
         _pipiColor = e.pipiColor;
         _cacaColor = e.cacaColor;
         _notesController.text = e.notes ?? '';
-      case HealthEvent():
-        final e = widget.event as HealthEvent;
+      },
+      health: (e) {
         _notesController.text = e.subtype.value;
-    }
+      },
+    );
   }
 
   @override
@@ -149,7 +137,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   }
 
   void _submit() {
-    final result = UpdateResult(
+    final result = EditResult.update(
       timestamp: _selectedDate,
       duration: _duration,
       notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
@@ -167,7 +155,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       builder: (_) => _buildDeleteDialog());
 
     if (confirmed == true && mounted) {
-      Navigator.of(context).pop(const DeleteResult());
+      Navigator.of(context).pop(const EditResult.delete());
     }
   }
 
@@ -321,7 +309,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       Wrap(
         spacing: 8,
         runSpacing: 4,
-        children: PipiColor.values.map((c) => FilterChip(
+        children: pipiColors.map((c) => FilterChip(
           label: Text(_resolvePipiLabel(context, c)),
           selected: _pipiColor == c,
           onSelected: (_) => setState(() => _pipiColor = _pipiColor == c ? null : c),
@@ -337,7 +325,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       Wrap(
         spacing: 8,
         runSpacing: 4,
-        children: CacaColor.values.map((c) => FilterChip(
+        children: cacaColors.map((c) => FilterChip(
           label: Text(_resolveCacaLabel(context, c)),
           selected: _cacaColor == c,
           onSelected: (_) => setState(() => _cacaColor = _cacaColor == c ? null : c),

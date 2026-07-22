@@ -16,6 +16,7 @@ import 'history_notifier_test.mocks.dart';
 void main() {
   late MockHistoryRepository mockRepository;
   late ProviderContainer container;
+  List<Future<void>> pendingFutures = [];
 
   final event1 = FeedingEvent(
     id: 1,
@@ -48,7 +49,8 @@ void main() {
     id: 1,
     timestamp: DateTime.utc(2023, 1, 1),
     wasteType: WasteType.caca,
-    cacaColor: CacaColor.vertOlive,
+    cacaColor:
+        cacaColorVertOlive,
   );
 
   setUp(() {
@@ -60,9 +62,15 @@ void main() {
         ),
       ],
     );
+    pendingFutures = [];
   });
 
   tearDown(() {
+    // Await all pending futures before disposing to avoid Riverpod 3.x disposal errors
+    if (pendingFutures.isNotEmpty) {
+      Future.wait(pendingFutures).ignore();
+      pendingFutures = [];
+    }
     container.dispose();
   });
 
@@ -71,8 +79,12 @@ void main() {
       when(mockRepository.getAllEventsOrdered())
           .thenAnswer((_) async => [event1, event2]);
 
-      final state =
-          await container.read(historyNotifierProvider(HistoryFilter.all).future);
+      final future =
+          container.read(historyNotifierProvider(HistoryFilter.all).future);
+      pendingFutures.add(future);
+
+      final state = await future;
+      pendingFutures.remove(future);
 
       expect(state, hasLength(2));
       expect(state[0].trackingType, TrackingType.miam);
@@ -84,8 +96,12 @@ void main() {
     test('retourne une liste vide si aucun événement', () async {
       when(mockRepository.getAllEventsOrdered()).thenAnswer((_) async => []);
 
-      final state =
-          await container.read(historyNotifierProvider(HistoryFilter.all).future);
+      final future =
+          container.read(historyNotifierProvider(HistoryFilter.all).future);
+      pendingFutures.add(future);
+
+      final state = await future;
+      pendingFutures.remove(future);
 
       expect(state, isEmpty);
       verify(mockRepository.getAllEventsOrdered()).called(1);
@@ -97,8 +113,12 @@ void main() {
       when(mockRepository.getEventsByType(TrackingType.miam))
           .thenAnswer((_) async => [event1, event3]);
 
-      final state =
-          await container.read(historyNotifierProvider(HistoryFilter.miam).future);
+      final future =
+          container.read(historyNotifierProvider(HistoryFilter.miam).future);
+      pendingFutures.add(future);
+
+      final state = await future;
+      pendingFutures.remove(future);
 
       expect(state, hasLength(2));
       for (final event in state) {
@@ -112,12 +132,55 @@ void main() {
       when(mockRepository.getEventsByType(TrackingType.dodo))
           .thenAnswer((_) async => [eventDodo]);
 
-      final state =
-          await container.read(historyNotifierProvider(HistoryFilter.dodo).future);
+      final future =
+          container.read(historyNotifierProvider(HistoryFilter.dodo).future);
+      pendingFutures.add(future);
+
+      final state = await future;
+      pendingFutures.remove(future);
 
       expect(state, hasLength(1));
       expect(state[0].trackingType, TrackingType.dodo);
+
       verify(mockRepository.getEventsByType(TrackingType.dodo)).called(1);
+    });
+  });
+
+  group('HistoryNotifier avec filtre sante', () {
+    test('appelle getEventsByType() avec le bon filtre', () async {
+      when(mockRepository.getEventsByType(TrackingType.sante))
+          .thenAnswer((_) async => [eventTest]);
+
+      final future =
+          container.read(historyNotifierProvider(HistoryFilter.sante).future);
+      pendingFutures.add(future);
+
+      final state = await future;
+      pendingFutures.remove(future);
+
+      expect(state, hasLength(1));
+      expect(state[0].trackingType, TrackingType.sante);
+
+      verify(mockRepository.getEventsByType(TrackingType.sante)).called(1);
+    });
+  });
+
+  group('HistoryNotifier avec filtre caca', () {
+    test('appelle getEventsByType() avec le bon filtre', () async {
+      when(mockRepository.getEventsByType(TrackingType.caca))
+          .thenAnswer((_) async => [eventRapide]);
+
+      final future =
+          container.read(historyNotifierProvider(HistoryFilter.caca).future);
+      pendingFutures.add(future);
+
+      final state = await future;
+      pendingFutures.remove(future);
+
+      expect(state, hasLength(1));
+      expect(state[0].trackingType, TrackingType.caca);
+
+      verify(mockRepository.getEventsByType(TrackingType.caca)).called(1);
     });
   });
 

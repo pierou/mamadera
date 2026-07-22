@@ -211,7 +211,8 @@ void main() {
         DiaperEvent(
           timestamp: DateTime.utc(2024),
           wasteType: WasteType.pipi,
-          pipiColor: PipiColor.jauneClair,
+          pipiColor:
+        pipiColorJauneClair,
         ),
       );
 
@@ -231,8 +232,10 @@ void main() {
         DiaperEvent(
           timestamp: DateTime.utc(2024),
           wasteType: WasteType.lesDeux,
-          pipiColor: PipiColor.jauneClair,
-          cacaColor: CacaColor.jauneMoutarde,
+          pipiColor:
+        pipiColorJauneClair,
+          cacaColor:
+        cacaColorJauneMoutarde,
         ),
       );
 
@@ -303,7 +306,8 @@ void main() {
         DiaperEvent(
           timestamp: DateTime.utc(2024),
           wasteType: WasteType.pipi,
-          pipiColor: PipiColor.jauneClair,
+          pipiColor:
+        pipiColorJauneClair,
         ),
       );
 

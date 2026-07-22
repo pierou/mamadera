@@ -68,7 +68,7 @@ void main() {
         await repository.insertProfile(baby1);
 
         final result = await repository.getAllProfiles();
-        expect(result.first.birthDayOfMonth, equals(15));
+        expect(babyProfileBirthDayOfMonth(result.first.birthDate), equals(15));
       });
     });
 
@@ -88,15 +88,15 @@ void main() {
       });
 
       test('returns null when active profile has been deactivated', () async {
-        await repository.insertProfile(baby2.copyWith(isActive: false));
+        await repository.insertProfile(babyProfileUpdated(baby2, isActive: false));
 
         final result = await repository.getActiveProfile();
         expect(result, isNull);
       });
 
       test('returns correct one when multiple profiles exist', () async {
-        await repository.insertProfile(baby1.copyWith(name: 'Léo (inactive)', isActive: false));
-        await repository.insertProfile(baby2.copyWith(isActive: true));
+        await repository.insertProfile(babyProfileUpdated(baby1, name: 'Léo (inactive)', isActive: false));
+        await repository.insertProfile(babyProfileUpdated(baby2, isActive: true));
 
         final result = await repository.getActiveProfile();
         expect(result, isNotNull);
@@ -155,7 +155,7 @@ void main() {
           birthDate: DateTime(2026, 5, 20),
         );
         expect(updated!.name, equals('Léonard'));
-        expect(updated.birthDayOfMonth, equals(20));
+        expect(babyProfileBirthDayOfMonth(updated.birthDate), equals(20));
       });
 
       test('leaves unchanged fields intact when updating only one', () async {
@@ -206,8 +206,8 @@ void main() {
 
     group('setActiveProfile', () {
       test('activates a profile and deactivates others', () async {
-        await repository.insertProfile(baby1.copyWith(isActive: false));
-        await repository.insertProfile(baby2.copyWith(isActive: true));
+        await repository.insertProfile(babyProfileUpdated(baby1, isActive: false));
+        await repository.insertProfile(babyProfileUpdated(baby2, isActive: true));
 
         // Emma is active, switch to Léo.
         await repository.setActiveProfile('baby-001');
@@ -218,8 +218,8 @@ void main() {
       });
 
       test('activates profile when no active one exists', () async {
-        await repository.insertProfile(baby1.copyWith(isActive: false));
-        await repository.insertProfile(baby2.copyWith(isActive: false));
+        await repository.insertProfile(babyProfileUpdated(baby1, isActive: false));
+        await repository.insertProfile(babyProfileUpdated(baby2, isActive: false));
 
         await repository.setActiveProfile('baby-002');
 
@@ -229,7 +229,7 @@ void main() {
       });
 
       test('switching active to same profile is idempotent', () async {
-        await repository.insertProfile(baby1.copyWith(isActive: true));
+        await repository.insertProfile(babyProfileUpdated(baby1, isActive: true));
 
         // Call setActive twice on the same ID.
         await repository.setActiveProfile('baby-001');

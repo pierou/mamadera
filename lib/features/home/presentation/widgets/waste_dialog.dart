@@ -107,49 +107,47 @@ class WasteDialog extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            // Sélection du type (chips radio) — utilise l'enum WasteType au lieu de strings
-            _buildTypeChips(context, ref, state.selectedType),
+            // Sélection du type (chips radio)
+            const WasteDialogTypeChips(),
             const SizedBox(height: 24),
 
-            // Section couleur pipi (conditionnelle, typée via enum)
+            // Section couleur pipi (conditionnelle)
             if (state.selectedType == WasteType.pipi || state.selectedType == WasteType.lesDeux) ...[
               Text(context.l.pipiColorSectionTitle,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              _buildPipiColorChips(context, ref, state.pipiColor),
+              const WasteDialogPipiColorChips(),
             ],
-
             if (state.selectedType == WasteType.lesDeux) const SizedBox(height: 24),
 
-            // Section couleur caca (conditionnelle, typée via enum)
+            // Section couleur caca (conditionnelle)
             if (state.selectedType == WasteType.caca || state.selectedType == WasteType.lesDeux) ...[
               Text(context.l.cacaColorSectionTitle,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              _buildCacaColorChips(context, ref, state.cacaColor),
+              const WasteDialogCacaColorChips(),
             ],
 
             const SizedBox(height: 24),
 
             // Bouton Enregistrer
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _onSubmit(context, ref),
-                icon: const Icon(Icons.check),
-                label: Text(context.l.saveButton),
-                style: ElevatedButton.styleFrom( padding: const EdgeInsets.symmetric(vertical: 14)),
-              ),
-            ),
+            WasteDialogSubmitButton(ref: ref),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildTypeChips(BuildContext context, WidgetRef ref, WasteType selectedType) {
+/// Widget pour les chips de sélection du type de selle.
+class WasteDialogTypeChips extends ConsumerWidget {
+  const WasteDialogTypeChips({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(_wasteDialogStateProvider);
     return Wrap(spacing: 8, runSpacing: 8, children: WasteType.values.map((type) {
-      final isSelected = type == selectedType;
+      final isSelected = type == state.selectedType;
       return _ChipRadio(
         label: switch (type) {
           WasteType.pipi => context.l.wasteTypePipi,
@@ -161,10 +159,17 @@ class WasteDialog extends ConsumerWidget {
       );
     }).toList());
   }
+}
 
-  Widget _buildPipiColorChips(BuildContext context, WidgetRef ref, PipiColor? selectedColor) {
-    return Wrap(spacing: 8, runSpacing: 8, children: PipiColor.values.map((c) {
-      final isSelected = c == selectedColor;
+/// Widget pour les chips de couleur pipi.
+class WasteDialogPipiColorChips extends ConsumerWidget {
+  const WasteDialogPipiColorChips({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(_wasteDialogStateProvider);
+    return Wrap(spacing: 8, runSpacing: 8, children: pipiColors.map((c) {
+      final isSelected = c == state.pipiColor;
       final cs = Theme.of(context).colorScheme;
       return FilterChip(
         label: Text(c.label),
@@ -179,10 +184,17 @@ class WasteDialog extends ConsumerWidget {
       );
     }).toList());
   }
+}
 
-  Widget _buildCacaColorChips(BuildContext context, WidgetRef ref, CacaColor? selectedColor) {
-    return Wrap(spacing: 8, runSpacing: 8, children: CacaColor.values.map((c) {
-      final isSelected = c == selectedColor;
+/// Widget pour les chips de couleur caca.
+class WasteDialogCacaColorChips extends ConsumerWidget {
+  const WasteDialogCacaColorChips({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(_wasteDialogStateProvider);
+    return Wrap(spacing: 8, runSpacing: 8, children: cacaColors.map((c) {
+      final isSelected = c == state.cacaColor;
       final cs = Theme.of(context).colorScheme;
       return FilterChip(
         label: Text(c.label),
@@ -196,6 +208,26 @@ class WasteDialog extends ConsumerWidget {
         ),
       );
     }).toList());
+  }
+}
+
+/// Widget pour le bouton de soumission.
+class WasteDialogSubmitButton extends ConsumerWidget {
+  const WasteDialogSubmitButton({required this.ref, super.key});
+
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () => _onSubmit(context, ref),
+        icon: const Icon(Icons.check),
+        label: Text(context.l.saveButton),
+        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+      ),
+    );
   }
 
   void _onSubmit(BuildContext context, WidgetRef ref) {

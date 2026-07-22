@@ -29,11 +29,11 @@ final dynamicRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async 
 
   if (activeProfile == null) {
     // No baby profile yet — return default reminders with daily vitamin K fallback.
-    return [ReminderItem.vitaminD(), ReminderItem.vitaminK()];
+    return [ReminderItemPresets.vitaminD, ReminderItemPresets.vitaminK()];
   }
 
   // Build dynamic reminders based on baby's birth date.
-  return ReminderItem.buildForBaby(activeProfile);
+  return ReminderItemPresets.buildForBaby(activeProfile);
 });
 
 /// Provider for the reminders service (pure business logic layer).

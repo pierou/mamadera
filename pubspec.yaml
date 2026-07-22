@@ -32,7 +32,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   drift: ^2.22.0
   encrypt: ^5.0.3
-  equatable: ^2.0.8
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -58,6 +57,7 @@ dev_dependencies:
   freezed: ^3.0.0
   json_serializable: ^6.9.0
   mockito: ^5.4.4
+  path_provider_platform_interface: ^2.1.2
 
 # For information on the generic Dart part of this pubspec, see
 # https://dart.dev/tools/pub/pubspec

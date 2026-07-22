@@ -7,7 +7,7 @@ import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 void main() {
   group('ReminderItem factory constructors', () {
     test('vitaminD returns correct defaults', () {
-      final item = ReminderItem.vitaminD();
+      final item = ReminderItemPresets.vitaminD;
 
       expect(item.id, 'vitamine_d');
       expect(item.labelKey, 'reminderVitaminD');
@@ -17,7 +17,7 @@ void main() {
     });
 
     test('vitaminK returns correct defaults', () {
-      final item = ReminderItem.vitaminK();
+      final item = ReminderItemPresets.vitaminK();
 
       expect(item.id, 'vitamine_k');
       expect(item.labelKey, 'reminderVitaminK');
@@ -27,8 +27,8 @@ void main() {
     });
 
     test('vitaminD and vitaminK have different IDs', () {
-      final vitD = ReminderItem.vitaminD();
-      final vitK = ReminderItem.vitaminK();
+      final vitD = ReminderItemPresets.vitaminD;
+      final vitK = ReminderItemPresets.vitaminK();
 
       expect(vitD.id, isNot(equals(vitK.id)));
     });
@@ -39,7 +39,7 @@ void main() {
       const item = ReminderItem(
         id: 'test_item',
         labelKey: 'test_label',
-        frequency: Weekly(3),
+        frequency: const Weekly(dayOfWeek: 3),
         trackingType: TrackingType.miam,
         subtypeValue: 'feedingSubtypeBiberon',
       );
@@ -67,7 +67,7 @@ void main() {
 
   group('ReminderItem eyeCleaning factory', () {
     test('returns correct defaults for eye cleaning', () {
-      final item = ReminderItem.eyeCleaning();
+      final item = ReminderItemPresets.eyeCleaning;
 
       expect(item.id, 'eye_cleaning');
       expect(item.labelKey, 'reminderEyeCleaning');
@@ -79,7 +79,7 @@ void main() {
 
   group('ReminderItem faceCleaning factory', () {
     test('returns correct defaults for face cleaning', () {
-      final item = ReminderItem.faceCleaning();
+      final item = ReminderItemPresets.faceCleaning;
 
       expect(item.id, 'face_cleaning');
       expect(item.labelKey, 'reminderFaceCleaning');
@@ -91,7 +91,7 @@ void main() {
 
   group('ReminderItem vitaminK with dayOfMonth', () {
     test('returns Monthly frequency when dayOfMonth provided', () {
-      final item = ReminderItem.vitaminK(dayOfMonth: 15);
+      final item = ReminderItemPresets.vitaminK(dayOfMonth: 15);
 
       expect(item.id, 'vitamine_k');
       expect(item.labelKey, 'reminderVitaminK');
@@ -103,13 +103,13 @@ void main() {
     });
 
     test('falls back to Daily when dayOfMonth is null', () {
-      final item = ReminderItem.vitaminK();
+      final item = ReminderItemPresets.vitaminK();
 
       expect(item.frequency, isA<Daily>());
     });
   });
 
-  group('ReminderItem.buildForBaby()', () {
+  group('ReminderItemPresets.buildForBaby()', () {
     test('returns 4 reminders for a baby profile', () {
       final profile = BabyProfile(
         id: '1',
@@ -118,7 +118,7 @@ void main() {
         isActive: true,
       );
 
-      final reminders = ReminderItem.buildForBaby(profile);
+      final reminders = ReminderItemPresets.buildForBaby(profile);
 
       expect(reminders, hasLength(4));
     });
@@ -131,7 +131,7 @@ void main() {
         isActive: true,
       );
 
-      final reminders = ReminderItem.buildForBaby(profile);
+      final reminders = ReminderItemPresets.buildForBaby(profile);
       expect(reminders[0].id, 'vitamine_d');
     });
 
@@ -143,7 +143,7 @@ void main() {
         isActive: true,
       );
 
-      final reminders = ReminderItem.buildForBaby(profile);
+      final reminders = ReminderItemPresets.buildForBaby(profile);
       final vitaminK = reminders[1];
       expect(vitaminK.id, 'vitamine_k');
       expect(vitaminK.frequency, isA<Monthly>());
@@ -159,7 +159,7 @@ void main() {
         isActive: true,
       );
 
-      final reminders = ReminderItem.buildForBaby(profile);
+      final reminders = ReminderItemPresets.buildForBaby(profile);
       expect(reminders[2].id, 'eye_cleaning');
     });
 
@@ -171,7 +171,7 @@ void main() {
         isActive: true,
       );
 
-      final reminders = ReminderItem.buildForBaby(profile);
+      final reminders = ReminderItemPresets.buildForBaby(profile);
       expect(reminders[3].id, 'face_cleaning');
     });
 
@@ -183,7 +183,7 @@ void main() {
         isActive: true,
       );
 
-      final reminders = ReminderItem.buildForBaby(profile);
+      final reminders = ReminderItemPresets.buildForBaby(profile);
       for (final reminder in reminders) {
         expect(reminder.trackingType, TrackingType.sante);
       }
@@ -197,7 +197,7 @@ void main() {
         isActive: true,
       );
 
-      final reminders = ReminderItem.buildForBaby(profile);
+      final reminders = ReminderItemPresets.buildForBaby(profile);
       final ids = reminders.map((r) => r.id).toList();
       expect(ids.toSet().length, equals(ids.length)); // all unique
     });

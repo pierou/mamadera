@@ -13,7 +13,8 @@ void main() {
       final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.pipi,
-        pipiColor: PipiColor.jauneClair,
+        pipiColor:
+        pipiColorJauneClair,
       );
 
       expect(event.colorDbValue, equals('jaune_clair'));
@@ -33,7 +34,8 @@ void main() {
       final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.caca,
-        cacaColor: CacaColor.vertOlive,
+        cacaColor:
+        cacaColorVertOlive,
       );
 
       expect(event.colorDbValue, equals('vert_olive'));
@@ -53,8 +55,10 @@ void main() {
       final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.lesDeux,
-        pipiColor: PipiColor.incolore,
-        cacaColor: CacaColor.jauneMoutarde,
+        pipiColor:
+        pipiColorIncolore,
+        cacaColor:
+        cacaColorJauneMoutarde,
       );
 
       expect(event.colorDbValue, equals('incolore|jaune_moutarde'));
@@ -64,7 +68,8 @@ void main() {
       final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.lesDeux,
-        pipiColor: PipiColor.jauneFonce,
+        pipiColor:
+        pipiColorJauneFonce,
       );
 
       expect(event.colorDbValue, equals('jaune_fonce'));
@@ -74,7 +79,8 @@ void main() {
       final event = DiaperEvent(
         timestamp: baseTimestamp,
         wasteType: WasteType.lesDeux,
-        cacaColor: CacaColor.meconium,
+        cacaColor:
+        cacaColorMeconium,
       );
 
       expect(event.colorDbValue, equals('meconium'));
@@ -84,8 +90,9 @@ void main() {
     test('wasteType=null (même avec des couleurs) → null', () {
       final event = DiaperEvent(
         timestamp: baseTimestamp,
-        pipiColor: PipiColor.roseUrates,
-        cacaColor: CacaColor.jauneClair,
+        pipiColor:
+        pipiColorRoseUrates,
+        cacaColor: cacaColorJauneClair,
       );
 
       expect(event.colorDbValue, isNull);

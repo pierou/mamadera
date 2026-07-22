@@ -22,6 +22,7 @@ class ActiveBabyNotifier extends AsyncNotifier<BabyProfile?> {
   /// Fetch the currently active baby profile from the repository.
   Future<BabyProfile?> getActiveProfile() async {
     final repository = await ref.read(babyProfileRepositoryProvider.future);
+    if (!ref.mounted) return null;
     return repository.getActiveProfile();
   }
 
@@ -32,6 +33,7 @@ class ActiveBabyNotifier extends AsyncNotifier<BabyProfile?> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final repository = await ref.read(babyProfileRepositoryProvider.future);
+      if (!ref.mounted) return null;
       await repository.setActiveProfile(id);
       // Return the new active state.
       return getActiveProfile();
@@ -41,7 +43,12 @@ class ActiveBabyNotifier extends AsyncNotifier<BabyProfile?> {
   /// Refresh the current state by re-fetching the active profile.
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(getActiveProfile);
+    final result = await AsyncValue.guard(() async {
+      final repository = await ref.read(babyProfileRepositoryProvider.future);
+      if (!ref.mounted) return null;
+      return repository.getActiveProfile();
+    });
+    if (ref.mounted) state = result;
   }
 }
 

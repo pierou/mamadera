@@ -28,7 +28,7 @@ TrackingEvent mapToEntity(db_app.TrackingEvent row, EncryptionService encryption
 }
 
 TrackingEvent _createFeedingEvent(db_app.TrackingEvent row, EncryptionService encryption) {
-  return FeedingEvent(
+  return TrackingEvent.feeding(
     id: row.id,
     timestamp: row.timestamp,
     babyId: row.babyId,
@@ -39,7 +39,7 @@ TrackingEvent _createFeedingEvent(db_app.TrackingEvent row, EncryptionService en
 }
 
 TrackingEvent _createSleepEvent(db_app.TrackingEvent row, EncryptionService encryption) {
-  return SleepEvent(
+  return TrackingEvent.sleep(
     id: row.id,
     timestamp: row.timestamp,
     babyId: row.babyId,
@@ -52,16 +52,7 @@ TrackingEvent _createDiaperEvent(db_app.TrackingEvent row, EncryptionService enc
   final colors = _parseColors(row);
   final wasteType = isFallback ? null : WasteType.fromDbValue(row.wasteType);
 
-  final base = DiaperEvent(
-    id: row.id,
-    timestamp: row.timestamp,
-    babyId: row.babyId,
-    pipiColor: colors.$1,
-    cacaColor: colors.$2,
-    notes: encryption.decrypt(row.notes),
-  );
-
-  return isFallback ? base : DiaperEvent(
+  return TrackingEvent.diaper(
     id: row.id,
     timestamp: row.timestamp,
     babyId: row.babyId,
@@ -76,7 +67,7 @@ TrackingEvent _createHealthEvent(db_app.TrackingEvent row, EncryptionService enc
   // Lire le subtype depuis la colonne dédiée (ou fallback pour anciennes données)
   final subtypeValue = row.subtype ?? '';
   final subtype = HealthSubtype.byValue(subtypeValue) ?? HealthSubtype.nettoyageYeux;
-  return HealthEvent(
+  return TrackingEvent.health(
     id: row.id,
     timestamp: row.timestamp,
     babyId: row.babyId,
@@ -105,17 +96,17 @@ FeedingSubtype _feedingSubtypeFromRow(db_app.TrackingEvent row) {
 
     switch (wasteType) {
       case WasteType.pipi:
-        pipiColor = PipiColor.byValue(parts.first.trim());
+        pipiColor = findPipiColorByValue(parts.first.trim());
       case WasteType.caca:
-        cacaColor = CacaColor.byValue(parts.first.trim());
+        cacaColor = findCacaColorByValue(parts.first.trim());
       case WasteType.lesDeux:
         if (parts.length >= 2) {
-          pipiColor = PipiColor.byValue(parts[0].trim());
-          cacaColor = CacaColor.byValue(parts[1].trim());
+          pipiColor = findPipiColorByValue(parts[0].trim());
+          cacaColor = findCacaColorByValue(parts[1].trim());
         } else if (parts.isNotEmpty) {
           // Fallback : essaie d'abord comme couleur pipi, puis caca
-          pipiColor = PipiColor.byValue(parts.first.trim()) ??
-              CacaColor.byValue(parts.first.trim()) as PipiColor?;
+          pipiColor = findPipiColorByValue(parts.first.trim()) ??
+              findCacaColorByValue(parts.first.trim()) as PipiColor?;
         }
       case null:
         break;

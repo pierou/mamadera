@@ -48,17 +48,20 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
   /// Query the service for due reminders, then group into per-[TrackingType] [ReminderStatus].
   Future<Map<TrackingType, List<ReminderStatus>>> _checkDue() async {
     final service = await ref.read(remindersServiceProvider.future);
+    if (!ref.mounted) return {};
     final result = await service.checkDue();
 
     // Enrich each ReminderStatus with lastEventAt from the tracking repository.
     if (result case RemindersDue(items: final List<ReminderStatus> originalItems)) {
       final trackingRepo = await ref.read(trackingRepositoryProvider.future);
+      if (!ref.mounted) return {};
       final items = List<ReminderStatus>.from(originalItems);
       for (final (index, status) in items.indexed) {
         final lastEventAt = await trackingRepo.getLastEventByTypeAndSubtype(
           status.item.trackingType,
           subtypeValue: status.item.subtypeValue,
         );
+        if (!ref.mounted) return {};
         // Replace with enriched copy
         items[index] = ReminderStatus(
           item: status.item,
@@ -66,6 +69,8 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
           lastEventAt: lastEventAt,
         );
       }
+      // Return the enriched items grouped by TrackingType
+      return _groupByTrackingType(items);
     }
 
     return switch (result) {
@@ -85,6 +90,7 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
 
   /// Manually refresh reminder state (e.g., after tracking an event).
   Future<void> refresh() async {
-    state = await AsyncValue.guard(_checkDue);
+    final result = await AsyncValue.guard(_checkDue);
+    if (ref.mounted) state = result;
   }
 }

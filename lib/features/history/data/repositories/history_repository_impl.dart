@@ -39,54 +39,59 @@ class HistoryRepositoryImpl implements HistoryRepository {
   @override
   Future<bool> updateEvent({required int id, required TrackingEvent event}) async {
     db_app.TrackingEventsCompanion companion;
-    switch (event) {
-      case FeedingEvent():
-        final encryptedNotes = event.notes != null ? encryption.encrypt(event.notes!) : null;
-        companion = db_app.TrackingEventsCompanion(
+    companion = event.map(
+      (e) => throw StateError('Cannot update base TrackingEvent'),
+      feeding: (e) {
+        final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+        return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeMiam),
-          timestamp: Value(event.timestamp),
-          duration: Value(event.duration),
-          subtype: Value(event.subtype.name),
+          timestamp: Value(e.timestamp!),
+          duration: Value(e.duration),
+          subtype: Value(e.subtype.name),
           notes: Value(encryptedNotes),
-          babyId: Value(event.babyId),
+          babyId: Value(e.babyId),
           wasteType: const Value.absent(),
           color: const Value.absent(),
         );
-      case SleepEvent():
-        final encryptedNotes = event.notes != null ? encryption.encrypt(event.notes!) : null;
-        companion = db_app.TrackingEventsCompanion(
+      },
+      sleep: (e) {
+        final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+        return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeDodo),
-          timestamp: Value(event.timestamp),
-          duration: Value(event.duration),
+          timestamp: Value(e.timestamp!),
+          duration: Value(e.duration),
           notes: Value(encryptedNotes),
-          babyId: Value(event.babyId),
+          babyId: Value(e.babyId),
           wasteType: const Value.absent(),
           color: const Value.absent(),
         );
-      case DiaperEvent():
-        final encryptedNotes = event.notes != null ? encryption.encrypt(event.notes!) : null;
-        companion = db_app.TrackingEventsCompanion(
+      },
+      diaper: (e) {
+        final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+        return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeCaca),
-          timestamp: Value(event.timestamp),
+          timestamp: Value(e.timestamp!),
           duration: const Value.absent(),
           notes: Value(encryptedNotes),
-          babyId: Value(event.babyId),
-          wasteType: Value(event.wasteType?.dbValue),
-          color: Value(event.colorDbValue),
+          babyId: Value(e.babyId),
+          wasteType: Value(e.wasteType?.dbValue),
+          color: Value(e.colorDbValue),
         );
-      case HealthEvent():
-        final encryptedNotes = event.notes != null ? encryption.encrypt(event.notes!) : null;
-        companion = db_app.TrackingEventsCompanion(
+      },
+      health: (e) {
+        final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+        return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeSante),
-          timestamp: Value(event.timestamp),
+          timestamp: Value(e.timestamp!),
           duration: const Value.absent(),
-          subtype: Value(event.subtype.value),
+          subtype: Value(e.subtype.value),
           notes: Value(encryptedNotes),
-          babyId: Value(event.babyId),
+          babyId: Value(e.babyId),
           wasteType: const Value.absent(),
           color: const Value.absent(),
         );
-    }
+      },
+    );
 
     // Retourne true si au moins une ligne a été modifiée
     return await _database.updateEvent(id, companion) > 0;

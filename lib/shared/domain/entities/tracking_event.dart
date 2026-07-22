@@ -1,88 +1,74 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'tracking_enums.dart';
 import 'tracking_type.dart';
 
+part 'tracking_event.freezed.dart';
 
 /// Sealed base class for all tracking events.
 ///
 /// Subtypes carry only their relevant fields — no nullable garbage from
 /// unrelated event types. The [trackingType] tag on the base class allows
 /// filtering/aggregation without requiring pattern matching.
-sealed class TrackingEvent extends Equatable {
-  const TrackingEvent({required this.timestamp, this.id, this.babyId});
+@freezed
+sealed class TrackingEvent with _$TrackingEvent {
+  const factory TrackingEvent({int? id, DateTime? timestamp, String? babyId}) = _TrackingEvent;
 
-  final int? id;
-  final DateTime timestamp;
-  final String? babyId;
+  const factory TrackingEvent.feeding({
+    required FeedingSubtype subtype, required double duration, int? id,
+    DateTime? timestamp,
+    String? babyId,
+    String? notes,
+  }) = FeedingEvent;
 
-  /// Discriminator tag returned by each subtype for its [TrackingType].
-  TrackingType get trackingType;
+  const factory TrackingEvent.sleep({
+    required double duration, int? id,
+    DateTime? timestamp,
+    String? babyId,
+    String? notes,
+  }) = SleepEvent;
+
+  const factory TrackingEvent.diaper({
+    int? id,
+    DateTime? timestamp,
+    String? babyId,
+    WasteType? wasteType,
+    PipiColor? pipiColor,
+    CacaColor? cacaColor,
+    String? notes,
+  }) = DiaperEvent;
+
+  const factory TrackingEvent.health({
+    required HealthSubtype subtype, int? id,
+    DateTime? timestamp,
+    String? babyId,
+    String? notes,
+  }) = HealthEvent;
 }
 
-/// Alimentation (miam) — tétée ou biberon.
-class FeedingEvent extends TrackingEvent {
-  const FeedingEvent({
-    required super.timestamp, required this.subtype, required this.duration, super.id, super.babyId,
-    this.notes,
-  });
-
-  final FeedingSubtype subtype;
-  final double duration;
-  final String? notes;
-
-  @override
-  TrackingType get trackingType => TrackingType.miam;
-
-  @override
-  List<Object?> get props => [id, timestamp, babyId, subtype, duration, notes];
-
-  @override
-  String toString() =>
-      'FeedingEvent(id: $id, timestamp: $timestamp, babyId: $babyId, subtype: $subtype, duration: $duration, notes: $notes)';
+/// Returns the [TrackingType] discriminator for a given event.
+extension TrackingEventTrackingType on TrackingEvent {
+  /// Discriminator tag returned by each subtype for filtering/aggregation.
+  TrackingType get trackingType {
+    return when(
+      (id0, ts0, baby0) => throw StateError('Cannot get trackingType from base TrackingEvent'),
+      feeding: (id1, ts1, baby1, sub1, dur1, notes1) => TrackingType.miam,
+      sleep: (id2, ts2, baby2, dur2, notes2) => TrackingType.dodo,
+      diaper: (id3, ts3, baby3, wt3, pc3, cc3, notes3) => TrackingType.caca,
+      health: (id4, ts4, baby4, sub4, notes4) => TrackingType.sante,
+    );
+  }
 }
 
-/// Sommeil (dodo).
-class SleepEvent extends TrackingEvent {
-  const SleepEvent({
-    required super.timestamp, required this.duration, super.id, super.babyId,
-    this.notes,
-  });
-
-  final double duration;
-  final String? notes;
-
-  @override
-  TrackingType get trackingType => TrackingType.dodo;
-
-  @override
-  List<Object?> get props => [id, timestamp, babyId, duration, notes];
-
-  @override
-  String toString() =>
-      'SleepEvent(id: $id, timestamp: $timestamp, babyId: $babyId, duration: $duration, notes: $notes)';
-}
-
-/// Caca / Pipi — type de selle + couleurs optionnelles.
-class DiaperEvent extends TrackingEvent {
-  const DiaperEvent({
-    required super.timestamp, super.id, super.babyId,
-    this.wasteType,
-    this.pipiColor,
-    this.cacaColor,
-    this.notes,
-  });
-
-  final WasteType? wasteType;
-  final PipiColor? pipiColor;
-  final CacaColor? cacaColor;
-  final String? notes;
-
+/// Extension providing [colorDbValue] on [DiaperEvent].
+extension DiaperEventColorDbValue on DiaperEvent {
   /// Retourne la valeur DB formatée pour la colonne `color`.
   /// Pour [WasteType.lesDeux], retourne le format pipe-délimité (`pipi_color|caca_color`).
   String? get colorDbValue {
+    final wasteType = this.wasteType;
     if (wasteType == null) return null;
 
-    switch (wasteType!) {
+    switch (wasteType) {
       case WasteType.pipi:
         return pipiColor?.value;
       case WasteType.caca:
@@ -96,37 +82,6 @@ class DiaperEvent extends TrackingEvent {
         return p.isEmpty ? c : p;
     }
   }
-
-  @override
-  TrackingType get trackingType => TrackingType.caca;
-
-  @override
-  List<Object?> get props => [id, timestamp, babyId, wasteType, pipiColor, cacaColor, notes];
-
-  @override
-  String toString() =>
-      'DiaperEvent(id: $id, timestamp: $timestamp, babyId: $babyId, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor, notes: $notes)';
-}
-
-/// Santé (sante) — soin avec sous-type typé.
-class HealthEvent extends TrackingEvent {
-  const HealthEvent({
-    required super.timestamp, required this.subtype, super.id, super.babyId,
-    this.notes,
-  });
-
-  final HealthSubtype subtype;
-  final String? notes;
-
-  @override
-  TrackingType get trackingType => TrackingType.sante;
-
-  @override
-  List<Object?> get props => [id, timestamp, babyId, subtype, notes];
-
-  @override
-  String toString() =>
-      'HealthEvent(id: $id, timestamp: $timestamp, babyId: $babyId, subtype: ${subtype.value}, notes: $notes)';
 }
 
 

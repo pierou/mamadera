@@ -26,26 +26,26 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
 
   @override
   Future<List<TrackingEvent>> build() async {
-    // Watch active baby to re-fetch when it changes
-    ref.watch(activeBabyProvider);
-    return _fetchWithTimeout(() async {
-      // historyRepositoryProvider est un FutureProvider → on attends l'instance.
-      final repository = await ref.read(historyRepositoryProvider.future);
-      final activeBaby = ref.read(activeBabyProvider).value;
-      final babyId = activeBaby?.id;
+    return _fetchEventsInternal();
+  }
 
-      if (_filter == HistoryFilter.all) {
-        return repository.getAllEventsOrdered(babyId: babyId);
-      }
-      final type = switch (_filter) {
-        HistoryFilter.miam => TrackingType.miam,
-        HistoryFilter.dodo => TrackingType.dodo,
-        HistoryFilter.caca => TrackingType.caca,
-        HistoryFilter.sante => TrackingType.sante,
-        HistoryFilter.all => throw StateError('unexpected all filter in build'),
-      };
-      return repository.getEventsByType(type, babyId: babyId);
-    });
+  Future<List<TrackingEvent>> _fetchEventsInternal() async {
+    final repository = await ref.read(historyRepositoryProvider.future);
+    if (!ref.mounted) return [];
+    // Read active baby synchronously without triggering rebuilds
+    final babyId = ref.read(activeBabyProvider).value?.id;
+
+    if (_filter == HistoryFilter.all) {
+      return repository.getAllEventsOrdered(babyId: babyId);
+    }
+    final type = switch (_filter) {
+      HistoryFilter.miam => TrackingType.miam,
+      HistoryFilter.dodo => TrackingType.dodo,
+      HistoryFilter.caca => TrackingType.caca,
+      HistoryFilter.sante => TrackingType.sante,
+      HistoryFilter.all => throw StateError('unexpected all filter in build'),
+    };
+    return repository.getEventsByType(type, babyId: babyId);
   }
 
   /// Met à jour un événement et rafraîchit la liste.
@@ -95,15 +95,6 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
       };
       return repository.getEventsByType(type);
     });
-  }
-
-  Future<T> _fetchWithTimeout<T>(Future<T> Function() fetch) async {
-    const timeout = Duration(seconds: 10);
-    try {
-      return await fetch().timeout(timeout);
-    } on TimeoutException {
-      throw Exception("Délai d'attente dépassé (${timeout.inSeconds}s)");
-    }
   }
 }
 

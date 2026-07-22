@@ -37,20 +37,20 @@ class TrackNotifier extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() async {
       final repository = await ref.read(trackingRepositoryProvider.future);
       final event = switch (type) {
-        TrackingType.miam => FeedingEvent(
+        TrackingType.miam => TrackingEvent.feeding(
             timestamp: DateTime.now(),
             babyId: babyId,
             subtype: feedingSubtype ?? FeedingSubtype.sein,
             duration: duration?.toDouble() ?? 0.0,
             notes: notes,
           ),
-        TrackingType.dodo => SleepEvent(
+        TrackingType.dodo => TrackingEvent.sleep(
             timestamp: DateTime.now(),
             babyId: babyId,
             duration: duration?.toDouble() ?? 0.0,
             notes: notes,
           ),
-        TrackingType.caca => DiaperEvent(
+        TrackingType.caca => TrackingEvent.diaper(
             timestamp: DateTime.now(),
             babyId: babyId,
             wasteType: wasteType,

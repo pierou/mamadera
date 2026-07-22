@@ -30,7 +30,7 @@ void main() {
       test('returns the day component of birthDate for March 15 → 15', () {
         final profile = BabyProfile(id: testId, name: testName, birthDate: testBirthDate);
 
-        expect(profile.birthDayOfMonth, 15);
+        expect(babyProfileBirthDayOfMonth(profile.birthDate), 15);
       });
 
       test('returns correct day for first of month (January 1)', () {
@@ -40,7 +40,7 @@ void main() {
           birthDate: DateTime(2024, 1, 1),
         );
 
-        expect(profile.birthDayOfMonth, 1);
+        expect(babyProfileBirthDayOfMonth(profile.birthDate), 1);
       });
 
       test('returns correct day for last of month (February 29 leap year)', () {
@@ -50,14 +50,14 @@ void main() {
           birthDate: DateTime(2024, 2, 29),
         );
 
-        expect(profile.birthDayOfMonth, 29);
+        expect(babyProfileBirthDayOfMonth(profile.birthDate), 29);
       });
     });
 
     group('copyWith', () {
       test('returns a new instance with unchanged properties when no args provided', () {
         final original = BabyProfile(id: testId, name: testName, birthDate: testBirthDate);
-        final copied = original.copyWith();
+        final copied = babyProfileUpdated(original);
 
         expect(copied.id, original.id);
         expect(copied.name, original.name);
@@ -67,7 +67,7 @@ void main() {
 
       test('updates name when provided', () {
         final original = BabyProfile(id: testId, name: testName, birthDate: testBirthDate);
-        final updated = original.copyWith(name: 'Luna 2');
+        final updated = babyProfileUpdated(original, name: 'Luna 2');
 
         expect(updated.name, 'Luna 2');
         expect(updated.id, original.id);
@@ -76,7 +76,7 @@ void main() {
       test('updates birthDate when provided', () {
         final newBirth = DateTime(2024, 5, 20);
         final profile = BabyProfile(id: testId, name: testName, birthDate: testBirthDate);
-        final updated = profile.copyWith(birthDate: newBirth);
+        final updated = babyProfileUpdated(profile, birthDate: newBirth);
 
         expect(updated.birthDate, newBirth);
         expect(updated.name, profile.name);
@@ -84,7 +84,7 @@ void main() {
 
       test('updates isActive when provided', () {
         final activeProfile = BabyProfile(id: testId, name: testName, birthDate: testBirthDate);
-        final updated = activeProfile.copyWith(isActive: false);
+        final updated = babyProfileUpdated(activeProfile, isActive: false);
 
         expect(updated.isActive, isFalse);
         expect(updated.name, activeProfile.name);
@@ -92,7 +92,7 @@ void main() {
 
       test('updates multiple properties at once', () {
         final profile = BabyProfile(id: testId, name: testName, birthDate: testBirthDate);
-        final updated = profile.copyWith(name: 'Star', isActive: false);
+        final updated = babyProfileUpdated(profile, name: 'Star', isActive: false);
 
         expect(updated.name, 'Star');
         expect(updated.isActive, isFalse);
@@ -102,19 +102,19 @@ void main() {
 
       test('preserves original (immutability) after copyWith', () {
         final original = BabyProfile(id: testId, name: testName, birthDate: testBirthDate);
-        original.copyWith(name: 'Changed');
+        babyProfileUpdated(original, name: 'Changed');
 
         expect(original.name, testName);
       });
     });
 
     group('toString', () {
-      test('includes id, name, and birthDate in output', () {
+      test('includes id, name, birthDate, and isActive in output', () {
         final profile = BabyProfile(id: testId, name: testName, birthDate: testBirthDate);
 
         expect(
           profile.toString(),
-          'BabyProfile(id: $testId, name: $testName, birthDate: $testBirthDate)',
+          'BabyProfile(id: $testId, name: $testName, birthDate: $testBirthDate, isActive: true)',
         );
       });
     });

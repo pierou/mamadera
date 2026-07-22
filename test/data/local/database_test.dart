@@ -43,7 +43,7 @@ void main() {
       final connection = LazyDatabase(NativeDatabase.memory);
       final db = AppDatabase(connection);
 
-      expect(db.schemaVersion, equals(4));
+      expect(db.schemaVersion, equals(5));
 
       await db.close();
     });
@@ -123,6 +123,47 @@ void main() {
       expect(await dbFile.exists(), isTrue);
 
       await db.close();
+    });
+  });
+
+  group('resetDatabase', () {
+    test('does nothing when database file does not exist', () async {
+      final uniqueName = 'reset_test_${DateTime.now().millisecondsSinceEpoch}';
+      final tempDir = await Directory('${Directory.systemTemp.path}/$uniqueName').create(recursive: true);
+
+      try {
+        // No database file created - should not throw
+        await resetDatabase(directoryPath: tempDir.path);
+      } finally {
+        await tempDir.delete(recursive: true);
+      }
+    });
+
+    test('deletes database file when it exists', () async {
+      final uniqueName = 'reset_test2_${DateTime.now().millisecondsSinceEpoch}';
+      final tempDir = await Directory('${Directory.systemTemp.path}/$uniqueName').create(recursive: true);
+
+      try {
+        // Create a database file
+        final db = await createAppDatabase(directoryPath: tempDir.path);
+        await db.insertEvent(
+          TrackingEventsCompanion(
+            type: const Value('miam'),
+            timestamp: Value(DateTime.now()),
+          ),
+        );
+        await db.close();
+
+        // Verify file exists
+        final dbFile = File('${tempDir.path}/mamadera.db');
+        expect(await dbFile.exists(), isTrue);
+
+        // Reset should delete it
+        await resetDatabase(directoryPath: tempDir.path);
+        expect(await dbFile.exists(), isFalse);
+      } finally {
+        await tempDir.delete(recursive: true);
+      }
     });
   });
 }

@@ -187,43 +187,43 @@ void main() {
   });
 
   group('PipiColor', () {
-    test('byValue retourne la bonne couleur pour incolore', () {
-      final color = PipiColor.byValue('incolore');
+    test('findPipiColorByValue retourne la bonne couleur pour incolore', () {
+      final color = findPipiColorByValue('incolore');
       expect(color, isNotNull);
       expect(color!.value, 'incolore');
       expect(color.label, 'Incolore');
     });
 
-    test('byValue retourne la bonne couleur pour jaune_clair', () {
-      final color = PipiColor.byValue('jaune_clair');
+    test('findPipiColorByValue retourne la bonne couleur pour jaune_clair', () {
+      final color = findPipiColorByValue('jaune_clair');
       expect(color, isNotNull);
       expect(color!.value, 'jaune_clair');
     });
 
-    test('fromDbValue retourne le premier par défaut si valeur inconnue', () {
-      final color = PipiColor.fromDbValue('inconnu');
+    test('findPipiColorFromDbValue retourne le premier par défaut si valeur inconnue', () {
+      final color = findPipiColorFromDbValue('inconnu');
       expect(color.value, 'incolore'); // default to first
     });
 
-    test('values contient 4 couleurs', () {
-      expect(PipiColor.values.length, 4);
+    test('pipiColors contient 4 couleurs', () {
+      expect(pipiColors.length, 4);
     });
   });
 
   group('CacaColor', () {
-    test('byValue retourne la bonne couleur pour meconium', () {
-      final color = CacaColor.byValue('meconium');
+    test('findCacaColorByValue retourne la bonne couleur pour meconium', () {
+      final color = findCacaColorByValue('meconium');
       expect(color, isNotNull);
       expect(color!.value, 'meconium');
     });
 
-    test('fromDbValue retourne jaune_moutarde par défaut si valeur inconnue', () {
-      final color = CacaColor.fromDbValue('inconnu');
+    test('findCacaColorFromDbValue retourne jaune_moutarde par défaut si valeur inconnue', () {
+      final color = findCacaColorFromDbValue('inconnu');
       expect(color.value, 'jaune_moutarde'); // default to index 2
     });
 
-    test('values contient 4 couleurs', () {
-      expect(CacaColor.values.length, 4);
+    test('cacaColors contient 4 couleurs', () {
+      expect(cacaColors.length, 4);
     });
   });
 }

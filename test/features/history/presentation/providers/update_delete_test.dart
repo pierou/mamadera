@@ -17,6 +17,7 @@ import 'update_delete_test.mocks.dart';
 void main() {
   late MockHistoryRepository mockRepository;
   late ProviderContainer container;
+  List<Future<void>> pendingFutures = [];
 
   // Fixtures synthétiques : id ronds, timestamps simples — using typed subtypes
   final event1 = FeedingEvent(
@@ -38,10 +39,17 @@ void main() {
         historyRepositoryProvider.overrideWith((_) async => mockRepository),
       ],
     );
-  });
+    pendingFutures = [];
 
-  tearDown(() {
-    container.dispose();
+    // Use addTearDown to properly await async work before disposing
+    // This runs AFTER the test completes but BEFORE any tearDown
+    addTearDown(() async {
+      if (pendingFutures.isNotEmpty) {
+        await Future.wait(pendingFutures);
+        pendingFutures = [];
+      }
+      container.dispose();
+    });
   });
 
   group('updateEvent()', () {
@@ -69,6 +77,7 @@ void main() {
 
       // Lancer l'update sans attendre → state synchrone set à AsyncLoading
       final updateFuture = notifier.updateEvent(updated);
+      pendingFutures.add(updateFuture);
 
       // Immédiatement après appel : état loading (le premier `state = const AsyncLoading()` est synchrone)
       expect(
@@ -77,6 +86,7 @@ void main() {
       );
 
       await updateFuture; // Attendre la fin de l'opération
+      pendingFutures.remove(updateFuture);
 
       // Post-attente : état data avec liste refreshée contenant l'événement modifié
       final state = container.read(historyNotifierProvider(HistoryFilter.all));
@@ -109,13 +119,15 @@ void main() {
       await notifier.future;
 
       final updateFuture = notifier.updateEvent(updated);
+      pendingFutures.add(updateFuture);
 
       expect(
         container.read(historyNotifierProvider(HistoryFilter.miam)),
         isA<AsyncLoading<List<TrackingEvent>>>(),
       );
 
-      await updateFuture;
+      await updateFuture; // Attendre la fin de l'opération
+      pendingFutures.remove(updateFuture);
 
       // Refresh post-update a utilisé getEventsByType (filtre respecté)
       verify(mockRepository.getEventsByType(TrackingType.miam)).called(greaterThan(1));
