@@ -103,7 +103,7 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
      context: context,
      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
      shape: const RoundedRectangleBorder(
-       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+       borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
      ),
      builder: (context) {
        return StatefulBuilder(
@@ -135,7 +135,7 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
      context: context,
      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
      shape: const RoundedRectangleBorder(
-       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+       borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
      ),
      builder: (context) => const WasteDialog(),
    );
@@ -160,7 +160,7 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
      context: context,
      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
      shape: const RoundedRectangleBorder(
-       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+       borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
      ),
      builder: (context) => const HealthSubtypeDialog(),
    );
@@ -186,9 +186,9 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
         duration: const Duration(milliseconds: 800),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.all(Radius.circular(AppTheme.borderRadiusMedium)),
         ),
-        margin: const EdgeInsets.all(16),
+        margin: EdgeInsets.all(AppTheme.spacingXl),
       ),
     );
   }
@@ -200,11 +200,11 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
       final statusMap = statusesAsync.value ?? const <TrackingType, List<ReminderStatus>>{};
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppTheme.spacingXl),
       child: GridView.count(
         crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
+        mainAxisSpacing: AppTheme.spacingXl,
+        crossAxisSpacing: AppTheme.spacingXl,
         children: [
             TrackButton(
               label: context.l.homeButtonMiam,

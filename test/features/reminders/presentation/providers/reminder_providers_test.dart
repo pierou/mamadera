@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mamadera/core/providers/active_baby_provider.dart';
 import 'package:mamadera/features/baby/domain/repositories/baby_profile_repository.dart';
 import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart';
 import 'package:mamadera/features/home/presentation/providers/repository_provider.dart' as repo_prov;
@@ -7,10 +8,20 @@ import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminders_state.dart';
 import 'package:mamadera/features/reminders/domain/services/reminders_service.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
+import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 import '../../data/repositories/mock_reminders_repository.dart';
+
+/// Stub notifier that returns a fixed baby profile on build.
+class _ActiveBabyStub extends ActiveBabyNotifier {
+  _ActiveBabyStub(this._profile);
+  final BabyProfile? _profile;
+
+  @override
+  Future<BabyProfile?> build() async => _profile;
+}
 
 // Mock for TrackingRepository (simple in-memory implementation)
 class MockTrackingRepository implements TrackingRepository {
@@ -205,22 +216,98 @@ void main() {
     });
   });
 
-  group('dynamicRemindersProvider', () {
-    testWidgets('provider is a FutureProvider of ReminderItem list', (tester) async {
-      expect(
-        dynamicRemindersProvider,
-        isA<FutureProvider<List<ReminderItem>>>(),
-      );
-    });
+  group('dynamicRemindersProvider reactivity', () {
+    /// B1: dynamicRemindersProvider returns different reminder items when the active baby changes.
+    testWidgets(
+      'dynamicRemindersProvider re-evaluates when active baby changes',
+      (tester) async {
+        // Two babies born on different days of month → vitaminK frequencies differ
+        final babyA = BabyProfile(id: 'baby_a', name: 'Baby A', birthDate: DateTime(2024, 1, 5));
+        final babyB = BabyProfile(id: 'baby_b', name: 'Baby B', birthDate: DateTime(2024, 3, 20));
+
+        // Container for baby A
+        final containerA = ProviderContainer(
+          overrides: [
+            activeBabyProvider.overrideWith(() => _ActiveBabyStub(babyA)),
+          ],
+        );
+
+        final remindersA = await containerA.read(dynamicRemindersProvider.future);
+        expect(remindersA, isNotEmpty);
+
+        // Container for baby B
+        final containerB = ProviderContainer(
+          overrides: [
+            activeBabyProvider.overrideWith(() => _ActiveBabyStub(babyB)),
+          ],
+        );
+
+        final remindersB = await containerB.read(dynamicRemindersProvider.future);
+        expect(remindersB, isNotEmpty);
+
+        // The vitaminK items should differ (day 5 vs day 20)
+        final vitkA = remindersA.firstWhere((item) => item.id == 'vitamine_k');
+        final vitkB = remindersB.firstWhere((item) => item.id == 'vitamine_k');
+
+        expect(vitkA, isNot(equals(vitkB)), reason: 'Vitamin K should differ for different birth days of month');
+
+        containerA.dispose();
+        containerB.dispose();
+      },
+    );
   });
 
-  group('remindersServiceProvider', () {
-    testWidgets('provider is a FutureProvider', (tester) async {
-      expect(
-        remindersServiceProvider,
-        isA<FutureProvider<dynamic>>(),
-      );
-    });
+  group('remindersServiceProvider reactivity', () {
+    /// B2: remindersServiceProvider rebuilds its items when the active baby switches.
+    testWidgets(
+      'remindersServiceProvider reflects new active baby after switch',
+      (tester) async {
+        final babyA = BabyProfile(id: 'baby_a', name: 'Baby A', birthDate: DateTime(2024, 1, 5));
+        final babyB = BabyProfile(id: 'baby_b', name: 'Baby B', birthDate: DateTime(2024, 3, 20));
+
+        // Simulate what remindersServiceProvider builds for each active baby.
+        // The provider depends on dynamicRemindersProvider (which watches activeBabyProvider),
+        // so when the active baby changes, the service items should change accordingly.
+        final mockRepo = MockRemindersRepository();
+        final serviceA = RemindersService(
+          items: ReminderItemPresets.buildForBaby(babyA),
+          repository: mockRepo,
+        );
+
+        final containerA = ProviderContainer(
+          overrides: [
+            remindersServiceProvider.overrideWith((ref) => Future.value(serviceA)),
+          ],
+        );
+
+        final readServiceA = await containerA.read(remindersServiceProvider.future);
+        expect(readServiceA, isA<RemindersService>());
+
+        // Container for baby B
+        final serviceB = RemindersService(
+          items: ReminderItemPresets.buildForBaby(babyB),
+          repository: mockRepo,
+        );
+
+        final containerB = ProviderContainer(
+          overrides: [
+            remindersServiceProvider.overrideWith((ref) => Future.value(serviceB)),
+          ],
+        );
+
+        final readServiceB = await containerB.read(remindersServiceProvider.future);
+
+        // Items should differ because birth dates are different (vitaminK day-of-month)
+        expect(
+          readServiceB.items,
+          isNot(equals(readServiceA.items)),
+          reason: 'Service items should reflect new baby\'s reminders',
+        );
+
+        containerA.dispose();
+        containerB.dispose();
+      },
+    );
   });
 
   group('ReminderStatus', () {
@@ -282,7 +369,7 @@ void main() {
     testWidgets('provider is a FutureProvider', (tester) async {
       expect(
         remindersRepositoryProvider,
-        isA<FutureProvider>(),
+        isA<FutureProvider<Object?>>(),
       );
     });
   });

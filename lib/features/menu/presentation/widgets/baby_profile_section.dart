@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/active_baby_provider.dart';
+import '../../../../core/theme.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/domain/entities/baby_profile.dart';
@@ -29,7 +30,7 @@ class BabyProfileSection extends ConsumerWidget {
                 fontWeight: FontWeight.bold,
               ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: AppTheme.spacingMd),
         if (profilesAsync.isLoading || profilesAsync.value == null)
           const ListTile(leading: CircularProgressIndicator(), title: Text('Loading...'))
         else if (profilesAsync.hasError)
@@ -102,23 +103,23 @@ class BabyProfileSection extends ConsumerWidget {
                 onSelected: (value) => _handleMenuAction(context, ref, value, profile, locale),
                 itemBuilder: (context) => [
                   if (!isActive)
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'activate',
                       child: Row(
                         children: [
                           Icon(Icons.star_border, size: 20),
-                          SizedBox(width: 8),
-                          Text('Activate'),
+                          SizedBox(width: AppTheme.spacingMd),
+                          Text(locale.activate),
                         ],
                       ),
                     ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
                     child: Row(
                       children: [
                         Icon(Icons.edit, size: 20),
-                        SizedBox(width: 8),
-                        Text('Edit'),
+                        SizedBox(width: AppTheme.spacingMd),
+                        Text(locale.edit),
                       ],
                     ),
                   ),
@@ -128,8 +129,8 @@ class BabyProfileSection extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.delete, size: 20, color: Theme.of(context).colorScheme.error),
-                        const SizedBox(width: 8),
-                        Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                        SizedBox(width: AppTheme.spacingMd),
+                        Text(locale.delete, style: TextStyle(color: Theme.of(context).colorScheme.error)),
                       ],
                     ),
                   ),
@@ -144,7 +145,7 @@ class BabyProfileSection extends ConsumerWidget {
           },
         );
       }),
-      const SizedBox(height: 8),
+      SizedBox(height: AppTheme.spacingMd),
       ListTile(
         leading: const Icon(Icons.add_circle_outline),
         title: Text(locale.addBaby),
@@ -193,7 +194,7 @@ class BabyProfileSection extends ConsumerWidget {
                   ),
                   autofocus: true,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: AppTheme.spacingXl),
                 InkWell(
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -242,6 +243,8 @@ class BabyProfileSection extends ConsumerWidget {
                     isActive: false,
                   );
                   await repository.insertProfile(newProfile);
+                  // Invalidate the list provider so the menu UI rebuilds with the new profile.
+                  ref.invalidate(babyProfileListProvider);
                   await ref.read(activeBabyProvider.notifier).refresh();
 
                   if (dialogContext.mounted) Navigator.pop(dialogContext);
@@ -293,7 +296,7 @@ class BabyProfileSection extends ConsumerWidget {
                   ),
                   autofocus: true,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: AppTheme.spacingXl),
                 InkWell(
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -335,6 +338,8 @@ class BabyProfileSection extends ConsumerWidget {
                     name: name,
                     birthDate: selectedDate,
                   );
+                  // Invalidate the list provider so the menu UI rebuilds with updated data.
+                  ref.invalidate(babyProfileListProvider);
                   await ref.read(activeBabyProvider.notifier).refresh();
 
                   if (dialogContext.mounted) Navigator.pop(dialogContext);
@@ -401,6 +406,9 @@ class BabyProfileSection extends ConsumerWidget {
         final repository = await ref.read(babyProfileRepositoryProvider.future);
         final isActive = profile.id == ref.read(activeBabyProvider).value?.id;
         await repository.deleteProfile(profile.id);
+
+        // Invalidate the list provider so the menu UI rebuilds with updated data.
+        ref.invalidate(babyProfileListProvider);
 
         if (isActive) {
           // If we deleted the active baby, activate the first other profile if exists.

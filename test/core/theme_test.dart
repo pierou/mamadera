@@ -4,38 +4,38 @@ import 'package:mamadera/core/theme.dart';
 
 void main() {
   group('AppTheme color constants', () {
-    test('background is correct dark gray', () {
-      expect(AppTheme.background, equals(const Color(0xFF2D2D2D)));
+    test('darkBackground is correct dark gray', () {
+      expect(AppTheme.darkBackground, equals(const Color(0xFF2D2D2D)));
     });
 
-    test('miam is yellow-ish color', () {
+    test('miam is soft yellow-ish color', () {
       expect(
         AppTheme.miam,
-        equals(const Color.fromARGB(255, 247, 247, 42)),
+        equals(const Color(0xFFFFE082)),
       );
     });
 
-    test('sante is green color', () {
-      expect(AppTheme.sante, equals(const Color.fromARGB(255, 34, 252, 0)));
+    test('sante is accessible green color', () {
+      expect(AppTheme.sante, equals(const Color(0xFF66BB6A)));
     });
 
-    test('caca is dark brown/green color', () {
+    test('caca is brown color', () {
       expect(
         AppTheme.caca,
-        equals(const Color.fromARGB(255, 55, 58, 14)),
+        equals(const Color(0xFF5D4037)),
       );
     });
 
     test('dodo is blue color', () {
-      expect(AppTheme.dodo, equals(const Color.fromARGB(255, 39, 159, 234)));
+      expect(AppTheme.dodo, equals(const Color(0xFF42A5F5)));
     });
 
-    test('textPrimary is Colors.white', () {
-      expect(AppTheme.textPrimary, equals(Colors.white));
+    test('darkTextPrimary is Colors.white', () {
+      expect(AppTheme.darkTextPrimary, equals(Colors.white));
     });
 
-    test('textSecondary is light gray', () {
-      expect(AppTheme.textSecondary, equals(const Color(0xFFAAAAAA)));
+    test('darkTextSecondary is light gray', () {
+      expect(AppTheme.darkTextSecondary, equals(const Color(0xFFAAAAAA)));
     });
   });
 
@@ -52,10 +52,10 @@ void main() {
       expect(theme.brightness, equals(Brightness.dark));
     });
 
-    test('scaffoldBackgroundColor matches background constant', () {
+    test('scaffoldBackgroundColor matches darkBackground constant', () {
       final theme = AppTheme.theme;
 
-      expect(theme.scaffoldBackgroundColor, equals(AppTheme.background));
+      expect(theme.scaffoldBackgroundColor, equals(AppTheme.darkBackground));
     });
 
     test('colorScheme is dark with sante as primary', () {
@@ -71,12 +71,12 @@ void main() {
       expect(theme.colorScheme.onSurface, equals(Colors.white));
     });
 
-    test('surfaceContainerHighest matches dialogBackground constant', () {
+    test('surfaceContainerHighest matches darkDialogBackground constant', () {
       final theme = AppTheme.theme;
 
       expect(
         theme.colorScheme.surfaceContainerHighest,
-        equals(AppTheme.dialogBackground),
+        equals(AppTheme.darkDialogBackground),
       );
     });
 

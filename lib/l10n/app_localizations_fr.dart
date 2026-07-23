@@ -305,6 +305,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get update => 'Modifier';
 
   @override
+  String get activate => 'Activer';
+
+  @override
+  String get edit => 'Modifier';
+
+  @override
   String get babyAddedSuccess => 'Profil bébé ajouté avec succès';
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 
@@ -223,7 +224,7 @@ class _ColorChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 4),
+      padding: EdgeInsets.only(right: AppTheme.spacingSm),
       child: Tooltip(
         message: label,
         child: Container(
@@ -232,7 +233,7 @@ class _ColorChip extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: color,
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           ),
         ),
       ),

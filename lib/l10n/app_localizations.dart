@@ -662,6 +662,18 @@ abstract class AppLocalizations {
   /// **'Modifier'**
   String get update;
 
+  /// No description provided for @activate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer'**
+  String get activate;
+
+  /// No description provided for @edit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get edit;
+
   /// No description provided for @babyAddedSuccess.
   ///
   /// In fr, this message translates to:

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../../../../core/theme.dart';
 import '../providers/menu_repository_provider.dart';
 import '../widgets/baby_profile_section.dart';
 
@@ -27,9 +28,12 @@ class MenuScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l.menuTitle)),
+      appBar: AppBar(
+        title: Text(context.l.menuTitle),
+        centerTitle: true,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppTheme.spacingXl),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,32 +42,32 @@ class MenuScreen extends ConsumerWidget {
               const BabyProfileSection(),
 
               // Language Section
-              const SizedBox(height: 24),
+              SizedBox(height: AppTheme.spacingXxl),
               Text(
                 context.l.languageSectionTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: AppTheme.spacingMd),
               _buildLanguageTile(context, ref, 'fr', currentLanguage, context.l.languageFrench),
               _buildLanguageTile(context, ref, 'en', currentLanguage, context.l.languageEnglish),
 
               // Theme Section
-              const SizedBox(height: 24),
+              SizedBox(height: AppTheme.spacingXxl),
               Text(
                 context.l.themeSectionTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: AppTheme.spacingMd),
               _buildThemeTile(context, ref, 'system', currentThemeMode, Icons.brightness_auto_outlined, Icons.brightness_1, context.l.themeSystem),
               _buildThemeTile(context, ref, 'light', currentThemeMode, Icons.light_mode_outlined, Icons.light_mode, context.l.themeLight),
               _buildThemeTile(context, ref, 'dark', currentThemeMode, Icons.dark_mode_outlined, Icons.dark_mode, context.l.themeDark),
 
               // Danger Zone
-              const SizedBox(height: 32),
+              SizedBox(height: AppTheme.spacingXXXl),
               Text(
                 context.l.dangerZoneTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -71,7 +75,7 @@ class MenuScreen extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.error,
                     ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: AppTheme.spacingMd),
               _buildResetDatabaseTile(context, ref),
             ],
           ),

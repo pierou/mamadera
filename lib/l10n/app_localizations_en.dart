@@ -304,6 +304,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get update => 'Update';
 
   @override
+  String get activate => 'Activate';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
   String get babyAddedSuccess => 'Baby profile added successfully';
 
   @override

@@ -6,6 +6,7 @@ import '../../../../core/l10n/date_localization.dart';
 
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
+import '../../../../core/theme.dart';
 import '../providers/history_notifier.dart';
 import '../widgets/edit_event_dialog.dart';
 import '../widgets/history_tile.dart';
@@ -35,7 +36,7 @@ class HistoryScreen extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
       ),
       builder: (_) => EditEventDialog(event),
     );
@@ -111,18 +112,21 @@ class HistoryScreen extends ConsumerWidget {
     final eventsAsync = ref.watch(historyNotifierProvider(selectedFilter));
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l.historyTitle)),
+      appBar: AppBar(
+        title: Text(context.l.historyTitle),
+        centerTitle: true,
+      ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(AppTheme.spacingMd),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: _filters.map((filter) {
                   final isSelected = selectedFilter == filter;
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: EdgeInsets.only(right: AppTheme.spacingMd),
                     child: FilterChip(
                       label: Text(getHistoryFilterLabel(context, filter)),
                       selected: isSelected,

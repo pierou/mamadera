@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/theme.dart';
 import '../../../reminders/domain/entities/reminders_state.dart';
 import 'reminder_pill.dart';
 
@@ -119,6 +120,8 @@ class _TrackButtonContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasPending = _hasPendingReminders;
     final items = reminders ?? [];
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
 
     return AnimatedContainer(
       duration: MediaQuery.of(this.context).disableAnimations
@@ -130,12 +133,26 @@ class _TrackButtonContent extends StatelessWidget {
       width: double.infinity,
       height: 200,
       decoration: BoxDecoration(
-        color: Theme.of(this.context).cardColor,
-        borderRadius: const BorderRadius.all(Radius.circular(16)),
-        border: Border.all(color: color, width: 2),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: 0.08),
+            color.withValues(alpha: 0.02),
+          ],
+        ),
+        borderRadius: BorderRadius.all(Radius.circular(AppTheme.shapeCardRadius)),
+        border: Border.all(color: color.withValues(alpha: 0.6), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppTheme.spacingLg),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -144,9 +161,15 @@ class _TrackButtonContent extends StatelessWidget {
               child: Center(
                 child: Text(
                   label,
-                  style: Theme.of(this.context).textTheme.headlineLarge?.copyWith(
+                  style: theme.textTheme.headlineLarge?.copyWith(
                         color: color,
                         fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            color: color.withValues(alpha: 0.3),
+                            blurRadius: 4,
+                          ),
+                        ],
                       ),
                   textAlign: TextAlign.center,
                   maxLines: 2,
@@ -159,8 +182,8 @@ class _TrackButtonContent extends StatelessWidget {
                 flex: 2,
                 child: Center(
                   child: Wrap(
-                    spacing: 4,
-                    runSpacing: 4,
+                    spacing: AppTheme.spacingSm,
+                    runSpacing: AppTheme.spacingSm,
                     alignment: WrapAlignment.center,
                     children: [
                       for (final status in items)
@@ -175,12 +198,16 @@ class _TrackButtonContent extends StatelessWidget {
                 child: Center(
                   child: Text(
                     lastTrackedLabelBuilder(this.context)!,
-                    style: Theme.of(this.context).textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: brightness == Brightness.dark
+                          ? Colors.white70
+                          : Colors.black54,
+                    ),
                   ),
                 ),
               ),
             ],
-            const SizedBox(height: 4),
+            const SizedBox(height: AppTheme.spacingSm),
           ],
         ),
       ),

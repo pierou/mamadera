@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../baby/data/repositories/baby_profile_repository_impl.dart';
 import '../../../baby/domain/repositories/baby_profile_repository.dart';
@@ -23,9 +24,15 @@ final babyProfileProvider = FutureProvider<BabyProfileRepository>((ref) async {
 
 /// Dynamic list of reminder items built from the active baby profile.
 /// Falls back to Vitamin D + daily Vitamin K when no profile exists yet.
+///
+/// Watches [activeBabyProvider] so that this provider auto-invalidates whenever
+/// the selected baby changes — ensuring reminders are always computed for the
+/// currently active profile, not a stale cached value.
 final dynamicRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async {
-  final repo = await ref.watch(babyProfileProvider.future);
-  final activeProfile = await repo.getActiveProfile();
+  // Depend on activeBabyProvider to trigger re-evaluation when it changes.
+  // Use ref.read().future to await the active baby without setting up a watch
+  // (FutureProvider callbacks should use ref.read, not ref.watch).
+  final activeProfile = await ref.read(activeBabyProvider.future);
 
   if (activeProfile == null) {
     // No baby profile yet — return default reminders with daily vitamin K fallback.

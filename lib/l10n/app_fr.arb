@@ -139,6 +139,8 @@
   "babyName": "Nom du bébé",
   "birthDate": "Date de naissance",
   "update": "Modifier",
+  "activate": "Activer",
+  "edit": "Modifier",
 
   "babyAddedSuccess": "Profil bébé ajouté avec succès",
   "babyAddError": "Échec de l'ajout du profil bébé",
