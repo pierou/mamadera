@@ -185,10 +185,10 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
         content: Text(label),
         duration: const Duration(milliseconds: 800),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(AppTheme.borderRadiusMedium)),
         ),
-        margin: EdgeInsets.all(AppTheme.spacingXl),
+        margin: const EdgeInsets.all(AppTheme.spacingXl),
       ),
     );
   }

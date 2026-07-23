@@ -141,7 +141,7 @@ class _TrackButtonContent extends StatelessWidget {
             color.withValues(alpha: 0.02),
           ],
         ),
-        borderRadius: BorderRadius.all(Radius.circular(AppTheme.shapeCardRadius)),
+        borderRadius: const BorderRadius.all(Radius.circular(AppTheme.shapeCardRadius)),
         border: Border.all(color: color.withValues(alpha: 0.6), width: 2),
         boxShadow: [
           BoxShadow(

@@ -30,7 +30,7 @@ class BabyProfileSection extends ConsumerWidget {
                 fontWeight: FontWeight.bold,
               ),
         ),
-        SizedBox(height: AppTheme.spacingMd),
+        const SizedBox(height: AppTheme.spacingMd),
         if (profilesAsync.isLoading || profilesAsync.value == null)
           const ListTile(leading: CircularProgressIndicator(), title: Text('Loading...'))
         else if (profilesAsync.hasError)
@@ -57,6 +57,7 @@ class BabyProfileSection extends ConsumerWidget {
             label: Text(locale.addBaby),
           ),
         ),
+        const SizedBox(height: AppTheme.spacingMd),
       ],
     );
   }
@@ -107,8 +108,8 @@ class BabyProfileSection extends ConsumerWidget {
                       value: 'activate',
                       child: Row(
                         children: [
-                          Icon(Icons.star_border, size: 20),
-                          SizedBox(width: AppTheme.spacingMd),
+                          const Icon(Icons.star_border, size: 20),
+                          const SizedBox(width: AppTheme.spacingMd),
                           Text(locale.activate),
                         ],
                       ),
@@ -117,8 +118,8 @@ class BabyProfileSection extends ConsumerWidget {
                     value: 'edit',
                     child: Row(
                       children: [
-                        Icon(Icons.edit, size: 20),
-                        SizedBox(width: AppTheme.spacingMd),
+                        const Icon(Icons.edit, size: 20),
+                        const SizedBox(width: AppTheme.spacingMd),
                         Text(locale.edit),
                       ],
                     ),
@@ -129,7 +130,7 @@ class BabyProfileSection extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.delete, size: 20, color: Theme.of(context).colorScheme.error),
-                        SizedBox(width: AppTheme.spacingMd),
+                        const SizedBox(width: AppTheme.spacingMd),
                         Text(locale.delete, style: TextStyle(color: Theme.of(context).colorScheme.error)),
                       ],
                     ),
@@ -145,7 +146,7 @@ class BabyProfileSection extends ConsumerWidget {
           },
         );
       }),
-      SizedBox(height: AppTheme.spacingMd),
+      const SizedBox(height: AppTheme.spacingMd),
       ListTile(
         leading: const Icon(Icons.add_circle_outline),
         title: Text(locale.addBaby),
@@ -194,7 +195,7 @@ class BabyProfileSection extends ConsumerWidget {
                   ),
                   autofocus: true,
                 ),
-                SizedBox(height: AppTheme.spacingXl),
+                const SizedBox(height: AppTheme.spacingXl),
                 InkWell(
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -296,7 +297,7 @@ class BabyProfileSection extends ConsumerWidget {
                   ),
                   autofocus: true,
                 ),
-                SizedBox(height: AppTheme.spacingXl),
+                const SizedBox(height: AppTheme.spacingXl),
                 InkWell(
                   onTap: () async {
                     final picked = await showDatePicker(

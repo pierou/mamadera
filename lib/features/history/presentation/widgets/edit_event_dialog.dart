@@ -63,7 +63,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = widget.event.timestamp!;
+    _selectedDate = widget.event.timestamp;
     _duration = null;
     _notesController = TextEditingController(text: '');
     _wasteType = null;
@@ -152,7 +152,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   Future<void> _confirmDelete() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => _buildDeleteDialogWithDialogContext(dialogContext),
+      builder: _buildDeleteDialogWithDialogContext,
       useRootNavigator: true,
     );
 

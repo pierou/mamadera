@@ -224,7 +224,7 @@ class _ColorChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(right: AppTheme.spacingSm),
+      padding: const EdgeInsets.only(right: AppTheme.spacingSm),
       child: Tooltip(
         message: label,
         child: Container(

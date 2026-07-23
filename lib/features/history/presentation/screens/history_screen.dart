@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/l10n/date_localization.dart';
 
+import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
-import '../../../../core/theme.dart';
 import '../providers/history_notifier.dart';
 import '../widgets/edit_event_dialog.dart';
 import '../widgets/history_tile.dart';
@@ -119,14 +119,14 @@ class HistoryScreen extends ConsumerWidget {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(AppTheme.spacingMd),
+            padding: const EdgeInsets.all(AppTheme.spacingMd),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: _filters.map((filter) {
                   final isSelected = selectedFilter == filter;
                   return Padding(
-                    padding: EdgeInsets.only(right: AppTheme.spacingMd),
+                    padding: const EdgeInsets.only(right: AppTheme.spacingMd),
                     child: FilterChip(
                       label: Text(getHistoryFilterLabel(context, filter)),
                       selected: isSelected,
@@ -151,7 +151,7 @@ class HistoryScreen extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final event = events[index];
                     final timeFormatted =
-                        formatDate(context, event.timestamp!);
+                        formatDate(context, event.timestamp);
                     // Skip if no id (shouldn't happen in DB-fetched data, but safe guard)
                     return HistoryTile(
                       event: event,

@@ -42,32 +42,32 @@ class MenuScreen extends ConsumerWidget {
               const BabyProfileSection(),
 
               // Language Section
-              SizedBox(height: AppTheme.spacingXxl),
+              const SizedBox(height: AppTheme.spacingXxl),
               Text(
                 context.l.languageSectionTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
               ),
-              SizedBox(height: AppTheme.spacingMd),
+              const SizedBox(height: AppTheme.spacingMd),
               _buildLanguageTile(context, ref, 'fr', currentLanguage, context.l.languageFrench),
               _buildLanguageTile(context, ref, 'en', currentLanguage, context.l.languageEnglish),
 
               // Theme Section
-              SizedBox(height: AppTheme.spacingXxl),
+              const SizedBox(height: AppTheme.spacingXxl),
               Text(
                 context.l.themeSectionTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
               ),
-              SizedBox(height: AppTheme.spacingMd),
+              const SizedBox(height: AppTheme.spacingMd),
               _buildThemeTile(context, ref, 'system', currentThemeMode, Icons.brightness_auto_outlined, Icons.brightness_1, context.l.themeSystem),
               _buildThemeTile(context, ref, 'light', currentThemeMode, Icons.light_mode_outlined, Icons.light_mode, context.l.themeLight),
               _buildThemeTile(context, ref, 'dark', currentThemeMode, Icons.dark_mode_outlined, Icons.dark_mode, context.l.themeDark),
 
               // Danger Zone
-              SizedBox(height: AppTheme.spacingXXXl),
+              const SizedBox(height: AppTheme.spacingXXXl),
               Text(
                 context.l.dangerZoneTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -75,7 +75,7 @@ class MenuScreen extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.error,
                     ),
               ),
-              SizedBox(height: AppTheme.spacingMd),
+              const SizedBox(height: AppTheme.spacingMd),
               _buildResetDatabaseTile(context, ref),
             ],
           ),
