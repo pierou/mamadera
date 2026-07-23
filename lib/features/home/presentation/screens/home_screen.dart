@@ -29,25 +29,30 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Show onboarding after first frame if no baby profile exists at all.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final anyExists = ref.read(anyBabyExistsProvider).value ?? false;
-      if (!anyExists && mounted) {
-        showModalBottomSheet<Object?>(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (context) => const OnboardingWrapper(),
-        );
-      }
-    });
-  }
+  bool _onboardingShown = false;
 
   @override
   Widget build(BuildContext context) {
+    // Watch the async provider in build() — ref.listen is only valid here.
+    final anyExistsAsync = ref.watch(anyBabyExistsProvider);
+    if (anyExistsAsync.hasValue && !_onboardingShown) {
+      final hasProfiles = anyExistsAsync.value!;
+      if (!hasProfiles) {
+        // Trigger once, then mark as shown so we don't repeat on rebuilds.
+        _onboardingShown = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            showModalBottomSheet<Object?>(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => const OnboardingWrapper(),
+            );
+          }
+        });
+      }
+    }
+
     return const _HomeContent();
   }
 }
