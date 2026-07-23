@@ -17,15 +17,14 @@ void main() {
       container.dispose();
     });
 
-    test('returns an EncryptionService instance', () {
-      final service = container.read(encryptionServiceProvider);
+    test('returns an EncryptionService instance', () async {
+      final service = await container.read(encryptionServiceProvider.future);
       expect(service, isA<EncryptionService>());
     });
 
     test('EncryptionService can be initialized', () async {
-      final service = container.read(encryptionServiceProvider);
-      await service.initialize();
-      expect(service.isUsingMemoryFallback, anyOf(isTrue, isFalse)); // Should not throw
+      final service = await container.read(encryptionServiceProvider.future);
+      expect(service.isUsingMemoryFallback, anyOf(isTrue, isFalse));
     });
   });
 }

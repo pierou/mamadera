@@ -152,29 +152,31 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   Future<void> _confirmDelete() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => _buildDeleteDialog());
+      builder: (dialogContext) => _buildDeleteDialogWithDialogContext(dialogContext),
+      useRootNavigator: true,
+    );
 
     if (confirmed == true && mounted) {
       Navigator.of(context).pop(const EditResult.delete());
     }
   }
 
-  Widget _buildDeleteDialog() {
+  Widget _buildDeleteDialogWithDialogContext(BuildContext dialogContext) {
     return AlertDialog(
-      title: Text(context.l.deleteDialogTitle),
-      content: Text(context.l.deleteDialogContent),
+      title: Text(dialogContext.l.deleteDialogTitle),
+      content: Text(dialogContext.l.deleteDialogContent),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(context.l.cancelButton),
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(dialogContext.l.cancelButton),
         ),
         FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
+          onPressed: () => Navigator.of(dialogContext).pop(true),
           style: FilledButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.error,
-            foregroundColor: Theme.of(context).colorScheme.onError,
+            backgroundColor: Theme.of(dialogContext).colorScheme.error,
+            foregroundColor: Theme.of(dialogContext).colorScheme.onError,
           ),
-          child: Text(context.l.deleteButton),
+          child: Text(dialogContext.l.deleteButton),
         ),
       ],
     );

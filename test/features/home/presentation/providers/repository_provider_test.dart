@@ -23,7 +23,7 @@ void main() {
     test('retourne un TrackingRepository quand les dépendances sont résolues',
         () async {
       final container = ProviderContainer(overrides: [
-        encryptionServiceProvider.overrideWithValue(mockEncryption),
+        encryptionServiceProvider.overrideWith((ref) async => mockEncryption),
         databaseProvider.overrideWith((ref) async => Future.value(mockDb)),
       ]);
 
@@ -43,7 +43,7 @@ void main() {
 
     test('dispose correctement sans erreur', () async {
       final container = ProviderContainer(overrides: [
-        encryptionServiceProvider.overrideWithValue(mockEncryption),
+        encryptionServiceProvider.overrideWith((ref) async => mockEncryption),
         databaseProvider.overrideWith((ref) async => Future.value(mockDb)),
       ]);
 
@@ -52,7 +52,7 @@ void main() {
 
     test('cache le résultat après la première résolution', () async {
       final container = ProviderContainer(overrides: [
-        encryptionServiceProvider.overrideWithValue(mockEncryption),
+        encryptionServiceProvider.overrideWith((ref) async => mockEncryption),
         databaseProvider.overrideWith((ref) async => Future.value(mockDb)),
       ]);
 
@@ -69,7 +69,7 @@ void main() {
 
     test('propage une erreur de databaseProvider', () async {
       final container = ProviderContainer(overrides: [
-        encryptionServiceProvider.overrideWithValue(mockEncryption),
+        encryptionServiceProvider.overrideWith((ref) async => mockEncryption),
         databaseProvider.overrideWith((ref) async => throw Exception('DB error')),
       ]);
 
@@ -83,7 +83,7 @@ void main() {
 
     test('injecte bien l\'encryption service dans le repository', () async {
       final container = ProviderContainer(overrides: [
-        encryptionServiceProvider.overrideWithValue(mockEncryption),
+        encryptionServiceProvider.overrideWith((ref) async => mockEncryption),
         databaseProvider.overrideWith((ref) async => Future.value(mockDb)),
       ]);
 
@@ -101,7 +101,7 @@ void main() {
       when(mockDb.insertEvent(any)).thenThrow(Exception('DB error'));
 
       final container = ProviderContainer(overrides: [
-        encryptionServiceProvider.overrideWithValue(mockEncryption),
+        encryptionServiceProvider.overrideWith((ref) async => mockEncryption),
         databaseProvider.overrideWith((ref) async => Future.value(mockDb)),
       ]);
 

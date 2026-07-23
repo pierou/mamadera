@@ -14,8 +14,8 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$TrackingEvent {
+  DateTime get timestamp;
   int? get id;
-  DateTime? get timestamp;
   String? get babyId;
 
   /// Create a copy of TrackingEvent
@@ -31,18 +31,18 @@ mixin _$TrackingEvent {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is TrackingEvent &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.babyId, babyId) || other.babyId == babyId));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, timestamp, babyId);
+  int get hashCode => Object.hash(runtimeType, timestamp, id, babyId);
 
   @override
   String toString() {
-    return 'TrackingEvent(id: $id, timestamp: $timestamp, babyId: $babyId)';
+    return 'TrackingEvent(timestamp: $timestamp, id: $id, babyId: $babyId)';
   }
 }
 
@@ -52,7 +52,7 @@ abstract mixin class $TrackingEventCopyWith<$Res> {
           TrackingEvent value, $Res Function(TrackingEvent) _then) =
       _$TrackingEventCopyWithImpl;
   @useResult
-  $Res call({int? id, DateTime? timestamp, String? babyId});
+  $Res call({DateTime timestamp, int? id, String? babyId});
 }
 
 /// @nodoc
@@ -68,19 +68,19 @@ class _$TrackingEventCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? timestamp = null,
     Object? id = freezed,
-    Object? timestamp = freezed,
     Object? babyId = freezed,
   }) {
     return _then(_self.copyWith(
+      timestamp: null == timestamp
+          ? _self.timestamp
+          : timestamp // ignore: cast_nullable_to_non_nullable
+              as DateTime,
       id: freezed == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
-      timestamp: freezed == timestamp
-          ? _self.timestamp
-          : timestamp // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       babyId: freezed == babyId
           ? _self.babyId
           : babyId // ignore: cast_nullable_to_non_nullable
@@ -216,23 +216,23 @@ extension TrackingEventPatterns on TrackingEvent {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(int? id, DateTime? timestamp, String? babyId)? $default, {
-    TResult Function(FeedingSubtype subtype, double duration, int? id,
-            DateTime? timestamp, String? babyId, String? notes)?
+    TResult Function(DateTime timestamp, int? id, String? babyId)? $default, {
+    TResult Function(FeedingSubtype subtype, double duration,
+            DateTime timestamp, int? id, String? babyId, String? notes)?
         feeding,
-    TResult Function(double duration, int? id, DateTime? timestamp,
+    TResult Function(double duration, DateTime timestamp, int? id,
             String? babyId, String? notes)?
         sleep,
     TResult Function(
+            DateTime timestamp,
             int? id,
-            DateTime? timestamp,
             String? babyId,
             WasteType? wasteType,
             PipiColor? pipiColor,
             CacaColor? cacaColor,
             String? notes)?
         diaper,
-    TResult Function(HealthSubtype subtype, int? id, DateTime? timestamp,
+    TResult Function(HealthSubtype subtype, DateTime timestamp, int? id,
             String? babyId, String? notes)?
         health,
     required TResult orElse(),
@@ -240,18 +240,18 @@ extension TrackingEventPatterns on TrackingEvent {
     final _that = this;
     switch (_that) {
       case _TrackingEvent() when $default != null:
-        return $default(_that.id, _that.timestamp, _that.babyId);
+        return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent() when feeding != null:
-        return feeding(_that.subtype, _that.duration, _that.id, _that.timestamp,
+        return feeding(_that.subtype, _that.duration, _that.timestamp, _that.id,
             _that.babyId, _that.notes);
       case SleepEvent() when sleep != null:
-        return sleep(_that.duration, _that.id, _that.timestamp, _that.babyId,
+        return sleep(_that.duration, _that.timestamp, _that.id, _that.babyId,
             _that.notes);
       case DiaperEvent() when diaper != null:
-        return diaper(_that.id, _that.timestamp, _that.babyId, _that.wasteType,
+        return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.notes);
       case HealthEvent() when health != null:
-        return health(_that.subtype, _that.id, _that.timestamp, _that.babyId,
+        return health(_that.subtype, _that.timestamp, _that.id, _that.babyId,
             _that.notes);
       case _:
         return orElse();
@@ -273,41 +273,41 @@ extension TrackingEventPatterns on TrackingEvent {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(int? id, DateTime? timestamp, String? babyId) $default, {
-    required TResult Function(FeedingSubtype subtype, double duration, int? id,
-            DateTime? timestamp, String? babyId, String? notes)
+    TResult Function(DateTime timestamp, int? id, String? babyId) $default, {
+    required TResult Function(FeedingSubtype subtype, double duration,
+            DateTime timestamp, int? id, String? babyId, String? notes)
         feeding,
-    required TResult Function(double duration, int? id, DateTime? timestamp,
+    required TResult Function(double duration, DateTime timestamp, int? id,
             String? babyId, String? notes)
         sleep,
     required TResult Function(
+            DateTime timestamp,
             int? id,
-            DateTime? timestamp,
             String? babyId,
             WasteType? wasteType,
             PipiColor? pipiColor,
             CacaColor? cacaColor,
             String? notes)
         diaper,
-    required TResult Function(HealthSubtype subtype, int? id,
-            DateTime? timestamp, String? babyId, String? notes)
+    required TResult Function(HealthSubtype subtype, DateTime timestamp,
+            int? id, String? babyId, String? notes)
         health,
   }) {
     final _that = this;
     switch (_that) {
       case _TrackingEvent():
-        return $default(_that.id, _that.timestamp, _that.babyId);
+        return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent():
-        return feeding(_that.subtype, _that.duration, _that.id, _that.timestamp,
+        return feeding(_that.subtype, _that.duration, _that.timestamp, _that.id,
             _that.babyId, _that.notes);
       case SleepEvent():
-        return sleep(_that.duration, _that.id, _that.timestamp, _that.babyId,
+        return sleep(_that.duration, _that.timestamp, _that.id, _that.babyId,
             _that.notes);
       case DiaperEvent():
-        return diaper(_that.id, _that.timestamp, _that.babyId, _that.wasteType,
+        return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.notes);
       case HealthEvent():
-        return health(_that.subtype, _that.id, _that.timestamp, _that.babyId,
+        return health(_that.subtype, _that.timestamp, _that.id, _that.babyId,
             _that.notes);
     }
   }
@@ -326,41 +326,41 @@ extension TrackingEventPatterns on TrackingEvent {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(int? id, DateTime? timestamp, String? babyId)? $default, {
-    TResult? Function(FeedingSubtype subtype, double duration, int? id,
-            DateTime? timestamp, String? babyId, String? notes)?
+    TResult? Function(DateTime timestamp, int? id, String? babyId)? $default, {
+    TResult? Function(FeedingSubtype subtype, double duration,
+            DateTime timestamp, int? id, String? babyId, String? notes)?
         feeding,
-    TResult? Function(double duration, int? id, DateTime? timestamp,
+    TResult? Function(double duration, DateTime timestamp, int? id,
             String? babyId, String? notes)?
         sleep,
     TResult? Function(
+            DateTime timestamp,
             int? id,
-            DateTime? timestamp,
             String? babyId,
             WasteType? wasteType,
             PipiColor? pipiColor,
             CacaColor? cacaColor,
             String? notes)?
         diaper,
-    TResult? Function(HealthSubtype subtype, int? id, DateTime? timestamp,
+    TResult? Function(HealthSubtype subtype, DateTime timestamp, int? id,
             String? babyId, String? notes)?
         health,
   }) {
     final _that = this;
     switch (_that) {
       case _TrackingEvent() when $default != null:
-        return $default(_that.id, _that.timestamp, _that.babyId);
+        return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent() when feeding != null:
-        return feeding(_that.subtype, _that.duration, _that.id, _that.timestamp,
+        return feeding(_that.subtype, _that.duration, _that.timestamp, _that.id,
             _that.babyId, _that.notes);
       case SleepEvent() when sleep != null:
-        return sleep(_that.duration, _that.id, _that.timestamp, _that.babyId,
+        return sleep(_that.duration, _that.timestamp, _that.id, _that.babyId,
             _that.notes);
       case DiaperEvent() when diaper != null:
-        return diaper(_that.id, _that.timestamp, _that.babyId, _that.wasteType,
+        return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.notes);
       case HealthEvent() when health != null:
-        return health(_that.subtype, _that.id, _that.timestamp, _that.babyId,
+        return health(_that.subtype, _that.timestamp, _that.id, _that.babyId,
             _that.notes);
       case _:
         return null;
@@ -371,12 +371,12 @@ extension TrackingEventPatterns on TrackingEvent {
 /// @nodoc
 
 class _TrackingEvent implements TrackingEvent {
-  const _TrackingEvent({this.id, this.timestamp, this.babyId});
+  const _TrackingEvent({required this.timestamp, this.id, this.babyId});
 
   @override
-  final int? id;
+  final DateTime timestamp;
   @override
-  final DateTime? timestamp;
+  final int? id;
   @override
   final String? babyId;
 
@@ -393,18 +393,18 @@ class _TrackingEvent implements TrackingEvent {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _TrackingEvent &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.babyId, babyId) || other.babyId == babyId));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, timestamp, babyId);
+  int get hashCode => Object.hash(runtimeType, timestamp, id, babyId);
 
   @override
   String toString() {
-    return 'TrackingEvent(id: $id, timestamp: $timestamp, babyId: $babyId)';
+    return 'TrackingEvent(timestamp: $timestamp, id: $id, babyId: $babyId)';
   }
 }
 
@@ -416,7 +416,7 @@ abstract mixin class _$TrackingEventCopyWith<$Res>
       __$TrackingEventCopyWithImpl;
   @override
   @useResult
-  $Res call({int? id, DateTime? timestamp, String? babyId});
+  $Res call({DateTime timestamp, int? id, String? babyId});
 }
 
 /// @nodoc
@@ -432,19 +432,19 @@ class __$TrackingEventCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
+    Object? timestamp = null,
     Object? id = freezed,
-    Object? timestamp = freezed,
     Object? babyId = freezed,
   }) {
     return _then(_TrackingEvent(
+      timestamp: null == timestamp
+          ? _self.timestamp
+          : timestamp // ignore: cast_nullable_to_non_nullable
+              as DateTime,
       id: freezed == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
-      timestamp: freezed == timestamp
-          ? _self.timestamp
-          : timestamp // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       babyId: freezed == babyId
           ? _self.babyId
           : babyId // ignore: cast_nullable_to_non_nullable
@@ -459,17 +459,17 @@ class FeedingEvent implements TrackingEvent {
   const FeedingEvent(
       {required this.subtype,
       required this.duration,
+      required this.timestamp,
       this.id,
-      this.timestamp,
       this.babyId,
       this.notes});
 
   final FeedingSubtype subtype;
   final double duration;
   @override
-  final int? id;
+  final DateTime timestamp;
   @override
-  final DateTime? timestamp;
+  final int? id;
   @override
   final String? babyId;
   final String? notes;
@@ -490,20 +490,20 @@ class FeedingEvent implements TrackingEvent {
             (identical(other.subtype, subtype) || other.subtype == subtype) &&
             (identical(other.duration, duration) ||
                 other.duration == duration) &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.babyId, babyId) || other.babyId == babyId) &&
             (identical(other.notes, notes) || other.notes == notes));
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, subtype, duration, id, timestamp, babyId, notes);
+      Object.hash(runtimeType, subtype, duration, timestamp, id, babyId, notes);
 
   @override
   String toString() {
-    return 'TrackingEvent.feeding(subtype: $subtype, duration: $duration, id: $id, timestamp: $timestamp, babyId: $babyId, notes: $notes)';
+    return 'TrackingEvent.feeding(subtype: $subtype, duration: $duration, timestamp: $timestamp, id: $id, babyId: $babyId, notes: $notes)';
   }
 }
 
@@ -518,8 +518,8 @@ abstract mixin class $FeedingEventCopyWith<$Res>
   $Res call(
       {FeedingSubtype subtype,
       double duration,
+      DateTime timestamp,
       int? id,
-      DateTime? timestamp,
       String? babyId,
       String? notes});
 }
@@ -538,8 +538,8 @@ class _$FeedingEventCopyWithImpl<$Res> implements $FeedingEventCopyWith<$Res> {
   $Res call({
     Object? subtype = null,
     Object? duration = null,
+    Object? timestamp = null,
     Object? id = freezed,
-    Object? timestamp = freezed,
     Object? babyId = freezed,
     Object? notes = freezed,
   }) {
@@ -552,14 +552,14 @@ class _$FeedingEventCopyWithImpl<$Res> implements $FeedingEventCopyWith<$Res> {
           ? _self.duration
           : duration // ignore: cast_nullable_to_non_nullable
               as double,
+      timestamp: null == timestamp
+          ? _self.timestamp
+          : timestamp // ignore: cast_nullable_to_non_nullable
+              as DateTime,
       id: freezed == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
-      timestamp: freezed == timestamp
-          ? _self.timestamp
-          : timestamp // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       babyId: freezed == babyId
           ? _self.babyId
           : babyId // ignore: cast_nullable_to_non_nullable
@@ -577,16 +577,16 @@ class _$FeedingEventCopyWithImpl<$Res> implements $FeedingEventCopyWith<$Res> {
 class SleepEvent implements TrackingEvent {
   const SleepEvent(
       {required this.duration,
+      required this.timestamp,
       this.id,
-      this.timestamp,
       this.babyId,
       this.notes});
 
   final double duration;
   @override
-  final int? id;
+  final DateTime timestamp;
   @override
-  final DateTime? timestamp;
+  final int? id;
   @override
   final String? babyId;
   final String? notes;
@@ -606,20 +606,20 @@ class SleepEvent implements TrackingEvent {
             other is SleepEvent &&
             (identical(other.duration, duration) ||
                 other.duration == duration) &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.babyId, babyId) || other.babyId == babyId) &&
             (identical(other.notes, notes) || other.notes == notes));
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, duration, id, timestamp, babyId, notes);
+      Object.hash(runtimeType, duration, timestamp, id, babyId, notes);
 
   @override
   String toString() {
-    return 'TrackingEvent.sleep(duration: $duration, id: $id, timestamp: $timestamp, babyId: $babyId, notes: $notes)';
+    return 'TrackingEvent.sleep(duration: $duration, timestamp: $timestamp, id: $id, babyId: $babyId, notes: $notes)';
   }
 }
 
@@ -633,8 +633,8 @@ abstract mixin class $SleepEventCopyWith<$Res>
   @useResult
   $Res call(
       {double duration,
+      DateTime timestamp,
       int? id,
-      DateTime? timestamp,
       String? babyId,
       String? notes});
 }
@@ -652,8 +652,8 @@ class _$SleepEventCopyWithImpl<$Res> implements $SleepEventCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? duration = null,
+    Object? timestamp = null,
     Object? id = freezed,
-    Object? timestamp = freezed,
     Object? babyId = freezed,
     Object? notes = freezed,
   }) {
@@ -662,14 +662,14 @@ class _$SleepEventCopyWithImpl<$Res> implements $SleepEventCopyWith<$Res> {
           ? _self.duration
           : duration // ignore: cast_nullable_to_non_nullable
               as double,
+      timestamp: null == timestamp
+          ? _self.timestamp
+          : timestamp // ignore: cast_nullable_to_non_nullable
+              as DateTime,
       id: freezed == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
-      timestamp: freezed == timestamp
-          ? _self.timestamp
-          : timestamp // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       babyId: freezed == babyId
           ? _self.babyId
           : babyId // ignore: cast_nullable_to_non_nullable
@@ -686,8 +686,8 @@ class _$SleepEventCopyWithImpl<$Res> implements $SleepEventCopyWith<$Res> {
 
 class DiaperEvent implements TrackingEvent {
   const DiaperEvent(
-      {this.id,
-      this.timestamp,
+      {required this.timestamp,
+      this.id,
       this.babyId,
       this.wasteType,
       this.pipiColor,
@@ -695,9 +695,9 @@ class DiaperEvent implements TrackingEvent {
       this.notes});
 
   @override
-  final int? id;
+  final DateTime timestamp;
   @override
-  final DateTime? timestamp;
+  final int? id;
   @override
   final String? babyId;
   final WasteType? wasteType;
@@ -718,9 +718,9 @@ class DiaperEvent implements TrackingEvent {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is DiaperEvent &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.babyId, babyId) || other.babyId == babyId) &&
             (identical(other.wasteType, wasteType) ||
                 other.wasteType == wasteType) &&
@@ -732,12 +732,12 @@ class DiaperEvent implements TrackingEvent {
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, timestamp, babyId, wasteType,
+  int get hashCode => Object.hash(runtimeType, timestamp, id, babyId, wasteType,
       pipiColor, cacaColor, notes);
 
   @override
   String toString() {
-    return 'TrackingEvent.diaper(id: $id, timestamp: $timestamp, babyId: $babyId, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor, notes: $notes)';
+    return 'TrackingEvent.diaper(timestamp: $timestamp, id: $id, babyId: $babyId, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor, notes: $notes)';
   }
 }
 
@@ -750,8 +750,8 @@ abstract mixin class $DiaperEventCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int? id,
-      DateTime? timestamp,
+      {DateTime timestamp,
+      int? id,
       String? babyId,
       WasteType? wasteType,
       PipiColor? pipiColor,
@@ -774,8 +774,8 @@ class _$DiaperEventCopyWithImpl<$Res> implements $DiaperEventCopyWith<$Res> {
   @override
   @pragma('vm:prefer-inline')
   $Res call({
+    Object? timestamp = null,
     Object? id = freezed,
-    Object? timestamp = freezed,
     Object? babyId = freezed,
     Object? wasteType = freezed,
     Object? pipiColor = freezed,
@@ -783,14 +783,14 @@ class _$DiaperEventCopyWithImpl<$Res> implements $DiaperEventCopyWith<$Res> {
     Object? notes = freezed,
   }) {
     return _then(DiaperEvent(
+      timestamp: null == timestamp
+          ? _self.timestamp
+          : timestamp // ignore: cast_nullable_to_non_nullable
+              as DateTime,
       id: freezed == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
-      timestamp: freezed == timestamp
-          ? _self.timestamp
-          : timestamp // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       babyId: freezed == babyId
           ? _self.babyId
           : babyId // ignore: cast_nullable_to_non_nullable
@@ -848,16 +848,16 @@ class _$DiaperEventCopyWithImpl<$Res> implements $DiaperEventCopyWith<$Res> {
 class HealthEvent implements TrackingEvent {
   const HealthEvent(
       {required this.subtype,
+      required this.timestamp,
       this.id,
-      this.timestamp,
       this.babyId,
       this.notes});
 
   final HealthSubtype subtype;
   @override
-  final int? id;
+  final DateTime timestamp;
   @override
-  final DateTime? timestamp;
+  final int? id;
   @override
   final String? babyId;
   final String? notes;
@@ -876,20 +876,20 @@ class HealthEvent implements TrackingEvent {
         (other.runtimeType == runtimeType &&
             other is HealthEvent &&
             (identical(other.subtype, subtype) || other.subtype == subtype) &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.babyId, babyId) || other.babyId == babyId) &&
             (identical(other.notes, notes) || other.notes == notes));
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, subtype, id, timestamp, babyId, notes);
+      Object.hash(runtimeType, subtype, timestamp, id, babyId, notes);
 
   @override
   String toString() {
-    return 'TrackingEvent.health(subtype: $subtype, id: $id, timestamp: $timestamp, babyId: $babyId, notes: $notes)';
+    return 'TrackingEvent.health(subtype: $subtype, timestamp: $timestamp, id: $id, babyId: $babyId, notes: $notes)';
   }
 }
 
@@ -903,8 +903,8 @@ abstract mixin class $HealthEventCopyWith<$Res>
   @useResult
   $Res call(
       {HealthSubtype subtype,
+      DateTime timestamp,
       int? id,
-      DateTime? timestamp,
       String? babyId,
       String? notes});
 
@@ -924,8 +924,8 @@ class _$HealthEventCopyWithImpl<$Res> implements $HealthEventCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? subtype = null,
+    Object? timestamp = null,
     Object? id = freezed,
-    Object? timestamp = freezed,
     Object? babyId = freezed,
     Object? notes = freezed,
   }) {
@@ -934,14 +934,14 @@ class _$HealthEventCopyWithImpl<$Res> implements $HealthEventCopyWith<$Res> {
           ? _self.subtype
           : subtype // ignore: cast_nullable_to_non_nullable
               as HealthSubtype,
+      timestamp: null == timestamp
+          ? _self.timestamp
+          : timestamp // ignore: cast_nullable_to_non_nullable
+              as DateTime,
       id: freezed == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
-      timestamp: freezed == timestamp
-          ? _self.timestamp
-          : timestamp // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       babyId: freezed == babyId
           ? _self.babyId
           : babyId // ignore: cast_nullable_to_non_nullable

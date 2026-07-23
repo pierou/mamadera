@@ -45,7 +45,7 @@ class HistoryRepositoryImpl implements HistoryRepository {
         final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
         return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeMiam),
-          timestamp: Value(e.timestamp!),
+          timestamp: Value(e.timestamp),
           duration: Value(e.duration),
           subtype: Value(e.subtype.name),
           notes: Value(encryptedNotes),
@@ -58,7 +58,7 @@ class HistoryRepositoryImpl implements HistoryRepository {
         final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
         return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeDodo),
-          timestamp: Value(e.timestamp!),
+          timestamp: Value(e.timestamp),
           duration: Value(e.duration),
           notes: Value(encryptedNotes),
           babyId: Value(e.babyId),
@@ -70,7 +70,7 @@ class HistoryRepositoryImpl implements HistoryRepository {
         final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
         return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeCaca),
-          timestamp: Value(e.timestamp!),
+          timestamp: Value(e.timestamp),
           duration: const Value.absent(),
           notes: Value(encryptedNotes),
           babyId: Value(e.babyId),
@@ -82,7 +82,7 @@ class HistoryRepositoryImpl implements HistoryRepository {
         final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
         return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeSante),
-          timestamp: Value(e.timestamp!),
+          timestamp: Value(e.timestamp),
           duration: const Value.absent(),
           subtype: Value(e.subtype.value),
           notes: Value(encryptedNotes),

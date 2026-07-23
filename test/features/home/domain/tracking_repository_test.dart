@@ -13,13 +13,13 @@ class MockTrackingRepository implements TrackingRepository {
   @override
   Future<List<TrackingEvent>> getAllEventsOrdered() async {
     return _events.toList()
-      ..sort((a, b) => (b.timestamp ?? DateTime(1)).compareTo(a.timestamp ?? DateTime(1)));
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   @override
   Future<List<TrackingEvent>> getEventsByType(TrackingType type) async {
     return _events.where((e) => e.trackingType == type).toList()
-      ..sort((a, b) => (b.timestamp ?? DateTime(1)).compareTo(a.timestamp ?? DateTime(1)));
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   @override
@@ -46,7 +46,7 @@ class MockTrackingRepository implements TrackingRepository {
     }).toList();
 
     if (filtered.isEmpty) return null;
-    filtered.sort((a, b) => (b.timestamp ?? DateTime(1)).compareTo(a.timestamp ?? DateTime(1)));
+    filtered.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return filtered.first.timestamp;
   }
 }
@@ -85,24 +85,26 @@ void main() {
         expect(result.last, oldEvent);
       });
 
-      test('gère les événements sans timestamp', () async {
-        final noTs = FeedingEvent(
+      test('trie les événements par timestamp décroissant', () async {
+        final olderEvent = FeedingEvent(
+          timestamp: DateTime(2024, 1, 1),
           subtype: FeedingSubtype.bib,
           duration: 15,
         );
-        final withTs = FeedingEvent(
-          timestamp: DateTime(2024, 1, 1),
+        final newerEvent = FeedingEvent(
+          timestamp: DateTime(2024, 1, 2),
           subtype: FeedingSubtype.sein,
           duration: 25,
         );
 
-        await repository.insertEvent(noTs);
-        await repository.insertEvent(withTs);
+        await repository.insertEvent(olderEvent);
+        await repository.insertEvent(newerEvent);
 
         final result = await repository.getAllEventsOrdered();
         expect(result, hasLength(2));
-        // L'événement avec timestamp doit être en premier
-        expect(result.first, withTs);
+        // L'événement avec le timestamp le plus récent doit être en premier
+        expect(result.first, newerEvent);
+        expect(result.last, olderEvent);
       });
     });
 

@@ -63,7 +63,7 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
 
     // Enrich each ReminderStatus with lastEventAt from the tracking repository.
     if (result case RemindersDue(items: final List<ReminderStatus> originalItems)) {
-      final trackingRepo = await ref.read(trackingRepositoryProvider.future);
+      final trackingRepo = await ref.watch(trackingRepositoryProvider.future);
       if (!ref.mounted) return {};
       final items = List<ReminderStatus>.from(originalItems);
       for (final (index, status) in items.indexed) {

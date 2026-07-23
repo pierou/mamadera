@@ -94,7 +94,6 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
                   child: ElevatedButton(
                     onPressed: () {
                       widget.onDurationSelected(_selectedMinutes);
-                      Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom( padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
                     child: Text(context.l.confirmButton),

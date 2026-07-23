@@ -12,25 +12,23 @@ part 'tracking_event.freezed.dart';
 /// filtering/aggregation without requiring pattern matching.
 @freezed
 sealed class TrackingEvent with _$TrackingEvent {
-  const factory TrackingEvent({int? id, DateTime? timestamp, String? babyId}) = _TrackingEvent;
+  const factory TrackingEvent({required DateTime timestamp, int? id, String? babyId}) = _TrackingEvent;
 
   const factory TrackingEvent.feeding({
-    required FeedingSubtype subtype, required double duration, int? id,
-    DateTime? timestamp,
+    required FeedingSubtype subtype, required double duration, required DateTime timestamp,
+    int? id,
     String? babyId,
     String? notes,
   }) = FeedingEvent;
 
   const factory TrackingEvent.sleep({
-    required double duration, int? id,
-    DateTime? timestamp,
+    required double duration, required DateTime timestamp, int? id,
     String? babyId,
     String? notes,
   }) = SleepEvent;
 
   const factory TrackingEvent.diaper({
-    int? id,
-    DateTime? timestamp,
+    required DateTime timestamp, int? id,
     String? babyId,
     WasteType? wasteType,
     PipiColor? pipiColor,
@@ -39,8 +37,7 @@ sealed class TrackingEvent with _$TrackingEvent {
   }) = DiaperEvent;
 
   const factory TrackingEvent.health({
-    required HealthSubtype subtype, int? id,
-    DateTime? timestamp,
+    required HealthSubtype subtype, required DateTime timestamp, int? id,
     String? babyId,
     String? notes,
   }) = HealthEvent;

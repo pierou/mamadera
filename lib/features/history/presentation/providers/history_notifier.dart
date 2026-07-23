@@ -96,7 +96,7 @@ class HistoryNotifier extends AsyncNotifier<List<TrackingEvent>> {
         HistoryFilter.sante => TrackingType.sante,
         HistoryFilter.all => throw StateError('unexpected all filter in deleteEvent'),
       };
-      return repository.getEventsByType(type);
+      return repository.getEventsByType(type, babyId: babyId);
     });
     // Refresh reminders so lastEventAt and due status are re-evaluated.
     unawaited(ref.read(reminderNotifierProvider.notifier).refresh());

@@ -382,4 +382,22 @@ void main() {
       );
     });
   });
+
+  group('dynamicRemindersProvider', () {
+    testWidgets('provider is a FutureProvider', (tester) async {
+      expect(
+        dynamicRemindersProvider,
+        isA<FutureProvider<List<ReminderItem>>>(),
+      );
+    });
+  });
+
+  group('remindersServiceProvider', () {
+    testWidgets('provider is a FutureProvider', (tester) async {
+      expect(
+        remindersServiceProvider,
+        isA<FutureProvider<RemindersService>>(),
+      );
+    });
+  });
 }

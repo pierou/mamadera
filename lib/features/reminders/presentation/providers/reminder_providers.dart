@@ -25,14 +25,14 @@ final babyProfileProvider = FutureProvider<BabyProfileRepository>((ref) async {
 /// Dynamic list of reminder items built from the active baby profile.
 /// Falls back to Vitamin D + daily Vitamin K when no profile exists yet.
 ///
-/// Watches [activeBabyProvider] so that this provider auto-invalidates whenever
-/// the selected baby changes — ensuring reminders are always computed for the
-/// currently active profile, not a stale cached value.
+/// Watches `activeBabyProvider` via `ref.watch` so that this provider
+/// re-evaluates reactively whenever the selected baby changes — ensuring
+/// reminders are always computed for the currently active profile, not a
+/// stale cached value.
 final dynamicRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async {
-  // Depend on activeBabyProvider to trigger re-evaluation when it changes.
-  // Use ref.read().future to await the active baby without setting up a watch
-  // (FutureProvider callbacks should use ref.read, not ref.watch).
-  final activeProfile = await ref.read(activeBabyProvider.future);
+  // ref.watch creates a reactive dependency — when activeBabyProvider changes,
+  // this FutureProvider re-evaluates automatically.
+  final activeProfile = await ref.watch(activeBabyProvider.future);
 
   if (activeProfile == null) {
     // No baby profile yet — return default reminders with daily vitamin K fallback.
@@ -44,8 +44,15 @@ final dynamicRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async 
 });
 
 /// Provider for the reminders service (pure business logic layer).
-final remindersServiceProvider = FutureProvider((ref) async {
-  final repository = await ref.watch(remindersRepositoryProvider.future);
+///
+/// Uses a reactive dependency on `dynamicRemindersProvider.future`
+/// to ensure this provider re-evaluates whenever
+/// the dynamic reminders list changes (e.g. when the active baby switches).
+final remindersServiceProvider = FutureProvider.autoDispose<RemindersService>((ref) async {
+  // Watch dynamicRemindersProvider.future to create a reactive dependency.
+  // When dynamicRemindersProvider changes (e.g. baby switch), this FutureProvider re-evaluates.
   final items = await ref.watch(dynamicRemindersProvider.future);
+
+  final repository = await ref.watch(remindersRepositoryProvider.future);
   return RemindersService(items: items, repository: repository);
 });

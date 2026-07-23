@@ -60,7 +60,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            encryptionServiceProvider.overrideWithValue(encryption),
+            encryptionServiceProvider.overrideWith((ref) async => encryption),
           ],
           child: const MyApp(),
         ),

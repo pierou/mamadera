@@ -14,13 +14,13 @@ class MockHistoryRepository implements HistoryRepository {
   @override
   Future<List<TrackingEvent>> getAllEventsOrdered({String? babyId}) async {
     return _events.values.toList()
-      ..sort((a, b) => (b.timestamp ?? DateTime(1)).compareTo(a.timestamp ?? DateTime(1)));
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   @override
   Future<List<TrackingEvent>> getEventsByType(TrackingType type, {String? babyId}) async {
     return _events.values.where((e) => e.trackingType == type).toList()
-      ..sort((a, b) => (b.timestamp ?? DateTime(1)).compareTo(a.timestamp ?? DateTime(1)));
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   @override

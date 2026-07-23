@@ -46,7 +46,7 @@ void main() async {
   runApp(
     ProviderScope(
       overrides: [
-        encryptionServiceProvider.overrideWithValue(encryption),
+        encryptionServiceProvider.overrideWith((ref) async => encryption),
       ],
       child: const MyApp(),
     ),
