@@ -189,6 +189,35 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String quantityPrefix(Object quantity, Object unit) {
+    return 'Quantité : $quantity $unit';
+  }
+
+  @override
+  String get editQuantitySectionTitle => 'Quantité';
+
+  @override
+  String get quantityPickerTitle => 'Quantité';
+
+  @override
+  String get feedingQuantityLabel => 'Quantité';
+
+  @override
+  String get feedingQuantityHint => 'Sélectionner la quantité';
+
+  @override
+  String get feedingDialogTitle => 'Suivre l\'Alimentation';
+
+  @override
+  String get feedingSubtypeLabel => 'Type d\'Alimentation';
+
+  @override
+  String get feedingSubtypeSein => 'Téte';
+
+  @override
+  String get feedingSubtypeBiberon => 'Biberon';
+
+  @override
   String get editDialogTitle => 'Modifier l\'événement';
 
   @override

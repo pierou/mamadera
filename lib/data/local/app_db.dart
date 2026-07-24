@@ -24,6 +24,7 @@ class TrackingEvents extends Table {
   TextColumn get wasteType => text().nullable()(); // pipi, caca, les_deux (diaper events only)
   TextColumn get color => text().nullable()();     // couleur de la selle ou pipe-délimitée (pipi|caca)
   TextColumn get babyId => text().nullable()();    // nullable FK to baby_profiles(id), backward compatible
+  RealColumn get quantity => real().nullable()();   // volume in ml (feeding) or minutes (sleep)
 }
 
 class ReminderDismissals extends Table {
@@ -42,7 +43,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
   @override
@@ -79,6 +80,10 @@ class AppDatabase extends _$AppDatabase {
             // Migrer les événements feeding: définir subtype = 'sein' par défaut (bib n'était jamais persisté)
             await m.database.customStatement(
                 "UPDATE tracking_events SET subtype = 'sein' WHERE type = 'miam' AND subtype IS NULL");
+          }
+          // v5 → v6 : ajout de la colonne quantity (volume ml feeding / minutes sleep)
+          if (from < 6) {
+            await m.database.customStatement('ALTER TABLE tracking_events ADD COLUMN quantity REAL');
           }
         },
       );

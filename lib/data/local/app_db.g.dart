@@ -330,9 +330,25 @@ class $TrackingEventsTable extends TrackingEvents
   late final GeneratedColumn<String> babyId = GeneratedColumn<String>(
       'baby_id', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _quantityMeta =
+      const VerificationMeta('quantity');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, type, timestamp, duration, subtype, notes, wasteType, color, babyId];
+  late final GeneratedColumn<double> quantity = GeneratedColumn<double>(
+      'quantity', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        type,
+        timestamp,
+        duration,
+        subtype,
+        notes,
+        wasteType,
+        color,
+        babyId,
+        quantity
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -382,6 +398,10 @@ class $TrackingEventsTable extends TrackingEvents
       context.handle(_babyIdMeta,
           babyId.isAcceptableOrUnknown(data['baby_id']!, _babyIdMeta));
     }
+    if (data.containsKey('quantity')) {
+      context.handle(_quantityMeta,
+          quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta));
+    }
     return context;
   }
 
@@ -409,6 +429,8 @@ class $TrackingEventsTable extends TrackingEvents
           .read(DriftSqlType.string, data['${effectivePrefix}color']),
       babyId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}baby_id']),
+      quantity: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}quantity']),
     );
   }
 
@@ -428,6 +450,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
   final String? wasteType;
   final String? color;
   final String? babyId;
+  final double? quantity;
   const TrackingEvent(
       {required this.id,
       required this.type,
@@ -437,7 +460,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       this.notes,
       this.wasteType,
       this.color,
-      this.babyId});
+      this.babyId,
+      this.quantity});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -462,6 +486,9 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
     if (!nullToAbsent || babyId != null) {
       map['baby_id'] = Variable<String>(babyId);
     }
+    if (!nullToAbsent || quantity != null) {
+      map['quantity'] = Variable<double>(quantity);
+    }
     return map;
   }
 
@@ -485,6 +512,9 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           color == null && nullToAbsent ? const Value.absent() : Value(color),
       babyId:
           babyId == null && nullToAbsent ? const Value.absent() : Value(babyId),
+      quantity: quantity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quantity),
     );
   }
 
@@ -501,6 +531,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       wasteType: serializer.fromJson<String?>(json['wasteType']),
       color: serializer.fromJson<String?>(json['color']),
       babyId: serializer.fromJson<String?>(json['babyId']),
+      quantity: serializer.fromJson<double?>(json['quantity']),
     );
   }
   @override
@@ -516,6 +547,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       'wasteType': serializer.toJson<String?>(wasteType),
       'color': serializer.toJson<String?>(color),
       'babyId': serializer.toJson<String?>(babyId),
+      'quantity': serializer.toJson<double?>(quantity),
     };
   }
 
@@ -528,7 +560,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           Value<String?> notes = const Value.absent(),
           Value<String?> wasteType = const Value.absent(),
           Value<String?> color = const Value.absent(),
-          Value<String?> babyId = const Value.absent()}) =>
+          Value<String?> babyId = const Value.absent(),
+          Value<double?> quantity = const Value.absent()}) =>
       TrackingEvent(
         id: id ?? this.id,
         type: type ?? this.type,
@@ -539,6 +572,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
         wasteType: wasteType.present ? wasteType.value : this.wasteType,
         color: color.present ? color.value : this.color,
         babyId: babyId.present ? babyId.value : this.babyId,
+        quantity: quantity.present ? quantity.value : this.quantity,
       );
   TrackingEvent copyWithCompanion(TrackingEventsCompanion data) {
     return TrackingEvent(
@@ -551,6 +585,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       wasteType: data.wasteType.present ? data.wasteType.value : this.wasteType,
       color: data.color.present ? data.color.value : this.color,
       babyId: data.babyId.present ? data.babyId.value : this.babyId,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
     );
   }
 
@@ -565,14 +600,15 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           ..write('notes: $notes, ')
           ..write('wasteType: $wasteType, ')
           ..write('color: $color, ')
-          ..write('babyId: $babyId')
+          ..write('babyId: $babyId, ')
+          ..write('quantity: $quantity')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, type, timestamp, duration, subtype, notes, wasteType, color, babyId);
+  int get hashCode => Object.hash(id, type, timestamp, duration, subtype, notes,
+      wasteType, color, babyId, quantity);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -585,7 +621,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           other.notes == this.notes &&
           other.wasteType == this.wasteType &&
           other.color == this.color &&
-          other.babyId == this.babyId);
+          other.babyId == this.babyId &&
+          other.quantity == this.quantity);
 }
 
 class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
@@ -598,6 +635,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
   final Value<String?> wasteType;
   final Value<String?> color;
   final Value<String?> babyId;
+  final Value<double?> quantity;
   const TrackingEventsCompanion({
     this.id = const Value.absent(),
     this.type = const Value.absent(),
@@ -608,6 +646,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     this.wasteType = const Value.absent(),
     this.color = const Value.absent(),
     this.babyId = const Value.absent(),
+    this.quantity = const Value.absent(),
   });
   TrackingEventsCompanion.insert({
     this.id = const Value.absent(),
@@ -619,6 +658,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     this.wasteType = const Value.absent(),
     this.color = const Value.absent(),
     this.babyId = const Value.absent(),
+    this.quantity = const Value.absent(),
   })  : type = Value(type),
         timestamp = Value(timestamp);
   static Insertable<TrackingEvent> custom({
@@ -631,6 +671,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     Expression<String>? wasteType,
     Expression<String>? color,
     Expression<String>? babyId,
+    Expression<double>? quantity,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -642,6 +683,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       if (wasteType != null) 'waste_type': wasteType,
       if (color != null) 'color': color,
       if (babyId != null) 'baby_id': babyId,
+      if (quantity != null) 'quantity': quantity,
     });
   }
 
@@ -654,7 +696,8 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       Value<String?>? notes,
       Value<String?>? wasteType,
       Value<String?>? color,
-      Value<String?>? babyId}) {
+      Value<String?>? babyId,
+      Value<double?>? quantity}) {
     return TrackingEventsCompanion(
       id: id ?? this.id,
       type: type ?? this.type,
@@ -665,6 +708,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       wasteType: wasteType ?? this.wasteType,
       color: color ?? this.color,
       babyId: babyId ?? this.babyId,
+      quantity: quantity ?? this.quantity,
     );
   }
 
@@ -698,6 +742,9 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     if (babyId.present) {
       map['baby_id'] = Variable<String>(babyId.value);
     }
+    if (quantity.present) {
+      map['quantity'] = Variable<double>(quantity.value);
+    }
     return map;
   }
 
@@ -712,7 +759,8 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
           ..write('notes: $notes, ')
           ..write('wasteType: $wasteType, ')
           ..write('color: $color, ')
-          ..write('babyId: $babyId')
+          ..write('babyId: $babyId, ')
+          ..write('quantity: $quantity')
           ..write(')'))
         .toString();
   }
@@ -1300,6 +1348,7 @@ typedef $$TrackingEventsTableCreateCompanionBuilder = TrackingEventsCompanion
   Value<String?> wasteType,
   Value<String?> color,
   Value<String?> babyId,
+  Value<double?> quantity,
 });
 typedef $$TrackingEventsTableUpdateCompanionBuilder = TrackingEventsCompanion
     Function({
@@ -1312,6 +1361,7 @@ typedef $$TrackingEventsTableUpdateCompanionBuilder = TrackingEventsCompanion
   Value<String?> wasteType,
   Value<String?> color,
   Value<String?> babyId,
+  Value<double?> quantity,
 });
 
 class $$TrackingEventsTableFilterComposer
@@ -1349,6 +1399,9 @@ class $$TrackingEventsTableFilterComposer
 
   ColumnFilters<String> get babyId => $composableBuilder(
       column: $table.babyId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get quantity => $composableBuilder(
+      column: $table.quantity, builder: (column) => ColumnFilters(column));
 }
 
 class $$TrackingEventsTableOrderingComposer
@@ -1386,6 +1439,9 @@ class $$TrackingEventsTableOrderingComposer
 
   ColumnOrderings<String> get babyId => $composableBuilder(
       column: $table.babyId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get quantity => $composableBuilder(
+      column: $table.quantity, builder: (column) => ColumnOrderings(column));
 }
 
 class $$TrackingEventsTableAnnotationComposer
@@ -1423,6 +1479,9 @@ class $$TrackingEventsTableAnnotationComposer
 
   GeneratedColumn<String> get babyId =>
       $composableBuilder(column: $table.babyId, builder: (column) => column);
+
+  GeneratedColumn<double> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
 }
 
 class $$TrackingEventsTableTableManager extends RootTableManager<
@@ -1461,6 +1520,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             Value<String?> wasteType = const Value.absent(),
             Value<String?> color = const Value.absent(),
             Value<String?> babyId = const Value.absent(),
+            Value<double?> quantity = const Value.absent(),
           }) =>
               TrackingEventsCompanion(
             id: id,
@@ -1472,6 +1532,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             wasteType: wasteType,
             color: color,
             babyId: babyId,
+            quantity: quantity,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -1483,6 +1544,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             Value<String?> wasteType = const Value.absent(),
             Value<String?> color = const Value.absent(),
             Value<String?> babyId = const Value.absent(),
+            Value<double?> quantity = const Value.absent(),
           }) =>
               TrackingEventsCompanion.insert(
             id: id,
@@ -1494,6 +1556,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             wasteType: wasteType,
             color: color,
             babyId: babyId,
+            quantity: quantity,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

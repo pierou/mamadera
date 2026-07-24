@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/providers/any_baby_exists_provider.dart';
+import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/domain/entities/baby_profile.dart';
@@ -111,21 +112,13 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
           const SizedBox(height: 32),
 
           // Actions
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(_locale.cancel),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: _selectedDate.isAfter(DateTime.now().add(const Duration(days: 365 * 20)))
-                    ? null
-                    : _saveProfile,
-                child: Text(_locale.onboardingSaveAndContinue),
-              ),
-            ],
+          DialogActionButtons(
+            onCancelPressed: () => Navigator.pop(context, false),
+            onConfirmPressed: _selectedDate.isAfter(DateTime.now().add(const Duration(days: 365 * 20)))
+                ? null
+                : _saveProfile,
+            cancelLabel: _locale.cancelButton,
+            confirmLabel: _locale.onboardingSaveAndContinue,
           ),
         ],
       ),

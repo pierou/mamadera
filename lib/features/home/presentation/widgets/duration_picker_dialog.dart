@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/dialog_buttons.dart';
 
 class DurationPickerDialog extends StatefulWidget {
   const DurationPickerDialog({
@@ -79,27 +80,13 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Flexible(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(context.l.cancelButton),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      widget.onDurationSelected(_selectedMinutes);
-                    },
-                    style: ElevatedButton.styleFrom( padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
-                    child: Text(context.l.confirmButton),
-                  ),
-                ),
-              ],
+            DialogActionButtons(
+              onCancelPressed: () => Navigator.pop(context),
+              onConfirmPressed: () {
+                widget.onDurationSelected(_selectedMinutes);
+              },
+              cancelLabel: context.l.cancelButton,
+              confirmLabel: context.l.confirmButton,
             ),
           ],
         ),

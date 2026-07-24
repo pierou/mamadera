@@ -17,12 +17,24 @@ enum AppRoute {
   final String path;
 }
 
-/// Index de la bottom navigation pour chaque route.
-final _routeToIndex = <String, int>{
-  AppRoute.home.path: 0,
-  AppRoute.history.path: 1,
-  AppRoute.menu.path: 2,
-};
+/// Retourne l'index d'une route pour les transitions positionnelles.
+int routeIndex(AppRoute route) => <AppRoute, int>{
+  AppRoute.home: 0,
+  AppRoute.history: 1,
+  AppRoute.menu: 2,
+}[route]!;
+
+/// Retourne l'index d'une route basée sur son chemin.
+int _routeIndexForPath(String path) {
+  return <String, int>{
+    AppRoute.home.path: 0,
+    AppRoute.history.path: 1,
+    AppRoute.menu.path: 2,
+  }[path] ?? 0;
+}
+
+/// Stocke le chemin de la route précédente pour les transitions.
+String? _previousPath;
 
 /// Router go_router avec ShellRoute pour la bottom navigation.
 final GoRouter router = GoRouter(
@@ -37,17 +49,17 @@ final GoRouter router = GoRouter(
         GoRoute(
           path: AppRoute.home.path,
           name: 'home',
-          builder: (context, state) => const HomeScreen(),
+          pageBuilder: (context, state) => pageBuilder(AppRoute.home, const HomeScreen(), context, state, previousPath: _previousPath),
         ),
         GoRoute(
           path: AppRoute.history.path,
           name: 'history',
-          builder: (context, state) => const HistoryScreen(),
+          pageBuilder: (context, state) => pageBuilder(AppRoute.history, const HistoryScreen(), context, state, previousPath: _previousPath),
         ),
         GoRoute(
           path: AppRoute.menu.path,
           name: 'menu',
-          builder: (context, state) => const MenuScreen(),
+          pageBuilder: (context, state) => pageBuilder(AppRoute.menu, const MenuScreen(), context, state, previousPath: _previousPath),
         ),
       ],
     ),
@@ -81,6 +93,65 @@ final GoRouter router = GoRouter(
   ),
 );
 
+/// Construit une animation de transition par glissement basée sur l'index de la route.
+Widget slideTransitionBuilder({
+  required BuildContext context,
+  required Animation<double> animation,
+  required GoRouterState state,
+  required Widget child,
+  String? previousPath,
+}) {
+  final currentIndex = state.matchedLocation == AppRoute.home.path
+      ? 0
+      : state.matchedLocation == AppRoute.history.path
+          ? 1
+          : 2;
+
+  // Déterminer la direction en comparant les index de route
+  final previousIndex = previousPath != null ? _routeIndexForPath(previousPath) : null;
+  final direction = previousIndex != null && previousIndex != currentIndex
+      ? (currentIndex - previousIndex).clamp(-1.0, 1.0)
+      : 0.0;
+
+  final begin = switch (direction) {
+    > 0 => const Offset(1, 0),
+    < 0 => const Offset(-1, 0),
+    _ => Offset.zero,
+  };
+
+  return SlideTransition(
+    position: Tween<Offset>(begin: begin, end: Offset.zero).animate(
+      CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+    ),
+    child: child,
+  );
+}
+
+/// Construit un [CustomTransitionPage] avec transition de glissement positionnelle.
+CustomTransitionPage<dynamic> pageBuilder(
+  AppRoute route,
+  Widget child,
+  BuildContext context,
+  GoRouterState state, {
+  String? previousPath,
+}) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return slideTransitionBuilder(
+        context: context,
+        animation: animation,
+        state: state,
+        child: child,
+        previousPath: previousPath,
+      );
+    },
+    transitionDuration: const Duration(milliseconds: 300),
+    reverseTransitionDuration: const Duration(milliseconds: 300),
+  );
+}
+
 /// Shell widget qui affiche la bottom navigation et le contenu de la route.
 class AppShell extends ConsumerWidget {
   const AppShell({required this.child, super.key});
@@ -91,31 +162,19 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = GoRouterState.of(context);
     final path = state.matchedLocation;
-    final currentIndex = _routeToIndex[path] ?? 0;
+    final currentIndex = _routeIndexForPath(path);
 
     return Scaffold(
       body: child,
       bottomNavigationBar: _BottomNav(
         currentIndex: currentIndex,
         onTap: (index) {
-          final route = _routeToPath(index);
-          context.go(route);
+          // Enregistrer le chemin actuel avant la navigation
+          _previousPath = path;
+          context.go(AppRoute.values[index].path);
         },
       ),
     );
-  }
-
-  String _routeToPath(int index) {
-    switch (index) {
-      case 0:
-        return AppRoute.home.path;
-      case 1:
-        return AppRoute.history.path;
-      case 2:
-        return AppRoute.menu.path;
-      default:
-        return AppRoute.home.path;
-    }
   }
 }
 

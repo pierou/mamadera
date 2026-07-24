@@ -91,6 +91,19 @@
   "durationPrefix": "Duration: {minutes} min",
   "@@durationPrefix_minutes_comment": "Minutes placeholder for duration display",
 
+  "quantityPrefix": "Quantity: {quantity} {unit}",
+  "@quantityPrefix_quantity_comment": "Quantity value placeholder",
+  "@quantityPrefix_unit_comment": "Unit placeholder (ml or min)",
+
+  "editQuantitySectionTitle": "Quantity",
+  "quantityPickerTitle": "Quantity",
+  "feedingQuantityLabel": "Quantity",
+  "feedingQuantityHint": "Select quantity",
+  "feedingDialogTitle": "Track Feeding",
+  "feedingSubtypeLabel": "Feeding Type",
+  "feedingSubtypeSein": "Breast",
+  "feedingSubtypeBiberon": "Bottle",
+
   "editDialogTitle": "Edit Event",
   "editDateSectionTitle": "Date and Time",
   "editDurationSectionTitle": "Duration",

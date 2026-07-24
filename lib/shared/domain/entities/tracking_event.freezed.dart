@@ -217,11 +217,11 @@ extension TrackingEventPatterns on TrackingEvent {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(DateTime timestamp, int? id, String? babyId)? $default, {
-    TResult Function(FeedingSubtype subtype, double duration,
+    TResult Function(FeedingSubtype subtype, double duration, double? quantity,
             DateTime timestamp, int? id, String? babyId, String? notes)?
         feeding,
-    TResult Function(double duration, DateTime timestamp, int? id,
-            String? babyId, String? notes)?
+    TResult Function(double duration, double? quantity, DateTime timestamp,
+            int? id, String? babyId, String? notes)?
         sleep,
     TResult Function(
             DateTime timestamp,
@@ -242,11 +242,11 @@ extension TrackingEventPatterns on TrackingEvent {
       case _TrackingEvent() when $default != null:
         return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent() when feeding != null:
-        return feeding(_that.subtype, _that.duration, _that.timestamp, _that.id,
-            _that.babyId, _that.notes);
+        return feeding(_that.subtype, _that.duration, _that.quantity,
+            _that.timestamp, _that.id, _that.babyId, _that.notes);
       case SleepEvent() when sleep != null:
-        return sleep(_that.duration, _that.timestamp, _that.id, _that.babyId,
-            _that.notes);
+        return sleep(_that.duration, _that.quantity, _that.timestamp, _that.id,
+            _that.babyId, _that.notes);
       case DiaperEvent() when diaper != null:
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.notes);
@@ -274,11 +274,17 @@ extension TrackingEventPatterns on TrackingEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(DateTime timestamp, int? id, String? babyId) $default, {
-    required TResult Function(FeedingSubtype subtype, double duration,
-            DateTime timestamp, int? id, String? babyId, String? notes)
+    required TResult Function(
+            FeedingSubtype subtype,
+            double duration,
+            double? quantity,
+            DateTime timestamp,
+            int? id,
+            String? babyId,
+            String? notes)
         feeding,
-    required TResult Function(double duration, DateTime timestamp, int? id,
-            String? babyId, String? notes)
+    required TResult Function(double duration, double? quantity,
+            DateTime timestamp, int? id, String? babyId, String? notes)
         sleep,
     required TResult Function(
             DateTime timestamp,
@@ -298,11 +304,11 @@ extension TrackingEventPatterns on TrackingEvent {
       case _TrackingEvent():
         return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent():
-        return feeding(_that.subtype, _that.duration, _that.timestamp, _that.id,
-            _that.babyId, _that.notes);
+        return feeding(_that.subtype, _that.duration, _that.quantity,
+            _that.timestamp, _that.id, _that.babyId, _that.notes);
       case SleepEvent():
-        return sleep(_that.duration, _that.timestamp, _that.id, _that.babyId,
-            _that.notes);
+        return sleep(_that.duration, _that.quantity, _that.timestamp, _that.id,
+            _that.babyId, _that.notes);
       case DiaperEvent():
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.notes);
@@ -327,11 +333,11 @@ extension TrackingEventPatterns on TrackingEvent {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(DateTime timestamp, int? id, String? babyId)? $default, {
-    TResult? Function(FeedingSubtype subtype, double duration,
+    TResult? Function(FeedingSubtype subtype, double duration, double? quantity,
             DateTime timestamp, int? id, String? babyId, String? notes)?
         feeding,
-    TResult? Function(double duration, DateTime timestamp, int? id,
-            String? babyId, String? notes)?
+    TResult? Function(double duration, double? quantity, DateTime timestamp,
+            int? id, String? babyId, String? notes)?
         sleep,
     TResult? Function(
             DateTime timestamp,
@@ -351,11 +357,11 @@ extension TrackingEventPatterns on TrackingEvent {
       case _TrackingEvent() when $default != null:
         return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent() when feeding != null:
-        return feeding(_that.subtype, _that.duration, _that.timestamp, _that.id,
-            _that.babyId, _that.notes);
+        return feeding(_that.subtype, _that.duration, _that.quantity,
+            _that.timestamp, _that.id, _that.babyId, _that.notes);
       case SleepEvent() when sleep != null:
-        return sleep(_that.duration, _that.timestamp, _that.id, _that.babyId,
-            _that.notes);
+        return sleep(_that.duration, _that.quantity, _that.timestamp, _that.id,
+            _that.babyId, _that.notes);
       case DiaperEvent() when diaper != null:
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.notes);
@@ -459,6 +465,7 @@ class FeedingEvent implements TrackingEvent {
   const FeedingEvent(
       {required this.subtype,
       required this.duration,
+      this.quantity,
       required this.timestamp,
       this.id,
       this.babyId,
@@ -466,6 +473,7 @@ class FeedingEvent implements TrackingEvent {
 
   final FeedingSubtype subtype;
   final double duration;
+  final double? quantity;
   @override
   final DateTime timestamp;
   @override
@@ -490,6 +498,8 @@ class FeedingEvent implements TrackingEvent {
             (identical(other.subtype, subtype) || other.subtype == subtype) &&
             (identical(other.duration, duration) ||
                 other.duration == duration) &&
+            (identical(other.quantity, quantity) ||
+                other.quantity == quantity) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
             (identical(other.id, id) || other.id == id) &&
@@ -498,12 +508,12 @@ class FeedingEvent implements TrackingEvent {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, subtype, duration, timestamp, id, babyId, notes);
+  int get hashCode => Object.hash(
+      runtimeType, subtype, duration, quantity, timestamp, id, babyId, notes);
 
   @override
   String toString() {
-    return 'TrackingEvent.feeding(subtype: $subtype, duration: $duration, timestamp: $timestamp, id: $id, babyId: $babyId, notes: $notes)';
+    return 'TrackingEvent.feeding(subtype: $subtype, duration: $duration, quantity: $quantity, timestamp: $timestamp, id: $id, babyId: $babyId, notes: $notes)';
   }
 }
 
@@ -518,6 +528,7 @@ abstract mixin class $FeedingEventCopyWith<$Res>
   $Res call(
       {FeedingSubtype subtype,
       double duration,
+      double? quantity,
       DateTime timestamp,
       int? id,
       String? babyId,
@@ -538,6 +549,7 @@ class _$FeedingEventCopyWithImpl<$Res> implements $FeedingEventCopyWith<$Res> {
   $Res call({
     Object? subtype = null,
     Object? duration = null,
+    Object? quantity = freezed,
     Object? timestamp = null,
     Object? id = freezed,
     Object? babyId = freezed,
@@ -552,6 +564,10 @@ class _$FeedingEventCopyWithImpl<$Res> implements $FeedingEventCopyWith<$Res> {
           ? _self.duration
           : duration // ignore: cast_nullable_to_non_nullable
               as double,
+      quantity: freezed == quantity
+          ? _self.quantity
+          : quantity // ignore: cast_nullable_to_non_nullable
+              as double?,
       timestamp: null == timestamp
           ? _self.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable
@@ -577,12 +593,14 @@ class _$FeedingEventCopyWithImpl<$Res> implements $FeedingEventCopyWith<$Res> {
 class SleepEvent implements TrackingEvent {
   const SleepEvent(
       {required this.duration,
+      this.quantity,
       required this.timestamp,
       this.id,
       this.babyId,
       this.notes});
 
   final double duration;
+  final double? quantity;
   @override
   final DateTime timestamp;
   @override
@@ -606,6 +624,8 @@ class SleepEvent implements TrackingEvent {
             other is SleepEvent &&
             (identical(other.duration, duration) ||
                 other.duration == duration) &&
+            (identical(other.quantity, quantity) ||
+                other.quantity == quantity) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
             (identical(other.id, id) || other.id == id) &&
@@ -614,12 +634,12 @@ class SleepEvent implements TrackingEvent {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, duration, timestamp, id, babyId, notes);
+  int get hashCode => Object.hash(
+      runtimeType, duration, quantity, timestamp, id, babyId, notes);
 
   @override
   String toString() {
-    return 'TrackingEvent.sleep(duration: $duration, timestamp: $timestamp, id: $id, babyId: $babyId, notes: $notes)';
+    return 'TrackingEvent.sleep(duration: $duration, quantity: $quantity, timestamp: $timestamp, id: $id, babyId: $babyId, notes: $notes)';
   }
 }
 
@@ -633,6 +653,7 @@ abstract mixin class $SleepEventCopyWith<$Res>
   @useResult
   $Res call(
       {double duration,
+      double? quantity,
       DateTime timestamp,
       int? id,
       String? babyId,
@@ -652,6 +673,7 @@ class _$SleepEventCopyWithImpl<$Res> implements $SleepEventCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? duration = null,
+    Object? quantity = freezed,
     Object? timestamp = null,
     Object? id = freezed,
     Object? babyId = freezed,
@@ -662,6 +684,10 @@ class _$SleepEventCopyWithImpl<$Res> implements $SleepEventCopyWith<$Res> {
           ? _self.duration
           : duration // ignore: cast_nullable_to_non_nullable
               as double,
+      quantity: freezed == quantity
+          ? _self.quantity
+          : quantity // ignore: cast_nullable_to_non_nullable
+              as double?,
       timestamp: null == timestamp
           ? _self.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable

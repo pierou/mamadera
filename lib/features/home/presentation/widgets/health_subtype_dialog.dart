@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 
 /// Notifier d'état pour le dialog de sous-types santé.
@@ -73,22 +74,22 @@ class HealthSubtypeDialog extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
-            // Bouton Enregistrer
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  final state = ref.read(healthSubtypeDialogProvider);
-                  if (state != null) {
+            DialogActionButtons(
+              onCancelPressed: () => Navigator.pop(context),
+              onConfirmPressed: () {
+                final state = ref.read(healthSubtypeDialogProvider);
+                if (state != null) {
+                  if (context.mounted) {
                     Navigator.pop(context, {'subtype': state});
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(context.l.healthSubtypeRequiredError)),
-                    );
                   }
-                },
-                child: Text(context.l.saveButton),
-              ),
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(context.l.healthSubtypeRequiredError)),
+                  );
+                }
+              },
+              cancelLabel: context.l.cancelButton,
+              confirmLabel: context.l.saveButton,
             ),
           ],
         ),

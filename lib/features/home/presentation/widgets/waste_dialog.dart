@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 
 /// State interne du dialog de sélection de selle.
@@ -130,17 +131,16 @@ class WasteDialog extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
-            // Bouton Enregistrer
-            WasteDialogSubmitButton(ref: ref),
-            const SizedBox(height: 8),
-
-            // Bouton Fermer
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(context.l.closeButton),
-              ),
+            DialogActionButtons(
+              onCancelPressed: () => Navigator.pop(context),
+              onConfirmPressed: () {
+                final state = ref.read(_wasteDialogStateProvider);
+                if (context.mounted) {
+                  Navigator.pop(context, state.toResult());
+                }
+              },
+              cancelLabel: context.l.cancelButton,
+              confirmLabel: context.l.saveButton,
             ),
           ],
         ),
@@ -221,30 +221,6 @@ class WasteDialogCacaColorChips extends ConsumerWidget {
   }
 }
 
-/// Widget pour le bouton de soumission.
-class WasteDialogSubmitButton extends ConsumerWidget {
-  const WasteDialogSubmitButton({required this.ref, super.key});
-
-  final WidgetRef ref;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () => _onSubmit(context, ref),
-        icon: const Icon(Icons.check),
-        label: Text(context.l.saveButton),
-        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-      ),
-    );
-  }
-
-  void _onSubmit(BuildContext context, WidgetRef ref) {
-    final state = ref.read(_wasteDialogStateProvider);
-    Navigator.pop(context, state.toResult());
-  }
-}
 
 class _ChipRadio extends StatelessWidget {
   const _ChipRadio({required this.label, required this.isSelected, required this.onTap});

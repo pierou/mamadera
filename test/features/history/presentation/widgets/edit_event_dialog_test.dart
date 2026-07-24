@@ -83,7 +83,8 @@ void main() {
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
-      expect(find.text('min'), findsOneWidget);
+      // QuantityPickerInline displays 'min' in multiple places (headline, slider label, suffix)
+      expect(find.text('min'), findsWidgets);
     });
 
     testWidgets('sante (HealthEvent) → HealthSubtype ListTiles visibles', (tester) async {
@@ -209,7 +210,8 @@ void main() {
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
-      expect(find.text('min'), findsOneWidget);
+      // QuantityPickerInline displays 'min' in multiple places (headline, slider label, suffix)
+      expect(find.text('min'), findsWidgets);
     });
 
     testWidgets('durée initiale pré-remplie', (tester) async {
@@ -220,7 +222,8 @@ void main() {
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
-      expect(find.text('min'), findsOneWidget);
+      // QuantityPickerInline displays 'min' in multiple places (headline, slider label, suffix)
+      expect(find.text('min'), findsWidgets);
     });
   });
 
@@ -377,6 +380,10 @@ void main() {
 
       expect(find.text('Modifier l\'\u00e9v\u00e9nement'), findsOneWidget);
 
+      // Scroll down to make the delete button visible
+      await tester.ensureVisible(find.widgetWithText(TextButton, 'Supprimer'));
+      await tester.pumpAndSettle();
+
       final deleteBtn = find.widgetWithText(TextButton, 'Supprimer');
       expect(deleteBtn, findsOneWidget);
 
@@ -424,6 +431,10 @@ void main() {
 
       expect(find.text('Modifier l\'\u00e9v\u00e9nement'), findsOneWidget);
 
+      // Scroll down to make the delete button visible
+      await tester.ensureVisible(find.widgetWithText(TextButton, 'Supprimer'));
+      await tester.pumpAndSettle();
+
       // Ouvrir le dialog de confirmation
       await tester.tap(find.widgetWithText(TextButton, 'Supprimer'));
       await tester.pumpAndSettle();
@@ -464,6 +475,10 @@ void main() {
       );
 
       await tester.tap(find.text('Ouvrir'));
+      await tester.pumpAndSettle();
+
+      // Scroll down to make the delete button visible
+      await tester.ensureVisible(find.widgetWithText(TextButton, 'Supprimer'));
       await tester.pumpAndSettle();
 
       // Ouvrir confirm delete → AlertDialog

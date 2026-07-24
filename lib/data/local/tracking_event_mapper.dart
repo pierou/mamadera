@@ -34,6 +34,7 @@ TrackingEvent _createFeedingEvent(db_app.TrackingEvent row, EncryptionService en
     babyId: row.babyId,
     subtype: _feedingSubtypeFromRow(row),
     duration: row.duration ?? 0.0,
+    quantity: row.quantity,
     notes: encryption.decrypt(row.notes),
   );
 }
@@ -44,6 +45,7 @@ TrackingEvent _createSleepEvent(db_app.TrackingEvent row, EncryptionService encr
     timestamp: row.timestamp,
     babyId: row.babyId,
     duration: row.duration ?? 0.0,
+    quantity: row.quantity,
     notes: encryption.decrypt(row.notes),
   );
 }

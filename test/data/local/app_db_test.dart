@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 5 (added subtype column for typed events)', () {
-      expect(db.schemaVersion, equals(5));
+    test('schemaVersion is 6 (added quantity column for feeding/sleep events)', () {
+      expect(db.schemaVersion, equals(6));
     });
   });
 

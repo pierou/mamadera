@@ -22,9 +22,26 @@ void main() {
       expect(AppRoute.menu.path, '/menu');
     });
 
+    test('home route index is 0', () {
+      expect(routeIndex(AppRoute.home), 0);
+    });
+
+    test('history route index is 1', () {
+      expect(routeIndex(AppRoute.history), 1);
+    });
+
+    test('menu route index is 2', () {
+      expect(routeIndex(AppRoute.menu), 2);
+    });
+
     test('all routes have unique paths', () {
       final paths = AppRoute.values.map((e) => e.path).toList();
       expect(paths.toSet().length, paths.length);
+    });
+
+    test('all routes have unique indices', () {
+      final indices = AppRoute.values.map(routeIndex).toList();
+      expect(indices.toSet().length, indices.length);
     });
 
     test('has 3 routes', () {
@@ -35,6 +52,12 @@ void main() {
       for (final route in AppRoute.values) {
         expect(route.path.isNotEmpty && route.path.startsWith('/'), isTrue);
       }
+    });
+
+    test('AppRoute.values can be indexed by position', () {
+      expect(AppRoute.values[0], AppRoute.home);
+      expect(AppRoute.values[1], AppRoute.history);
+      expect(AppRoute.values[2], AppRoute.menu);
     });
   });
 
@@ -53,17 +76,17 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                builder: (context, state) => const _StubHome(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                builder: (context, state) => const _StubHome(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.history, const _StubHome(), context, state, previousPath: null),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                builder: (context, state) => const _StubHome(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.menu, const _StubHome(), context, state, previousPath: null),
               ),
             ],
           ),
@@ -105,7 +128,7 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                builder: (context, state) => const _StubHome(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
               ),
             ],
           ),
@@ -145,17 +168,17 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                builder: (context, state) => const _StubHome(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                builder: (context, state) => const _StubHistory(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.history, const _StubHistory(), context, state, previousPath: null),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                builder: (context, state) => const _StubMenu(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.menu, const _StubMenu(), context, state, previousPath: null),
               ),
             ],
           ),
@@ -209,7 +232,7 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                builder: (context, state) => const _StubHome(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
               ),
             ],
           ),
@@ -274,17 +297,17 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                builder: (context, state) => const _StubHome(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                builder: (context, state) => const _StubHistory(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.history, const _StubHistory(), context, state, previousPath: null),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                builder: (context, state) => const _StubMenu(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.menu, const _StubMenu(), context, state, previousPath: null),
               ),
             ],
           ),
@@ -338,17 +361,17 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                builder: (context, state) => const _StubHome(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                builder: (context, state) => const _StubHistory(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.history, const _StubHistory(), context, state, previousPath: null),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                builder: (context, state) => const _StubMenu(),
+                pageBuilder: (context, state) => pageBuilder(AppRoute.menu, const _StubMenu(), context, state, previousPath: null),
               ),
             ],
           ),

@@ -7,6 +7,7 @@ import '../../../../core/l10n/date_localization.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
+import '../../../home/presentation/widgets/quantity_picker_inline.dart';
 
 part 'edit_event_dialog.freezed.dart';
 
@@ -16,6 +17,7 @@ sealed class EditResult with _$EditResult {
   const factory EditResult.update({
     DateTime? timestamp,
     double? duration,
+    double? quantity,
     String? notes,
     WasteType? wasteType,
     PipiColor? pipiColor,
@@ -40,6 +42,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   late DateTime _selectedDate;
   late TextEditingController _notesController;
   double? _duration;
+  double? _quantity;
 
   // Pour les événements caca : type de selle et couleurs (typed via enums)
   WasteType? _wasteType;
@@ -65,6 +68,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     super.initState();
     _selectedDate = widget.event.timestamp;
     _duration = null;
+    _quantity = null;
     _notesController = TextEditingController(text: '');
     _wasteType = null;
     _pipiColor = null;
@@ -78,10 +82,12 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       (e) {},
       feeding: (e) {
         _duration = e.duration;
+        _quantity = e.quantity;
         _notesController.text = e.notes ?? '';
       },
       sleep: (e) {
         _duration = e.duration;
+        _quantity = e.quantity;
       },
       diaper: (e) {
         _wasteType = e.wasteType;
@@ -140,6 +146,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     final result = EditResult.update(
       timestamp: _selectedDate,
       duration: _duration,
+      quantity: _quantity,
       notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
       wasteType: _wasteType,
       pipiColor: _pipiColor,
@@ -194,6 +201,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             _buildTitle(),
             ..._buildDateSection(),
             if (_normalizedType == 'dodo') ..._buildDurationSection(),
+            if (_normalizedType == 'miam') ..._buildQuantitySection(),
             if (_normalizedType == 'caca' || _normalizedType == 'pipi') ..._buildWasteSections(),
             if (_normalizedType != 'sante' && _normalizedType != 'dodo') ..._buildNotesSection(),
             if (_normalizedType == 'sante') ..._buildHealthSubtypeSection(),
@@ -251,19 +259,36 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   List<Widget> _buildDurationSection() {
     return [
       _buildSectionTitle(context.l.editDurationSectionTitle),
-      TextFormField(
-        initialValue: _duration != null ? '${_duration!.toInt()}' : '',
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          hintText: context.l.minutesHintText,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          suffixText: context.l.minuteSuffix,
-        ),
-        onChanged: (value) {
-          _duration = value.isEmpty ? null : double.tryParse(value);
+      QuantityPickerInline(
+        unit: context.l.minuteSuffix,
+        min: 0,
+        max: 480,
+        divisions: 96,
+        value: _quantity ?? 0.0,
+        onValueChanged: (double value) {
+          setState(() {
+            _quantity = value;
+            _duration = value;
+          });
         },
       ),
+    ];
+  }
+
+  List<Widget> _buildQuantitySection() {
+    return [
       const SizedBox(height: 20),
+      _buildSectionTitle(context.l.editQuantitySectionTitle),
+      QuantityPickerInline(
+        unit: 'ml',
+        min: 0,
+        max: 300,
+        divisions: 30,
+        value: _quantity ?? 0.0,
+        onValueChanged: (double value) {
+          setState(() => _quantity = value);
+        },
+      ),
     ];
   }
 

@@ -130,6 +130,14 @@ class HistoryTileSubtitle extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_getQuantity(event) != null)
+          Text(context.l.quantityPrefix(_getQuantity(event)!.toInt(), event.map(
+            (_) => '',
+            feeding: (_) => 'ml',
+            sleep: (_) => context.l.minuteSuffix,
+            diaper: (_) => '',
+            health: (_) => '',
+          ))),
         if (_getDuration(event) != null)
           Text(context.l.durationPrefix(_getDuration(event)!.toInt())),
         if (_hasWasteDetails) ...[
@@ -146,6 +154,16 @@ class HistoryTileSubtitle extends StatelessWidget {
       (_) => null,
       feeding: (e) => e.duration,
       sleep: (e) => e.duration,
+      diaper: (_) => null,
+      health: (_) => null,
+    );
+  }
+
+  double? _getQuantity(TrackingEvent event) {
+    return event.map(
+      (_) => null,
+      feeding: (e) => e.quantity,
+      sleep: (e) => e.quantity,
       diaper: (_) => null,
       health: (_) => null,
     );

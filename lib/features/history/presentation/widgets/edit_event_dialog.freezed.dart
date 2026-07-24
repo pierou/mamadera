@@ -134,8 +134,14 @@ extension EditResultPatterns on EditResult {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(DateTime? timestamp, double? duration, String? notes,
-            WasteType? wasteType, PipiColor? pipiColor, CacaColor? cacaColor)?
+    TResult Function(
+            DateTime? timestamp,
+            double? duration,
+            double? quantity,
+            String? notes,
+            WasteType? wasteType,
+            PipiColor? pipiColor,
+            CacaColor? cacaColor)?
         update,
     TResult Function()? delete,
     required TResult orElse(),
@@ -143,8 +149,8 @@ extension EditResultPatterns on EditResult {
     final _that = this;
     switch (_that) {
       case UpdateResult() when update != null:
-        return update(_that.timestamp, _that.duration, _that.notes,
-            _that.wasteType, _that.pipiColor, _that.cacaColor);
+        return update(_that.timestamp, _that.duration, _that.quantity,
+            _that.notes, _that.wasteType, _that.pipiColor, _that.cacaColor);
       case DeleteResult() when delete != null:
         return delete();
       case _:
@@ -170,6 +176,7 @@ extension EditResultPatterns on EditResult {
     required TResult Function(
             DateTime? timestamp,
             double? duration,
+            double? quantity,
             String? notes,
             WasteType? wasteType,
             PipiColor? pipiColor,
@@ -180,8 +187,8 @@ extension EditResultPatterns on EditResult {
     final _that = this;
     switch (_that) {
       case UpdateResult():
-        return update(_that.timestamp, _that.duration, _that.notes,
-            _that.wasteType, _that.pipiColor, _that.cacaColor);
+        return update(_that.timestamp, _that.duration, _that.quantity,
+            _that.notes, _that.wasteType, _that.pipiColor, _that.cacaColor);
       case DeleteResult():
         return delete();
     }
@@ -201,16 +208,22 @@ extension EditResultPatterns on EditResult {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(DateTime? timestamp, double? duration, String? notes,
-            WasteType? wasteType, PipiColor? pipiColor, CacaColor? cacaColor)?
+    TResult? Function(
+            DateTime? timestamp,
+            double? duration,
+            double? quantity,
+            String? notes,
+            WasteType? wasteType,
+            PipiColor? pipiColor,
+            CacaColor? cacaColor)?
         update,
     TResult? Function()? delete,
   }) {
     final _that = this;
     switch (_that) {
       case UpdateResult() when update != null:
-        return update(_that.timestamp, _that.duration, _that.notes,
-            _that.wasteType, _that.pipiColor, _that.cacaColor);
+        return update(_that.timestamp, _that.duration, _that.quantity,
+            _that.notes, _that.wasteType, _that.pipiColor, _that.cacaColor);
       case DeleteResult() when delete != null:
         return delete();
       case _:
@@ -225,6 +238,7 @@ class UpdateResult implements EditResult {
   const UpdateResult(
       {this.timestamp,
       this.duration,
+      this.quantity,
       this.notes,
       this.wasteType,
       this.pipiColor,
@@ -232,6 +246,7 @@ class UpdateResult implements EditResult {
 
   final DateTime? timestamp;
   final double? duration;
+  final double? quantity;
   final String? notes;
   final WasteType? wasteType;
   final PipiColor? pipiColor;
@@ -253,6 +268,8 @@ class UpdateResult implements EditResult {
                 other.timestamp == timestamp) &&
             (identical(other.duration, duration) ||
                 other.duration == duration) &&
+            (identical(other.quantity, quantity) ||
+                other.quantity == quantity) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.wasteType, wasteType) ||
                 other.wasteType == wasteType) &&
@@ -263,12 +280,12 @@ class UpdateResult implements EditResult {
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, timestamp, duration, notes, wasteType, pipiColor, cacaColor);
+  int get hashCode => Object.hash(runtimeType, timestamp, duration, quantity,
+      notes, wasteType, pipiColor, cacaColor);
 
   @override
   String toString() {
-    return 'EditResult.update(timestamp: $timestamp, duration: $duration, notes: $notes, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor)';
+    return 'EditResult.update(timestamp: $timestamp, duration: $duration, quantity: $quantity, notes: $notes, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor)';
   }
 }
 
@@ -282,6 +299,7 @@ abstract mixin class $UpdateResultCopyWith<$Res>
   $Res call(
       {DateTime? timestamp,
       double? duration,
+      double? quantity,
       String? notes,
       WasteType? wasteType,
       PipiColor? pipiColor,
@@ -304,6 +322,7 @@ class _$UpdateResultCopyWithImpl<$Res> implements $UpdateResultCopyWith<$Res> {
   $Res call({
     Object? timestamp = freezed,
     Object? duration = freezed,
+    Object? quantity = freezed,
     Object? notes = freezed,
     Object? wasteType = freezed,
     Object? pipiColor = freezed,
@@ -317,6 +336,10 @@ class _$UpdateResultCopyWithImpl<$Res> implements $UpdateResultCopyWith<$Res> {
       duration: freezed == duration
           ? _self.duration
           : duration // ignore: cast_nullable_to_non_nullable
+              as double?,
+      quantity: freezed == quantity
+          ? _self.quantity
+          : quantity // ignore: cast_nullable_to_non_nullable
               as double?,
       notes: freezed == notes
           ? _self.notes

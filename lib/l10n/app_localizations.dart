@@ -440,6 +440,60 @@ abstract class AppLocalizations {
   /// **'Durée: {minutes} min'**
   String durationPrefix(Object minutes);
 
+  /// No description provided for @quantityPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantité : {quantity} {unit}'**
+  String quantityPrefix(Object quantity, Object unit);
+
+  /// No description provided for @editQuantitySectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantité'**
+  String get editQuantitySectionTitle;
+
+  /// No description provided for @quantityPickerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantité'**
+  String get quantityPickerTitle;
+
+  /// No description provided for @feedingQuantityLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantité'**
+  String get feedingQuantityLabel;
+
+  /// No description provided for @feedingQuantityHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionner la quantité'**
+  String get feedingQuantityHint;
+
+  /// No description provided for @feedingDialogTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivre l\'Alimentation'**
+  String get feedingDialogTitle;
+
+  /// No description provided for @feedingSubtypeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type d\'Alimentation'**
+  String get feedingSubtypeLabel;
+
+  /// No description provided for @feedingSubtypeSein.
+  ///
+  /// In fr, this message translates to:
+  /// **'Téte'**
+  String get feedingSubtypeSein;
+
+  /// No description provided for @feedingSubtypeBiberon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Biberon'**
+  String get feedingSubtypeBiberon;
+
   /// No description provided for @editDialogTitle.
   ///
   /// In fr, this message translates to:

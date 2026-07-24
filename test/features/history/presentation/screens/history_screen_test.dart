@@ -28,16 +28,17 @@ void main() {
   late MockHistoryRepository mockRepository;
 
   // Fixtures synthétiques (non-const car DateTime.utc n'est pas const)
+  // Utilisation de dates récentes pour éviter les erreurs de date picker (firstDate = now - 2 ans)
   final testEvents = [
     FeedingEvent(
       id: 1,
-      timestamp: DateTime.utc(2024, 1, 1, 8, 0),
+      timestamp: DateTime.utc(2025, 6, 15, 8, 0),
       subtype: FeedingSubtype.sein,
       duration: 30,
     ),
     SleepEvent(
       id: 2,
-      timestamp: DateTime.utc(2024, 1, 1, 9, 30),
+      timestamp: DateTime.utc(2025, 6, 15, 9, 30),
       duration: 60,
     ),
   ];
@@ -272,8 +273,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // 2 events → at least the formatted time text should be present
-      expect(find.text('01/01/2024 08:00'), findsOneWidget);
-      expect(find.text('01/01/2024 09:30'), findsOneWidget);
+      expect(find.text('15/06/2025 08:00'), findsOneWidget);
+      expect(find.text('15/06/2025 09:30'), findsOneWidget);
     });
 
     testWidgets('tapping filter chip changes selected filter', (tester) async {
@@ -422,15 +423,18 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap Supprimer button → opens confirmation dialog
-      var deleteButtons = find.text('Supprimer');
-      expect(deleteButtons, findsOneWidget); // only the edit form's button initially
-      await tester.tapAt(tester.getTopLeft(deleteButtons));
+      // Scroll down to make the delete button visible
+      var deleteButton = find.widgetWithText(TextButton, 'Supprimer');
+      await tester.ensureVisible(deleteButton);
+      await tester.pumpAndSettle();
+      
+      expect(deleteButton, findsOneWidget); // only the edit form's button initially
+      await tester.tapAt(tester.getTopLeft(deleteButton));
       await tester.pumpAndSettle();
 
-      // Confirm deletion in AlertDialog (second Supprimer button now visible)
-      deleteButtons = find.text('Supprimer');
-      expect(deleteButtons, findsNWidgets(2)); // edit form + confirm dialog
-      final alertButton = deleteButtons.at(1); // AlertDialog's button is on top
+      // Confirm deletion in AlertDialog (FilledButton now visible)
+      final alertButton = find.byType(FilledButton);
+      expect(alertButton, findsOneWidget);
       await tester.tapAt(tester.getTopLeft(alertButton));
       await tester.pumpAndSettle();
 

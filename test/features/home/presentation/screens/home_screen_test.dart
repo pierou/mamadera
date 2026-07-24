@@ -138,7 +138,7 @@ void main() {
   // Interactions TrackButtons -> dialogs ouverts
   // ──────────────────────────────────────────────
   group('Interactions Miam/Sante/Caca/Dodo', () {
-    testWidgets('tap Miam -> appel direct insertEvent (pas de dialog)', (tester) async {
+    testWidgets('tap Miam -> ouvre FeedingTrackingDialog', (tester) async {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
@@ -150,11 +150,8 @@ void main() {
       await tester.tap(miamBtn);
       await tester.pumpAndSettle();
 
-      // insertEvent a ete appele. Verifier que c'est un FeedingEvent.
-      final captured = verify(mockRepo.insertEvent(captureAny)).captured;
-      expect(captured.first, isA<FeedingEvent>());
-
-      expect(find.byType(BottomSheet), findsNothing);
+      // Un bottom sheet doit être ouvert (le dialog de tracking d'alimentation)
+      expect(find.byType(BottomSheet), findsOneWidget);
     });
 
     testWidgets('tap Sante -> ouverture HealthSubtypeDialog', (tester) async {

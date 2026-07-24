@@ -14,6 +14,7 @@ import '../../../reminders/presentation/providers/reminder_notifier.dart';
 import '../../../reminders/presentation/providers/reminder_providers.dart';
 import '../providers/track_notifier.dart';
 import '../widgets/duration_picker_dialog.dart';
+import '../widgets/feeding_tracking_dialog.dart';
 import '../widgets/health_subtype_dialog.dart';
 import '../widgets/onboarding_dialog.dart';
 import '../widgets/track_button.dart';
@@ -87,14 +88,34 @@ class _HomeContent extends ConsumerWidget {
       return;
     }
 
-    // Miam tracking — default to sein (breastfeeding), no subtype dialog needed
-    await ref.read(trackNotifierProvider.notifier).track(
-      type: TrackingType.miam,
-      feedingSubtype: FeedingSubtype.sein,
+    // Miam tracking — show feeding subtype + quantity dialog
+    final feedingResult = await showModalBottomSheet<Map<String, dynamic>?>(
+      context: context,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return const FeedingTrackingDialog();
+          },
+        );
+      },
     );
-    if (context.mounted) {
-      unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
-      _showFeedback(context, context.l.homeButtonMiam, type: eventType);
+
+    if (feedingResult != null && context.mounted) {
+      final subtype = feedingResult['subtype'] as FeedingSubtype;
+      final quantity = feedingResult['quantity'] as double;
+      await ref.read(trackNotifierProvider.notifier).track(
+        type: TrackingType.miam,
+        feedingSubtype: subtype,
+        quantity: quantity,
+      );
+      if (context.mounted) {
+        unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
+        _showFeedback(context, context.l.homeButtonMiam, type: eventType);
+      }
     }
   }
 
@@ -121,7 +142,8 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
    if (minutes != null && context.mounted) {
      await ref.read(trackNotifierProvider.notifier).track(
         type: TrackingType.dodo,
-       duration: minutes,
+        duration: minutes,
+        quantity: minutes,
      );
      if (context.mounted) {
        unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
