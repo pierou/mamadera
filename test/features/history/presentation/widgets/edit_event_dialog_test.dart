@@ -101,7 +101,7 @@ void main() {
     testWidgets('miam (FeedingEvent) → notes visibles', (tester) async {
       final event = FeedingEvent(
         timestamp: DateTime.utc(2024, 6, 15),
-        subtype: FeedingSubtype.sein,
+        subtype: FeedingSubtype.natural,
         duration: 30,
       );
       await pumpDialog(tester, event);
@@ -280,7 +280,7 @@ void main() {
             home: _DialogLauncher(
               event: FeedingEvent(
                 timestamp: DateTime.utc(2024, 1, 1),
-                subtype: FeedingSubtype.sein,
+                subtype: FeedingSubtype.natural,
                 duration: 0,
               ),
               onResult: (r) => completer.complete(r as UpdateResult?),
@@ -321,7 +321,7 @@ void main() {
             home: _DialogLauncher(
               event: FeedingEvent(
                 timestamp: DateTime.utc(2024, 1, 1),
-                subtype: FeedingSubtype.sein,
+                subtype: FeedingSubtype.natural,
                 duration: 0,
               ),
               onResult: (r) => completer.complete(r as EditResult?),
@@ -365,7 +365,7 @@ void main() {
             home: _DialogLauncher(
               event: FeedingEvent(
                 timestamp: DateTime.utc(2024, 6, 15),
-                subtype: FeedingSubtype.sein,
+                subtype: FeedingSubtype.natural,
                 duration: 30,
               ),
               onResult: (r) => completer.complete(r as EditResult?),
@@ -416,7 +416,7 @@ void main() {
             home: _DialogLauncher(
               event: FeedingEvent(
                 timestamp: DateTime.utc(2024, 6, 15),
-                subtype: FeedingSubtype.sein,
+                subtype: FeedingSubtype.natural,
                 duration: 30,
               ),
               onResult: (r) => completer.complete(r as EditResult?),

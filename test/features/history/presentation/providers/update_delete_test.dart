@@ -23,7 +23,7 @@ void main() {
   final event1 = FeedingEvent(
     id: 10,
     timestamp: DateTime.utc(2024, 1, 1),
-    subtype: FeedingSubtype.sein,
+    subtype: FeedingSubtype.natural,
     duration: 15,
   );
   final event2 = SleepEvent(
@@ -59,7 +59,7 @@ void main() {
       final updated = FeedingEvent(
         id: 10,
         timestamp: DateTime.utc(2024, 6, 1), // Timestamp modifié
-        subtype: FeedingSubtype.sein,
+        subtype: FeedingSubtype.natural,
         duration: 30, // Durée augmentée
       );
 
@@ -101,7 +101,7 @@ void main() {
       final updated = FeedingEvent(
         id: 10,
         timestamp: DateTime.utc(2024, 3, 1),
-        subtype: FeedingSubtype.sein,
+        subtype: FeedingSubtype.natural,
         duration: 25,
         notes: 'note ajoutée',
       );

@@ -11,14 +11,14 @@ void main() {
       test('doit être instanciable avec les paramètres requis', () {
         final event = FeedingEvent(
           timestamp: baseTimestamp,
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         );
 
         expect(event.trackingType, TrackingType.miam);
         expect(event.timestamp, baseTimestamp);
         expect(event.id, isNull);
-        expect(event.subtype, FeedingSubtype.sein);
+        expect(event.subtype, FeedingSubtype.natural);
         expect(event.duration, 30.0);
         expect(event.notes, isNull);
       });
@@ -26,7 +26,7 @@ void main() {
       test('doit accepter les paramètres optionnels', () {
         final event = FeedingEvent(
           timestamp: baseTimestamp,
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 15,
           id: 1,
           notes: 'Biberon complet',
@@ -93,7 +93,7 @@ void main() {
     group('Equality & hashCode', () {
       final baseEvent = FeedingEvent(
         timestamp: baseTimestamp,
-        subtype: FeedingSubtype.sein,
+        subtype: FeedingSubtype.natural,
         duration: 30,
         id: 2,
       );
@@ -107,7 +107,7 @@ void main() {
           () {
         final duplicate = FeedingEvent(
           timestamp: baseTimestamp,
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
           id: 2,
         );
@@ -134,7 +134,7 @@ void main() {
       test('hashCode doit être identique pour des instances égales', () {
         final duplicate = FeedingEvent(
           timestamp: baseTimestamp,
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
           id: 2,
         );
@@ -147,7 +147,7 @@ void main() {
       test('FeedingEvent doit retourner une représentation lisible de l\'objet', () {
         final event = FeedingEvent(
           timestamp: baseTimestamp,
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
           id: 5,
           notes: 'Info de debug',

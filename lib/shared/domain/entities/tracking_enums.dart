@@ -15,10 +15,35 @@ part 'tracking_enums.freezed.dart';
 
 /// Sous-type d'alimentation stocké en DB.
 enum FeedingSubtype {
-  /// Sein maternel.
-  sein, // 'sein'
-  /// Biberon.
-  bib; // 'bib'
+  /// Allaitement maternel (lait maternel).
+  natural, // 'natural'
+  /// Allaitement artificiel (lait artificiel).
+  artificial; // 'artificial'
+
+  /// Retourne la valeur DB correspondante.
+  String get dbValue => switch (this) {
+        FeedingSubtype.natural => 'natural',
+        FeedingSubtype.artificial => 'artificial',
+      };
+
+  /// Convertit une valeur DB en enum.
+  /// Gère les anciennes valeurs ('sein', 'bib') pour la compatibilité ascendante.
+  static FeedingSubtype? fromDbValue(String? value) {
+    if (value == null || value.isEmpty) return null;
+    switch (value) {
+      case 'natural':
+        return FeedingSubtype.natural;
+      case 'artificial':
+        return FeedingSubtype.artificial;
+      // Compatibilité ascendante — anciennes données
+      case 'sein':
+        return FeedingSubtype.natural;
+      case 'bib':
+        return FeedingSubtype.artificial;
+      default:
+        return null;
+    }
+  }
 }
 
 // ──────────────────────────────────────────────

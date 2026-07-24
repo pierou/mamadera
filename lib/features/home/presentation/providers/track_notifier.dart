@@ -18,7 +18,7 @@ class TrackNotifier extends AsyncNotifier<void> {
   /// [duration] est en minutes pour dodo/sommeil.
   /// [quantity] est le volume en ml (feeding) ou minutes (sleep).
   /// [wasteType], [pipiColor] et [cacaColor] sont utilisés uniquement pour les selles.
-  /// [feedingSubtype] est requis pour FeedingEvent (sein/bib).
+  /// [feedingSubtype] est requis pour FeedingEvent (natural/artificial).
   /// [healthSubtype] est requis pour HealthEvent (nettoyageYeux, etc.).
   Future<void> track({
     required TrackingType type,
@@ -42,7 +42,7 @@ class TrackNotifier extends AsyncNotifier<void> {
         TrackingType.miam => TrackingEvent.feeding(
             timestamp: DateTime.now(),
             babyId: babyId,
-            subtype: feedingSubtype ?? FeedingSubtype.sein,
+            subtype: feedingSubtype ?? FeedingSubtype.natural,
             duration: duration?.toDouble() ?? 0.0,
             quantity: quantity,
             notes: notes,

@@ -46,7 +46,7 @@ void main() {
       expect(captured, hasLength(1));
       final event = captured.first as TrackingEvent;
       expect(event, isA<FeedingEvent>());
-      expect((event as FeedingEvent).subtype, equals(FeedingSubtype.sein));
+      expect((event as FeedingEvent).subtype, equals(FeedingSubtype.natural));
       expect(event.duration, equals(10.0));
       expect(event.notes, equals('notes de test'));
     });
@@ -82,8 +82,8 @@ void main() {
       expect(captured, hasLength(1));
       final event = captured.first as TrackingEvent;
       expect(event, isA<FeedingEvent>());
-      // Valeurs par défaut : sein, duration 0.0, notes null
-      expect((event as FeedingEvent).subtype, equals(FeedingSubtype.sein));
+      // Valeurs par défaut : natural, duration 0.0, notes null
+      expect((event as FeedingEvent).subtype, equals(FeedingSubtype.natural));
 
       expect(container.read(trackNotifierProvider), isA<AsyncData<void>>());
     });

@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 6 (added quantity column for feeding/sleep events)', () {
-      expect(db.schemaVersion, equals(6));
+    test('schemaVersion is 7 (feeding subtype migration: sein/bib → natural/artificial)', () {
+      expect(db.schemaVersion, equals(7));
     });
   });
 
@@ -128,11 +128,13 @@ void main() {
   });
 
   group('getFeedingEvents', () {
-    test('returns only feeding type events (FeedingSubtype values)', () async {
+    test('returns only feeding type events (type = miam)', () async {
+      // Insert feeding events with subtype natural/artificial
       for (final subtype in FeedingSubtype.values) {
         await db.insertEvent(
           TrackingEventsCompanion(
-            type: Value(subtype.name),
+            type: const Value('miam'),
+            subtype: Value(subtype.dbValue),
             timestamp: Value(DateTime.now()),
             duration: const Value(null),
             notes: const Value(null),
@@ -155,7 +157,7 @@ void main() {
       );
 
       final feedingEvents = await db.getFeedingEvents();
-      // Should only return FeedingSubtype events, not 'dodo'
+      // Should only return feeding events (type = 'miam'), not 'dodo'
       expect(feedingEvents.length, equals(FeedingSubtype.values.length));
     });
   });

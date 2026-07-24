@@ -102,8 +102,8 @@
   "feedingQuantityHint": "Select quantity",
   "feedingDialogTitle": "Track Feeding",
   "feedingSubtypeLabel": "Feeding Type",
-  "feedingSubtypeSein": "Breast",
-  "feedingSubtypeBiberon": "Bottle",
+  "feedingSubtypeNatural": "Breast milk",
+  "feedingSubtypeArtificial": "Formula",
 
   "editDialogTitle": "Edit Event",
   "editDateSectionTitle": "Date and Time",

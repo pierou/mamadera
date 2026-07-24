@@ -33,7 +33,7 @@ void main() {
     FeedingEvent(
       id: 1,
       timestamp: DateTime.utc(2025, 6, 15, 8, 0),
-      subtype: FeedingSubtype.sein,
+      subtype: FeedingSubtype.natural,
       duration: 30,
     ),
     SleepEvent(

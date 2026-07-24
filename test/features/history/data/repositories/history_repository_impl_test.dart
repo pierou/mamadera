@@ -142,7 +142,7 @@ void main() {
         final updated = entity.FeedingEvent(
           id: 1,
           timestamp: newTimestamp,
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         );
         final result = await repository.updateEvent(id: 1, event: updated);
@@ -170,7 +170,7 @@ void main() {
         final updated = entity.FeedingEvent(
           id: 3,
           timestamp: DateTime.now(),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 10,
           notes: 'new sensitive notes',
         );
@@ -248,7 +248,7 @@ void main() {
         final updated = entity.FeedingEvent(
           id: 999,
           timestamp: DateTime.now(),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 10,
         );
         final result = await repository.updateEvent(id: 999, event: updated);

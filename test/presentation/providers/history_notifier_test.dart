@@ -21,7 +21,7 @@ void main() {
   final event1 = FeedingEvent(
     id: 1,
     timestamp: DateTime.utc(2023, 1, 1),
-    subtype: FeedingSubtype.sein,
+    subtype: FeedingSubtype.natural,
     duration: 15,
   );
   final event2 = SleepEvent(
@@ -32,7 +32,7 @@ void main() {
   final event3 = FeedingEvent(
     id: 3,
     timestamp: DateTime.utc(2023, 1, 3),
-    subtype: FeedingSubtype.bib,
+    subtype: FeedingSubtype.artificial,
     duration: 120,
   );
   final eventDodo = SleepEvent(

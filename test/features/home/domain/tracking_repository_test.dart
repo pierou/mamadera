@@ -68,7 +68,7 @@ void main() {
       test('retourne tous les événements triés par timestamp décroissant', () async {
         final oldEvent = FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8, 0),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         );
         final newEvent = SleepEvent(
@@ -88,12 +88,12 @@ void main() {
       test('trie les événements par timestamp décroissant', () async {
         final olderEvent = FeedingEvent(
           timestamp: DateTime(2024, 1, 1),
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 15,
         );
         final newerEvent = FeedingEvent(
           timestamp: DateTime(2024, 1, 2),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 25,
         );
 
@@ -112,7 +112,7 @@ void main() {
       test('retourne les événements d\'un type spécifique', () async {
         final feeding = FeedingEvent(
           timestamp: DateTime(2024, 1, 1),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         );
         final sleep = SleepEvent(
@@ -121,7 +121,7 @@ void main() {
         );
         final feeding2 = FeedingEvent(
           timestamp: DateTime(2024, 1, 2),
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 20,
         );
 
@@ -141,7 +141,7 @@ void main() {
       test('retourne une liste vide pour un type sans événements', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         ));
 
@@ -152,7 +152,7 @@ void main() {
       test('filtre correctement tous les types', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         ));
         await repository.insertEvent(SleepEvent(
@@ -179,7 +179,7 @@ void main() {
       test('insère un FeedingEvent et retourne un ID', () async {
         final event = FeedingEvent(
           timestamp: DateTime(2024, 1, 1),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         );
         final id = await repository.insertEvent(event);
@@ -223,7 +223,7 @@ void main() {
       test('accumule plusieurs événements', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         ));
         await repository.insertEvent(SleepEvent(
@@ -248,12 +248,12 @@ void main() {
       test('retourne le timestamp du dernier événement d\'un type', () async {
         final old = FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         );
         final new_ = FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 14),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 25,
         );
 
@@ -268,28 +268,28 @@ void main() {
       test('filtre par subtype pour FeedingEvent', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         ));
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 14),
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 30,
         ));
 
-        final seinLast = await repository.getLastEventByTypeAndSubtype(
+        final naturalLast = await repository.getLastEventByTypeAndSubtype(
           TrackingType.miam,
-          subtypeValue: 'sein',
+          subtypeValue: 'natural',
         );
-        expect(seinLast, isNotNull);
-        expect(seinLast, DateTime(2024, 1, 1, 8));
+        expect(naturalLast, isNotNull);
+        expect(naturalLast, DateTime(2024, 1, 1, 8));
 
-        final bibLast = await repository.getLastEventByTypeAndSubtype(
+        final artificialLast = await repository.getLastEventByTypeAndSubtype(
           TrackingType.miam,
-          subtypeValue: 'bib',
+          subtypeValue: 'artificial',
         );
-        expect(bibLast, isNotNull);
-        expect(bibLast, DateTime(2024, 1, 1, 14));
+        expect(artificialLast, isNotNull);
+        expect(artificialLast, DateTime(2024, 1, 1, 14));
       });
 
       test('filtre par subtype pour HealthEvent', () async {
@@ -334,7 +334,7 @@ void main() {
         // Insert multiple events
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         ));
         await repository.insertEvent(SleepEvent(
@@ -343,7 +343,7 @@ void main() {
         ));
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 14),
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 20,
         ));
 

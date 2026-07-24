@@ -32,7 +32,7 @@ void main() {
 
       final event = FeedingEvent(
         timestamp: DateTime.now(),
-        subtype: FeedingSubtype.sein,
+        subtype: FeedingSubtype.natural,
         duration: 30,
       );
       final id = await repository.insertEvent(event);
@@ -47,7 +47,7 @@ void main() {
 
       final event = FeedingEvent(
         timestamp: DateTime.now(),
-        subtype: FeedingSubtype.sein,
+        subtype: FeedingSubtype.natural,
         duration: 15,
         notes: 'sensitive note',
       );
@@ -87,7 +87,7 @@ void main() {
 
       final event = FeedingEvent(
         timestamp: DateTime.now(),
-        subtype: FeedingSubtype.sein,
+        subtype: FeedingSubtype.natural,
         duration: 10,
       );
       expect(
@@ -96,17 +96,17 @@ void main() {
       );
     });
 
-    test('ecrit le subtype pour FeedingEvent.bib dans la colonne subtype', () async {
+    test('ecrit le subtype pour FeedingEvent.artificial dans la colonne subtype', () async {
       when(mockDb.insertEvent(any)).thenAnswer((invocation) async {
         final companion = invocation.positionalArguments.first as db_app.TrackingEventsCompanion;
-        // Vérifier que subtype est écrit avec 'bib'
-        expect(companion.subtype.value, equals('bib'));
+        // Vérifier que subtype est écrit avec 'artificial'
+        expect(companion.subtype.value, equals('artificial'));
         return 1;
       });
 
       final event = FeedingEvent(
         timestamp: DateTime.now(),
-        subtype: FeedingSubtype.bib,
+        subtype: FeedingSubtype.artificial,
         duration: 20,
       );
       final id = await repository.insertEvent(event);
@@ -132,13 +132,13 @@ void main() {
       expect(id, equals(1));
     });
 
-    test('round-trip: FeedingEvent.bib → DB row avec subtype="bib" → mapper retourne bib', () async {
+    test('round-trip: FeedingEvent.artificial → DB row avec subtype="artificial" → mapper retourne artificial', () async {
       when(mockDb.insertEvent(any)).thenAnswer((_) async => 100);
       when(mockEncryption.decrypt(any)).thenReturn(null);
 
       final event = FeedingEvent(
         timestamp: DateTime.utc(2024, 5, 1),
-        subtype: FeedingSubtype.bib,
+        subtype: FeedingSubtype.artificial,
         duration: 25,
       );
       final insertedId = await repository.insertEvent(event);
@@ -151,7 +151,7 @@ void main() {
           type: 'miam',
           timestamp: DateTime.utc(2024, 5, 1),
           duration: 25,
-          subtype: 'bib', // La colonne subtype contient bien 'bib'
+          subtype: 'artificial', // La colonne subtype contient bien 'artificial'
           notes: null,
           wasteType: null,
           color: null,
@@ -161,7 +161,7 @@ void main() {
       final events = await repository.getAllEventsOrdered();
       expect(events.length, equals(1));
       final readBack = events.first as FeedingEvent;
-      expect(readBack.subtype, equals(FeedingSubtype.bib));
+      expect(readBack.subtype, equals(FeedingSubtype.artificial));
     });
 
     test('round-trip: HealthEvent.nettoyage_yeux → DB row avec subtype="nettoyage_yeux" → mapper retourne nettoyageYeux', () async {
@@ -213,7 +213,7 @@ void main() {
             type: 'miam',
             timestamp: DateTime.utc(2024),
             duration: null,
-            subtype: 'sein',
+            subtype: 'natural',
             notes: 'encrypted_note_value',
             wasteType: null,
             color: null,
@@ -440,7 +440,7 @@ void main() {
           type: 'miam',
           timestamp: DateTime.utc(2024, 6, 1),
           duration: null,
-          subtype: 'sein', // feeding events have subtype
+          subtype: 'natural', // feeding events have subtype
           notes: null,
           wasteType: null,
           color: null,
@@ -463,7 +463,7 @@ void main() {
           type: 'miam',
           timestamp: newer,
           duration: null,
-          subtype: 'sein', // feeding events have subtype
+          subtype: 'natural', // feeding events have subtype
           notes: null,
           wasteType: null,
           color: null,
@@ -473,7 +473,7 @@ void main() {
           type: 'miam',
           timestamp: older,
           duration: null,
-          subtype: 'sein', // feeding events have subtype
+          subtype: 'natural', // feeding events have subtype
           notes: null,
           wasteType: null,
           color: null,

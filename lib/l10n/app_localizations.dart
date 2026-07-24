@@ -482,17 +482,17 @@ abstract class AppLocalizations {
   /// **'Type d\'Alimentation'**
   String get feedingSubtypeLabel;
 
-  /// No description provided for @feedingSubtypeSein.
+  /// No description provided for @feedingSubtypeNatural.
   ///
   /// In fr, this message translates to:
-  /// **'Téte'**
-  String get feedingSubtypeSein;
+  /// **'Lait Maternel'**
+  String get feedingSubtypeNatural;
 
-  /// No description provided for @feedingSubtypeBiberon.
+  /// No description provided for @feedingSubtypeArtificial.
   ///
   /// In fr, this message translates to:
-  /// **'Biberon'**
-  String get feedingSubtypeBiberon;
+  /// **'Lait Artificiel'**
+  String get feedingSubtypeArtificial;
 
   /// No description provided for @editDialogTitle.
   ///

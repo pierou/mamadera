@@ -102,8 +102,8 @@
   "feedingQuantityHint": "Sélectionner la quantité",
   "feedingDialogTitle": "Suivre l'Alimentation",
   "feedingSubtypeLabel": "Type d'Alimentation",
-  "feedingSubtypeSein": "Téte",
-  "feedingSubtypeBiberon": "Biberon",
+  "feedingSubtypeNatural": "Lait Maternel",
+  "feedingSubtypeArtificial": "Lait Artificiel",
 
   "editDialogTitle": "Modifier l'événement",
   "editDateSectionTitle": "Date et heure",

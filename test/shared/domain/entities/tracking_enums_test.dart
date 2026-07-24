@@ -9,12 +9,39 @@ void main() {
       expect(FeedingSubtype.values.length, equals(2));
     });
 
-    test('sein name is correct', () {
-      expect(FeedingSubtype.sein.name, equals('sein'));
+    test('natural name is correct', () {
+      expect(FeedingSubtype.natural.name, equals('natural'));
     });
 
-    test('bib name is correct', () {
-      expect(FeedingSubtype.bib.name, equals('bib'));
+    test('artificial name is correct', () {
+      expect(FeedingSubtype.artificial.name, equals('artificial'));
+    });
+
+    test('dbValue returns correct values', () {
+      expect(FeedingSubtype.natural.dbValue, equals('natural'));
+      expect(FeedingSubtype.artificial.dbValue, equals('artificial'));
+    });
+
+    test('fromDbValue returns correct enum for new values', () {
+      expect(FeedingSubtype.fromDbValue('natural'), equals(FeedingSubtype.natural));
+      expect(FeedingSubtype.fromDbValue('artificial'), equals(FeedingSubtype.artificial));
+    });
+
+    test('fromDbValue returns correct enum for legacy values', () {
+      expect(FeedingSubtype.fromDbValue('sein'), equals(FeedingSubtype.natural));
+      expect(FeedingSubtype.fromDbValue('bib'), equals(FeedingSubtype.artificial));
+    });
+
+    test('fromDbValue returns null for null input', () {
+      expect(FeedingSubtype.fromDbValue(null), isNull);
+    });
+
+    test('fromDbValue returns null for empty string', () {
+      expect(FeedingSubtype.fromDbValue(''), isNull);
+    });
+
+    test('fromDbValue returns null for unknown value', () {
+      expect(FeedingSubtype.fromDbValue('unknown'), isNull);
     });
   });
 

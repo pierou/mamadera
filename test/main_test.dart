@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/encryption_provider.dart';
 import 'package:mamadera/core/services/encryption_service.dart';
+import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/features/home/presentation/widgets/track_button.dart';
 import 'package:mamadera/main.dart';
 
@@ -27,7 +28,7 @@ void main() {
 
       // Verify the MaterialApp's theme matches AppTheme.theme
       final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
-      expect(materialApp.theme?.colorScheme.primary, equals(const Color.fromARGB(255, 34, 252, 0)));
+      expect(materialApp.theme?.colorScheme.primary, equals(AppTheme.sante));
     });
 
     testWidgets('HomeScreen is set as home route', (tester) async {

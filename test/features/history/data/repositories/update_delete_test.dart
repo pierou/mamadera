@@ -36,7 +36,7 @@ void main() {
       final event = FeedingEvent(
         id: 42,
         timestamp: DateTime(2025, 1, 1),
-        subtype: FeedingSubtype.sein,
+        subtype: FeedingSubtype.natural,
         duration: 30.0,
         notes: 'une note',
       );
@@ -67,7 +67,7 @@ void main() {
       final event = FeedingEvent(
         id: 5,
         timestamp: DateTime.now(),
-        subtype: FeedingSubtype.sein,
+        subtype: FeedingSubtype.natural,
         duration: 0.0,
         notes: 'seule note',
       );
@@ -100,7 +100,7 @@ void main() {
       final event = FeedingEvent(
         id: -1,
         timestamp: DateTime.now(),
-        subtype: FeedingSubtype.sein,
+        subtype: FeedingSubtype.natural,
         duration: 15.0,
       );
       final result = await repository.updateEvent(id: -1, event: event);

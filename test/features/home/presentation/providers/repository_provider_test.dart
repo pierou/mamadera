@@ -113,7 +113,7 @@ void main() {
       // Mais les opérations sur le repo propagent l'erreur de la DB
       final testEvent = FeedingEvent(
         timestamp: DateTime.now(),
-        subtype: FeedingSubtype.sein,
+        subtype: FeedingSubtype.natural,
         duration: 10,
       );
       expect(

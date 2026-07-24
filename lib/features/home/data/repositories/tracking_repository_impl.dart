@@ -64,7 +64,7 @@ class TrackingRepositoryImpl implements TrackingRepository {
             type: const Value(db_const.typeMiam),
             timestamp: Value(e.timestamp),
             duration: Value(e.duration),
-            subtype: Value(e.subtype.name),
+            subtype: Value(e.subtype.dbValue),
             notes: Value(encryptedNotes),
             babyId: Value(e.babyId),
             wasteType: const Value.absent(),

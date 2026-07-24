@@ -37,7 +37,7 @@ void main() {
       test('encrypts notes before DB insert for FeedingEvent', () async {
         final event = FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10, 0),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
           notes: 'sensitive feeding note',
         );
@@ -53,7 +53,7 @@ void main() {
       test('does not encrypt when notes are null', () async {
         final event = FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10, 0),
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 20,
         );
         await repository.insertEvent(event);
@@ -105,7 +105,7 @@ void main() {
       test('stores correct type for each event subtype', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         ));
         await repository.insertEvent(SleepEvent(
@@ -139,7 +139,7 @@ void main() {
       test('returns events sorted by timestamp descending', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         ));
         await repository.insertEvent(SleepEvent(
@@ -148,7 +148,7 @@ void main() {
         ));
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 10),
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 25,
         ));
 
@@ -163,7 +163,7 @@ void main() {
       test('decrypts notes on read', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
           notes: 'encrypted note content',
         ));
@@ -177,7 +177,7 @@ void main() {
       test('handles null notes correctly after read', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10),
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 20,
           notes: null,
         ));
@@ -191,7 +191,7 @@ void main() {
       test('returns correct domain types for each event', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         ));
         await repository.insertEvent(SleepEvent(
@@ -239,7 +239,7 @@ void main() {
       test('filters events by TrackingType.miam', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         ));
         await repository.insertEvent(SleepEvent(
@@ -248,7 +248,7 @@ void main() {
         ));
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 14),
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 20,
         ));
 
@@ -306,7 +306,7 @@ void main() {
       test('returns empty list for type with no events', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         ));
 
@@ -324,12 +324,12 @@ void main() {
       test('returns last feeding event by type', () async {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         ));
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 14),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 25,
         ));
 
@@ -373,7 +373,7 @@ void main() {
         // Insert a mix of events
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 3, 15, 7, 30),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 25,
           notes: 'morning feeding',
         ));
@@ -417,7 +417,7 @@ void main() {
 
         final feeding = all.last as FeedingEvent;
         expect(feeding.notes, 'morning feeding');
-        expect(feeding.subtype, FeedingSubtype.sein);
+        expect(feeding.subtype, FeedingSubtype.natural);
       });
     });
   });

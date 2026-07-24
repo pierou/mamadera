@@ -211,10 +211,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedingSubtypeLabel => 'Feeding Type';
 
   @override
-  String get feedingSubtypeSein => 'Breast';
+  String get feedingSubtypeNatural => 'Breast milk';
 
   @override
-  String get feedingSubtypeBiberon => 'Bottle';
+  String get feedingSubtypeArtificial => 'Formula';
 
   @override
   String get editDialogTitle => 'Edit Event';

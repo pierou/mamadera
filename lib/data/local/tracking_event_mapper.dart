@@ -78,13 +78,13 @@ TrackingEvent _createHealthEvent(db_app.TrackingEvent row, EncryptionService enc
   );
 }
 
-/// Détermine le FeedingSubtype depuis la colonne `subtype` ou fallback à `sein`.
+/// Détermine le FeedingSubtype depuis la colonne `subtype` ou fallback à `natural`.
 FeedingSubtype _feedingSubtypeFromRow(db_app.TrackingEvent row) {
   if (row.subtype != null && row.subtype!.isNotEmpty) {
-    return FeedingSubtype.values.byName(row.subtype!);
+    return FeedingSubtype.fromDbValue(row.subtype!) ?? FeedingSubtype.natural;
   }
   // Fallback pour les anciennes données sans subtype column
-  return FeedingSubtype.sein;
+  return FeedingSubtype.natural;
 }
 
 /// Parse la colonne `color` (format pipe-délimité pour les_deux).

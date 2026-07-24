@@ -10,7 +10,7 @@ import 'quantity_picker_inline.dart';
 /// A dialog for tracking feeding events with subtype selection and quantity.
 ///
 /// Contains:
-/// - Feeding subtype chip selector (sein/bib) at the top
+/// - Feeding subtype chip selector (natural/artificial) at the top
 /// - Quantity picker (ml) below
 /// - Confirm button that returns (feedingSubtype, quantity)
 class FeedingTrackingDialog extends ConsumerStatefulWidget {
@@ -27,11 +27,11 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
   @override
   void initState() {
     super.initState();
-    _selectedSubtype = FeedingSubtype.sein; // Default to breast
+    _selectedSubtype = FeedingSubtype.natural; // Default to breast milk
   }
 
   IconData _getSubtypeIcon(FeedingSubtype subtype) {
-    return subtype == FeedingSubtype.sein ? Icons.local_drink : Icons.coffee;
+    return subtype == FeedingSubtype.natural ? Icons.local_drink : Icons.coffee;
   }
 
   void _onQuantityChanged(double quantity) {
@@ -69,17 +69,17 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_getSubtypeIcon(FeedingSubtype.sein), size: 18),
+                        Icon(_getSubtypeIcon(FeedingSubtype.natural), size: 18),
                         Flexible(
                           child: Text(
-                            context.l.feedingSubtypeSein,
+                            context.l.feedingSubtypeNatural,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                    selected: _selectedSubtype == FeedingSubtype.sein,
-                    onSelected: (_) => setState(() => _selectedSubtype = FeedingSubtype.sein),
+                    selected: _selectedSubtype == FeedingSubtype.natural,
+                    onSelected: (_) => setState(() => _selectedSubtype = FeedingSubtype.natural),
                     selectedColor: AppTheme.miam.withValues(alpha: 0.2),
                   ),
                 ),
@@ -89,17 +89,17 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_getSubtypeIcon(FeedingSubtype.bib), size: 18),
+                        Icon(_getSubtypeIcon(FeedingSubtype.artificial), size: 18),
                         Flexible(
                           child: Text(
-                            context.l.feedingSubtypeBiberon,
+                            context.l.feedingSubtypeArtificial,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                    selected: _selectedSubtype == FeedingSubtype.bib,
-                    onSelected: (_) => setState(() => _selectedSubtype = FeedingSubtype.bib),
+                    selected: _selectedSubtype == FeedingSubtype.artificial,
+                    onSelected: (_) => setState(() => _selectedSubtype = FeedingSubtype.artificial),
                     selectedColor: AppTheme.miam.withValues(alpha: 0.2),
                   ),
                 ),

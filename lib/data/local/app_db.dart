@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-import '../../../../shared/domain/entities/tracking_enums.dart';
+import 'db_constants.dart' as db_const;
 
 part 'app_db.g.dart'; // Généré par build_runner
 
@@ -16,10 +16,10 @@ class BabyProfiles extends Table {
 
 class TrackingEvents extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get type => text()(); // miam, caca, dodo, sein, bib, sante
+  TextColumn get type => text()(); // miam, caca, dodo, sante
   DateTimeColumn get timestamp => dateTime()();
-  RealColumn get duration => real().nullable()(); // en minutes (dodo, sein)
-  TextColumn get subtype => text().nullable()();  // typed event subtype: 'sein'|'bib' for feeding, health subtype values
+  RealColumn get duration => real().nullable()(); // en minutes (dodo, feeding)
+  TextColumn get subtype => text().nullable()();  // typed event subtype: 'natural'|'artificial' for feeding, health subtype values
   TextColumn get notes => text().nullable()();    // encrypted user text only
   TextColumn get wasteType => text().nullable()(); // pipi, caca, les_deux (diaper events only)
   TextColumn get color => text().nullable()();     // couleur de la selle ou pipe-délimitée (pipi|caca)
@@ -43,7 +43,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
   @override
@@ -85,6 +85,13 @@ class AppDatabase extends _$AppDatabase {
           if (from < 6) {
             await m.database.customStatement('ALTER TABLE tracking_events ADD COLUMN quantity REAL');
           }
+          // v6 → v7 : migration des valeurs de subtype feeding (sein/bib → natural/artificial)
+          if (from < 7) {
+            await m.database.customStatement(
+                "UPDATE tracking_events SET subtype = 'natural' WHERE type = 'miam' AND (subtype IS NULL OR subtype IN ('sein', 'naturel'))");
+            await m.database.customStatement(
+                "UPDATE tracking_events SET subtype = 'artificial' WHERE type = 'miam' AND subtype IN ('bib', 'artificiel')");
+          }
         },
       );
 
@@ -93,10 +100,10 @@ class AppDatabase extends _$AppDatabase {
   Future<int> insertEvent(TrackingEventsCompanion event) =>
       into(trackingEvents).insert(event);
 
-  /// Retourne uniquement les événements d'alimentation (sein ou biberon).
+  /// Retourne uniquement les événements d'alimentation (natural/artificial).
   Future<List<TrackingEvent>> getFeedingEvents() {
     return (select(trackingEvents)
-          ..where((t) => t.type.isIn(FeedingSubtype.values.map((e) => e.name).toList()))
+          ..where((t) => t.type.equals(db_const.typeMiam))
           ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
         .get();
   }

@@ -60,7 +60,7 @@ void main() {
       test('retourne tous les événements triés par timestamp décroissant', () async {
         repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         ));
         repository.insert(SleepEvent(
@@ -69,7 +69,7 @@ void main() {
         ));
         repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 10),
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 25,
         ));
 
@@ -83,7 +83,7 @@ void main() {
       test('filtre par babyId quand fourni', () async {
         repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
           babyId: 'baby-1',
         ));
@@ -104,7 +104,7 @@ void main() {
       test('retourne les événements d\'un type spécifique', () async {
         repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         ));
         repository.insert(SleepEvent(
@@ -113,7 +113,7 @@ void main() {
         ));
         repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 14),
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 20,
         ));
 
@@ -171,7 +171,7 @@ void main() {
       test('retourne une liste vide pour un type sans événements', () async {
         repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
         ));
 
@@ -182,13 +182,13 @@ void main() {
       test('filtre par type et babyId', () async {
         repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
           babyId: 'baby-1',
         ));
         repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 10),
-          subtype: FeedingSubtype.bib,
+          subtype: FeedingSubtype.artificial,
           duration: 20,
           babyId: 'baby-2',
         ));
@@ -202,7 +202,7 @@ void main() {
       test('met à jour un événement existant et retourne true', () async {
         final id = repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         ));
 
@@ -210,7 +210,7 @@ void main() {
           id: id,
           event: FeedingEvent(
             timestamp: DateTime(2024, 1, 1, 8),
-            subtype: FeedingSubtype.bib,
+            subtype: FeedingSubtype.artificial,
             duration: 30,
           ),
         );
@@ -218,7 +218,7 @@ void main() {
         expect(updated, isTrue);
         final all = await repository.getAllEventsOrdered();
         expect(all.first, isA<FeedingEvent>());
-        expect((all.first as FeedingEvent).subtype, FeedingSubtype.bib);
+        expect((all.first as FeedingEvent).subtype, FeedingSubtype.artificial);
         expect((all.first as FeedingEvent).duration, 30);
       });
 
@@ -227,7 +227,7 @@ void main() {
           id: 999,
           event: FeedingEvent(
             timestamp: DateTime(2024, 1, 1, 8),
-            subtype: FeedingSubtype.sein,
+            subtype: FeedingSubtype.natural,
             duration: 30,
           ),
         );
@@ -238,7 +238,7 @@ void main() {
       test('préserve les autres événements lors de la mise à jour', () async {
         final id1 = repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         ));
         repository.insert(SleepEvent(
@@ -250,7 +250,7 @@ void main() {
           id: id1,
           event: FeedingEvent(
             timestamp: DateTime(2024, 1, 1, 8),
-            subtype: FeedingSubtype.bib,
+            subtype: FeedingSubtype.artificial,
             duration: 30,
           ),
         );
@@ -328,7 +328,7 @@ void main() {
       test('supprime un événement existant et retourne true', () async {
         final id = repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         ));
 
@@ -347,7 +347,7 @@ void main() {
       test('ne supprime pas les autres événements', () async {
         final id1 = repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         ));
         repository.insert(SleepEvent(
@@ -398,7 +398,7 @@ void main() {
         // Insert
         final id = repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 30,
           notes: 'morning feeding',
         ));
@@ -417,7 +417,7 @@ void main() {
           id: id,
           event: FeedingEvent(
             timestamp: DateTime(2024, 1, 1, 8),
-            subtype: FeedingSubtype.bib,
+            subtype: FeedingSubtype.artificial,
             duration: 40,
             notes: 'updated feeding',
           ),
@@ -427,7 +427,7 @@ void main() {
         // Verify update
         all = await repository.getAllEventsOrdered();
         expect(all, hasLength(1));
-        expect((all.first as FeedingEvent).subtype, FeedingSubtype.bib);
+        expect((all.first as FeedingEvent).subtype, FeedingSubtype.artificial);
         expect((all.first as FeedingEvent).duration, 40);
         expect((all.first as FeedingEvent).notes, 'updated feeding');
 
@@ -444,7 +444,7 @@ void main() {
           id: id,
           event: FeedingEvent(
             timestamp: DateTime(2024, 1, 1, 8),
-            subtype: FeedingSubtype.sein,
+            subtype: FeedingSubtype.natural,
             duration: 20,
           ),
         );
@@ -458,7 +458,7 @@ void main() {
       test('multi-event lifecycle: insert 3, filter, update one, delete one, verify counts', () async {
         final id1 = repository.insert(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
-          subtype: FeedingSubtype.sein,
+          subtype: FeedingSubtype.natural,
           duration: 20,
         ));
         final id2 = repository.insert(SleepEvent(
