@@ -614,6 +614,12 @@ abstract class AppLocalizations {
   /// **'Annuler'**
   String get cancel;
 
+  /// No description provided for @closeButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get closeButton;
+
   /// No description provided for @babyProfilesSectionTitle.
   ///
   /// In fr, this message translates to:

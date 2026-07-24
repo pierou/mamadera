@@ -281,6 +281,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cancel => 'Annuler';
 
   @override
+  String get closeButton => 'Fermer';
+
+  @override
   String get babyProfilesSectionTitle => 'Bébés';
 
   @override

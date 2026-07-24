@@ -390,14 +390,27 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         ),
       ),
       const SizedBox(height: 8),
-      Center(
-        child: TextButton.icon(
-          onPressed: _confirmDelete,
-          icon: Icon(Icons.delete_outline,
-              color: Theme.of(context).colorScheme.error, size: 20),
-          label: Text(context.l.deleteButton,
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
-        ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(context.l.closeButton),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextButton.icon(
+              onPressed: _confirmDelete,
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: Text(context.l.deleteButton),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
+        ],
       ),
     ];
   }

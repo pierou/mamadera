@@ -132,6 +132,16 @@ class WasteDialog extends ConsumerWidget {
 
             // Bouton Enregistrer
             WasteDialogSubmitButton(ref: ref),
+            const SizedBox(height: 8),
+
+            // Bouton Fermer
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(context.l.closeButton),
+              ),
+            ),
           ],
         ),
       ),

@@ -129,6 +129,7 @@
     }
   },
   "cancel": "Cancel",
+  "closeButton": "Close",
 
   "babyProfilesSectionTitle": "Babies",
   "babyProfilesEmpty": "No baby profiles yet",

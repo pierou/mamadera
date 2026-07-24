@@ -280,6 +280,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancel => 'Cancel';
 
   @override
+  String get closeButton => 'Close';
+
+  @override
   String get babyProfilesSectionTitle => 'Babies';
 
   @override

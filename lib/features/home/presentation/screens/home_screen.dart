@@ -199,13 +199,15 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
       final statusesAsync = ref.watch(reminderNotifierProvider);
       final statusMap = statusesAsync.value ?? const <TrackingType, List<ReminderStatus>>{};
 
-    return Padding(
-      padding: const EdgeInsets.all(AppTheme.spacingXl),
-      child: GridView.count(
-        crossAxisCount: 2,
-        mainAxisSpacing: AppTheme.spacingXl,
-        crossAxisSpacing: AppTheme.spacingXl,
-        children: [
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spacingXl),
+        child: GridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: AppTheme.spacingXl,
+          crossAxisSpacing: AppTheme.spacingXl,
+          children: [
             TrackButton(
               label: context.l.homeButtonMiam,
               color: AppTheme.miam,
@@ -230,7 +232,8 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
               reminders: statusMap[TrackingType.dodo],
               onTap: () => _onTapDodo(context, ref),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

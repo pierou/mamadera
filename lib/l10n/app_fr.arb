@@ -129,6 +129,7 @@
     }
   },
   "cancel": "Annuler",
+  "closeButton": "Fermer",
 
   "babyProfilesSectionTitle": "Bébés",
   "babyProfilesEmpty": "Aucun profil bébé",
