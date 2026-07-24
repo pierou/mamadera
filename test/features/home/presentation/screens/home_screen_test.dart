@@ -245,7 +245,7 @@ void main() {
       verifyNever(mockRepo.insertEvent(any));
     });
 
-    testWidgets('Sante: Enregistrer sans selection -> SnackBar d\'erreur', (tester) async {
+    testWidgets('Sante: Confirmer sans selection -> SnackBar d\'erreur', (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
       await pumpHome(tester);
@@ -255,21 +255,20 @@ void main() {
       await tester.tap(santeBtn);
       await tester.pumpAndSettle();
 
-      // Tap Enregistrer sans selection.
-      final registerButton = find.descendant(
+      // Tap Confirmer sans selection.
+      final confirmButton = find.descendant(
         of: find.byType(BottomSheet),
-        matching: find.text('Enregistrer'),
+        matching: find.text('Confirmer'),
       );
-      expect(registerButton, findsOneWidget);
-      await tester.ensureVisible(registerButton);
-      await tester.tap(registerButton, warnIfMissed: false);
+      await tester.ensureVisible(confirmButton);
+      await tester.tap(confirmButton, warnIfMissed: false);
       await tester.pumpAndSettle();
 
       // SnackBar d'erreur.
       expect(find.textContaining('électionner'), findsOneWidget);
     });
 
-    testWidgets('Sante: Selection + Enregistrer -> HealthEvent via insertEvent', (tester) async {
+    testWidgets('Sante: Selection + Confirmer -> HealthEvent via insertEvent', (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
       await pumpHome(tester);
@@ -286,19 +285,19 @@ void main() {
       await tester.tap(nettoyageYeux, warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      final submitBtn = find.descendant(
+      final confirmBtn = find.descendant(
         of: find.byType(BottomSheet),
-        matching: find.text('Enregistrer'),
+        matching: find.text('Confirmer'),
       );
-      await tester.ensureVisible(submitBtn);
-      await tester.tap(submitBtn, warnIfMissed: false);
+      await tester.ensureVisible(confirmBtn);
+      await tester.tap(confirmBtn, warnIfMissed: false);
       await tester.pumpAndSettle();
 
       final captured = verify(mockRepo.insertEvent(captureAny)).captured;
       expect(captured.first, isA<HealthEvent>());
     });
 
-    testWidgets('Caca: Enregistrer -> DiaperEvent via insertEvent', (tester) async {
+    testWidgets('Caca: Confirmer -> DiaperEvent via insertEvent', (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
       await pumpHome(tester);
@@ -311,12 +310,12 @@ void main() {
         expect(find.text('🟡 Pipi'), findsOneWidget);
         expect(find.text('🟤 Caca'), findsOneWidget);
 
-      final submitBtn = find.descendant(
+      final confirmBtn = find.descendant(
         of: find.byType(BottomSheet),
-        matching: find.text('Enregistrer'),
+        matching: find.text('Confirmer'),
       );
-      await tester.ensureVisible(submitBtn);
-      await tester.tap(submitBtn, warnIfMissed: false);
+      await tester.ensureVisible(confirmBtn);
+      await tester.tap(confirmBtn, warnIfMissed: false);
       await tester.pumpAndSettle();
 
       final captured = verify(mockRepo.insertEvent(captureAny)).captured;

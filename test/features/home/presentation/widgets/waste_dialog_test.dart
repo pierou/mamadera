@@ -93,11 +93,11 @@ void main() {
       expect(find.text('Jaune moutarde'), findsOneWidget);
     });
 
-    testWidgets('bouton Enregistrer est présent', (tester) async {
+    testWidgets('bouton Confirmer est présent', (tester) async {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
-      expect(find.text('Enregistrer'), findsOneWidget);
+      expect(find.text('Confirmer'), findsOneWidget);
     });
 
     testWidgets('sélectionner une couleur pipi la met en état selected', (tester) async {

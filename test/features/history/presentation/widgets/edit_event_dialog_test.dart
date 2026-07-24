@@ -296,7 +296,7 @@ void main() {
       expect(find.text('Modifier l\'\u00e9v\u00e9nement'), findsOneWidget);
 
       // Tap Enregistrer
-      final submitBtn = find.widgetWithIcon(ElevatedButton, Icons.check);
+      final submitBtn = find.text('Enregistrer');
       await tester.tap(submitBtn);
       await tester.pumpAndSettle();
 
@@ -339,7 +339,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Submit
-      await tester.tap(find.widgetWithIcon(ElevatedButton, Icons.check));
+      await tester.tap(find.text('Enregistrer'));
       await tester.pumpAndSettle();
 
       final result = (await completer.future) as UpdateResult?;

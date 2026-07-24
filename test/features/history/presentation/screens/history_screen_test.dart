@@ -380,7 +380,7 @@ void main() {
       await tester.tap(tiles.first);
       await tester.pumpAndSettle();
 
-      // Tap Enregistrar button → returns UpdateResult
+      // Tap Save button → returns UpdateResult
       final saveButton = find.text('Enregistrer');
       expect(saveButton, findsOneWidget);
       await tester.tap(saveButton);

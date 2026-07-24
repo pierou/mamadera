@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'Confirmer'**
   String get confirmButton;
 
+  /// No description provided for @saveButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get saveButton;
+
   /// No description provided for @durationFormatHoursMinutes.
   ///
   /// In fr, this message translates to:
@@ -181,12 +187,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Type de soin'**
   String get healthSubtypeDialogTitle;
-
-  /// No description provided for @saveButton.
-  ///
-  /// In fr, this message translates to:
-  /// **'Enregistrer'**
-  String get saveButton;
 
   /// No description provided for @healthSubtypeRequiredError.
   ///
@@ -847,12 +847,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Nom du bébé'**
   String get onboardingNameHint;
-
-  /// No description provided for @onboardingSaveAndContinue.
-  ///
-  /// In fr, this message translates to:
-  /// **'Enregistrer & Continuer'**
-  String get onboardingSaveAndContinue;
 
   /// No description provided for @onboardingSuccess.
   ///

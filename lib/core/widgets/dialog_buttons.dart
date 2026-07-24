@@ -92,7 +92,7 @@ class DialogActionButtons extends StatelessWidget {
           child: DialogConfirmButton(
             onPressed: onConfirmPressed,
             label: confirmLabel,
-            showIcon: true,
+            showIcon: false,
           ),
         ),
       ],

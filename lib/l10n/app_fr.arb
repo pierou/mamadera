@@ -15,6 +15,7 @@
   "durationPickerTitle": "Durée du sommeil",
   "cancelButton": "Annuler",
   "confirmButton": "Confirmer",
+  "saveButton": "Enregistrer",
   "@durationFormatHoursMinutes": {
     "placeholders": {
       "hours": {},
@@ -30,7 +31,7 @@
   "durationFormatMinutes": "{minutes} min",
 
   "healthSubtypeDialogTitle": "Type de soin",
-  "saveButton": "Enregistrer",
+
   "healthSubtypeRequiredError": "Veuillez sélectionner un type de soin",
 
   "healthNettoyageYeux": "Nettoyage des yeux",
@@ -183,7 +184,6 @@
   "onboardingWelcome": "Bienvenue sur Mamadera !",
   "onboardingSubtitle": "Créez le premier profil bébé pour commencer.",
   "onboardingNameHint": "Nom du bébé",
-  "onboardingSaveAndContinue": "Enregistrer & Continuer",
   "onboardingSuccess": "Profil bébé créé !",
   "onboardingError": "Échec de la création du profil bébé"
 }

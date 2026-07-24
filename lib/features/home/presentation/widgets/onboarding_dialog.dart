@@ -118,7 +118,7 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
                 ? null
                 : _saveProfile,
             cancelLabel: _locale.cancelButton,
-            confirmLabel: _locale.onboardingSaveAndContinue,
+            confirmLabel: _locale.confirmButton,
           ),
         ],
       ),

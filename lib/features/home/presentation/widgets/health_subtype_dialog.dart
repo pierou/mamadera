@@ -89,7 +89,7 @@ class HealthSubtypeDialog extends ConsumerWidget {
                 }
               },
               cancelLabel: context.l.cancelButton,
-              confirmLabel: context.l.saveButton,
+              confirmLabel: context.l.confirmButton,
             ),
           ],
         ),

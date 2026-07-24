@@ -15,6 +15,7 @@
   "durationPickerTitle": "Sleep Duration",
   "cancelButton": "Cancel",
   "confirmButton": "Confirm",
+  "saveButton": "Save",
   "@durationFormatHoursMinutes": {
     "placeholders": {
       "hours": {},
@@ -30,7 +31,7 @@
   "durationFormatMinutes": "{minutes} min",
 
   "healthSubtypeDialogTitle": "Care Type",
-  "saveButton": "Save",
+
   "healthSubtypeRequiredError": "Please select a care type",
 
   "healthNettoyageYeux": "Eye Cleaning",
@@ -183,7 +184,6 @@
   "onboardingWelcome": "Welcome to Mamadera!",
   "onboardingSubtitle": "Create your first baby profile to get started.",
   "onboardingNameHint": "Baby's name",
-  "onboardingSaveAndContinue": "Save & Continue",
   "onboardingSuccess": "Baby profile created!",
   "onboardingError": "Failed to create baby profile"
 }

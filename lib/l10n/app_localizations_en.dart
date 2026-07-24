@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmButton => 'Confirm';
 
   @override
+  String get saveButton => 'Save';
+
+  @override
   String durationFormatHoursMinutes(Object hours, Object minutes) {
     return '${hours}h ${minutes}m';
   }
@@ -53,9 +56,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthSubtypeDialogTitle => 'Care Type';
-
-  @override
-  String get saveButton => 'Save';
 
   @override
   String get healthSubtypeRequiredError => 'Please select a care type';
@@ -401,9 +401,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingNameHint => 'Baby\'s name';
-
-  @override
-  String get onboardingSaveAndContinue => 'Save & Continue';
 
   @override
   String get onboardingSuccess => 'Baby profile created!';

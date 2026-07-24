@@ -406,12 +406,11 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       const SizedBox(height: 24),
       SizedBox(
         width: double.infinity,
-        child: ElevatedButton.icon(
+        child: ElevatedButton(
           onPressed: _submit,
-          icon: const Icon(Icons.check),
-          label: Text(context.l.saveButton),
           style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14)),
+          child: Text(context.l.saveButton),
         ),
       ),
       const SizedBox(height: 8),

@@ -363,7 +363,7 @@ class BabyProfileSection extends ConsumerWidget {
                   }
                 }
               },
-              child: Text(locale.update),
+              child: Text(locale.saveButton),
             ),
           ],
         ),
