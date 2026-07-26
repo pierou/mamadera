@@ -408,4 +408,32 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingError => 'Échec de la création du profil bébé';
+
+  @override
+  String get termsTitle => 'Conditions Générales';
+
+  @override
+  String get termsAcceptButton => 'J\'accepte';
+
+  @override
+  String get termsLoadingError =>
+      'Échec du chargement des conditions. Veuillez réessayer.';
+
+  @override
+  String get patchNotesTitle => 'Nouvelles Fonctionnalités';
+
+  @override
+  String get patchNotesClose => 'Fermer';
+
+  @override
+  String get patchNotesDontShowAgain => 'Ne plus afficher';
+
+  @override
+  String get patchNotesWhatChanged => 'Ce qui a changé';
+
+  @override
+  String get patchNotesReleaseDate => 'Date de publication';
+
+  @override
+  String get patchNotesSkipCreateLater => 'Plutard - Créer un profil bébé';
 }

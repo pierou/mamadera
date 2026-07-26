@@ -1,4 +1,4 @@
-.PHONY: ci lint test build-android clean codegen check-coverage audit-trivy audit-gitleaks
+.PHONY: ci lint test build-android clean codegen check-coverage audit-trivy audit-gitleaks patch-notes
 
 ci: pub-get lint test check-coverage ## Run full local CI pipeline (aligned with GitHub Actions)
 pub-get:
@@ -47,6 +47,19 @@ audit-trivy:
 audit-gitleaks:
 	@command -v gitleaks >/dev/null 2>&1 || { echo "⚠️ gitleaks not installed. Install from https://github.com/gitleaks/gitleaks"; exit 0; }
 	gitleaks detect --verbose --log-opts="--all"
+
+# 📝 Generate patch notes from git Conventional Commits
+patch-notes:
+	@command -v python3 >/dev/null 2>&1 || { echo "⚠️ python3 not installed."; exit 1; }
+	@VERSION=$(VERSION) && \
+	DATE=$(DATE) && \
+	LANG=$(LANG) && \
+	OUTPUT_DIR=$(OUTPUT_DIR) && \
+	python3 scripts/generate_patch_notes.py \
+		--version="$${VERSION}" \
+		--date="$${DATE}" \
+		--lang="$${LANG:-en}" \
+		--output-dir="$${OUTPUT_DIR:-assets/patch_notes}"
 
 # 🔍 UI rules validation (accessibility, dark mode, dynamic type)
 check-ui: pub-get

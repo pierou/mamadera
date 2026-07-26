@@ -407,4 +407,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingError => 'Failed to create baby profile';
+
+  @override
+  String get termsTitle => 'Terms & Conditions';
+
+  @override
+  String get termsAcceptButton => 'I Accept';
+
+  @override
+  String get termsLoadingError => 'Failed to load terms. Please try again.';
+
+  @override
+  String get patchNotesTitle => 'What\'s New';
+
+  @override
+  String get patchNotesClose => 'Close';
+
+  @override
+  String get patchNotesDontShowAgain => 'Don\'t show again';
+
+  @override
+  String get patchNotesWhatChanged => 'What\'s Changed';
+
+  @override
+  String get patchNotesReleaseDate => 'Release Date';
+
+  @override
+  String get patchNotesSkipCreateLater => 'Skip & Create Baby Later';
 }

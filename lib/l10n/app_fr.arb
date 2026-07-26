@@ -185,5 +185,16 @@
   "onboardingSubtitle": "Créez le premier profil bébé pour commencer.",
   "onboardingNameHint": "Nom du bébé",
   "onboardingSuccess": "Profil bébé créé !",
-  "onboardingError": "Échec de la création du profil bébé"
+  "onboardingError": "Échec de la création du profil bébé",
+
+  "termsTitle": "Conditions Générales",
+  "termsAcceptButton": "J'accepte",
+  "termsLoadingError": "Échec du chargement des conditions. Veuillez réessayer.",
+
+  "patchNotesTitle": "Nouvelles Fonctionnalités",
+  "patchNotesClose": "Fermer",
+  "patchNotesDontShowAgain": "Ne plus afficher",
+  "patchNotesWhatChanged": "Ce qui a changé",
+  "patchNotesReleaseDate": "Date de publication",
+  "patchNotesSkipCreateLater": "Plutard - Créer un profil bébé"
 }

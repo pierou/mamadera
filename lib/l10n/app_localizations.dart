@@ -859,6 +859,60 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Échec de la création du profil bébé'**
   String get onboardingError;
+
+  /// No description provided for @termsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Conditions Générales'**
+  String get termsTitle;
+
+  /// No description provided for @termsAcceptButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'accepte'**
+  String get termsAcceptButton;
+
+  /// No description provided for @termsLoadingError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec du chargement des conditions. Veuillez réessayer.'**
+  String get termsLoadingError;
+
+  /// No description provided for @patchNotesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelles Fonctionnalités'**
+  String get patchNotesTitle;
+
+  /// No description provided for @patchNotesClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get patchNotesClose;
+
+  /// No description provided for @patchNotesDontShowAgain.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne plus afficher'**
+  String get patchNotesDontShowAgain;
+
+  /// No description provided for @patchNotesWhatChanged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui a changé'**
+  String get patchNotesWhatChanged;
+
+  /// No description provided for @patchNotesReleaseDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date de publication'**
+  String get patchNotesReleaseDate;
+
+  /// No description provided for @patchNotesSkipCreateLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plutard - Créer un profil bébé'**
+  String get patchNotesSkipCreateLater;
 }
 
 class _AppLocalizationsDelegate

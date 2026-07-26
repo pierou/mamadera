@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/locale_provider.dart';
@@ -65,6 +66,22 @@ class MenuScreen extends ConsumerWidget {
               _buildThemeTile(context, ref, 'system', currentThemeMode, Icons.brightness_auto_outlined, Icons.brightness_1, context.l.themeSystem),
               _buildThemeTile(context, ref, 'light', currentThemeMode, Icons.light_mode_outlined, Icons.light_mode, context.l.themeLight),
               _buildThemeTile(context, ref, 'dark', currentThemeMode, Icons.dark_mode_outlined, Icons.dark_mode, context.l.themeDark),
+
+              // Terms Section
+              const SizedBox(height: AppTheme.spacingXxl),
+              Text(
+                context.l.termsTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              ListTile(
+                leading: const Icon(Icons.description_outlined),
+                title: Text(context.l.termsTitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/terms-view'),
+              ),
 
               // Danger Zone
               const SizedBox(height: AppTheme.spacingXXXl),

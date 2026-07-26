@@ -5,6 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/menu/presentation/screens/menu_screen.dart';
+import '../../features/onboarding/presentation/screens/terms_screen.dart';
+import '../../features/onboarding/presentation/widgets/terms_acceptance_dialog.dart';
+import '../../features/patchnotes/presentation/widgets/patch_notes_dialog.dart';
+import '../core/config/app_config.dart';
+import '../core/providers/app_preferences_provider.dart';
+import '../core/services/app_preferences_service.dart';
 import '../l10n/app_localizations.dart';
 
 /// Routes de l'application.
@@ -36,11 +42,73 @@ int _routeIndexForPath(String path) {
 /// Stocke le chemin de la route précédente pour les transitions.
 String? _previousPath;
 
+/// Initial route shown while launch state is loading.
+///
+/// On iOS/Android the native splash screen covers this window.
+/// On desktop platforms (macOS, Windows, Linux) we show a blank white
+/// screen so the user never sees home/history/menu before the redirect.
+const _splashInitialLocation = '/_splash';
+
+/// Redirect callback that prevents re-evaluating launch conditions on tab switches.
+///
+/// Only redirects when on the splash route. Once we navigate away from splash,
+/// the redirect never fires again (prevents terms/patch-notes on tab switches).
+String? _redirect(BuildContext context, GoRouterState state) {
+  // Only evaluate launch conditions when on the splash route.
+  // Once we navigate away, never redirect again.
+  if (state.matchedLocation != _splashInitialLocation) {
+    return null;
+  }
+
+  // Read preferences to determine the correct initial route.
+  final container = ProviderScope.containerOf(context, listen: false);
+  final prefs = container.read(appPreferencesProvider);
+  return prefs.when(
+    data: (AppPreferences p) {
+      if (!p.termsAccepted) return '/terms';
+      if (p.appVersion != AppConfig.version && p.patchNotesOptOut == false) return '/patch-notes';
+      return AppRoute.home.path;
+    },
+    loading: () => null, // Stay on splash screen while loading
+    error: (_, __) => AppRoute.home.path, // Fallback to home on error
+  );
+}
+
 /// Router go_router avec ShellRoute pour la bottom navigation.
 final GoRouter router = GoRouter(
-  initialLocation: AppRoute.home.path,
+  initialLocation: _splashInitialLocation,
   debugLogDiagnostics: false,
+  redirect: _redirect,
   routes: [
+    // Splash stub (shown while launch state loads on desktop platforms)
+    // The splash screen watches the provider and navigates when ready.
+    GoRoute(
+      path: _splashInitialLocation,
+      name: 'splash',
+      builder: (context, state) => const _SplashScreen(),
+    ),
+    // Terms route (outside shell, full-screen with accept button)
+    GoRoute(
+      path: '/terms',
+      name: 'terms',
+      builder: (context, state) => TermsAcceptanceDialog(
+        onAccepted: () => context.go(AppRoute.home.path),
+      ),
+    ),
+    // Terms view route (read-only, for re-viewing from Menu)
+    GoRoute(
+      path: '/terms-view',
+      name: 'terms-view',
+      builder: (context, state) => const TermsScreen(),
+    ),
+    // Patch notes route (outside shell, full-screen)
+    GoRoute(
+      path: '/patch-notes',
+      name: 'patch-notes',
+      builder: (context, state) => PatchNotesDialog(
+        onDismiss: () => context.go(AppRoute.home.path),
+      ),
+    ),
     ShellRoute(
       builder: (context, state, child) {
         return AppShell(child: child);
@@ -209,6 +277,66 @@ class _BottomNav extends StatelessWidget {
           label: l.navMenu,
         ),
       ],
+    );
+  }
+}
+
+/// Minimal white splash screen shown on desktop platforms while launch state loads.
+///
+/// On iOS/Android the native splash screen covers this window, but on desktop
+/// platforms (macOS, Windows, Linux) we need a placeholder to prevent showing
+/// home/history/menu before the redirect callback resolves.
+///
+/// Watches [appPreferencesProvider] and navigates to the correct route
+/// once preferences are loaded. This ensures the redirect works even when
+/// the provider resolves asynchronously (e.g., in tests).
+class _SplashScreen extends ConsumerWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final prefs = ref.watch(appPreferencesProvider);
+
+    return prefs.when(
+      data: (AppPreferences p) {
+        // Navigate to the correct route once preferences are loaded.
+        // Use addPostFrameCallback to avoid navigating during build.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!p.termsAccepted) {
+            context.go('/terms');
+          } else if (p.appVersion != AppConfig.version && p.patchNotesOptOut == false) {
+            context.go('/patch-notes');
+          } else {
+            context.go(AppRoute.home.path);
+          }
+        });
+
+        return const Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
+      loading: () => const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (_, __) {
+        // Fallback to home on error.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.go(AppRoute.home.path);
+        });
+
+        return const Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
     );
   }
 }

@@ -185,5 +185,16 @@
   "onboardingSubtitle": "Create your first baby profile to get started.",
   "onboardingNameHint": "Baby's name",
   "onboardingSuccess": "Baby profile created!",
-  "onboardingError": "Failed to create baby profile"
+  "onboardingError": "Failed to create baby profile",
+
+  "termsTitle": "Terms & Conditions",
+  "termsAcceptButton": "I Accept",
+  "termsLoadingError": "Failed to load terms. Please try again.",
+
+  "patchNotesTitle": "What's New",
+  "patchNotesClose": "Close",
+  "patchNotesDontShowAgain": "Don't show again",
+  "patchNotesWhatChanged": "What's Changed",
+  "patchNotesReleaseDate": "Release Date",
+  "patchNotesSkipCreateLater": "Skip & Create Baby Later"
 }
