@@ -76,17 +76,17 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.history, const _StubHome(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.menu, const _StubHome(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
               ),
             ],
           ),
@@ -128,7 +128,7 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
               ),
             ],
           ),
@@ -168,17 +168,17 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.history, const _StubHistory(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.menu, const _StubMenu(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubMenu()),
               ),
             ],
           ),
@@ -232,7 +232,7 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
               ),
             ],
           ),
@@ -297,17 +297,17 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.history, const _StubHistory(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.menu, const _StubMenu(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubMenu()),
               ),
             ],
           ),
@@ -361,17 +361,17 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.home, const _StubHome(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.history, const _StubHistory(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                pageBuilder: (context, state) => pageBuilder(AppRoute.menu, const _StubMenu(), context, state, previousPath: null),
+                pageBuilder: (context, state) => MaterialPage(child: const _StubMenu()),
               ),
             ],
           ),

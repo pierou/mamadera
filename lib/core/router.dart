@@ -40,9 +40,6 @@ int _routeIndexForPath(String path) {
   }[path] ?? 0;
 }
 
-/// Stocke le chemin de la route précédente pour les transitions.
-String? _previousPath;
-
 /// Initial route shown while launch state is loading.
 ///
 /// On iOS/Android the native splash screen covers this window.
@@ -124,17 +121,17 @@ final GoRouter router = GoRouter(
         GoRoute(
           path: AppRoute.home.path,
           name: 'home',
-          pageBuilder: (context, state) => pageBuilder(AppRoute.home, const HomeScreen(), context, state, previousPath: _previousPath),
+          pageBuilder: (context, state) => const MaterialPage(child: HomeScreen()),
         ),
         GoRoute(
           path: AppRoute.history.path,
           name: 'history',
-          pageBuilder: (context, state) => pageBuilder(AppRoute.history, const HistoryScreen(), context, state, previousPath: _previousPath),
+          pageBuilder: (context, state) => const MaterialPage(child: HistoryScreen()),
         ),
         GoRoute(
           path: AppRoute.menu.path,
           name: 'menu',
-          pageBuilder: (context, state) => pageBuilder(AppRoute.menu, const MenuScreen(), context, state, previousPath: _previousPath),
+          pageBuilder: (context, state) => const MaterialPage(child: MenuScreen()),
         ),
       ],
     ),
@@ -168,65 +165,6 @@ final GoRouter router = GoRouter(
   ),
 );
 
-/// Construit une animation de transition par glissement basée sur l'index de la route.
-Widget slideTransitionBuilder({
-  required BuildContext context,
-  required Animation<double> animation,
-  required GoRouterState state,
-  required Widget child,
-  String? previousPath,
-}) {
-  final currentIndex = state.matchedLocation == AppRoute.home.path
-      ? 0
-      : state.matchedLocation == AppRoute.history.path
-          ? 1
-          : 2;
-
-  // Déterminer la direction en comparant les index de route
-  final previousIndex = previousPath != null ? _routeIndexForPath(previousPath) : null;
-  final direction = previousIndex != null && previousIndex != currentIndex
-      ? (currentIndex - previousIndex).clamp(-1.0, 1.0)
-      : 0.0;
-
-  final begin = switch (direction) {
-    > 0 => const Offset(1, 0),
-    < 0 => const Offset(-1, 0),
-    _ => Offset.zero,
-  };
-
-  return SlideTransition(
-    position: Tween<Offset>(begin: begin, end: Offset.zero).animate(
-      CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-    ),
-    child: child,
-  );
-}
-
-/// Construit un [CustomTransitionPage] avec transition de glissement positionnelle.
-CustomTransitionPage<dynamic> pageBuilder(
-  AppRoute route,
-  Widget child,
-  BuildContext context,
-  GoRouterState state, {
-  String? previousPath,
-}) {
-  return CustomTransitionPage(
-    key: state.pageKey,
-    child: child,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return slideTransitionBuilder(
-        context: context,
-        animation: animation,
-        state: state,
-        child: child,
-        previousPath: previousPath,
-      );
-    },
-    transitionDuration: const Duration(milliseconds: 300),
-    reverseTransitionDuration: const Duration(milliseconds: 300),
-  );
-}
-
 /// Shell widget qui affiche la bottom navigation et le contenu de la route.
 class AppShell extends ConsumerWidget {
   const AppShell({required this.child, super.key});
@@ -244,8 +182,6 @@ class AppShell extends ConsumerWidget {
       bottomNavigationBar: _BottomNav(
         currentIndex: currentIndex,
         onTap: (index) {
-          // Enregistrer le chemin actuel avant la navigation
-          _previousPath = path;
           context.go(AppRoute.values[index].path);
         },
       ),
