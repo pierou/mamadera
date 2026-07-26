@@ -436,4 +436,55 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get patchNotesSkipCreateLater => 'Plutard - Créer un profil bébé';
+
+  @override
+  String get supportSectionTitle => 'Support';
+
+  @override
+  String get feedbackButtonTitle => 'Signaler un bug ou proposer une idée';
+
+  @override
+  String get feedbackTitle => 'Feedback';
+
+  @override
+  String get feedbackTypeBug => 'Bug';
+
+  @override
+  String get feedbackTypeError => 'Idée';
+
+  @override
+  String get feedbackTypeLabel => 'Type';
+
+  @override
+  String get feedbackTitleLabel => 'Titre';
+
+  @override
+  String get feedbackTitleHint => 'Résumé court du problème ou de l\'idée';
+
+  @override
+  String get feedbackDescriptionLabel => 'Description';
+
+  @override
+  String get feedbackDescriptionHint =>
+      'Décrivez le bug ou votre suggestion en détail…';
+
+  @override
+  String get feedbackSubmitGitHub => 'Soumettre via GitHub';
+
+  @override
+  String get feedbackSubmitEmail => 'Soumettre par email';
+
+  @override
+  String get feedbackValidationTitle => 'Le titre est requis';
+
+  @override
+  String get feedbackValidationDescription => 'La description est requise';
+
+  @override
+  String get feedbackLaunchError =>
+      'Impossible d\'ouvrir l\'application cible.';
+
+  @override
+  String get feedbackGitHubHint =>
+      'Nécessite un compte GitHub. Si vous n\'êtes pas connecté, on vous le demandera.';
 }

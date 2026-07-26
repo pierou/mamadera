@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/menu/presentation/screens/feedback_screen.dart';
 import '../../features/menu/presentation/screens/menu_screen.dart';
 import '../../features/onboarding/presentation/screens/terms_screen.dart';
 import '../../features/onboarding/presentation/widgets/terms_acceptance_dialog.dart';
@@ -108,6 +109,12 @@ final GoRouter router = GoRouter(
       builder: (context, state) => PatchNotesDialog(
         onDismiss: () => context.go(AppRoute.home.path),
       ),
+    ),
+    // Feedback route (outside shell)
+    GoRoute(
+      path: '/feedback',
+      name: 'feedback',
+      builder: (context, state) => const FeedbackScreen(),
     ),
     ShellRoute(
       builder: (context, state, child) {

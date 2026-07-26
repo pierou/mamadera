@@ -196,5 +196,22 @@
   "patchNotesDontShowAgain": "Don't show again",
   "patchNotesWhatChanged": "What's Changed",
   "patchNotesReleaseDate": "Release Date",
-  "patchNotesSkipCreateLater": "Skip & Create Baby Later"
+  "patchNotesSkipCreateLater": "Skip & Create Baby Later",
+
+  "supportSectionTitle": "Support",
+  "feedbackButtonTitle": "Report a bug or share an idea",
+  "feedbackTitle": "Feedback",
+  "feedbackTypeBug": "Bug",
+  "feedbackTypeError": "Idea",
+  "feedbackTypeLabel": "Type",
+  "feedbackTitleLabel": "Title",
+  "feedbackTitleHint": "Short summary of the issue or idea",
+  "feedbackDescriptionLabel": "Description",
+  "feedbackDescriptionHint": "Describe the bug or your suggestion in detail…",
+  "feedbackSubmitGitHub": "Submit via GitHub",
+  "feedbackSubmitEmail": "Submit via Email",
+  "feedbackValidationTitle": "Title is required",
+  "feedbackValidationDescription": "Description is required",
+  "feedbackLaunchError": "Could not open the target app.",
+  "feedbackGitHubHint": "Requires a GitHub account. If you're not logged in, you'll be prompted."
 }

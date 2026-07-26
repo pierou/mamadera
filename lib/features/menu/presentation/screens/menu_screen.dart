@@ -83,6 +83,22 @@ class MenuScreen extends ConsumerWidget {
                 onTap: () => context.push('/terms-view'),
               ),
 
+              // Support Section
+              const SizedBox(height: AppTheme.spacingXxl),
+              Text(
+                context.l.supportSectionTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              ListTile(
+                leading: const Icon(Icons.feedback_outlined),
+                title: Text(context.l.feedbackButtonTitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/feedback'),
+              ),
+
               // Danger Zone
               const SizedBox(height: AppTheme.spacingXXXl),
               Text(

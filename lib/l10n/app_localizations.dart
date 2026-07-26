@@ -913,6 +913,102 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Plutard - Créer un profil bébé'**
   String get patchNotesSkipCreateLater;
+
+  /// No description provided for @supportSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Support'**
+  String get supportSectionTitle;
+
+  /// No description provided for @feedbackButtonTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signaler un bug ou proposer une idée'**
+  String get feedbackButtonTitle;
+
+  /// No description provided for @feedbackTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Feedback'**
+  String get feedbackTitle;
+
+  /// No description provided for @feedbackTypeBug.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bug'**
+  String get feedbackTypeBug;
+
+  /// No description provided for @feedbackTypeError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Idée'**
+  String get feedbackTypeError;
+
+  /// No description provided for @feedbackTypeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type'**
+  String get feedbackTypeLabel;
+
+  /// No description provided for @feedbackTitleLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get feedbackTitleLabel;
+
+  /// No description provided for @feedbackTitleHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résumé court du problème ou de l\'idée'**
+  String get feedbackTitleHint;
+
+  /// No description provided for @feedbackDescriptionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description'**
+  String get feedbackDescriptionLabel;
+
+  /// No description provided for @feedbackDescriptionHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Décrivez le bug ou votre suggestion en détail…'**
+  String get feedbackDescriptionHint;
+
+  /// No description provided for @feedbackSubmitGitHub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumettre via GitHub'**
+  String get feedbackSubmitGitHub;
+
+  /// No description provided for @feedbackSubmitEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumettre par email'**
+  String get feedbackSubmitEmail;
+
+  /// No description provided for @feedbackValidationTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le titre est requis'**
+  String get feedbackValidationTitle;
+
+  /// No description provided for @feedbackValidationDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'La description est requise'**
+  String get feedbackValidationDescription;
+
+  /// No description provided for @feedbackLaunchError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir l\'application cible.'**
+  String get feedbackLaunchError;
+
+  /// No description provided for @feedbackGitHubHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nécessite un compte GitHub. Si vous n\'êtes pas connecté, on vous le demandera.'**
+  String get feedbackGitHubHint;
 }
 
 class _AppLocalizationsDelegate

@@ -196,5 +196,22 @@
   "patchNotesDontShowAgain": "Ne plus afficher",
   "patchNotesWhatChanged": "Ce qui a changé",
   "patchNotesReleaseDate": "Date de publication",
-  "patchNotesSkipCreateLater": "Plutard - Créer un profil bébé"
+  "patchNotesSkipCreateLater": "Plutard - Créer un profil bébé",
+
+  "supportSectionTitle": "Support",
+  "feedbackButtonTitle": "Signaler un bug ou proposer une idée",
+  "feedbackTitle": "Feedback",
+  "feedbackTypeBug": "Bug",
+  "feedbackTypeError": "Idée",
+  "feedbackTypeLabel": "Type",
+  "feedbackTitleLabel": "Titre",
+  "feedbackTitleHint": "Résumé court du problème ou de l'idée",
+  "feedbackDescriptionLabel": "Description",
+  "feedbackDescriptionHint": "Décrivez le bug ou votre suggestion en détail…",
+  "feedbackSubmitGitHub": "Soumettre via GitHub",
+  "feedbackSubmitEmail": "Soumettre par email",
+  "feedbackValidationTitle": "Le titre est requis",
+  "feedbackValidationDescription": "La description est requise",
+  "feedbackLaunchError": "Impossible d'ouvrir l'application cible.",
+  "feedbackGitHubHint": "Nécessite un compte GitHub. Si vous n'êtes pas connecté, on vous le demandera."
 }

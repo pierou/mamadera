@@ -434,4 +434,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get patchNotesSkipCreateLater => 'Skip & Create Baby Later';
+
+  @override
+  String get supportSectionTitle => 'Support';
+
+  @override
+  String get feedbackButtonTitle => 'Report a bug or share an idea';
+
+  @override
+  String get feedbackTitle => 'Feedback';
+
+  @override
+  String get feedbackTypeBug => 'Bug';
+
+  @override
+  String get feedbackTypeError => 'Idea';
+
+  @override
+  String get feedbackTypeLabel => 'Type';
+
+  @override
+  String get feedbackTitleLabel => 'Title';
+
+  @override
+  String get feedbackTitleHint => 'Short summary of the issue or idea';
+
+  @override
+  String get feedbackDescriptionLabel => 'Description';
+
+  @override
+  String get feedbackDescriptionHint =>
+      'Describe the bug or your suggestion in detail…';
+
+  @override
+  String get feedbackSubmitGitHub => 'Submit via GitHub';
+
+  @override
+  String get feedbackSubmitEmail => 'Submit via Email';
+
+  @override
+  String get feedbackValidationTitle => 'Title is required';
+
+  @override
+  String get feedbackValidationDescription => 'Description is required';
+
+  @override
+  String get feedbackLaunchError => 'Could not open the target app.';
+
+  @override
+  String get feedbackGitHubHint =>
+      'Requires a GitHub account. If you\'re not logged in, you\'ll be prompted.';
 }
