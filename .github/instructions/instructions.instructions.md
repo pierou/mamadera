@@ -1,3 +1,6 @@
+---
+description: Always Load these instructions for the Mamadera project. They contain the project-specific coding conventions, architecture, and AI interaction rules.
+---
 # Mamadera — AI Agent Instructions
 
 Privacy-first newborn tracking app. **Offline-only, zero telemetry.** iOS & Android targets.
@@ -63,13 +66,13 @@ Detailed conventions are split into topical skill files under `.github/skills/`.
 
 | Topic | File | When to Use |
 |-------|------|-------------|
-| **Code Generation** | [.github/skills/codegen/SKILL.md](.github/skills/codegen/SKILL.md) | Run `build_runner` after modifying `@freezed`, `@JsonSerializable`, or Drift models |
-| **iOS HIG** | [.github/skills/ios-hig/SKILL.md](.github/skills/ios-hig/SKILL.md) | Designing iOS UIs, accessibility (VoiceOver, Dynamic Type), dark mode, touch targets, haptics, permissions |
-| **State Management** | [.github/skills/flutter/state-management.md](.github/skills/flutter/state-management.md) | Building `StateNotifier`, `AsyncNotifier`, Riverpod patterns (project uses Riverpod) |
-| **Routing & Navigation** | [.github/skills/flutter/routing-navigation.md](.github/skills/flutter/routing-navigation.md) | Setting up `go_router`, deep links, auth redirects |
-| **Code Quality & Style** | [.github/skills/flutter/code-quality.md](.github/skills/flutter/code-quality.md) | Naming conventions, SOLID principles, logging, function limits |
-| **Data Handling & Serialization** | [.github/skills/flutter/data-serialization.md](.github/skills/flutter/data-serialization.md) | JSON models (`json_serializable`), async/await patterns, null safety |
-| **UI Design & Theming (Material 3)** | [.github/skills/flutter/ui-design-theming.md](.github/skills/flutter/ui-design-theming.md) | `ThemeData`, color schemes, typography, shadows, dark mode |
-| **Layout Best Practices** | [.github/skills/flutter/layout-best-practices.md](.github/skills/flutter/layout-best-practices.md) | Expanded/Flexible/Wrap/ListView builder choices, const constructors |
+| **Code Generation** | [../skills/codegen/SKILL.md](../skills/codegen/SKILL.md) | Run `build_runner` after modifying `@freezed`, `@JsonSerializable`, or Drift models |
+| **iOS HIG** | [../skills/ios-hig/SKILL.md](../skills/ios-hig/SKILL.md) | Designing iOS UIs, accessibility (VoiceOver, Dynamic Type), dark mode, touch targets, haptics, permissions |
+| **State Management** | [../skills/flutter/state-management.md](../skills/flutter/state-management.md) | Building `StateNotifier`, `AsyncNotifier`, Riverpod patterns (project uses Riverpod) |
+| **Routing & Navigation** | [../skills/flutter/routing-navigation.md](../skills/flutter/routing-navigation.md) | Setting up `go_router`, deep links, auth redirects |
+| **Code Quality & Style** | [../skills/flutter/code-quality.md](../skills/flutter/code-quality.md) | Naming conventions, SOLID principles, logging, function limits |
+| **Data Handling & Serialization** | [../skills/flutter/data-serialization.md](../skills/flutter/data-serialization.md) | JSON models (`json_serializable`), async/await patterns, null safety |
+| **UI Design & Theming (Material 3)** | [../skills/flutter/ui-design-theming.md](../skills/flutter/ui-design-theming.md) | `ThemeData`, color schemes, typography, shadows, dark mode |
+| **Layout Best Practices** | [../skills/flutter/layout-best-practices.md](../skills/flutter/layout-best-practices.md) | Expanded/Flexible/Wrap/ListView builder choices, const constructors |
 
 > **Note:** Project-specific rules above take precedence over general Flutter skills. This project uses Riverpod, `logger` for logging, and Drift for persistence.

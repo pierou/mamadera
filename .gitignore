@@ -55,3 +55,6 @@ app.*.map.json
 
 # Agents
 /.github/agents
+.agents/agents/beast.agent.md
+.gitignore
+.agents/agents/Plan.agent.md

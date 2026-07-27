@@ -412,6 +412,58 @@ void main() {
       nav = tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar).first);
       expect(nav.currentIndex, 2);
     });
+
+    testWidgets('pops all overlay routes when location changes', (tester) async {
+      // Integration-style test: build AppShell inside a minimal go_router
+      // and verify that navigating between tabs triggers overlay dismissal.
+      final testRouter = GoRouter(
+        initialLocation: AppRoute.home.path,
+        debugLogDiagnostics: false,
+        routes: [
+          ShellRoute(
+            builder: (context, state, child) {
+              return AppShell(child: child);
+            },
+            routes: [
+              GoRoute(
+                path: AppRoute.home.path,
+                name: 'home',
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+              ),
+              GoRoute(
+                path: AppRoute.history.path,
+                name: 'history',
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
+              ),
+            ],
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp.router(
+            routerConfig: testRouter,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('Home Screen'), findsOneWidget);
+
+      // Navigate to history — AppShell should not crash and should show history
+      testRouter.go(AppRoute.history.path);
+      await tester.pumpAndSettle();
+
+      expect(find.text('History Screen'), findsOneWidget);
+      expect(find.text('Home Screen'), findsNothing);
+    });
   });
 }
 

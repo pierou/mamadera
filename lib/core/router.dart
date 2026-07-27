@@ -166,19 +166,44 @@ final GoRouter router = GoRouter(
 );
 
 /// Shell widget qui affiche la bottom navigation et le contenu de la route.
-class AppShell extends ConsumerWidget {
+///
+/// Converts to a stateful widget so we can detect tab switches and dismiss
+/// any open modal bottom sheets (event creation/editing dialogs) that would
+/// otherwise persist across navigation changes.
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({required this.child, super.key});
 
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  /// Tracks the last matched location to detect tab switches in build().
+  String? _previousLocation;
+
+  @override
+  Widget build(BuildContext context) {
     final state = GoRouterState.of(context);
-    final path = state.matchedLocation;
-    final currentIndex = _routeIndexForPath(path);
+    final currentLocation = state.matchedLocation;
+    final currentIndex = _routeIndexForPath(currentLocation);
+
+    // Detect route change and dismiss any open overlays (dialogs, bottom sheets).
+    if (_previousLocation != null && currentLocation != _previousLocation) {
+      _previousLocation = currentLocation;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        final navigator = Navigator.of(context);
+        while (navigator.canPop()) {
+          navigator.pop();
+        }
+      });
+    }
+    _previousLocation ??= currentLocation;
 
     return Scaffold(
-      body: child,
+      body: widget.child,
       bottomNavigationBar: _BottomNav(
         currentIndex: currentIndex,
         onTap: (index) {
