@@ -71,6 +71,7 @@ class HistoryScreen extends ConsumerWidget {
         timestamp: ts,
         subtype: e.subtype,
         duration: result.duration ?? e.duration,
+        quantity: result.quantity ?? e.quantity,
         notes: result.notes ?? e.notes,
         babyId: e.babyId,
       ),

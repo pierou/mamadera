@@ -50,6 +50,7 @@ class HistoryRepositoryImpl implements HistoryRepository {
           subtype: Value(e.subtype.name),
           notes: Value(encryptedNotes),
           babyId: Value(e.babyId),
+          quantity: Value(e.quantity),
           wasteType: const Value.absent(),
           color: const Value.absent(),
         );
