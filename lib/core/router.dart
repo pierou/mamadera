@@ -47,6 +47,12 @@ int _routeIndexForPath(String path) {
 /// screen so the user never sees home/history/menu before the redirect.
 const _splashInitialLocation = '/_splash';
 
+/// Navigator key for the ShellRoute.
+///
+/// Used by [AppShell] to access the correct navigator when dismissing
+/// overlay routes (modal bottom sheets, dialogs) on tab switch.
+final shellNavigatorKey = GlobalKey<NavigatorState>();
+
 /// Redirect callback that prevents re-evaluating launch conditions on tab switches.
 ///
 /// Only redirects when on the splash route. Once we navigate away from splash,
@@ -114,8 +120,12 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const FeedbackScreen(),
     ),
     ShellRoute(
+      navigatorKey: shellNavigatorKey,
       builder: (context, state, child) {
-        return AppShell(child: child);
+        return AppShell(
+          navigatorKey: shellNavigatorKey,
+          child: child,
+        );
       },
       routes: [
         GoRoute(
@@ -167,12 +177,14 @@ final GoRouter router = GoRouter(
 
 /// Shell widget qui affiche la bottom navigation et le contenu de la route.
 ///
-/// Converts to a stateful widget so we can detect tab switches and dismiss
-/// any open modal bottom sheets (event creation/editing dialogs) that would
-/// otherwise persist across navigation changes.
+/// Detects tab switches and dismisses any open modal bottom sheets
+/// (event creation/editing dialogs) that would otherwise persist across
+/// navigation changes. Uses the [navigatorKey] to access the shell-level
+/// navigator where overlays are pushed.
 class AppShell extends ConsumerStatefulWidget {
-  const AppShell({required this.child, super.key});
+  const AppShell({required this.navigatorKey, required this.child, super.key});
 
+  final GlobalKey<NavigatorState> navigatorKey;
   final Widget child;
 
   @override
@@ -194,9 +206,13 @@ class _AppShellState extends ConsumerState<AppShell> {
       _previousLocation = currentLocation;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
-        final navigator = Navigator.of(context);
-        while (navigator.canPop()) {
-          navigator.pop();
+        // Use the shell navigator key to access the correct navigator where
+        // showModalBottomSheet and showDialog push their overlay routes.
+        final navigator = Navigator.of(widget.navigatorKey.currentContext!);
+        // Pop overlay routes (dialogs, bottom sheets). We pop up to 5 times
+        // which is enough for nested dialogs but won't pop the shell route.
+        for (var i = 0; i < 5; i++) {
+          if (navigator.canPop()) navigator.pop();
         }
       });
     }

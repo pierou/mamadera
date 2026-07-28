@@ -63,14 +63,18 @@ void main() {
 
   group('AppShell', () {
     testWidgets('renders AppShell with bottom navigation bar', (tester) async {
-      // Create a test router with simple stub widgets (no Riverpod dependencies)
+      final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: AppRoute.home.path,
         debugLogDiagnostics: false,
         routes: [
           ShellRoute(
+            navigatorKey: navigatorKey,
             builder: (context, state, child) {
-              return AppShell(child: child);
+              return AppShell(
+                navigatorKey: navigatorKey,
+                child: child,
+              );
             },
             routes: [
               GoRoute(
@@ -116,13 +120,18 @@ void main() {
     });
 
     testWidgets('displays child content by default', (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: AppRoute.home.path,
         debugLogDiagnostics: false,
         routes: [
           ShellRoute(
+            navigatorKey: navigatorKey,
             builder: (context, state, child) {
-              return AppShell(child: child);
+              return AppShell(
+                navigatorKey: navigatorKey,
+                child: child,
+              );
             },
             routes: [
               GoRoute(
@@ -156,13 +165,18 @@ void main() {
     });
 
     testWidgets('navigates to different routes updates child', (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: AppRoute.home.path,
         debugLogDiagnostics: false,
         routes: [
           ShellRoute(
+            navigatorKey: navigatorKey,
             builder: (context, state, child) {
-              return AppShell(child: child);
+              return AppShell(
+                navigatorKey: navigatorKey,
+                child: child,
+              );
             },
             routes: [
               GoRoute(
@@ -220,13 +234,18 @@ void main() {
     });
 
     testWidgets('shows error page for unknown route', (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: '/unknown-route',
         debugLogDiagnostics: false,
         routes: [
           ShellRoute(
+            navigatorKey: navigatorKey,
             builder: (context, state, child) {
-              return AppShell(child: child);
+              return AppShell(
+                navigatorKey: navigatorKey,
+                child: child,
+              );
             },
             routes: [
               GoRoute(
@@ -285,13 +304,18 @@ void main() {
     });
 
     testWidgets('navigation flow between routes works correctly', (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: AppRoute.home.path,
         debugLogDiagnostics: false,
         routes: [
           ShellRoute(
+            navigatorKey: navigatorKey,
             builder: (context, state, child) {
-              return AppShell(child: child);
+              return AppShell(
+                navigatorKey: navigatorKey,
+                child: child,
+              );
             },
             routes: [
               GoRoute(
@@ -349,13 +373,18 @@ void main() {
     });
 
     testWidgets('route to index mapping is correct', (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: AppRoute.home.path,
         debugLogDiagnostics: false,
         routes: [
           ShellRoute(
+            navigatorKey: navigatorKey,
             builder: (context, state, child) {
-              return AppShell(child: child);
+              return AppShell(
+                navigatorKey: navigatorKey,
+                child: child,
+              );
             },
             routes: [
               GoRoute(
@@ -413,16 +442,83 @@ void main() {
       expect(nav.currentIndex, 2);
     });
 
-    testWidgets('pops all overlay routes when location changes', (tester) async {
-      // Integration-style test: build AppShell inside a minimal go_router
-      // and verify that navigating between tabs triggers overlay dismissal.
+    testWidgets('dismisses modal bottom sheet when switching tabs', (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: AppRoute.home.path,
         debugLogDiagnostics: false,
         routes: [
           ShellRoute(
+            navigatorKey: navigatorKey,
             builder: (context, state, child) {
-              return AppShell(child: child);
+              return AppShell(
+                navigatorKey: navigatorKey,
+                child: child,
+              );
+            },
+            routes: [
+              GoRoute(
+                path: AppRoute.home.path,
+                name: 'home',
+                pageBuilder: (context, state) => MaterialPage(
+                  child: _StubWithBottomSheet(),
+                ),
+              ),
+              GoRoute(
+                path: AppRoute.history.path,
+                name: 'history',
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
+              ),
+            ],
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp.router(
+            routerConfig: testRouter,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap the button to show a modal bottom sheet
+      await tester.tap(find.text('Show Bottom Sheet'));
+      await tester.pumpAndSettle();
+
+      // Verify the bottom sheet is visible
+      expect(find.text('Bottom Sheet Content'), findsOneWidget);
+
+      // Navigate to history — this should dismiss the bottom sheet
+      testRouter.go(AppRoute.history.path);
+      await tester.pumpAndSettle();
+
+      // Bottom sheet should be gone
+      expect(find.text('Bottom Sheet Content'), findsNothing);
+      expect(find.text('History Screen'), findsOneWidget);
+    });
+
+    testWidgets('pops all overlay routes when location changes', (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final testRouter = GoRouter(
+        initialLocation: AppRoute.home.path,
+        debugLogDiagnostics: false,
+        routes: [
+          ShellRoute(
+            navigatorKey: navigatorKey,
+            builder: (context, state, child) {
+              return AppShell(
+                navigatorKey: navigatorKey,
+                child: child,
+              );
             },
             routes: [
               GoRoute(
@@ -484,4 +580,29 @@ class _StubMenu extends StatelessWidget {
   const _StubMenu();
   @override
   Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Menu Screen')));
+}
+
+/// Stub widget that shows a modal bottom sheet when tapped.
+class _StubWithBottomSheet extends StatelessWidget {
+  const _StubWithBottomSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            showModalBottomSheet<void>(
+              context: context,
+              builder: (_) => const SizedBox(
+                height: 200,
+                child: Center(child: Text('Bottom Sheet Content')),
+              ),
+            );
+          },
+          child: const Text('Show Bottom Sheet'),
+        ),
+      ),
+    );
+  }
 }
