@@ -38,7 +38,7 @@ void main() {
     testWidgets('FeedingEvent → lunch_dining icon', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural, duration: 15),
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
       );
       expect(find.byIcon(Icons.lunch_dining), findsOneWidget);
     });
@@ -46,7 +46,7 @@ void main() {
     testWidgets('SleepEvent → nightlight icon', (tester) async {
       await pumpTile(
         tester,
-        SleepEvent(timestamp: DateTime.utc(2024), duration: 120),
+        SleepEvent(timestamp: DateTime.utc(2024), duration: 30.0),
       );
       expect(find.byIcon(Icons.nightlight), findsOneWidget);
     });
@@ -88,7 +88,7 @@ void main() {
     testWidgets('FeedingEvent → "Miam"', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural, duration: 15),
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
       );
       expect(find.text('Miam'), findsOneWidget);
     });
@@ -96,7 +96,7 @@ void main() {
     testWidgets('SleepEvent → "Sommeil"', (tester) async {
       await pumpTile(
         tester,
-        SleepEvent(timestamp: DateTime.utc(2024), duration: 60),
+        SleepEvent(timestamp: DateTime.utc(2024), duration: 30.0),
       );
       expect(find.text('Sommeil'), findsOneWidget);
     });
@@ -136,13 +136,13 @@ void main() {
   });
 
   group('HistoryTile — Durée affichée', () {
-    testWidgets('FeedingEvent avec durée → "Durée: X min"', (tester) async {
+    testWidgets('FeedingEvent sans durée → pas de "Durée" text', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.artificial, duration: 30.5),
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.artificial),
       );
-      // context.l.durationPrefix(30) returns "Durée: 30 min" in FR locale
-      expect(find.text('Durée: 30 min'), findsOneWidget);
+      // Feeding events no longer display duration on history tiles
+      expect(find.textContaining('Durée'), findsNothing);
     });
 
     testWidgets('SleepEvent avec durée → "Durée: X min"', (tester) async {
@@ -174,7 +174,7 @@ void main() {
     testWidgets('FeedingEvent avec notes → notes visibles (sauf HealthEvent)', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural, duration: 15, notes: 'Notes de test'),
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural, notes: 'Notes de test'),
       );
       expect(find.text('Notes de test'), findsOneWidget);
     });
@@ -182,7 +182,7 @@ void main() {
     testWidgets('SleepEvent avec notes → notes visibles', (tester) async {
       await pumpTile(
         tester,
-        SleepEvent(timestamp: DateTime.utc(2024), duration: 60, notes: 'Dodo paisible'),
+        SleepEvent(timestamp: DateTime.utc(2024), duration: 30.0, notes: 'Dodo paisible'),
       );
       expect(find.text('Dodo paisible'), findsOneWidget);
     });
@@ -198,7 +198,7 @@ void main() {
     testWidgets('Événement sans notes → pas de texte vide', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural, duration: 15),
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
       );
       expect(find.text(''), findsNothing);
     });
@@ -259,7 +259,7 @@ void main() {
     testWidgets('FeedingEvent → pas d\'indicateurs de couleur', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.artificial, duration: 15),
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.artificial),
       );
       expect(find.byType(Wrap), findsNothing);
     });
@@ -270,7 +270,7 @@ void main() {
       bool tapped = false;
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural, duration: 15),
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
         onTap: () => tapped = true,
       );
       expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
@@ -283,7 +283,7 @@ void main() {
     testWidgets('sans onTap → pas d\'icône edit', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.artificial, duration: 15),
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.artificial),
       );
       expect(find.byIcon(Icons.edit_outlined), findsNothing);
     });
@@ -293,7 +293,7 @@ void main() {
     testWidgets('time parameter est affiché dans la tile', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural, duration: 15),
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
       );
       expect(find.text('15/06/2024 10:30'), findsOneWidget);
     });
@@ -330,7 +330,7 @@ void main() {
             ],
             home: Scaffold(
               body: HistoryTile(
-                event: FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural, duration: 15),
+                event: FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
                 time: '15/06/2024 10:30',
               ),
             ),
@@ -355,7 +355,7 @@ void main() {
             ],
             home: Scaffold(
               body: HistoryTile(
-                event: FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural, duration: 15),
+                event: FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
                 time: '15/06/2024 10:30',
               ),
             ),
@@ -368,7 +368,7 @@ void main() {
     testWidgets('has Semantics widgets for accessibility', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural, duration: 15),
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
       );
       expect(find.byType(Semantics), findsWidgets);
     });

@@ -139,6 +139,7 @@ extension EditResultPatterns on EditResult {
             double? duration,
             double? quantity,
             String? notes,
+            FeedingSubtype? subtype,
             WasteType? wasteType,
             PipiColor? pipiColor,
             CacaColor? cacaColor)?
@@ -149,8 +150,15 @@ extension EditResultPatterns on EditResult {
     final _that = this;
     switch (_that) {
       case UpdateResult() when update != null:
-        return update(_that.timestamp, _that.duration, _that.quantity,
-            _that.notes, _that.wasteType, _that.pipiColor, _that.cacaColor);
+        return update(
+            _that.timestamp,
+            _that.duration,
+            _that.quantity,
+            _that.notes,
+            _that.subtype,
+            _that.wasteType,
+            _that.pipiColor,
+            _that.cacaColor);
       case DeleteResult() when delete != null:
         return delete();
       case _:
@@ -178,6 +186,7 @@ extension EditResultPatterns on EditResult {
             double? duration,
             double? quantity,
             String? notes,
+            FeedingSubtype? subtype,
             WasteType? wasteType,
             PipiColor? pipiColor,
             CacaColor? cacaColor)
@@ -187,8 +196,15 @@ extension EditResultPatterns on EditResult {
     final _that = this;
     switch (_that) {
       case UpdateResult():
-        return update(_that.timestamp, _that.duration, _that.quantity,
-            _that.notes, _that.wasteType, _that.pipiColor, _that.cacaColor);
+        return update(
+            _that.timestamp,
+            _that.duration,
+            _that.quantity,
+            _that.notes,
+            _that.subtype,
+            _that.wasteType,
+            _that.pipiColor,
+            _that.cacaColor);
       case DeleteResult():
         return delete();
     }
@@ -213,6 +229,7 @@ extension EditResultPatterns on EditResult {
             double? duration,
             double? quantity,
             String? notes,
+            FeedingSubtype? subtype,
             WasteType? wasteType,
             PipiColor? pipiColor,
             CacaColor? cacaColor)?
@@ -222,8 +239,15 @@ extension EditResultPatterns on EditResult {
     final _that = this;
     switch (_that) {
       case UpdateResult() when update != null:
-        return update(_that.timestamp, _that.duration, _that.quantity,
-            _that.notes, _that.wasteType, _that.pipiColor, _that.cacaColor);
+        return update(
+            _that.timestamp,
+            _that.duration,
+            _that.quantity,
+            _that.notes,
+            _that.subtype,
+            _that.wasteType,
+            _that.pipiColor,
+            _that.cacaColor);
       case DeleteResult() when delete != null:
         return delete();
       case _:
@@ -240,6 +264,7 @@ class UpdateResult implements EditResult {
       this.duration,
       this.quantity,
       this.notes,
+      this.subtype,
       this.wasteType,
       this.pipiColor,
       this.cacaColor});
@@ -248,6 +273,7 @@ class UpdateResult implements EditResult {
   final double? duration;
   final double? quantity;
   final String? notes;
+  final FeedingSubtype? subtype;
   final WasteType? wasteType;
   final PipiColor? pipiColor;
   final CacaColor? cacaColor;
@@ -271,6 +297,7 @@ class UpdateResult implements EditResult {
             (identical(other.quantity, quantity) ||
                 other.quantity == quantity) &&
             (identical(other.notes, notes) || other.notes == notes) &&
+            (identical(other.subtype, subtype) || other.subtype == subtype) &&
             (identical(other.wasteType, wasteType) ||
                 other.wasteType == wasteType) &&
             (identical(other.pipiColor, pipiColor) ||
@@ -281,11 +308,11 @@ class UpdateResult implements EditResult {
 
   @override
   int get hashCode => Object.hash(runtimeType, timestamp, duration, quantity,
-      notes, wasteType, pipiColor, cacaColor);
+      notes, subtype, wasteType, pipiColor, cacaColor);
 
   @override
   String toString() {
-    return 'EditResult.update(timestamp: $timestamp, duration: $duration, quantity: $quantity, notes: $notes, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor)';
+    return 'EditResult.update(timestamp: $timestamp, duration: $duration, quantity: $quantity, notes: $notes, subtype: $subtype, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor)';
   }
 }
 
@@ -301,6 +328,7 @@ abstract mixin class $UpdateResultCopyWith<$Res>
       double? duration,
       double? quantity,
       String? notes,
+      FeedingSubtype? subtype,
       WasteType? wasteType,
       PipiColor? pipiColor,
       CacaColor? cacaColor});
@@ -324,6 +352,7 @@ class _$UpdateResultCopyWithImpl<$Res> implements $UpdateResultCopyWith<$Res> {
     Object? duration = freezed,
     Object? quantity = freezed,
     Object? notes = freezed,
+    Object? subtype = freezed,
     Object? wasteType = freezed,
     Object? pipiColor = freezed,
     Object? cacaColor = freezed,
@@ -345,6 +374,10 @@ class _$UpdateResultCopyWithImpl<$Res> implements $UpdateResultCopyWith<$Res> {
           ? _self.notes
           : notes // ignore: cast_nullable_to_non_nullable
               as String?,
+      subtype: freezed == subtype
+          ? _self.subtype
+          : subtype // ignore: cast_nullable_to_non_nullable
+              as FeedingSubtype?,
       wasteType: freezed == wasteType
           ? _self.wasteType
           : wasteType // ignore: cast_nullable_to_non_nullable

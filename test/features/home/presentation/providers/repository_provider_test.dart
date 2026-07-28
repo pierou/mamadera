@@ -114,7 +114,6 @@ void main() {
       final testEvent = FeedingEvent(
         timestamp: DateTime.now(),
         subtype: FeedingSubtype.natural,
-        duration: 10,
       );
       expect(
         () => repo.insertEvent(testEvent),

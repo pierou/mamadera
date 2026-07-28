@@ -16,7 +16,6 @@ sealed class TrackingEvent with _$TrackingEvent {
 
   const factory TrackingEvent.feeding({
     required FeedingSubtype subtype,
-    required double duration,
     required DateTime timestamp,
     double? quantity,
     int? id,
@@ -55,7 +54,7 @@ extension TrackingEventTrackingType on TrackingEvent {
   TrackingType get trackingType {
     return when(
       (id0, ts0, baby0) => throw StateError('Cannot get trackingType from base TrackingEvent'),
-      feeding: (id1, ts1, baby1, sub1, dur1, qty1, notes1) => TrackingType.miam,
+      feeding: (id1, ts1, baby1, sub1, qty1, notes1) => TrackingType.miam,
       sleep: (id2, ts2, baby2, dur2, qty2, notes2) => TrackingType.dodo,
       diaper: (id3, ts3, baby3, wt3, pc3, cc3, notes3) => TrackingType.caca,
       health: (id4, ts4, baby4, sub4, notes4) => TrackingType.sante,

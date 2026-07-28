@@ -109,7 +109,6 @@ void main() {
 
         expect(result.length, 1);
         expect(result[0] is entity.FeedingEvent, true);
-        expect((result[0] as entity.FeedingEvent).duration, 12.0);
 
         verify(mockAppDatabase.getEventsByType(typeMiam)).called(1);
       });
@@ -135,7 +134,7 @@ void main() {
     });
 
     group('updateEvent()', () {
-      test('met à jour FeedingEvent — timestamp et duration', () async {
+      test('met à jour FeedingEvent — timestamp et subtype', () async {
         final newTimestamp = DateTime(2024, 1, 15);
         when(mockAppDatabase.updateEvent(any, any)).thenAnswer((_) async => 1);
 
@@ -143,7 +142,6 @@ void main() {
           id: 1,
           timestamp: newTimestamp,
           subtype: FeedingSubtype.natural,
-          duration: 20,
         );
         final result = await repository.updateEvent(id: 1, event: updated);
 
@@ -171,7 +169,6 @@ void main() {
           id: 3,
           timestamp: DateTime.now(),
           subtype: FeedingSubtype.natural,
-          duration: 10,
           notes: 'new sensitive notes',
         );
         final result = await repository.updateEvent(id: 3, event: updated);
@@ -249,7 +246,6 @@ void main() {
           id: 999,
           timestamp: DateTime.now(),
           subtype: FeedingSubtype.natural,
-          duration: 10,
         );
         final result = await repository.updateEvent(id: 999, event: updated);
 

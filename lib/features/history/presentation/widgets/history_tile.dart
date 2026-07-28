@@ -130,6 +130,7 @@ class HistoryTileSubtitle extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (event is FeedingEvent) ..._buildFeedingSubtypeRow(),
         if (_getQuantity(event) != null)
           Text(context.l.quantityPrefix(_getQuantity(event)!.toInt(), event.map(
             (_) => '',
@@ -152,7 +153,7 @@ class HistoryTileSubtitle extends StatelessWidget {
   double? _getDuration(TrackingEvent event) {
     return event.map(
       (_) => null,
-      feeding: (e) => e.duration,
+      feeding: (_) => null,
       sleep: (e) => e.duration,
       diaper: (_) => null,
       health: (_) => null,
@@ -180,6 +181,37 @@ class HistoryTileSubtitle extends StatelessWidget {
   }
 
   bool get _hasWasteDetails => event is DiaperEvent && (event as DiaperEvent).wasteType != null;
+
+  List<Widget> _buildFeedingSubtypeRow() {
+    if (event is! FeedingEvent) return const [];
+    final feeding = event as FeedingEvent;
+    return [
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(_getSubtypeIcon(feeding.subtype), size: 14, color: _getSubtypeColor(feeding.subtype)),
+          const SizedBox(width: 4),
+          Text(
+            feeding.subtype == FeedingSubtype.natural
+                ? context.l.feedingSubtypeNatural
+                : context.l.feedingSubtypeArtificial,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+    ];
+  }
+
+  IconData _getSubtypeIcon(FeedingSubtype subtype) {
+    return switch (subtype) {
+      FeedingSubtype.natural => Icons.local_drink_outlined,
+      FeedingSubtype.artificial => Icons.coffee_rounded,
+    };
+  }
+
+  Color _getSubtypeColor(FeedingSubtype subtype) {
+    return subtype == FeedingSubtype.natural ? AppTheme.miam : Theme.of(context).colorScheme.secondary;
+  }
 
   String _resolveLabelKey(BuildContext context, String labelKey) {
     switch (labelKey) {

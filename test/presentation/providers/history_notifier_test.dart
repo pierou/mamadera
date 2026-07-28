@@ -22,7 +22,6 @@ void main() {
     id: 1,
     timestamp: DateTime.utc(2023, 1, 1),
     subtype: FeedingSubtype.natural,
-    duration: 15,
   );
   final event2 = SleepEvent(
     id: 2,
@@ -33,7 +32,6 @@ void main() {
     id: 3,
     timestamp: DateTime.utc(2023, 1, 3),
     subtype: FeedingSubtype.artificial,
-    duration: 120,
   );
   final eventDodo = SleepEvent(
     id: 2,

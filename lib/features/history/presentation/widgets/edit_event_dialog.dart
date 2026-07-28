@@ -19,6 +19,7 @@ sealed class EditResult with _$EditResult {
     double? duration,
     double? quantity,
     String? notes,
+    FeedingSubtype? subtype,
     WasteType? wasteType,
     PipiColor? pipiColor,
     CacaColor? cacaColor,
@@ -44,6 +45,9 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   double? _duration;
   double? _quantity;
 
+  // Sous-type d'alimentation (natural/artificial) pour feedings
+  FeedingSubtype _subtype = FeedingSubtype.natural;
+
   // Pour les événements caca : type de selle et couleurs (typed via enums)
   WasteType? _wasteType;
   PipiColor? _pipiColor;
@@ -67,6 +71,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   void initState() {
     super.initState();
     _selectedDate = widget.event.timestamp;
+    _subtype = FeedingSubtype.natural;
     _duration = null;
     _quantity = null;
     _notesController = TextEditingController(text: '');
@@ -81,7 +86,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     widget.event.map(
       (e) {},
       feeding: (e) {
-        _duration = e.duration;
+        _subtype = e.subtype;
         _quantity = e.quantity;
         _notesController.text = e.notes ?? '';
       },
@@ -148,6 +153,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       duration: _duration,
       quantity: _quantity,
       notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      subtype: (_normalizedType == 'miam') ? _subtype : null,
       wasteType: _wasteType,
       pipiColor: _pipiColor,
       cacaColor: _cacaColor,
@@ -202,6 +208,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             ..._buildDateSection(),
             if (_normalizedType == 'dodo') ..._buildDurationSection(),
             if (_normalizedType == 'miam') ..._buildQuantitySection(),
+            if (_normalizedType == 'miam') ..._buildSubtypeSelectorSection(),
             if (_normalizedType == 'caca' || _normalizedType == 'pipi') ..._buildWasteSections(),
             if (_normalizedType != 'sante' && _normalizedType != 'dodo') ..._buildNotesSection(),
             if (_normalizedType == 'sante') ..._buildHealthSubtypeSection(),
@@ -290,6 +297,54 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         },
       ),
     ];
+  }
+
+  List<Widget> _buildSubtypeSelectorSection() {
+    return [
+      const SizedBox(height: 20),
+      _buildSectionTitle(context.l.feedingSubtypeLabel),
+      Row(
+        children: FeedingSubtype.values.map((subtype) {
+          final isSelected = _subtype == subtype;
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: FilterChip(
+                label: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(_getSubtypeIcon(subtype), size: 18),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        _getSubtypeLabel(subtype),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                selected: isSelected,
+                onSelected: (_) => setState(() => _subtype = subtype),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    ];
+  }
+
+  String _getSubtypeLabel(FeedingSubtype subtype) {
+    return switch (subtype) {
+      FeedingSubtype.natural => context.l.feedingSubtypeNatural,
+      FeedingSubtype.artificial => context.l.feedingSubtypeArtificial,
+    };
+  }
+
+  IconData _getSubtypeIcon(FeedingSubtype subtype) {
+    return switch (subtype) {
+      FeedingSubtype.natural => Icons.local_drink,
+      FeedingSubtype.artificial => Icons.coffee,
+    };
   }
 
   List<Widget> _buildWasteSections() {

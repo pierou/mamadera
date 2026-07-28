@@ -46,7 +46,6 @@ class HistoryRepositoryImpl implements HistoryRepository {
         return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeMiam),
           timestamp: Value(e.timestamp),
-          duration: Value(e.duration),
           subtype: Value(e.subtype.name),
           notes: Value(encryptedNotes),
           babyId: Value(e.babyId),

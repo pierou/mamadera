@@ -34,7 +34,6 @@ void main() {
       id: 1,
       timestamp: DateTime.utc(2025, 6, 15, 8, 0),
       subtype: FeedingSubtype.natural,
-      duration: 30,
     ),
     SleepEvent(
       id: 2,
@@ -352,6 +351,11 @@ void main() {
     });
 
     testWidgets('_showEditDialog handles UpdateResult from dialog', (tester) async {
+      // Increase viewport to accommodate taller edit dialog with subtype selector
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 900);
+      await tester.pump();
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -394,6 +398,11 @@ void main() {
     });
 
     testWidgets('_showEditDialog handles DeleteResult from dialog', (tester) async {
+      // Increase viewport to accommodate taller edit dialog with subtype selector
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 900);
+      await tester.pump();
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -443,6 +452,11 @@ void main() {
     });
 
     testWidgets('_showEditDialog handles null result (dismiss without action)', (tester) async {
+      // Increase viewport to accommodate taller edit dialog with subtype selector
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 900);
+      await tester.pump();
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [

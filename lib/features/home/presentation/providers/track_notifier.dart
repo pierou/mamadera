@@ -43,7 +43,6 @@ class TrackNotifier extends AsyncNotifier<void> {
             timestamp: DateTime.now(),
             babyId: babyId,
             subtype: feedingSubtype ?? FeedingSubtype.natural,
-            duration: duration?.toDouble() ?? 0.0,
             quantity: quantity,
             notes: notes,
           ),

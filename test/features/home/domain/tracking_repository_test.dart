@@ -69,7 +69,6 @@ void main() {
         final oldEvent = FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8, 0),
           subtype: FeedingSubtype.natural,
-          duration: 20,
         );
         final newEvent = SleepEvent(
           timestamp: DateTime(2024, 1, 1, 14, 0),
@@ -89,12 +88,10 @@ void main() {
         final olderEvent = FeedingEvent(
           timestamp: DateTime(2024, 1, 1),
           subtype: FeedingSubtype.artificial,
-          duration: 15,
         );
         final newerEvent = FeedingEvent(
           timestamp: DateTime(2024, 1, 2),
           subtype: FeedingSubtype.natural,
-          duration: 25,
         );
 
         await repository.insertEvent(olderEvent);
@@ -113,7 +110,6 @@ void main() {
         final feeding = FeedingEvent(
           timestamp: DateTime(2024, 1, 1),
           subtype: FeedingSubtype.natural,
-          duration: 30,
         );
         final sleep = SleepEvent(
           timestamp: DateTime(2024, 1, 1),
@@ -122,7 +118,6 @@ void main() {
         final feeding2 = FeedingEvent(
           timestamp: DateTime(2024, 1, 2),
           subtype: FeedingSubtype.artificial,
-          duration: 20,
         );
 
         await repository.insertEvent(feeding);
@@ -142,7 +137,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1),
           subtype: FeedingSubtype.natural,
-          duration: 30,
         ));
 
         final santes = await repository.getEventsByType(TrackingType.sante);
@@ -153,7 +147,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1),
           subtype: FeedingSubtype.natural,
-          duration: 30,
         ));
         await repository.insertEvent(SleepEvent(
           timestamp: DateTime(2024, 1, 1),
@@ -180,7 +173,6 @@ void main() {
         final event = FeedingEvent(
           timestamp: DateTime(2024, 1, 1),
           subtype: FeedingSubtype.natural,
-          duration: 30,
         );
         final id = await repository.insertEvent(event);
 
@@ -224,7 +216,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
-          duration: 20,
         ));
         await repository.insertEvent(SleepEvent(
           timestamp: DateTime(2024, 1, 1, 10),
@@ -249,12 +240,10 @@ void main() {
         final old = FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
-          duration: 20,
         );
         final new_ = FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 14),
           subtype: FeedingSubtype.natural,
-          duration: 25,
         );
 
         await repository.insertEvent(old);
@@ -269,12 +258,10 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
-          duration: 20,
         ));
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 14),
           subtype: FeedingSubtype.artificial,
-          duration: 30,
         ));
 
         final naturalLast = await repository.getLastEventByTypeAndSubtype(
@@ -335,7 +322,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
-          duration: 30,
         ));
         await repository.insertEvent(SleepEvent(
           timestamp: DateTime(2024, 1, 1, 10),
@@ -344,7 +330,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 14),
           subtype: FeedingSubtype.artificial,
-          duration: 20,
         ));
 
         // Get all ordered

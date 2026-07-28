@@ -63,7 +63,6 @@ class TrackingRepositoryImpl implements TrackingRepository {
           return db_app.TrackingEventsCompanion(
             type: const Value(db_const.typeMiam),
             timestamp: Value(e.timestamp),
-            duration: Value(e.duration),
             subtype: Value(e.subtype.dbValue),
             notes: Value(encryptedNotes),
             babyId: Value(e.babyId),

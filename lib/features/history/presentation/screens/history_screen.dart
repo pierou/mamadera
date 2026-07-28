@@ -69,8 +69,7 @@ class HistoryScreen extends ConsumerWidget {
       feeding: (e) => TrackingEvent.feeding(
         id: e.id,
         timestamp: ts,
-        subtype: e.subtype,
-        duration: result.duration ?? e.duration,
+        subtype: result.subtype ?? e.subtype,
         quantity: result.quantity ?? e.quantity,
         notes: result.notes ?? e.notes,
         babyId: e.babyId,

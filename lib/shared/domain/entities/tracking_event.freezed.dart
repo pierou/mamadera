@@ -217,14 +217,8 @@ extension TrackingEventPatterns on TrackingEvent {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(DateTime timestamp, int? id, String? babyId)? $default, {
-    TResult Function(
-            FeedingSubtype subtype,
-            double duration,
-            DateTime timestamp,
-            double? quantity,
-            int? id,
-            String? babyId,
-            String? notes)?
+    TResult Function(FeedingSubtype subtype, DateTime timestamp,
+            double? quantity, int? id, String? babyId, String? notes)?
         feeding,
     TResult Function(double duration, DateTime timestamp, double? quantity,
             int? id, String? babyId, String? notes)?
@@ -248,8 +242,8 @@ extension TrackingEventPatterns on TrackingEvent {
       case _TrackingEvent() when $default != null:
         return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent() when feeding != null:
-        return feeding(_that.subtype, _that.duration, _that.timestamp,
-            _that.quantity, _that.id, _that.babyId, _that.notes);
+        return feeding(_that.subtype, _that.timestamp, _that.quantity, _that.id,
+            _that.babyId, _that.notes);
       case SleepEvent() when sleep != null:
         return sleep(_that.duration, _that.timestamp, _that.quantity, _that.id,
             _that.babyId, _that.notes);
@@ -280,14 +274,8 @@ extension TrackingEventPatterns on TrackingEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(DateTime timestamp, int? id, String? babyId) $default, {
-    required TResult Function(
-            FeedingSubtype subtype,
-            double duration,
-            DateTime timestamp,
-            double? quantity,
-            int? id,
-            String? babyId,
-            String? notes)
+    required TResult Function(FeedingSubtype subtype, DateTime timestamp,
+            double? quantity, int? id, String? babyId, String? notes)
         feeding,
     required TResult Function(double duration, DateTime timestamp,
             double? quantity, int? id, String? babyId, String? notes)
@@ -310,8 +298,8 @@ extension TrackingEventPatterns on TrackingEvent {
       case _TrackingEvent():
         return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent():
-        return feeding(_that.subtype, _that.duration, _that.timestamp,
-            _that.quantity, _that.id, _that.babyId, _that.notes);
+        return feeding(_that.subtype, _that.timestamp, _that.quantity, _that.id,
+            _that.babyId, _that.notes);
       case SleepEvent():
         return sleep(_that.duration, _that.timestamp, _that.quantity, _that.id,
             _that.babyId, _that.notes);
@@ -339,14 +327,8 @@ extension TrackingEventPatterns on TrackingEvent {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(DateTime timestamp, int? id, String? babyId)? $default, {
-    TResult? Function(
-            FeedingSubtype subtype,
-            double duration,
-            DateTime timestamp,
-            double? quantity,
-            int? id,
-            String? babyId,
-            String? notes)?
+    TResult? Function(FeedingSubtype subtype, DateTime timestamp,
+            double? quantity, int? id, String? babyId, String? notes)?
         feeding,
     TResult? Function(double duration, DateTime timestamp, double? quantity,
             int? id, String? babyId, String? notes)?
@@ -369,8 +351,8 @@ extension TrackingEventPatterns on TrackingEvent {
       case _TrackingEvent() when $default != null:
         return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent() when feeding != null:
-        return feeding(_that.subtype, _that.duration, _that.timestamp,
-            _that.quantity, _that.id, _that.babyId, _that.notes);
+        return feeding(_that.subtype, _that.timestamp, _that.quantity, _that.id,
+            _that.babyId, _that.notes);
       case SleepEvent() when sleep != null:
         return sleep(_that.duration, _that.timestamp, _that.quantity, _that.id,
             _that.babyId, _that.notes);
@@ -476,7 +458,6 @@ class __$TrackingEventCopyWithImpl<$Res>
 class FeedingEvent implements TrackingEvent {
   const FeedingEvent(
       {required this.subtype,
-      required this.duration,
       required this.timestamp,
       this.quantity,
       this.id,
@@ -484,7 +465,6 @@ class FeedingEvent implements TrackingEvent {
       this.notes});
 
   final FeedingSubtype subtype;
-  final double duration;
   @override
   final DateTime timestamp;
   final double? quantity;
@@ -508,8 +488,6 @@ class FeedingEvent implements TrackingEvent {
         (other.runtimeType == runtimeType &&
             other is FeedingEvent &&
             (identical(other.subtype, subtype) || other.subtype == subtype) &&
-            (identical(other.duration, duration) ||
-                other.duration == duration) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
             (identical(other.quantity, quantity) ||
@@ -520,12 +498,12 @@ class FeedingEvent implements TrackingEvent {
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, subtype, duration, timestamp, quantity, id, babyId, notes);
+  int get hashCode =>
+      Object.hash(runtimeType, subtype, timestamp, quantity, id, babyId, notes);
 
   @override
   String toString() {
-    return 'TrackingEvent.feeding(subtype: $subtype, duration: $duration, timestamp: $timestamp, quantity: $quantity, id: $id, babyId: $babyId, notes: $notes)';
+    return 'TrackingEvent.feeding(subtype: $subtype, timestamp: $timestamp, quantity: $quantity, id: $id, babyId: $babyId, notes: $notes)';
   }
 }
 
@@ -539,7 +517,6 @@ abstract mixin class $FeedingEventCopyWith<$Res>
   @useResult
   $Res call(
       {FeedingSubtype subtype,
-      double duration,
       DateTime timestamp,
       double? quantity,
       int? id,
@@ -560,7 +537,6 @@ class _$FeedingEventCopyWithImpl<$Res> implements $FeedingEventCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? subtype = null,
-    Object? duration = null,
     Object? timestamp = null,
     Object? quantity = freezed,
     Object? id = freezed,
@@ -572,10 +548,6 @@ class _$FeedingEventCopyWithImpl<$Res> implements $FeedingEventCopyWith<$Res> {
           ? _self.subtype
           : subtype // ignore: cast_nullable_to_non_nullable
               as FeedingSubtype,
-      duration: null == duration
-          ? _self.duration
-          : duration // ignore: cast_nullable_to_non_nullable
-              as double,
       timestamp: null == timestamp
           ? _self.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable

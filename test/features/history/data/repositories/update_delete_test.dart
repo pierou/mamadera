@@ -37,7 +37,6 @@ void main() {
         id: 42,
         timestamp: DateTime(2025, 1, 1),
         subtype: FeedingSubtype.natural,
-        duration: 30.0,
         notes: 'une note',
       );
       final result = await repository.updateEvent(id: 42, event: event);
@@ -68,7 +67,6 @@ void main() {
         id: 5,
         timestamp: DateTime.now(),
         subtype: FeedingSubtype.natural,
-        duration: 0.0,
         notes: 'seule note',
       );
       final result = await repository.updateEvent(id: 5, event: event);
@@ -101,7 +99,6 @@ void main() {
         id: -1,
         timestamp: DateTime.now(),
         subtype: FeedingSubtype.natural,
-        duration: 15.0,
       );
       final result = await repository.updateEvent(id: -1, event: event);
 

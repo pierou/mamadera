@@ -102,7 +102,6 @@ void main() {
       final event = FeedingEvent(
         timestamp: DateTime.utc(2024, 6, 15),
         subtype: FeedingSubtype.natural,
-        duration: 30,
       );
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
@@ -264,6 +263,11 @@ void main() {
 
   group('EditEventDialog — Submit → UpdateResult retourné', () {
     testWidgets('tap Enregistrer → Navigator.pop avec UpdateResult', (tester) async {
+      // Increase viewport to accommodate taller edit dialog with subtype selector
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 900);
+      await tester.pump();
+
       final completer = Completer<UpdateResult?>();
 
       await tester.pumpWidget(
@@ -281,7 +285,6 @@ void main() {
               event: FeedingEvent(
                 timestamp: DateTime.utc(2024, 1, 1),
                 subtype: FeedingSubtype.natural,
-                duration: 0,
               ),
               onResult: (r) => completer.complete(r as UpdateResult?),
             ),
@@ -305,6 +308,11 @@ void main() {
     });
 
     testWidgets('submit avec notes → UpdateResult.notes contient la valeur', (tester) async {
+      // Increase viewport to accommodate taller edit dialog with subtype selector
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 900);
+      await tester.pump();
+
       final completer = Completer<EditResult?>();
 
       await tester.pumpWidget(
@@ -322,7 +330,6 @@ void main() {
               event: FeedingEvent(
                 timestamp: DateTime.utc(2024, 1, 1),
                 subtype: FeedingSubtype.natural,
-                duration: 0,
               ),
               onResult: (r) => completer.complete(r as EditResult?),
             ),
@@ -349,6 +356,11 @@ void main() {
 
   group('EditEventDialog — Delete confirmation flow', () {
     testWidgets('tap Supprimer → AlertDialog ouvert avec message de confirmation', (tester) async {
+      // Increase viewport to accommodate taller edit dialog with subtype selector
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 900);
+      await tester.pump();
+
       final completer = Completer<EditResult?>();
 
       await tester.pumpWidget(
@@ -366,7 +378,6 @@ void main() {
               event: FeedingEvent(
                 timestamp: DateTime.utc(2024, 6, 15),
                 subtype: FeedingSubtype.natural,
-                duration: 30,
               ),
               onResult: (r) => completer.complete(r as EditResult?),
             ),
@@ -400,6 +411,11 @@ void main() {
     });
 
     testWidgets('Annuler → dialog de confirmation clos', (tester) async {
+      // Increase viewport to accommodate taller edit dialog with subtype selector
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 900);
+      await tester.pump();
+
       final completer = Completer<EditResult?>();
 
       await tester.pumpWidget(
@@ -417,7 +433,6 @@ void main() {
               event: FeedingEvent(
                 timestamp: DateTime.utc(2024, 6, 15),
                 subtype: FeedingSubtype.natural,
-                duration: 30,
               ),
               onResult: (r) => completer.complete(r as EditResult?),
             ),
@@ -450,6 +465,11 @@ void main() {
     });
 
     testWidgets('Supprimer confirmé → DeleteResult retourné', (tester) async {
+      // Increase viewport to accommodate taller edit dialog with subtype selector
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 900);
+      await tester.pump();
+
       final completer = Completer<EditResult?>();
 
       await tester.pumpWidget(

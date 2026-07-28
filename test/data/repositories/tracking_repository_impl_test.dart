@@ -33,7 +33,6 @@ void main() {
       final event = FeedingEvent(
         timestamp: DateTime.now(),
         subtype: FeedingSubtype.natural,
-        duration: 30,
       );
       final id = await repository.insertEvent(event);
 
@@ -48,7 +47,6 @@ void main() {
       final event = FeedingEvent(
         timestamp: DateTime.now(),
         subtype: FeedingSubtype.natural,
-        duration: 15,
         notes: 'sensitive note',
       );
       await repository.insertEvent(event);
@@ -88,7 +86,6 @@ void main() {
       final event = FeedingEvent(
         timestamp: DateTime.now(),
         subtype: FeedingSubtype.natural,
-        duration: 10,
       );
       expect(
         () => repository.insertEvent(event),
@@ -107,7 +104,6 @@ void main() {
       final event = FeedingEvent(
         timestamp: DateTime.now(),
         subtype: FeedingSubtype.artificial,
-        duration: 20,
       );
       final id = await repository.insertEvent(event);
 
@@ -139,7 +135,6 @@ void main() {
       final event = FeedingEvent(
         timestamp: DateTime.utc(2024, 5, 1),
         subtype: FeedingSubtype.artificial,
-        duration: 25,
       );
       final insertedId = await repository.insertEvent(event);
       expect(insertedId, equals(100));

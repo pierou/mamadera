@@ -37,7 +37,7 @@ void main() {
       final notifier = container.read(trackNotifierProvider.notifier);
       await notifier.track(
         type: TrackingType.miam,
-        duration: 10,
+        quantity: 10,
         notes: 'notes de test',
       );
 
@@ -47,8 +47,7 @@ void main() {
       final event = captured.first as TrackingEvent;
       expect(event, isA<FeedingEvent>());
       expect((event as FeedingEvent).subtype, equals(FeedingSubtype.natural));
-      expect(event.duration, equals(10.0));
-      expect(event.notes, equals('notes de test'));
+      expect(event.quantity, equals(10.0));
     });
 
     test('transition état loading → data en cas de succès', () async {

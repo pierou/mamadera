@@ -33,7 +33,6 @@ TrackingEvent _createFeedingEvent(db_app.TrackingEvent row, EncryptionService en
     timestamp: row.timestamp,
     babyId: row.babyId,
     subtype: _feedingSubtypeFromRow(row),
-    duration: row.duration ?? 0.0,
     quantity: row.quantity,
     notes: encryption.decrypt(row.notes),
   );

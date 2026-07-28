@@ -38,7 +38,6 @@ void main() {
         final event = FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10, 0),
           subtype: FeedingSubtype.natural,
-          duration: 30,
           notes: 'sensitive feeding note',
         );
         await repository.insertEvent(event);
@@ -54,7 +53,6 @@ void main() {
         final event = FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10, 0),
           subtype: FeedingSubtype.artificial,
-          duration: 20,
         );
         await repository.insertEvent(event);
 
@@ -106,7 +104,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
-          duration: 30,
         ));
         await repository.insertEvent(SleepEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10),
@@ -140,7 +137,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
-          duration: 20,
         ));
         await repository.insertEvent(SleepEvent(
           timestamp: DateTime(2024, 1, 1, 14),
@@ -149,7 +145,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 10),
           subtype: FeedingSubtype.artificial,
-          duration: 25,
         ));
 
         final result = await repository.getAllEventsOrdered();
@@ -164,7 +159,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10),
           subtype: FeedingSubtype.natural,
-          duration: 30,
           notes: 'encrypted note content',
         ));
 
@@ -178,7 +172,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10),
           subtype: FeedingSubtype.artificial,
-          duration: 20,
           notes: null,
         ));
 
@@ -192,7 +185,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
-          duration: 30,
         ));
         await repository.insertEvent(SleepEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10),
@@ -240,7 +232,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
-          duration: 30,
         ));
         await repository.insertEvent(SleepEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10),
@@ -249,7 +240,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 14),
           subtype: FeedingSubtype.artificial,
-          duration: 20,
         ));
 
         final result = await repository.getEventsByType(TrackingType.miam);
@@ -307,7 +297,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
-          duration: 30,
         ));
 
         final result = await repository.getEventsByType(TrackingType.sante);
@@ -325,12 +314,10 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
-          duration: 20,
         ));
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime(2024, 1, 1, 14),
           subtype: FeedingSubtype.natural,
-          duration: 25,
         ));
 
         final result = await repository.getLastEventByTypeAndSubtype(TrackingType.miam);
@@ -374,7 +361,6 @@ void main() {
         await repository.insertEvent(FeedingEvent(
           timestamp: DateTime.utc(2024, 3, 15, 7, 30),
           subtype: FeedingSubtype.natural,
-          duration: 25,
           notes: 'morning feeding',
         ));
         await repository.insertEvent(SleepEvent(

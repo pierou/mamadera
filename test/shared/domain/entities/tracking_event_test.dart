@@ -12,14 +12,12 @@ void main() {
         final event = FeedingEvent(
           timestamp: baseTimestamp,
           subtype: FeedingSubtype.natural,
-          duration: 30,
         );
 
         expect(event.trackingType, TrackingType.miam);
         expect(event.timestamp, baseTimestamp);
         expect(event.id, isNull);
         expect(event.subtype, FeedingSubtype.natural);
-        expect(event.duration, 30.0);
         expect(event.notes, isNull);
       });
 
@@ -27,7 +25,6 @@ void main() {
         final event = FeedingEvent(
           timestamp: baseTimestamp,
           subtype: FeedingSubtype.artificial,
-          duration: 15,
           id: 1,
           notes: 'Biberon complet',
         );
@@ -94,7 +91,6 @@ void main() {
       final baseEvent = FeedingEvent(
         timestamp: baseTimestamp,
         subtype: FeedingSubtype.natural,
-        duration: 30,
         id: 2,
       );
 
@@ -108,7 +104,6 @@ void main() {
         final duplicate = FeedingEvent(
           timestamp: baseTimestamp,
           subtype: FeedingSubtype.natural,
-          duration: 30,
           id: 2,
         );
         expect(baseEvent, equals(duplicate));
@@ -135,7 +130,6 @@ void main() {
         final duplicate = FeedingEvent(
           timestamp: baseTimestamp,
           subtype: FeedingSubtype.natural,
-          duration: 30,
           id: 2,
         );
         expect(baseEvent.hashCode, equals(duplicate.hashCode));
@@ -148,7 +142,6 @@ void main() {
         final event = FeedingEvent(
           timestamp: baseTimestamp,
           subtype: FeedingSubtype.natural,
-          duration: 30,
           id: 5,
           notes: 'Info de debug',
         );
@@ -157,7 +150,6 @@ void main() {
 
         expect(stringRepresentation, contains('TrackingEvent.feeding'));
         expect(stringRepresentation, contains('id: 5'));
-        expect(stringRepresentation, contains('duration: 30.0'));
       });
 
       test('SleepEvent doit retourner une représentation lisible de l\'objet', () {

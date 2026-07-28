@@ -24,7 +24,6 @@ void main() {
     id: 10,
     timestamp: DateTime.utc(2024, 1, 1),
     subtype: FeedingSubtype.natural,
-    duration: 15,
   );
   final event2 = SleepEvent(
     id: 20,
@@ -60,7 +59,6 @@ void main() {
         id: 10,
         timestamp: DateTime.utc(2024, 6, 1), // Timestamp modifié
         subtype: FeedingSubtype.natural,
-        duration: 30, // Durée augmentée
       );
 
       var callCount = 0;
@@ -102,7 +100,6 @@ void main() {
         id: 10,
         timestamp: DateTime.utc(2024, 3, 1),
         subtype: FeedingSubtype.natural,
-        duration: 25,
         notes: 'note ajoutée',
       );
 
