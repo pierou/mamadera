@@ -8,7 +8,9 @@
 /// - Multiple device sizes render properly
 ///
 /// Run on simulator: `flutter test integration_test/rendering_validation_test.dart`
+library;
 
+// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -22,7 +24,7 @@ void main() {
   group('Rendering Validation', () {
     testWidgets('App renders full screen with no black bars or unexpected margins', (tester) async {
       // Launch the actual app.
-      await app.main();
+      app.main();
 
       // Wait for animations and layout to settle.
       await tester.pumpAndSettle(const Duration(seconds: 2));
@@ -33,7 +35,7 @@ void main() {
       final dpHeight = screenSize.height;
 
       print('=== Screen Dimensions ===');
-      print('Logical screen size: ${dpWidth}x${dpHeight}');
+      print('Logical screen size: ${dpWidth}x$dpHeight');
       print('Device pixel ratio: ${window.devicePixelRatio}');
       print('Physical screen size: ${window.physicalSize}');
 
@@ -268,8 +270,8 @@ class _TermsScreen extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          Expanded(child: Center(child: Text('Terms Content'))),
-          SafeArea(child: Padding(padding: EdgeInsets.all(16), child: ElevatedButton(onPressed: () {}, child: Text('Accept')))),
+          const Expanded(child: Center(child: Text('Terms Content'))),
+          SafeArea(child: Padding(padding: const EdgeInsets.all(16), child: ElevatedButton(onPressed: () {}, child: const Text('Accept')))),
         ],
       ),
     );
@@ -281,7 +283,7 @@ class _HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(child: Text('Home Screen')),
       bottomNavigationBar: BottomAppBar(child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [Icon(Icons.home), Icon(Icons.history)])),
     );

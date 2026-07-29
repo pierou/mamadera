@@ -6,7 +6,9 @@
 /// - Validate full-screen rendering across orientations and device sizes
 ///
 /// Usage: `flutter test integration_test/rendering_validation_test.dart`
+library;
 
+// ignore: depend_on_referenced_packages
 import 'package:flutter_driver/driver_extension.dart';
 
 import 'main.dart' as app;
