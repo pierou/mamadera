@@ -30,14 +30,14 @@ extension ReminderItemPresets on ReminderItem {
     subtypeValue: 'vitamine_d',
   );
 
-  /// Preconfigured monthly Vitamin K reminder — uses day-of-month from birth date.
-  static ReminderItem vitaminK({int? dayOfMonth}) => ReminderItem(
-        id: 'vitamine_k',
-        labelKey: 'reminderVitaminK',
-        frequency: dayOfMonth != null ? ReminderFrequency.monthly(dayOfMonth: dayOfMonth) : const ReminderFrequency.daily(),
-        trackingType: TrackingType.sante,
-        subtypeValue: 'vitamine_k',
-      );
+  /// Preconfigured Vitamin K reminder — every 30 days (rolling interval).
+  static const vitaminK = ReminderItem(
+    id: 'vitamine_k',
+    labelKey: 'reminderVitaminK',
+    frequency: ReminderFrequency.customInterval(days: 30),
+    trackingType: TrackingType.sante,
+    subtypeValue: 'vitamine_k',
+  );
 
   /// Preconfigured daily eye cleaning reminder.
   static const eyeCleaning = ReminderItem(
@@ -58,10 +58,9 @@ extension ReminderItemPresets on ReminderItem {
   );
 
   /// Build a dynamic list of reminders based on an active baby profile's birth date.
-  /// Vitamin K uses Monthly frequency aligned to the day of birth; others are daily.
   static List<ReminderItem> buildForBaby(BabyProfile profile) => [
         vitaminD,
-        vitaminK(dayOfMonth: babyProfileBirthDayOfMonth(profile.birthDate)),
+        vitaminK,
         eyeCleaning,
         faceCleaning,
       ];

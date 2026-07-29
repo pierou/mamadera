@@ -64,11 +64,11 @@ void main() {
         expect(profile.isActive, isTrue);
       });
 
-      test('birthDayOfMonth getter works on returned profiles', () async {
+      test('birthDate survives round-trip through DB', () async {
         await repository.insertProfile(baby1);
 
         final result = await repository.getAllProfiles();
-        expect(babyProfileBirthDayOfMonth(result.first.birthDate), equals(15));
+        expect(result.first.birthDate, equals(baby1.birthDate));
       });
     });
 
@@ -155,7 +155,7 @@ void main() {
           birthDate: DateTime(2026, 5, 20),
         );
         expect(updated!.name, equals('Léonard'));
-        expect(babyProfileBirthDayOfMonth(updated.birthDate), equals(20));
+        expect(updated.birthDate.day, equals(20));
       });
 
       test('leaves unchanged fields intact when updating only one', () async {

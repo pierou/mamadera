@@ -26,33 +26,7 @@ void main() {
       });
     });
 
-    group('birthDayOfMonth', () {
-      test('returns the day component of birthDate for March 15 → 15', () {
-        final profile = BabyProfile(id: testId, name: testName, birthDate: testBirthDate);
 
-        expect(babyProfileBirthDayOfMonth(profile.birthDate), 15);
-      });
-
-      test('returns correct day for first of month (January 1)', () {
-        final profile = BabyProfile(
-          id: 'id-2',
-          name: 'Nova',
-          birthDate: DateTime(2024, 1, 1),
-        );
-
-        expect(babyProfileBirthDayOfMonth(profile.birthDate), 1);
-      });
-
-      test('returns correct day for last of month (February 29 leap year)', () {
-        final profile = BabyProfile(
-          id: 'id-3',
-          name: 'Sol',
-          birthDate: DateTime(2024, 2, 29),
-        );
-
-        expect(babyProfileBirthDayOfMonth(profile.birthDate), 29);
-      });
-    });
 
     group('copyWith', () {
       test('returns a new instance with unchanged properties when no args provided', () {

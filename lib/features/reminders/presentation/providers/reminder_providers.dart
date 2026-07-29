@@ -35,8 +35,8 @@ final dynamicRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async 
   final activeProfile = await ref.watch(activeBabyProvider.future);
 
   if (activeProfile == null) {
-    // No baby profile yet — return default reminders with daily vitamin K fallback.
-    return [ReminderItemPresets.vitaminD, ReminderItemPresets.vitaminK()];
+    // No baby profile yet — return default reminders (Vitamin D + Vitamin K every 30 days).
+    return [ReminderItemPresets.vitaminD, ReminderItemPresets.vitaminK];
   }
 
   // Build dynamic reminders based on baby's birth date.

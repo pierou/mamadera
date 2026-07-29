@@ -82,7 +82,7 @@ void main() {
       });
 
       test('returns null for different tracking type', () async {
-        final vitaminK = ReminderItemPresets.vitaminK();
+        final vitaminK = ReminderItemPresets.vitaminK;
         await database.into(database.trackingEvents).insert(
           TrackingEventsCompanion.insert(
             type: vitaminDItem.trackingType.name,
@@ -118,7 +118,7 @@ void main() {
       });
 
       test('stores different items independently', () async {
-        final vitaminK = ReminderItemPresets.vitaminK();
+        final vitaminK = ReminderItemPresets.vitaminK;
         final nowD = DateTime.now();
         final nowK = DateTime.now().add(const Duration(hours: 1));
 

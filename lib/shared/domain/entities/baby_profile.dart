@@ -37,6 +37,4 @@ BabyProfile babyProfileUpdated(
   );
 }
 
-/// Jour du mois de naissance — utilisé pour les reminders mensuels basés sur la date de naissance.
-/// Ex: né le 15 mars → `birthDayOfMonth` = 15 → Vitamine K due le 15 de chaque mois.
-int babyProfileBirthDayOfMonth(DateTime birthDate) => birthDate.day;
+

@@ -217,11 +217,10 @@ void main() {
   });
 
   group('dynamicRemindersProvider reactivity', () {
-    /// B1: dynamicRemindersProvider returns different reminder items when the active baby changes.
+    /// B1: dynamicRemindersProvider returns reminder items for the active baby.
     testWidgets(
       'dynamicRemindersProvider re-evaluates when active baby changes',
       (tester) async {
-        // Two babies born on different days of month → vitaminK frequencies differ
         final babyA = BabyProfile(id: 'baby_a', name: 'Baby A', birthDate: DateTime(2024, 1, 5));
         final babyB = BabyProfile(id: 'baby_b', name: 'Baby B', birthDate: DateTime(2024, 3, 20));
 
@@ -245,11 +244,10 @@ void main() {
         final remindersB = await containerB.read(dynamicRemindersProvider.future);
         expect(remindersB, isNotEmpty);
 
-        // The vitaminK items should differ (day 5 vs day 20)
-        final vitkA = remindersA.firstWhere((item) => item.id == 'vitamine_k');
-        final vitkB = remindersB.firstWhere((item) => item.id == 'vitamine_k');
-
-        expect(vitkA, isNot(equals(vitkB)), reason: 'Vitamin K should differ for different birth days of month');
+        // Both babies get the same 4 reminders (Vitamin D daily, Vitamin K every 30 days, eye/face cleaning)
+        expect(remindersA.length, equals(4));
+        expect(remindersB.length, equals(4));
+        expect(remindersA.map((e) => e.id), equals(remindersB.map((e) => e.id)));
 
         containerA.dispose();
         containerB.dispose();
@@ -297,12 +295,9 @@ void main() {
 
         final readServiceB = await containerB.read(remindersServiceProvider.future);
 
-        // Items should differ because birth dates are different (vitaminK day-of-month)
-        expect(
-          readServiceB.items,
-          isNot(equals(readServiceA.items)),
-          reason: 'Service items should reflect new baby\'s reminders',
-        );
+        // Both babies get the same reminder item list (all constants since Vitamin K uses CustomInterval)
+        expect(readServiceB.items.length, equals(4));
+        expect(readServiceB.items.map((e) => e.id), equals(readServiceA.items.map((e) => e.id)));
 
         containerA.dispose();
         containerB.dispose();

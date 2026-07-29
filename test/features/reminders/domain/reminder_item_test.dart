@@ -17,18 +17,20 @@ void main() {
     });
 
     test('vitaminK returns correct defaults', () {
-      final item = ReminderItemPresets.vitaminK();
+      final item = ReminderItemPresets.vitaminK;
 
       expect(item.id, 'vitamine_k');
       expect(item.labelKey, 'reminderVitaminK');
-      expect(item.frequency, isA<Daily>());
+      expect(item.frequency, isA<CustomInterval>());
+      final custom = item.frequency as CustomInterval;
+      expect(custom.days, 30);
       expect(item.trackingType, TrackingType.sante);
       expect(item.subtypeValue, 'vitamine_k');
     });
 
     test('vitaminD and vitaminK have different IDs', () {
       final vitD = ReminderItemPresets.vitaminD;
-      final vitK = ReminderItemPresets.vitaminK();
+      final vitK = ReminderItemPresets.vitaminK;
 
       expect(vitD.id, isNot(equals(vitK.id)));
     });
@@ -89,25 +91,7 @@ void main() {
     });
   });
 
-  group('ReminderItem vitaminK with dayOfMonth', () {
-    test('returns Monthly frequency when dayOfMonth provided', () {
-      final item = ReminderItemPresets.vitaminK(dayOfMonth: 15);
 
-      expect(item.id, 'vitamine_k');
-      expect(item.labelKey, 'reminderVitaminK');
-      expect(item.frequency, isA<Monthly>());
-      final monthly = item.frequency as Monthly;
-      expect(monthly.dayOfMonth, 15);
-      expect(item.trackingType, TrackingType.sante);
-      expect(item.subtypeValue, 'vitamine_k');
-    });
-
-    test('falls back to Daily when dayOfMonth is null', () {
-      final item = ReminderItemPresets.vitaminK();
-
-      expect(item.frequency, isA<Daily>());
-    });
-  });
 
   group('ReminderItemPresets.buildForBaby()', () {
     test('returns 4 reminders for a baby profile', () {
@@ -135,7 +119,7 @@ void main() {
       expect(reminders[0].id, 'vitamine_d');
     });
 
-    test('includes Vitamin K with Monthly frequency matching birth day', () {
+    test('includes Vitamin K with CustomInterval(30 days)', () {
       final profile = BabyProfile(
         id: '1',
         name: 'Test Baby',
@@ -146,9 +130,9 @@ void main() {
       final reminders = ReminderItemPresets.buildForBaby(profile);
       final vitaminK = reminders[1];
       expect(vitaminK.id, 'vitamine_k');
-      expect(vitaminK.frequency, isA<Monthly>());
-      final monthly = vitaminK.frequency as Monthly;
-      expect(monthly.dayOfMonth, 28); // matches birth date day 28
+      expect(vitaminK.frequency, isA<CustomInterval>());
+      final custom = vitaminK.frequency as CustomInterval;
+      expect(custom.days, 30);
     });
 
     test('includes eye cleaning reminder', () {
