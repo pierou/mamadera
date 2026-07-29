@@ -187,6 +187,13 @@
   "onboardingSuccess": "Baby profile created!",
   "onboardingError": "Failed to create baby profile",
 
+  "babyNameAlreadyExists": "A baby with the name '{name}' already exists.",
+  "@babyNameAlreadyExists": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+
   "termsTitle": "Terms & Conditions",
   "termsAcceptButton": "I Accept",
   "termsLoadingError": "Failed to load terms. Please try again.",

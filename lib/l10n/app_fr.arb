@@ -187,6 +187,13 @@
   "onboardingSuccess": "Profil bébé créé !",
   "onboardingError": "Échec de la création du profil bébé",
 
+  "babyNameAlreadyExists": "Un bébé nommé « {name} » existe déjà.",
+  "@babyNameAlreadyExists": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+
   "termsTitle": "Conditions Générales",
   "termsAcceptButton": "J'accepte",
   "termsLoadingError": "Échec du chargement des conditions. Veuillez réessayer.",

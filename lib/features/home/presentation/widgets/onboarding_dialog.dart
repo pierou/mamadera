@@ -149,6 +149,22 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
 
     try {
       final repository = await ref.read(babyProfileRepositoryProvider.future);
+
+      // Check for duplicate names before inserting.
+      final existingProfiles = await repository.getAllProfiles();
+      final duplicateName = existingProfiles.any(
+        (p) => p.name.toLowerCase() == name.toLowerCase(),
+      );
+      if (duplicateName && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_locale.babyNameAlreadyExists(name)),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+        return;
+      }
+
       final newProfile = BabyProfile(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,
@@ -168,6 +184,8 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
             backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
+        // Dismiss the onboarding dialog after successful creation.
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {

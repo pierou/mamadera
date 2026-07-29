@@ -237,6 +237,22 @@ class BabyProfileSection extends ConsumerWidget {
 
                 try {
                   final repository = await ref.read(babyProfileRepositoryProvider.future);
+
+                  // Check for duplicate names before inserting.
+                  final existingProfiles = await repository.getAllProfiles();
+                  final duplicateName = existingProfiles.any(
+                    (p) => p.name.toLowerCase() == name.toLowerCase(),
+                  );
+                  if (duplicateName && dialogContext.mounted) {
+                    ScaffoldMessenger.of(dialogContext).showSnackBar(
+                      SnackBar(
+                        content: Text(locale.babyNameAlreadyExists(name)),
+                        backgroundColor: Theme.of(dialogContext).colorScheme.error,
+                      ),
+                    );
+                    return;
+                  }
+
                   final newProfile = BabyProfile(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),
                     name: name,
@@ -334,6 +350,22 @@ class BabyProfileSection extends ConsumerWidget {
 
                 try {
                   final repository = await ref.read(babyProfileRepositoryProvider.future);
+
+                  // Check for duplicate names (excluding the profile being edited).
+                  final existingProfiles = await repository.getAllProfiles();
+                  final duplicateName = existingProfiles
+                      .where((p) => p.id != profile.id)
+                      .any((p) => p.name.toLowerCase() == name.toLowerCase());
+                  if (duplicateName && dialogContext.mounted) {
+                    ScaffoldMessenger.of(dialogContext).showSnackBar(
+                      SnackBar(
+                        content: Text(locale.babyNameAlreadyExists(name)),
+                        backgroundColor: Theme.of(dialogContext).colorScheme.error,
+                      ),
+                    );
+                    return;
+                  }
+
                   await repository.updateProfile(
                     profile.id,
                     name: name,

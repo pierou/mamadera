@@ -409,6 +409,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingError => 'Failed to create baby profile';
 
   @override
+  String babyNameAlreadyExists(Object name) {
+    return 'A baby with the name \'$name\' already exists.';
+  }
+
+  @override
   String get termsTitle => 'Terms & Conditions';
 
   @override

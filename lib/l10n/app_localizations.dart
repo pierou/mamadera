@@ -860,6 +860,12 @@ abstract class AppLocalizations {
   /// **'Échec de la création du profil bébé'**
   String get onboardingError;
 
+  /// No description provided for @babyNameAlreadyExists.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un bébé nommé « {name} » existe déjà.'**
+  String babyNameAlreadyExists(Object name);
+
   /// No description provided for @termsTitle.
   ///
   /// In fr, this message translates to:
