@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 
@@ -41,7 +42,8 @@ Future<EncryptionService> _initializeEncryption() async {
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
+
   final encryption = await _initializeEncryption();
   runApp(
     ProviderScope(
@@ -75,6 +77,20 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       routerConfig: router,
+      builder: (context, child) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          FlutterNativeSplash.remove();
+        });
+
+        // Wrap all screens with SafeArea to respect iOS notches and home indicators.
+        return SafeArea(
+          top: false, // Allow app bar/status bar area to extend to top
+          bottom: true,
+          left: true,
+          right: true,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }

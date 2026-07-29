@@ -20,20 +20,18 @@ class TermsAcceptanceDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      body: Column(
-        children: [
-          // Scrollable terms content
-          // ignore: prefer_const_constructors
-          Expanded(
-            // ignore: prefer_const_constructors
-            child: const TermsContent(),
-          ),
-          // Accept button at bottom
-          // ignore: prefer_const_constructors
-          SafeArea(
-            // ignore: prefer_const_constructors
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+      // Respect status bar / notch at top. Bottom is handled by the outer
+      // SafeArea in main.dart so we avoid double-padding on modern iPhones.
+      body: SafeArea(
+        top: true,
+        bottom: false,
+        child: Column(
+          children: [
+            // Scrollable terms content — Expanded ensures it fills all available space
+            const Expanded(child: TermsContent()),
+            // Accept button at bottom (main.dart SafeArea handles home indicator)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               // ignore: prefer_const_constructors
               child: SizedBox(
                 width: double.infinity,
@@ -63,8 +61,8 @@ class TermsAcceptanceDialog extends ConsumerWidget {
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

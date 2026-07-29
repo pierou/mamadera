@@ -91,6 +91,7 @@ class _HomeContent extends ConsumerWidget {
     // Miam tracking — show feeding subtype + quantity dialog
     final feedingResult = await showModalBottomSheet<Map<String, dynamic>?>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
@@ -122,6 +123,7 @@ class _HomeContent extends ConsumerWidget {
 Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
    final minutes = await showModalBottomSheet<double>(
      context: context,
+     isScrollControlled: true,
      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
      shape: const RoundedRectangleBorder(
        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
@@ -155,6 +157,7 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
  Future<void> _showWasteDialog(BuildContext context, WidgetRef ref) async {
    final result = await showModalBottomSheet<Map<String, dynamic>?>(
      context: context,
+     isScrollControlled: true,
      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
      shape: const RoundedRectangleBorder(
        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
@@ -180,6 +183,7 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
  Future<void> _showHealthSubtypeDialog(BuildContext context, WidgetRef ref) async {
    final result = await showModalBottomSheet<Map<String, dynamic>?>(
      context: context,
+     isScrollControlled: true,
      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
      shape: const RoundedRectangleBorder(
        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),

@@ -46,10 +46,11 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
     return Dialog(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
           // Header
           Icon(
             Icons.child_care,
@@ -122,7 +123,7 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
           ),
         ],
       ),
-    ));
+    )));
   }
 
   Future<void> _selectBirthDate() async {

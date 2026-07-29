@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/app_preferences_provider.dart';
-import '../../../../core/theme.dart';
 import '../screens/patch_notes_screen.dart';
 
 /// Full-screen overlay showing patch notes with dismiss and opt-out options.
@@ -30,16 +29,17 @@ class PatchNotesDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      body: Column(
-        children: [
-          // Scrollable patch notes content
-          const Expanded(
-            child: PatchNotesScreen(),
-          ),
-          // Bottom actions
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.spacingXl),
+      // Respect status bar / notch at top. Bottom handled by main.dart SafeArea.
+      body: SafeArea(
+        top: true,
+        bottom: false,
+        child: Column(
+          children: [
+            // Scrollable patch notes content — Expanded fills available space
+            const Expanded(child: PatchNotesScreen()),
+            // Bottom actions (main.dart SafeArea handles home indicator padding)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Column(
                 children: [
                   // Don't show again checkbox
@@ -130,8 +130,8 @@ class PatchNotesDialog extends ConsumerWidget {
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
