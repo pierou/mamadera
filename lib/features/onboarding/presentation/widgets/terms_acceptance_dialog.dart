@@ -36,6 +36,7 @@ class TermsAcceptanceDialog extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
+                  key: const ValueKey('terms-accept-button'),
                   onPressed: () async {
                     // Accept terms and wait for state to persist.
                     await ref.read(appPreferencesProvider.notifier).acceptTerms();

@@ -1,4 +1,4 @@
-.PHONY: ci lint test build-android clean codegen check-coverage audit-trivy audit-gitleaks patch-notes
+.PHONY: ci lint test build-android clean codegen check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration
 
 ci: pub-get lint test check-coverage ## Run full local CI pipeline (aligned with GitHub Actions)
 pub-get:
@@ -71,4 +71,15 @@ check-ui: pub-get
 	@# Font size checks
 	@grep -rn "fontSize:" lib/features --include="*.dart" | grep -v "theme.dart" | grep -v "ignore_for_file" | head -20
 	@echo "✅ UI rules check complete"
+
+# 📱 Integration tests (run on iOS simulator or CI device)
+integration-test-simulator:
+	@echo "📱 Running integration tests on connected iOS simulator..."
+	flutter test integration_test/
+
+ci-integration: pub-get
+	@echo "🤖 Running full integration test suite (CI mode)..."
+	# Integration Test API tests (no device required — runs in VM)
+	flutter test integration_test/
+
 

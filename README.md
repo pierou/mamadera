@@ -116,6 +116,9 @@ A `Makefile` is provided for local CI workflows:
 | `make lint` | Format check + static analysis |
 | `make test` | Run unit & widget tests with coverage |
 | `make check-coverage` | Enforce ≥ 80% line coverage threshold |
+| `make integration-test-simulator` | Run integration tests on connected iOS simulator |
+
+| `make ci-integration` | Full integration test suite for CI |
 | `make build-android` | Build release APK |
 | `make clean` | Clean all generated artifacts |
 
@@ -124,6 +127,8 @@ A `Makefile` is provided for local CI workflows:
 ## 🧪 Testing
 
 Tests are organized following the architecture rules:
+
+### Unit & Widget Tests
 
 ```
 test/
@@ -138,6 +143,37 @@ Run the test suite:
 
 ```bash
 flutter test --coverage
+```
+
+### Integration Tests
+
+Integration tests live in `integration_test/` and validate full app flows using real widgets, providers, and routing:
+
+```
+integration_test/
+├── test_utils.dart                    # Shared helpers: pumpMamadera(), TestKeys, finders
+├── onboarding_flow_test.dart          # First-launch terms acceptance → home screen flow
+├── feeding_tracking_flow_test.dart    # Tap track buttons → dialog overlays → cancel dismiss
+├── history_flow_test.dart             # History tab navigation + empty state rendering
+├── baby_profile_flow_test.dart        # Menu tab BabyProfileSection + cross-tab preservation
+├── navigation_flow_test.dart          # Sequential tab switching, overlay dismissal, rapid nav settling
+
+└── rendering_validation_test.dart     # Full-screen layout checks, SafeArea insets, black bar detection
+```
+
+**Key patterns:**
+
+- **`pumpMamadera(tester)`** — Pumps the real `MyApp` with configurable provider overrides (accepted terms, in-memory DB, English locale). Use this instead of `app.main()` to control app state.
+- **Provider override pattern** — Override notifiers synchronously so redirect callbacks resolve immediately without async delays. See `test_utils.dart` for the dynamic override list builder.
+- **Semantic keys** — All track buttons (`track-miam`, `track-sante`, etc.) and bottom nav tabs have semantic keys defined in the `TestKeys` class, used by widget finders for reliable test selectors.
+- **In-memory database** — Tests use an in-memory Drift instance so no persistent state leaks between tests.
+
+Run integration tests on a connected simulator or device:
+
+```bash
+# Integration Test API (recommended, runs in VM):
+make integration-test-simulator
+
 ```
 
 ---

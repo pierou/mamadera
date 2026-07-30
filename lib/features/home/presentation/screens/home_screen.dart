@@ -260,24 +260,28 @@ class _HomeContent extends ConsumerWidget {
           crossAxisSpacing: AppTheme.spacingXl,
           children: [
             TrackButton(
+              key: const ValueKey('track-miam'),
               label: context.l.homeButtonMiam,
               color: AppTheme.miam,
               reminders: statusMap[TrackingType.miam],
               onTap: () => _onTrack(context, ref, TrackingType.miam.name),
             ),
             TrackButton(
+              key: const ValueKey('track-sante'),
               label: context.l.homeButtonSante,
               color: AppTheme.sante,
               reminders: statusMap[TrackingType.sante],
               onTap: () => _onTrack(context, ref, TrackingType.sante.name),
             ),
             TrackButton(
+              key: const ValueKey('track-caca'),
               label: context.l.homeButtonCaca,
               color: AppTheme.caca,
               reminders: statusMap[TrackingType.caca],
               onTap: () => _onTrack(context, ref, TrackingType.caca.name),
             ),
             TrackButton(
+              key: const ValueKey('track-dodo'),
               label: context.l.homeButtonDodo,
               color: AppTheme.dodo,
               reminders: statusMap[TrackingType.dodo],

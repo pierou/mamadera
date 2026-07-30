@@ -246,16 +246,19 @@ class _BottomNav extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       items: [
         BottomNavigationBarItem(
+          key: const ValueKey('home-tab'),
           icon: const Icon(Icons.home_outlined),
           activeIcon: const Icon(Icons.home),
           label: l.navHome,
         ),
         BottomNavigationBarItem(
+          key: const ValueKey('history-tab'),
           icon: const Icon(Icons.history_outlined),
           activeIcon: const Icon(Icons.history),
           label: l.navHistory,
         ),
         BottomNavigationBarItem(
+          key: const ValueKey('menu-tab'),
           icon: const Icon(Icons.settings_outlined),
           activeIcon: const Icon(Icons.settings),
           label: l.navMenu,
