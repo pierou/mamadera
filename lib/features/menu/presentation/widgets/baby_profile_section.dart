@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/show_feedback.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/domain/entities/baby_profile.dart';
@@ -32,20 +33,25 @@ class BabyProfileSection extends ConsumerWidget {
         ),
         const SizedBox(height: AppTheme.spacingMd),
         if (profilesAsync.isLoading || profilesAsync.value == null)
-          const ListTile(leading: CircularProgressIndicator(), title: Text('Loading...'))
+          const ListTile(
+              leading: CircularProgressIndicator(), title: Text('Loading...'))
         else if (profilesAsync.hasError)
           ListTile(
-            leading: Icon(Icons.error, color: Theme.of(context).colorScheme.error),
+            leading:
+                Icon(Icons.error, color: Theme.of(context).colorScheme.error),
             title: Text(locale.babyProfilesError),
           )
         else if (profilesAsync.value == null || profilesAsync.value!.isEmpty)
           _buildEmptyState(context, ref, locale)
-        else ..._buildProfileTiles(context, ref, profilesAsync.value!, activeBabyAsync, locale),
+        else
+          ..._buildProfileTiles(
+              context, ref, profilesAsync.value!, activeBabyAsync, locale),
       ],
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, WidgetRef ref, AppLocalizations locale) {
+  Widget _buildEmptyState(
+      BuildContext context, WidgetRef ref, AppLocalizations locale) {
     return Column(
       children: [
         ListTile(
@@ -80,7 +86,8 @@ class BabyProfileSection extends ConsumerWidget {
         final cs = Theme.of(context).colorScheme;
         return ListTile(
           leading: CircleAvatar(
-            backgroundColor: isActive ? cs.primaryContainer : cs.surfaceContainerHighest,
+            backgroundColor:
+                isActive ? cs.primaryContainer : cs.surfaceContainerHighest,
             child: Icon(
               isActive ? Icons.child_care : Icons.child_care_outlined,
               color: cs.onPrimaryContainer,
@@ -94,14 +101,17 @@ class BabyProfileSection extends ConsumerWidget {
           ),
           subtitle: Text(
             _formatBirthdate(profile.birthDate),
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (isActive) Icon(Icons.check_circle, color: cs.primary, size: 20),
+              if (isActive)
+                Icon(Icons.check_circle, color: cs.primary, size: 20),
               PopupMenuButton<String>(
-                onSelected: (value) => _handleMenuAction(context, ref, value, profile, locale),
+                onSelected: (value) =>
+                    _handleMenuAction(context, ref, value, profile, locale),
                 itemBuilder: (context) => [
                   if (!isActive)
                     PopupMenuItem(
@@ -129,9 +139,13 @@ class BabyProfileSection extends ConsumerWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.delete, size: 20, color: Theme.of(context).colorScheme.error),
+                        Icon(Icons.delete,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.error),
                         const SizedBox(width: AppTheme.spacingMd),
-                        Text(locale.delete, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                        Text(locale.delete,
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.error)),
                       ],
                     ),
                   ),
@@ -173,7 +187,8 @@ class BabyProfileSection extends ConsumerWidget {
     }
   }
 
-  Future<void> _showAddBabyDialog(BuildContext context, WidgetRef ref, AppLocalizations locale) async {
+  Future<void> _showAddBabyDialog(
+      BuildContext context, WidgetRef ref, AppLocalizations locale) async {
     final nameController = TextEditingController();
     final birthDateController = TextEditingController();
     var selectedDate = DateTime.now();
@@ -201,7 +216,8 @@ class BabyProfileSection extends ConsumerWidget {
                     final picked = await showDatePicker(
                       context: dialogContext,
                       initialDate: selectedDate,
-                      firstDate: DateTime.now().subtract(const Duration(days: 365 * 20)),
+                      firstDate: DateTime.now()
+                          .subtract(const Duration(days: 365 * 20)),
                       lastDate: DateTime.now().add(const Duration(days: 365)),
                     );
                     if (picked != null) {
@@ -236,7 +252,8 @@ class BabyProfileSection extends ConsumerWidget {
                 if (name.isEmpty) return;
 
                 try {
-                  final repository = await ref.read(babyProfileRepositoryProvider.future);
+                  final repository =
+                      await ref.read(babyProfileRepositoryProvider.future);
 
                   // Check for duplicate names before inserting.
                   final existingProfiles = await repository.getAllProfiles();
@@ -247,7 +264,8 @@ class BabyProfileSection extends ConsumerWidget {
                     ScaffoldMessenger.of(dialogContext).showSnackBar(
                       SnackBar(
                         content: Text(locale.babyNameAlreadyExists(name)),
-                        backgroundColor: Theme.of(dialogContext).colorScheme.error,
+                        backgroundColor:
+                            Theme.of(dialogContext).colorScheme.error,
                       ),
                     );
                     return;
@@ -266,21 +284,11 @@ class BabyProfileSection extends ConsumerWidget {
 
                   if (dialogContext.mounted) Navigator.pop(dialogContext);
                   if (dialogContext.mounted) {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      SnackBar(
-                        content: Text(locale.babyAddedSuccess),
-                        backgroundColor: Theme.of(dialogContext).colorScheme.primary,
-                      ),
-                    );
+                    showFeedback(context, locale.babyAddedWithName(name));
                   }
                 } catch (e) {
                   if (dialogContext.mounted) {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      SnackBar(
-                        content: Text(locale.babyAddError),
-                        backgroundColor: Theme.of(dialogContext).colorScheme.error,
-                      ),
-                    );
+                    showError(context, locale.babyAddError);
                   }
                 }
               },
@@ -292,7 +300,8 @@ class BabyProfileSection extends ConsumerWidget {
     );
   }
 
-  Future<void> _showEditBabyDialog(BuildContext context, WidgetRef ref, BabyProfile profile, AppLocalizations locale) async {
+  Future<void> _showEditBabyDialog(BuildContext context, WidgetRef ref,
+      BabyProfile profile, AppLocalizations locale) async {
     final nameController = TextEditingController(text: profile.name);
     var selectedDate = profile.birthDate;
 
@@ -319,7 +328,8 @@ class BabyProfileSection extends ConsumerWidget {
                     final picked = await showDatePicker(
                       context: dialogContext,
                       initialDate: selectedDate,
-                      firstDate: DateTime.now().subtract(const Duration(days: 365 * 20)),
+                      firstDate: DateTime.now()
+                          .subtract(const Duration(days: 365 * 20)),
                       lastDate: DateTime.now().add(const Duration(days: 365)),
                     );
                     if (picked != null) {
@@ -349,7 +359,8 @@ class BabyProfileSection extends ConsumerWidget {
                 if (name.isEmpty) return;
 
                 try {
-                  final repository = await ref.read(babyProfileRepositoryProvider.future);
+                  final repository =
+                      await ref.read(babyProfileRepositoryProvider.future);
 
                   // Check for duplicate names (excluding the profile being edited).
                   final existingProfiles = await repository.getAllProfiles();
@@ -360,7 +371,8 @@ class BabyProfileSection extends ConsumerWidget {
                     ScaffoldMessenger.of(dialogContext).showSnackBar(
                       SnackBar(
                         content: Text(locale.babyNameAlreadyExists(name)),
-                        backgroundColor: Theme.of(dialogContext).colorScheme.error,
+                        backgroundColor:
+                            Theme.of(dialogContext).colorScheme.error,
                       ),
                     );
                     return;
@@ -377,21 +389,11 @@ class BabyProfileSection extends ConsumerWidget {
 
                   if (dialogContext.mounted) Navigator.pop(dialogContext);
                   if (dialogContext.mounted) {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      SnackBar(
-                        content: Text(locale.babyUpdatedSuccess),
-                        backgroundColor: Theme.of(dialogContext).colorScheme.primary,
-                      ),
-                    );
+                    showFeedback(context, locale.babyUpdatedWithName(name));
                   }
                 } catch (e) {
                   if (dialogContext.mounted) {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      SnackBar(
-                        content: Text(locale.babyUpdateError),
-                        backgroundColor: Theme.of(dialogContext).colorScheme.error,
-                      ),
-                    );
+                    showError(context, locale.babyUpdateError);
                   }
                 }
               },
@@ -403,7 +405,8 @@ class BabyProfileSection extends ConsumerWidget {
     );
   }
 
-  Future<void> _showDeleteConfirmation(BuildContext context, WidgetRef ref, BabyProfile profile, AppLocalizations locale) async {
+  Future<void> _showDeleteConfirmation(BuildContext context, WidgetRef ref,
+      BabyProfile profile, AppLocalizations locale) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -416,7 +419,9 @@ class BabyProfileSection extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               locale.deleteBabyDataWarning,
-              style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -427,7 +432,8 @@ class BabyProfileSection extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error),
             child: Text(locale.delete),
           ),
         ],
@@ -447,7 +453,9 @@ class BabyProfileSection extends ConsumerWidget {
           // If we deleted the active baby, activate the first other profile if exists.
           final allProfiles = await repository.getAllProfiles();
           if (allProfiles.isNotEmpty) {
-            await ref.read(activeBabyProvider.notifier).switchProfile(allProfiles.first.id);
+            await ref
+                .read(activeBabyProvider.notifier)
+                .switchProfile(allProfiles.first.id);
           } else {
             await ref.read(activeBabyProvider.notifier).refresh();
           }
@@ -456,21 +464,11 @@ class BabyProfileSection extends ConsumerWidget {
         }
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(locale.babyDeletedSuccess),
-              backgroundColor: Theme.of(context).colorScheme.primary,
-            ),
-          );
+          showFeedback(context, locale.babyDeletedWithName(profile.name));
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(locale.babyDeleteError),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
+          showError(context, locale.babyDeleteError);
         }
       }
     }

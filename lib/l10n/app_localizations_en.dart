@@ -33,6 +33,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeButtonDodo => 'Sleep';
 
   @override
+  String feedbackFeedingWithQuantity(Object subtype, Object quantity) {
+    return '$subtype · $quantity';
+  }
+
+  @override
+  String feedbackFeedingWithoutQuantity(Object subtype) {
+    return '$subtype';
+  }
+
+  @override
+  String feedbackSleep(Object duration) {
+    return 'Sleep · $duration min';
+  }
+
+  @override
+  String feedbackPipi(Object color) {
+    return '🟡 Pee$color';
+  }
+
+  @override
+  String feedbackCaca(Object color) {
+    return '🟤 Poop$color';
+  }
+
+  @override
+  String get feedbackBoth => '🟡🟤 Pee & Poop';
+
+  @override
+  String get historyUpdatedSuccess => 'Event updated successfully';
+
+  @override
+  String get historyDeletedSuccess => 'Event deleted';
+
+  @override
+  String historyUpdateError(Object error) {
+    return 'Failed to update event: $error';
+  }
+
+  @override
+  String historyDeleteError(Object error) {
+    return 'Failed to delete event: $error';
+  }
+
+  @override
   String get durationPickerTitle => 'Sleep Duration';
 
   @override
@@ -358,6 +402,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get babyDeleteError => 'Failed to delete baby profile';
+
+  @override
+  String babyAddedWithName(Object name) {
+    return '\'$name\' added';
+  }
+
+  @override
+  String babyUpdatedWithName(Object name) {
+    return '\'$name\' updated';
+  }
+
+  @override
+  String babyDeletedWithName(Object name) {
+    return '\'$name\' deleted';
+  }
 
   @override
   String get deleteBabyConfirm => 'Delete Baby Profile?';

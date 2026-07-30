@@ -146,6 +146,66 @@ abstract class AppLocalizations {
   /// **'Dodo'**
   String get homeButtonDodo;
 
+  /// No description provided for @feedbackFeedingWithQuantity.
+  ///
+  /// In fr, this message translates to:
+  /// **'{subtype} · {quantity}'**
+  String feedbackFeedingWithQuantity(Object subtype, Object quantity);
+
+  /// No description provided for @feedbackFeedingWithoutQuantity.
+  ///
+  /// In fr, this message translates to:
+  /// **'{subtype}'**
+  String feedbackFeedingWithoutQuantity(Object subtype);
+
+  /// No description provided for @feedbackSleep.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dodo · {duration} min'**
+  String feedbackSleep(Object duration);
+
+  /// No description provided for @feedbackPipi.
+  ///
+  /// In fr, this message translates to:
+  /// **'🟡 Pipi{color}'**
+  String feedbackPipi(Object color);
+
+  /// No description provided for @feedbackCaca.
+  ///
+  /// In fr, this message translates to:
+  /// **'🟤 Caca{color}'**
+  String feedbackCaca(Object color);
+
+  /// No description provided for @feedbackBoth.
+  ///
+  /// In fr, this message translates to:
+  /// **'🟡🟤 Pipi & Caca'**
+  String get feedbackBoth;
+
+  /// No description provided for @historyUpdatedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événement mis à jour avec succès'**
+  String get historyUpdatedSuccess;
+
+  /// No description provided for @historyDeletedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événement supprimé'**
+  String get historyDeletedSuccess;
+
+  /// No description provided for @historyUpdateError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la mise à jour : {error}'**
+  String historyUpdateError(Object error);
+
+  /// No description provided for @historyDeleteError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la suppression : {error}'**
+  String historyDeleteError(Object error);
+
   /// No description provided for @durationPickerTitle.
   ///
   /// In fr, this message translates to:
@@ -769,6 +829,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Échec de la suppression du profil bébé'**
   String get babyDeleteError;
+
+  /// No description provided for @babyAddedWithName.
+  ///
+  /// In fr, this message translates to:
+  /// **'\'{name}\' ajouté'**
+  String babyAddedWithName(Object name);
+
+  /// No description provided for @babyUpdatedWithName.
+  ///
+  /// In fr, this message translates to:
+  /// **'\'{name}\' modifié'**
+  String babyUpdatedWithName(Object name);
+
+  /// No description provided for @babyDeletedWithName.
+  ///
+  /// In fr, this message translates to:
+  /// **'\'{name}\' supprimé'**
+  String babyDeletedWithName(Object name);
 
   /// No description provided for @deleteBabyConfirm.
   ///

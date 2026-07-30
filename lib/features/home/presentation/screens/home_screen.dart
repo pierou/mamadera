@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/show_feedback.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../reminders/domain/entities/reminders_state.dart';
@@ -66,7 +66,8 @@ class OnboardingWrapper extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: const OnboardingDialog(),
     );
   }
@@ -75,7 +76,8 @@ class OnboardingWrapper extends ConsumerWidget {
 class _HomeContent extends ConsumerWidget {
   const _HomeContent();
 
-  Future<void> _onTrack(BuildContext context, WidgetRef ref, String type) async {
+  Future<void> _onTrack(
+      BuildContext context, WidgetRef ref, String type) async {
     final eventType = TrackingType.fromString(type);
 
     if (eventType == TrackingType.sante) {
@@ -94,7 +96,8 @@ class _HomeContent extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
       ),
       builder: (context) {
         return StatefulBuilder(
@@ -107,123 +110,145 @@ class _HomeContent extends ConsumerWidget {
 
     if (feedingResult != null && context.mounted) {
       final subtype = feedingResult['subtype'] as FeedingSubtype;
-      final quantity = feedingResult['quantity'] as double;
+      final quantity = feedingResult['quantity'] as double? ??
+          0.0; // fallback to 0 if dialog returns null
       await ref.read(trackNotifierProvider.notifier).track(
-        type: TrackingType.miam,
-        feedingSubtype: subtype,
-        quantity: quantity,
-      );
+            type: TrackingType.miam,
+            feedingSubtype: subtype,
+            quantity: quantity,
+          );
       if (context.mounted) {
         unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
-        _showFeedback(context, context.l.homeButtonMiam, type: eventType);
+        _showFeedingFeedback(context, subtype, quantity);
       }
     }
   }
 
-Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
-   final minutes = await showModalBottomSheet<double>(
-     context: context,
-     isScrollControlled: true,
-     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-     shape: const RoundedRectangleBorder(
-       borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
-     ),
-     builder: (context) {
-       return StatefulBuilder(
-         builder: (context, setState) {
-           return DurationPickerDialog(
-             onDurationSelected: (minutes) {
-               Navigator.of(context).pop(minutes);
-             },
-           );
-         },
-       );
-     },
-   );
-
-   if (minutes != null && context.mounted) {
-     await ref.read(trackNotifierProvider.notifier).track(
-        type: TrackingType.dodo,
-        duration: minutes,
-        quantity: minutes,
-     );
-     if (context.mounted) {
-       unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
-       _showFeedback(context, context.l.homeButtonDodo, type: TrackingType.dodo);
-     }
-   }
- }
-
- Future<void> _showWasteDialog(BuildContext context, WidgetRef ref) async {
-   final result = await showModalBottomSheet<Map<String, dynamic>?>(
-     context: context,
-     isScrollControlled: true,
-     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-     shape: const RoundedRectangleBorder(
-       borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
-     ),
-     builder: (context) => const WasteDialog(),
-   );
-
-   if (result != null && context.mounted) {
-     final wasteType = result['wasteType'] as WasteType?;
-     await ref.read(trackNotifierProvider.notifier).track(
-          type: TrackingType.caca,
-       wasteType: wasteType,
-       pipiColor: result['pipiColor'] as PipiColor?,
-       cacaColor: result['cacaColor'] as CacaColor?,
-         );
-     if (context.mounted) {
-       unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
-       _showFeedback(context, context.l.homeButtonCaca, type: TrackingType.caca);
-     }
-   }
- }
-
- Future<void> _showHealthSubtypeDialog(BuildContext context, WidgetRef ref) async {
-   final result = await showModalBottomSheet<Map<String, dynamic>?>(
-     context: context,
-     isScrollControlled: true,
-     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-     shape: const RoundedRectangleBorder(
-       borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
-     ),
-     builder: (context) => const HealthSubtypeDialog(),
-   );
-
-   if (result != null && context.mounted) {
-     final subtype = result['subtype'] as HealthSubtype;
-     await ref.read(trackNotifierProvider.notifier).track(
-           type: TrackingType.sante,
-           healthSubtype: subtype,
-         );
-     if (context.mounted) {
-       unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
-       _showFeedback(context, context.l.homeButtonSante, type: TrackingType.sante, subtype: subtype);
-     }
-   }
- }
-
-  void _showFeedback(BuildContext context, String label, {required TrackingType type, HealthSubtype? subtype}) {
-    HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(label),
-        duration: const Duration(milliseconds: 800),
-        behavior: SnackBarBehavior.floating,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(AppTheme.borderRadiusMedium)),
-        ),
-        margin: const EdgeInsets.all(AppTheme.spacingXl),
+  Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
+    final minutes = await showModalBottomSheet<double>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
       ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return DurationPickerDialog(
+              onDurationSelected: (minutes) {
+                Navigator.of(context).pop(minutes);
+              },
+            );
+          },
+        );
+      },
     );
+
+    if (minutes != null && context.mounted) {
+      await ref.read(trackNotifierProvider.notifier).track(
+            type: TrackingType.dodo,
+            duration: minutes,
+            quantity: minutes,
+          );
+      if (context.mounted) {
+        unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
+        showFeedback(context, context.l.feedbackSleep(minutes.round()));
+      }
+    }
+  }
+
+  Future<void> _showWasteDialog(BuildContext context, WidgetRef ref) async {
+    final result = await showModalBottomSheet<Map<String, dynamic>?>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
+      ),
+      builder: (context) => const WasteDialog(),
+    );
+
+    if (result != null && context.mounted) {
+      final wasteType = result['wasteType'] as WasteType?;
+      await ref.read(trackNotifierProvider.notifier).track(
+            type: TrackingType.caca,
+            wasteType: wasteType,
+            pipiColor: result['pipiColor'] as PipiColor?,
+            cacaColor: result['cacaColor'] as CacaColor?,
+          );
+      if (context.mounted) {
+        unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
+        _showDiaperFeedback(context, wasteType);
+      }
+    }
+  }
+
+  Future<void> _showHealthSubtypeDialog(
+      BuildContext context, WidgetRef ref) async {
+    final result = await showModalBottomSheet<Map<String, dynamic>?>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
+      ),
+      builder: (context) => const HealthSubtypeDialog(),
+    );
+
+    if (result != null && context.mounted) {
+      final subtype = result['subtype'] as HealthSubtype;
+      await ref.read(trackNotifierProvider.notifier).track(
+            type: TrackingType.sante,
+            healthSubtype: subtype,
+          );
+      if (context.mounted) {
+        unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
+        showFeedback(context, subtype.label);
+      }
+    }
+  }
+
+  /// Formats and shows a feeding tracking confirmation with quantity details.
+  void _showFeedingFeedback(
+      BuildContext context, FeedingSubtype subtype, double? quantity) {
+    final subtypeLabel = subtype == FeedingSubtype.natural
+        ? context.l.feedingSubtypeNatural
+        : context.l.feedingSubtypeArtificial;
+    if (quantity != null && quantity > 0) {
+      final qtyStr = '${quantity.round()}ml';
+      showFeedback(
+        context,
+        context.l.feedbackFeedingWithQuantity(subtypeLabel, qtyStr),
+      );
+      return;
+    }
+    showFeedback(context, subtypeLabel);
+  }
+
+  /// Formats and shows a diaper tracking confirmation with waste type.
+  void _showDiaperFeedback(BuildContext context, WasteType? wasteType) {
+    switch (wasteType) {
+      case WasteType.pipi:
+        showFeedback(context, context.l.feedbackPipi(''));
+      case WasteType.caca:
+        showFeedback(context, context.l.feedbackCaca(''));
+      case WasteType.lesDeux:
+        showFeedback(context, context.l.feedbackBoth);
+      case null:
+        showFeedback(context, context.l.homeButtonCaca);
+    }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch pending reminder counts per TrackingType.
-      final statusesAsync = ref.watch(reminderNotifierProvider);
-      final statusMap = statusesAsync.value ?? const <TrackingType, List<ReminderStatus>>{};
+    final statusesAsync = ref.watch(reminderNotifierProvider);
+    final statusMap =
+        statusesAsync.value ?? const <TrackingType, List<ReminderStatus>>{};
 
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
@@ -264,5 +289,3 @@ Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
     );
   }
 }
-
-

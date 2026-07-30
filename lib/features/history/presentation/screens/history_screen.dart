@@ -3,14 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/l10n/date_localization.dart';
-
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/show_feedback.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../providers/history_notifier.dart';
 import '../widgets/edit_event_dialog.dart';
 import '../widgets/history_tile.dart';
-
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -36,7 +35,8 @@ class HistoryScreen extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
       ),
       builder: (_) => EditEventDialog(event),
     );
@@ -47,15 +47,45 @@ class HistoryScreen extends ConsumerWidget {
 
     // Gestion du résultat selon le type (update ou delete) via sealed class
     switch (result) {
-      case UpdateResult(): {
-        final updated = _applyUpdate(result, event);
-        await ref.read(historyNotifierProvider(selectedFilter).notifier).updateEvent(updated);
-      }
-      case DeleteResult(): {
-        if (event.id != null) {
-          await ref.read(historyNotifierProvider(selectedFilter).notifier).deleteEvent(event.id!);
+      case UpdateResult():
+        {
+          final updated = _applyUpdate(result, event);
+          try {
+            await ref
+                .read(historyNotifierProvider(selectedFilter).notifier)
+                .updateEvent(updated);
+            if (context.mounted) {
+              showFeedback(context, context.l.historyUpdatedSuccess);
+            }
+          } catch (e) {
+            if (context.mounted) {
+              showError(
+                context,
+                context.l.historyUpdateError('$e'),
+              );
+            }
+          }
         }
-      }
+      case DeleteResult():
+        {
+          if (event.id != null) {
+            try {
+              await ref
+                  .read(historyNotifierProvider(selectedFilter).notifier)
+                  .deleteEvent(event.id!);
+              if (context.mounted) {
+                showFeedback(context, context.l.historyDeletedSuccess);
+              }
+            } catch (e) {
+              if (context.mounted) {
+                showError(
+                  context,
+                  context.l.historyDeleteError('$e'),
+                );
+              }
+            }
+          }
+        }
       case null:
         break;
     }
@@ -131,7 +161,9 @@ class HistoryScreen extends ConsumerWidget {
                       label: Text(getHistoryFilterLabel(context, filter)),
                       selected: isSelected,
                       onSelected: (_) {
-                        ref.read(selectedFilterProvider.notifier).setFilter(filter);
+                        ref
+                            .read(selectedFilterProvider.notifier)
+                            .setFilter(filter);
                       },
                     ),
                   );
@@ -150,19 +182,20 @@ class HistoryScreen extends ConsumerWidget {
                   itemCount: events.length,
                   itemBuilder: (context, index) {
                     final event = events[index];
-                    final timeFormatted =
-                        formatDate(context, event.timestamp);
+                    final timeFormatted = formatDate(context, event.timestamp);
                     // Skip if no id (shouldn't happen in DB-fetched data, but safe guard)
                     return HistoryTile(
                       event: event,
                       time: timeFormatted,
-                      onTap: () => _showEditDialog(context, ref, event, selectedFilter),
+                      onTap: () =>
+                          _showEditDialog(context, ref, event, selectedFilter),
                     );
                   },
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text(context.l.errorMessage(error.toString()))),
+              error: (error, stack) =>
+                  Center(child: Text(context.l.errorMessage(error.toString()))),
             ),
           ),
         ],
@@ -170,5 +203,3 @@ class HistoryScreen extends ConsumerWidget {
     );
   }
 }
-
-

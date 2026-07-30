@@ -5,6 +5,7 @@ import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
+import '../../../../core/widgets/show_feedback.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/domain/entities/baby_profile.dart';
@@ -44,86 +45,87 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
     _locale = context.l;
 
     return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-          // Header
-          Icon(
-            Icons.child_care,
-            size: 64,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _locale.onboardingWelcome,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _locale.onboardingSubtitle,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-          const SizedBox(height: 24),
+        child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Header
+                  Icon(
+                    Icons.child_care,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _locale.onboardingWelcome,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _locale.onboardingSubtitle,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 24),
 
-          // Name field
-          TextField(
-            controller: _nameController,
-            decoration: InputDecoration(
-              labelText: _locale.babyName,
-              hintText: _locale.onboardingNameHint,
-              border: const OutlineInputBorder(),
-              prefixIcon: const Icon(Icons.badge),
-            ),
-            autofocus: true,
-            textCapitalization: TextCapitalization.words,
-          ),
-          const SizedBox(height: 16),
+                  // Name field
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: _locale.babyName,
+                      hintText: _locale.onboardingNameHint,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.badge),
+                    ),
+                    autofocus: true,
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                  const SizedBox(height: 16),
 
-          // Birth date field
-          InkWell(
-            onTap: _selectBirthDate,
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: _locale.birthDate,
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.calendar_today),
-                suffixIcon: const Icon(Icons.calendar_today, size: 20),
+                  // Birth date field
+                  InkWell(
+                    onTap: _selectBirthDate,
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: _locale.birthDate,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.calendar_today),
+                        suffixIcon: const Icon(Icons.calendar_today, size: 20),
+                      ),
+                      child: Text(
+                        _birthDateController.text.isNotEmpty
+                            ? _birthDateController.text
+                            : _formatDate(_selectedDate),
+                        style: TextStyle(
+                          color: _birthDateController.text.isEmpty
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Actions
+                  DialogActionButtons(
+                    onCancelPressed: () => Navigator.pop(context, false),
+                    onConfirmPressed: _selectedDate.isAfter(
+                            DateTime.now().add(const Duration(days: 365 * 20)))
+                        ? null
+                        : _saveProfile,
+                    cancelLabel: _locale.cancelButton,
+                    confirmLabel: _locale.confirmButton,
+                  ),
+                ],
               ),
-              child: Text(
-                _birthDateController.text.isNotEmpty
-                    ? _birthDateController.text
-                    : _formatDate(_selectedDate),
-                style: TextStyle(
-                  color: _birthDateController.text.isEmpty
-                      ? Theme.of(context).colorScheme.onSurfaceVariant
-                      : null,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Actions
-          DialogActionButtons(
-            onCancelPressed: () => Navigator.pop(context, false),
-            onConfirmPressed: _selectedDate.isAfter(DateTime.now().add(const Duration(days: 365 * 20)))
-                ? null
-                : _saveProfile,
-            cancelLabel: _locale.cancelButton,
-            confirmLabel: _locale.confirmButton,
-          ),
-        ],
-      ),
-    )));
+            )));
   }
 
   Future<void> _selectBirthDate() async {
@@ -156,12 +158,7 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
         (p) => p.name.toLowerCase() == name.toLowerCase(),
       );
       if (duplicateName && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_locale.babyNameAlreadyExists(name)),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showError(context, _locale.babyNameAlreadyExists(name));
         return;
       }
 
@@ -178,23 +175,13 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
       await ref.read(anyBabyExistsProvider.notifier).refresh();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_locale.onboardingSuccess),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-          ),
-        );
+        showFeedback(context, _locale.babyAddedWithName(name));
         // Dismiss the onboarding dialog after successful creation.
         Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_locale.onboardingError),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showError(context, _locale.onboardingError);
       }
     }
   }

@@ -12,6 +12,55 @@
   "homeButtonCaca": "Diaper",
   "homeButtonDodo": "Sleep",
 
+  "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
+  "@feedbackFeedingWithQuantity": {
+    "placeholders": {
+      "subtype": {},
+      "quantity": {}
+    }
+  },
+  "feedbackFeedingWithoutQuantity": "{subtype}",
+  "@feedbackFeedingWithoutQuantity": {
+    "placeholders": {
+      "subtype": {}
+    }
+  },
+  "feedbackSleep": "Sleep · {duration} min",
+  "@feedbackSleep": {
+    "placeholders": {
+      "duration": {}
+    }
+  },
+  "feedbackPipi": "🟡 Pee{color}",
+  "@feedbackPipi": {
+    "placeholders": {
+      "color": {}
+    }
+  },
+  "feedbackCaca": "🟤 Poop{color}",
+  "@feedbackCaca": {
+    "placeholders": {
+      "color": {}
+    }
+  },
+  "feedbackBoth": "🟡🟤 Pee & Poop",
+
+
+  "historyUpdatedSuccess": "Event updated successfully",
+  "historyDeletedSuccess": "Event deleted",
+  "historyUpdateError": "Failed to update event: {error}",
+  "@historyUpdateError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "historyDeleteError": "Failed to delete event: {error}",
+  "@historyDeleteError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+
   "durationPickerTitle": "Sleep Duration",
   "cancelButton": "Cancel",
   "confirmButton": "Confirm",
@@ -163,6 +212,26 @@
   "babyUpdateError": "Failed to update baby profile",
   "babyDeletedSuccess": "Baby profile deleted",
   "babyDeleteError": "Failed to delete baby profile",
+
+
+  "babyAddedWithName": "'{name}' added",
+  "@babyAddedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "babyUpdatedWithName": "'{name}' updated",
+  "@babyUpdatedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "babyDeletedWithName": "'{name}' deleted",
+  "@babyDeletedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
 
   "deleteBabyConfirm": "Delete Baby Profile?",
   "deleteBabyWarning": "Are you sure you want to delete '{formatName}'?",
