@@ -6,9 +6,15 @@ import 'package:flutter/services.dart';
 class PatchNotesRepository {
   /// Loads patch notes JSON for the given locale.
   Future<Map<String, dynamic>> loadPatchNotes(String locale) async {
-    final assetPath = locale == 'en'
-        ? 'assets/patch_notes/en.json'
-        : 'assets/patch_notes/fr.json';
+    String assetPath;
+    switch (locale) {
+      case 'en':
+        assetPath = 'assets/patch_notes/en.json';
+      case 'es':
+        assetPath = 'assets/patch_notes/es.json';
+      default:
+        assetPath = 'assets/patch_notes/fr.json';
+    }
 
     final raw = await rootBundle.loadString(assetPath);
     return Map<String, dynamic>.from(jsonDecode(raw) as Map);

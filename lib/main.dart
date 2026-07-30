@@ -66,7 +66,7 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Mamadera',
       locale: locale,
-      supportedLocales: const [ui.Locale('fr'), ui.Locale('en')],
+      supportedLocales: const [ui.Locale('fr'), ui.Locale('en'), ui.Locale('es')],
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

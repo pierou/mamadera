@@ -83,5 +83,5 @@ class LocaleNotifier extends AsyncNotifier<LocalePreference> {
   ui.Locale resolveLocale() => ui.Locale(_current().languageCode);
 
   static bool _isSupported(String languageCode) =>
-      ['fr', 'en'].contains(languageCode.toLowerCase());
+      ['fr', 'en', 'es'].contains(languageCode.toLowerCase());
 }

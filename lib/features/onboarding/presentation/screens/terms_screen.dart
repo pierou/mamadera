@@ -16,7 +16,15 @@ class TermsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = Localizations.localeOf(context).languageCode;
-    final assetPath = locale == 'en' ? 'assets/terms/terms_en.md' : 'assets/terms/terms_fr.md';
+    String assetPath;
+    switch (locale) {
+      case 'en':
+        assetPath = 'assets/terms/terms_en.md';
+      case 'es':
+        assetPath = 'assets/terms/terms_es.md';
+      default:
+        assetPath = 'assets/terms/terms_fr.md';
+    }
 
     return Scaffold(
       appBar: AppBar(

@@ -86,9 +86,9 @@ void main() {
     });
 
     group('getSupportedLanguages', () {
-      test('returns fr and en', () {
+      test('returns fr, en and es', () {
         final languages = repository.getSupportedLanguages();
-        expect(languages, equals(['fr', 'en']));
+        expect(languages, equals(['fr', 'en', 'es']));
       });
 
       test('returns immutable list', () {

@@ -1,0 +1,294 @@
+{
+  "@@locale": "es",
+
+  "appTitle": "Mamadera",
+
+  "navHome": "Inicio",
+  "navHistory": "Historial",
+  "navMenu": "Menú",
+
+  "homeButtonMiam": "Alimento",
+  "homeButtonSante": "Salud",
+  "homeButtonCaca": "Pañal",
+  "homeButtonDodo": "Duermo",
+
+  "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
+  "@feedbackFeedingWithQuantity": {
+    "placeholders": {
+      "subtype": {},
+      "quantity": {}
+    }
+  },
+  "feedbackFeedingWithoutQuantity": "{subtype}",
+  "@feedbackFeedingWithoutQuantity": {
+    "placeholders": {
+      "subtype": {}
+    }
+  },
+  "feedbackSleep": "Duermo · {duration} min",
+  "@feedbackSleep": {
+    "placeholders": {
+      "duration": {}
+    }
+  },
+  "feedbackPipi": "🟡 Orina{color}",
+  "@feedbackPipi": {
+    "placeholders": {
+      "color": {}
+    }
+  },
+  "feedbackCaca": "🟤 Caca{color}",
+  "@feedbackCaca": {
+    "placeholders": {
+      "color": {}
+    }
+  },
+  "feedbackBoth": "🟡🟤 Orina y Caca",
+
+
+  "historyUpdatedSuccess": "Evento actualizado correctamente",
+  "historyDeletedSuccess": "Evento eliminado",
+  "historyUpdateError": "No se pudo actualizar: {error}",
+  "@historyUpdateError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "historyDeleteError": "No se pudo eliminar: {error}",
+  "@historyDeleteError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+
+  "durationPickerTitle": "Duración del sueño",
+  "cancelButton": "Cancelar",
+  "confirmButton": "Confirmar",
+  "saveButton": "Guardar",
+  "@durationFormatHoursMinutes": {
+    "placeholders": {
+      "hours": {},
+      "minutes": {}
+    }
+  },
+  "durationFormatHoursMinutes": "{hours}h{minutes}",
+  "@durationFormatMinutes": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "durationFormatMinutes": "{minutes} min",
+
+  "healthSubtypeDialogTitle": "Tipo de cuidado",
+
+  "healthSubtypeRequiredError": "Selecciona un tipo de cuidado",
+
+  "healthNettoyageYeux": "Limpieza de ojos",
+  "healthNettoyageNombril": "Limpieza del ombligo",
+  "healthNettoyageVisage": "Limpieza del rostro",
+  "healthNettoyageNez": "Limpieza de nariz",
+  "healthVitamineD": "Vitamina D",
+  "healthVitamineK": "Vitamina K",
+
+  "reminderVitaminD": "Vit. D",
+  "reminderVitaminK": "Vit. K",
+  "reminderEyeCleaning": "Ojos",
+  "reminderFaceCleaning": "Rostro",
+
+  "yesterday": "Ayer",
+  "daysAgo": " días",
+  "lastTracked": "Última actividad: ",
+
+  "wasteDialogTitle": "Tipo de pañal",
+  "pipiColorSectionTitle": "Color de la orina",
+  "cacaColorSectionTitle": "Color de la caca",
+
+  "wasteTypePipi": "🟡 Orina",
+  "wasteTypeCaca": "🟤 Caca",
+  "wasteTypeLesDeux": "🟡🟤 Ambos",
+
+  "pipiColorIncolore": "Transparente",
+  "pipiColorJauneClair": "Amarillo claro",
+  "pipiColorJauneFonce": "Amarillo oscuro",
+  "pipiColorRoseUrates": "Rosado/Naranja (uratos)",
+
+  "cacaColorMeconium": "Meconio",
+  "cacaColorVertOlive": "Verde oliva",
+  "cacaColorJauneMoutarde": "Amarillo mostaza",
+  "cacaColorJauneClair": "Amarillo claro",
+
+  "historyTitle": "Historial",
+  "filterAll": "Todos",
+  "filterMiam": "Alimento",
+  "filterDodo": "Sueño",
+  "filterCaca": "Pañal",
+  "filterSante": "Salud",
+
+  "noEvents": "Sin eventos",
+  "@errorMessage": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "errorMessage": "Error: {error}",
+
+  "typeLabelMiam": "Alimento",
+  "typeLabelSommeil": "Sueño",
+  "typeLabelPipi": "Orina",
+  "typeLabelCaca": "Caca",
+  "typeLabelPipiEtCaca": "Orina y Caca",
+
+  "durationPrefix": "Duración: {minutes} min",
+  "@@durationPrefix_minutes_comment": "Minutes placeholder for duration display",
+
+  "quantityPrefix": "Cantidad: {quantity} {unit}",
+  "@quantityPrefix_quantity_comment": "Value of the quantity",
+  "@quantityPrefix_unit_comment": "Unit (ml or min)",
+
+  "editQuantitySectionTitle": "Cantidad",
+  "quantityPickerTitle": "Cantidad",
+  "feedingQuantityLabel": "Cantidad",
+  "feedingQuantityHint": "Seleccionar la cantidad",
+  "feedingDialogTitle": "Registrar Alimentación",
+  "feedingSubtypeLabel": "Tipo de Alimentación",
+  "feedingSubtypeNatural": "Leche Materna",
+  "feedingSubtypeArtificial": "Fórmula Infantil",
+
+  "editDialogTitle": "Editar evento",
+  "editDateSectionTitle": "Fecha y hora",
+  "editDurationSectionTitle": "Duración",
+  "editTypeSectionTitle": "Tipo",
+  "editPipiColorSectionTitle": "Color de la orina",
+  "editCacaColorSectionTitle": "Color de la caca",
+  "editNotesLabel": "Notas",
+  "editNotesHint": "Añadir una nota...",
+  "minutesHintText": "Minutos",
+  "minuteSuffix": "min",
+
+  "deleteDialogTitle": "Eliminar evento",
+  "deleteDialogContent": "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
+  "deleteButton": "Eliminar",
+
+  "menuTitle": "Menú",
+  "settingsBodyText": "Ajustes",
+  "languageSectionTitle": "Idioma",
+  "languageEnglish": "English",
+  "languageFrench": "Français",
+  "languageSpanish": "Español",
+
+  "themeSectionTitle": "Tema",
+  "themeSystem": "Sistema",
+  "themeLight": "Claro",
+  "themeDark": "Oscuro",
+
+  "dangerZoneTitle": "Zona de peligro",
+  "resetDatabaseButton": "Restablecer la base de datos",
+  "resetDatabaseConfirm": "¿Restablecer la base de datos?",
+  "resetDatabaseWarningDetail": "Esta acción eliminará permanentemente todos los perfiles de bebé, eventos registrados y configuraciones de recordatorios. Solo se conservarán tus preferencias de idioma y tema.",
+  "resetDatabaseSuccess": "Base de datos restablecida. Se ha creado una nueva base.",
+  "resetDatabaseError": "No se pudo restablecer: {error}",
+  "@resetDatabaseError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "cancel": "Cancelar",
+  "closeButton": "Cerrar",
+
+  "babyProfilesSectionTitle": "Bebés",
+  "babyProfilesEmpty": "Sin perfiles de bebé",
+  "babyProfilesError": "No se pudieron cargar los perfiles",
+
+  "addBaby": "Añadir un bebé",
+  "editProfile": "Editar perfil",
+  "babyName": "Nombre del bebé",
+  "birthDate": "Fecha de nacimiento",
+  "update": "Modificar",
+  "activate": "Activar",
+  "edit": "Editar",
+
+  "babyAddedSuccess": "Perfil de bebé añadido correctamente",
+  "babyAddError": "No se pudo añadir el perfil de bebé",
+  "babyUpdatedSuccess": "Perfil de bebé modificado correctamente",
+  "babyUpdateError": "No se pudo modificar el perfil de bebé",
+  "babyDeletedSuccess": "Perfil de bebé eliminado",
+  "babyDeleteError": "No se pudo eliminar el perfil de bebé",
+
+
+  "babyAddedWithName": "'{name}' añadido",
+  "@babyAddedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "babyUpdatedWithName": "'{name}' modificado",
+  "@babyUpdatedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "babyDeletedWithName": "'{name}' eliminado",
+  "@babyDeletedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+
+  "deleteBabyConfirm": "¿Eliminar perfil de bebé?",
+  "deleteBabyWarning": "¿Estás seguro de que quieres eliminar a '{formatName}'?",
+  "@deleteBabyWarning": {
+    "placeholders": {
+      "formatName": {}
+    }
+  },
+  "deleteBabyDataWarning": "Todos los eventos registrados para este bebé también se eliminarán.",
+  "delete": "Eliminar",
+
+  "dayOld": "día",
+  "daysOld": "días",
+  "monthOld": "mes",
+  "monthsOld": "meses",
+  "yearOld": "año",
+  "yearsOld": "años",
+
+  "onboardingWelcome": "¡Bienvenido/a a Mamadera!",
+  "onboardingSubtitle": "Crea el primer perfil de bebé para comenzar.",
+  "onboardingNameHint": "Nombre del bebé",
+  "onboardingSuccess": "¡Perfil de bebé creado!",
+  "onboardingError": "No se pudo crear el perfil de bebé",
+
+  "babyNameAlreadyExists": "Ya existe un bebé con el nombre «{name}».",
+  "@babyNameAlreadyExists": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+
+  "termsTitle": "Términos y Condiciones",
+  "termsAcceptButton": "Acepto",
+  "termsLoadingError": "No se pudieron cargar los términos. Inténtalo de nuevo.",
+
+  "patchNotesTitle": "Novedades",
+  "patchNotesClose": "Cerrar",
+  "patchNotesDontShowAgain": "No volver a mostrar",
+  "patchNotesWhatChanged": "Qué ha cambiado",
+  "patchNotesReleaseDate": "Fecha de publicación",
+  "patchNotesSkipCreateLater": "Después — Crear perfil de bebé",
+
+  "supportSectionTitle": "Soporte",
+  "feedbackButtonTitle": "Reportar un error o sugerir una idea",
+  "feedbackTitle": "Comentarios",
+  "feedbackTypeBug": "Error",
+  "feedbackTypeError": "Idea",
+  "feedbackTypeLabel": "Tipo",
+  "feedbackTitleLabel": "Título",
+  "feedbackTitleHint": "Resumen breve del problema o la idea",
+  "feedbackDescriptionLabel": "Descripción",
+  "feedbackDescriptionHint": "Describe el error o tu sugerencia en detalle…",
+  "feedbackSubmitGitHub": "Enviar por GitHub",
+  "feedbackSubmitEmail": "Enviar por email",
+  "feedbackValidationTitle": "El título es obligatorio",
+  "feedbackValidationDescription": "La descripción es obligatoria",
+  "feedbackLaunchError": "No se puede abrir la aplicación destino.",
+  "feedbackGitHubHint": "Requiere una cuenta de GitHub. Si no has iniciado sesión, te lo pedirá."
+}

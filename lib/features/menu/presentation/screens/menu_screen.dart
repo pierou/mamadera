@@ -53,6 +53,7 @@ class MenuScreen extends ConsumerWidget {
               const SizedBox(height: AppTheme.spacingMd),
               _buildLanguageTile(context, ref, 'fr', currentLanguage, context.l.languageFrench),
               _buildLanguageTile(context, ref, 'en', currentLanguage, context.l.languageEnglish),
+              _buildLanguageTile(context, ref, 'es', currentLanguage, context.l.languageSpanish),
 
               // Theme Section
               const SizedBox(height: AppTheme.spacingXxl),
