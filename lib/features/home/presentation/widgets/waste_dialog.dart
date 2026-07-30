@@ -182,7 +182,7 @@ class WasteDialogPipiColorChips extends ConsumerWidget {
       final isSelected = c == state.pipiColor;
       final cs = Theme.of(context).colorScheme;
       return FilterChip(
-        label: Text(c.label),
+        label: Text(_resolvePipiLabel(context, c)),
         selected: isSelected,
         onSelected: (_) => ref.read(_wasteDialogStateProvider.notifier).setPipiColor(isSelected ? null : c),
         backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.8),
@@ -207,7 +207,7 @@ class WasteDialogCacaColorChips extends ConsumerWidget {
       final isSelected = c == state.cacaColor;
       final cs = Theme.of(context).colorScheme;
       return FilterChip(
-        label: Text(c.label),
+        label: Text(_resolveCacaLabel(context, c)),
         selected: isSelected,
         onSelected: (_) => ref.read(_wasteDialogStateProvider.notifier).setCacaColor(isSelected ? null : c),
         backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.8),
@@ -252,5 +252,37 @@ class _ChipRadio extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Résout le label localisé pour un PipiColor via son labelKey.
+String _resolvePipiLabel(BuildContext ctx, PipiColor c) {
+  switch (c.labelKey) {
+    case 'pipiColorIncolore':
+      return ctx.l.pipiColorIncolore;
+    case 'pipiColorJauneClair':
+      return ctx.l.pipiColorJauneClair;
+    case 'pipiColorJauneFonce':
+      return ctx.l.pipiColorJauneFonce;
+    case 'pipiColorRoseUrates':
+      return ctx.l.pipiColorRoseUrates;
+    default:
+      return c.label;
+  }
+}
+
+/// Résout le label localisé pour un CacaColor via son labelKey.
+String _resolveCacaLabel(BuildContext ctx, CacaColor c) {
+  switch (c.labelKey) {
+    case 'cacaColorMeconium':
+      return ctx.l.cacaColorMeconium;
+    case 'cacaColorVertOlive':
+      return ctx.l.cacaColorVertOlive;
+    case 'cacaColorJauneMoutarde':
+      return ctx.l.cacaColorJauneMoutarde;
+    case 'cacaColorJauneClair':
+      return ctx.l.cacaColorJauneClair;
+    default:
+      return c.label;
   }
 }
