@@ -15,38 +15,29 @@ class RemindersRepositoryImpl implements RemindersRepository {
   static final Logger _logger = Logger();
 
   @override
-  Future<DateTime?> getLastCompletedToday(ReminderItem item) async {
+  Future<DateTime?> getLastCompleted(ReminderItem item) async {
     try {
-      // Start of the current calendar day.
-      final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day);
-
-      _logger.d('getLastCompletedToday(${item.id}) — querying from $todayStart');
-
       // Query tracking_events for events matching this reminder's type (+ subtype for health).
       final type = item.trackingType.name;
       final subtypeValue = item.subtypeValue;
+      
+      // Get most recent event — no date restriction, returns last completed ever.
       final q = (database.select(database.trackingEvents)
         ..where((t) {
           final exp = t.type.equals(type) & (subtypeValue == null ? const Constant(true) : t.subtype.equals(subtypeValue));
           return exp;
         })
-        ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]));
+        ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
+        ..limit(1));
 
       final results = await q.get();
+      if (results.isEmpty) return null;
 
-      // Filter to today in-memory.
-      final todayResults = results.where(
-        (r) => r.timestamp.isAfter(todayStart.subtract(const Duration(seconds: 1))),
-      ).toList();
-
-      if (todayResults.isEmpty) return null;
-
-      _logger.d('getLastCompletedToday(${item.id}) — found ${todayResults.length} event(s) today');
-      return todayResults.first.timestamp;
+      _logger.d('getLastCompleted(${item.id}) — found: ${results.first.timestamp}');
+      return results.first.timestamp;
     } catch (e, stack) {
       _logger.e(
-        'getLastCompletedToday error',
+        'getLastCompleted error',
         error: e,
         stackTrace: stack,
       );

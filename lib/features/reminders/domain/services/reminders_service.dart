@@ -19,8 +19,8 @@ class RemindersService {
     final dueItems = <ReminderStatus>[];
 
     for (final item in items) {
-      // Check if the frequency says this is due today
-      final lastCompleted = await repository.getLastCompletedToday(item);
+      // Get timestamp of last tracked event (any date), then check frequency logic.
+      final lastCompleted = await repository.getLastCompleted(item);
       if (!item.frequency.isDue(now, lastCompleted)) continue;
 
       // Check cooldown — was the reminder recently dismissed?

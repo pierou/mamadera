@@ -24,13 +24,15 @@ void main() {
 
     final vitaminDItem = ReminderItemPresets.vitaminD;
 
-    group('getLastCompletedToday', () {
+    group('getLastCompleted', () {
       test('returns null when no tracking events exist', () async {
-        final result = await repository.getLastCompletedToday(vitaminDItem);
+        final result = await repository.getLastCompleted(vitaminDItem);
         expect(result, isNull);
       });
 
-      test('returns null for event from yesterday', () async {
+      test('returns event from yesterday (not just today)', () async {
+        // Regression: previously filtered to TODAY only, causing Vitamin K reminder
+        // to show as due even when tracked 1 day ago. Now returns last completed ever.
         final yesterday = DateTime.now().subtract(const Duration(days: 1));
         await database.into(database.trackingEvents).insert(
           TrackingEventsCompanion.insert(
@@ -40,8 +42,9 @@ void main() {
           ),
         );
 
-        final result = await repository.getLastCompletedToday(vitaminDItem);
-        expect(result, isNull);
+        final result = await repository.getLastCompleted(vitaminDItem);
+        expect(result, isNotNull);
+        expect(result!.day, equals(yesterday.day));
       });
 
       test('returns event timestamp from today', () async {
@@ -54,31 +57,37 @@ void main() {
           ),
         );
 
-        final result = await repository.getLastCompletedToday(vitaminDItem);
+        final result = await repository.getLastCompleted(vitaminDItem);
         expect(result, isNotNull);
         expect(result!.year, equals(now.year));
         expect(result.month, equals(now.month));
         expect(result.day, equals(now.day));
       });
 
-      test('returns timestamp when health event stored with subtype column only', () async {
-        // Regression test: health events store subtype in `subtype`, not `wasteType`.
-        // The query must use `t.subtype` to match reminder subtypes like 'vitamine_d'.
-        final now = DateTime.now();
+      test('returns most recent of multiple events across dates', () async {
+        // Ensures query returns the latest event, not an older one.
+        final weekAgo = DateTime.now().subtract(const Duration(days: 7));
+        final yesterday = DateTime.now().subtract(const Duration(days: 1));
+        
         await database.into(database.trackingEvents).insert(
           TrackingEventsCompanion.insert(
             type: vitaminDItem.trackingType.name,
-            subtype: Value(vitaminDItem.subtypeValue), // 'vitamine_d'
-            // wasteType is intentionally null for health events
-            timestamp: now,
+            subtype: Value(vitaminDItem.subtypeValue),
+            timestamp: weekAgo,
+          ),
+        );
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: vitaminDItem.trackingType.name,
+            subtype: Value(vitaminDItem.subtypeValue),
+            timestamp: yesterday,
           ),
         );
 
-        final result = await repository.getLastCompletedToday(vitaminDItem);
+        final result = await repository.getLastCompleted(vitaminDItem);
         expect(result, isNotNull);
-        expect(result!.year, equals(now.year));
-        expect(result.month, equals(now.month));
-        expect(result.day, equals(now.day));
+        // Should return yesterday's event (most recent), not week ago.
+        expect(result!.day, equals(yesterday.day));
       });
 
       test('returns null for different tracking type', () async {
@@ -91,7 +100,7 @@ void main() {
           ),
         );
 
-        final result = await repository.getLastCompletedToday(vitaminK);
+        final result = await repository.getLastCompleted(vitaminK);
         expect(result, isNull);
       });
     });

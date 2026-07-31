@@ -10,7 +10,7 @@ class MockRemindersRepository implements RemindersRepository {
   final Map<String, DateTime> dismissalTimeById = {};
 
   @override
-  Future<DateTime?> getLastCompletedToday(ReminderItem reminder) async {
+  Future<DateTime?> getLastCompleted(ReminderItem reminder) async {
     return lastCompletedByItem[reminder.id];
   }
 
