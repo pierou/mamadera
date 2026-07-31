@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mamadera/core/router.dart';
+
 import 'package:mamadera/l10n/app_localizations.dart';
 
 void main() {
@@ -558,6 +559,269 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('History Screen'), findsOneWidget);
+      expect(find.text('Home Screen'), findsNothing);
+    });
+
+    testWidgets('error page shows return button that navigates to home', (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final testRouter = GoRouter(
+        initialLocation: '/nonexistent',
+        debugLogDiagnostics: false,
+        routes: [
+          ShellRoute(
+            navigatorKey: navigatorKey,
+            builder: (context, state, child) => AppShell(
+              navigatorKey: navigatorKey,
+              child: child,
+            ),
+            routes: [
+              GoRoute(
+                path: AppRoute.home.path,
+                name: 'home',
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+              ),
+            ],
+          ),
+        ],
+        errorBuilder: (context, state) => Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(
+                  'Page introuvable',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  state.error?.toString() ?? '',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => context.go(AppRoute.home.path),
+                  child: const Text("Retour à l'accueil"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp.router(
+            routerConfig: testRouter,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Verify error page elements
+      expect(find.text('Page introuvable'), findsOneWidget);
+
+      // Tap return button and navigate to home
+      await tester.tap(find.text("Retour à l'accueil"));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Home Screen'), findsOneWidget);
+    });
+
+    testWidgets('error page shows error message', (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final testRouter = GoRouter(
+        initialLocation: '/error-page',
+        debugLogDiagnostics: false,
+        routes: [
+          ShellRoute(
+            navigatorKey: navigatorKey,
+            builder: (context, state, child) => AppShell(
+              navigatorKey: navigatorKey,
+              child: child,
+            ),
+            routes: [
+              GoRoute(
+                path: AppRoute.home.path,
+                name: 'home',
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+              ),
+            ],
+          ),
+        ],
+        errorBuilder: (context, state) => Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(
+                  'Page introuvable',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  state.error?.toString() ?? '',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => context.go(AppRoute.home.path),
+                  child: const Text("Retour à l'accueil"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp.router(
+            routerConfig: testRouter,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    });
+
+    testWidgets('error page icon has correct size', (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final testRouter = GoRouter(
+        initialLocation: '/invalid',
+        debugLogDiagnostics: false,
+        routes: [
+          ShellRoute(
+            navigatorKey: navigatorKey,
+            builder: (context, state, child) => AppShell(
+              navigatorKey: navigatorKey,
+              child: child,
+            ),
+            routes: [
+              GoRoute(
+                path: AppRoute.home.path,
+                name: 'home',
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+              ),
+            ],
+          ),
+        ],
+        errorBuilder: (context, state) => Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(
+                  'Page introuvable',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  state.error?.toString() ?? '',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => context.go(AppRoute.home.path),
+                  child: const Text("Retour à l'accueil"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp.router(
+            routerConfig: testRouter,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final icon = tester.widget<Icon>(find.byIcon(Icons.error_outline).first);
+      expect(icon.size, 64);
+    });
+
+    testWidgets('ShellRoute overlay dismissal on tab switch with multiple overlays', (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final testRouter = GoRouter(
+        initialLocation: AppRoute.home.path,
+        debugLogDiagnostics: false,
+        routes: [
+          ShellRoute(
+            navigatorKey: navigatorKey,
+            builder: (context, state, child) => AppShell(navigatorKey: navigatorKey, child: child),
+            routes: [
+              GoRoute(
+                path: AppRoute.home.path,
+                name: 'home',
+                pageBuilder: (context, state) => MaterialPage(child: const _StubWithBottomSheet()),
+              ),
+              GoRoute(
+                path: AppRoute.history.path,
+                name: 'history',
+                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
+              ),
+            ],
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp.router(
+            routerConfig: testRouter,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('Show Bottom Sheet'), findsOneWidget);
+
+      // Show bottom sheet multiple times (stack overlays)
+      await tester.tap(find.text('Show Bottom Sheet'));
+      await tester.pumpAndSettle();
+      expect(find.text('Bottom Sheet Content'), findsOneWidget);
+
+      testRouter.go(AppRoute.home.path);
+      await tester.pumpAndSettle();
+
+      // Navigate away should dismiss all overlays via popUntil(isFirst)
       expect(find.text('Home Screen'), findsNothing);
     });
   });
