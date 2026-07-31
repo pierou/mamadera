@@ -196,6 +196,6 @@ jobs:
         run: |
           gh release create "${GITHUB_REF#refs/tags/}" \
             --title "Release ${{ github.ref_name }}" \
-            --notes "Build reproductible. Voir CHANGELOG.md" \
+            --generate-notes \
             android-release/app-release.apk \
             ios-release/Runner.app

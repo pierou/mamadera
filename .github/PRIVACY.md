@@ -142,14 +142,12 @@ Your data is used **only** for:
 
 - Any changes will be noted in the app
 - Significant changes require your explicit consent
-- Policy updates documented in CHANGELOG.md
 
 ## Contact Us
 
 If you have privacy concerns or questions:
 
-- Email: privacy@mamadera.dev (replace with actual)
-- GitHub Issues: https://github.com/pierou/mamadera/
+- Open an issue on [GitHub](https://github.com/pvjio/mamadera/issues)
 
 ## Data Processing
 

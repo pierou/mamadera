@@ -43,8 +43,8 @@ lib/
 │   ├── providers/                         # Global Riverpod providers (DB + encryption singletons)
 │   └── theme.dart                         # App-wide theming
 ├── data/local/                            # Database layer (Drift ORM, factory functions)
-│   ├── schema.sql                         # DDL definitions — source of truth for tables
-│   ├── app_db.dart                        # Drift table & query classes
+│   ├── app_db.dart                        # Drift table classes (source of truth)
+│   ├── schema.sql                         # Generated DDL reference from app_db.dart
 │   └── database.dart                      # Database service singleton + migrations
 ├── shared/domain/entities/                # Global domain models and enums (e.g. TrackingType)
 └── features/<module>/                     # Feature modules with internal Clean Architecture layers
@@ -97,7 +97,7 @@ class TrackingRepositoryImpl implements TrackingRepository {
 
 ### Database (Drift)
 
-- Schema source of truth: [`lib/data/local/schema.sql`](lib/data/local/schema.sql)
+- Dart class source of truth: [`lib/data/local/app_db.dart`](lib/data/local/app_db.dart) (schema.sql is generated)
 - Versioned migrations — always update migration logic when schema changes
 - Encrypt sensitive columns before insert; decrypt on read in the repository layer
 

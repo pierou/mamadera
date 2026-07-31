@@ -50,19 +50,22 @@ You are an expert Flutter and Dart developer. Your goal is to build beautiful, p
 * **Build Methods:** Avoid expensive ops (network) in `build()`.
 
 ## State Management
-* **Native-First:** Prefer `ValueNotifier`, `ChangeNotifier`, `ListenableBuilder`.
-* **Restrictions:** Do NOT use Bloc, or GetX unless explicitly requested.
-* **ChangeNotifier:** For state that is more complex or shared across multiple widgets, use `ChangeNotifier`.
-* **MVVM:** When a more robust solution is needed, structure the app using the Model-View-ViewModel (MVVM) pattern.
-* **Dependency Injection:** Use simple manual constructor dependency injection to make a class's dependencies explicit in its API, and to manage dependencies between different layers of the application.
+* **Riverpod** — This project uses `flutter_riverpod` exclusively for state management.
+* **StateNotifier** — For local mutable state within a widget or feature scope.
+* **AsyncNotifier** — For async operations with loading/error states (API calls, DB queries).
+* **No mixin-based state management** — Avoid `GetIt`, provider mixins, or BLoC unless explicitly requested.
 
 ```dart
-// Simple Local State
-final ValueNotifier<int> _counter = ValueNotifier<int>(0);
-ValueListenableBuilder<int>(
-  valueListenable: _counter,
-  builder: (context, value, child) => Text('Count: $value'),
-);
+// Example: Riverpod StateNotifier for local mutable state
+class CounterNotifier extends StateNotifier<int> {
+  CounterNotifier() : super(0);
+
+  void increment() => state++;
+}
+
+final counterProvider = StateNotifierProvider<CounterNotifier, int>((ref) {
+  return CounterNotifier();
+});
 ```
 
 ## Routing (GoRouter)

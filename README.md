@@ -3,7 +3,7 @@
 **Privacy-first newborn tracking app.** Track your baby's feedings, sleep, diaper changes, and health routines — all stored locally on your device with end-to-end encryption. No cloud, no telemetry, no tracking.
 
 [![CI](https://github.com/pvjio/mamadera/actions/workflows/ci.yml/badge.svg)](https://github.com/pvjio/mamadera/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](.github/SECURITY.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](.github/LICENSE)
 
 ---
 
@@ -57,7 +57,7 @@ lib/
 ### Database
 
 - **Drift** (SQLite) with versioned migrations
-- Schema defined in a separate DDL file: [`lib/data/local/schema.sql`](lib/data/local/schema.sql)
+- Schema generated from Drift Dart classes: [`lib/data/local/app_db.dart`](lib/data/local/app_db.dart)
 
 ---
 
@@ -117,7 +117,6 @@ A `Makefile` is provided for local CI workflows:
 | `make test` | Run unit & widget tests with coverage |
 | `make check-coverage` | Enforce ≥ 80% line coverage threshold |
 | `make integration-test-simulator` | Run integration tests on connected iOS simulator |
-
 | `make ci-integration` | Full integration test suite for CI |
 | `make build-android` | Build release APK |
 | `make clean` | Clean all generated artifacts |
@@ -213,13 +212,13 @@ Contributions are welcome! Please read the following before submitting a PR:
 
 ## 📄 License
 
-This project is licensed under the MIT License — see [SECURITY.md](.github/SECURITY.md) for details.
+This project is licensed under the MIT License — see [LICENSE](.github/LICENSE) for details.
 
 ---
 
 ### 🤖 AI-Assisted Development
 
-Ce projet a été généré à l'aide d'une instance locale de **Qwen 3.6 Coder 27B**, sous la supervision de parents responsables. Aucun modèle cloud n'a été utilisé — tout est resté sur machine, dans le respect des principes de confidentialité défendus par cette application.
+This project was developed using a local instance of **Qwen 3.6 Coder 27B**, under the supervision of responsible parents. No cloud models were used — everything stayed on-machine, in line with the privacy principles this application defends.
 
 ---
 
