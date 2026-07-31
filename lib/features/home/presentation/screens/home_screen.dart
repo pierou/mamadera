@@ -9,6 +9,7 @@ import '../../../../core/theme.dart';
 import '../../../../core/widgets/show_feedback.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
+import '../../../../shared/utils/health_label_resolver.dart';
 import '../../../reminders/domain/entities/reminders_state.dart';
 import '../../../reminders/presentation/providers/reminder_notifier.dart';
 import '../../../reminders/presentation/providers/reminder_providers.dart';
@@ -207,7 +208,7 @@ class _HomeContent extends ConsumerWidget {
           );
       if (context.mounted) {
         unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
-        showFeedback(context, subtype.label);
+        showFeedback(context, resolveHealthLabel(context, subtype));
       }
     }
   }

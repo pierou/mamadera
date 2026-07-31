@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../shared/utils/health_label_resolver.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
@@ -62,7 +63,7 @@ class HealthSubtypeDialog extends ConsumerWidget {
                   },
                   color: isSelected ? AppTheme.sante : null,
                 ),
-                title: Text(_resolveHealthLabel(context, subtype)),
+                title: Text(resolveHealthLabel(context, subtype)),
                 trailing: selectedType == subtype
                     ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
                     : null,
@@ -96,19 +97,4 @@ class HealthSubtypeDialog extends ConsumerWidget {
       ),
     );
   }
-}
-
-/// Map de labels localisés pour chaque HealthSubtype.
-Map<String, String Function(BuildContext)> _kHealthLabels = {
-  'healthNettoyageYeux': (c) => c.l.healthNettoyageYeux,
-  'healthNettoyageNombril': (c) => c.l.healthNettoyageNombril,
-  'healthNettoyageVisage': (c) => c.l.healthNettoyageVisage,
-  'healthNettoyageNez': (c) => c.l.healthNettoyageNez,
-  'healthVitamineD': (c) => c.l.healthVitamineD,
-  'healthVitamineK': (c) => c.l.healthVitamineK,
-};
-
-/// Résout le label localisé pour un HealthSubtype via son labelKey.
-String _resolveHealthLabel(BuildContext context, HealthSubtype subtype) {
-  return _kHealthLabels[subtype.labelKey]?.call(context) ?? subtype.label;
 }

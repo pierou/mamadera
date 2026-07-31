@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../../../shared/utils/health_label_resolver.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/l10n/date_localization.dart';
 import '../../../../core/theme.dart';
@@ -446,7 +447,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       return ListTile(
         leading: Icon(_getHealthIcon(subtype.value),
             color: isSelected ? AppTheme.sante : null),
-        title: Text(_resolveHealthLabel(context, subtype)),
+        title: Text(resolveHealthLabel(context, subtype)),
         trailing: isSelected
             ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
             : null,
@@ -537,26 +538,6 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         return ctx.l.cacaColorJauneClair;
       default:
         return c.label;
-    }
-  }
-
-  /// Résout le label localisé pour un HealthSubtype via son labelKey.
-  String _resolveHealthLabel(BuildContext ctx, HealthSubtype subtype) {
-    switch (subtype.labelKey) {
-      case 'healthNettoyageYeux':
-        return ctx.l.healthNettoyageYeux;
-      case 'healthNettoyageNombril':
-        return ctx.l.healthNettoyageNombril;
-      case 'healthNettoyageVisage':
-        return ctx.l.healthNettoyageVisage;
-      case 'healthNettoyageNez':
-        return ctx.l.healthNettoyageNez;
-      case 'healthVitamineD':
-        return ctx.l.healthVitamineD;
-      case 'healthVitamineK':
-        return ctx.l.healthVitamineK;
-      default:
-        return subtype.label;
     }
   }
 
