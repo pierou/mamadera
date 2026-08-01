@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/active_baby_provider.dart';
+import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/show_feedback.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
@@ -281,6 +282,7 @@ class BabyProfileSection extends ConsumerWidget {
                   // Invalidate the list provider so the menu UI rebuilds with the new profile.
                   ref.invalidate(babyProfileListProvider);
                   await ref.read(activeBabyProvider.notifier).refresh();
+                  await ref.read(anyBabyExistsProvider.notifier).refresh();
 
                   if (dialogContext.mounted) Navigator.pop(dialogContext);
                   if (dialogContext.mounted) {

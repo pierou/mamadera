@@ -35,6 +35,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _onboardingShown = false;
 
   @override
+  void initState() {
+    super.initState();
+    // If a baby already exists, mark onboarding as shown to prevent re-trigger
+    // when the widget is recreated by tab navigation.
+    final anyExists = ref.read(anyBabyExistsProvider);
+    if (anyExists.hasValue && anyExists.value == true) {
+      _onboardingShown = true;
+    }
+    // Listen for provider changes to handle cases where a baby is created
+    // from another screen (e.g., Settings) while HomeScreen is mounted.
+    ref.listen<AsyncValue<bool>>(
+      anyBabyExistsProvider,
+      (previous, next) {
+        if (next.hasValue && next.value == true) {
+          setState(() {
+            _onboardingShown = true;
+          });
+        }
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Watch the async provider in build() — ref.listen is only valid here.
     final anyExistsAsync = ref.watch(anyBabyExistsProvider);
