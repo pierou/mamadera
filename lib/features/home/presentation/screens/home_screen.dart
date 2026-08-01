@@ -8,6 +8,7 @@ import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/show_feedback.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
+import '../../../../shared/domain/entities/tracking_icons.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../../reminders/domain/entities/reminders_state.dart';
@@ -264,6 +265,7 @@ class _HomeContent extends ConsumerWidget {
               key: const ValueKey('track-miam'),
               label: context.l.homeButtonMiam,
               color: AppTheme.miam,
+              icon: TrackingType.miam.icon,
               reminders: statusMap[TrackingType.miam],
               onTap: () => _onTrack(context, ref, TrackingType.miam.name),
             ),
@@ -271,6 +273,7 @@ class _HomeContent extends ConsumerWidget {
               key: const ValueKey('track-sante'),
               label: context.l.homeButtonSante,
               color: AppTheme.sante,
+              icon: TrackingType.sante.icon,
               reminders: statusMap[TrackingType.sante],
               onTap: () => _onTrack(context, ref, TrackingType.sante.name),
             ),
@@ -278,6 +281,7 @@ class _HomeContent extends ConsumerWidget {
               key: const ValueKey('track-caca'),
               label: context.l.homeButtonCaca,
               color: AppTheme.caca,
+              icon: TrackingType.caca.icon,
               reminders: statusMap[TrackingType.caca],
               onTap: () => _onTrack(context, ref, TrackingType.caca.name),
             ),
@@ -285,6 +289,7 @@ class _HomeContent extends ConsumerWidget {
               key: const ValueKey('track-dodo'),
               label: context.l.homeButtonDodo,
               color: AppTheme.dodo,
+              icon: TrackingType.dodo.icon,
               reminders: statusMap[TrackingType.dodo],
               onTap: () => _onTapDodo(context, ref),
             ),

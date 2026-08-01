@@ -4,6 +4,8 @@ import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
+import '../../../../shared/domain/entities/tracking_icons.dart';
+import '../../../../shared/domain/entities/tracking_type.dart';
 
 /// Tile affichant un événement dans l'historique.
 class HistoryTile extends StatelessWidget {
@@ -97,23 +99,17 @@ class HistoryTileLeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final icon = event.map(
+      (_) => Icons.help,
+      feeding: (_) => TrackingType.miam.icon,
+      sleep: (_) => TrackingType.dodo.icon,
+      diaper: (e) => e.wasteType?.icon ?? WasteType.caca.icon,
+      health: (_) => TrackingType.sante.icon,
+    );
+
     return CircleAvatar(
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      child: Icon(_getIcon(event, context), color: Theme.of(context).colorScheme.primary),
-    );
-  }
-
-  IconData _getIcon(TrackingEvent event, BuildContext context) {
-    return event.map(
-      (_) => Icons.help,
-      feeding: (_) => Icons.lunch_dining,
-      sleep: (_) => Icons.nightlight,
-      diaper: (e) {
-        if (e.wasteType == WasteType.pipi) return Icons.water_drop_outlined;
-        if (e.wasteType == WasteType.lesDeux) return Icons.wb_sunny;
-        return Icons.water_drop;
-      },
-      health: (_) => Icons.favorite,
+      child: Icon(icon, color: Theme.of(context).colorScheme.primary),
     );
   }
 }
@@ -189,7 +185,7 @@ class HistoryTileSubtitle extends StatelessWidget {
       Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(_getSubtypeIcon(feeding.subtype), size: 14, color: _getSubtypeColor(feeding.subtype)),
+          Icon(feeding.subtype.icon, size: 16, color: _getSubtypeColor(feeding.subtype)),
           const SizedBox(width: 4),
           Text(
             feeding.subtype == FeedingSubtype.natural
@@ -200,13 +196,6 @@ class HistoryTileSubtitle extends StatelessWidget {
         ],
       ),
     ];
-  }
-
-  IconData _getSubtypeIcon(FeedingSubtype subtype) {
-    return switch (subtype) {
-      FeedingSubtype.natural => Icons.local_drink_outlined,
-      FeedingSubtype.artificial => Icons.coffee_rounded,
-    };
   }
 
   Color _getSubtypeColor(FeedingSubtype subtype) {

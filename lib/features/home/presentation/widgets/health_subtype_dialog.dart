@@ -6,6 +6,7 @@ import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
+import '../../../../shared/domain/entities/tracking_icons.dart';
 
 /// Notifier d'état pour le dialog de sous-types santé.
 final healthSubtypeDialogProvider =
@@ -52,15 +53,7 @@ class HealthSubtypeDialog extends ConsumerWidget {
               final isSelected = selectedType == subtype;
               return ListTile(
                 leading: Icon(
-                  switch (subtype.value) {
-                    'nettoyage_yeux' => Icons.remove_red_eye,
-                    'nettoyage_nombril' => Icons.circle,
-                    'nettoyage_visage' => Icons.circle,
-                    'nettoyage_nez' => Icons.circle,
-                    'vitamine_d' => Icons.circle,
-                    'vitamine_k' => Icons.circle,
-                    _ => Icons.help_outline,
-                  },
+                  HealthIcons.fromValue(subtype.value),
                   color: isSelected ? AppTheme.sante : null,
                 ),
                 title: Text(resolveHealthLabel(context, subtype)),

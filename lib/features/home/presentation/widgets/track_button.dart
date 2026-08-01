@@ -10,6 +10,7 @@ class TrackButton extends StatefulWidget {
     required this.label,
     required this.color,
     required this.onTap,
+    this.icon,
     this.onLongPress,
     this.reminders,
     super.key,
@@ -17,6 +18,7 @@ class TrackButton extends StatefulWidget {
 
   final String label;
   final Color color;
+  final IconData? icon;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
@@ -83,6 +85,7 @@ class _TrackButtonState extends State<TrackButton> {
         child: _TrackButtonContent(
           isPressed: _isPressed,
           label: widget.label,
+          icon: widget.icon,
           color: widget.color,
           reminders: widget.reminders,
           context: context,
@@ -99,6 +102,7 @@ class _TrackButtonContent extends StatelessWidget {
   const _TrackButtonContent({
     required this.isPressed,
     required this.label,
+    required this.icon,
     required this.color,
     required this.reminders,
     required this.context,
@@ -108,6 +112,7 @@ class _TrackButtonContent extends StatelessWidget {
 
   final bool isPressed;
   final String label;
+  final IconData? icon;
   final Color color;
   final List<ReminderStatus>? reminders;
   final BuildContext context;
@@ -131,7 +136,7 @@ class _TrackButtonContent extends StatelessWidget {
       transform: Matrix4.identity()
         ..scaleByDouble(isPressed ? 0.97 : 1.0, isPressed ? 0.97 : 1.0, 1, 1),
       width: double.infinity,
-      height: 200,
+      height: icon != null ? 230.0 : 200.0,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -152,12 +157,21 @@ class _TrackButtonContent extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingLg),
+        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            if (icon != null)
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: color.withValues(alpha: 0.15),
+                child: Icon(icon, size: 32, color: color),
+              ),
+            if (icon != null) const SizedBox(height: AppTheme.spacingSm),
             Expanded(
-              flex: hasPending ? 3 : 4,
+              flex: icon != null
+                  ? (hasPending ? 2 : 3)
+                  : (hasPending ? 3 : 4),
               child: Center(
                 child: Text(
                   label,
@@ -207,7 +221,6 @@ class _TrackButtonContent extends StatelessWidget {
                 ),
               ),
             ],
-            const SizedBox(height: AppTheme.spacingSm),
           ],
         ),
       ),

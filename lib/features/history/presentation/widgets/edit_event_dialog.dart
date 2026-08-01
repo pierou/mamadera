@@ -8,6 +8,7 @@ import '../../../../core/l10n/date_localization.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
+import '../../../../shared/domain/entities/tracking_icons.dart';
 import '../../../home/presentation/widgets/quantity_picker_inline.dart';
 
 part 'edit_event_dialog.freezed.dart';
@@ -314,7 +315,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
                 label: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(_getSubtypeIcon(subtype), size: 18),
+                    Icon(subtype.icon, size: 18),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
@@ -338,13 +339,6 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     return switch (subtype) {
       FeedingSubtype.natural => context.l.feedingSubtypeNatural,
       FeedingSubtype.artificial => context.l.feedingSubtypeArtificial,
-    };
-  }
-
-  IconData _getSubtypeIcon(FeedingSubtype subtype) {
-    return switch (subtype) {
-      FeedingSubtype.natural => Icons.local_drink,
-      FeedingSubtype.artificial => Icons.coffee,
     };
   }
 
@@ -445,7 +439,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     return HealthSubtype.values.map((subtype) {
       final isSelected = _notesController.text == subtype.value;
       return ListTile(
-        leading: Icon(_getHealthIcon(subtype.value),
+        leading: Icon(HealthIcons.fromValue(subtype.value),
             color: isSelected ? AppTheme.sante : null),
         title: Text(resolveHealthLabel(context, subtype)),
         trailing: isSelected
@@ -552,18 +546,5 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       case WasteType.lesDeux:
         return context.l.wasteTypeLesDeux;
     }
-  }
-
-  /// Retourne l'icône pour un HealthSubtype donné.
-  IconData _getHealthIcon(String value) {
-    return switch (value) {
-      'nettoyage_yeux' ||
-      'nettoyage_nombril' ||
-      'nettoyage_visage' ||
-      'nettoyage_nez' =>
-        Icons.cleaning_services,
-      'vitamine_d' || 'vitamine_k' => Icons.medication,
-      _ => Icons.health_and_safety,
-    };
   }
 }

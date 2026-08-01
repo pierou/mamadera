@@ -5,6 +5,7 @@ import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
+import '../../../../shared/domain/entities/tracking_icons.dart';
 import 'quantity_picker_inline.dart';
 
 /// A dialog for tracking feeding events with subtype selection and quantity.
@@ -28,10 +29,6 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
   void initState() {
     super.initState();
     _selectedSubtype = FeedingSubtype.natural; // Default to breast milk
-  }
-
-  IconData _getSubtypeIcon(FeedingSubtype subtype) {
-    return subtype == FeedingSubtype.natural ? Icons.local_drink : Icons.coffee;
   }
 
   void _onQuantityChanged(double quantity) {
@@ -69,7 +66,7 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_getSubtypeIcon(FeedingSubtype.natural), size: 18),
+                        Icon(FeedingSubtype.natural.icon, size: 18),
                         Flexible(
                           child: Text(
                             context.l.feedingSubtypeNatural,
@@ -89,7 +86,7 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_getSubtypeIcon(FeedingSubtype.artificial), size: 18),
+                        Icon(FeedingSubtype.artificial.icon, size: 18),
                         Flexible(
                           child: Text(
                             context.l.feedingSubtypeArtificial,
