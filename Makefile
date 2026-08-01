@@ -1,4 +1,4 @@
-.PHONY: ci lint test build-android clean codegen check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration
+.PHONY: ci lint test build-android clean codegen check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration splash-create
 
 ci: pub-get lint test check-coverage ## Run full local CI pipeline (aligned with GitHub Actions)
 pub-get:
@@ -38,6 +38,12 @@ codegen:
 	@echo "Running build_runner..."
 	dart run build_runner build --delete-conflicting-outputs
 	@echo "✅ Code generation complete. Run 'make lint' to verify."
+
+# 🎨 Regenerate native splash screen assets (Android drawables + iOS launch images)
+splash-create:
+	@echo "Regenerating splash screen assets from pubspec.yaml config..."
+	dart run flutter_native_splash:create
+	@echo "✅ Splash assets regenerated."
 
 # 🔍 Security audit helpers (run these before pushing to catch CI failures)
 audit-trivy:
