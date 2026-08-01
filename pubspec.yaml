@@ -57,6 +57,7 @@ dev_dependencies:
   drift_dev: ^2.28.0
   flutter_driver:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.3
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
@@ -116,15 +117,22 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 flutter_native_splash:
-  # Android 12+ uses icons
-  color: "#ffffff"
+  color: "#FFF0F5"
+  color_dark: "#FFF0F5"
   image: "assets/splash/splash_icon.png"
-  # Android uses the drawable theme
   android_gravity: center
-  # iOS uses the iOS branding
   ios_content_mode: center
   android_12:
     image: "assets/splash/splash_icon.png"
-    icon_background_color: "#ffffff"
+    icon_background_color: "#FFF0F5"
+    icon_background_color_dark: "#FFF0F5"
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path_android: "assets/splash/splash_icon.png"
+  image_path_ios: "assets/splash/launcher_icon_ios.png"
+  adaptive_icon_background: "#FFF0F5"
+  adaptive_icon_foreground: "assets/splash/splash_icon.png"
 
 
