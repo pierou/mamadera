@@ -290,5 +290,14 @@
   "feedbackValidationTitle": "El título es obligatorio",
   "feedbackValidationDescription": "La descripción es obligatoria",
   "feedbackLaunchError": "No se puede abrir la aplicación destino.",
-  "feedbackGitHubHint": "Requiere una cuenta de GitHub. Si no has iniciado sesión, te lo pedirá."
+  "feedbackGitHubHint": "Requiere una cuenta de GitHub. Si no has iniciado sesión, te lo pedirá.",
+
+  "aboutSectionTitle": "Acerca de",
+  "aboutButtonTitle": "Información y créditos",
+  "aboutTitle": "Acerca de Mamadera",
+  "aboutVersionLabel": "Versión",
+  "aboutDescription": "Aplicación de seguimiento para recién nacidos respetuosa con su privacidad — sin telemetría, sin nube, sus datos permanecen en su dispositivo.",
+  "aboutAttributionsSectionTitle": "Créditos y atribuciones",
+  "aboutFlaticonCredit": "Icono splash proporcionado por Flaticon (Magnific)",
+  "aboutLicenseLabel": "Licencia MIT — Código fuente abierto disponible en GitHub"
 }

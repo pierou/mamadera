@@ -551,4 +551,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get feedbackGitHubHint =>
       'Requires a GitHub account. If you\'re not logged in, you\'ll be prompted.';
+
+  @override
+  String get aboutSectionTitle => 'About';
+
+  @override
+  String get aboutButtonTitle => 'Info & credits';
+
+  @override
+  String get aboutTitle => 'About Mamadera';
+
+  @override
+  String get aboutVersionLabel => 'Version';
+
+  @override
+  String get aboutDescription =>
+      'Privacy-first newborn tracking app — no telemetry, no cloud, your data stays on your device.';
+
+  @override
+  String get aboutAttributionsSectionTitle => 'Credits & attributions';
+
+  @override
+  String get aboutFlaticonCredit =>
+      'Splash icon provided by Flaticon (Magnific)';
+
+  @override
+  String get aboutLicenseLabel =>
+      'MIT License — Open source code available on GitHub';
 }

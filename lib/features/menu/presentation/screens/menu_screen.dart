@@ -84,6 +84,22 @@ class MenuScreen extends ConsumerWidget {
                 onTap: () => context.push('/terms-view'),
               ),
 
+              // About Section
+              const SizedBox(height: AppTheme.spacingXxl),
+              Text(
+                context.l.aboutSectionTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: Text(context.l.aboutButtonTitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/info'),
+              ),
+
               // Support Section
               const SizedBox(height: AppTheme.spacingXxl),
               Text(

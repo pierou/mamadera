@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/menu/presentation/screens/feedback_screen.dart';
+import '../../features/menu/presentation/screens/info_screen.dart';
 import '../../features/menu/presentation/screens/menu_screen.dart';
 import '../../features/onboarding/presentation/screens/terms_screen.dart';
 import '../../features/onboarding/presentation/widgets/terms_acceptance_dialog.dart';
@@ -118,6 +119,12 @@ final GoRouter router = GoRouter(
       path: '/feedback',
       name: 'feedback',
       builder: (context, state) => const FeedbackScreen(),
+    ),
+    // Info/About route (outside shell)
+    GoRoute(
+      path: '/info',
+      name: 'info',
+      builder: (context, state) => const InfoScreen(),
     ),
     ShellRoute(
       navigatorKey: shellNavigatorKey,

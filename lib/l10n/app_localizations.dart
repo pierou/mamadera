@@ -1101,6 +1101,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Nécessite un compte GitHub. Si vous n\'êtes pas connecté, on vous le demandera.'**
   String get feedbackGitHubHint;
+
+  /// No description provided for @aboutSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À propos'**
+  String get aboutSectionTitle;
+
+  /// No description provided for @aboutButtonTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informations et crédits'**
+  String get aboutButtonTitle;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À propos de Mamadera'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutVersionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Version'**
+  String get aboutVersionLabel;
+
+  /// No description provided for @aboutDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Application de suivi nouveau-née respectueuse de votre vie privée — sans télémétrie, sans cloud, vos données restent sur votre appareil.'**
+  String get aboutDescription;
+
+  /// No description provided for @aboutAttributionsSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Crédits et attributions'**
+  String get aboutAttributionsSectionTitle;
+
+  /// No description provided for @aboutFlaticonCredit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Icône splash fournie par Flaticon (Magnific)'**
+  String get aboutFlaticonCredit;
+
+  /// No description provided for @aboutLicenseLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Licence MIT — Code open source disponible sur GitHub'**
+  String get aboutLicenseLabel;
 }
 
 class _AppLocalizationsDelegate
