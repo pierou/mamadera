@@ -30,7 +30,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeButtonCaca => 'Pañal';
 
   @override
-  String get homeButtonDodo => 'Duermo';
+  String get homeButtonDodo => 'Sueño';
 
   @override
   String feedbackFeedingWithQuantity(Object subtype, Object quantity) {
@@ -44,7 +44,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String feedbackSleep(Object duration) {
-    return 'Duermo · $duration min';
+    return 'Sueño · $duration min';
   }
 
   @override

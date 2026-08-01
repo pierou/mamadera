@@ -10,7 +10,7 @@
   "homeButtonMiam": "Alimento",
   "homeButtonSante": "Salud",
   "homeButtonCaca": "Pañal",
-  "homeButtonDodo": "Duermo",
+  "homeButtonDodo": "Sueño",
 
   "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
   "@feedbackFeedingWithQuantity": {
@@ -25,7 +25,7 @@
       "subtype": {}
     }
   },
-  "feedbackSleep": "Duermo · {duration} min",
+  "feedbackSleep": "Sueño · {duration} min",
   "@feedbackSleep": {
     "placeholders": {
       "duration": {}
