@@ -35,32 +35,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _onboardingShown = false;
 
   @override
-  void initState() {
-    super.initState();
-    // If a baby already exists, mark onboarding as shown to prevent re-trigger
-    // when the widget is recreated by tab navigation.
-    final anyExists = ref.read(anyBabyExistsProvider);
-    if (anyExists.hasValue && anyExists.value == true) {
+  Widget build(BuildContext context) {
+    // Watch + listen to anyBabyExistsProvider in build().
+    // Riverpod requires listeners to be created during widget build, not initState.
+    final anyExistsAsync = ref.watch(anyBabyExistsProvider);
+
+    // Initialize onboarding state from current provider value (handles tab navigation).
+    if (_onboardingShown == false &&
+        anyExistsAsync.hasValue &&
+        anyExistsAsync.value! == true) {
       _onboardingShown = true;
     }
+
     // Listen for provider changes to handle cases where a baby is created
     // from another screen (e.g., Settings) while HomeScreen is mounted.
-    ref.listen<AsyncValue<bool>>(
-      anyBabyExistsProvider,
-      (previous, next) {
-        if (next.hasValue && next.value == true) {
-          setState(() {
-            _onboardingShown = true;
-          });
-        }
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Watch the async provider in build() — ref.listen is only valid here.
-    final anyExistsAsync = ref.watch(anyBabyExistsProvider);
+    ref.listen<AsyncValue<bool>>(anyBabyExistsProvider, (previous, next) {
+      if (!next.hasValue || !next.value!) return;
+      setState(() => _onboardingShown = true);
+    });
     if (anyExistsAsync.hasValue && !_onboardingShown) {
       final hasProfiles = anyExistsAsync.value!;
       if (!hasProfiles) {
