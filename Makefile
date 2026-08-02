@@ -1,4 +1,4 @@
-.PHONY: ci lint test build-android clean codegen check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration splash-create
+.PHONY: ci lint test build-android build-aab build-ipa clean codegen check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration splash-create
 
 ci: pub-get lint test check-coverage ## Run full local CI pipeline (aligned with GitHub Actions)
 pub-get:
@@ -10,8 +10,19 @@ test: pub-get
 	# Domain & Data (unit) + Presentation (widget) as per architecture rules
 	flutter test test/shared/ test/data/ test/presentation/ test/features/ test/core/ --coverage
 
+# Build targets for store submission
+# APK — F-Droid / sideloading (requires release signing env vars in CI)
 build-android:
 	flutter build apk --release
+
+# AAB — Google Play Store (App Bundle format, required since Feb 2021)
+build-aab:
+	flutter build appbundle --release
+
+# IPA — Apple App Store (creates archive; use Xcode or Transporter to upload)
+build-ipa:
+	 flutter build ipa --no-codesign
+	@echo "✅ Unsigned IPA created. Use Xcode 'Product → Archive' + Distribute for App Store submission."
 
 clean:
 	flutter clean && rm -rf coverage/ .dart_tool/ build/
