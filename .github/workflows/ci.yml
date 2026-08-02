@@ -132,7 +132,7 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/keystore.jks
 
-      - name: Build APK
+      - name: Build APK (F-Droid / sideload)
         run: |
           flutter pub get
           flutter build apk --release --split-debug-info=build/
@@ -146,8 +146,24 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: android-release
+          name: android-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Build AAB (Google Play)
+        run: |
+          flutter build appbundle --release --split-debug-info=build/
+        env:
+          KEYSTORE_PATH: android/app/keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload AAB
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
 
   # 4. 🍎 Build iOS (MacOS)
   build-ios:
@@ -197,5 +213,6 @@ jobs:
           gh release create "${GITHUB_REF#refs/tags/}" \
             --title "Release ${{ github.ref_name }}" \
             --generate-notes \
-            android-release/app-release.apk \
+            android-release-apk/app-release.apk \
+            android-release-aab/app-release.aab \
             ios-release/Runner.app
