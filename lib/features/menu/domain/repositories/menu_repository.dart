@@ -1,15 +1,15 @@
 /// Repository interface pour le module menu (paramètres : langue + thème)
 abstract class MenuRepository {
   /// Retourne le code de langue actuel (ex: 'fr', 'en').
-  String getCurrentLanguage();
+  Future<String> getCurrentLanguage();
 
-  /// Définit la langue.
+  /// Définit la langue et persiste le choix sur disque.
   Future<void> setLanguage(String languageCode);
 
   /// Retourne le mode de thème actuel (ex: 'system', 'light', 'dark').
-  String getCurrentThemeMode();
+  Future<String> getCurrentThemeMode();
 
-  /// Définit le mode de thème.
+  /// Définit le mode de thème et persiste le choix sur disque.
   Future<void> setThemeMode(String mode);
 
   /// Retourne la liste des langues supportées.
