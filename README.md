@@ -360,7 +360,7 @@ This project is licensed under the MIT License — see [LICENSE](.github/LICENSE
 
 ### 🤖 AI-Assisted Development
 
-This project was developed using a local instance of **Qwen 3.6 Coder 27B**, under the supervision of responsible parents. No cloud models were used — everything stayed on-machine, in line with the privacy principles this application defends.
+This project was developed using local instances of open weight models, under the supervision of responsible parents. No cloud models were used — everything stayed on-machine, in line with the privacy principles this application defends.
 
 ---
 
