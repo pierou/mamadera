@@ -84,16 +84,17 @@ jobs:
           MIN_COVERAGE=80
 
           # Clean coverage report (exclude generated/test files)
-          lcov --ignore-errors unused --remove coverage/lcov.info \
+          lcov --ignore-errors unused,empty --remove coverage/lcov.info \
             'lib/generated/*' \
             '*_freezed.dart' \
             '*.g.dart' \
             'test/*' \
             '/tmp/*' \
+            'lib/l10n/*' \
             -o coverage/lcov.info.cleaned 2>/dev/null || true
 
           # Extract actual line coverage from lcov --summary stdout
-          ACTUAL=$(lcov --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $2}' | cut -d'.' -f1)
+          ACTUAL=$(lcov --ignore-errors empty --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $2}' | cut -d'.' -f1)
 
           if [ "$ACTUAL" -ge $MIN_COVERAGE ]; then
             echo "✅ Coverage OK: ${ACTUAL}% (minimum: ${MIN_COVERAGE}%)"
