@@ -147,7 +147,7 @@ Your data is used **only** for:
 
 If you have privacy concerns or questions:
 
-- Open an issue on [GitHub](https://github.com/pvjio/mamadera/issues)
+- Open an issue on [GitHub](https://github.com/pierou/mamadera/issues)
 
 ## Data Processing
 

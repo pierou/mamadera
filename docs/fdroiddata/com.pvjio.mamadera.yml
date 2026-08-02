@@ -1,0 +1,31 @@
+# F-Droid metadata for mamadera
+# Submit this file to: https://github.com/f-droid/fdroiddata/tree/master/meta
+Package: com.pvjio.mamadera
+Name: Mamadera
+RepoURL: https://github.com/pierou/mamadera
+IssueTracker: https://github.com/pierou/mamadera/issues
+SourceCode: https://github.com/pierou/mamadera
+WebSite: https://github.com/pierou/mamadera#readm
+License: MIT
+
+AutoUpdateMode: Version v\d+\.\d+\.\d+
+UpdateCheckMode: Tags
+Version: 1.0.0
+VersionCode: 1
+
+Categories: Health & Fitness
+Summary: Privacy-first newborn tracking app (feedings, sleep, diapers)
+Description: Mamadera is a privacy-first newborn tracking app for parents who want to log their baby's feedings, sleep, diaper changes, and health routines — without any cloud dependency or telemetry. All data stays on your device with end-to-end encryption.
+
+MaintainerName: Pierre-Vincent Jacquier <pvjacquier@users.noreply.github.com>
+# Replace the email above with your actual contact if desired
+
+Builds:
+  - versionName: "1.0.0"
+    versionCode: 1
+    sdkVersions: android-34
+    gradleCommand: assembleRelease
+    output: app/build/outputs/apk/release/app-release.apk
+
+# Note: sqlcipher_flutter_libs uses an EOL tag but remains GPL-compatible.
+# F-Droid maintainers may request review of this dependency.

@@ -2,7 +2,7 @@
 
 **Privacy-first newborn tracking app.** Track your baby's feedings, sleep, diaper changes, and health routines — all stored locally on your device with end-to-end encryption. No cloud, no telemetry, no tracking.
 
-[![CI](https://github.com/pvjio/mamadera/actions/workflows/ci.yml/badge.svg)](https://github.com/pvjio/mamadera/actions/workflows/ci.yml)
+[![CI](https://github.com/pierou/mamadera/actions/workflows/ci.yml/badge.svg)](https://github.com/pierou/mamadera/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](.github/LICENSE)
 
 ---
@@ -139,7 +139,7 @@ Master key stored securely ← flutter_secure_storage (Keychain / Keystore)
 
 ```bash
 # Clone the repository
-git clone https://github.com/pvjio/mamadera.git
+git clone https://github.com/pierou/mamadera.git
 cd mamadera
 
 # Install dependencies & generate code

@@ -8,7 +8,7 @@ We take the security of **mamadera** seriously. If you believe you have found a 
 
 **Please do NOT report security vulnerabilities through public GitHub issues.**
 
-Instead, use the [Security Advisories](https://github.com/pvjio/mamadera/security/advisories) tab to submit a private report.
+Instead, use the [Security Advisories](https://github.com/pierou/mamadera/security/advisories) tab to submit a private report.
 
 ### What We Expect
 
@@ -101,8 +101,8 @@ Database.instance.save("password", encrypted);
 ## Security Updates
 
 Security updates are released promptly. Check:
-- [Releases](https://github.com/pvjio/mamadera/releases)
-- [Security Advisories](https://github.com/pvjio/mamadera/security/advisories)
+- [Releases](https://github.com/pierou/mamadera/releases)
+- [Security Advisories](https://github.com/pierou/mamadera/security/advisories)
 
 ## Third-Party Audits
 
