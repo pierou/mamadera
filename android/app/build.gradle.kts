@@ -6,11 +6,12 @@ plugins {
 
 // Release signing configuration
 // Reads keystore details from environment variables (set in CI or local env):
-//   KEYSTORE_PATH  — path to the .jks/.keystore file
+//   KEYSTORE_PATH  — path to the .jks/.keystore file (absolute path recommended)
 //   KEYSTORE_PASSWORD — password for the keystore
 //   KEY_ALIAS      — alias of the key inside the keystore
 //   KEY_PASSWORD   — password for the individual key
-val hasReleaseSigning = System.getenv("KEYSTORE_PATH").isNullOrEmpty() == false
+val keystorePath = System.getenv("KEYSTORE_PATH")
+val hasReleaseSigning = !keystorePath.isNullOrEmpty() && file(keystorePath).exists()
 
 android {
     namespace = "com.pvjio.mamadera"
