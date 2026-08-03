@@ -58,7 +58,3 @@ app.*.map.json
 .agents/agents/beast.agent.md
 .gitignore
 .agents/agents/Plan.agent.md
-docs/app-store-setup.md
-docs/google-play-setup.md
-docs/keystore-setup.md
-docs/SUBMISSION-CHECKLIST.md
