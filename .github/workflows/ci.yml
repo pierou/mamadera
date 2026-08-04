@@ -212,13 +212,38 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
+      - name: Verify downloaded artifacts
+        run: |
+          echo "=== Release directory listing ==="
+          ls -laR android-release-apk/ || true
+          ls -laR android-release-aab/ || true
+          ls -laR ios-release/ || true
+
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
+
+          FILES=()
+          for f in \
+            "android-release-apk/app-release.apk" \
+            "android-release-aab/app-release.aab"; do
+            if [ ! -f "$f" ]; then
+              echo "WARNING: $f not found, skipping"
+            else
+              FILES+=("$f")
+            fi
+          done
+
+          # iOS artifact is optional — only attach if it exists
+          if [ -f "ios-release/ios-Runner-app.zip" ]; then
+            FILES+=("ios-release/ios-Runner-app.zip")
+          else
+            echo "WARNING: ios-release/ios-Runner-app.zip not found, skipping"
+          fi
+
           gh release create "${GITHUB_REF#refs/tags/}" \
             --title "Release ${{ github.ref_name }}" \
             --generate-notes \
-            android-release-apk/app-release.apk \
-            android-release-aab/app-release.aab \
-            ios-release/ios-Runner-app.zip
+            "${FILES[@]}"
