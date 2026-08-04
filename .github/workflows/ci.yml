@@ -189,12 +189,17 @@ jobs:
 
         # flutter build ios appelle automatiquement pod install si nécessaire
 
-      - name: Upload IPA
+      - name: Archive Runner.app
+        run: |
+          cd build/ios/iphoneos
+          zip -r ../../../../ios-Runner-app.zip Runner.app
+
+      - name: Upload iOS artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: ios-release
-          path: build/ios/iphoneos/Runner.app
+          path: ios-Runner-app.zip
 
   # 5. 📦 Release GitHub (sur tag v*)
   release:
@@ -216,4 +221,4 @@ jobs:
             --generate-notes \
             android-release-apk/app-release.apk \
             android-release-aab/app-release.aab \
-            ios-release/Runner.app
+            ios-release/ios-Runner-app.zip
