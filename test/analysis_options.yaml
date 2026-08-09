@@ -1,0 +1,27 @@
+# Relaxed lint rules for test files.
+# Test code prioritizes readability over const correctness and tearoff style.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude: []
+  language:
+    strict-casts: true
+    strict-raw-types: true
+    strict-inference: true
+
+linter:
+  rules:
+    # Relaxed for test files — const is often impossible inside ProviderScope/pumpWidget.
+    prefer_const_constructors: false
+    prefer_const_declarations: false
+    unnecessary_const: false
+
+    # Test callbacks frequently use explicit lambdas for clarity (e.g. mock stubs).
+    unnecessary_lambdas: false
+
+    # Keep essential rules active in tests.
+    avoid_print: true
+    close_sinks: true
+    empty_statements: true
+    parameter_assignments: true
+    sort_child_properties_last: true

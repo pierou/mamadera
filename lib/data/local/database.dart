@@ -3,41 +3,41 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../core/services/encryption_migration.dart';
-import '../../core/services/encryption_service.dart';
+
 import 'app_db.dart';
 
-Future<LazyDatabase> _createConnection() async {
-  final dbFolder = await getApplicationDocumentsDirectory();
+/// Crée la connexion LazyDatabase vers le fichier SQLite local.
+/// Si [directoryPath] est fourni, utilise ce chemin sinon utilise path_provider.
+Future<LazyDatabase> _createConnection([String? directoryPath]) async {
+  final dbFolder = directoryPath != null
+      ? Directory(directoryPath)
+      : await getApplicationDocumentsDirectory();
   final file = File('${dbFolder.path}/mamadera.db');
 
   return LazyDatabase(() => NativeDatabase.createInBackground(file));
 }
 
-class DatabaseService {
-  DatabaseService._internal() {
-    _databaseFuture = _initDatabase();
-  }
-
-  factory DatabaseService() => _instance;
-
-  static final DatabaseService _instance = DatabaseService._internal();
-  late final Future<AppDatabase> _databaseFuture;
-
-  Future<AppDatabase> get database async {
-    return _databaseFuture;
-  }
-
-  /// Lance la migration des notes en clair vers les notes chiffrées.
-  /// Retourne le nombre de notes migrées.
-  static Future<int> runMigration(EncryptionService encryption) async {
-    final db = await _instance.database;
-    final migration = EncryptionMigration(db, encryption);
-    return migration.migratePlaintextNotes();
-  }
-
-  Future<AppDatabase> _initDatabase() async {
-    final connection = await _createConnection();
+/// Factory : crée une instance [AppDatabase] prête à l'emploi.
+/// Utilisée par le Riverpod provider et les tests (pas de singleton).
+/// Si [directoryPath] est fourni, utilise ce chemin sinon utilise path_provider.
+Future<AppDatabase> createAppDatabase({String? directoryPath}) async {
+    final connection = await _createConnection(directoryPath);
     return AppDatabase(connection);
   }
+
+/// Réinitialise la base de données en supprimant le fichier SQLite physique.
+/// La prochaine invocation de `createAppDatabase()` reconstruira une DB fraîche avec le schéma v4.
+/// Si [directoryPath] est fourni, utilise ce chemin sinon utilise path_provider.
+Future<void> resetDatabase({String? directoryPath}) async {
+  final dbFolder = directoryPath != null
+      ? Directory(directoryPath)
+      : await getApplicationDocumentsDirectory();
+  final file = File('${dbFolder.path}/mamadera.db');
+
+  if (!await file.exists()) {
+    return; // Pas de fichier à supprimer
+  }
+
+  await file.delete();
 }
+

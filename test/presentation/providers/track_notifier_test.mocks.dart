@@ -5,10 +5,10 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
 
-import 'package:mamadera/features/home/domain/entities/tracking_event.dart'
-    as _i4;
 import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart'
     as _i2;
+import 'package:mamadera/shared/domain/entities/tracking_event.dart' as _i4;
+import 'package:mamadera/shared/domain/entities/tracking_type.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -47,7 +47,7 @@ class MockTrackingRepository extends _i1.Mock
       ) as _i3.Future<List<_i4.TrackingEvent>>);
 
   @override
-  _i3.Future<List<_i4.TrackingEvent>> getEventsByType(String? type) =>
+  _i3.Future<List<_i4.TrackingEvent>> getEventsByType(_i5.TrackingType? type) =>
       (super.noSuchMethod(
         Invocation.method(
           #getEventsByType,
@@ -58,23 +58,25 @@ class MockTrackingRepository extends _i1.Mock
       ) as _i3.Future<List<_i4.TrackingEvent>>);
 
   @override
-  _i3.Future<int> insertEvent({
-    required String? type,
-    DateTime? timestamp,
-    double? duration,
-    String? notes,
-  }) =>
-      (super.noSuchMethod(
+  _i3.Future<int> insertEvent(_i4.TrackingEvent? event) => (super.noSuchMethod(
         Invocation.method(
           #insertEvent,
-          [],
-          {
-            #type: type,
-            #timestamp: timestamp,
-            #duration: duration,
-            #notes: notes,
-          },
+          [event],
         ),
         returnValue: _i3.Future<int>.value(0),
       ) as _i3.Future<int>);
+
+  @override
+  _i3.Future<DateTime?> getLastEventByTypeAndSubtype(
+    _i5.TrackingType? type, {
+    String? subtypeValue,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getLastEventByTypeAndSubtype,
+          [type],
+          {#subtypeValue: subtypeValue},
+        ),
+        returnValue: _i3.Future<DateTime?>.value(),
+      ) as _i3.Future<DateTime?>);
 }

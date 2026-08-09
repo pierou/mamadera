@@ -1,49 +1,97 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 
 import 'core/providers/encryption_provider.dart';
+import 'core/providers/locale_provider.dart';
+import 'core/providers/theme_provider.dart';
+import 'core/router.dart';
 import 'core/services/encryption_service.dart';
-import 'data/local/database.dart';
-import 'features/home/presentation/screens/home_screen.dart';
+import 'core/services/locale_service.dart';
+import 'core/theme.dart';
+import 'l10n/app_localizations.dart';
 
-void main() async {
-  // Assure que les bindings natifs sont initialisés avant Flutter
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialise la clé de chiffrement (flutter_secure_storage)
-  final encryption = EncryptionService();
-  await encryption.initialize();
-  // Migre les notes en clair vers le format chiffré (si première exécution)
-  try {
-    final migratedCount = await DatabaseService.runMigration(encryption);
-    if (migratedCount > 0) {
-      debugPrint('🔐 Migration: $migratedCount note(s) re-chiffrée(s).');
-    }
-  } catch (e) {
-    // La migration peut échouer si la table n'existe pas encore.
-    // Ce n'est pas bloquant : les nouvelles notes seront chiffrées à l'insertion.
-    debugPrint('⚠️ Migration ignorée: $e');
-  }
-
-  runApp(ProviderScope(
-    overrides: [
-      encryptionServiceProvider.overrideWithValue(encryption),
-    ],
-    child: const MyApp(),
-  ));
+Locale? _resolveLocale(AsyncValue<LocalePreference> localeState) {
+  return localeState.when(
+    data: (pref) => ui.Locale(pref.languageCode),
+    loading: () => null,
+    error: (_, __) => null,
+  );
 }
 
-class MyApp extends StatelessWidget {
+ThemeMode _resolveThemeMode(WidgetRef ref) {
+  final themeNotifier = ref.read(themeProvider.notifier);
+  return ref.watch(themeProvider).when(
+        data: (pref) => themeNotifier.resolveThemeMode(),
+        loading: () => ThemeMode.system,
+        error: (_, __) => ThemeMode.system,
+      );
+}
+
+Future<EncryptionService> _initializeEncryption() async {
+  final encryption = EncryptionService();
+  await encryption.initialize();
+  if (encryption.isUsingMemoryFallback) {
+    Logger().w('⚠️ Mode fallback: clé volatile en mémoire (pas de keyring disponible).');
+  }
+  return encryption;
+}
+
+void main() async {
+  FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
+
+  final encryption = await _initializeEncryption();
+  runApp(
+    ProviderScope(
+      overrides: [
+        encryptionServiceProvider.overrideWith((ref) async => encryption),
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
+
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = _resolveLocale(ref.watch(localeProvider));
+    final themeMode = _resolveThemeMode(ref);
+
+    return MaterialApp.router(
       title: 'Mamadera',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const HomeScreen(),
+      locale: locale,
+      supportedLocales: const [ui.Locale('fr'), ui.Locale('en'), ui.Locale('es')],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeMode,
+      routerConfig: router,
+      builder: (context, child) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          FlutterNativeSplash.remove();
+        });
+
+        // Wrap all screens with SafeArea to respect iOS notches and home indicators.
+        return SafeArea(
+          top: false, // Allow app bar/status bar area to extend to top
+          bottom: true,
+          left: true,
+          right: true,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
+

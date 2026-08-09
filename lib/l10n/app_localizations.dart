@@ -1,0 +1,1187 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_en.dart';
+import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'l10n/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('es'),
+    Locale('fr')
+  ];
+
+  /// No description provided for @appTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mamadera'**
+  String get appTitle;
+
+  /// No description provided for @navHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accueil'**
+  String get navHome;
+
+  /// No description provided for @navHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique'**
+  String get navHistory;
+
+  /// No description provided for @navMenu.
+  ///
+  /// In fr, this message translates to:
+  /// **'Menu'**
+  String get navMenu;
+
+  /// No description provided for @homeButtonMiam.
+  ///
+  /// In fr, this message translates to:
+  /// **'Miam'**
+  String get homeButtonMiam;
+
+  /// No description provided for @homeButtonSante.
+  ///
+  /// In fr, this message translates to:
+  /// **'Santé'**
+  String get homeButtonSante;
+
+  /// No description provided for @homeButtonCaca.
+  ///
+  /// In fr, this message translates to:
+  /// **'Caca'**
+  String get homeButtonCaca;
+
+  /// No description provided for @homeButtonDodo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dodo'**
+  String get homeButtonDodo;
+
+  /// No description provided for @feedbackFeedingWithQuantity.
+  ///
+  /// In fr, this message translates to:
+  /// **'{subtype} · {quantity}'**
+  String feedbackFeedingWithQuantity(Object subtype, Object quantity);
+
+  /// No description provided for @feedbackFeedingWithoutQuantity.
+  ///
+  /// In fr, this message translates to:
+  /// **'{subtype}'**
+  String feedbackFeedingWithoutQuantity(Object subtype);
+
+  /// No description provided for @feedbackSleep.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dodo · {duration} min'**
+  String feedbackSleep(Object duration);
+
+  /// No description provided for @feedbackPipi.
+  ///
+  /// In fr, this message translates to:
+  /// **'🟡 Pipi{color}'**
+  String feedbackPipi(Object color);
+
+  /// No description provided for @feedbackCaca.
+  ///
+  /// In fr, this message translates to:
+  /// **'🟤 Caca{color}'**
+  String feedbackCaca(Object color);
+
+  /// No description provided for @feedbackBoth.
+  ///
+  /// In fr, this message translates to:
+  /// **'🟡🟤 Pipi & Caca'**
+  String get feedbackBoth;
+
+  /// No description provided for @historyUpdatedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événement mis à jour avec succès'**
+  String get historyUpdatedSuccess;
+
+  /// No description provided for @historyDeletedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événement supprimé'**
+  String get historyDeletedSuccess;
+
+  /// No description provided for @historyUpdateError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la mise à jour : {error}'**
+  String historyUpdateError(Object error);
+
+  /// No description provided for @historyDeleteError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la suppression : {error}'**
+  String historyDeleteError(Object error);
+
+  /// No description provided for @durationPickerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée du sommeil'**
+  String get durationPickerTitle;
+
+  /// No description provided for @cancelButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get cancelButton;
+
+  /// No description provided for @confirmButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get confirmButton;
+
+  /// No description provided for @saveButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get saveButton;
+
+  /// No description provided for @durationFormatHoursMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{hours}h{minutes}'**
+  String durationFormatHoursMinutes(Object hours, Object minutes);
+
+  /// No description provided for @durationFormatMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{minutes} min'**
+  String durationFormatMinutes(Object minutes);
+
+  /// No description provided for @healthSubtypeDialogTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de soin'**
+  String get healthSubtypeDialogTitle;
+
+  /// No description provided for @healthSubtypeRequiredError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Veuillez sélectionner un type de soin'**
+  String get healthSubtypeRequiredError;
+
+  /// No description provided for @healthNettoyageYeux.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nettoyage des yeux'**
+  String get healthNettoyageYeux;
+
+  /// No description provided for @healthNettoyageNombril.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nettoyage du nombril'**
+  String get healthNettoyageNombril;
+
+  /// No description provided for @healthNettoyageVisage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nettoyage du visage'**
+  String get healthNettoyageVisage;
+
+  /// No description provided for @healthNettoyageNez.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nettoyage du nez'**
+  String get healthNettoyageNez;
+
+  /// No description provided for @healthVitamineD.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vitamine D'**
+  String get healthVitamineD;
+
+  /// No description provided for @healthVitamineK.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vitamine K'**
+  String get healthVitamineK;
+
+  /// No description provided for @reminderVitaminD.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vit. D'**
+  String get reminderVitaminD;
+
+  /// No description provided for @reminderVitaminK.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vit. K'**
+  String get reminderVitaminK;
+
+  /// No description provided for @reminderEyeCleaning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Yeux'**
+  String get reminderEyeCleaning;
+
+  /// No description provided for @reminderFaceCleaning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visage'**
+  String get reminderFaceCleaning;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hier'**
+  String get yesterday;
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **' jours'**
+  String get daysAgo;
+
+  /// No description provided for @lastTracked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière activité: '**
+  String get lastTracked;
+
+  /// No description provided for @wasteDialogTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de selle'**
+  String get wasteDialogTitle;
+
+  /// No description provided for @pipiColorSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Couleur du pipi'**
+  String get pipiColorSectionTitle;
+
+  /// No description provided for @cacaColorSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Couleur du caca'**
+  String get cacaColorSectionTitle;
+
+  /// No description provided for @wasteTypePipi.
+  ///
+  /// In fr, this message translates to:
+  /// **'🟡 Pipi'**
+  String get wasteTypePipi;
+
+  /// No description provided for @wasteTypeCaca.
+  ///
+  /// In fr, this message translates to:
+  /// **'🟤 Caca'**
+  String get wasteTypeCaca;
+
+  /// No description provided for @wasteTypeLesDeux.
+  ///
+  /// In fr, this message translates to:
+  /// **'🟡🟤 Les deux'**
+  String get wasteTypeLesDeux;
+
+  /// No description provided for @pipiColorIncolore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incolore'**
+  String get pipiColorIncolore;
+
+  /// No description provided for @pipiColorJauneClair.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jaune clair'**
+  String get pipiColorJauneClair;
+
+  /// No description provided for @pipiColorJauneFonce.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jaune foncé'**
+  String get pipiColorJauneFonce;
+
+  /// No description provided for @pipiColorRoseUrates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rose/Orange (urates)'**
+  String get pipiColorRoseUrates;
+
+  /// No description provided for @cacaColorMeconium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mécônium'**
+  String get cacaColorMeconium;
+
+  /// No description provided for @cacaColorVertOlive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vert olive'**
+  String get cacaColorVertOlive;
+
+  /// No description provided for @cacaColorJauneMoutarde.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jaune moutarde'**
+  String get cacaColorJauneMoutarde;
+
+  /// No description provided for @cacaColorJauneClair.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jaune clair'**
+  String get cacaColorJauneClair;
+
+  /// No description provided for @historyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique'**
+  String get historyTitle;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous'**
+  String get filterAll;
+
+  /// No description provided for @filterMiam.
+  ///
+  /// In fr, this message translates to:
+  /// **'Miam'**
+  String get filterMiam;
+
+  /// No description provided for @filterDodo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sommeil'**
+  String get filterDodo;
+
+  /// No description provided for @filterCaca.
+  ///
+  /// In fr, this message translates to:
+  /// **'Caca'**
+  String get filterCaca;
+
+  /// No description provided for @filterSante.
+  ///
+  /// In fr, this message translates to:
+  /// **'Santé'**
+  String get filterSante;
+
+  /// No description provided for @noEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement'**
+  String get noEvents;
+
+  /// No description provided for @errorMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur: {error}'**
+  String errorMessage(Object error);
+
+  /// No description provided for @typeLabelMiam.
+  ///
+  /// In fr, this message translates to:
+  /// **'Miam'**
+  String get typeLabelMiam;
+
+  /// No description provided for @typeLabelSommeil.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sommeil'**
+  String get typeLabelSommeil;
+
+  /// No description provided for @typeLabelPipi.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pipi'**
+  String get typeLabelPipi;
+
+  /// No description provided for @typeLabelCaca.
+  ///
+  /// In fr, this message translates to:
+  /// **'Caca'**
+  String get typeLabelCaca;
+
+  /// No description provided for @typeLabelPipiEtCaca.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pipi & Caca'**
+  String get typeLabelPipiEtCaca;
+
+  /// No description provided for @durationPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée: {minutes} min'**
+  String durationPrefix(Object minutes);
+
+  /// No description provided for @quantityPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantité : {quantity} {unit}'**
+  String quantityPrefix(Object quantity, Object unit);
+
+  /// No description provided for @editQuantitySectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantité'**
+  String get editQuantitySectionTitle;
+
+  /// No description provided for @quantityPickerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantité'**
+  String get quantityPickerTitle;
+
+  /// No description provided for @feedingQuantityLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantité'**
+  String get feedingQuantityLabel;
+
+  /// No description provided for @feedingQuantityHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionner la quantité'**
+  String get feedingQuantityHint;
+
+  /// No description provided for @feedingDialogTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivre l\'Alimentation'**
+  String get feedingDialogTitle;
+
+  /// No description provided for @feedingSubtypeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type d\'Alimentation'**
+  String get feedingSubtypeLabel;
+
+  /// No description provided for @feedingSubtypeNatural.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lait Maternel'**
+  String get feedingSubtypeNatural;
+
+  /// No description provided for @feedingSubtypeArtificial.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lait Artificiel'**
+  String get feedingSubtypeArtificial;
+
+  /// No description provided for @editDialogTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'événement'**
+  String get editDialogTitle;
+
+  /// No description provided for @editDateSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date et heure'**
+  String get editDateSectionTitle;
+
+  /// No description provided for @editDurationSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée'**
+  String get editDurationSectionTitle;
+
+  /// No description provided for @editTypeSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type'**
+  String get editTypeSectionTitle;
+
+  /// No description provided for @editPipiColorSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Couleur du pipi'**
+  String get editPipiColorSectionTitle;
+
+  /// No description provided for @editCacaColorSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Couleur du caca'**
+  String get editCacaColorSectionTitle;
+
+  /// No description provided for @editNotesLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notes'**
+  String get editNotesLabel;
+
+  /// No description provided for @editNotesHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une note...'**
+  String get editNotesHint;
+
+  /// No description provided for @minutesHintText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Minutes'**
+  String get minutesHintText;
+
+  /// No description provided for @minuteSuffix.
+  ///
+  /// In fr, this message translates to:
+  /// **'min'**
+  String get minuteSuffix;
+
+  /// No description provided for @deleteDialogTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer l\'événement'**
+  String get deleteDialogTitle;
+
+  /// No description provided for @deleteDialogContent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voulez-vous vraiment supprimer cet événement ? Cette action est irréversible.'**
+  String get deleteDialogContent;
+
+  /// No description provided for @deleteButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get deleteButton;
+
+  /// No description provided for @menuTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Menu'**
+  String get menuTitle;
+
+  /// No description provided for @settingsBodyText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paramètres'**
+  String get settingsBodyText;
+
+  /// No description provided for @languageSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langue'**
+  String get languageSectionTitle;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In fr, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languageFrench.
+  ///
+  /// In fr, this message translates to:
+  /// **'Français'**
+  String get languageFrench;
+
+  /// No description provided for @languageSpanish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Español'**
+  String get languageSpanish;
+
+  /// No description provided for @themeSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Thème'**
+  String get themeSectionTitle;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Système'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clair'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sombre'**
+  String get themeDark;
+
+  /// No description provided for @dangerZoneTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Zone de danger'**
+  String get dangerZoneTitle;
+
+  /// No description provided for @resetDatabaseButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser la base de données'**
+  String get resetDatabaseButton;
+
+  /// No description provided for @resetDatabaseConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser la base de données ?'**
+  String get resetDatabaseConfirm;
+
+  /// No description provided for @resetDatabaseWarningDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette action supprimera définitivement tous les profils bébé, événements trackés et paramètres de rappels. Seules vos préférences de langue et thème seront conservées.'**
+  String get resetDatabaseWarningDetail;
+
+  /// No description provided for @resetDatabaseSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Base de données réinitialisée. Une nouvelle base a été créée.'**
+  String get resetDatabaseSuccess;
+
+  /// No description provided for @resetDatabaseError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la réinitialisation : {error}'**
+  String resetDatabaseError(Object error);
+
+  /// No description provided for @cancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get cancel;
+
+  /// No description provided for @closeButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get closeButton;
+
+  /// No description provided for @babyProfilesSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bébés'**
+  String get babyProfilesSectionTitle;
+
+  /// No description provided for @babyProfilesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun profil bébé'**
+  String get babyProfilesEmpty;
+
+  /// No description provided for @babyProfilesError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec du chargement des profils'**
+  String get babyProfilesError;
+
+  /// No description provided for @addBaby.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un bébé'**
+  String get addBaby;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le profil'**
+  String get editProfile;
+
+  /// No description provided for @babyName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du bébé'**
+  String get babyName;
+
+  /// No description provided for @birthDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date de naissance'**
+  String get birthDate;
+
+  /// No description provided for @update.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get update;
+
+  /// No description provided for @activate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer'**
+  String get activate;
+
+  /// No description provided for @edit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get edit;
+
+  /// No description provided for @babyAddedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil bébé ajouté avec succès'**
+  String get babyAddedSuccess;
+
+  /// No description provided for @babyAddError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de l\'ajout du profil bébé'**
+  String get babyAddError;
+
+  /// No description provided for @babyUpdatedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil bébé modifié avec succès'**
+  String get babyUpdatedSuccess;
+
+  /// No description provided for @babyUpdateError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la modification du profil bébé'**
+  String get babyUpdateError;
+
+  /// No description provided for @babyDeletedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil bébé supprimé'**
+  String get babyDeletedSuccess;
+
+  /// No description provided for @babyDeleteError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la suppression du profil bébé'**
+  String get babyDeleteError;
+
+  /// No description provided for @babyAddedWithName.
+  ///
+  /// In fr, this message translates to:
+  /// **'\'{name}\' ajouté'**
+  String babyAddedWithName(Object name);
+
+  /// No description provided for @babyUpdatedWithName.
+  ///
+  /// In fr, this message translates to:
+  /// **'\'{name}\' modifié'**
+  String babyUpdatedWithName(Object name);
+
+  /// No description provided for @babyDeletedWithName.
+  ///
+  /// In fr, this message translates to:
+  /// **'\'{name}\' supprimé'**
+  String babyDeletedWithName(Object name);
+
+  /// No description provided for @deleteBabyConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le profil bébé ?'**
+  String get deleteBabyConfirm;
+
+  /// No description provided for @deleteBabyWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voulez-vous vraiment supprimer \'{formatName}\' ?'**
+  String deleteBabyWarning(Object formatName);
+
+  /// No description provided for @deleteBabyDataWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les événements trackés pour ce bébé seront également supprimés.'**
+  String get deleteBabyDataWarning;
+
+  /// No description provided for @delete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get delete;
+
+  /// No description provided for @dayOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'jour'**
+  String get dayOld;
+
+  /// No description provided for @daysOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'jours'**
+  String get daysOld;
+
+  /// No description provided for @monthOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'mois'**
+  String get monthOld;
+
+  /// No description provided for @monthsOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'mois'**
+  String get monthsOld;
+
+  /// No description provided for @yearOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'an'**
+  String get yearOld;
+
+  /// No description provided for @yearsOld.
+  ///
+  /// In fr, this message translates to:
+  /// **'ans'**
+  String get yearsOld;
+
+  /// No description provided for @onboardingWelcome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue sur Mamadera !'**
+  String get onboardingWelcome;
+
+  /// No description provided for @onboardingSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créez le premier profil bébé pour commencer.'**
+  String get onboardingSubtitle;
+
+  /// No description provided for @onboardingNameHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du bébé'**
+  String get onboardingNameHint;
+
+  /// No description provided for @onboardingSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil bébé créé !'**
+  String get onboardingSuccess;
+
+  /// No description provided for @onboardingError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la création du profil bébé'**
+  String get onboardingError;
+
+  /// No description provided for @babyNameAlreadyExists.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un bébé nommé « {name} » existe déjà.'**
+  String babyNameAlreadyExists(Object name);
+
+  /// No description provided for @termsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Conditions Générales'**
+  String get termsTitle;
+
+  /// No description provided for @termsAcceptButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'accepte'**
+  String get termsAcceptButton;
+
+  /// No description provided for @termsLoadingError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec du chargement des conditions. Veuillez réessayer.'**
+  String get termsLoadingError;
+
+  /// No description provided for @patchNotesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelles Fonctionnalités'**
+  String get patchNotesTitle;
+
+  /// No description provided for @patchNotesClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get patchNotesClose;
+
+  /// No description provided for @patchNotesDontShowAgain.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne plus afficher'**
+  String get patchNotesDontShowAgain;
+
+  /// No description provided for @patchNotesWhatChanged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui a changé'**
+  String get patchNotesWhatChanged;
+
+  /// No description provided for @patchNotesReleaseDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date de publication'**
+  String get patchNotesReleaseDate;
+
+  /// No description provided for @patchNotesSkipCreateLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plutard - Créer un profil bébé'**
+  String get patchNotesSkipCreateLater;
+
+  /// No description provided for @supportSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Support'**
+  String get supportSectionTitle;
+
+  /// No description provided for @feedbackButtonTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signaler un bug ou proposer une idée'**
+  String get feedbackButtonTitle;
+
+  /// No description provided for @feedbackTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Feedback'**
+  String get feedbackTitle;
+
+  /// No description provided for @feedbackTypeBug.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bug'**
+  String get feedbackTypeBug;
+
+  /// No description provided for @feedbackTypeError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Idée'**
+  String get feedbackTypeError;
+
+  /// No description provided for @feedbackTypeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type'**
+  String get feedbackTypeLabel;
+
+  /// No description provided for @feedbackTitleLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get feedbackTitleLabel;
+
+  /// No description provided for @feedbackTitleHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résumé court du problème ou de l\'idée'**
+  String get feedbackTitleHint;
+
+  /// No description provided for @feedbackDescriptionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description'**
+  String get feedbackDescriptionLabel;
+
+  /// No description provided for @feedbackDescriptionHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Décrivez le bug ou votre suggestion en détail…'**
+  String get feedbackDescriptionHint;
+
+  /// No description provided for @feedbackSubmitGitHub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumettre via GitHub'**
+  String get feedbackSubmitGitHub;
+
+  /// No description provided for @feedbackSubmitEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumettre par email'**
+  String get feedbackSubmitEmail;
+
+  /// No description provided for @feedbackValidationTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le titre est requis'**
+  String get feedbackValidationTitle;
+
+  /// No description provided for @feedbackValidationDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'La description est requise'**
+  String get feedbackValidationDescription;
+
+  /// No description provided for @feedbackLaunchError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir l\'application cible.'**
+  String get feedbackLaunchError;
+
+  /// No description provided for @feedbackGitHubHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nécessite un compte GitHub. Si vous n\'êtes pas connecté, on vous le demandera.'**
+  String get feedbackGitHubHint;
+
+  /// No description provided for @aboutSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À propos'**
+  String get aboutSectionTitle;
+
+  /// No description provided for @aboutButtonTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informations et crédits'**
+  String get aboutButtonTitle;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À propos de Mamadera'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutVersionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Version'**
+  String get aboutVersionLabel;
+
+  /// No description provided for @aboutDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Application de suivi nouveau-née respectueuse de votre vie privée — sans télémétrie, sans cloud, vos données restent sur votre appareil.'**
+  String get aboutDescription;
+
+  /// No description provided for @aboutAttributionsSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Crédits et attributions'**
+  String get aboutAttributionsSectionTitle;
+
+  /// No description provided for @aboutFlaticonCredit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Icône splash fournie par Flaticon (Magnific)'**
+  String get aboutFlaticonCredit;
+
+  /// No description provided for @aboutLicenseLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Licence MIT — Code open source disponible sur GitHub'**
+  String get aboutLicenseLabel;
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['en', 'es', 'fr'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'en':
+      return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
+  }
+
+  throw FlutterError(
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
+}

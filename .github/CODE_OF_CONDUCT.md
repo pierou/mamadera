@@ -34,7 +34,7 @@ Examples of unacceptable behavior include:
   professional setting
 
 ## Enforcement Responsibilities
-n
+
 Community leaders are responsible for clarifying and enforcing our standards of
 acceptable behavior and will take appropriate and fair corrective action in
 response to any behavior that they deem inappropriate, threatening, offensive,
@@ -46,7 +46,7 @@ This Code of Conduct applies within all community spaces, and also applies when
 an individual is officially representing the community in public spaces.
 
 ## Enforcement
-n
+
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement.
 

@@ -1,12 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/encryption_provider.dart';
 import '../../data/repositories/tracking_repository_impl.dart';
 import '../../domain/repositories/tracking_repository.dart';
 
-final trackingRepositoryProvider = Provider<TrackingRepository>(
-  (ref) {
-    final encryption = ref.watch(encryptionServiceProvider);
-    return TrackingRepositoryImpl(encryption: encryption);
+/// Le repository dépend de la DB asynchrone et du chiffrement asynchrone → FutureProvider.
+final trackingRepositoryProvider = FutureProvider<TrackingRepository>(
+  (ref) async {
+    final encryption = await ref.read(encryptionServiceProvider.future);
+    final database = await ref.watch(databaseProvider.future);
+    return TrackingRepositoryImpl(
+      encryption: encryption,
+      database: database,
+    );
   },
 );
+
+

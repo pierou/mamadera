@@ -1,0 +1,288 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/theme.dart';
+import '../../../../core/widgets/dialog_buttons.dart';
+import '../../../../shared/domain/entities/tracking_enums.dart';
+
+/// State interne du dialog de sélection de selle.
+class _WasteDialogState {
+  const _WasteDialogState({
+    this.selectedType = WasteType.caca,
+    this.pipiColor,
+    this.cacaColor,
+  });
+
+  final WasteType selectedType;
+  final PipiColor? pipiColor;
+  final CacaColor? cacaColor;
+
+  _WasteDialogState copyWith({
+    WasteType? selectedType,
+    PipiColor? pipiColor,
+    CacaColor? cacaColor,
+  }) {
+    return _WasteDialogState(
+      selectedType: selectedType ?? this.selectedType,
+      pipiColor: pipiColor ?? this.pipiColor,
+      cacaColor: cacaColor ?? this.cacaColor,
+    );
+  }
+
+  /// Retourne la valeur DB formatée pour wasteType.
+  String? get wasteTypeValue => selectedType.dbValue;
+
+  /// Retourne la valeur DB formatée pour color (pipe-délimité si lesDeux).
+  String? get colorDbValue {
+    switch (selectedType) {
+      case WasteType.pipi:
+        return pipiColor?.value;
+      case WasteType.caca:
+        return cacaColor?.value;
+      case WasteType.lesDeux:
+        final p = pipiColor?.value ?? '';
+        final c = cacaColor?.value ?? '';
+        if (p.isNotEmpty && c.isNotEmpty) {
+          return '$p|$c';
+        }
+        return p.isEmpty ? c : p;
+    }
+  }
+
+  /// Retourne les données à retourner au parent (typed enums).
+  Map<String, dynamic> toResult() {
+    return {
+      'wasteType': selectedType,
+      'pipiColor': pipiColor,
+      'cacaColor': cacaColor,
+    };
+  }
+}
+
+/// Provider pour gérer l'état du dialog de selle.
+final _wasteDialogStateProvider = NotifierProvider<_WasteDialogNotifier, _WasteDialogState>(
+  _WasteDialogNotifier.new,
+);
+
+class _WasteDialogNotifier extends Notifier<_WasteDialogState> {
+  @override
+  _WasteDialogState build() => const _WasteDialogState();
+
+  void setSelectedType(WasteType type) {
+    state = state.copyWith(selectedType: type);
+  }
+
+  void setPipiColor(PipiColor? color) {
+    state = state.copyWith(pipiColor: color);
+  }
+
+  void setCacaColor(CacaColor? color) {
+    state = state.copyWith(cacaColor: color);
+  }
+
+  void reset() {
+    state = const _WasteDialogState();
+  }
+}
+
+/// Widget pour sélectionner le type de selle et les couleurs associées.
+class WasteDialog extends ConsumerWidget {
+  const WasteDialog({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(_wasteDialogStateProvider);
+
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Titre
+            Text(
+              context.l.wasteDialogTitle,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+
+            // Sélection du type (chips radio)
+            const WasteDialogTypeChips(),
+            const SizedBox(height: 24),
+
+            // Section couleur pipi (conditionnelle)
+            if (state.selectedType == WasteType.pipi || state.selectedType == WasteType.lesDeux) ...[
+              Text(context.l.pipiColorSectionTitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const WasteDialogPipiColorChips(),
+            ],
+            if (state.selectedType == WasteType.lesDeux) const SizedBox(height: 24),
+
+            // Section couleur caca (conditionnelle)
+            if (state.selectedType == WasteType.caca || state.selectedType == WasteType.lesDeux) ...[
+              Text(context.l.cacaColorSectionTitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const WasteDialogCacaColorChips(),
+            ],
+
+            const SizedBox(height: 24),
+
+            DialogActionButtons(
+              onCancelPressed: () => Navigator.pop(context),
+              onConfirmPressed: () {
+                final state = ref.read(_wasteDialogStateProvider);
+                if (context.mounted) {
+                  Navigator.pop(context, state.toResult());
+                }
+              },
+              cancelLabel: context.l.cancelButton,
+              confirmLabel: context.l.confirmButton,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Widget pour les chips de sélection du type de selle.
+class WasteDialogTypeChips extends ConsumerWidget {
+  const WasteDialogTypeChips({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(_wasteDialogStateProvider);
+    return Wrap(spacing: 8, runSpacing: 8, children: WasteType.values.map((type) {
+      final isSelected = type == state.selectedType;
+      return _ChipRadio(
+        label: switch (type) {
+          WasteType.pipi => context.l.wasteTypePipi,
+          WasteType.caca => context.l.wasteTypeCaca,
+          WasteType.lesDeux => context.l.wasteTypeLesDeux,
+        },
+        isSelected: isSelected,
+        onTap: () => ref.read(_wasteDialogStateProvider.notifier).setSelectedType(type),
+      );
+    }).toList());
+  }
+}
+
+/// Widget pour les chips de couleur pipi.
+class WasteDialogPipiColorChips extends ConsumerWidget {
+  const WasteDialogPipiColorChips({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(_wasteDialogStateProvider);
+    return Wrap(spacing: 8, runSpacing: 8, children: pipiColors.map((c) {
+      final isSelected = c == state.pipiColor;
+      final cs = Theme.of(context).colorScheme;
+      return FilterChip(
+        label: Text(_resolvePipiLabel(context, c)),
+        selected: isSelected,
+        onSelected: (_) => ref.read(_wasteDialogStateProvider.notifier).setPipiColor(isSelected ? null : c),
+        backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.8),
+        selectedColor: Color(c.colorHex).withValues(alpha: 0.3),
+        checkmarkColor: cs.onPrimary,
+        labelStyle: TextStyle(
+          color: isSelected ? cs.onPrimary : null,
+        ),
+      );
+    }).toList());
+  }
+}
+
+/// Widget pour les chips de couleur caca.
+class WasteDialogCacaColorChips extends ConsumerWidget {
+  const WasteDialogCacaColorChips({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(_wasteDialogStateProvider);
+    return Wrap(spacing: 8, runSpacing: 8, children: cacaColors.map((c) {
+      final isSelected = c == state.cacaColor;
+      final cs = Theme.of(context).colorScheme;
+      return FilterChip(
+        label: Text(_resolveCacaLabel(context, c)),
+        selected: isSelected,
+        onSelected: (_) => ref.read(_wasteDialogStateProvider.notifier).setCacaColor(isSelected ? null : c),
+        backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.8),
+        selectedColor: Color(c.colorHex).withValues(alpha: 0.3),
+        checkmarkColor: cs.onPrimary,
+        labelStyle: TextStyle(
+          color: isSelected ? cs.onPrimary : null,
+        ),
+      );
+    }).toList());
+  }
+}
+
+
+class _ChipRadio extends StatelessWidget {
+  const _ChipRadio({required this.label, required this.isSelected, required this.onTap});
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Semantics(
+      label: '$label${isSelected ? ' (selected)' : ''}',
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.sante.withValues(alpha: 0.3) : Theme.of(context).cardColor.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: isSelected ? AppTheme.sante : Colors.transparent, width: 2),
+          ),
+          child: Text(
+            label,
+            style: textTheme.bodyMedium?.copyWith(color: textTheme.bodyMedium!.color),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Résout le label localisé pour un PipiColor via son labelKey.
+String _resolvePipiLabel(BuildContext ctx, PipiColor c) {
+  switch (c.labelKey) {
+    case 'pipiColorIncolore':
+      return ctx.l.pipiColorIncolore;
+    case 'pipiColorJauneClair':
+      return ctx.l.pipiColorJauneClair;
+    case 'pipiColorJauneFonce':
+      return ctx.l.pipiColorJauneFonce;
+    case 'pipiColorRoseUrates':
+      return ctx.l.pipiColorRoseUrates;
+    default:
+      return c.label;
+  }
+}
+
+/// Résout le label localisé pour un CacaColor via son labelKey.
+String _resolveCacaLabel(BuildContext ctx, CacaColor c) {
+  switch (c.labelKey) {
+    case 'cacaColorMeconium':
+      return ctx.l.cacaColorMeconium;
+    case 'cacaColorVertOlive':
+      return ctx.l.cacaColorVertOlive;
+    case 'cacaColorJauneMoutarde':
+      return ctx.l.cacaColorJauneMoutarde;
+    case 'cacaColorJauneClair':
+      return ctx.l.cacaColorJauneClair;
+    default:
+      return c.label;
+  }
+}

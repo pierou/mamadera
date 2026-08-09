@@ -1,4 +1,4 @@
-.PHONY: ci lint test build-android clean check-coverage audit-trivy audit-gitleaks
+.PHONY: ci lint test build-android build-aab build-ipa clean codegen check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration splash-create
 
 ci: pub-get lint test check-coverage ## Run full local CI pipeline (aligned with GitHub Actions)
 pub-get:
@@ -8,23 +8,53 @@ lint: pub-get
 	flutter analyze --fatal-infos --fatal-warnings
 test: pub-get
 	# Domain & Data (unit) + Presentation (widget) as per architecture rules
-	flutter test test/domain/ test/data/ test/presentation/ --coverage
+	flutter test test/shared/ test/data/ test/presentation/ test/features/ test/core/ --coverage
 
+# Build targets for store submission
+# APK — F-Droid / sideloading (requires release signing env vars in CI)
 build-android:
 	flutter build apk --release
+
+# AAB — Google Play Store (App Bundle format, required since Feb 2021)
+build-aab:
+	flutter build appbundle --release
+
+# IPA — Apple App Store (creates archive; use Xcode or Transporter to upload)
+build-ipa:
+	 flutter build ipa --no-codesign
+	@echo "✅ Unsigned IPA created. Use Xcode 'Product → Archive' + Distribute for App Store submission."
 
 clean:
 	flutter clean && rm -rf coverage/ .dart_tool/ build/
 
 # Optional: enforce minimum coverage threshold locally (now part of ci)
 check-coverage: test
-	@command -v lcov >/dev/null 2>&1 || { echo "❌ lcov not installed. Run: sudo apt-get install -y lcov"; exit 1; }
-	@lcov --remove coverage/lcov.info \
-		'lib/generated/*' \
-		'test/*' \
-		'/tmp/*' \
-		-o coverage/lcov.info.cleaned 2>/dev/null || true
-	@grep "lines\%" coverage/lcov.info.cleaned | awk '{print $$4}' | cut -d'.' -f1 | xargs -I {} sh -c '[ "{}" -ge 80 ] && echo "✅ Coverage ≥ 80%: {}%" || (echo "❌ Coverage below 80%: {}%" && exit 1)'
+	@MIN_COVERAGE=80; \
+	command -v lcov >/dev/null 2>&1 || { echo "❌ lcov not installed. Run: sudo apt-get install -y lcov"; exit 1; }; \
+	lcov --ignore-errors unused,empty --remove coverage/lcov.info 'lib/generated/*' '*_freezed.dart' '*.g.dart' 'test/*' '/tmp/*' 'lib/l10n/*' -o coverage/lcov.info.cleaned; \
+	ACTUAL=$$(lcov --ignore-errors empty --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $$2}' | cut -d'.' -f1); \
+	echo "Actual: $${ACTUAL}% / Required: $${MIN_COVERAGE}%"; \
+	if [ "$${ACTUAL}" -ge $${MIN_COVERAGE} ]; then \
+		echo "✅ Coverage OK: $${ACTUAL}% (minimum: $${MIN_COVERAGE}%)"; \
+	else \
+		echo "❌ Coverage failure!"; \
+		echo "   Actual coverage:  $${ACTUAL}%"; \
+		echo "   Required minimum: $${MIN_COVERAGE}%"; \
+		echo "To fix this, add tests for untested code."; \
+		exit 1; \
+	fi
+
+# 🏗️ Code generation for freezed, drift, json_serializable models
+codegen:
+	@echo "Running build_runner..."
+	dart run build_runner build --delete-conflicting-outputs
+	@echo "✅ Code generation complete. Run 'make lint' to verify."
+
+# 🎨 Regenerate native splash screen assets (Android drawables + iOS launch images)
+splash-create:
+	@echo "Regenerating splash screen assets from pubspec.yaml config..."
+	dart run flutter_native_splash:create
+	@echo "✅ Splash assets regenerated."
 
 # 🔍 Security audit helpers (run these before pushing to catch CI failures)
 audit-trivy:
@@ -34,4 +64,39 @@ audit-trivy:
 audit-gitleaks:
 	@command -v gitleaks >/dev/null 2>&1 || { echo "⚠️ gitleaks not installed. Install from https://github.com/gitleaks/gitleaks"; exit 0; }
 	gitleaks detect --verbose --log-opts="--all"
+
+# 📝 Generate patch notes from git Conventional Commits
+patch-notes:
+	@command -v python3 >/dev/null 2>&1 || { echo "⚠️ python3 not installed."; exit 1; }
+	@VERSION=$(VERSION) && \
+	DATE=$(DATE) && \
+	LANG=$(LANG) && \
+	OUTPUT_DIR=$(OUTPUT_DIR) && \
+	python3 scripts/generate_patch_notes.py \
+		--version="$${VERSION}" \
+		--date="$${DATE}" \
+		--lang="$${LANG:-en}" \
+		--output-dir="$${OUTPUT_DIR:-assets/patch_notes}"
+
+# 🔍 UI rules validation (accessibility, dark mode, dynamic type)
+check-ui: pub-get
+	@echo "🎨 Checking UI rules..."
+	@# Universal checks
+	@grep -rn "Colors\.white\b\|Colors\.black\b" lib/features --include="*.dart" | grep -v "theme.dart" | grep -v "colorScheme" | grep -v "ignore_for_file" && echo "❌ Found hardcoded Colors.white/black in presentation code" || echo "✅ No hardcoded white/black colors"
+	@# Dark mode compliance - check for hardcoded colors in presentation widgets
+	@grep -rn "Colors\.grey\.shade\|Colors\.red\.shade" lib/features --include="*.dart" | grep -v "ignore_for_file" && echo "⚠️ Found hardcoded shade colors (consider theme-based)" || echo "✅ No hardcoded shade colors"
+	@# Font size checks
+	@grep -rn "fontSize:" lib/features --include="*.dart" | grep -v "theme.dart" | grep -v "ignore_for_file" | head -20
+	@echo "✅ UI rules check complete"
+
+# 📱 Integration tests (run on iOS simulator or CI device)
+integration-test-simulator:
+	@echo "📱 Running integration tests on connected iOS simulator..."
+	flutter test integration_test/
+
+ci-integration: pub-get
+	@echo "🤖 Running full integration test suite (CI mode)..."
+	# Integration Test API tests (no device required — runs in VM)
+	flutter test integration_test/
+
 

@@ -1,75 +1,64 @@
 # Privacy Policy 🛡️
 
-**Last Updated**: 2026-06-05
+**Last Updated**: 2026-08-02
 
 ## Introduction
 
-**mamadera** is built with privacy as a fundamental right, not an optional feature. This privacy policy explains our commitment to protecting your data and your newborn's information.
+**mamadera** is a privacy-first newborn tracking app. All data stays on your device — there is no cloud, no analytics, no telemetry. This privacy policy explains our commitment to protecting your data and your newborn's information.
 
 ## Our Philosophy
 
 ### Privacy-First by Design
 
 - 🚫 **No analytics** or tracking (ever)
-- 🚫 **No telemetry** or crash reporting to cloud
-- 🚫 **No third-party SDKs** that collect data
-- ✅ **Local-first architecture** - all data stays on your device
-- ✅ **Open source** - code is transparent and auditable
-- ✅ **User control** - you own your data completely
+- 🚫 **No telemetry** or crash reporting
+- 🚫 **No network calls** — the app is fully offline
+- ✅ **Local-only storage** — all data stays on your device
+- ✅ **Open source** — code is transparent and auditable
+- ✅ **User control** — you own your data completely
 
-## Data Collection
+## What Data We Store
 
-### What We Collect
+### Local-Only Data
 
-**mamadera does NOT collect:**
-- No personal information
-- No device identifiers
-- No usage statistics
-- No location data
-- No advertising IDs
+All data is stored locally on your device using an encrypted SQLite database (Drift). We store:
 
-**Data stored locally on your device:**
-- Feed times and duration
-- Sleep patterns
-- Diaper changes
-- Growth measurements (weight, height)
-- Developmental milestones
-- Notes and observations
+- **Baby profiles** — name, birth date, active status
+- **Feeding events** — type (breast/bottle), timestamp, duration, volume in ml
+- **Sleep events** — timestamp, duration in minutes
+- **Diaper events** — timestamp, waste type (urine, stool, both), stool color
+- **Health events** — timestamp, health subtype, encrypted notes
+- **Reminder settings** — enabled/disabled state, dismissed timestamps
 
-### How We Use Your Data
+### Encrypted Fields
 
-Your data is used **only** for:
-- Displaying in your app interface
-- Calculating statistics locally
-- Generating reports for your personal use
-- Enabling data export (your choice)
+- **Notes** — user-entered free-text notes on tracking events are encrypted at rest using AES-GCM via `flutter_secure_storage`
+
+## What We Do NOT Collect or Store
+
+- ❌ No personal information (name is stored only locally)
+- ❌ No device identifiers
+- ❌ No usage statistics or analytics
+- ❌ No location data
+- ❌ No advertising IDs
+- ❌ No cloud backups or sync
+- ❌ No third-party SDKs that collect data
+- ❌ No photos
+- ❌ No growth measurements (weight, height)
+- ❌ No developmental milestones
 
 ## Data Storage & Security
 
-### Local Storage
+### Local Database
 
-- **Database**: Drift (SQLite) - encrypted for sensitive data
-- **Secure Storage**: Flutter Secure Storage - keys and passwords
-- **No Cloud Sync**: By default, your data never leaves your device
+- **Engine**: Drift (SQLite)
+- **Encryption**: SQLCipher for database-level encryption
+- **Sensitive fields**: Notes encrypted with AES-GCM using keys from `flutter_secure_storage`
+- **No cloud sync**: Your data never leaves your device
 
-### Encryption
+### Backup & Export
 
-- Sensitive data (notes, medical info) encrypted at rest
-- Export files can be password-protected
-- All data accessible only to you via biometric or passcode
-
-### Backup Options
-
-**Local Export Only**:
-- JSON format (encrypted option available)
-- CSV format (plain text)
-- User-controlled when and how to export
-
-**Cloud Backup (Opt-In)**:
-- Only if you explicitly enable it
-- Uses your password to derive encryption keys
-- You control what gets synced
-- Can be disabled at any time
+mamadera provides **no automatic backups**. You can export your data manually if needed.
 
 ## Permissions
 
@@ -77,97 +66,85 @@ Your data is used **only** for:
 
 | Permission | Required | Purpose |
 |------------|----------|---------|
-| Camera | Optional | Photo diary (user consent) |
-| Storage | Optional | Export/import data |
 | Notifications | Optional | Reminders (user consent) |
+| Internet | Not used | Never |
+| Camera | Not used | Never |
+| Microphone | Not used | Never |
 | Location | Not used | Never |
 | Contacts | Not used | Never |
+| Storage/Files | Not used | Never |
 
-### Permission Request Flow
-
-1. Permission requested only when feature is needed
-2. Clear explanation of why it's needed
-3. User can deny without affecting core functionality
-4. No persistent request if denied
+The app does not request any permissions by default. No Android or iOS permissions are declared in the manifest files.
 
 ## Data Retention
 
 - **Forever**: Data remains on your device until you delete it
-- **Configurable**: Auto-delete old data (e.g., after 12 months)
 - **No automatic deletion**: You control when data is removed
+- **No remote deletion**: There is no server, so no data can be deleted remotely
 
 ## Third-Party Services
 
-### Services We DO NOT Use
+### Services We Do NOT Use
 
 - ❌ Google Analytics
-- ❌ Firebase Crashlytics
+- ❌ Firebase / Crashlytics
 - ❌ Facebook SDK
 - ❌ Ad networks
 - ❌ Marketing platforms
 - ❌ Data brokers
+- ❌ Cloud storage
 
-### Services We MAY Use (Explicitly Opt-In)
+### Dependencies
 
-- Cloud backup (if enabled by user)
-- Photo storage (if user chooses)
-- Data visualization (if user chooses)
+We use only the following third-party packages, all of which are offline-only:
+
+| Package | Purpose | Network Access |
+|---------|---------|----------------|
+| `drift` | Local SQLite database | None |
+| `encrypt` | AES-GCM encryption | None |
+| `flutter_secure_storage` | Secure key storage | None |
+| `flutter_riverpod` | State management | None |
+| `go_router` | Routing | None |
+| `logger` | Logging | None |
+| `url_launcher` | Opening URLs (e.g. GitHub) | Only when explicitly triggered by user |
+| `package_info_plus` | Reading app version | None |
+| `path_provider` | File paths | None |
+| `intl` / `flutter_localizations` | i18n (EN/FR/ES) | None |
+| `markdown` | Rendering terms of service | None |
 
 ## Your Rights
 
-### Data Rights (GDPR/CCPA/COPPA Compliant)
-
-- **Access**: View all your data anytime
-- **Export**: Download your data in common formats
-- **Correction**: Edit any information
-- **Deletion**: Permanently remove all data
-- **Portability**: Move data to another app
-
-### How to Exercise Your Rights
-
-- **View/Export**: Settings → Data → Export
-- **Delete**: Settings → Data → Clear All
-- **Notifications**: Settings → Privacy → Manage Permissions
+- **View**: All your data is visible in the app at any time
+- **Edit**: You can modify any tracking event or baby profile
+- **Delete**: You can remove all data from the app
+- **Export**: Data export is available through the app's settings
 
 ## Children's Privacy
 
-### COPPA Compliance
-
-- mamadera is designed for parents, not children
-- No children's data is collected beyond newborn activity tracking
+- mamadera is designed for parents and caregivers, not children
+- The only data collected is newborn activity tracking (feeding, sleep, diapers, health)
+- No data is transmitted anywhere
 - No marketing to minors
-- Parental consent required for all features
 
 ## Changes to This Policy
 
-- Any changes will be noted in the app
-- Significant changes require your explicit consent
-- Policy updates documented in CHANGELOG.md
+- Any changes will be noted in the app's patch notes
+- Significant changes will be communicated before taking effect
 
 ## Contact Us
 
 If you have privacy concerns or questions:
 
-- Email: privacy@mamadera.dev (replace with actual)
-- GitHub Issues: https://github.com/pierou/mamadera/
+- Open an issue on [GitHub](https://github.com/pierou/mamadera/issues)
 
-## Data Processing
-
-### We Are a Data Processor, Not Controller
-
-- You (the parent) control your data
-- We provide tools to manage it
-- No data processing for third parties
-- No data monetization
-
-## Commitment to Privacy
+## Our Commitment
 
 **mamadera believes that:**
 
 1. Privacy is a human right
 2. Parents should control their children's data
 3. Open source enables trust through transparency
-4. Local-first architecture is the most privacy-preserving
+4. Local-first architecture is the most privacy-preserving approach
 5. No tracking is better than any privacy policy
 
 ---

@@ -69,9 +69,11 @@ jobs:
       - name: Run tests
         run: |
           flutter test \
-            test/domain/ \
             test/data/ \
             test/presentation/ \
+            test/core \
+            test/features \
+            test/shared \
           --coverage
 
       - name: Install lcov tools
@@ -79,15 +81,32 @@ jobs:
 
       - name: Check Coverage Threshold
         run: |
+          MIN_COVERAGE=80
+
           # Clean coverage report (exclude generated/test files)
-          lcov --remove coverage/lcov.info \
+          lcov --ignore-errors unused,empty --remove coverage/lcov.info \
             'lib/generated/*' \
+            '*_freezed.dart' \
+            '*.g.dart' \
             'test/*' \
             '/tmp/*' \
+            'lib/l10n/*' \
             -o coverage/lcov.info.cleaned 2>/dev/null || true
-            
-          # Verify threshold ≥ 80%
-          grep "lines\%" coverage/lcov.info.cleaned | awk '{print $$4}' | cut -d'.' -f1 | xargs -I {} sh -c '[ "{}" -ge 80 ] && echo "✅ Coverage ≥ 80%: {}%" || (echo "❌ Coverage below 80%: {}%" && exit 1)'
+
+          # Extract actual line coverage from lcov --summary stdout
+          ACTUAL=$(lcov --ignore-errors empty --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $2}' | cut -d'.' -f1)
+
+          if [ "$ACTUAL" -ge $MIN_COVERAGE ]; then
+            echo "✅ Coverage OK: ${ACTUAL}% (minimum: ${MIN_COVERAGE}%)"
+          else
+            echo "❌ Coverage failure!"
+            echo "   Actual coverage:  ${ACTUAL}%"
+            echo "   Required minimum: ${MIN_COVERAGE}%"
+            echo ""
+            echo "To fix this, add tests for untested code or run locally with:"
+            echo "  make check-coverage"
+            exit 1
+          fi
 
   # 3. 🤖 Build Android (Reproductible & Signé)
   build-android:
@@ -114,12 +133,12 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/keystore.jks
 
-      - name: Build APK
+      - name: Build APK (F-Droid / sideload)
         run: |
           flutter pub get
           flutter build apk --release --split-debug-info=build/
         env:
-          KEYSTORE_PATH: android/app/keystore.jks
+          KEYSTORE_PATH: ${{ startsWith(github.ref, 'refs/tags/') && format('{0}/android/app/keystore.jks', github.workspace) || '' }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -128,8 +147,24 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: android-release
+          name: android-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Build AAB (Google Play)
+        run: |
+          flutter build appbundle --release --split-debug-info=build/
+        env:
+          KEYSTORE_PATH: ${{ startsWith(github.ref, 'refs/tags/') && format('{0}/android/app/keystore.jks', github.workspace) || '' }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload AAB
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
 
   # 4. 🍎 Build iOS (MacOS)
   build-ios:
@@ -154,12 +189,17 @@ jobs:
 
         # flutter build ios appelle automatiquement pod install si nécessaire
 
-      - name: Upload IPA
+      - name: Archive Runner.app
+        run: |
+          cd build/ios/iphoneos
+          zip -r ../../../../ios-Runner-app.zip Runner.app
+
+      - name: Upload iOS artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: ios-release
-          path: build/ios/iphoneos/Runner.app
+          path: ios-Runner-app.zip
 
   # 5. 📦 Release GitHub (sur tag v*)
   release:
@@ -169,15 +209,46 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout repo (needed for --generate-notes)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
+
+      - name: Verify downloaded artifacts
+        run: |
+          echo "=== Release directory listing ==="
+          ls -laR android-release-apk/ || true
+          ls -laR android-release-aab/ || true
+          ls -laR ios-release/ || true
 
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
+
+          FILES=()
+          for f in \
+            "android-release-apk/app-release.apk" \
+            "android-release-aab/app-release.aab"; do
+            if [ ! -f "$f" ]; then
+              echo "WARNING: $f not found, skipping"
+            else
+              FILES+=("$f")
+            fi
+          done
+
+          # iOS artifact is optional — only attach if it exists
+          if [ -f "ios-release/ios-Runner-app.zip" ]; then
+            FILES+=("ios-release/ios-Runner-app.zip")
+          else
+            echo "WARNING: ios-release/ios-Runner-app.zip not found, skipping"
+          fi
+
           gh release create "${GITHUB_REF#refs/tags/}" \
             --title "Release ${{ github.ref_name }}" \
-            --notes "Build reproductible. Voir CHANGELOG.md" \
-            android-release/app-release.apk \
-            ios-release/Runner.app
+            --generate-notes \
+            "${FILES[@]}"

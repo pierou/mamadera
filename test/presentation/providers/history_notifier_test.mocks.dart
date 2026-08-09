@@ -5,9 +5,10 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
 
-import 'package:mamadera/core/entities/tracking_event.dart' as _i4;
 import 'package:mamadera/features/history/domain/repositories/history_repository.dart'
     as _i2;
+import 'package:mamadera/shared/domain/entities/tracking_event.dart' as _i4;
+import 'package:mamadera/shared/domain/entities/tracking_type.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -34,24 +35,55 @@ class MockHistoryRepository extends _i1.Mock implements _i2.HistoryRepository {
   }
 
   @override
-  _i3.Future<List<_i4.TrackingEvent>> getAllEventsOrdered() =>
+  _i3.Future<List<_i4.TrackingEvent>> getAllEventsOrdered({String? babyId}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAllEventsOrdered,
           [],
+          {#babyId: babyId},
         ),
         returnValue:
             _i3.Future<List<_i4.TrackingEvent>>.value(<_i4.TrackingEvent>[]),
       ) as _i3.Future<List<_i4.TrackingEvent>>);
 
   @override
-  _i3.Future<List<_i4.TrackingEvent>> getEventsByType(String? type) =>
+  _i3.Future<List<_i4.TrackingEvent>> getEventsByType(
+    _i5.TrackingType? type, {
+    String? babyId,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getEventsByType,
           [type],
+          {#babyId: babyId},
         ),
         returnValue:
             _i3.Future<List<_i4.TrackingEvent>>.value(<_i4.TrackingEvent>[]),
       ) as _i3.Future<List<_i4.TrackingEvent>>);
+
+  @override
+  _i3.Future<bool> updateEvent({
+    required int? id,
+    required _i4.TrackingEvent? event,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateEvent,
+          [],
+          {
+            #id: id,
+            #event: event,
+          },
+        ),
+        returnValue: _i3.Future<bool>.value(false),
+      ) as _i3.Future<bool>);
+
+  @override
+  _i3.Future<bool> deleteEvent(int? id) => (super.noSuchMethod(
+        Invocation.method(
+          #deleteEvent,
+          [id],
+        ),
+        returnValue: _i3.Future<bool>.value(false),
+      ) as _i3.Future<bool>);
 }

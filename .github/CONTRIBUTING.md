@@ -105,7 +105,7 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ## ❓ Questions?
 
-Open an issue or discuss in the [Discussions](https://github.com/your-username/mamadera/discussions) tab.
+Open an issue or discuss in the [Discussions](https://github.com/pierou/mamadera/discussions) tab.
 
 ---
 

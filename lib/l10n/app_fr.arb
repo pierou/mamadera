@@ -1,0 +1,303 @@
+{
+  "@@locale": "fr",
+
+  "appTitle": "Mamadera",
+
+  "navHome": "Accueil",
+  "navHistory": "Historique",
+  "navMenu": "Menu",
+
+  "homeButtonMiam": "Miam",
+  "homeButtonSante": "Santé",
+  "homeButtonCaca": "Caca",
+  "homeButtonDodo": "Dodo",
+
+  "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
+  "@feedbackFeedingWithQuantity": {
+    "placeholders": {
+      "subtype": {},
+      "quantity": {}
+    }
+  },
+  "feedbackFeedingWithoutQuantity": "{subtype}",
+  "@feedbackFeedingWithoutQuantity": {
+    "placeholders": {
+      "subtype": {}
+    }
+  },
+  "feedbackSleep": "Dodo · {duration} min",
+  "@feedbackSleep": {
+    "placeholders": {
+      "duration": {}
+    }
+  },
+  "feedbackPipi": "🟡 Pipi{color}",
+  "@feedbackPipi": {
+    "placeholders": {
+      "color": {}
+    }
+  },
+  "feedbackCaca": "🟤 Caca{color}",
+  "@feedbackCaca": {
+    "placeholders": {
+      "color": {}
+    }
+  },
+  "feedbackBoth": "🟡🟤 Pipi & Caca",
+
+
+  "historyUpdatedSuccess": "Événement mis à jour avec succès",
+  "historyDeletedSuccess": "Événement supprimé",
+  "historyUpdateError": "Échec de la mise à jour : {error}",
+  "@historyUpdateError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "historyDeleteError": "Échec de la suppression : {error}",
+  "@historyDeleteError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+
+  "durationPickerTitle": "Durée du sommeil",
+  "cancelButton": "Annuler",
+  "confirmButton": "Confirmer",
+  "saveButton": "Enregistrer",
+  "@durationFormatHoursMinutes": {
+    "placeholders": {
+      "hours": {},
+      "minutes": {}
+    }
+  },
+  "durationFormatHoursMinutes": "{hours}h{minutes}",
+  "@durationFormatMinutes": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "durationFormatMinutes": "{minutes} min",
+
+  "healthSubtypeDialogTitle": "Type de soin",
+
+  "healthSubtypeRequiredError": "Veuillez sélectionner un type de soin",
+
+  "healthNettoyageYeux": "Nettoyage des yeux",
+  "healthNettoyageNombril": "Nettoyage du nombril",
+  "healthNettoyageVisage": "Nettoyage du visage",
+  "healthNettoyageNez": "Nettoyage du nez",
+  "healthVitamineD": "Vitamine D",
+  "healthVitamineK": "Vitamine K",
+
+  "reminderVitaminD": "Vit. D",
+  "reminderVitaminK": "Vit. K",
+  "reminderEyeCleaning": "Yeux",
+  "reminderFaceCleaning": "Visage",
+
+  "yesterday": "Hier",
+  "daysAgo": " jours",
+  "lastTracked": "Dernière activité: ",
+
+  "wasteDialogTitle": "Type de selle",
+  "pipiColorSectionTitle": "Couleur du pipi",
+  "cacaColorSectionTitle": "Couleur du caca",
+
+  "wasteTypePipi": "🟡 Pipi",
+  "wasteTypeCaca": "🟤 Caca",
+  "wasteTypeLesDeux": "🟡🟤 Les deux",
+
+  "pipiColorIncolore": "Incolore",
+  "pipiColorJauneClair": "Jaune clair",
+  "pipiColorJauneFonce": "Jaune foncé",
+  "pipiColorRoseUrates": "Rose/Orange (urates)",
+
+  "cacaColorMeconium": "Mécônium",
+  "cacaColorVertOlive": "Vert olive",
+  "cacaColorJauneMoutarde": "Jaune moutarde",
+  "cacaColorJauneClair": "Jaune clair",
+
+  "historyTitle": "Historique",
+  "filterAll": "Tous",
+  "filterMiam": "Miam",
+  "filterDodo": "Sommeil",
+  "filterCaca": "Caca",
+  "filterSante": "Santé",
+
+  "noEvents": "Aucun événement",
+  "@errorMessage": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "errorMessage": "Erreur: {error}",
+
+  "typeLabelMiam": "Miam",
+  "typeLabelSommeil": "Sommeil",
+  "typeLabelPipi": "Pipi",
+  "typeLabelCaca": "Caca",
+  "typeLabelPipiEtCaca": "Pipi & Caca",
+
+  "durationPrefix": "Durée: {minutes} min",
+  "@@durationPrefix_minutes_comment": "Minutes placeholder for duration display",
+
+  "quantityPrefix": "Quantité : {quantity} {unit}",
+  "@quantityPrefix_quantity_comment": "Valeur de la quantité",
+  "@quantityPrefix_unit_comment": "Unité (ml ou min)",
+
+  "editQuantitySectionTitle": "Quantité",
+  "quantityPickerTitle": "Quantité",
+  "feedingQuantityLabel": "Quantité",
+  "feedingQuantityHint": "Sélectionner la quantité",
+  "feedingDialogTitle": "Suivre l'Alimentation",
+  "feedingSubtypeLabel": "Type d'Alimentation",
+  "feedingSubtypeNatural": "Lait Maternel",
+  "feedingSubtypeArtificial": "Lait Artificiel",
+
+  "editDialogTitle": "Modifier l'événement",
+  "editDateSectionTitle": "Date et heure",
+  "editDurationSectionTitle": "Durée",
+  "editTypeSectionTitle": "Type",
+  "editPipiColorSectionTitle": "Couleur du pipi",
+  "editCacaColorSectionTitle": "Couleur du caca",
+  "editNotesLabel": "Notes",
+  "editNotesHint": "Ajouter une note...",
+  "minutesHintText": "Minutes",
+  "minuteSuffix": "min",
+
+  "deleteDialogTitle": "Supprimer l'événement",
+  "deleteDialogContent": "Voulez-vous vraiment supprimer cet événement ? Cette action est irréversible.",
+  "deleteButton": "Supprimer",
+
+  "menuTitle": "Menu",
+  "settingsBodyText": "Paramètres",
+  "languageSectionTitle": "Langue",
+  "languageEnglish": "English",
+  "languageFrench": "Français",
+  "languageSpanish": "Español",
+
+  "themeSectionTitle": "Thème",
+  "themeSystem": "Système",
+  "themeLight": "Clair",
+  "themeDark": "Sombre",
+
+  "dangerZoneTitle": "Zone de danger",
+  "resetDatabaseButton": "Réinitialiser la base de données",
+  "resetDatabaseConfirm": "Réinitialiser la base de données ?",
+  "resetDatabaseWarningDetail": "Cette action supprimera définitivement tous les profils bébé, événements trackés et paramètres de rappels. Seules vos préférences de langue et thème seront conservées.",
+  "resetDatabaseSuccess": "Base de données réinitialisée. Une nouvelle base a été créée.",
+  "resetDatabaseError": "Échec de la réinitialisation : {error}",
+  "@resetDatabaseError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "cancel": "Annuler",
+  "closeButton": "Fermer",
+
+  "babyProfilesSectionTitle": "Bébés",
+  "babyProfilesEmpty": "Aucun profil bébé",
+  "babyProfilesError": "Échec du chargement des profils",
+
+  "addBaby": "Ajouter un bébé",
+  "editProfile": "Modifier le profil",
+  "babyName": "Nom du bébé",
+  "birthDate": "Date de naissance",
+  "update": "Modifier",
+  "activate": "Activer",
+  "edit": "Modifier",
+
+  "babyAddedSuccess": "Profil bébé ajouté avec succès",
+  "babyAddError": "Échec de l'ajout du profil bébé",
+  "babyUpdatedSuccess": "Profil bébé modifié avec succès",
+  "babyUpdateError": "Échec de la modification du profil bébé",
+  "babyDeletedSuccess": "Profil bébé supprimé",
+  "babyDeleteError": "Échec de la suppression du profil bébé",
+
+
+  "babyAddedWithName": "'{name}' ajouté",
+  "@babyAddedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "babyUpdatedWithName": "'{name}' modifié",
+  "@babyUpdatedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "babyDeletedWithName": "'{name}' supprimé",
+  "@babyDeletedWithName": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+
+  "deleteBabyConfirm": "Supprimer le profil bébé ?",
+  "deleteBabyWarning": "Voulez-vous vraiment supprimer '{formatName}' ?",
+  "@deleteBabyWarning": {
+    "placeholders": {
+      "formatName": {}
+    }
+  },
+  "deleteBabyDataWarning": "Tous les événements trackés pour ce bébé seront également supprimés.",
+  "delete": "Supprimer",
+
+  "dayOld": "jour",
+  "daysOld": "jours",
+  "monthOld": "mois",
+  "monthsOld": "mois",
+  "yearOld": "an",
+  "yearsOld": "ans",
+
+  "onboardingWelcome": "Bienvenue sur Mamadera !",
+  "onboardingSubtitle": "Créez le premier profil bébé pour commencer.",
+  "onboardingNameHint": "Nom du bébé",
+  "onboardingSuccess": "Profil bébé créé !",
+  "onboardingError": "Échec de la création du profil bébé",
+
+  "babyNameAlreadyExists": "Un bébé nommé « {name} » existe déjà.",
+  "@babyNameAlreadyExists": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+
+  "termsTitle": "Conditions Générales",
+  "termsAcceptButton": "J'accepte",
+  "termsLoadingError": "Échec du chargement des conditions. Veuillez réessayer.",
+
+  "patchNotesTitle": "Nouvelles Fonctionnalités",
+  "patchNotesClose": "Fermer",
+  "patchNotesDontShowAgain": "Ne plus afficher",
+  "patchNotesWhatChanged": "Ce qui a changé",
+  "patchNotesReleaseDate": "Date de publication",
+  "patchNotesSkipCreateLater": "Plutard - Créer un profil bébé",
+
+  "supportSectionTitle": "Support",
+  "feedbackButtonTitle": "Signaler un bug ou proposer une idée",
+  "feedbackTitle": "Feedback",
+  "feedbackTypeBug": "Bug",
+  "feedbackTypeError": "Idée",
+  "feedbackTypeLabel": "Type",
+  "feedbackTitleLabel": "Titre",
+  "feedbackTitleHint": "Résumé court du problème ou de l'idée",
+  "feedbackDescriptionLabel": "Description",
+  "feedbackDescriptionHint": "Décrivez le bug ou votre suggestion en détail…",
+  "feedbackSubmitGitHub": "Soumettre via GitHub",
+  "feedbackSubmitEmail": "Soumettre par email",
+  "feedbackValidationTitle": "Le titre est requis",
+  "feedbackValidationDescription": "La description est requise",
+  "feedbackLaunchError": "Impossible d'ouvrir l'application cible.",
+  "feedbackGitHubHint": "Nécessite un compte GitHub. Si vous n'êtes pas connecté, on vous le demandera.",
+
+  "aboutSectionTitle": "À propos",
+  "aboutButtonTitle": "Informations et crédits",
+  "aboutTitle": "À propos de Mamadera",
+  "aboutVersionLabel": "Version",
+  "aboutDescription": "Application de suivi nouveau-née respectueuse de votre vie privée — sans télémétrie, sans cloud, vos données restent sur votre appareil.",
+  "aboutAttributionsSectionTitle": "Crédits et attributions",
+  "aboutFlaticonCredit": "Icône splash fournie par Flaticon (Magnific)",
+  "aboutLicenseLabel": "Licence MIT — Code open source disponible sur GitHub"
+}

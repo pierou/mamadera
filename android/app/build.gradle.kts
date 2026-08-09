@@ -4,6 +4,15 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Release signing configuration
+// Reads keystore details from environment variables (set in CI or local env):
+//   KEYSTORE_PATH  — path to the .jks/.keystore file (absolute path recommended)
+//   KEYSTORE_PASSWORD — password for the keystore
+//   KEY_ALIAS      — alias of the key inside the keystore
+//   KEY_PASSWORD   — password for the individual key
+val keystorePath = System.getenv("KEYSTORE_PATH")
+val hasReleaseSigning = !keystorePath.isNullOrEmpty() && file(keystorePath).exists()
+
 android {
     namespace = "com.pvjio.mamadera"
     compileSdk = flutter.compileSdkVersion
@@ -15,21 +24,32 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.pvjio.mamadera"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(System.getenv("KEYSTORE_PATH"))
+                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+                keyAlias = System.getenv("KEY_ALIAS") ?: ""
+                keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                // Fallback to debug signing when keystore env vars are not set
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
     }
 }
