@@ -694,6 +694,18 @@ abstract class AppLocalizations {
   /// **'Sombre'**
   String get themeDark;
 
+  /// No description provided for @languageChanged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langue changée'**
+  String get languageChanged;
+
+  /// No description provided for @themeChanged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Thème mis à jour'**
+  String get themeChanged;
+
   /// No description provided for @dangerZoneTitle.
   ///
   /// In fr, this message translates to:

@@ -149,8 +149,9 @@ class MenuScreen extends ConsumerWidget {
       trailing: isSelected
           ? Icon(Icons.check_circle, color: colorScheme.primary)
           : null,
-      onTap: () {
-        ref.read(menuRepositoryProvider).setLanguage(code);
+      onTap: () async {
+        await ref.read(localeProvider.notifier).setLocale(code);
+        if (context.mounted) _showSnackBar(context, context.l.languageChanged);
       },
     );
   }
@@ -172,8 +173,9 @@ class MenuScreen extends ConsumerWidget {
       trailing: isSelected
           ? Icon(Icons.check_circle, color: colorScheme.primary)
           : null,
-      onTap: () {
-        ref.read(menuRepositoryProvider).setThemeMode(mode);
+      onTap: () async {
+        await ref.read(themeProvider.notifier).setMode(mode);
+        if (context.mounted) _showSnackBar(context, context.l.themeChanged);
       },
     );
   }
