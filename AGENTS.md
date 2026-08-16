@@ -87,6 +87,7 @@ class TrackingRepositoryImpl implements TrackingRepository {
 - Comments: `///` Dartdoc for all public members; comment business logic, skip trivial code
 - Avoid magic strings/numbers → use `const` or `enum`
 - Logging: `logger` package only — **never** `print()` (lint rule enforces this)
+- Patch notes (`assets/patch_notes/*.json`): fr/es bullet items must use the **noun form** of the change ("Mise à jour de…", "Ajout d'une…", "Correction de la…" / "Actualización de…", "Adición de un…", "Corrección de la…") — never infinitives. `en` uses natural phrasing (e.g., "Update … to use …").
 
 ### State Management (Riverpod)
 

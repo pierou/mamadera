@@ -48,7 +48,8 @@
     "title": "What's New in Mamadera 1.0.1",
     "items": [
       "### Bug Fixes",
-      "- Placeholder: Add bug fix descriptions from v1.0.1 changes",
+      "- Correct language selection not refreshing the app",
+      "- Correct theme selection not refreshing the app",
       ""
     ]
   }
