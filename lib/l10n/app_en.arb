@@ -181,6 +181,9 @@
   "themeLight": "Light",
   "themeDark": "Dark",
 
+  "languageChanged": "Language changed",
+  "themeChanged": "Theme updated",
+
   "dangerZoneTitle": "Danger Zone",
   "resetDatabaseButton": "Reset Database",
   "resetDatabaseConfirm": "Reset Database?",

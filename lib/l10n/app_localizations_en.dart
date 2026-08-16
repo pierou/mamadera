@@ -331,6 +331,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeDark => 'Dark';
 
   @override
+  String get languageChanged => 'Language changed';
+
+  @override
+  String get themeChanged => 'Theme updated';
+
+  @override
   String get dangerZoneTitle => 'Danger Zone';
 
   @override

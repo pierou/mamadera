@@ -36,6 +36,7 @@ lib/features/<module>/
 - Naming: `camelCase` vars/functions, `PascalCase` classes/widgets, `snake_case` files/dirs.
 - Logging: `logger` package only — **never** `print()`.
 - Riverpod tests: override providers with `ProviderContainer(overrides: [...])`.
+- Patch notes (`assets/patch_notes/*.json`): fr/es bullet items must use the **noun form** of the change ("Mise à jour de…", "Ajout d'une…", "Correction de la…" / "Actualización de…", "Adición de un…", "Corrección de la…") — never infinitives. `en` uses natural phrasing (e.g., "Update … to use …").
 
 ## 🛠️ Build Commands (`Makefile`)
 | Command | Description |
