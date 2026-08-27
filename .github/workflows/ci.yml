@@ -26,6 +26,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          # gitleaks scans a commit range (base^..head) derived from the event;
+          # the default shallow clone cannot resolve the base commit.
+          fetch-depth: 0
 
       - name: Trivy (vuln dépendances)
         uses: aquasecurity/trivy-action@master
