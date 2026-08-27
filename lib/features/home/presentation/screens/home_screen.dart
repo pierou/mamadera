@@ -269,12 +269,15 @@ class _HomeContent extends ConsumerWidget {
 
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
-      child: Padding(
+      // Scrollable so the 2x2 grid stays reachable on small viewports
+      // (small phones, resized desktop windows).
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTheme.spacingXl),
         child: GridView.count(
           crossAxisCount: 2,
           mainAxisSpacing: AppTheme.spacingXl,
           crossAxisSpacing: AppTheme.spacingXl,
+          shrinkWrap: true,
           children: [
             TrackButton(
               key: const ValueKey('track-miam'),

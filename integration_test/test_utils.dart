@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:mamadera/core/config/app_config.dart';
 import 'package:mamadera/core/providers/any_baby_exists_provider.dart';
 import 'package:mamadera/core/providers/app_preferences_provider.dart';
 import 'package:mamadera/core/providers/database_provider.dart';
@@ -47,16 +48,17 @@ ValueKey<String> testKey(String value) => ValueKey(value);
 // ─── Provider Overrides for Testing ─────────────────────────────────────
 
 /// Test preferences with terms already accepted, so the router skips onboarding
-/// and navigates directly to /home.
+/// and navigates directly to /home. [AppConfig.version] keeps the fixture in
+/// sync with the app version so the patch-notes gate never fires.
 const _testPrefsAccepted = AppPreferences(
-  appVersion: '1.0.0',
+  appVersion: AppConfig.version,
   termsAccepted: true,
   patchNotesOptOut: false,
 );
 
 /// Test preferences simulating first launch — terms not yet accepted.
 const _testPrefsNotAccepted = AppPreferences(
-  appVersion: '1.0.0',
+  appVersion: AppConfig.version,
   termsAccepted: false,
   patchNotesOptOut: false,
 );

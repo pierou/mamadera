@@ -171,8 +171,9 @@ A `Makefile` is provided for local development, CI workflows, and store builds:
 | `make test` | Run unit & widget tests across `test/shared/`, `test/data/`, `test/features/`, `test/core/` with coverage |
 | `make check-coverage` | Enforce ≥ 80% line coverage threshold via `lcov`; excludes generated/l10n files |
 | `make ci` | Full pipeline: pub-get → lint → test → check-coverage |
-| `make integration-test-simulator` | Run integration tests on connected iOS simulator/device |
-| `make ci-integration` | Full integration test suite in VM mode (no device required) |
+| `make integration-test-simulator` | Run the 6 harness integration tests on a connected device/emulator (same list as CI) |
+| `make ci-integration` | Same integration test file list as the GitHub Actions `integration-tests` job (requires a device) |
+| `make integration-driver` | Run the host-side Flutter Driver test (`flutter drive` against `lib/driver_main.dart`) |
 | `make clean` | Clean all generated artifacts (`flutter clean` + remove coverage/.dart_tool/build dirs) |
 
 #### Build Targets
@@ -279,15 +280,17 @@ integration_test/
 - **Semantic keys** — All track buttons (`track-miam`, `track-sante`, etc.) and bottom nav tabs have semantic keys defined in the `TestKeys` class, used by widget finders for reliable test selectors.
 - **In-memory database** — Tests use an in-memory Drift instance so no persistent state leaks between tests.
 
-Run integration tests on a connected simulator or device:
+Run integration tests on a connected simulator, device, or emulator (a device is **required** — these run the real app through the `integration_test` binding):
 
 ```bash
-# Integration Test API (recommended, runs in VM):
+# Integration Test API — the 6 harness-based flow tests (same list as CI):
 make integration-test-simulator
 
-# Full CI suite (no device required):
-make ci-integration
+# Host-side Flutter Driver script (app launched from lib/driver_main.dart):
+make integration-driver
 ```
+
+> GitHub Actions runs this whole suite on an Android emulator (`integration-tests` job); `driver_integration_test.dart` is always run with `flutter drive`, never with `flutter test`.
 
 ---
 
