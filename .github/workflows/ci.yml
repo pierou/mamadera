@@ -246,21 +246,12 @@ jobs:
           api-level: 34
           arch: x86_64
           profile: pixel_6
+          # NOTE: android-emulator-runner splits `script` into one `sh -c`
+          # per non-comment line — backslash line-continuations are NOT
+          # supported. Each command must be a single self-contained line.
           script: |
-            # Harness-based flow tests (integration_test binding).
-            # driver_integration_test.dart is excluded here — it is a
-            # host-side flutter_driver script, run below with `flutter drive`.
-            flutter test \
-              integration_test/baby_profile_flow_test.dart \
-              integration_test/feeding_tracking_flow_test.dart \
-              integration_test/history_flow_test.dart \
-              integration_test/navigation_flow_test.dart \
-              integration_test/onboarding_flow_test.dart \
-              integration_test/rendering_validation_test.dart
-            # Flutter Driver test (app entry: lib/driver_main.dart)
-            flutter drive \
-              --driver=integration_test/driver_integration_test.dart \
-              --target=lib/driver_main.dart
+            flutter test integration_test/baby_profile_flow_test.dart integration_test/feeding_tracking_flow_test.dart integration_test/history_flow_test.dart integration_test/navigation_flow_test.dart integration_test/onboarding_flow_test.dart integration_test/rendering_validation_test.dart
+            flutter drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart
 
   # 6. 📦 Release GitHub (sur tag v*)
   release:
