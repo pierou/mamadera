@@ -16,53 +16,69 @@ class TermsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = Localizations.localeOf(context).languageCode;
-    String assetPath;
-    switch (locale) {
-      case 'en':
-        assetPath = 'assets/terms/terms_en.md';
-      case 'es':
-        assetPath = 'assets/terms/terms_es.md';
-      default:
-        assetPath = 'assets/terms/terms_fr.md';
-    }
 
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l.termsTitle),
         centerTitle: true,
       ),
-      body: FutureBuilder<String>(
-        future: rootBundle.loadString(assetPath),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text(context.l.termsLoadingError));
-          }
+      body: _TermsContent(assetPath: _termsAssetPathFor(locale)),
+    );
+  }
 
-          final markdown = snapshot.data!;
-          final lines = markdown.split('\n');
-          final content = parseMarkdownToTextSpans(lines, context);
+  /// Returns the localized terms markdown asset path.
+  String _termsAssetPathFor(String locale) {
+    switch (locale) {
+      case 'en':
+        return 'assets/terms/terms_en.md';
+      case 'es':
+        return 'assets/terms/terms_es.md';
+      default:
+        return 'assets/terms/terms_fr.md';
+    }
+  }
+}
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spacingXl,
-              vertical: AppTheme.spacingLg,
-            ),
-            child: SelectableText.rich(
-              TextSpan(
-                style: TextStyle(
-                  fontSize: 15,
-                  height: 1.6,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                children: content,
+/// Loads and renders the terms markdown asset.
+class _TermsContent extends StatelessWidget {
+  const _TermsContent({required this.assetPath});
+
+  /// Localized terms markdown asset path.
+  final String assetPath;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: rootBundle.loadString(assetPath),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text(context.l.termsLoadingError));
+        }
+
+        final markdown = snapshot.data!;
+        final lines = markdown.split('\n');
+        final content = parseMarkdownToTextSpans(lines, context);
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spacingXl,
+            vertical: AppTheme.spacingLg,
+          ),
+          child: SelectableText.rich(
+            TextSpan(
+              style: TextStyle(
+                fontSize: 15,
+                height: 1.6,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
+              children: content,
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

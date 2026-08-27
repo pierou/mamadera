@@ -14,7 +14,9 @@ class PatchNotesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = Localizations.localeOf(context).languageCode;
-    final assetPath = locale == 'en' ? 'assets/patch_notes/en.json' : 'assets/patch_notes/fr.json';
+    final assetPath = locale == 'en'
+        ? 'assets/patch_notes/en.json'
+        : 'assets/patch_notes/fr.json';
 
     return FutureBuilder<Map<String, dynamic>>(
       future: _loadPatchNotes(assetPath),
@@ -35,8 +37,7 @@ class PatchNotesScreen extends ConsumerWidget {
         final versionNotes = allNotes[latestVersion] as Map<String, dynamic>;
         final title = versionNotes['title'] as String? ?? context.l.patchNotesTitle;
         final releaseDate = versionNotes['releaseDate'] as String? ?? '';
-        final itemsRaw = versionNotes['items'] as List? ?? [];
-        final items = itemsRaw.cast<String>();
+        final items = (versionNotes['items'] as List? ?? []).cast<String>();
 
         return Scaffold(
           appBar: AppBar(
@@ -52,33 +53,9 @@ class PatchNotesScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Version header
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        latestVersion,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      releaseDate,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ],
+                _VersionHeader(
+                  version: latestVersion,
+                  releaseDate: releaseDate,
                 ),
                 const SizedBox(height: AppTheme.spacingLg),
 
@@ -92,28 +69,7 @@ class PatchNotesScreen extends ConsumerWidget {
                 const SizedBox(height: AppTheme.spacingMd),
 
                 // Items list
-                ...items.map(
-                  (item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.check_circle_outline,
-                          size: 20,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            item,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                for (final item in items) _PatchNotesItem(item: item),
               ],
             ),
           ),
@@ -125,5 +81,84 @@ class PatchNotesScreen extends ConsumerWidget {
   Future<Map<String, dynamic>> _loadPatchNotes(String path) async {
     final raw = await rootBundle.loadString(path);
     return Map<String, dynamic>.from(jsonDecode(raw) as Map);
+  }
+}
+
+/// Version chip + release date row shown above the notes.
+class _VersionHeader extends StatelessWidget {
+  const _VersionHeader({
+    required this.version,
+    required this.releaseDate,
+  });
+
+  /// Latest version string, e.g. "1.0.1".
+  final String version;
+
+  /// Release date as stored in the JSON asset.
+  final String releaseDate;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
+            color: scheme.primaryContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            version,
+            style: TextStyle(
+              color: scheme.onPrimaryContainer,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          releaseDate,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Single checkmarked bullet in the notes list.
+class _PatchNotesItem extends StatelessWidget {
+  const _PatchNotesItem({required this.item});
+
+  /// Raw item text as stored in the JSON asset.
+  final String item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.check_circle_outline,
+            size: 20,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              item,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
