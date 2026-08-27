@@ -44,6 +44,13 @@ jobs:
           config: 'auto'
         continue-on-error: true
 
+      - name: Gitleaks (secrets in git history)
+        # Blocking: any new secret in history fails the pipeline.
+        # Known test fixtures carry inline `// gitleaks:allow` annotations.
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # 2. 🧪 Lint & Tests
   lint-test:
     runs-on: ubuntu-latest
