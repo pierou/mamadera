@@ -63,6 +63,17 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Check version sync (AppConfig vs pubspec)
+        run: |
+          PUB_VERSION=$(awk '/^version:/{print $2; exit}' pubspec.yaml | cut -d'+' -f1)
+          APP_VERSION=$(sed -n "s/.*version = '\([^']*\)';.*/\1/p" lib/core/config/app_config.dart | head -1)
+          if [ "$PUB_VERSION" != "$APP_VERSION" ]; then
+            echo "❌ Version mismatch: AppConfig.version='$APP_VERSION' but pubspec.yaml version='$PUB_VERSION'"
+            echo "   Bump AppConfig.version in lib/core/config/app_config.dart to match pubspec.yaml."
+            exit 1
+          fi
+          echo "✅ Version in sync: $PUB_VERSION"
+
       - name: Analyze (strict)
         run: flutter analyze --fatal-infos --fatal-warnings
 
