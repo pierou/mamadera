@@ -12,7 +12,7 @@
 
 - 🚫 **No analytics** or tracking (ever)
 - 🚫 **No telemetry** or crash reporting
-- 🚫 **No network calls** — the app is fully offline
+- 🚫 **No network calls** — the app itself is fully offline (outbound links open via the OS only when you tap them)
 - ✅ **Local-only storage** — all data stays on your device
 - ✅ **Open source** — code is transparent and auditable
 - ✅ **User control** — you own your data completely
@@ -21,7 +21,7 @@
 
 ### Local-Only Data
 
-All data is stored locally on your device using an encrypted SQLite database (Drift). We store:
+All data is stored locally on your device using a SQLite database (Drift). We store:
 
 - **Baby profiles** — name, birth date, active status
 - **Feeding events** — type (breast/bottle), timestamp, duration, volume in ml
@@ -32,7 +32,7 @@ All data is stored locally on your device using an encrypted SQLite database (Dr
 
 ### Encrypted Fields
 
-- **Notes** — user-entered free-text notes on tracking events are encrypted at rest using AES-GCM via `flutter_secure_storage`
+- **Notes** — user-entered free-text notes on tracking events are encrypted field-by-field at rest with AES-256-GCM. The encryption key lives in the platform keystore (iOS Keychain / Android Keystore) via `flutter_secure_storage`. The database file itself is **not** encrypted at the file level — only sensitive fields are.
 
 ## What We Do NOT Collect or Store
 
@@ -52,13 +52,13 @@ All data is stored locally on your device using an encrypted SQLite database (Dr
 ### Local Database
 
 - **Engine**: Drift (SQLite)
-- **Encryption**: SQLCipher for database-level encryption
-- **Sensitive fields**: Notes encrypted with AES-GCM using keys from `flutter_secure_storage`
+- **Database file**: stored unencrypted on the device (no database-level encryption)
+- **Sensitive fields**: notes encrypted field-by-field with AES-256-GCM; master key stored in the platform keystore via `flutter_secure_storage`
 - **No cloud sync**: Your data never leaves your device
 
 ### Backup & Export
 
-mamadera provides **no automatic backups**. You can export your data manually if needed.
+mamadera provides **no automatic backups**. A data export feature is not currently available; you can delete all of your data at any time via the database reset in settings.
 
 ## Permissions
 
@@ -66,7 +66,6 @@ mamadera provides **no automatic backups**. You can export your data manually if
 
 | Permission | Required | Purpose |
 |------------|----------|---------|
-| Notifications | Optional | Reminders (user consent) |
 | Internet | Not used | Never |
 | Camera | Not used | Never |
 | Microphone | Not used | Never |
@@ -116,8 +115,8 @@ We use only the following third-party packages, all of which are offline-only:
 
 - **View**: All your data is visible in the app at any time
 - **Edit**: You can modify any tracking event or baby profile
-- **Delete**: You can remove all data from the app
-- **Export**: Data export is available through the app's settings
+- **Delete**: You can remove all data from the app (database reset in settings)
+- **Export**: not currently available
 
 ## Children's Privacy
 

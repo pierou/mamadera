@@ -1,6 +1,6 @@
 # 🍼 Mamadera
 
-**Privacy-first newborn tracking app.** Track your baby's feedings, sleep, diaper changes, and health routines — all stored locally on your device with end-to-end encryption. No cloud, no telemetry, no tracking.
+**Privacy-first newborn tracking app.** Track your baby's feedings, sleep, diaper changes, and health routines — all stored locally on your device, with sensitive notes encrypted at rest. No cloud, no telemetry, no tracking.
 
 [![CI](https://github.com/pierou/mamadera/actions/workflows/ci.yml/badge.svg)](https://github.com/pierou/mamadera/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](.github/LICENSE)
@@ -80,14 +80,12 @@ lib/
 ### Database
 
 - **Drift** (SQLite) with versioned migrations
-- Schema source of truth: [`lib/data/local/app_db.dart`](lib/data/local/app_db.dart) (schema.sql is generated)
-- `sqlcipher_flutter_libs` available for encrypted SQLite on mobile platforms
+- Schema source of truth: [`lib/data/local/app_db.dart`](lib/data/local/app_db.dart) (schema.sql is a generated reference)
 
 ### Routing & Navigation
 
 - **go_router** with shell navigator for persistent bottom navigation bar
 - Route guard chain: splash → terms acceptance check → patch notes (on version upgrade) → home screen
-- Deep linking support via declarative route configuration
 
 ### Localization
 
@@ -102,7 +100,7 @@ lib/
 | Principle | Implementation |
 |-----------|----------------|
 | **Local-first** | All data stored on-device via SQLite. No cloud sync by default. |
-| **Encryption at rest** | Sensitive notes encrypted with AES-256-GCM before DB insertion; `sqlcipher_flutter_libs` available for full database encryption on mobile platforms |
+| **Encryption at rest** | Sensitive notes encrypted with AES-256-GCM before DB insertion. The database file itself is stored unencrypted on the device (field-level encryption only) |
 | **Key storage** | Master key secured in platform-native keystore (iOS Keychain / Android Keystore) via `flutter_secure_storage`; memory fallback with warning on desktop without keyring |
 | **No telemetry** | Zero analytics, tracking, or external network calls by default |
 | **Minimal permissions** | No camera, no location — only what's strictly necessary |
@@ -124,7 +122,7 @@ Master key stored securely ← flutter_secure_storage (Keychain / Keystore)
 - **Read:** Decrypted on retrieval — UI only sees plaintext in memory during rendering
 - **Update/Edit:** Re-encrypted with fresh IV on save
 - **Delete:** Cascade-aware deletion (e.g., deleting a baby profile removes associated events)
-- **Reset:** Database reset option in Settings physically deletes the SQLite file via `AppPreferencesService`
+- **Reset:** Database reset option in Settings physically deletes the SQLite file via `resetDatabase()` in the data layer
 
 ---
 
