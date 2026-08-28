@@ -224,12 +224,16 @@ jobs:
           path: ios-Runner-app.zip
 
   # 5. 🧪 Integration tests (Android emulator)
+  # 5. 📱 Integration tests on Android emulator
   integration-tests:
     runs-on: ubuntu-latest
     needs: lint-test
-    # Bounded: on a runner without KVM the emulator is software-emulated and
-    # app launch can stall; fail with diagnostics instead of hanging for hours.
-    timeout-minutes: 60
+    # Bounded: on runners without KVM the emulator is software-emulated
+    # (`-accel off`) and app launch can stall; `timeout` around each phase
+    # turns a hang into a diagnosable failure. Logcat is captured inside the
+    # action script (the emulator is killed by the action as soon as the
+    # script exits, so a post-step would talk to a dead device).
+    timeout-minutes: 95
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -252,38 +256,72 @@ jobs:
           # NOTE: android-emulator-runner splits `script` into one `sh -c`
           # per non-comment line — backslash line-continuations are NOT
           # supported. Each command must be a single self-contained line.
-          # `timeout` bounds each phase (25 min for the six harness files,
-          # 15 min for flutter drive) so a stalled emulator fails the job
-          # instead of hanging; the post-step then captures logcat.
+          # Each phase is bounded with `timeout`; on failure the device
+          # logcat is dumped to emulator_logcat.txt (still attached to the
+          # live emulator) before the step exits 1.
           script: |
-            timeout -k 60 1500 flutter test integration_test/baby_profile_flow_test.dart integration_test/feeding_tracking_flow_test.dart integration_test/history_flow_test.dart integration_test/navigation_flow_test.dart integration_test/onboarding_flow_test.dart integration_test/rendering_validation_test.dart
-            timeout -k 60 900 flutter drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart
+            timeout -k 60 2400 flutter test integration_test/baby_profile_flow_test.dart integration_test/feeding_tracking_flow_test.dart integration_test/history_flow_test.dart integration_test/navigation_flow_test.dart integration_test/onboarding_flow_test.dart integration_test/rendering_validation_test.dart || { timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; }
+            timeout -k 60 900 flutter drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart || { timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time >> emulator_logcat.txt; exit 1; }
 
-      - name: Capture emulator diagnostics (on failure)
-        if: failure()
-        run: |
-          ADB=/usr/local/lib/android/sdk/platform-tools/adb
-          $ADB -s emulator-5554 logcat -d -v time > emulator_logcat.txt || true
-          $ADB -s emulator-5554 shell dumpsys activity top > activity_dump.txt || true
-          $ADB -s emulator-5554 shell ps -A > process_list.txt || true
-          $ADB devices || true
-
-      - name: Upload emulator diagnostics (on failure)
+      - name: Upload emulator logcat (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: emulator-diagnostics
-          path: |
-            emulator_logcat.txt
-            activity_dump.txt
-            process_list.txt
+          name: emulator-logcat
+          path: emulator_logcat.txt
+          if-no-files-found: ignore
+
+  # 5b. 📱 One retry: the missing-KVM condition is a runner-provisioning
+  #     issue; a fresh boot can land on a KVM-capable runner and pass.
+  integration-tests-retry:
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    if: ${{ needs.integration-tests.result == 'failure' }}
+    timeout-minutes: 95
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.1'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run integration tests on Android emulator (retry)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          script: |
+            timeout -k 60 2400 flutter test integration_test/baby_profile_flow_test.dart integration_test/feeding_tracking_flow_test.dart integration_test/history_flow_test.dart integration_test/navigation_flow_test.dart integration_test/onboarding_flow_test.dart integration_test/rendering_validation_test.dart || { timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; }
+            timeout -k 60 900 flutter drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart || { timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time >> emulator_logcat.txt; exit 1; }
+
+      - name: Upload emulator logcat (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-logcat-retry
+          path: emulator_logcat.txt
           if-no-files-found: ignore
 
   # 6. 📦 Release GitHub (sur tag v*)
   release:
     runs-on: ubuntu-latest
-    needs: [build-android, build-ios, integration-tests]
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-android, build-ios, integration-tests, integration-tests-retry]
+    # `if:` overrides the implicit "all needs succeeded" check, so gate on
+    # every leg explicitly: builds must have succeeded; the integration
+    # retry leg is skipped (not failed) when the first leg passes.
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') &&
+      needs.build-android.result == 'success' &&
+      needs.build-ios.result == 'success' &&
+      needs.integration-tests.result != 'failure' &&
+      needs.integration-tests-retry.result != 'failure'
     permissions:
       contents: write
     steps:
