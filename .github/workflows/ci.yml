@@ -227,6 +227,9 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     needs: lint-test
+    # Bounded: on a runner without KVM the emulator is software-emulated and
+    # app launch can stall; fail with diagnostics instead of hanging for hours.
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -249,9 +252,32 @@ jobs:
           # NOTE: android-emulator-runner splits `script` into one `sh -c`
           # per non-comment line — backslash line-continuations are NOT
           # supported. Each command must be a single self-contained line.
+          # `timeout` bounds each phase (25 min for the six harness files,
+          # 15 min for flutter drive) so a stalled emulator fails the job
+          # instead of hanging; the post-step then captures logcat.
           script: |
-            flutter test integration_test/baby_profile_flow_test.dart integration_test/feeding_tracking_flow_test.dart integration_test/history_flow_test.dart integration_test/navigation_flow_test.dart integration_test/onboarding_flow_test.dart integration_test/rendering_validation_test.dart
-            flutter drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart
+            timeout -k 60 1500 flutter test integration_test/baby_profile_flow_test.dart integration_test/feeding_tracking_flow_test.dart integration_test/history_flow_test.dart integration_test/navigation_flow_test.dart integration_test/onboarding_flow_test.dart integration_test/rendering_validation_test.dart
+            timeout -k 60 900 flutter drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart
+
+      - name: Capture emulator diagnostics (on failure)
+        if: failure()
+        run: |
+          ADB=/usr/local/lib/android/sdk/platform-tools/adb
+          $ADB -s emulator-5554 logcat -d -v time > emulator_logcat.txt || true
+          $ADB -s emulator-5554 shell dumpsys activity top > activity_dump.txt || true
+          $ADB -s emulator-5554 shell ps -A > process_list.txt || true
+          $ADB devices || true
+
+      - name: Upload emulator diagnostics (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-diagnostics
+          path: |
+            emulator_logcat.txt
+            activity_dump.txt
+            process_list.txt
+          if-no-files-found: ignore
 
   # 6. 📦 Release GitHub (sur tag v*)
   release:
