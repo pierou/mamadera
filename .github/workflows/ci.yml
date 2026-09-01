@@ -256,10 +256,11 @@ jobs:
   # on a good boot (VM service up, verified in run 33211194939) the
   # 10-test smoke suite needs ~55 min of phase time, so running it on
   # every PR just paints a reliable red cross that cannot gate anything
-  # useful. It therefore does NOT run on pull_request; it feeds the
-  # daily cron and manual dispatches as an informational signal, and
-  # genuinely GATES the release on v* tags (a rare, deliberate event
-  # where the wait is acceptable). Ordinary pushes to main/develop skip
+  # useful. It therefore does NOT run on pull_request or v* tags; it
+  # feeds the daily cron and manual dispatches as an informational
+  # fallback signal (still useful when the Mac is unavailable). The
+  # genuine release GATE lives in integration-tests-local below.
+  # Ordinary pushes to main/develop skip
   # it to save free-tier minutes. PR-level integration feedback belongs
   # on the self-hosted runner, which runs the same suite in ~3 min.
   # Full suite locally:
@@ -269,8 +270,7 @@ jobs:
     needs: lint-test
     if: >-
       github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch' ||
-      startsWith(github.ref, 'refs/tags/v')
+      github.event_name == 'workflow_dispatch'
     timeout-minutes: 120
     steps:
       - name: Checkout
@@ -353,10 +353,65 @@ jobs:
           path: emulator_logcat.txt
           if-no-files-found: ignore
 
+  # 5c. Self-hosted runner (macbook-pro, Apple Silicon): native arm64
+  #     emulator via Hypervisor.framework - boot ~1 min, smoke suite ~1
+  #     min, driver suite ~2 min, on REAL Android runtime. This job is
+  #     the integration gate for PRs and v* tags. Toolchain paths are
+  #     absolute: the runner environment is not a login shell. If the
+  #     Mac happens to be offline the job waits (nothing merges on
+  #     required checks anyway - there are none); the GitHub-hosted
+  #     cron/dispatch job above is the fallback signal.
+  integration-tests-local:
+    runs-on: [self-hosted, mamadera-ci]
+    needs: lint-test
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/v')
+    timeout-minutes: 30
+    env:
+      ANDROID_HOME: /Users/pvjacquier/Library/Android/sdk
+      FLUTTER: /Users/pvjacquier/flutter/bin/flutter
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free emulator port (kill stale instance)
+        run: |
+          if $ANDROID_HOME/platform-tools/adb devices | grep -q '^emulator-5554'; then
+            $ANDROID_HOME/platform-tools/adb -s emulator-5554 emu kill || true
+            sleep 5
+          fi
+
+      - name: Boot Pixel_10_Pro (headless, native arm64)
+        run: |
+          nohup $ANDROID_HOME/emulator/emulator -avd Pixel_10_Pro -no-window -no-audio -no-boot-anim -no-snapshot-load > /tmp/mamadera_ci_emulator.log 2>&1 &
+          $ANDROID_HOME/platform-tools/adb wait-for-device
+          for i in $(seq 1 60); do
+            if [ "$($ANDROID_HOME/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n')" = "1" ]; then
+              echo "emulator boot completed"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "emulator failed to boot within 5 min"
+          tail -50 /tmp/mamadera_ci_emulator.log
+          exit 1
+
+      - name: Get dependencies
+        run: $FLUTTER pub get
+
+      - name: Integration smoke suite (one launch, 10 tests)
+        run: $FLUTTER test integration_test/ci_smoke_suite.dart -d emulator-5554
+
+      - name: Flutter driver suite (separate entrypoint, 6 tests)
+        run: $FLUTTER drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart -d emulator-5554
+
+      - name: Shut emulator down
+        if: always()
+        run: $ANDROID_HOME/platform-tools/adb -s emulator-5554 emu kill || true
+
   # 6. 📦 Release GitHub (sur tag v*)
   release:
     runs-on: ubuntu-latest
-    needs: [build-android, build-ios, integration-tests, integration-tests-retry]
+    needs: [build-android, build-ios, integration-tests-local]
     # Runs only on v* tags; the implicit needs rule already skips the job
     # if any leg fails (no status function in `if` = default behaviour).
     # When the first leg passes, the retry leg is skipped — that satisfies
