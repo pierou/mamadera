@@ -16,6 +16,11 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
+  schedule:
+    # Daily smoke run on `main` (schedule only fires on the default
+    # branch) — keeps a real-Android signal flowing without holding PRs.
+    - cron: '0 4 * * *'
+  workflow_dispatch: {}
 
 jobs:
   # 1. 🔍 Audit dépendances & secrets
@@ -26,6 +31,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          # gitleaks scans a commit range (base^..head) derived from the event;
+          # the default shallow clone cannot resolve the base commit.
+          fetch-depth: 0
 
       - name: Trivy (vuln dépendances)
         uses: aquasecurity/trivy-action@master
@@ -43,6 +51,13 @@ jobs:
         with:
           config: 'auto'
         continue-on-error: true
+
+      - name: Gitleaks (secrets in git history)
+        # Blocking: any new secret in history fails the pipeline.
+        # Known test fixtures carry inline `// gitleaks:allow` annotations.
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # 2. 🧪 Lint & Tests
   lint-test:
@@ -62,6 +77,17 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
+
+      - name: Check version sync (AppConfig vs pubspec)
+        run: |
+          PUB_VERSION=$(awk '/^version:/{print $2; exit}' pubspec.yaml | cut -d'+' -f1)
+          APP_VERSION=$(sed -n "s/.*version = '\([^']*\)';.*/\1/p" lib/core/config/app_config.dart | head -1)
+          if [ "$PUB_VERSION" != "$APP_VERSION" ]; then
+            echo "❌ Version mismatch: AppConfig.version='$APP_VERSION' but pubspec.yaml version='$PUB_VERSION'"
+            echo "   Bump AppConfig.version in lib/core/config/app_config.dart to match pubspec.yaml."
+            exit 1
+          fi
+          echo "✅ Version in sync: $PUB_VERSION"
 
       - name: Analyze (strict)
         run: flutter analyze --fatal-infos --fatal-warnings
@@ -109,7 +135,9 @@ jobs:
           fi
 
   # 3. 🤖 Build Android (Reproductible & Signé)
+  # 3. 🤖 Build Android (tags only — requires the release keystore)
   build-android:
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     needs: lint-test
     steps:
@@ -129,7 +157,6 @@ jobs:
           java-version: '17'
 
       - name: Decode Keystore
-        if: startsWith(github.ref, 'refs/tags/')
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/keystore.jks
 
@@ -138,7 +165,7 @@ jobs:
           flutter pub get
           flutter build apk --release --split-debug-info=build/
         env:
-          KEYSTORE_PATH: ${{ startsWith(github.ref, 'refs/tags/') && format('{0}/android/app/keystore.jks', github.workspace) || '' }}
+          KEYSTORE_PATH: ${{ github.workspace }}/android/app/keystore.jks
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -154,7 +181,7 @@ jobs:
         run: |
           flutter build appbundle --release --split-debug-info=build/
         env:
-          KEYSTORE_PATH: ${{ startsWith(github.ref, 'refs/tags/') && format('{0}/android/app/keystore.jks', github.workspace) || '' }}
+          KEYSTORE_PATH: ${{ github.workspace }}/android/app/keystore.jks
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -201,10 +228,194 @@ jobs:
           name: ios-release
           path: ios-Runner-app.zip
 
-  # 5. 📦 Release GitHub (sur tag v*)
+  # 5. 📱 Integration tests on Android emulator
+  #
+  # Runner reality (public repo): PR/push events land on 2-vCPU shared
+  # runners WITHOUT KVM, so the emulator runs software-emulated (`-accel
+  # off`). Two constraints shape this job:
+  #   - `flutter test` on a device launches the app once PER FILE (stop →
+  #     install → start → wait for VM service), so the six flow files mean
+  #     six ~9-minute launch cycles — never fits in one CI window.
+  #     `ci_smoke_suite.dart` bundles the core flows (onboarding, navigation,
+  #     baby profile — 10 tests) into ONE launch. The full six-file suite
+  #     stays available locally / on KVM runners.
+  #   - Known flake (run 33142073657): the headless SwiftShader window
+  #     sometimes reports `bad window surface handle` and the Dart engine
+  #     then waits for a surface callback that never arrives — no VM service
+  #     line is ever emitted and the tool waits SILENTLY forever (its
+  #     ProtocolDiscovery has no timeout). A live logcat watchdog detects
+  #     this: if the VM service line is absent 25 min after the phase
+  #     starts, the test process is killed and the step fails fast with a
+  #     full logcat artifact, so the retry leg below gets a fresh boot.
+  # On failure the logcat is dumped INSIDE the action script, because the
+  # action kills the emulator as soon as the script exits (a post-step
+  # would talk to a dead device).
+  #
+  # Blocking policy (runs 33142073657 + 33147275021 + 33211194939):
+  # public-repo 2-core no-KVM runners are deterministically slow - even
+  # on a good boot (VM service up, verified in run 33211194939) the
+  # 10-test smoke suite needs ~55 min of phase time, so running it on
+  # every PR just paints a reliable red cross that cannot gate anything
+  # useful. It therefore does NOT run on pull_request or v* tags; it
+  # feeds the daily cron and manual dispatches as an informational
+  # fallback signal (still useful when the Mac is unavailable). The
+  # genuine release GATE lives in integration-tests-local below.
+  # Ordinary pushes to main/develop skip
+  # it to save free-tier minutes. PR-level integration feedback belongs
+  # on the self-hosted runner, which runs the same suite in ~3 min.
+  # Full suite locally:
+  #   flutter test integration_test -d <device>
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: lint-test
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch'
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.1'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run integration tests on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          # NOTE: android-emulator-runner splits `script` into one `sh -c`
+          # per non-comment line — backslash line-continuations are NOT
+          # supported. Each command must be a single self-contained line.
+          # Line 1 = smoke suite in ONE app launch, with a background
+          # live-logcat + a 25-min watchdog: if "Dart VM service is
+          # listening" never appears (surface flake → engine never boots),
+          # kill the test process instead of burning the 60-min bound.
+          # Line 2 = driver test (separate entrypoint, own build/install).
+          script: |
+            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 3600 flutter test integration_test/ci_smoke_suite.dart & T=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — VM service may never have come up (surface flake)"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
+            timeout -k 60 1800 flutter drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart || { timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; }
+
+      - name: Upload emulator logcat (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-logcat
+          path: emulator_logcat.txt
+          if-no-files-found: ignore
+
+  # 5b. 📱 One retry on a FRESH emulator boot. The surface flake is a
+  #      per-boot race, so re-rolling can genuinely fix it (unlike the
+  #      missing-KVM condition, which is permanent for public-repo
+  #      runners). `always()` is REQUIRED: without a status function in
+  #      `if`, a failed need auto-skips the dependent job before the
+  #      expression is honoured.
+  integration-tests-retry:
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    if: ${{ always() && needs.integration-tests.result == 'failure' }}
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.1'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run integration tests on Android emulator (retry, fresh boot)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          script: |
+            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 3600 flutter test integration_test/ci_smoke_suite.dart & T=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — VM service may never have come up (surface flake)"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
+            timeout -k 60 1800 flutter drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart || { timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; }
+
+      - name: Upload emulator logcat (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-logcat-retry
+          path: emulator_logcat.txt
+          if-no-files-found: ignore
+
+  # 5c. Self-hosted runner (macbook-pro, Apple Silicon): native arm64
+  #     emulator via Hypervisor.framework - boot ~1 min, smoke suite ~1
+  #     min, driver suite ~2 min, on REAL Android runtime. This job is
+  #     the integration gate for PRs and v* tags. Toolchain paths are
+  #     absolute: the runner environment is not a login shell. If the
+  #     Mac happens to be offline the job waits (nothing merges on
+  #     required checks anyway - there are none); the GitHub-hosted
+  #     cron/dispatch job above is the fallback signal.
+  integration-tests-local:
+    runs-on: [self-hosted, mamadera-ci]
+    needs: lint-test
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/v')
+    timeout-minutes: 30
+    env:
+      ANDROID_HOME: /Users/pvjacquier/Library/Android/sdk
+      FLUTTER: /Users/pvjacquier/flutter/bin/flutter
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free emulator port (kill stale instance)
+        run: |
+          if $ANDROID_HOME/platform-tools/adb devices | grep -q '^emulator-5554'; then
+            $ANDROID_HOME/platform-tools/adb -s emulator-5554 emu kill || true
+            sleep 5
+          fi
+
+      - name: Boot Pixel_10_Pro (headless, native arm64)
+        run: |
+          nohup $ANDROID_HOME/emulator/emulator -avd Pixel_10_Pro -no-window -no-audio -no-boot-anim -no-snapshot-load > /tmp/mamadera_ci_emulator.log 2>&1 &
+          $ANDROID_HOME/platform-tools/adb wait-for-device
+          for i in $(seq 1 60); do
+            if [ "$($ANDROID_HOME/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n')" = "1" ]; then
+              echo "emulator boot completed"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "emulator failed to boot within 5 min"
+          tail -50 /tmp/mamadera_ci_emulator.log
+          exit 1
+
+      - name: Get dependencies
+        run: $FLUTTER pub get
+
+      - name: Integration smoke suite (one launch, 10 tests)
+        run: $FLUTTER test integration_test/ci_smoke_suite.dart -d emulator-5554
+
+      - name: Flutter driver suite (separate entrypoint, 6 tests)
+        run: $FLUTTER drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart -d emulator-5554
+
+      - name: Shut emulator down
+        if: always()
+        run: $ANDROID_HOME/platform-tools/adb -s emulator-5554 emu kill || true
+
+  # 6. 📦 Release GitHub (sur tag v*)
   release:
     runs-on: ubuntu-latest
-    needs: [build-android, build-ios]
+    needs: [build-android, build-ios, integration-tests-local]
+    # Runs only on v* tags; the implicit needs rule already skips the job
+    # if any leg fails (no status function in `if` = default behaviour).
+    # When the first leg passes, the retry leg is skipped — that satisfies
+    # the implicit rule (succeeded or skipped).
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write

@@ -32,37 +32,49 @@ class TermsAcceptanceDialog extends ConsumerWidget {
             // Accept button at bottom (main.dart SafeArea handles home indicator)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              // ignore: prefer_const_constructors
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  key: const ValueKey('terms-accept-button'),
-                  onPressed: () async {
-                    // Accept terms and wait for state to persist.
-                    await ref.read(appPreferencesProvider.notifier).acceptTerms();
-                    // Ensure state update propagates before navigation.
-                    // This prevents the redirect callback from seeing stale state.
-                    await Future<void>.delayed(Duration.zero);
-                    onAccepted();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    context.l.termsAcceptButton,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
+              child: _TermsAcceptButton(onAccepted: onAccepted),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-width "Accept" button persisting the terms acceptance pref.
+class _TermsAcceptButton extends ConsumerWidget {
+  const _TermsAcceptButton({required this.onAccepted});
+
+  /// Callback invoked after the user accepts the terms.
+  final VoidCallback onAccepted;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        key: const ValueKey('terms-accept-button'),
+        onPressed: () async {
+          // Accept terms and wait for state to persist.
+          await ref.read(appPreferencesProvider.notifier).acceptTerms();
+          // Ensure state update propagates before navigation.
+          // This prevents the redirect callback from seeing stale state.
+          await Future<void>.delayed(Duration.zero);
+          onAccepted();
+        },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+        ),
+        child: Text(
+          context.l.termsAcceptButton,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

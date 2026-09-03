@@ -3,8 +3,8 @@ import 'package:mamadera/core/config/app_config.dart';
 
 void main() {
   group('AppConfig', () {
-    test('version is 1.0.0', () {
-      expect(AppConfig.version, '1.0.0');
+    test('version is 1.0.1', () {
+      expect(AppConfig.version, '1.0.1');
     });
 
     test('version is a non-empty string', () {

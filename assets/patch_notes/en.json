@@ -23,23 +23,12 @@
       "- Implement theme service for persistent theme preferences",
       "- Add localization support for health subtypes and menu language selection",
       "- Add unit tests for tracking enums and related entities",
-      "- Remove Gitleaks action from CI workflow",
-      "- Upgrade Gitleaks action to v3 and update environment variable for no-git option",
-      "- Update Gitleaks action version and enhance local audit command options",
-      "- Update CI configuration to enhance Gitleaks usage and streamline local CI commands",
-      "- Enhance CI configuration with non-blocking Trivy audit and improved coverage checks",
-      "- Update CI workflow to use latest action versions and improve consistency",
-      "- Update Gitleaks configuration and add ignore list for known false positives",
       "- Revamp README with detailed features, architecture overview, and privacy/security information",
-      "- Enhance CI pipeline with coverage checks and add Makefile for local CI commands",
       "- Implement encryption for sensitive notes and migrate existing data",
       "- Refactor theme and bottom navigation components, update pubspec dependencies",
       "- Enhance code quality and structure with strict analysis options, improved logging, and refactored components",
-      "- Implement Tracking Repository and Refactor Home Screen",
+      "- Implement tracking repository and refactor home screen",
       "- Implement local database service and history tracking features",
-      "",
-      "### Bug Fixes",
-      "- Correct variable reference in lcov summary extraction for accurate coverage reporting",
       ""
     ]
   },
@@ -48,8 +37,8 @@
     "title": "What's New in Mamadera 1.0.1",
     "items": [
       "### Bug Fixes",
-      "- Correct language selection not refreshing the app",
-      "- Correct theme selection not refreshing the app",
+      "- Fix language selection not refreshing the app",
+      "- Fix theme selection not refreshing the app",
       ""
     ]
   }

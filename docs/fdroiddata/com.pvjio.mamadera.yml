@@ -5,27 +5,39 @@ Name: Mamadera
 RepoURL: https://github.com/pierou/mamadera
 IssueTracker: https://github.com/pierou/mamadera/issues
 SourceCode: https://github.com/pierou/mamadera
-WebSite: https://github.com/pierou/mamadera#readm
+WebSite: https://github.com/pierou/mamadera#readme
 License: MIT
 
 AutoUpdateMode: Version v\d+\.\d+\.\d+
 UpdateCheckMode: Tags
-Version: 1.0.0
-VersionCode: 1
+Version: 1.0.1, 1.0.0
+Releases:
+  1.0.1: 2
+  1.0.0: 1
 
 Categories: Health & Fitness
 Summary: Privacy-first newborn tracking app (feedings, sleep, diapers)
-Description: Mamadera is a privacy-first newborn tracking app for parents who want to log their baby's feedings, sleep, diaper changes, and health routines — without any cloud dependency or telemetry. All data stays on your device with end-to-end encryption.
+Description: Mamadera is a privacy-first newborn tracking app for parents who want to log their baby's feedings, sleep, diaper changes, and health routines — without any cloud dependency or telemetry. All data stays on your device; sensitive notes are encrypted at rest.
 
 MaintainerName: Pierre-Vincent Jacquier <pvjacquier@users.noreply.github.com>
 # Replace the email above with your actual contact if desired
 
 Builds:
-  - versionName: "1.0.0"
-    versionCode: 1
-    sdkVersions: android-34
+  - versionName: "1.0.1"
+    versionCode: 2
+    date: "2026-08-16"
+    sdkVersions: android-36
     gradleCommand: assembleRelease
     output: app/build/outputs/apk/release/app-release.apk
 
-# Note: sqlcipher_flutter_libs uses an EOL tag but remains GPL-compatible.
-# F-Droid maintainers may request review of this dependency.
+  - versionName: "1.0.0"
+    versionCode: 1
+    date: "2026-08-09"
+    sdkVersions: android-36
+    gradleCommand: assembleRelease
+    output: app/build/outputs/apk/release/app-release.apk
+
+# Note on F-Droid CI: this repository keeps per-language store descriptions
+# under .f-droid/description/. Enrollment in the F-Droid CI service
+# (.f-droid/CI.yml + CIUrl in this file) is pending — see
+# https://f-droid.org/docs/ for the current developer CI requirements.

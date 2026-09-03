@@ -1,6 +1,6 @@
 # 🍼 Mamadera
 
-**Privacy-first newborn tracking app.** Track your baby's feedings, sleep, diaper changes, and health routines — all stored locally on your device with end-to-end encryption. No cloud, no telemetry, no tracking.
+**Privacy-first newborn tracking app.** Track your baby's feedings, sleep, diaper changes, and health routines — all stored locally on your device, with sensitive notes encrypted at rest. No cloud, no telemetry, no tracking.
 
 [![CI](https://github.com/pierou/mamadera/actions/workflows/ci.yml/badge.svg)](https://github.com/pierou/mamadera/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](.github/LICENSE)
@@ -80,14 +80,12 @@ lib/
 ### Database
 
 - **Drift** (SQLite) with versioned migrations
-- Schema source of truth: [`lib/data/local/app_db.dart`](lib/data/local/app_db.dart) (schema.sql is generated)
-- `sqlcipher_flutter_libs` available for encrypted SQLite on mobile platforms
+- Schema source of truth: [`lib/data/local/app_db.dart`](lib/data/local/app_db.dart) (schema.sql is a generated reference)
 
 ### Routing & Navigation
 
 - **go_router** with shell navigator for persistent bottom navigation bar
 - Route guard chain: splash → terms acceptance check → patch notes (on version upgrade) → home screen
-- Deep linking support via declarative route configuration
 
 ### Localization
 
@@ -102,7 +100,7 @@ lib/
 | Principle | Implementation |
 |-----------|----------------|
 | **Local-first** | All data stored on-device via SQLite. No cloud sync by default. |
-| **Encryption at rest** | Sensitive notes encrypted with AES-256-GCM before DB insertion; `sqlcipher_flutter_libs` available for full database encryption on mobile platforms |
+| **Encryption at rest** | Sensitive notes encrypted with AES-256-GCM before DB insertion. The database file itself is stored unencrypted on the device (field-level encryption only) |
 | **Key storage** | Master key secured in platform-native keystore (iOS Keychain / Android Keystore) via `flutter_secure_storage`; memory fallback with warning on desktop without keyring |
 | **No telemetry** | Zero analytics, tracking, or external network calls by default |
 | **Minimal permissions** | No camera, no location — only what's strictly necessary |
@@ -124,7 +122,7 @@ Master key stored securely ← flutter_secure_storage (Keychain / Keystore)
 - **Read:** Decrypted on retrieval — UI only sees plaintext in memory during rendering
 - **Update/Edit:** Re-encrypted with fresh IV on save
 - **Delete:** Cascade-aware deletion (e.g., deleting a baby profile removes associated events)
-- **Reset:** Database reset option in Settings physically deletes the SQLite file via `AppPreferencesService`
+- **Reset:** Database reset option in Settings physically deletes the SQLite file via `resetDatabase()` in the data layer
 
 ---
 
@@ -173,8 +171,9 @@ A `Makefile` is provided for local development, CI workflows, and store builds:
 | `make test` | Run unit & widget tests across `test/shared/`, `test/data/`, `test/features/`, `test/core/` with coverage |
 | `make check-coverage` | Enforce ≥ 80% line coverage threshold via `lcov`; excludes generated/l10n files |
 | `make ci` | Full pipeline: pub-get → lint → test → check-coverage |
-| `make integration-test-simulator` | Run integration tests on connected iOS simulator/device |
-| `make ci-integration` | Full integration test suite in VM mode (no device required) |
+| `make integration-test-simulator` | Run the 6 harness integration tests on a connected device/emulator (same list as CI) |
+| `make ci-integration` | Same integration test file list as the GitHub Actions `integration-tests` job (requires a device) |
+| `make integration-driver` | Run the host-side Flutter Driver test (`flutter drive` against `lib/driver_main.dart`) |
 | `make clean` | Clean all generated artifacts (`flutter clean` + remove coverage/.dart_tool/build dirs) |
 
 #### Build Targets
@@ -281,15 +280,17 @@ integration_test/
 - **Semantic keys** — All track buttons (`track-miam`, `track-sante`, etc.) and bottom nav tabs have semantic keys defined in the `TestKeys` class, used by widget finders for reliable test selectors.
 - **In-memory database** — Tests use an in-memory Drift instance so no persistent state leaks between tests.
 
-Run integration tests on a connected simulator or device:
+Run integration tests on a connected simulator, device, or emulator (a device is **required** — these run the real app through the `integration_test` binding):
 
 ```bash
-# Integration Test API (recommended, runs in VM):
+# Integration Test API — the 6 harness-based flow tests (same list as CI):
 make integration-test-simulator
 
-# Full CI suite (no device required):
-make ci-integration
+# Host-side Flutter Driver script (app launched from lib/driver_main.dart):
+make integration-driver
 ```
+
+> GitHub Actions runs this whole suite on an Android emulator (`integration-tests` job); `driver_integration_test.dart` is always run with `flutter drive`, never with `flutter test`.
 
 ---
 

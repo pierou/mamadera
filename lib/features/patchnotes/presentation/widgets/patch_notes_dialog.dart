@@ -43,94 +43,127 @@ class PatchNotesDialog extends ConsumerWidget {
               child: Column(
                 children: [
                   // Don't show again checkbox
-                  Row(
-                    children: [
-                      FutureBuilder<bool>(
-                        future: ref.read(appPreferencesProvider.future)
-                            .then((prefs) => prefs.patchNotesOptOut),
-                        builder: (context, snapshot) {
-                          final optOut = snapshot.data ?? false;
-                          return Checkbox(
-                            value: optOut,
-                            onChanged: (value) async {
-                              await ref
-                                  .read(appPreferencesProvider.notifier)
-                                  .setPatchNotesOptOut(value: value ?? false);
-                            },
-                          );
-                        },
-                      ),
-                      Expanded(
-                        child: Text(
-                          context.l.patchNotesDontShowAgain,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-                    ],
-                  ),
+                  const _OptOutCheckbox(),
                   const SizedBox(height: 16),
                   // Skip & Create Later button (only shown for first-time users)
                   if (showSkipButton) ...[
-                    OutlinedButton(
-                      onPressed: () async {
-                        await ref
-                            .read(appPreferencesProvider.notifier)
-                            .markPatchNotesSeen();
-                        // Ensure state update propagates before navigation.
-                        await Future<void>.delayed(Duration.zero);
-                        onSkip?.call();
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        context.l.patchNotesSkipCreateLater,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
+                    _SkipButton(onSkip: onSkip),
                     const SizedBox(height: 16),
                   ],
                   // Close button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await ref
-                            .read(appPreferencesProvider.notifier)
-                            .markPatchNotesSeen();
-                        // Ensure state update propagates before navigation.
-                        await Future<void>.delayed(Duration.zero);
-                        onDismiss();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        context.l.patchNotesClose,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
+                  _CloseButton(onClose: onDismiss),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "Don't show again" checkbox row, backed by the persisted opt-out pref.
+class _OptOutCheckbox extends ConsumerWidget {
+  const _OptOutCheckbox();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Row(
+      children: [
+        FutureBuilder<bool>(
+          future: ref
+              .read(appPreferencesProvider.future)
+              .then((prefs) => prefs.patchNotesOptOut),
+          builder: (context, snapshot) {
+            final optOut = snapshot.data ?? false;
+            return Checkbox(
+              value: optOut,
+              onChanged: (value) async {
+                await ref
+                    .read(appPreferencesProvider.notifier)
+                    .setPatchNotesOptOut(value: value ?? false);
+              },
+            );
+          },
+        ),
+        Expanded(
+          child: Text(
+            context.l.patchNotesDontShowAgain,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// "Skip & Create Later" button for first-time users.
+class _SkipButton extends ConsumerWidget {
+  const _SkipButton({required this.onSkip});
+
+  /// Callback invoked when user chooses to skip patch notes.
+  final VoidCallback? onSkip;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return OutlinedButton(
+      onPressed: () async {
+        await ref.read(appPreferencesProvider.notifier).markPatchNotesSeen();
+        // Ensure state update propagates before navigation.
+        await Future<void>.delayed(Duration.zero);
+        onSkip?.call();
+      },
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: Text(
+        context.l.patchNotesSkipCreateLater,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+    );
+  }
+}
+
+/// Primary "Close" button dismissing the patch notes overlay.
+class _CloseButton extends ConsumerWidget {
+  const _CloseButton({required this.onClose});
+
+  /// Callback invoked after dismissing patch notes.
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () async {
+          await ref.read(appPreferencesProvider.notifier).markPatchNotesSeen();
+          // Ensure state update propagates before navigation.
+          await Future<void>.delayed(Duration.zero);
+          onClose();
+        },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Text(
+          context.l.patchNotesClose,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
