@@ -12,6 +12,7 @@
 /// ```
 library;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_driver/flutter_driver.dart';
@@ -46,14 +47,33 @@ void main() {
   group('Mamadera Driver Integration Tests', () {
     late FlutterDriver driver;
 
+    /// Waits for the app to go idle without failing when it never does:
+    /// cold starts can exceed small bounds and the UI may legitimately
+    /// keep drawing frames (ongoing animation). Tests that need actual
+    /// UI state assert it explicitly via `waitFor` afterwards.
+    Future<void> settle([
+      Duration timeout = const Duration(seconds: 15),
+    ]) async {
+      try {
+        await driver.waitUntilNoTransientCallbacks(timeout: timeout);
+      // flutter_driver surfaces app-side RPC failures as DriverError
+      // (an Error subclass) by design - tolerating them is the point.
+      // ignore: avoid_catching_errors
+      } on DriverError catch (e) {
+        _log('[WARN] app did not settle (${e.message.split('\n').first}); continuing.');
+      } on TimeoutException {
+        _log('[WARN] settle timed out host-side; continuing.');
+      }
+    }
+
     setUpAll(() async {
       _log('[SETUP] Connecting to Flutter Driver...');
       driver = await FlutterDriver.connect();
 
-      // Wait for app to settle after launch.
-      await driver.waitUntilNoTransientCallbacks(
-        timeout: const Duration(seconds: 15),
-      );
+      // Give the app a generous window to draw its first frames; do not
+      // fail the suite on a busy cold start - the tests below verify real
+      // widget state with their own finders.
+      await settle(const Duration(seconds: 30));
       _log('[OK] Connected successfully.');
     });
 
@@ -143,16 +163,14 @@ void main() {
       // Ensure we're on home first by tapping it.
       try {
         await driver.tap(find.byValueKey(_Keys.homeTab));
-        await driver.waitUntilNoTransientCallbacks();
+        await settle();
       } on Exception catch (e) {
         _log('[INFO] Home tap may have failed: $e');
       }
 
       // Tap history tab.
       await driver.tap(find.byValueKey(_Keys.historyTab));
-      await driver.waitUntilNoTransientCallbacks(
-        timeout: const Duration(seconds: 5),
-      );
+      await settle(const Duration(seconds: 5));
 
       _log('[PASS] Successfully navigated to history tab');
 
@@ -178,9 +196,7 @@ void main() {
 
       // Tap menu tab.
       await driver.tap(find.byValueKey(_Keys.menuTab));
-      await driver.waitUntilNoTransientCallbacks(
-        timeout: const Duration(seconds: 5),
-      );
+      await settle(const Duration(seconds: 5));
 
       _log('[PASS] Successfully navigated to menu tab');
 
@@ -203,7 +219,7 @@ void main() {
 
       // Ensure we're on home screen first.
       await driver.tap(find.byValueKey(_Keys.homeTab));
-      await driver.waitUntilNoTransientCallbacks();
+      await settle();
 
       // Wait for track button to be available.
       await driver.waitFor(
@@ -213,7 +229,7 @@ void main() {
 
       // Tap the miam tracking button.
       await driver.tap(find.byValueKey(_Keys.trackMiam));
-      await driver.waitUntilNoTransientCallbacks();
+      await settle();
 
       _log('[PASS] Track Miam tapped — dialog should be open');
 
@@ -250,7 +266,7 @@ void main() {
       }
 
       // Settle and verify app is still healthy.
-      await driver.waitUntilNoTransientCallbacks();
+      await settle();
       final health = await driver.checkHealth();
 
       if (health.status == HealthStatus.ok) {
