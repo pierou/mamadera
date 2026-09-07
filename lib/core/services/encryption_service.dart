@@ -4,6 +4,8 @@ import 'package:encrypt/encrypt.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 
+import 'app_logger.dart';
+
 /// Service de chiffrement AES-GCM pour les données sensibles.
 /// La clé maître est stockée dans flutter_secure_storage (Keychain iOS / Keystore Android).
 /// Sur desktop sans keyring disponible, fallback sur une clé volatile en mémoire.
@@ -15,7 +17,7 @@ class EncryptionService {
   static const String _masterKeyName = 'mamadera_master_key';
 
   final FlutterSecureStorage _secureStorage;
-  final Logger _logger = Logger();
+  final Logger _logger = appLogger();
   Key? _cachedKey;
   /// True si on utilise le fallback mémoire (pas de keyring disponible).
   bool _usingMemoryFallback = false;

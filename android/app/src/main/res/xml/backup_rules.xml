@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Legacy auto-backup rules — read by Android 6.0 (API 23) up to Android 11 (API 30).
+  Referenced from AndroidManifest.xml via android:fullBackupContent.
+
+  Mamadera is offline-only: no data may leave the device without an explicit
+  in-app action, so every file the app owns is excluded. The app is also
+  declared android:allowBackup="false", which on its own is ignored by some OEM
+  implementations — hence these belt-and-braces rules.
+-->
+<full-backup-content>
+    <!-- Baby database (path_provider documents dir = getExternalFilesDir()). -->
+    <exclude domain="external" path="Documents/mamadera.db" />
+    <exclude domain="file" path="Documents/mamadera.db" />
+
+    <!-- Local JSON preferences (terms acceptance, patch-notes opt-out, locale, theme). -->
+    <exclude domain="external" path="Documents/.mamadera_prefs.json" />
+    <exclude domain="file" path="Documents/.mamadera_prefs.json" />
+    <exclude domain="external" path="Documents/.mamadera_locale.json" />
+    <exclude domain="file" path="Documents/.mamadera_locale.json" />
+    <exclude domain="external" path="Documents/.mamadera_theme.json" />
+    <exclude domain="file" path="Documents/.mamadera_theme.json" />
+
+    <!-- flutter_secure_storage: encrypted values and their wrapped master key. -->
+    <exclude domain="sharedpref" path="FlutterSecureStorage.xml" />
+    <exclude domain="sharedpref" path="FlutterSecureKeyStorage.xml" />
+</full-backup-content>

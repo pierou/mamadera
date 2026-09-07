@@ -21,6 +21,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navMenu => 'Menu';
 
   @override
+  String get routerPageNotFoundTitle => 'Page not found';
+
+  @override
+  String get routerBackToHome => 'Back to home';
+
+  @override
+  String get routerGenericError => 'An unexpected error occurred.';
+
+  @override
   String get homeButtonMiam => 'Feeding';
 
   @override
@@ -492,6 +501,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get patchNotesTitle => 'What\'s New';
+
+  @override
+  String get patchNotesUnavailable => 'No patch notes available';
 
   @override
   String get patchNotesClose => 'Close';

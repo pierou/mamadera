@@ -21,6 +21,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navMenu => 'Menú';
 
   @override
+  String get routerPageNotFoundTitle => 'Página no encontrada';
+
+  @override
+  String get routerBackToHome => 'Volver al inicio';
+
+  @override
+  String get routerGenericError => 'Se ha producido un error inesperado.';
+
+  @override
   String get homeButtonMiam => 'Alimento';
 
   @override
@@ -493,6 +502,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get patchNotesTitle => 'Novedades';
+
+  @override
+  String get patchNotesUnavailable => 'No hay notas de la versión disponibles';
 
   @override
   String get patchNotesClose => 'Cerrar';

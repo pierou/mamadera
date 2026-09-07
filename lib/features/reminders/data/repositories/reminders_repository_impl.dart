@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:logger/logger.dart';
 
+import '../../../../core/services/app_logger.dart';
 // Alias for drift-generated row types (distinct from domain entities)
 import '../../../../data/local/app_db.dart' as db_app;
 import '../../domain/entities/reminder_item.dart';
@@ -12,7 +13,7 @@ class RemindersRepositoryImpl implements RemindersRepository {
   });
 
   final db_app.AppDatabase database;
-  static final Logger _logger = Logger();
+  static final Logger _logger = appLogger();
 
   @override
   Future<DateTime?> getLastCompleted(ReminderItem item, {String? babyId}) async {

@@ -1,25 +1,27 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
+import '../providers/patch_notes_repository_provider.dart';
 
 /// Screen displaying patch notes from JSON assets.
+///
+/// The locale → asset mapping (en/es/fr) lives in the patch notes repository,
+/// exposed through `patchNotesRepositoryProvider`; this widget only forwards
+/// the active language code and renders the result.
 class PatchNotesScreen extends ConsumerWidget {
   const PatchNotesScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = Localizations.localeOf(context).languageCode;
-    final assetPath = locale == 'en'
-        ? 'assets/patch_notes/en.json'
-        : 'assets/patch_notes/fr.json';
+    final notesFuture = ref
+        .watch(patchNotesRepositoryProvider)
+        .loadPatchNotes(locale);
 
     return FutureBuilder<Map<String, dynamic>>(
-      future: _loadPatchNotes(assetPath),
+      future: notesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -27,7 +29,7 @@ class PatchNotesScreen extends ConsumerWidget {
         if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
           return Scaffold(
             appBar: AppBar(title: Text(context.l.patchNotesTitle)),
-            body: const Center(child: Text('No patch notes available')),
+            body: Center(child: Text(context.l.patchNotesUnavailable)),
           );
         }
 
@@ -76,11 +78,6 @@ class PatchNotesScreen extends ConsumerWidget {
         );
       },
     );
-  }
-
-  Future<Map<String, dynamic>> _loadPatchNotes(String path) async {
-    final raw = await rootBundle.loadString(path);
-    return Map<String, dynamic>.from(jsonDecode(raw) as Map);
   }
 }
 

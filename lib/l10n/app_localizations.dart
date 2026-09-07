@@ -124,6 +124,24 @@ abstract class AppLocalizations {
   /// **'Menu'**
   String get navMenu;
 
+  /// No description provided for @routerPageNotFoundTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Page introuvable'**
+  String get routerPageNotFoundTitle;
+
+  /// No description provided for @routerBackToHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à l\'accueil'**
+  String get routerBackToHome;
+
+  /// No description provided for @routerGenericError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une erreur est survenue.'**
+  String get routerGenericError;
+
   /// No description provided for @homeButtonMiam.
   ///
   /// In fr, this message translates to:
@@ -987,6 +1005,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Nouvelles Fonctionnalités'**
   String get patchNotesTitle;
+
+  /// No description provided for @patchNotesUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune note de version disponible'**
+  String get patchNotesUnavailable;
 
   /// No description provided for @patchNotesClose.
   ///

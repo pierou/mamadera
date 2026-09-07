@@ -7,6 +7,10 @@
   "navHistory": "Historial",
   "navMenu": "Menú",
 
+  "routerPageNotFoundTitle": "Página no encontrada",
+  "routerBackToHome": "Volver al inicio",
+  "routerGenericError": "Se ha producido un error inesperado.",
+
   "homeButtonMiam": "Alimento",
   "homeButtonSante": "Salud",
   "homeButtonCaca": "Pañal",
@@ -272,6 +276,7 @@
   "termsLoadingError": "No se pudieron cargar los términos. Inténtalo de nuevo.",
 
   "patchNotesTitle": "Novedades",
+  "patchNotesUnavailable": "No hay notas de la versión disponibles",
   "patchNotesClose": "Cerrar",
   "patchNotesDontShowAgain": "No volver a mostrar",
   "patchNotesWhatChanged": "Qué ha cambiado",

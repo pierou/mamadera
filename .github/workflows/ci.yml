@@ -36,7 +36,10 @@ jobs:
           fetch-depth: 0
 
       - name: Trivy (vuln dépendances)
-        uses: aquasecurity/trivy-action@master
+        # Blocking: HIGH/CRITICAL findings fail the pipeline (`exit-code: 1`).
+        # Pinned to a version tag (was @master) so the scanner itself cannot
+        # change underneath a build.
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: 'fs'
           severity: 'HIGH,CRITICAL'
@@ -44,13 +47,12 @@ jobs:
           # Skip Dart/Flutter lockfile — Trivy has poor support for pubspec.lock
           # and produces false positives. Use `dart pub outdated` + manual review instead.
           skip-dirs: '${{ github.workspace }}/.pub-cache'
-        continue-on-error: true  # Non-blocking until we migrate to a Dart-aware scanner
 
       - name: Semgrep (SAST basique)
+        # Blocking: any new SAST finding fails the pipeline.
         uses: semgrep/semgrep-action@v1
         with:
           config: 'auto'
-        continue-on-error: true
 
       - name: Gitleaks (secrets in git history)
         # Blocking: any new secret in history fails the pipeline.
@@ -110,14 +112,22 @@ jobs:
           MIN_COVERAGE=80
 
           # Clean coverage report (exclude generated/test files)
-          lcov --ignore-errors unused,empty --remove coverage/lcov.info \
+          if ! lcov --ignore-errors unused,empty --remove coverage/lcov.info \
             'lib/generated/*' \
             '*_freezed.dart' \
             '*.g.dart' \
             'test/*' \
             '/tmp/*' \
             'lib/l10n/*' \
-            -o coverage/lcov.info.cleaned 2>/dev/null || true
+            -o coverage/lcov.info.cleaned 2>/dev/null; then
+            echo "⚠️ lcov could not build the cleaned report (no coverage data, or everything filtered out)"
+          fi
+
+          # Never fall through to a bogus threshold check on a missing report.
+          if [ ! -s coverage/lcov.info.cleaned ]; then
+            echo "❌ coverage/lcov.info.cleaned is missing or empty — cannot verify coverage"
+            exit 1
+          fi
 
           # Extract actual line coverage from lcov --summary stdout
           ACTUAL=$(lcov --ignore-errors empty --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $2}' | cut -d'.' -f1)

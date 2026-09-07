@@ -7,6 +7,10 @@
   "navHistory": "History",
   "navMenu": "Menu",
 
+  "routerPageNotFoundTitle": "Page not found",
+  "routerBackToHome": "Back to home",
+  "routerGenericError": "An unexpected error occurred.",
+
   "homeButtonMiam": "Feeding",
   "homeButtonSante": "Health",
   "homeButtonCaca": "Diaper",
@@ -272,6 +276,7 @@
   "termsLoadingError": "Failed to load terms. Please try again.",
 
   "patchNotesTitle": "What's New",
+  "patchNotesUnavailable": "No patch notes available",
   "patchNotesClose": "Close",
   "patchNotesDontShowAgain": "Don't show again",
   "patchNotesWhatChanged": "What's Changed",

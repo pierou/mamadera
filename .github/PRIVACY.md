@@ -106,7 +106,6 @@ We use only the following third-party packages, all of which are offline-only:
 | `go_router` | Routing | None |
 | `logger` | Logging | None |
 | `url_launcher` | Opening URLs (e.g. GitHub) | Only when explicitly triggered by user |
-| `package_info_plus` | Reading app version | None |
 | `path_provider` | File paths | None |
 | `intl` / `flutter_localizations` | i18n (EN/FR/ES) | None |
 | `markdown` | Rendering terms of service | None |

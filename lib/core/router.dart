@@ -155,31 +155,38 @@ final GoRouter router = GoRouter(
   ],
 
   /// Error page quand la route n'existe pas.
-  errorBuilder: (context, state) => Scaffold(
-    body: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          Text(
-            'Page introuvable',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            state.error?.toString() ?? '',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => context.go(AppRoute.home.path),
-            child: const Text("Retour à l'accueil"),
-          ),
-        ],
+  ///
+  /// Title and action are localised (fr/en/es). The raw exception is never
+  /// rendered: it is technical text that would leak internals and cannot be
+  /// translated, so users only ever see the generic localised message.
+  errorBuilder: (context, state) {
+    final l = AppLocalizations.of(context);
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+            const SizedBox(height: 16),
+            Text(
+              l.routerPageNotFoundTitle,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l.routerGenericError,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => context.go(AppRoute.home.path),
+              child: Text(l.routerBackToHome),
+            ),
+          ],
+        ),
       ),
-    ),
-  ),
+    );
+  },
 );
 
 /// Shell widget qui affiche la bottom navigation et le contenu de la route.

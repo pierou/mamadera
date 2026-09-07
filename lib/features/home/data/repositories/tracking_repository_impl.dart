@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:logger/logger.dart';
 
+import '../../../../core/services/app_logger.dart';
 import '../../../../core/services/encryption_service.dart';
 // Alias pour le row généré par drift (différent de l'entity domain)
 import '../../../../data/local/app_db.dart' as db_app;
@@ -20,7 +21,7 @@ class TrackingRepositoryImpl implements TrackingRepository {
 
   final EncryptionService encryption;
   final db_app.AppDatabase _database;
-  final Logger _logger = Logger();
+  final Logger _logger = appLogger();
 
   @override
   Future<List<TrackingEvent>> getAllEventsOrdered() async {

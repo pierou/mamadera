@@ -301,7 +301,7 @@ make integration-driver
 | Package | Purpose |
 |---------|---------|
 | `flutter_riverpod` / `riverpod` | State management |
-| `drift` + `sqflite_common_ffi` | Local SQLite database (Drift ORM with FFI for desktop) |
+| `drift` | Local SQLite database (Drift ORM, native SQLite driver) |
 | `encrypt` | AES-GCM encryption logic |
 | `flutter_secure_storage` | Platform-native key storage (Keychain/Keystore) |
 | `go_router` | Declarative navigation with shell navigator & deep linking |
@@ -312,9 +312,7 @@ make integration-driver
 | `intl` | Date/time/number formatting per locale |
 | `flutter_native_splash` | Native splash screen generation (Android drawables + iOS launch images) |
 | `markdown` | Markdown rendering for Terms of Service and patch notes content |
-| `package_info_plus` | Runtime app version reading for update detection & patch note triggers |
 | `path_provider` | File system paths for JSON preference persistence files |
-| `sqlcipher_flutter_libs` | SQLCipher native libraries (encrypted SQLite on mobile platforms) |
 | `url_launcher` | Launch external URLs: email to support, GitHub issues link in feedback screen |
 
 ### Development & Build Tools

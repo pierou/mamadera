@@ -26,7 +26,7 @@ When suggesting features: always propose local/offline solutions first. If cloud
 | Category | Package |
 |----------|---------|
 | Framework | Flutter 3.x / Dart 3.x (null-safe, records, pattern matching, sealed classes) |
-| State Management | `flutter_riverpod` — `StateNotifier` + `AsyncNotifier` only. No mixin-based state mgmt |
+| State Management | `flutter_riverpod` 3.x — `Notifier` + `AsyncNotifier` only. No mixin-based state mgmt, no legacy `StateNotifier` |
 | Routing | `go_router` |
 | Local DB | `drift` (SQLite), DDL source of truth: [`lib/data/local/app_db.dart`](lib/data/local/app_db.dart) (schema.sql is a generated reference) |
 | Encryption | `flutter_secure_storage` + AES-GCM via `encrypt` package |
@@ -91,8 +91,9 @@ class TrackingRepositoryImpl implements TrackingRepository {
 
 ### State Management (Riverpod)
 
-- Local mutable state → `StateNotifier`
-- Async operations with loading/error states → `AsyncNotifier`
+- Local mutable state → `Notifier` (`NotifierProvider`)
+- Async operations with loading/error states → `AsyncNotifier` (`AsyncNotifierProvider`)
+- Keep-alive providers cache a value for the whole session: anything that disposes the underlying resource (e.g. closing the database on reset) MUST `ref.invalidate` that provider and its dependents, or the app keeps serving a dead object
 - Override providers in tests using `ProviderContainer(overrides: [...])`
 - No global DI container (`get_it`) unless a single global singleton is genuinely needed
 

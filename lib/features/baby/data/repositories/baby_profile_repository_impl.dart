@@ -2,6 +2,7 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:logger/logger.dart';
 
+import '../../../../core/services/app_logger.dart';
 import '../../../../data/local/app_db.dart' as db_app;
 import '../../../../shared/domain/entities/baby_profile.dart';
 import '../../domain/repositories/baby_profile_repository.dart';
@@ -12,7 +13,7 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
 
   final db_app.AppDatabase database;
 
-  static final Logger _logger = Logger();
+  static final Logger _logger = appLogger();
 
   @override
   Future<List<BabyProfile>> getAllProfiles() async {
@@ -30,7 +31,7 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
     try {
       final row = await database.getActiveBabyProfile();
       if (row == null) return null;
-      _logger.d('Found active profile: ${row.name}');
+      _logger.d('Found active profile: ${row.id}');
       return _toDomain(row);
     } catch (e, stack) {
       _logger.e('getActiveProfile error', error: e, stackTrace: stack);
@@ -48,7 +49,7 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
         isActive: Value(profile.isActive),
       );
       await database.insertBabyProfile(companion);
-      _logger.d('Inserted baby profile: ${profile.name}');
+      _logger.d('Inserted baby profile: ${profile.id}');
       return profile.id;
     } catch (e, stack) {
       _logger.e('insertProfile error', error: e, stackTrace: stack);

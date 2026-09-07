@@ -7,6 +7,10 @@
   "navHistory": "Historique",
   "navMenu": "Menu",
 
+  "routerPageNotFoundTitle": "Page introuvable",
+  "routerBackToHome": "Retour à l'accueil",
+  "routerGenericError": "Une erreur est survenue.",
+
   "homeButtonMiam": "Miam",
   "homeButtonSante": "Santé",
   "homeButtonCaca": "Caca",
@@ -272,6 +276,7 @@
   "termsLoadingError": "Échec du chargement des conditions. Veuillez réessayer.",
 
   "patchNotesTitle": "Nouvelles Fonctionnalités",
+  "patchNotesUnavailable": "Aucune note de version disponible",
   "patchNotesClose": "Fermer",
   "patchNotesDontShowAgain": "Ne plus afficher",
   "patchNotesWhatChanged": "Ce qui a changé",
