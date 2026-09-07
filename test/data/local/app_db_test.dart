@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 7 (feeding subtype migration: sein/bib → natural/artificial)', () {
-      expect(db.schemaVersion, equals(7));
+    test('schemaVersion is 8 (creates reminder_settings for pre-v7 installs)', () {
+      expect(db.schemaVersion, equals(8));
     });
   });
 

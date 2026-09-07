@@ -43,7 +43,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
   @override
@@ -91,6 +91,21 @@ class AppDatabase extends _$AppDatabase {
                 "UPDATE tracking_events SET subtype = 'natural' WHERE type = 'miam' AND (subtype IS NULL OR subtype IN ('sein', 'naturel'))");
             await m.database.customStatement(
                 "UPDATE tracking_events SET subtype = 'artificial' WHERE type = 'miam' AND subtype IN ('bib', 'artificiel')");
+          }
+          // v7 → v8 : créer `reminder_settings` si absente.
+          // La table était déclarée dans @DriftDatabase mais jamais créée par
+          // onUpgrade : toute base créée avant la v7 (v3..v6) montait en v8
+          // sans la table, et toute lecture/écriture de réglage de rappel
+          // échouait avec « no such table: reminder_settings ».
+          // IF NOT EXISTS : les installations neuves (onCreate → createAll) la
+          // possèdent déjà.
+          if (from < 8) {
+            await m.database.customStatement(
+              'CREATE TABLE IF NOT EXISTS reminder_settings ('
+              'item_id TEXT NOT NULL PRIMARY KEY,'
+              'enabled BOOLEAN NOT NULL'
+              ')',
+            );
           }
         },
       );

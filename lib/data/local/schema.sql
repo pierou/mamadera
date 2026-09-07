@@ -1,5 +1,5 @@
 -- Mamadera Database Schema
--- Version: 7
+-- Version: 8
 -- Generated reference from lib/data/local/app_db.dart — do not edit directly.
 -- Source of truth is app_db.dart (Drift table definitions).
 --
@@ -7,6 +7,8 @@
 --   v5: Added `subtype` column for typed event subtype persistence
 --   v6: Added `quantity` column (volume in ml for feedings, minutes for sleep)
 --   v7: Migrated feeding subtype values 'sein'|'bib' → 'natural'|'artificial'
+--   v8: Created `reminder_settings` for databases that predate v7 (declared in
+--       app_db.dart since v7 but never created by onUpgrade)
 
 -- ── Baby Profiles ────────────────────────────────────────────────
 
