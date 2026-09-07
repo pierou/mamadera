@@ -25,6 +25,7 @@ sealed class EditResult with _$EditResult {
     WasteType? wasteType,
     PipiColor? pipiColor,
     CacaColor? cacaColor,
+    HealthSubtype? healthSubtype,
   }) = UpdateResult;
 
   const factory EditResult.delete() = DeleteResult;
@@ -55,6 +56,9 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   PipiColor? _pipiColor;
   CacaColor? _cacaColor;
 
+  // Sous-type de soin pour les événements santé (indépendant des notes)
+  HealthSubtype? _healthSubtype;
+
   /// Version normalisée en minuscule pour les comparaisons.
   String get _normalizedType {
     return widget.event.map(
@@ -80,6 +84,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     _wasteType = null;
     _pipiColor = null;
     _cacaColor = null;
+    _healthSubtype = null;
     _initEventFields();
   }
 
@@ -103,7 +108,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         _notesController.text = e.notes ?? '';
       },
       health: (e) {
-        _notesController.text = e.subtype.value;
+        _healthSubtype = e.subtype;
+        _notesController.text = e.notes ?? '';
       },
     );
   }
@@ -159,6 +165,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       wasteType: _wasteType,
       pipiColor: _pipiColor,
       cacaColor: _cacaColor,
+      healthSubtype: _healthSubtype,
     );
     Navigator.pop(context, result);
   }
@@ -437,7 +444,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
 
   List<ListTile> _buildHealthTiles() {
     return HealthSubtype.values.map((subtype) {
-      final isSelected = _notesController.text == subtype.value;
+      final isSelected = _healthSubtype == subtype;
       return ListTile(
         leading: Icon(HealthIcons.fromValue(subtype.value),
             color: isSelected ? AppTheme.sante : null),
@@ -446,7 +453,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
             : null,
         tileColor: isSelected ? AppTheme.sante.withValues(alpha: 0.15) : null,
-        onTap: () => setState(() => _notesController.text = subtype.value),
+        onTap: () => setState(() => _healthSubtype = subtype),
       );
     }).toList();
   }

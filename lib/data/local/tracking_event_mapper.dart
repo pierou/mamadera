@@ -64,6 +64,12 @@ TrackingEvent _createDiaperEvent(db_app.TrackingEvent row, EncryptionService enc
   );
 }
 
+/// Mappe un row santé vers [TrackingEvent.health].
+///
+/// Limite connue : un row dont la colonne `subtype` est NULL (données très
+/// anciennes) est rapporté avec le sous-type par défaut
+/// [HealthSubtype.nettoyageYeux] — l'entité domain ne représente pas
+/// explicitement un sous-type inconnu.
 TrackingEvent _createHealthEvent(db_app.TrackingEvent row, EncryptionService encryption) {
   // Lire le subtype depuis la colonne dédiée (ou fallback pour anciennes données)
   final subtypeValue = row.subtype ?? '';
@@ -105,9 +111,16 @@ FeedingSubtype _feedingSubtypeFromRow(db_app.TrackingEvent row) {
           pipiColor = findPipiColorByValue(parts[0].trim());
           cacaColor = findCacaColorByValue(parts[1].trim());
         } else if (parts.isNotEmpty) {
-          // Fallback : essaie d'abord comme couleur pipi, puis caca
-          pipiColor = findPipiColorByValue(parts.first.trim()) ??
-              findCacaColorByValue(parts.first.trim()) as PipiColor?;
+          // Row legacy : une seule partie de couleur. Attention au piège de
+          // précédence : `as` se lie PLUS FORT que `??`, donc
+          // `findPipiColorByValue(x) ?? findCacaColorByValue(x) as PipiColor?`
+          // s'évalue comme `findPipi ?? (findCaca as PipiColor?)` et lève un
+          // TypeError dès que la valeur est une couleur caca. On résout donc
+          // explicitement la valeur vers son bon type de couleur.
+          final part = parts.first.trim();
+          final pipi = findPipiColorByValue(part);
+          pipiColor = pipi;
+          cacaColor = pipi == null ? findCacaColorByValue(part) : null;
         }
       case null:
         break;

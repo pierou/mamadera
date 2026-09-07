@@ -120,19 +120,13 @@ class HistoryScreen extends ConsumerWidget {
         notes: result.notes ?? e.notes,
         babyId: e.babyId,
       ),
-      health: (e) {
-        // Pour health, les notes contiennent le subtype value. Si changé, créer nouveau subtype.
-        final subtype = result.notes != null
-            ? (HealthSubtype.byValue(result.notes!) ?? e.subtype)
-            : e.subtype;
-        return TrackingEvent.health(
-          id: e.id,
-          timestamp: ts,
-          subtype: subtype,
-          notes: result.notes,
-          babyId: e.babyId,
-        );
-      },
+      health: (e) => TrackingEvent.health(
+        id: e.id,
+        timestamp: ts,
+        subtype: result.healthSubtype ?? e.subtype,
+        notes: result.notes ?? e.notes,
+        babyId: e.babyId,
+      ),
     );
   }
 

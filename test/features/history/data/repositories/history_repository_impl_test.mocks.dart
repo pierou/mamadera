@@ -599,6 +599,16 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
       ) as _i5.Future<bool>);
 
   @override
+  _i5.Future<int> deleteTrackingEventsByBabyId(String? babyId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteTrackingEventsByBabyId,
+          [babyId],
+        ),
+        returnValue: _i5.Future<int>.value(0),
+      ) as _i5.Future<int>);
+
+  @override
   _i5.Future<List<_i3.TrackingEvent>> getEventsByBabyId(String? babyId) =>
       (super.noSuchMethod(
         Invocation.method(

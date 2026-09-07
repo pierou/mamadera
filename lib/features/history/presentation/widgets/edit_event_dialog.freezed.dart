@@ -142,7 +142,8 @@ extension EditResultPatterns on EditResult {
             FeedingSubtype? subtype,
             WasteType? wasteType,
             PipiColor? pipiColor,
-            CacaColor? cacaColor)?
+            CacaColor? cacaColor,
+            HealthSubtype? healthSubtype)?
         update,
     TResult Function()? delete,
     required TResult orElse(),
@@ -158,7 +159,8 @@ extension EditResultPatterns on EditResult {
             _that.subtype,
             _that.wasteType,
             _that.pipiColor,
-            _that.cacaColor);
+            _that.cacaColor,
+            _that.healthSubtype);
       case DeleteResult() when delete != null:
         return delete();
       case _:
@@ -189,7 +191,8 @@ extension EditResultPatterns on EditResult {
             FeedingSubtype? subtype,
             WasteType? wasteType,
             PipiColor? pipiColor,
-            CacaColor? cacaColor)
+            CacaColor? cacaColor,
+            HealthSubtype? healthSubtype)
         update,
     required TResult Function() delete,
   }) {
@@ -204,7 +207,8 @@ extension EditResultPatterns on EditResult {
             _that.subtype,
             _that.wasteType,
             _that.pipiColor,
-            _that.cacaColor);
+            _that.cacaColor,
+            _that.healthSubtype);
       case DeleteResult():
         return delete();
     }
@@ -232,7 +236,8 @@ extension EditResultPatterns on EditResult {
             FeedingSubtype? subtype,
             WasteType? wasteType,
             PipiColor? pipiColor,
-            CacaColor? cacaColor)?
+            CacaColor? cacaColor,
+            HealthSubtype? healthSubtype)?
         update,
     TResult? Function()? delete,
   }) {
@@ -247,7 +252,8 @@ extension EditResultPatterns on EditResult {
             _that.subtype,
             _that.wasteType,
             _that.pipiColor,
-            _that.cacaColor);
+            _that.cacaColor,
+            _that.healthSubtype);
       case DeleteResult() when delete != null:
         return delete();
       case _:
@@ -267,7 +273,8 @@ class UpdateResult implements EditResult {
       this.subtype,
       this.wasteType,
       this.pipiColor,
-      this.cacaColor});
+      this.cacaColor,
+      this.healthSubtype});
 
   final DateTime? timestamp;
   final double? duration;
@@ -277,6 +284,7 @@ class UpdateResult implements EditResult {
   final WasteType? wasteType;
   final PipiColor? pipiColor;
   final CacaColor? cacaColor;
+  final HealthSubtype? healthSubtype;
 
   /// Create a copy of EditResult
   /// with the given fields replaced by the non-null parameter values.
@@ -303,16 +311,18 @@ class UpdateResult implements EditResult {
             (identical(other.pipiColor, pipiColor) ||
                 other.pipiColor == pipiColor) &&
             (identical(other.cacaColor, cacaColor) ||
-                other.cacaColor == cacaColor));
+                other.cacaColor == cacaColor) &&
+            (identical(other.healthSubtype, healthSubtype) ||
+                other.healthSubtype == healthSubtype));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, timestamp, duration, quantity,
-      notes, subtype, wasteType, pipiColor, cacaColor);
+      notes, subtype, wasteType, pipiColor, cacaColor, healthSubtype);
 
   @override
   String toString() {
-    return 'EditResult.update(timestamp: $timestamp, duration: $duration, quantity: $quantity, notes: $notes, subtype: $subtype, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor)';
+    return 'EditResult.update(timestamp: $timestamp, duration: $duration, quantity: $quantity, notes: $notes, subtype: $subtype, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor, healthSubtype: $healthSubtype)';
   }
 }
 
@@ -331,10 +341,12 @@ abstract mixin class $UpdateResultCopyWith<$Res>
       FeedingSubtype? subtype,
       WasteType? wasteType,
       PipiColor? pipiColor,
-      CacaColor? cacaColor});
+      CacaColor? cacaColor,
+      HealthSubtype? healthSubtype});
 
   $PipiColorCopyWith<$Res>? get pipiColor;
   $CacaColorCopyWith<$Res>? get cacaColor;
+  $HealthSubtypeCopyWith<$Res>? get healthSubtype;
 }
 
 /// @nodoc
@@ -356,6 +368,7 @@ class _$UpdateResultCopyWithImpl<$Res> implements $UpdateResultCopyWith<$Res> {
     Object? wasteType = freezed,
     Object? pipiColor = freezed,
     Object? cacaColor = freezed,
+    Object? healthSubtype = freezed,
   }) {
     return _then(UpdateResult(
       timestamp: freezed == timestamp
@@ -390,6 +403,10 @@ class _$UpdateResultCopyWithImpl<$Res> implements $UpdateResultCopyWith<$Res> {
           ? _self.cacaColor
           : cacaColor // ignore: cast_nullable_to_non_nullable
               as CacaColor?,
+      healthSubtype: freezed == healthSubtype
+          ? _self.healthSubtype
+          : healthSubtype // ignore: cast_nullable_to_non_nullable
+              as HealthSubtype?,
     ));
   }
 
@@ -418,6 +435,20 @@ class _$UpdateResultCopyWithImpl<$Res> implements $UpdateResultCopyWith<$Res> {
 
     return $CacaColorCopyWith<$Res>(_self.cacaColor!, (value) {
       return _then(_self.copyWith(cacaColor: value));
+    });
+  }
+
+  /// Create a copy of EditResult
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $HealthSubtypeCopyWith<$Res>? get healthSubtype {
+    if (_self.healthSubtype == null) {
+      return null;
+    }
+
+    return $HealthSubtypeCopyWith<$Res>(_self.healthSubtype!, (value) {
+      return _then(_self.copyWith(healthSubtype: value));
     });
   }
 }

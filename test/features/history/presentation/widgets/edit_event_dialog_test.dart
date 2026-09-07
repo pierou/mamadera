@@ -354,6 +354,107 @@ void main() {
     });
   });
 
+  group('EditEventDialog — Santé : préservation des notes (régression)', () {
+    // Régression : éditer un HealthEvent (ex. changer l'horodatage) et
+    // soumettre ne doit ni écraser les notes avec la string du sous-type
+    // ('vitamine_d'), ni perdre les notes existantes.
+    testWidgets('sante: notes préservées au submit, sous-type inchangé', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 900);
+      await tester.pump();
+
+      const originalNotes = 'Vitamine D 400 UI par jour';
+      final completer = Completer<EditResult?>();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: _DialogLauncher(
+              event: HealthEvent(
+                timestamp: DateTime.utc(2024, 6, 15, 9),
+                subtype: HealthSubtype.vitamineD,
+                notes: originalNotes,
+              ),
+              onResult: (r) => completer.complete(r as EditResult?),
+            ),
+          ),
+        ),
+      );
+
+      // Ouvrir le dialog
+      await tester.tap(find.text('Ouvrir'));
+      await tester.pumpAndSettle();
+
+      // Le tile Vitamine D est pré-sélectionné
+      expect(find.widgetWithIcon(ListTile, Icons.check_circle), findsOneWidget);
+
+      // Soumettre sans rien modifier
+      await tester.tap(find.text('Enregistrer'));
+      await tester.pumpAndSettle();
+
+      final result = (await completer.future) as UpdateResult?;
+      // Assertion de régression : les notes ne sont PAS la string du sous-type
+      expect(result?.notes, originalNotes,
+          reason: 'les notes originales doivent être préservées, ' 'jamais la value du sous-type');
+      expect(result?.healthSubtype, HealthSubtype.vitamineD);
+    });
+
+    testWidgets('sante: changer le sous-type préserve les notes', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 900);
+      await tester.pump();
+
+      const originalNotes = 'note de soin';
+      final completer = Completer<EditResult?>();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: _DialogLauncher(
+              event: HealthEvent(
+                timestamp: DateTime.utc(2024, 6, 15, 9),
+                subtype: HealthSubtype.vitamineD,
+                notes: originalNotes,
+              ),
+              onResult: (r) => completer.complete(r as EditResult?),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Ouvrir'));
+      await tester.pumpAndSettle();
+
+      // Changer le sous-type vers Nettoyage des yeux
+      await tester.tap(find.text('Nettoyage des yeux'));
+      await tester.pumpAndSettle();
+
+      // Soumettre
+      await tester.tap(find.text('Enregistrer'));
+      await tester.pumpAndSettle();
+
+      final result = (await completer.future) as UpdateResult?;
+      expect(result?.healthSubtype, HealthSubtype.nettoyageYeux);
+      expect(result?.notes, originalNotes);
+    });
+  });
+
   group('EditEventDialog — Delete confirmation flow', () {
     testWidgets('tap Supprimer → AlertDialog ouvert avec message de confirmation', (tester) async {
       // Increase viewport to accommodate taller edit dialog with subtype selector
