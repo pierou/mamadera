@@ -3,9 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/providers/active_baby_provider.dart';
+import '../../../../core/providers/any_baby_exists_provider.dart';
+import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/theme.dart';
+import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
+import '../../../../features/history/presentation/providers/history_notifier.dart';
+import '../../../../features/history/presentation/providers/history_repository_provider.dart';
+import '../../../../features/home/presentation/providers/repository_provider.dart';
+import '../../../../features/reminders/presentation/providers/reminder_providers.dart';
 import '../providers/menu_repository_provider.dart';
 import '../widgets/baby_profile_section.dart';
 
@@ -254,6 +262,26 @@ class MenuScreen extends ConsumerWidget {
     final errorLabel = context.l.resetDatabaseError;
     try {
       await ref.read(menuRepositoryProvider).resetDatabase();
+      // Invalidation is MANDATORY, not cosmetic: resetDatabase() closes the
+      // SQLite connection and deletes the file, but databaseProvider is a
+      // keep-alive (non autoDispose) FutureProvider — without invalidating it,
+      // Riverpod would keep handing out the *closed* database for the rest of
+      // the session and every later query would throw "database is not open".
+      // The whole dependent chain is discarded so a fresh database is built on
+      // the next read and no screen can show pre-reset data.
+      ref
+        ..invalidate(databaseProvider)
+        ..invalidate(trackingRepositoryProvider)
+        ..invalidate(historyRepositoryProvider)
+        ..invalidate(babyProfileRepositoryProvider)
+        ..invalidate(remindersRepositoryProvider)
+        ..invalidate(babyProfileProvider)
+        ..invalidate(menuRepositoryProvider)
+        ..invalidate(activeBabyProvider)
+        ..invalidate(babyProfileListProvider)
+        ..invalidate(anyBabyExistsProvider)
+        ..invalidate(historyNotifierProvider)
+        ..invalidate(reminderNotifierProvider);
       if (context.mounted) _showSnackBar(context, successLabel);
     } catch (e) {
       if (context.mounted) _showSnackBar(context, errorLabel(e.toString()), isError: true);

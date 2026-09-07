@@ -79,6 +79,7 @@ class TrackingRepositoryImpl implements TrackingRepository {
             duration: Value(e.duration),
             notes: Value(encryptedNotes),
             babyId: Value(e.babyId),
+            quantity: Value(e.quantity),
             wasteType: const Value.absent(),
             color: const Value.absent(),
           );

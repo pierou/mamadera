@@ -164,10 +164,16 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
-  /// Retourne le profil actif (premier trouvé avec is_active == true).
+  /// Retourne le profil actif (avec is_active == true).
+  ///
+  /// Tri déterministe `birth_date` puis `id` : si deux lignes se retrouvent
+  /// actives (fenêtre de bug avant la transaction de `setActiveProfile`), le
+  /// profil retourné est toujours le même plutôt que le premier rendu par
+  /// SQLite.
   Future<BabyProfile?> getActiveBabyProfile() async {
     final profiles = await (select(babyProfiles)
-          ..where((t) => t.isActive.equals(true)))
+          ..where((t) => t.isActive.equals(true))
+          ..orderBy([(t) => OrderingTerm.asc(t.birthDate), (t) => OrderingTerm.asc(t.id)]))
         .get();
     return profiles.isEmpty ? null : profiles.first;
   }
@@ -183,6 +189,15 @@ class AppDatabase extends _$AppDatabase {
     final deleted = await (delete(babyProfiles)..where((t) => t.id.equals(id))).go();
     return deleted > 0;
   }
+
+  /// Supprime tous les événements de suivi rattachés à [babyId].
+  /// Retourne le nombre de lignes supprimées.
+  ///
+  /// À appeler dans la même transaction que [deleteBabyProfile] : sans clés
+  /// étrangères ni cascade dans le schéma, c'est la seule chose qui empêche
+  /// les événements de survivre à leur bébé.
+  Future<int> deleteTrackingEventsByBabyId(String babyId) =>
+      (delete(trackingEvents)..where((t) => t.babyId.equals(babyId))).go();
 
   /// Retourne les événements pour un bébé spécifique.
   Future<List<TrackingEvent>> getEventsByBabyId(String babyId) {

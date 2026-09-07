@@ -202,6 +202,45 @@ void main() {
         expect(all, hasLength(1));
         expect(all.first.id, equals('baby-002'));
       });
+
+      test('deletes the baby tracking events together with the profile row', () async {
+        await repository.insertProfile(baby1);
+        await repository.insertProfile(baby2);
+
+        // Two events for baby-001, one for baby-002.
+        await database.insertEvent(
+          db_app.TrackingEventsCompanion(
+            type: const Value('miam'),
+            timestamp: Value(DateTime(2026, 9, 1)),
+            babyId: const Value('baby-001'),
+          ),
+        );
+        await database.insertEvent(
+          db_app.TrackingEventsCompanion(
+            type: const Value('dodo'),
+            timestamp: Value(DateTime(2026, 9, 2)),
+            babyId: const Value('baby-001'),
+          ),
+        );
+        await database.insertEvent(
+          db_app.TrackingEventsCompanion(
+            type: const Value('miam'),
+            timestamp: Value(DateTime(2026, 9, 1, 12)),
+            babyId: const Value('baby-002'),
+          ),
+        );
+
+        final deleted = await repository.deleteProfile('baby-001');
+        expect(deleted, isTrue);
+
+        // Profile row gone and its events gone with it...
+        final all = await repository.getAllProfiles();
+        expect(all.map((p) => p.id), isNot(contains('baby-001')));
+        expect(await database.getEventsByBabyId('baby-001'), isEmpty);
+
+        // ...while the other baby's events survive.
+        expect(await database.getEventsByBabyId('baby-002'), hasLength(1));
+      });
     });
 
     group('setActiveProfile', () {

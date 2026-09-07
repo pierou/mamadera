@@ -81,7 +81,15 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
   @override
   Future<bool> deleteProfile(String id) async {
     try {
-      final deleted = await database.deleteBabyProfile(id);
+      // Les événements du bébé et la ligne de profil partent dans une seule
+      // transaction : le schéma n'a ni clé étrangère ni cascade, donc une
+      // erreur entre les deux DELETE laisserait soit des événements orphelins,
+      // soit un profil dont les événements ont déjà disparu — alors que la
+      // boîte de confirmation promet à l'utilisateur les deux suppressions.
+      final deleted = await database.transaction(() async {
+        await database.deleteTrackingEventsByBabyId(id);
+        return database.deleteBabyProfile(id);
+      });
       if (deleted) _logger.d('Deleted baby profile: $id');
       return deleted;
     } catch (e, stack) {
@@ -93,21 +101,26 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
   @override
   Future<void> setActiveProfile(String id) async {
     try {
-      // First deactivate all profiles.
-      final all = await getAllProfiles();
-      for (final profile in all) {
-        if (!profile.isActive) continue;
-        await database.updateBabyProfile(
-          profile.id,
-          const db_app.BabyProfilesCompanion(isActive: Value(false)),
-        );
-      }
+      // Désactiver tout puis activer l'élu doit être atomique : sans
+      // transaction, un échec entre les deux UPDATE laisse l'app sans aucun
+      // bébé actif (l'échec précédent laissait la fenêtre ouverte).
+      await database.transaction(() async {
+        // First deactivate all profiles.
+        final all = await getAllProfiles();
+        for (final profile in all) {
+          if (!profile.isActive) continue;
+          await database.updateBabyProfile(
+            profile.id,
+            const db_app.BabyProfilesCompanion(isActive: Value(false)),
+          );
+        }
 
-      // Then activate the selected one.
-      await database.updateBabyProfile(
-        id,
-        const db_app.BabyProfilesCompanion(isActive: Value(true)),
-      );
+        // Then activate the selected one.
+        await database.updateBabyProfile(
+          id,
+          const db_app.BabyProfilesCompanion(isActive: Value(true)),
+        );
+      });
       _logger.d('Set active profile to $id');
     } catch (e, stack) {
       _logger.e('setActiveProfile error', error: e, stackTrace: stack);
