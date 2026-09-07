@@ -18,7 +18,8 @@
 | ❤️ **Health routines** | Track eye/face/nose cleaning, belly button care, Vitamin D (daily), and Vitamin K (every 30 days rolling interval) with reminder pills for overdue items |
 | 🔔 **Reminders** | Periodic health reminders with dismissal cooldowns; supports daily, weekly, monthly, and custom intervals via sealed `ReminderFrequency` variants |
 | 📜 **History** | Chronological event browser with filter by type, inline editing, and deletion support |
-| ⚙️ **Settings & Menu** | Language selector (fr/en/es), theme mode toggle (light/dark/system), database reset, feedback screen with direct email/GitHub links |
+| ⚙️ **Settings & Menu** | Language selector (fr/en/es), theme mode toggle (light/dark/system), data export, database reset, feedback screen with direct email/GitHub links |
+| 📤 **Data export** | Manual JSON backup of the entire database (all four tables, orphan rows included) handed to the system share sheet; warned-and-confirmed first, nothing ever leaves automatically |
 | ✅ **Onboarding** | First-launch Terms of Service acceptance flow with localized markdown content; app access gated until accepted via router guards |
 | 📝 **Patch notes** | Version-update changelog dialog on app upgrade, loaded from locale-specific JSON assets; opt-out preference supported |
 
@@ -103,7 +104,8 @@ lib/
 | **Encryption at rest** | Sensitive notes encrypted with AES-256-GCM before DB insertion. The database file itself is stored unencrypted on the device (field-level encryption only) |
 | **Key storage** | Master key secured in platform-native keystore (iOS Keychain / Android Keystore) via `flutter_secure_storage`; memory fallback with warning on desktop without keyring |
 | **No telemetry** | Zero analytics, tracking, or external network calls by default |
-| **Minimal permissions** | No camera, no location — only what's strictly necessary |
+| **Minimal permissions** | No camera, no location — the export uses no permission at all (system share sheet, URI-granted file) |
+| **Explicit exit only** | The one sanctioned path off-device is a JSON file the user generates and hands to the share sheet themselves; OS auto-backups are disabled and the encryption key never leaves the keystore |
 | **Consent flow** | Terms of Service acceptance required before app access; patch notes opt-out preference after first dismissal. Persisted as local JSON preferences |
 | **GDPR/CCPA/COPPA compliant** | Privacy policy included in-app. Open-source code audit welcome. |
 
@@ -122,6 +124,7 @@ Master key stored securely ← flutter_secure_storage (Keychain / Keystore)
 - **Read:** Decrypted on retrieval — UI only sees plaintext in memory during rendering
 - **Update/Edit:** Re-encrypted with fresh IV on save
 - **Delete:** Cascade-aware deletion (e.g., deleting a baby profile removes associated events)
+- **Export:** Menu → "Export my data" serialises every table to a versioned JSON document (`exportFormatVersion`), notes decrypted through the shared mapper, written to the OS temp cache and shared via `share_plus`; the plaintext temp file is deleted once the share sheet is dismissed
 - **Reset:** Database reset option in Settings physically deletes the SQLite file via `resetDatabase()` in the data layer
 
 ---

@@ -375,6 +375,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get closeButton => 'Fermer';
 
   @override
+  String get exportDataTitle => 'Exporter mes données';
+
+  @override
+  String get exportDataDescription => 'Sauvegarde JSON de toutes vos données';
+
+  @override
+  String get exportDataConfirm => 'Exporter';
+
+  @override
+  String get exportDataWarning =>
+      'Ce fichier contiendra toutes vos données, y compris les notes de santé en texte lisible. Vous choisissez où l\'enregistrer : rien n\'est envoyé automatiquement.';
+
+  @override
+  String get exportDataSuccess => 'Export terminé';
+
+  @override
+  String get exportDataError => 'L\'export a échoué';
+
+  @override
+  String get exportDataEmpty => 'Aucune donnée à exporter';
+
+  @override
   String get babyProfilesSectionTitle => 'Bébés';
 
   @override

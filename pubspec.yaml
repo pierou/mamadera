@@ -49,6 +49,7 @@ dependencies:
   markdown: ^7.2.2
   path_provider: ^2.1.5
   riverpod: ^3.0.0
+  share_plus: ^13.3.0
   url_launcher: ^6.3.1
 
 dev_dependencies:
@@ -65,7 +66,8 @@ dev_dependencies:
     sdk: flutter
   json_serializable: ^6.9.0
   mockito: ^5.4.4
-  path_provider_platform_interface: ^2.1.2
+  path_provider_platform_interface: ^2.1.3
+  share_plus_platform_interface: ^7.2.0
   test: ^1.25.0
 
 # For information on the generic Dart part of this pubspec, see

@@ -608,6 +608,28 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
       ) as _i5.Future<List<_i3.TrackingEvent>>);
 
   @override
+  _i5.Future<List<_i3.ReminderSetting>> getAllReminderSettings() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getAllReminderSettings,
+          [],
+        ),
+        returnValue: _i5.Future<List<_i3.ReminderSetting>>.value(
+            <_i3.ReminderSetting>[]),
+      ) as _i5.Future<List<_i3.ReminderSetting>>);
+
+  @override
+  _i5.Future<List<_i3.ReminderDismissal>> getAllReminderDismissals() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getAllReminderDismissals,
+          [],
+        ),
+        returnValue: _i5.Future<List<_i3.ReminderDismissal>>.value(
+            <_i3.ReminderDismissal>[]),
+      ) as _i5.Future<List<_i3.ReminderDismissal>>);
+
+  @override
   _i2.Migrator createMigrator() => (super.noSuchMethod(
         Invocation.method(
           #createMigrator,

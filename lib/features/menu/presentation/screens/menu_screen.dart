@@ -10,6 +10,7 @@ import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
+import '../../../../features/export/presentation/widgets/export_data_dialog.dart';
 import '../../../../features/history/presentation/providers/history_notifier.dart';
 import '../../../../features/history/presentation/providers/history_repository_provider.dart';
 import '../../../../features/home/presentation/providers/repository_provider.dart';
@@ -132,6 +133,16 @@ class MenuScreen extends ConsumerWidget {
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.error,
                     ),
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              ListTile(
+                leading: const Icon(Icons.upload_outlined),
+                title: Text(context.l.exportDataTitle),
+                subtitle: Text(context.l.exportDataDescription),
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => const ExportDataDialog(),
+                ),
               ),
               const SizedBox(height: AppTheme.spacingMd),
               _buildResetDatabaseTile(context, ref),

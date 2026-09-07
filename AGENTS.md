@@ -14,7 +14,7 @@ See [README.md](README.md) for full feature list and architecture overview.
 |------|--------|
 | 🚫 **No analytics/telemetry** | Never suggest or add cloud crash reporting, analytics SDKs, or tracking services |
 | 🚫 **No third-party data leakage** | No dependencies with hidden trackers; audit deps for privacy before adding |
-| ✅ **Local-only storage** | All data stays on device. No export feature yet; full data deletion available via database reset |
+| ✅ **Local-only storage** | All data stays on device. The one sanctioned exit is the manual JSON export (Menu → confirm → OS share sheet); no network transport exists anywhere in the app. Full data deletion via database reset |
 | ✅ **Minimal permissions** | None by default. Camera/storage only for explicit features + clear consent flow |
 | ✅ **Encryption at rest** | Sensitive fields (notes, weight, allergies) encrypted with `flutter_secure_storage` before DB insert |
 | ✅ **GDPR/CCPA/COPPA ready** | No data collection = compliance out-of-the-box. Privacy policy bundled in-app |
@@ -102,6 +102,7 @@ class TrackingRepositoryImpl implements TrackingRepository {
 - Dart class source of truth: [`lib/data/local/app_db.dart`](lib/data/local/app_db.dart) (schema.sql is generated)
 - Versioned migrations — always update migration logic when schema changes
 - Encrypt sensitive columns before insert; decrypt on read in the repository layer
+- A new table must also be added to the export in `lib/features/export/` (unfiltered read, notes decrypted only through `tracking_event_mapper`, counts kept in sync) — an export that silently omits a table is a broken backup
 
 ## 🛠️ Build & Test Commands
 

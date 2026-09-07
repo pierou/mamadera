@@ -772,6 +772,48 @@ abstract class AppLocalizations {
   /// **'Fermer'**
   String get closeButton;
 
+  /// No description provided for @exportDataTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter mes données'**
+  String get exportDataTitle;
+
+  /// No description provided for @exportDataDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegarde JSON de toutes vos données'**
+  String get exportDataDescription;
+
+  /// No description provided for @exportDataConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter'**
+  String get exportDataConfirm;
+
+  /// No description provided for @exportDataWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier contiendra toutes vos données, y compris les notes de santé en texte lisible. Vous choisissez où l\'enregistrer : rien n\'est envoyé automatiquement.'**
+  String get exportDataWarning;
+
+  /// No description provided for @exportDataSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Export terminé'**
+  String get exportDataSuccess;
+
+  /// No description provided for @exportDataError.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'export a échoué'**
+  String get exportDataError;
+
+  /// No description provided for @exportDataEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune donnée à exporter'**
+  String get exportDataEmpty;
+
   /// No description provided for @babyProfilesSectionTitle.
   ///
   /// In fr, this message translates to:

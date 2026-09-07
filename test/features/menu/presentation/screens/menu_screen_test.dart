@@ -75,5 +75,31 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('Réinitialiser la base de données'), findsOneWidget);
     });
+
+    testWidgets('affiche la tuile export au-dessus du reset et ouvre la boîte de dialogue', (tester) async {
+      await pumpMenuScreen(tester: tester);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Exporter mes données'), findsOneWidget);
+      expect(find.text('Sauvegarde JSON de toutes vos données'), findsOneWidget);
+
+      // La zone danger est sous le pli : rendre la tuile visible avant de tap.
+      await tester.ensureVisible(find.text('Exporter mes données'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.text('Exporter mes données'));
+      // Pas de pumpAndSettle : la section profils affiche un indicateur de
+      // chargement en boucle (provider DB non résolu en test), ce qui le ferait
+      // expirer. Le dialogue s'anime en < 500 ms : des pumps fixes suffisent.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // La boîte de dialogue montre l'avertissement de confidentialité
+      // AVANT toute action, plus les boutons annuler/confirmer.
+      expect(
+        find.text('Ce fichier contiendra toutes vos données, y compris les notes de santé en texte lisible. Vous choisissez où l\'enregistrer : rien n\'est envoyé automatiquement.'),
+        findsOneWidget,
+      );
+      expect(find.text('Exporter'), findsOneWidget);
+      expect(find.text('Annuler'), findsOneWidget);
+    });
   });
 }

@@ -202,6 +202,14 @@
   "cancel": "Cancel",
   "closeButton": "Close",
 
+  "exportDataTitle": "Export my data",
+  "exportDataDescription": "JSON backup of all your data",
+  "exportDataConfirm": "Export",
+  "exportDataWarning": "This file will contain all of your data, including health notes as readable text. You choose where to save it: nothing is sent automatically.",
+  "exportDataSuccess": "Export complete",
+  "exportDataError": "Export failed",
+  "exportDataEmpty": "No data to export",
+
   "babyProfilesSectionTitle": "Babies",
   "babyProfilesEmpty": "No baby profiles yet",
   "babyProfilesError": "Failed to load baby profiles",

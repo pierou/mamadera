@@ -206,6 +206,16 @@ class AppDatabase extends _$AppDatabase {
           ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
         .get();
   }
+
+  /// ── Reminder Queries ─────────────────────────────────────────────
+
+  /// Retourne toutes les lignes de `reminder_settings` (sans filtre).
+  Future<List<ReminderSetting>> getAllReminderSettings() =>
+      select(reminderSettings).get();
+
+  /// Retourne toutes les lignes de `reminder_dismissals` (sans filtre).
+  Future<List<ReminderDismissal>> getAllReminderDismissals() =>
+      select(reminderDismissals).get();
 }
 
 

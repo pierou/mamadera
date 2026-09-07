@@ -48,7 +48,7 @@ Go to **Setup → Store presence → Data safety** and declare:
 
 Even though you select "no data collected," add this note:
 
-> All baby tracking data is stored locally on the device in a SQLite database; sensitive free-text notes are encrypted field-by-field with AES-256-GCM (the database file itself is not encrypted). Data never leaves your phone unless you explicitly export it via CSV or JSON. We do not collect, share, or transmit any user data.
+> All baby tracking data is stored locally on the device in a SQLite database; sensitive free-text notes are encrypted field-by-field with AES-256-GCM (the database file itself is not encrypted). Data never leaves your phone unless you build an export yourself from the app (a JSON file you generate and hand to the share sheet of your device); CSV export does not exist. We do not collect, share, or transmit any user data.
 
 ### Content Rating (IARC)
 

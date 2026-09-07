@@ -202,6 +202,14 @@
   "cancel": "Annuler",
   "closeButton": "Fermer",
 
+  "exportDataTitle": "Exporter mes données",
+  "exportDataDescription": "Sauvegarde JSON de toutes vos données",
+  "exportDataConfirm": "Exporter",
+  "exportDataWarning": "Ce fichier contiendra toutes vos données, y compris les notes de santé en texte lisible. Vous choisissez où l'enregistrer : rien n'est envoyé automatiquement.",
+  "exportDataSuccess": "Export terminé",
+  "exportDataError": "L'export a échoué",
+  "exportDataEmpty": "Aucune donnée à exporter",
+
   "babyProfilesSectionTitle": "Bébés",
   "babyProfilesEmpty": "Aucun profil bébé",
   "babyProfilesError": "Échec du chargement des profils",
