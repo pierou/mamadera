@@ -6,12 +6,16 @@ import '../../../baby/data/repositories/baby_profile_repository_impl.dart';
 import '../../../baby/domain/repositories/baby_profile_repository.dart';
 import '../../data/repositories/reminders_repository_impl.dart';
 import '../../domain/entities/reminder_item.dart';
+import '../../domain/repositories/reminders_repository.dart';
 import '../../domain/services/reminders_service.dart';
 
 export 'reminder_notifier.dart';
 
 /// Provider for the reminders repository implementation.
-final remindersRepositoryProvider = FutureProvider((ref) async {
+///
+/// Exposed under the domain interface [RemindersRepository] so the presentation
+/// layer depends on the abstraction (and tests can override a fake).
+final remindersRepositoryProvider = FutureProvider<RemindersRepository>((ref) async {
   final database = await ref.watch(databaseProvider.future);
   return RemindersRepositoryImpl(database: database);
 });

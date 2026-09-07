@@ -15,16 +15,19 @@ class RemindersRepositoryImpl implements RemindersRepository {
   static final Logger _logger = Logger();
 
   @override
-  Future<DateTime?> getLastCompleted(ReminderItem item) async {
+  Future<DateTime?> getLastCompleted(ReminderItem item, {String? babyId}) async {
     try {
       // Query tracking_events for events matching this reminder's type (+ subtype for health).
       final type = item.trackingType.name;
       final subtypeValue = item.subtypeValue;
       
       // Get most recent event — no date restriction, returns last completed ever.
+      // Scoped to the active baby when one is known (see interface dartdoc).
       final q = (database.select(database.trackingEvents)
         ..where((t) {
-          final exp = t.type.equals(type) & (subtypeValue == null ? const Constant(true) : t.subtype.equals(subtypeValue));
+          final exp = t.type.equals(type)
+              & (subtypeValue == null ? const Constant(true) : t.subtype.equals(subtypeValue))
+              & (babyId == null ? const Constant(true) : t.babyId.equals(babyId));
           return exp;
         })
         ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])

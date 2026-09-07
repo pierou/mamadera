@@ -103,6 +103,61 @@ void main() {
         final result = await repository.getLastCompleted(vitaminK);
         expect(result, isNull);
       });
+
+      test('ignores events of other babies when babyId is given', () async {
+        // Regression: Vitamin D done for baby A must not suppress baby B's reminder.
+        final babyAEvent = DateTime.now().subtract(const Duration(days: 5));
+        final babyBEvent = DateTime.now().subtract(const Duration(days: 1));
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: vitaminDItem.trackingType.name,
+            subtype: Value(vitaminDItem.subtypeValue),
+            timestamp: babyAEvent,
+            babyId: const Value('baby_a'),
+          ),
+        );
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: vitaminDItem.trackingType.name,
+            subtype: Value(vitaminDItem.subtypeValue),
+            timestamp: babyBEvent,
+            babyId: const Value('baby_b'),
+          ),
+        );
+
+        final forA = await repository.getLastCompleted(vitaminDItem, babyId: 'baby_a');
+        final forB = await repository.getLastCompleted(vitaminDItem, babyId: 'baby_b');
+
+        // Each baby sees only its own last event, not the sibling's newer one.
+        expect(forA!.day, equals(babyAEvent.day));
+        expect(forB!.day, equals(babyBEvent.day));
+      });
+
+      test('spans all babies when babyId is null', () async {
+        // Backward compatibility: a pre-profile install keeps the old behaviour.
+        final older = DateTime.now().subtract(const Duration(days: 5));
+        final recent = DateTime.now().subtract(const Duration(days: 1));
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: vitaminDItem.trackingType.name,
+            subtype: Value(vitaminDItem.subtypeValue),
+            timestamp: older,
+            babyId: const Value('baby_a'),
+          ),
+        );
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: vitaminDItem.trackingType.name,
+            subtype: Value(vitaminDItem.subtypeValue),
+            timestamp: recent,
+            babyId: const Value('baby_b'),
+          ),
+        );
+
+        final result = await repository.getLastCompleted(vitaminDItem);
+
+        expect(result!.day, equals(recent.day));
+      });
     });
 
     group('saveDismissalTime', () {

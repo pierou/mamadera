@@ -15,29 +15,69 @@ sealed class ReminderFrequency with _$ReminderFrequency {
 bool _isSameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
 
-/// Returns true if [now] and [completed] fall in the same weekly period
-/// defined by [dow].
-bool _isSameWeek(DateTime now, DateTime completed, int dow) {
-  final monday = now.weekday; // 1=Mon … 7=Sun (Dart's weekday is ISO-8601)
-  return monday == completed.weekday ||
-      ((now.difference(completed).inDays.abs()) < 7 &&
-          now.year == completed.year);
+/// Fixed epoch anchoring the weekly period key: Monday 3 January 2000, in UTC.
+///
+/// UTC is deliberate: the difference between two UTC midnights is always an
+/// exact multiple of 24 hours, so DST transitions cannot shift a week boundary.
+final DateTime _weeklyEpoch = DateTime.utc(2000, 1, 3);
+
+/// Monotonic index of the Monday-anchored (ISO, Monday→Sunday) week containing
+/// [date]; consecutive weeks get consecutive integers.
+///
+/// Built from the calendar fields of [date] only (never from wall-clock
+/// arithmetic), so two dates in the same ISO week always share a key and dates
+/// in later weeks always score higher. Dates before [_weeklyEpoch] truncate
+/// toward zero, which is irrelevant here: no baby event predates the epoch.
+int _weekIndex(DateTime date) =>
+    DateTime.utc(date.year, date.month, date.day).difference(_weeklyEpoch).inDays ~/ 7;
+
+/// Monotonic index of the calendar month containing [date] (2025-01 → 24301).
+int _monthIndex(DateTime date) => date.year * 12 + date.month;
+
+/// [dayOfMonth] clamped to the length of the month containing [date] (28-31 days),
+/// so a reminder configured for the 31st still fires in shorter months.
+int _clampedDayOfMonth(DateTime date, int dayOfMonth) {
+  // Day 0 of the next month is the last day of this one (Dart normalises it).
+  final lastDayOfMonth = DateTime(date.year, date.month + 1, 0).day;
+  return dayOfMonth > lastDayOfMonth ? lastDayOfMonth : dayOfMonth;
 }
 
 /// Extension that provides `isDue` on [ReminderFrequency] using freezed's generated `map()`.
 extension ReminderFrequencyIsDue on ReminderFrequency {
-  /// Whether this reminder is due based on when it was last completed.
+  /// Whether this reminder is due at [now], given it was last completed at
+  /// [lastCompleted] (null when it was never completed — always due).
+  ///
+  /// Semantics per variant:
+  /// - [Daily]: due on any calendar day other than the day of [lastCompleted].
+  /// - [Weekly]: due when the ISO week (Monday→Sunday) containing [now] differs
+  ///   from the ISO week containing [lastCompleted] — compared by monotonic
+  ///   week index, never by weekday equality or a rolling 7-day window.
+  ///   Completing the reminder therefore suppresses it for the *rest of that
+  ///   week* (it can never fire twice in one week) and makes it due again the
+  ///   first time it is opened in the next week, whenever that is. The
+  ///   configured [Weekly.dayOfWeek] records the day of the week the user aims
+  ///   for; it deliberately does not gate the check, otherwise a reminder
+  ///   completed on another day of the week could stay silent for weeks.
+  /// - [Monthly]: due from [Monthly.dayOfMonth] (clamped to the length of the
+  ///   month containing [now]) of a calendar month *later* than the one
+  ///   containing [lastCompleted]. The month of [lastCompleted] owns that
+  ///   occurrence, and a new month does not make the reminder due before its
+  ///   configured day has been reached.
+  /// - [CustomInterval]: unchanged rolling behaviour — due once at least
+  ///   [CustomInterval.days] whole days have elapsed since [lastCompleted].
   bool isDue(DateTime now, DateTime? lastCompleted) => map(
     daily: (_) => lastCompleted == null || !_isSameDay(now, lastCompleted),
-    weekly: (freq) {
+    weekly: (_) {
       if (lastCompleted == null) return true;
-      final sameWeek = _isSameWeek(now, lastCompleted, freq.dayOfWeek);
-      return !sameWeek || !_isSameDay(lastCompleted, now);
+      // Different ISO week => due; same week => suppressed.
+      return _weekIndex(now) > _weekIndex(lastCompleted);
     },
     monthly: (freq) {
       if (lastCompleted == null) return true;
-      // Due if we entered a new calendar month since last completion.
-      return !(now.year == lastCompleted.year && now.month == lastCompleted.month);
+      // Same month (or clock skew backwards) — this month's occurrence is done.
+      if (_monthIndex(now) <= _monthIndex(lastCompleted)) return false;
+      // Later month, but not before the configured day of that month.
+      return now.day >= _clampedDayOfMonth(now, freq.dayOfMonth);
     },
     customInterval: (freq) {
       if (lastCompleted == null) return true;

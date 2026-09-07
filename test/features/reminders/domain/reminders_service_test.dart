@@ -73,6 +73,20 @@ void main() {
       final result = await service.checkDue();
       expect(result, isA<RemindersDue>());
     });
+
+    test('passes the active baby id down to the completion lookup', () async {
+      // Guards against the cross-baby leak: completing a routine for baby A must be
+      // looked up under baby A only, so it cannot silence baby B's reminder.
+      mockRepo.lastCompletedByItem['vitamin_d'] = DateTime.now();
+      service = RemindersService(items: [vitaminDItem], repository: mockRepo);
+
+      await service.checkDue(babyId: 'baby_a');
+      expect(mockRepo.lastCompletedBabyId, equals('baby_a'));
+
+      // No profile yet → unscoped lookup (backward compatible v1 behaviour).
+      await service.checkDue();
+      expect(mockRepo.lastCompletedBabyId, isNull);
+    });
   });
 
   group('RemindersService.dismiss()', () {

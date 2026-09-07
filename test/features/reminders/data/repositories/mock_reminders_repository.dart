@@ -9,8 +9,12 @@ class MockRemindersRepository implements RemindersRepository {
   /// Maps item ID → dismissal time (simulates cooldown dismissals).
   final Map<String, DateTime> dismissalTimeById = {};
 
+  /// Baby the most recent [getLastCompleted] call was scoped to (null = unscoped).
+  String? lastCompletedBabyId;
+
   @override
-  Future<DateTime?> getLastCompleted(ReminderItem reminder) async {
+  Future<DateTime?> getLastCompleted(ReminderItem reminder, {String? babyId}) async {
+    lastCompletedBabyId = babyId;
     return lastCompletedByItem[reminder.id];
   }
 

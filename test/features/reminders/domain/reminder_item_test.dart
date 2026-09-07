@@ -119,7 +119,7 @@ void main() {
       expect(reminders[0].id, 'vitamine_d');
     });
 
-    test('includes Vitamin K with CustomInterval(30 days)', () {
+    test('anchors Vitamin K on the birth day of month', () {
       final profile = BabyProfile(
         id: '1',
         name: 'Test Baby',
@@ -129,10 +129,51 @@ void main() {
 
       final reminders = ReminderItemPresets.buildForBaby(profile);
       final vitaminK = reminders[1];
+      // Same id as the static preset: it keys reminder_settings/dismissal rows.
       expect(vitaminK.id, 'vitamine_k');
-      expect(vitaminK.frequency, isA<CustomInterval>());
-      final custom = vitaminK.frequency as CustomInterval;
-      expect(custom.days, 30);
+      expect(vitaminK.frequency, isA<Monthly>());
+      final monthly = vitaminK.frequency as Monthly;
+      expect(monthly.dayOfMonth, 28);
+      // Non-frequency fields are inherited from the preset.
+      expect(vitaminK.labelKey, ReminderItemPresets.vitaminK.labelKey);
+      expect(vitaminK.subtypeValue, 'vitamine_k');
+    });
+
+    test('two babies with different birth dates get different monthly dayOfMonth', () {
+      final babyA = BabyProfile(id: 'a', name: 'A', birthDate: DateTime(2024, 1, 5));
+      final babyB = BabyProfile(id: 'b', name: 'B', birthDate: DateTime(2024, 3, 20));
+
+      final monthlyA = ReminderItemPresets.buildForBaby(babyA)[1].frequency as Monthly;
+      final monthlyB = ReminderItemPresets.buildForBaby(babyB)[1].frequency as Monthly;
+
+      expect(monthlyA.dayOfMonth, 5);
+      expect(monthlyB.dayOfMonth, 20);
+      expect(monthlyA.dayOfMonth, isNot(equals(monthlyB.dayOfMonth)));
+    });
+
+    test('a 31st birthday keeps dayOfMonth 31 (clamped later by isDue)', () {
+      final profile = BabyProfile(id: '1', name: 'Test Baby', birthDate: DateTime(2024, 1, 31));
+
+      final monthly = ReminderItemPresets.buildForBaby(profile)[1].frequency as Monthly;
+
+      expect(monthly.dayOfMonth, 31);
+    });
+
+    test('daily presets are returned unchanged (no birth-date anchor)', () {
+      final profile = BabyProfile(id: '1', name: 'Test Baby', birthDate: DateTime(2024, 3, 28));
+
+      final reminders = ReminderItemPresets.buildForBaby(profile);
+
+      expect(reminders[0], equals(ReminderItemPresets.vitaminD));
+      expect(reminders[2], equals(ReminderItemPresets.eyeCleaning));
+      expect(reminders[3], equals(ReminderItemPresets.faceCleaning));
+    });
+
+    test('static Vitamin K preset stays a rolling 30-day interval', () {
+      // The preset used before any profile exists must not be affected by the
+      // birth-date anchoring applied in buildForBaby.
+      expect(ReminderItemPresets.vitaminK.frequency, isA<CustomInterval>());
+      expect((ReminderItemPresets.vitaminK.frequency as CustomInterval).days, 30);
     });
 
     test('includes eye cleaning reminder', () {
