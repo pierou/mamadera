@@ -225,6 +225,38 @@ void main() {
         expect(event.cacaColor, cacaColorMeconium);
         expect(event.notes, 'les deux');
       });
+
+      test('preserves stool texture through round-trip', () async {
+        await repository.insertEvent(DiaperEvent(
+          timestamp: DateTime.utc(2026, 9, 1, 9),
+          wasteType: WasteType.caca,
+          cacaColor: cacaColorVertOlive,
+          stoolTexture: stoolTextureGrumeleuse,
+        ));
+
+        final result = await repository.getAllEventsOrdered();
+        final event = result.first as DiaperEvent;
+        expect(event.stoolTexture, stoolTextureGrumeleuse);
+      });
+
+      // Régression : la même feuille « Les deux » passée en « Pipi » gardait sa
+      // consistance en mémoire. Elle ne doit rien écrire dans la colonne : une
+      // texture ne décrit qu'une selle, et l'historique ne doit pas en montrer
+      // une sur un change liquidien.
+      test('writes no texture for a pipi event', () async {
+        await repository.insertEvent(DiaperEvent(
+          timestamp: DateTime.utc(2026, 9, 1, 10),
+          wasteType: WasteType.pipi,
+          pipiColor: pipiColorJauneClair,
+          stoolTexture: stoolTextureDure,
+        ));
+
+        final rows = await database.select(database.trackingEvents).get();
+        expect(rows, hasLength(1));
+        expect(rows.single.texture, equals(null));
+        final event = await repository.getAllEventsOrdered();
+        expect((event.first as DiaperEvent).stoolTexture, equals(null));
+      });
     });
 
     group('getEventsByType', () {

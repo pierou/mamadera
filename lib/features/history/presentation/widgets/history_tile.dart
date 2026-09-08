@@ -6,6 +6,7 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
+import '../../../../shared/utils/stool_texture_label_resolver.dart';
 
 /// Tile affichant un événement dans l'historique.
 class HistoryTile extends StatelessWidget {
@@ -140,6 +141,7 @@ class HistoryTileSubtitle extends StatelessWidget {
         if (_hasWasteDetails) ...[
           _buildColors(context),
         ],
+        _buildTexture(context),
         if (event is! HealthEvent && _getNotes(event) != null && _getNotes(event)!.isNotEmpty)
           Text(_getNotes(event)!),
       ],
@@ -225,6 +227,23 @@ class HistoryTileSubtitle extends StatelessWidget {
       default:
         return labelKey;
     }
+  }
+
+  /// Ligne de consistance, affichée seulement si la couche en porte une (les
+  /// changes enregistrés avant cette option n'en ont pas et n'en reçoivent pas
+  /// par défaut).
+  Widget _buildTexture(BuildContext context) {
+    final event = this.event;
+    if (event is! DiaperEvent || event.stoolTexture == null) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        resolveStoolTextureLabel(context, event.stoolTexture!),
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+    );
   }
 
   Widget _buildColors(BuildContext context) {

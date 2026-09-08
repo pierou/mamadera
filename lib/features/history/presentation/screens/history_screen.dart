@@ -117,6 +117,7 @@ class HistoryScreen extends ConsumerWidget {
         wasteType: result.wasteType ?? e.wasteType,
         pipiColor: result.pipiColor ?? e.pipiColor,
         cacaColor: result.cacaColor ?? e.cacaColor,
+        stoolTexture: result.stoolTexture ?? e.stoolTexture,
         notes: result.notes ?? e.notes,
         babyId: e.babyId,
       ),

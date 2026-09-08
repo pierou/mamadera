@@ -196,6 +196,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cacaColorJauneClair => 'Jaune clair';
 
   @override
+  String get stoolTextureSectionTitle => 'Texture du caca';
+
+  @override
+  String get stoolTextureAqueuse => 'Aqueuse';
+
+  @override
+  String get stoolTextureGrumeleuse => 'Grumeleuse';
+
+  @override
+  String get stoolTexturePateuse => 'Pâteuse';
+
+  @override
+  String get stoolTextureMoulee => 'Moulée';
+
+  @override
+  String get stoolTextureDure => 'Dure';
+
+  @override
   String get historyTitle => 'Historique';
 
   @override

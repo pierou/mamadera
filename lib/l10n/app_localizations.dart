@@ -436,6 +436,42 @@ abstract class AppLocalizations {
   /// **'Jaune clair'**
   String get cacaColorJauneClair;
 
+  /// No description provided for @stoolTextureSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Texture du caca'**
+  String get stoolTextureSectionTitle;
+
+  /// No description provided for @stoolTextureAqueuse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aqueuse'**
+  String get stoolTextureAqueuse;
+
+  /// No description provided for @stoolTextureGrumeleuse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Grumeleuse'**
+  String get stoolTextureGrumeleuse;
+
+  /// No description provided for @stoolTexturePateuse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pâteuse'**
+  String get stoolTexturePateuse;
+
+  /// No description provided for @stoolTextureMoulee.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moulée'**
+  String get stoolTextureMoulee;
+
+  /// No description provided for @stoolTextureDure.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dure'**
+  String get stoolTextureDure;
+
   /// No description provided for @historyTitle.
   ///
   /// In fr, this message translates to:

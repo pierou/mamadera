@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../../../../../shared/utils/health_label_resolver.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
+import '../../../../shared/utils/health_label_resolver.dart';
+import '../../../../shared/utils/stool_texture_label_resolver.dart';
 import '../../../home/presentation/widgets/quantity_picker_inline.dart';
 
 part 'edit_event_dialog.freezed.dart';
@@ -25,6 +26,7 @@ sealed class EditResult with _$EditResult {
     WasteType? wasteType,
     PipiColor? pipiColor,
     CacaColor? cacaColor,
+    StoolTexture? stoolTexture,
     HealthSubtype? healthSubtype,
   }) = UpdateResult;
 
@@ -55,6 +57,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   WasteType? _wasteType;
   PipiColor? _pipiColor;
   CacaColor? _cacaColor;
+  StoolTexture? _stoolTexture;
 
   // Sous-type de soin pour les événements santé (indépendant des notes)
   HealthSubtype? _healthSubtype;
@@ -84,6 +87,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     _wasteType = null;
     _pipiColor = null;
     _cacaColor = null;
+    _stoolTexture = null;
     _healthSubtype = null;
     _initEventFields();
   }
@@ -105,6 +109,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         _wasteType = e.wasteType;
         _pipiColor = e.pipiColor;
         _cacaColor = e.cacaColor;
+        _stoolTexture = e.stoolTexture;
         _notesController.text = e.notes ?? '';
       },
       health: (e) {
@@ -130,6 +135,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       wasteType: _wasteType,
       pipiColor: _pipiColor,
       cacaColor: _cacaColor,
+      stoolTexture: _stoolTexture,
       healthSubtype: _healthSubtype,
     );
     Navigator.pop(context, result);
@@ -317,10 +323,32 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     }
 
     if (_wasteType == WasteType.caca || _wasteType == WasteType.lesDeux) {
-      sections.addAll(_buildCacaColors());
+      sections.addAll([
+        // La consistance ne s'affiche que là où elle veut dire quelque chose :
+        // les 5 crans sous « caca » ajoutent un scroll en bas d'un bottom sheet
+        // déjà dense, on ne les montre donc pas pour un simple pipi.
+        ..._buildCacaColors(),
+        ..._buildStoolTextures(),
+      ]);
     }
 
     return sections;
+  }
+
+  List<Widget> _buildStoolTextures() {
+    return [
+      _buildSectionTitle(context.l.stoolTextureSectionTitle),
+      Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: stoolTextures.map((t) => FilterChip(
+          label: Text(resolveStoolTextureLabel(context, t)),
+          selected: _stoolTexture == t,
+          onSelected: (_) => setState(() => _stoolTexture = _stoolTexture == t ? null : t),
+        )).toList(),
+      ),
+      const SizedBox(height: 12),
+    ];
   }
 
   List<Widget> _buildPipiColors() {

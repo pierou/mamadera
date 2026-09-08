@@ -38,6 +38,7 @@ sealed class TrackingEvent with _$TrackingEvent {
     WasteType? wasteType,
     PipiColor? pipiColor,
     CacaColor? cacaColor,
+    StoolTexture? stoolTexture,
     String? notes,
   }) = DiaperEvent;
 
@@ -56,7 +57,7 @@ extension TrackingEventTrackingType on TrackingEvent {
       (id0, ts0, baby0) => throw StateError('Cannot get trackingType from base TrackingEvent'),
       feeding: (id1, ts1, baby1, sub1, qty1, notes1) => TrackingType.miam,
       sleep: (id2, ts2, baby2, dur2, qty2, notes2) => TrackingType.dodo,
-      diaper: (id3, ts3, baby3, wt3, pc3, cc3, notes3) => TrackingType.caca,
+      diaper: (id3, ts3, baby3, wt3, pc3, cc3, st3, notes3) => TrackingType.caca,
       health: (id4, ts4, baby4, sub4, notes4) => TrackingType.sante,
     );
   }
@@ -83,6 +84,21 @@ extension DiaperEventColorDbValue on DiaperEvent {
         }
         return p.isEmpty ? c : p;
     }
+  }
+}
+
+/// Extension providing [textureDbValue] on [DiaperEvent].
+extension DiaperEventStoolTextureDbValue on DiaperEvent {
+  /// Retourne la valeur DB de la colonne `texture`.
+  ///
+  /// La consistance ne décrit qu'une selle : un change enregistré comme pipi
+  /// (ou sans type, ligne héritée) écrit NULL même si [stoolTexture] était
+  /// encore remplie dans le formulaire. Sans ce garde, tourner un « caca
+  /// pâteux » en « pipi » laissait une texture orpheline dans l'historique.
+  String? get textureDbValue {
+    final wasteType = this.wasteType;
+    if (wasteType == null || wasteType == WasteType.pipi) return null;
+    return stoolTexture?.value;
   }
 }
 

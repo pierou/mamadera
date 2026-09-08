@@ -15,6 +15,7 @@ import 'package:mamadera/features/home/presentation/screens/home_screen.dart';
 import 'package:mamadera/features/home/presentation/widgets/onboarding_dialog.dart';
 import 'package:mamadera/features/home/presentation/widgets/track_button.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
+import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -406,6 +407,60 @@ void main() {
       final event =
           verify(mockRepo.insertEvent(captureAny)).captured.single as TrackingEvent;
       expect(event.timestamp.isAfter(DateTime.now().add(const Duration(minutes: 1))), isFalse);
+    });
+  });
+
+  // ──────────────────────────────────────────────
+  // Consistance des selles
+  // ──────────────────────────────────────────────
+  group('Consistance du caca', () {
+    testWidgets('une texture choisie est enregistrée sur l\'événement', (tester) async {
+      when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
+
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(findTrackButton('Caca'));
+      await tester.pumpAndSettle();
+
+      final chip = find.widgetWithText(FilterChip, 'Pâteuse');
+      await tester.ensureVisible(chip);
+      await tester.tap(chip, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      final confirmBtn = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('Confirmer'),
+      );
+      await tester.ensureVisible(confirmBtn);
+      await tester.tap(confirmBtn, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single as DiaperEvent;
+      expect(event.stoolTexture, equals(stoolTexturePateuse));
+    });
+
+    // Régression : la consistance reste optionnelle. Un parent qui ne saisit
+    // rien ne doit pas voir son historique rempli d'un cran deviné.
+    testWidgets('aucune texture saisie → événement sans texture', (tester) async {
+      when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
+
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(findTrackButton('Caca'));
+      await tester.pumpAndSettle();
+
+      final confirmBtn = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('Confirmer'),
+      );
+      await tester.ensureVisible(confirmBtn);
+      await tester.tap(confirmBtn, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single as DiaperEvent;
+      expect(event.stoolTexture, equals(null));
     });
   });
 

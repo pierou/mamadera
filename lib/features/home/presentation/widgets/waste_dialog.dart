@@ -5,6 +5,7 @@ import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
+import '../../../../shared/utils/stool_texture_label_resolver.dart';
 
 /// Widget pour sélectionner le type de selle et les couleurs associées.
 ///
@@ -22,6 +23,9 @@ class _WasteDialogState extends State<WasteDialog> {
   PipiColor? _pipiColor;
   CacaColor? _cacaColor;
 
+  /// Consistance de la selle — optionnelle, uniquement pour un caca.
+  StoolTexture? _stoolTexture;
+
   /// Date and time of the diaper, defaulted to the moment the sheet opened.
   DateTime _selectedDate = DateTime.now();
 
@@ -31,6 +35,7 @@ class _WasteDialogState extends State<WasteDialog> {
       'wasteType': _selectedType,
       'pipiColor': _pipiColor,
       'cacaColor': _cacaColor,
+      'texture': _stoolTexture,
       'timestamp': _selectedDate,
     };
   }
@@ -78,6 +83,14 @@ class _WasteDialogState extends State<WasteDialog> {
               WasteDialogCacaColorChips(
                 selectedColor: _cacaColor,
                 onSelectedColor: (color) => setState(() => _cacaColor = color),
+              ),
+              const SizedBox(height: 24),
+              Text(context.l.stoolTextureSectionTitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              WasteDialogTextureChips(
+                selectedTexture: _stoolTexture,
+                onSelectedTexture: (texture) => setState(() => _stoolTexture = texture),
               ),
             ],
 
@@ -130,6 +143,33 @@ class WasteDialogTypeChips extends StatelessWidget {
         },
         isSelected: isSelected,
         onTap: () => onSelectedType(type),
+      );
+    }).toList());
+  }
+}
+
+/// Widget pour les chips de consistance des selles.
+class WasteDialogTextureChips extends StatelessWidget {
+  const WasteDialogTextureChips({
+    required this.selectedTexture,
+    required this.onSelectedTexture,
+    super.key,
+  });
+
+  final StoolTexture? selectedTexture;
+  final ValueChanged<StoolTexture?> onSelectedTexture;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(spacing: 8, runSpacing: 8, children: stoolTextures.map((t) {
+      final isSelected = t == selectedTexture;
+      return FilterChip(
+        label: Text(resolveStoolTextureLabel(context, t)),
+        selected: isSelected,
+        // Retaper sur la puce choisie l'efface : la consistance reste
+        // optionnelle et un mauvais tap ne doit pas obliger à passer par
+        // l'historique pour être corrigé.
+        onSelected: (_) => onSelectedTexture(isSelected ? null : t),
       );
     }).toList());
   }

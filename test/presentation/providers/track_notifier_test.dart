@@ -109,6 +109,20 @@ void main() {
       expect(container.read(trackNotifierProvider), isA<AsyncData<void>>());
     });
 
+    test('track() avec consistance de la selle', () async {
+      final notifier = container.read(trackNotifierProvider.notifier);
+      await notifier.track(
+        type: TrackingType.caca,
+        wasteType: WasteType.caca,
+        cacaColor: cacaColorJauneMoutarde,
+        stoolTexture: stoolTextureMoulee,
+      );
+
+      final captured = verify(mockRepository.insertEvent(captureAny)).captured;
+      final event = captured.first as DiaperEvent;
+      expect(event.stoolTexture, equals(stoolTextureMoulee));
+    });
+
     test('track() avec SleepEvent pour type=dodo', () async {
       final notifier = container.read(trackNotifierProvider.notifier);
       await notifier.track(

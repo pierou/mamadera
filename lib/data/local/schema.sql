@@ -1,5 +1,5 @@
 -- Mamadera Database Schema
--- Version: 8
+-- Version: 9
 -- Generated reference from lib/data/local/app_db.dart — do not edit directly.
 -- Source of truth is app_db.dart (Drift table definitions).
 --
@@ -9,6 +9,7 @@
 --   v7: Migrated feeding subtype values 'sein'|'bib' → 'natural'|'artificial'
 --   v8: Created `reminder_settings` for databases that predate v7 (declared in
 --       app_db.dart since v7 but never created by onUpgrade)
+--   v9: Added `texture` column (stool texture for diaper events, nullable)
 
 -- ── Baby Profiles ────────────────────────────────────────────────
 
@@ -30,6 +31,7 @@ CREATE TABLE tracking_events (
     notes       TEXT,                             -- encrypted user text only (no longer used for structured data)
     waste_type  TEXT,                             -- pipi, caca, les_deux (diaper events only)
     color       TEXT,                             -- couleur de la selle ou pipi (see tracking_enums.dart)
+    texture     TEXT,                             -- stool texture: aqueuse|grumeleuse|pateuse|moulee|dure (see tracking_enums.dart)
     baby_id     TEXT,                             -- nullable FK to baby_profiles(id), backward compatible
     quantity    REAL                              -- volume in ml (feeding) or minutes (sleep)
 );

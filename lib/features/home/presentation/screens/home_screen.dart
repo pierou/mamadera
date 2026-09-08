@@ -197,6 +197,7 @@ class _HomeContent extends ConsumerWidget {
             wasteType: wasteType,
             pipiColor: result['pipiColor'] as PipiColor?,
             cacaColor: result['cacaColor'] as CacaColor?,
+            stoolTexture: result['texture'] as StoolTexture?,
             timestamp: result['timestamp'] as DateTime?,
           );
       if (context.mounted) {

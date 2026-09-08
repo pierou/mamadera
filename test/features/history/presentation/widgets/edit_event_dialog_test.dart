@@ -615,6 +615,104 @@ void main() {
       expect(result, isA<DeleteResult>());
     });
   });
+  group('EditEventDialog — Consistance de la selle', () {
+    // Le dialogue d'édition est long : sans viewport élargi, les chips du bas
+    // (et « Enregistrer ») restent hors écran et le tap échoue.
+    Future<void> openFor(WidgetTester tester, TrackingEvent event,
+        Completer<EditResult?> completer) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 1600);
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: _DialogLauncher(
+              event: event,
+              onResult: (r) => completer.complete(r as EditResult?),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Ouvrir'));
+      await tester.pumpAndSettle();
+      await tester.dragUntilVisible(
+        find.text('Enregistrer'),
+        find.byType(SingleChildScrollView).first,
+        const Offset(0, -60),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('la texture enregistrée est déjà sélectionnée', (tester) async {
+      final completer = Completer<EditResult?>();
+      await openFor(
+        tester,
+        DiaperEvent(
+          timestamp: DateTime.utc(2026, 9, 1),
+          wasteType: WasteType.caca,
+          cacaColor: cacaColorJauneMoutarde,
+          stoolTexture: stoolTextureMoulee,
+        ),
+        completer,
+      );
+
+      expect(find.text('Texture du caca'), findsOneWidget);
+      final selected = find.widgetWithText(FilterChip, 'Moulée');
+      expect(tester.widget<FilterChip>(selected).selected, isTrue);
+      expect(
+        tester.widget<FilterChip>(find.widgetWithText(FilterChip, 'Dure')).selected,
+        isFalse,
+      );
+    });
+
+    testWidgets('changer la texture la renvoie dans UpdateResult', (tester) async {
+      final completer = Completer<EditResult?>();
+      await openFor(
+        tester,
+        DiaperEvent(
+          timestamp: DateTime.utc(2026, 9, 1),
+          wasteType: WasteType.caca,
+          stoolTexture: stoolTextureMoulee,
+        ),
+        completer,
+      );
+
+      await tester.tap(find.widgetWithText(FilterChip, 'Aqueuse'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Enregistrer'));
+      await tester.pumpAndSettle();
+
+      final result = (await completer.future) as UpdateResult?;
+      expect(result?.stoolTexture, equals(stoolTextureAqueuse));
+    });
+
+    // Régression : la consistance ne décrit qu'une selle. Tourner un change en
+    // pipi ne doit pas laisser une texture orpheline repartir vers la base.
+    testWidgets('aucune section texture pour un événement pipi', (tester) async {
+      final completer = Completer<EditResult?>();
+      await openFor(
+        tester,
+        DiaperEvent(
+          timestamp: DateTime.utc(2026, 9, 1),
+          wasteType: WasteType.pipi,
+          pipiColor: pipiColorJauneClair,
+        ),
+        completer,
+      );
+
+      expect(find.text('Texture du caca'), findsNothing);
+    });
+  });
 }
 
 /// Wrapper pour capturer le retour de showModalBottomSheet dans les tests.

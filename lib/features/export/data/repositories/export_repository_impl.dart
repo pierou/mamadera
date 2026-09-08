@@ -142,6 +142,7 @@ class ExportRepositoryImpl implements ExportRepository {
       'notes': notes,
       'wasteType': row.wasteType,
       'color': row.color,
+      'texture': row.texture,
       'babyId': row.babyId,
       'quantity': row.quantity,
     };
@@ -157,7 +158,7 @@ class ExportRepositoryImpl implements ExportRepository {
         (id0, ts0, baby0) => null,
         feeding: (id, ts, baby, sub, qty, notes) => notes,
         sleep: (id, ts, baby, dur, qty, notes) => notes,
-        diaper: (id, ts, baby, wt, pc, cc, notes) => notes,
+        diaper: (id, ts, baby, wt, pc, cc, st, notes) => notes,
         health: (id, ts, baby, sub, notes) => notes,
       );
 }

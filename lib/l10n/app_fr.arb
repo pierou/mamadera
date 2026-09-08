@@ -120,6 +120,12 @@
   "cacaColorVertOlive": "Vert olive",
   "cacaColorJauneMoutarde": "Jaune moutarde",
   "cacaColorJauneClair": "Jaune clair",
+  "stoolTextureSectionTitle": "Texture du caca",
+  "stoolTextureAqueuse": "Aqueuse",
+  "stoolTextureGrumeleuse": "Grumeleuse",
+  "stoolTexturePateuse": "Pâteuse",
+  "stoolTextureMoulee": "Moulée",
+  "stoolTextureDure": "Dure",
 
   "historyTitle": "Historique",
   "filterAll": "Tous",

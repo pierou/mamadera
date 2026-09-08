@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 8 (creates reminder_settings for pre-v7 installs)', () {
-      expect(db.schemaVersion, equals(8));
+    test('schemaVersion is 9 (adds the stool texture column)', () {
+      expect(db.schemaVersion, equals(9));
     });
   });
 

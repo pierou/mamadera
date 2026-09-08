@@ -23,6 +23,7 @@ class TrackNotifier extends AsyncNotifier<void> {
   /// [timestamp] est le moment où l'événement s'est produit ; il permet de
   /// saisir a posteriori (sieste terminée, change fait dans l'autre pièce).
   /// `null` = maintenant, comportement historique.
+  /// [stoolTexture] : consistance de la selle ; ignorée pour un pipi.
   Future<void> track({
     required TrackingType type,
     String? notes,
@@ -31,6 +32,7 @@ class TrackNotifier extends AsyncNotifier<void> {
     WasteType? wasteType,
     PipiColor? pipiColor,
     CacaColor? cacaColor,
+    StoolTexture? stoolTexture,
     FeedingSubtype? feedingSubtype,
     HealthSubtype? healthSubtype,
     DateTime? timestamp,
@@ -64,6 +66,7 @@ class TrackNotifier extends AsyncNotifier<void> {
             wasteType: wasteType,
             pipiColor: pipiColor,
             cacaColor: cacaColor,
+            stoolTexture: stoolTexture,
             notes: notes,
           ),
         TrackingType.sante => HealthEvent(

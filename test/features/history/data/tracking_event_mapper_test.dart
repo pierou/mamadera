@@ -60,4 +60,58 @@ void main() {
       expect(diaper.cacaColor, isNull);
     });
   });
+
+  group('mapToEntity — consistance de la selle', () {
+    test('une texture connue est lue sur l\'événement couche', () {
+      final row = drift.TrackingEvent(
+        id: 10,
+        type: db_const.typeCaca,
+        timestamp: DateTime(2026, 9, 1),
+        wasteType: WasteType.caca.dbValue,
+        color: 'vert_olive',
+        texture: 'pateuse',
+        notes: null,
+      );
+
+      final diaper = mapToEntity(row, encryption) as DiaperEvent;
+
+      expect(diaper.stoolTexture, stoolTexturePateuse);
+    });
+
+    // Une valeur lue en base qui ne fait pas partie de l\'échelle (version
+    // antérieure de l\'app, backup édité à la main) doit rester « aucune
+    // texture » plutôt que d\'être convertie au hasard vers un cran voisin.
+    test('texture inconnue → null, jamais une texture par défaut', () {
+      final row = drift.TrackingEvent(
+        id: 11,
+        type: db_const.typeCaca,
+        timestamp: DateTime(2026, 9, 1),
+        wasteType: WasteType.caca.dbValue,
+        texture: 'en_rations',
+        notes: null,
+      );
+
+      final diaper = mapToEntity(row, encryption) as DiaperEvent;
+
+      expect(diaper.stoolTexture, isNull);
+    });
+
+    // Les changes notées avant la v9 ont une colonne NULL : l\'écran ne doit
+    // rien inventer à leur sujet.
+    test('column texture absente (lignes héritées) → null', () {
+      final row = drift.TrackingEvent(
+        id: 12,
+        type: db_const.typeCaca,
+        timestamp: DateTime(2026, 8, 30),
+        wasteType: WasteType.caca.dbValue,
+        color: 'jaune_moutarde',
+        notes: null,
+      );
+
+      final diaper = mapToEntity(row, encryption) as DiaperEvent;
+
+      expect(diaper.stoolTexture, isNull);
+      expect(diaper.cacaColor, cacaColorJauneMoutarde);
+    });
+  });
 }

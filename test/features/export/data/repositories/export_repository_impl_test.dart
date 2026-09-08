@@ -67,6 +67,7 @@ void main() {
           timestamp: timestamp,
           wasteType: const Value('caca'),
           color: const Value('meconium'),
+          texture: const Value('pateuse'),
           babyId: const Value(null), // row orpheline : doit être exportée
         ),
       );
@@ -138,6 +139,25 @@ void main() {
         expect(orphan, hasLength(1));
         expect(orphan.first['type'], 'caca');
         expect(orphan.first['color'], 'meconium');
+        expect(orphan.first['texture'], 'pateuse');
+      });
+
+      // Une sauvegarde qui omet silencieusement une colonne n'en est pas une :
+      // toute ligne exportée porte la clé texture, null compris.
+      test('la clé texture est présente sur toutes les lignes exportées', () async {
+        await seedFullDatabase();
+
+        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final events = (doc['trackingEvents'] as List).cast<Map<String, dynamic>>();
+
+        expect(events, isNotEmpty);
+        for (final event in events) {
+          expect(event.containsKey('texture'), isTrue,
+              reason: 'ligne ${event['type']} exportée sans la clé texture');
+        }
+        // Une ligne sans consistance s'exporte en null explicite.
+        final sleep = events.firstWhere((e) => e['type'] == 'dodo');
+        expect(sleep['texture'], isNull);
       });
 
       test('notes déchiffrées en texte lisible', () async {

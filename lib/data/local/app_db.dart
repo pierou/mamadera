@@ -23,6 +23,7 @@ class TrackingEvents extends Table {
   TextColumn get notes => text().nullable()();    // encrypted user text only
   TextColumn get wasteType => text().nullable()(); // pipi, caca, les_deux (diaper events only)
   TextColumn get color => text().nullable()();     // couleur de la selle ou pipe-délimitée (pipi|caca)
+  TextColumn get texture => text().nullable()();   // consistance de la selle (diaper events only)
   TextColumn get babyId => text().nullable()();    // nullable FK to baby_profiles(id), backward compatible
   RealColumn get quantity => real().nullable()();   // volume in ml (feeding) or minutes (sleep)
 }
@@ -43,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
   @override
@@ -106,6 +107,13 @@ class AppDatabase extends _$AppDatabase {
               'enabled BOOLEAN NOT NULL'
               ')',
             );
+          }
+          // v8 → v9 : ajout de la colonne texture (consistance des selles).
+          // Laissé NULL pour toutes les couches déjà enregistrées : on ne
+          // devine pas la texture d'un change déjà noté.
+          if (from < 9) {
+            await m.database.customStatement(
+                'ALTER TABLE tracking_events ADD COLUMN texture TEXT');
           }
         },
       );

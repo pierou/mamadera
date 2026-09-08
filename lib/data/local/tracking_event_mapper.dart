@@ -60,6 +60,7 @@ TrackingEvent _createDiaperEvent(db_app.TrackingEvent row, EncryptionService enc
     wasteType: wasteType,
     pipiColor: colors.$1,
     cacaColor: colors.$2,
+    stoolTexture: findStoolTextureByValue(row.texture),
     notes: encryption.decrypt(row.notes),
   );
 }

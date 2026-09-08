@@ -120,6 +120,12 @@
   "cacaColorVertOlive": "Olive Green",
   "cacaColorJauneMoutarde": "Mustard Yellow",
   "cacaColorJauneClair": "Light Yellow",
+  "stoolTextureSectionTitle": "Stool Texture",
+  "stoolTextureAqueuse": "Watery",
+  "stoolTextureGrumeleuse": "Seedy",
+  "stoolTexturePateuse": "Pasty",
+  "stoolTextureMoulee": "Formed",
+  "stoolTextureDure": "Hard",
 
   "historyTitle": "History",
   "filterAll": "All",
