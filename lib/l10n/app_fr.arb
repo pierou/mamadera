@@ -98,6 +98,24 @@
   "reminderVitaminK": "Vit. K",
   "reminderEyeCleaning": "Yeux",
   "reminderFaceCleaning": "Visage",
+  "reminderSettingsTile": "Choisir les rappels affichés",
+  "reminderSettingsTitle": "Rappels",
+  "reminderSettingsError": "Échec du chargement des rappels",
+  "reminderSettingsDescription": "Bandeaux affichés sur l'accueil tant que le soin n'a pas été saisi. Aucune notification système n'est envoyée : tout reste sur cet appareil.",
+  "reminderFrequencyDaily": "Tous les jours",
+  "reminderFrequencyWeekly": "Chaque semaine",
+  "reminderFrequencyMonthly": "Le {day} de chaque mois",
+  "@reminderFrequencyMonthly": {
+    "placeholders": {
+      "day": {}
+    }
+  },
+  "reminderFrequencyEveryNDays": "Tous les {days} jours",
+  "@reminderFrequencyEveryNDays": {
+    "placeholders": {
+      "days": {}
+    }
+  },
 
   "yesterday": "Hier",
   "daysAgo": " jours",

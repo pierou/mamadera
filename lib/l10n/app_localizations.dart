@@ -334,6 +334,54 @@ abstract class AppLocalizations {
   /// **'Visage'**
   String get reminderFaceCleaning;
 
+  /// No description provided for @reminderSettingsTile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir les rappels affichés'**
+  String get reminderSettingsTile;
+
+  /// No description provided for @reminderSettingsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels'**
+  String get reminderSettingsTitle;
+
+  /// No description provided for @reminderSettingsError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec du chargement des rappels'**
+  String get reminderSettingsError;
+
+  /// No description provided for @reminderSettingsDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bandeaux affichés sur l\'accueil tant que le soin n\'a pas été saisi. Aucune notification système n\'est envoyée : tout reste sur cet appareil.'**
+  String get reminderSettingsDescription;
+
+  /// No description provided for @reminderFrequencyDaily.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les jours'**
+  String get reminderFrequencyDaily;
+
+  /// No description provided for @reminderFrequencyWeekly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque semaine'**
+  String get reminderFrequencyWeekly;
+
+  /// No description provided for @reminderFrequencyMonthly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le {day} de chaque mois'**
+  String reminderFrequencyMonthly(Object day);
+
+  /// No description provided for @reminderFrequencyEveryNDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les {days} jours'**
+  String reminderFrequencyEveryNDays(Object days);
+
   /// No description provided for @yesterday.
   ///
   /// In fr, this message translates to:

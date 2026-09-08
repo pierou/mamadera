@@ -10,6 +10,7 @@ import '../../features/menu/presentation/screens/menu_screen.dart';
 import '../../features/onboarding/presentation/screens/terms_screen.dart';
 import '../../features/onboarding/presentation/widgets/terms_acceptance_dialog.dart';
 import '../../features/patchnotes/presentation/widgets/patch_notes_dialog.dart';
+import '../../features/reminders/presentation/screens/reminder_settings_screen.dart';
 import '../core/config/app_config.dart';
 import '../core/providers/app_preferences_provider.dart';
 import '../core/services/app_preferences_service.dart';
@@ -125,6 +126,12 @@ final GoRouter router = GoRouter(
       path: '/info',
       name: 'info',
       builder: (context, state) => const InfoScreen(),
+    ),
+    // Reminder opt-out route (outside shell)
+    GoRoute(
+      path: '/reminder-settings',
+      name: 'reminder-settings',
+      builder: (context, state) => const ReminderSettingsScreen(),
     ),
     ShellRoute(
       navigatorKey: shellNavigatorKey,

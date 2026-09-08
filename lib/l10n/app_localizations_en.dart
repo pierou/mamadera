@@ -144,6 +144,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderFaceCleaning => 'Face';
 
   @override
+  String get reminderSettingsTile => 'Choose which reminders to show';
+
+  @override
+  String get reminderSettingsTitle => 'Reminders';
+
+  @override
+  String get reminderSettingsError => 'Failed to load reminders';
+
+  @override
+  String get reminderSettingsDescription =>
+      'Banners shown on the home screen until the care has been logged. No system notifications are sent: everything stays on this device.';
+
+  @override
+  String get reminderFrequencyDaily => 'Every day';
+
+  @override
+  String get reminderFrequencyWeekly => 'Every week';
+
+  @override
+  String reminderFrequencyMonthly(Object day) {
+    return 'On day $day of each month';
+  }
+
+  @override
+  String reminderFrequencyEveryNDays(Object days) {
+    return 'Every $days days';
+  }
+
+  @override
   String get yesterday => 'Yesterday';
 
   @override

@@ -98,6 +98,24 @@
   "reminderVitaminK": "Vit. K",
   "reminderEyeCleaning": "Eyes",
   "reminderFaceCleaning": "Face",
+  "reminderSettingsTile": "Choose which reminders to show",
+  "reminderSettingsTitle": "Reminders",
+  "reminderSettingsError": "Failed to load reminders",
+  "reminderSettingsDescription": "Banners shown on the home screen until the care has been logged. No system notifications are sent: everything stays on this device.",
+  "reminderFrequencyDaily": "Every day",
+  "reminderFrequencyWeekly": "Every week",
+  "reminderFrequencyMonthly": "On day {day} of each month",
+  "@reminderFrequencyMonthly": {
+    "placeholders": {
+      "day": {}
+    }
+  },
+  "reminderFrequencyEveryNDays": "Every {days} days",
+  "@reminderFrequencyEveryNDays": {
+    "placeholders": {
+      "days": {}
+    }
+  },
 
   "yesterday": "Yesterday",
   "daysAgo": " days ago",

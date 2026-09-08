@@ -211,5 +211,43 @@ void main() {
         expect(result, isNotNull);
       });
     });
+
+    group('reminder settings (opt-out)', () {
+      test('returns an empty map on a fresh database', () async {
+        // Table vide = personne n'a encore rien décoché, et donc tous les
+        // rappels sont activés. Ce n'est pas une erreur.
+        expect(await repository.getEnabledByItemId(), isEmpty);
+      });
+
+      test('persists a disabled reminder', () async {
+        await repository.setEnabled(vitaminDItem.id, enabled: false);
+
+        expect(await repository.getEnabledByItemId(), {vitaminDItem.id: false});
+      });
+
+      test('upserts instead of stacking rows for the same item', () async {
+        await repository.setEnabled(vitaminDItem.id, enabled: false);
+        await repository.setEnabled(vitaminDItem.id, enabled: true);
+
+        final rows = await database.select(database.reminderSettings).get();
+        expect(rows, hasLength(1));
+        expect(rows.single.itemId, vitaminDItem.id);
+        expect(rows.single.enabled, isTrue);
+        expect(await repository.getEnabledByItemId(), {vitaminDItem.id: true});
+      });
+
+      test('keeps one row per reminder item', () async {
+        await repository.setEnabled(vitaminDItem.id, enabled: false);
+        await repository.setEnabled(ReminderItemPresets.eyeCleaning.id, enabled: false);
+
+        expect(
+          await repository.getEnabledByItemId(),
+          {
+            vitaminDItem.id: false,
+            ReminderItemPresets.eyeCleaning.id: false,
+          },
+        );
+      });
+    });
   });
 }

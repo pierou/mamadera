@@ -30,4 +30,15 @@ abstract class RemindersRepository {
   /// NOTE: global across babies by design-at-v1 — see [saveDismissalTime] for why
   /// the value cannot be scoped to a baby without rebuilding `reminder_dismissals`.
   Future<DateTime?> getDismissalTime(String itemId);
+
+  /// Enabled flag persisted for every reminder item id.
+  ///
+  /// A missing id means the reminder was never touched: it is **enabled**. The
+  /// presets are opt-out, not opt-in — a parent who installs the app must get the
+  /// vitamin D reminder without having to discover a settings screen first.
+  Future<Map<String, bool>> getEnabledByItemId();
+
+  /// Persists whether [itemId] should fire, so a reminder nobody wants can be
+  /// switched off without deleting it (the preset list stays intact).
+  Future<void> setEnabled(String itemId, {required bool enabled});
 }

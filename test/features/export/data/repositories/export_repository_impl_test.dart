@@ -213,6 +213,22 @@ void main() {
         expect(dismissals.single['dismissedAtEpochSeconds'], 1700000000);
         expect(dismissals.single['dismissedAtUtc'], '2023-11-14T22:13:20.000Z');
       });
+
+      test('un rappel éteint sort de la sauvegarde en false, pas effacé', () async {
+        // Depuis l'écran Réglages → Rappels, une ligne `enabled = 0` est le cas
+        // courant : SQLite la stocke en 0, une restauration doit retrouver false.
+        await database.customStatement(
+          'INSERT INTO reminder_settings (item_id, enabled) VALUES (?, ?)',
+          ['vitamine_d', 0],
+        );
+
+        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final settings = (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
+
+        expect(settings.single['itemId'], 'vitamine_d');
+        expect(settings.single['enabled'], isFalse);
+        expect((doc['counts'] as Map<String, dynamic>)['reminderSettings'], 1);
+      });
     });
 
     group('base vide', () {

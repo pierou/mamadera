@@ -96,4 +96,50 @@ class RemindersRepositoryImpl implements RemindersRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<Map<String, bool>> getEnabledByItemId() async {
+    try {
+      final rows = await database.select(database.reminderSettings).get();
+      // Une table vide est le cas normal (personne n'a encore rien décoché) :
+      // ce n'est pas une erreur, et l'appelant interprète l'absence comme « activé ».
+      return {for (final row in rows) row.itemId: row.enabled};
+    } catch (e, stack) {
+      _logger.e(
+        'getEnabledByItemId error',
+        error: e,
+        stackTrace: stack,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> setEnabled(String itemId, {required bool enabled}) async {
+    try {
+      _logger.d('setEnabled($itemId, $enabled)');
+
+      // Même upsert manuel que saveDismissalTime : `item_id` est UNIQUE, et un
+      // delete + insert garde la table à une ligne par rappel. Pas de
+      // transaction : une coupure entre les deux requêtes ne perd qu'un choix
+      // (le rappel redevient activé par défaut), jamais de données de suivi.
+      await database.customStatement(
+        'DELETE FROM reminder_settings WHERE item_id = ?',
+        [itemId],
+      );
+      await database.into(database.reminderSettings).insert(
+        db_app.ReminderSettingsCompanion.insert(
+          itemId: itemId,
+          enabled: enabled,
+        ),
+      );
+    } catch (e, stack) {
+      _logger.e(
+        'setEnabled error',
+        error: e,
+        stackTrace: stack,
+      );
+      rethrow;
+    }
+  }
 }

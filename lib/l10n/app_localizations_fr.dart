@@ -145,6 +145,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reminderFaceCleaning => 'Visage';
 
   @override
+  String get reminderSettingsTile => 'Choisir les rappels affichés';
+
+  @override
+  String get reminderSettingsTitle => 'Rappels';
+
+  @override
+  String get reminderSettingsError => 'Échec du chargement des rappels';
+
+  @override
+  String get reminderSettingsDescription =>
+      'Bandeaux affichés sur l\'accueil tant que le soin n\'a pas été saisi. Aucune notification système n\'est envoyée : tout reste sur cet appareil.';
+
+  @override
+  String get reminderFrequencyDaily => 'Tous les jours';
+
+  @override
+  String get reminderFrequencyWeekly => 'Chaque semaine';
+
+  @override
+  String reminderFrequencyMonthly(Object day) {
+    return 'Le $day de chaque mois';
+  }
+
+  @override
+  String reminderFrequencyEveryNDays(Object days) {
+    return 'Tous les $days jours';
+  }
+
+  @override
   String get yesterday => 'Hier';
 
   @override

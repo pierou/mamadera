@@ -144,6 +144,35 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reminderFaceCleaning => 'Rostro';
 
   @override
+  String get reminderSettingsTile => 'Elige qué recordatorios se muestran';
+
+  @override
+  String get reminderSettingsTitle => 'Recordatorios';
+
+  @override
+  String get reminderSettingsError => 'No se pudieron cargar los recordatorios';
+
+  @override
+  String get reminderSettingsDescription =>
+      'Avisos en la pantalla de inicio hasta que registres el cuidado. No se envía ninguna notificación del sistema: todo se queda en este dispositivo.';
+
+  @override
+  String get reminderFrequencyDaily => 'Todos los días';
+
+  @override
+  String get reminderFrequencyWeekly => 'Cada semana';
+
+  @override
+  String reminderFrequencyMonthly(Object day) {
+    return 'El día $day de cada mes';
+  }
+
+  @override
+  String reminderFrequencyEveryNDays(Object days) {
+    return 'Cada $days días';
+  }
+
+  @override
   String get yesterday => 'Ayer';
 
   @override

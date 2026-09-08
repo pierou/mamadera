@@ -98,6 +98,24 @@
   "reminderVitaminK": "Vit. K",
   "reminderEyeCleaning": "Ojos",
   "reminderFaceCleaning": "Rostro",
+  "reminderSettingsTile": "Elige qué recordatorios se muestran",
+  "reminderSettingsTitle": "Recordatorios",
+  "reminderSettingsError": "No se pudieron cargar los recordatorios",
+  "reminderSettingsDescription": "Avisos en la pantalla de inicio hasta que registres el cuidado. No se envía ninguna notificación del sistema: todo se queda en este dispositivo.",
+  "reminderFrequencyDaily": "Todos los días",
+  "reminderFrequencyWeekly": "Cada semana",
+  "reminderFrequencyMonthly": "El día {day} de cada mes",
+  "@reminderFrequencyMonthly": {
+    "placeholders": {
+      "day": {}
+    }
+  },
+  "reminderFrequencyEveryNDays": "Cada {days} días",
+  "@reminderFrequencyEveryNDays": {
+    "placeholders": {
+      "days": {}
+    }
+  },
 
   "yesterday": "Ayer",
   "daysAgo": " días",

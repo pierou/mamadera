@@ -8,8 +8,10 @@ import '../../data/repositories/reminders_repository_impl.dart';
 import '../../domain/entities/reminder_item.dart';
 import '../../domain/repositories/reminders_repository.dart';
 import '../../domain/services/reminders_service.dart';
+import 'reminder_settings_notifier.dart';
 
 export 'reminder_notifier.dart';
+export 'reminder_settings_notifier.dart';
 
 /// Provider for the reminders repository implementation.
 ///
@@ -47,15 +49,28 @@ final dynamicRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async 
   return ReminderItemPresets.buildForBaby(activeProfile);
 });
 
+/// Les rappels qui doivent réellement sonner : les préréglages en vigueur,
+/// moins ceux que le parent a éteints dans Réglages → Rappels.
+///
+/// Le filtrage est ici et non dans [RemindersService] : un rappel éteint ne doit
+/// plus coûter une requête `getLastCompleted` à chaque sondage de cinq minutes.
+/// Une clé absente de `reminderSettingsProvider` vaut « activé ».
+final enabledRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async {
+  final items = await ref.watch(dynamicRemindersProvider.future);
+  final settings = await ref.watch(reminderSettingsProvider.future);
+  return items.where((item) => settings[item.id] ?? true).toList();
+});
+
 /// Provider for the reminders service (pure business logic layer).
 ///
-/// Uses a reactive dependency on `dynamicRemindersProvider.future`
+/// Uses a reactive dependency on `enabledRemindersProvider.future`
 /// to ensure this provider re-evaluates whenever
 /// the dynamic reminders list changes (e.g. when the active baby switches).
 final remindersServiceProvider = FutureProvider.autoDispose<RemindersService>((ref) async {
-  // Watch dynamicRemindersProvider.future to create a reactive dependency.
-  // When dynamicRemindersProvider changes (e.g. baby switch), this FutureProvider re-evaluates.
-  final items = await ref.watch(dynamicRemindersProvider.future);
+  // Watch enabledRemindersProvider.future to create a reactive dependency.
+  // When it changes (baby switch, or a reminder switched off in the menu), this
+  // FutureProvider re-evaluates with the new item list.
+  final items = await ref.watch(enabledRemindersProvider.future);
 
   final repository = await ref.watch(remindersRepositoryProvider.future);
   return RemindersService(items: items, repository: repository);

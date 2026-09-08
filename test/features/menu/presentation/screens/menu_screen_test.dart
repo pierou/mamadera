@@ -56,6 +56,16 @@ void main() {
       expect(find.text('Thème'), findsOneWidget);
     });
 
+    testWidgets('affiche la section rappels et sa tuile', (tester) async {
+      await pumpMenuScreen(tester: tester);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Le titre de section et le libellé de la tuile sont différents : une
+      // seule occurrence de « Rappels » à l'écran.
+      expect(find.text('Rappels'), findsOneWidget);
+      expect(find.text('Choisir les rappels affichés'), findsOneWidget);
+    });
+
     testWidgets('affiche les options de thème', (tester) async {
       await pumpMenuScreen(tester: tester);
       await tester.pump(const Duration(milliseconds: 100));
