@@ -4,6 +4,7 @@ import '../../../../../shared/utils/health_label_resolver.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
+import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
 
@@ -20,6 +21,9 @@ class HealthSubtypeDialog extends StatefulWidget {
 
 class _HealthSubtypeDialogState extends State<HealthSubtypeDialog> {
   HealthSubtype? _selectedType;
+
+  /// Date and time of the care routine, defaulted to the moment the sheet opened.
+  DateTime _selectedDate = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
@@ -58,13 +62,23 @@ class _HealthSubtypeDialogState extends State<HealthSubtypeDialog> {
 
             const SizedBox(height: 20),
 
+            EventDateTimeField(
+              value: _selectedDate,
+              onChanged: (date) => setState(() => _selectedDate = date),
+            ),
+
+            const SizedBox(height: 20),
+
             DialogActionButtons(
               onCancelPressed: () => Navigator.pop(context),
               onConfirmPressed: () {
                 final state = _selectedType;
                 if (state != null) {
                   if (context.mounted) {
-                    Navigator.pop(context, {'subtype': state});
+                    Navigator.pop(context, {
+                      'subtype': state,
+                      'timestamp': _selectedDate,
+                    });
                   }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(

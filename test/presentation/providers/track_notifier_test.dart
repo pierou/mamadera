@@ -148,5 +148,55 @@ void main() {
       verify(mockRepository.insertEvent(any)).called(1);
     });
   });
+
+  group('TrackNotifier.track() — date de l’événement', () {
+    // Le parent choisit le moment de l’événement ; le notifier doit le
+    // transmettre tel quel, et tomber sur maintenant lorsqu’il est omis.
+    test('un timestamp fourni est utilisé tel quel pour chaque type', () async {
+      final notifier = container.read(trackNotifierProvider.notifier);
+      final chosen = DateTime(2026, 2, 3, 14, 25);
+
+      for (final type in TrackingType.values) {
+        reset(mockRepository);
+        when(mockRepository.insertEvent(any)).thenAnswer((_) async => 1);
+
+        await notifier.track(type: type, timestamp: chosen);
+
+        final event = verify(mockRepository.insertEvent(captureAny)).captured.single
+            as TrackingEvent;
+        expect(event.timestamp, equals(chosen),
+            reason: 'timestamp ignoré pour ${type.name}');
+      }
+    });
+
+    test('un timestamp omis reste daté du moment de la saisie', () async {
+      final notifier = container.read(trackNotifierProvider.notifier);
+      final before = DateTime.now();
+
+      await notifier.track(type: TrackingType.dodo, duration: 30);
+
+      final event = verify(mockRepository.insertEvent(captureAny)).captured.single
+          as TrackingEvent;
+      expect(event.timestamp.isBefore(before), isFalse);
+      expect(event.timestamp.isAfter(DateTime.now()), isFalse);
+    });
+
+    test('un timestamp dans le passé est conservé (saisie a posteriori)', () async {
+      final notifier = container.read(trackNotifierProvider.notifier);
+      final sieste = DateTime.now().subtract(const Duration(hours: 2));
+
+      await notifier.track(
+        type: TrackingType.dodo,
+        duration: 45,
+        quantity: 45,
+        timestamp: sieste,
+      );
+
+      final event = verify(mockRepository.insertEvent(captureAny)).captured.single
+          as SleepEvent;
+      expect(event.timestamp, equals(sieste));
+      expect(event.duration, equals(45.0));
+    });
+  });
 }
 

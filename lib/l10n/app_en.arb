@@ -159,7 +159,7 @@
   "feedingSubtypeArtificial": "Formula",
 
   "editDialogTitle": "Edit Event",
-  "editDateSectionTitle": "Date and Time",
+  "eventDateSectionTitle": "Date and Time",
   "editDurationSectionTitle": "Duration",
   "editTypeSectionTitle": "Type",
   "editPipiColorSectionTitle": "Urine Color",

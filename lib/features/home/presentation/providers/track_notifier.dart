@@ -20,6 +20,9 @@ class TrackNotifier extends AsyncNotifier<void> {
   /// [wasteType], [pipiColor] et [cacaColor] sont utilisés uniquement pour les selles.
   /// [feedingSubtype] est requis pour FeedingEvent (natural/artificial).
   /// [healthSubtype] est requis pour HealthEvent (nettoyageYeux, etc.).
+  /// [timestamp] est le moment où l'événement s'est produit ; il permet de
+  /// saisir a posteriori (sieste terminée, change fait dans l'autre pièce).
+  /// `null` = maintenant, comportement historique.
   Future<void> track({
     required TrackingType type,
     String? notes,
@@ -30,31 +33,33 @@ class TrackNotifier extends AsyncNotifier<void> {
     CacaColor? cacaColor,
     FeedingSubtype? feedingSubtype,
     HealthSubtype? healthSubtype,
+    DateTime? timestamp,
   }) async {
     // Get active baby ID
     final activeBaby = ref.read(activeBabyProvider).value;
     final babyId = activeBaby?.id;
+    final eventDate = timestamp ?? DateTime.now();
 
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final repository = await ref.read(trackingRepositoryProvider.future);
       final event = switch (type) {
         TrackingType.miam => TrackingEvent.feeding(
-            timestamp: DateTime.now(),
+            timestamp: eventDate,
             babyId: babyId,
             subtype: feedingSubtype ?? FeedingSubtype.natural,
             quantity: quantity,
             notes: notes,
           ),
         TrackingType.dodo => TrackingEvent.sleep(
-            timestamp: DateTime.now(),
+            timestamp: eventDate,
             babyId: babyId,
             duration: duration?.toDouble() ?? 0.0,
             quantity: quantity,
             notes: notes,
           ),
         TrackingType.caca => TrackingEvent.diaper(
-            timestamp: DateTime.now(),
+            timestamp: eventDate,
             babyId: babyId,
             wasteType: wasteType,
             pipiColor: pipiColor,
@@ -62,7 +67,7 @@ class TrackNotifier extends AsyncNotifier<void> {
             notes: notes,
           ),
         TrackingType.sante => HealthEvent(
-            timestamp: DateTime.now(),
+            timestamp: eventDate,
             babyId: babyId,
             subtype: healthSubtype ?? HealthSubtype.nettoyageYeux,
             notes: notes,

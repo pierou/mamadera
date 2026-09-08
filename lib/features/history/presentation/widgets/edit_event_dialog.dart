@@ -4,8 +4,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../../../../shared/utils/health_label_resolver.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
-import '../../../../core/l10n/date_localization.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
@@ -120,41 +120,6 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     super.dispose();
   }
 
-
-  Future<void> _pickDate() async {
-    final date = await showDatePicker(
-        context: context,
-        initialDate: _selectedDate,
-        firstDate: DateTime.now().subtract(const Duration(days: 365 * 2)),
-        lastDate: DateTime.now());
-    if (date == null || !mounted) return;
-
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_selectedDate),
-    );
-    if (time == null) {
-      _updateToDateOnly(date);
-      return;
-    }
-
-    _applyDateTime(date, time);
-  }
-
-  void _applyDateTime(DateTime date, TimeOfDay time) {
-    setState(() {
-      _selectedDate = DateTime(
-          date.year, date.month, date.day, time.hour, time.minute);
-    });
-  }
-
-  void _updateToDateOnly(DateTime date) {
-    setState(() {
-      _selectedDate = DateTime(date.year, date.month, date.day,
-          _selectedDate.hour, _selectedDate.minute);
-    });
-  }
-
   void _submit() {
     final result = EditResult.update(
       timestamp: _selectedDate,
@@ -214,7 +179,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildTitle(),
-            ..._buildDateSection(),
+            _buildDateSection(),
+            const SizedBox(height: 20),
             if (_normalizedType == 'dodo') ..._buildDurationSection(),
             if (_normalizedType == 'miam') ..._buildQuantitySection(),
             if (_normalizedType == 'miam') ..._buildSubtypeSelectorSection(),
@@ -235,40 +201,10 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     );
   }
 
-  List<Widget> _buildDateSection() {
-    return [
-      _buildSectionTitle(context.l.editDateSectionTitle),
-      _buildDateInlineAction(),
-      const SizedBox(height: 20),
-    ];
-  }
-
-  Widget _buildDateInlineAction() {
-    return InkWell(
-      onTap: _pickDate,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).colorScheme.outline),
-          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-        ),
-        child: _buildDateInlineRow(),
-      ),
-    );
-  }
-
-  Widget _buildDateInlineRow() {
-    return Row(
-      children: [
-        Icon(Icons.calendar_today,
-            size: 20, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 12),
-        Text(_formatDateTime(_selectedDate)),
-        const Spacer(),
-        Icon(Icons.edit_outlined,
-            size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
-      ],
+  Widget _buildDateSection() {
+    return EventDateTimeField(
+      value: _selectedDate,
+      onChanged: (date) => setState(() => _selectedDate = date),
     );
   }
 
@@ -504,10 +440,6 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
           style: theme.textTheme.bodyMedium
               ?.copyWith(fontWeight: FontWeight.bold)),
     );
-  }
-
-  String _formatDateTime(DateTime dt) {
-    return formatDate(context, dt);
   }
 
   /// Résout le label localisé pour un PipiColor via son labelKey.

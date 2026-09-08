@@ -159,7 +159,7 @@
   "feedingSubtypeArtificial": "Fórmula Infantil",
 
   "editDialogTitle": "Editar evento",
-  "editDateSectionTitle": "Fecha y hora",
+  "eventDateSectionTitle": "Fecha y hora",
   "editDurationSectionTitle": "Duración",
   "editTypeSectionTitle": "Tipo",
   "editPipiColorSectionTitle": "Color de la orina",

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
+import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 
 /// Widget pour sélectionner le type de selle et les couleurs associées.
@@ -21,12 +22,16 @@ class _WasteDialogState extends State<WasteDialog> {
   PipiColor? _pipiColor;
   CacaColor? _cacaColor;
 
+  /// Date and time of the diaper, defaulted to the moment the sheet opened.
+  DateTime _selectedDate = DateTime.now();
+
   /// Retourne les données à retourner au parent (typed enums).
   Map<String, dynamic> _toResult() {
     return {
       'wasteType': _selectedType,
       'pipiColor': _pipiColor,
       'cacaColor': _cacaColor,
+      'timestamp': _selectedDate,
     };
   }
 
@@ -75,6 +80,13 @@ class _WasteDialogState extends State<WasteDialog> {
                 onSelectedColor: (color) => setState(() => _cacaColor = color),
               ),
             ],
+
+            const SizedBox(height: 24),
+
+            EventDateTimeField(
+              value: _selectedDate,
+              onChanged: (date) => setState(() => _selectedDate = date),
+            ),
 
             const SizedBox(height: 24),
 

@@ -159,7 +159,7 @@
   "feedingSubtypeArtificial": "Lait Artificiel",
 
   "editDialogTitle": "Modifier l'événement",
-  "editDateSectionTitle": "Date et heure",
+  "eventDateSectionTitle": "Date et heure",
   "editDurationSectionTitle": "Durée",
   "editTypeSectionTitle": "Type",
   "editPipiColorSectionTitle": "Couleur du pipi",

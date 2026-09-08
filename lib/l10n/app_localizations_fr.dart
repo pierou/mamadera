@@ -274,7 +274,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get editDialogTitle => 'Modifier l\'événement';
 
   @override
-  String get editDateSectionTitle => 'Date et heure';
+  String get eventDateSectionTitle => 'Date et heure';
 
   @override
   String get editDurationSectionTitle => 'Durée';

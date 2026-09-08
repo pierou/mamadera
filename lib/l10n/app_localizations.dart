@@ -580,11 +580,11 @@ abstract class AppLocalizations {
   /// **'Modifier l\'événement'**
   String get editDialogTitle;
 
-  /// No description provided for @editDateSectionTitle.
+  /// No description provided for @eventDateSectionTitle.
   ///
   /// In fr, this message translates to:
   /// **'Date et heure'**
-  String get editDateSectionTitle;
+  String get eventDateSectionTitle;
 
   /// No description provided for @editDurationSectionTitle.
   ///
