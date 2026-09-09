@@ -1,3 +1,4 @@
+import '../entities/custom_reminder.dart';
 import '../entities/reminder_item.dart';
 
 /// Repository interface for reminder persistence and queries.
@@ -41,4 +42,22 @@ abstract class RemindersRepository {
   /// Persists whether [itemId] should fire, so a reminder nobody wants can be
   /// switched off without deleting it (the preset list stays intact).
   Future<void> setEnabled(String itemId, {required bool enabled});
+
+  /// Tous les rappels personnalisés, dans l'ordre de création.
+  Future<List<CustomReminder>> getCustomReminders();
+
+  /// Écrit [reminder] et renvoie son identifiant attribué, dont la couche
+  /// présentation fait la clé `custom_<id>` des réglages.
+  Future<int> insertCustomReminder(CustomReminder reminder);
+
+  /// Écrase la ligne d'identifiant [CustomReminder.id].
+  Future<void> updateCustomReminder(CustomReminder reminder);
+
+  /// Supprime le rappel **et** ses lignes de réglage et de rang.
+  ///
+  /// Un identifiant de préréglage reparaît à chaque lancement, ses lignes
+  /// doivent donc survivre à une extinction ; un `custom_<id>` supprimé ne renaît
+  /// jamais, et laisser derrière lui un `enabled = false` le rendrait éternel
+  /// dans chaque sauvegarde JSON.
+  Future<void> deleteCustomReminder(int id);
 }

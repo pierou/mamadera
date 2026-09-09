@@ -5,11 +5,14 @@ import '../../../../core/providers/database_provider.dart';
 import '../../../baby/data/repositories/baby_profile_repository_impl.dart';
 import '../../../baby/domain/repositories/baby_profile_repository.dart';
 import '../../data/repositories/reminders_repository_impl.dart';
+import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_item.dart';
 import '../../domain/repositories/reminders_repository.dart';
 import '../../domain/services/reminders_service.dart';
+import 'custom_reminders_notifier.dart';
 import 'reminder_settings_notifier.dart';
 
+export 'custom_reminders_notifier.dart';
 export 'reminder_notifier.dart';
 export 'reminder_settings_notifier.dart';
 
@@ -49,16 +52,39 @@ final dynamicRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async 
   return ReminderItemPresets.buildForBaby(activeProfile);
 });
 
-/// Les rappels qui doivent réellement sonner : les préréglages en vigueur,
-/// moins ceux que le parent a éteints dans Réglages → Rappels.
+/// Les rappels inventés par le parent, sous la forme d'un item d'accueil.
+///
+/// Le rythme mensuel est arrimé ici, et non en base : `dayOfMonth` est le jour de
+/// naissance du bébé **actif**, relu à chaque fois — le même choix que pour la
+/// vitamine K, donc un changement de bébé décale le rappel avec lui.
+final customReminderItemsProvider =
+    FutureProvider<List<ReminderItem>>((ref) async {
+  final reminders = await ref.watch(customRemindersProvider.future);
+  final activeProfile = await ref.watch(activeBabyProvider.future);
+  return [
+    for (final reminder in reminders)
+      CustomReminderPresets.forCustom(
+        reminder,
+        monthlyDay: activeProfile?.birthDate.day,
+      ),
+  ];
+});
+
+/// Les rappels qui doivent réellement sonner : préréglages + rappels
+/// personnalisés, moins ceux que le parent a éteints dans Réglages → Rappels.
 ///
 /// Le filtrage est ici et non dans [RemindersService] : un rappel éteint ne doit
 /// plus coûter une requête `getLastCompleted` à chaque sondage de cinq minutes.
-/// Une clé absente de `reminderSettingsProvider` vaut « activé ».
+/// Une clé absente de `reminderSettingsProvider` vaut « activé », et les deux
+/// familles obéissent à la même table — un `custom_7` éteint se range comme un
+/// `vitamine_d` éteint.
 final enabledRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async {
-  final items = await ref.watch(dynamicRemindersProvider.future);
+  final presets = await ref.watch(dynamicRemindersProvider.future);
+  final custom = await ref.watch(customReminderItemsProvider.future);
   final settings = await ref.watch(reminderSettingsProvider.future);
-  return items.where((item) => settings[item.id] ?? true).toList();
+  return [...presets, ...custom]
+      .where((item) => settings[item.id] ?? true)
+      .toList();
 });
 
 /// Provider for the reminders service (pure business logic layer).

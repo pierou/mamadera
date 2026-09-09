@@ -83,6 +83,7 @@ Future<void> _pumpDialog(
 const _counts = ExportCounts(
   babyProfiles: 1,
   trackingEvents: 12,
+  customReminders: 0,
   reminderSettings: 2,
   reminderDismissals: 1,
 );

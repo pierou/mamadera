@@ -116,6 +116,23 @@
       "days": {}
     }
   },
+  "reminderCustomSectionTitle": "Recordatorios personalizados",
+  "reminderCustomSectionDescription": "Un recordatorio desaparece del inicio en cuanto registras el cuidado asociado.",
+  "reminderCustomAdd": "Añadir recordatorio",
+  "reminderCustomEmpty": "Aún no hay recordatorios personalizados.",
+  "reminderCustomSheetAdd": "Nuevo recordatorio",
+  "reminderCustomSheetEdit": "Editar recordatorio",
+  "reminderCustomLabelField": "Nombre del recordatorio",
+  "reminderCustomLabelRequired": "Dale un nombre al recordatorio",
+  "reminderCustomCareField": "Cuidado asociado",
+  "reminderCustomFrequencyField": "Frecuencia",
+  "reminderCustomIntervalField": "Intervalo en días",
+  "reminderCustomIntervalRequired": "Indica un número de días, de 1 a 365",
+  "reminderFrequencyMonthlyBirth": "El día de nacimiento, cada mes",
+  "reminderCustomDeleteConfirm": "¿Eliminar este recordatorio?",
+  "reminderCustomDeleteWarning": "El recordatorio desaparece del inicio. Los eventos ya registrados se conservan.",
+  "reminderCustomSaveError": "No se pudo guardar el recordatorio. Inténtalo de nuevo.",
+  "reminderCustomDeleteError": "No se pudo eliminar el recordatorio. Inténtalo de nuevo.",
 
   "yesterday": "Ayer",
   "daysAgo": " días",

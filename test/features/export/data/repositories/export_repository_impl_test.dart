@@ -84,6 +84,21 @@ void main() {
         'INSERT INTO reminder_settings (item_id, enabled) VALUES (?, ?)',
         ['vitaminD', 1],
       );
+      await database.into(database.customReminders).insert(
+        CustomRemindersCompanion.insert(
+          id: const Value(1),
+          label: 'Crème du change',
+          subtypeValue: 'nettoyage_nez',
+          frequency: 'every_n_days',
+          intervalDays: const Value(3),
+        ),
+      );
+      // Le rappel éteint porte la clé de ce rappel personnalisé : c'est le
+      // couple qui doit se retrouver à la lecture, pas deux listes séparées.
+      await database.customStatement(
+        'INSERT INTO reminder_settings (item_id, enabled) VALUES (?, ?)',
+        ['custom_1', 0],
+      );
       await database.into(database.reminderDismissals).insert(
         ReminderDismissalsCompanion.insert(
           itemId: 'vitaminK',
@@ -93,7 +108,7 @@ void main() {
     }
 
     group('buildExportJson — base complète', () {
-      test('contient les quatre tables avec les bons counts', () async {
+      test('contient les cinq tables avec les bons counts', () async {
         await seedFullDatabase();
 
         final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
@@ -101,12 +116,20 @@ void main() {
         final counts = doc['counts'] as Map<String, dynamic>;
         expect(counts['babyProfiles'], 1);
         expect(counts['trackingEvents'], 3);
-        expect(counts['reminderSettings'], 1);
+        expect(counts['customReminders'], 1);
+        expect(counts['reminderSettings'], 2);
         expect(counts['reminderDismissals'], 1);
         expect((doc['babyProfiles'] as List).length, 1);
         expect((doc['trackingEvents'] as List).length, 3);
-        expect((doc['reminderSettings'] as List).length, 1);
+        expect((doc['customReminders'] as List).length, 1);
+        expect((doc['reminderSettings'] as List).length, 2);
         expect((doc['reminderDismissals'] as List).length, 1);
+
+        // Un tableau exporté dont le count divergerait serait une sauvegarde
+        // menteuse : les deux chiffres viennent de la même lecture.
+        final declared = await repository.counts();
+        expect(declared.customReminders, counts['customReminders']);
+        expect(declared.reminderSettings, counts['reminderSettings']);
       });
 
       test('métadonnées de document correctes', () async {
@@ -207,11 +230,15 @@ void main() {
         final settings = (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
         final dismissals = (doc['reminderDismissals'] as List).cast<Map<String, dynamic>>();
 
-        expect(settings.single['itemId'], 'vitaminD');
-        expect(settings.single['enabled'], isTrue);
         expect(dismissals.single['itemId'], 'vitaminK');
         expect(dismissals.single['dismissedAtEpochSeconds'], 1700000000);
         expect(dismissals.single['dismissedAtUtc'], '2023-11-14T22:13:20.000Z');
+        // Deux lignes de réglages depuis que le rappel personnalisé seedé est
+        // éteint : on vise la préréglée par sa clé, pas par sa position.
+        expect(
+          settings.firstWhere((s) => s['itemId'] == 'vitaminD')['enabled'],
+          isTrue,
+        );
       });
 
       test('un rappel éteint sort de la sauvegarde en false, pas effacé', () async {
@@ -229,6 +256,59 @@ void main() {
         expect(settings.single['enabled'], isFalse);
         expect((doc['counts'] as Map<String, dynamic>)['reminderSettings'], 1);
       });
+
+      // Un rappel personnalisé éteint est stocké sous la clé `custom_<id>` : si
+      // la ligne de définition n'est pas exportée, la clé ne pointe plus rien à
+      // la restauration et le rappel revient hanté.
+      test('l\'extinction d\'un rappel personnalisé reste rattachée à sa définition', () async {
+        await seedFullDatabase();
+
+        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final settings = (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
+        final reminders = (doc['customReminders'] as List).cast<Map<String, dynamic>>();
+
+        expect(reminders.single['id'], 1);
+        expect(
+          settings.firstWhere((s) => s['itemId'] == 'custom_1')['enabled'],
+          isFalse,
+        );
+      });
+
+      // Le rythme s'exporte en code brut, pas en libellé traduit : un fichier
+      // créé en français doit se relire à l'identique sur un téléphone espagnol.
+      test('le rythme d\'un rappel personnalisé s\'exporte en code brut', () async {
+        await seedFullDatabase();
+
+        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final reminders = (doc['customReminders'] as List).cast<Map<String, dynamic>>();
+
+        expect(reminders.single, {
+          'id': 1,
+          'label': 'Crème du change',
+          'subtypeValue': 'nettoyage_nez',
+          'frequency': 'every_n_days',
+          'intervalDays': 3,
+        });
+      });
+
+      // Un rythme mensuel n'a pas d'intervalle : la clé doit quand même être
+      // présente, pour qu'un lecteur de sauvegarde n'ait pas à deviner.
+      test('un rappel mensuel exporte intervalDays null plutôt que d\'omettre la clé', () async {
+        await database.into(database.customReminders).insert(
+          CustomRemindersCompanion.insert(
+            label: 'Crème des pieds',
+            subtypeValue: 'autre',
+            frequency: 'monthly',
+          ),
+        );
+
+        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final reminders = (doc['customReminders'] as List).cast<Map<String, dynamic>>();
+
+        expect(reminders.single.containsKey('intervalDays'), isTrue);
+        expect(reminders.single['intervalDays'], isNull);
+        expect(reminders.single['frequency'], 'monthly');
+      });
     });
 
     group('base vide', () {
@@ -237,6 +317,7 @@ void main() {
 
         expect(counts.babyProfiles, 0);
         expect(counts.trackingEvents, 0);
+        expect(counts.customReminders, 0);
         expect(counts.reminderSettings, 0);
         expect(counts.reminderDismissals, 0);
         expect(counts.isEmpty, isTrue);
@@ -245,9 +326,13 @@ void main() {
         final jsonCounts = doc['counts'] as Map<String, dynamic>;
         expect(jsonCounts['babyProfiles'], 0);
         expect(jsonCounts['trackingEvents'], 0);
+        expect(jsonCounts['customReminders'], 0);
         expect(jsonCounts['reminderSettings'], 0);
         expect(jsonCounts['reminderDismissals'], 0);
         expect((doc['trackingEvents'] as List), isEmpty);
+        // Table vide exportée en tableau vide : une clé absente se lirait comme
+        // « ancienne version de l'app », pas comme « aucun rappel ».
+        expect((doc['customReminders'] as List), isEmpty);
       });
     });
   });

@@ -382,6 +382,108 @@ abstract class AppLocalizations {
   /// **'Tous les {days} jours'**
   String reminderFrequencyEveryNDays(Object days);
 
+  /// No description provided for @reminderCustomSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels personnalisés'**
+  String get reminderCustomSectionTitle;
+
+  /// No description provided for @reminderCustomSectionDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un rappel s\'efface de l\'accueil dès que vous enregistrez le soin associé.'**
+  String get reminderCustomSectionDescription;
+
+  /// No description provided for @reminderCustomAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un rappel'**
+  String get reminderCustomAdd;
+
+  /// No description provided for @reminderCustomEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun rappel personnalisé pour l\'instant.'**
+  String get reminderCustomEmpty;
+
+  /// No description provided for @reminderCustomSheetAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau rappel'**
+  String get reminderCustomSheetAdd;
+
+  /// No description provided for @reminderCustomSheetEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le rappel'**
+  String get reminderCustomSheetEdit;
+
+  /// No description provided for @reminderCustomLabelField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du rappel'**
+  String get reminderCustomLabelField;
+
+  /// No description provided for @reminderCustomLabelRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donnez un nom au rappel'**
+  String get reminderCustomLabelRequired;
+
+  /// No description provided for @reminderCustomCareField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soin associé'**
+  String get reminderCustomCareField;
+
+  /// No description provided for @reminderCustomFrequencyField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fréquence'**
+  String get reminderCustomFrequencyField;
+
+  /// No description provided for @reminderCustomIntervalField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Intervalle en jours'**
+  String get reminderCustomIntervalField;
+
+  /// No description provided for @reminderCustomIntervalRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez un nombre de jours, de 1 à 365'**
+  String get reminderCustomIntervalRequired;
+
+  /// No description provided for @reminderFrequencyMonthlyBirth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le jour de naissance, chaque mois'**
+  String get reminderFrequencyMonthlyBirth;
+
+  /// No description provided for @reminderCustomDeleteConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer ce rappel ?'**
+  String get reminderCustomDeleteConfirm;
+
+  /// No description provided for @reminderCustomDeleteWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le rappel disparaît de l\'accueil. Les événements déjà enregistrés sont conservés.'**
+  String get reminderCustomDeleteWarning;
+
+  /// No description provided for @reminderCustomSaveError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le rappel n\'a pas pu être enregistré. Réessayez.'**
+  String get reminderCustomSaveError;
+
+  /// No description provided for @reminderCustomDeleteError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le rappel n\'a pas pu être supprimé. Réessayez.'**
+  String get reminderCustomDeleteError;
+
   /// No description provided for @yesterday.
   ///
   /// In fr, this message translates to:

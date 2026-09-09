@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 9 (adds the stool texture column)', () {
-      expect(db.schemaVersion, equals(9));
+    test('schemaVersion is 10 (adds the custom_reminders table)', () {
+      expect(db.schemaVersion, equals(10));
     });
   });
 

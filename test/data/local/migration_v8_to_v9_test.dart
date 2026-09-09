@@ -82,7 +82,8 @@ void main() {
     // Lue via Drift : la colonne existe, et l'ancienne ligne est intacte.
     expect(events.first.color, equals('jaune_moutarde'));
     expect(events.first.texture, equals(null));
-    expect(db.schemaVersion, equals(9));
+    // Le fichier est monté jusqu'à la version courante, pas seulement jusqu'à 9.
+    expect(db.schemaVersion, equals(10));
   });
 
   test('a diaper saved after the upgrade can store a texture', () async {

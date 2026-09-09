@@ -174,6 +174,64 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get reminderCustomSectionTitle => 'Rappels personnalisés';
+
+  @override
+  String get reminderCustomSectionDescription =>
+      'Un rappel s\'efface de l\'accueil dès que vous enregistrez le soin associé.';
+
+  @override
+  String get reminderCustomAdd => 'Ajouter un rappel';
+
+  @override
+  String get reminderCustomEmpty =>
+      'Aucun rappel personnalisé pour l\'instant.';
+
+  @override
+  String get reminderCustomSheetAdd => 'Nouveau rappel';
+
+  @override
+  String get reminderCustomSheetEdit => 'Modifier le rappel';
+
+  @override
+  String get reminderCustomLabelField => 'Nom du rappel';
+
+  @override
+  String get reminderCustomLabelRequired => 'Donnez un nom au rappel';
+
+  @override
+  String get reminderCustomCareField => 'Soin associé';
+
+  @override
+  String get reminderCustomFrequencyField => 'Fréquence';
+
+  @override
+  String get reminderCustomIntervalField => 'Intervalle en jours';
+
+  @override
+  String get reminderCustomIntervalRequired =>
+      'Indiquez un nombre de jours, de 1 à 365';
+
+  @override
+  String get reminderFrequencyMonthlyBirth =>
+      'Le jour de naissance, chaque mois';
+
+  @override
+  String get reminderCustomDeleteConfirm => 'Supprimer ce rappel ?';
+
+  @override
+  String get reminderCustomDeleteWarning =>
+      'Le rappel disparaît de l\'accueil. Les événements déjà enregistrés sont conservés.';
+
+  @override
+  String get reminderCustomSaveError =>
+      'Le rappel n\'a pas pu être enregistré. Réessayez.';
+
+  @override
+  String get reminderCustomDeleteError =>
+      'Le rappel n\'a pas pu être supprimé. Réessayez.';
+
+  @override
   String get yesterday => 'Hier';
 
   @override

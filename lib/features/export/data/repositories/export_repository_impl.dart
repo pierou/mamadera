@@ -12,11 +12,16 @@ import '../../domain/repositories/export_repository.dart';
 
 /// Concrete implementation of [ExportRepository].
 ///
-/// Reads the entire database (all four tables, unfiltered), decrypts event
+/// Reads the entire database (all five tables, unfiltered), decrypts event
 /// notes through the shared tracking event mapper — the single place in the
 /// codebase where decryption happens — and serializes everything into the
 /// export document. Only counts and timings are logged; no exported content,
 /// no name, no note ever reaches the log.
+///
+/// Reminder labels are exported as stored, like baby names: they are text the
+/// parent typed to name a care, not a medical value. The medical fields this
+/// app keeps encrypted — notes, weight, allergies — still leave only after
+/// decryption through the mapper.
 class ExportRepositoryImpl implements ExportRepository {
   const ExportRepositoryImpl({
     required this.database,
@@ -36,6 +41,7 @@ class ExportRepositoryImpl implements ExportRepository {
     // babyId is null. A backup that quietly omits rows is worse than none.
     final profiles = await database.getAllBabyProfiles();
     final events = await database.getAllTrackingEvents();
+    final customReminders = await database.getAllCustomReminders();
     final settings = await database.getAllReminderSettings();
     final dismissals = await database.getAllReminderDismissals();
     stopwatch.stop();
@@ -43,6 +49,7 @@ class ExportRepositoryImpl implements ExportRepository {
     // Counts and timings only — never any exported content.
     _logger.d(
       'buildExportJson: profiles=${profiles.length} events=${events.length} '
+      'customReminders=${customReminders.length} '
       'settings=${settings.length} dismissals=${dismissals.length} '
       'in ${stopwatch.elapsedMilliseconds} ms',
     );
@@ -56,11 +63,25 @@ class ExportRepositoryImpl implements ExportRepository {
       'counts': <String, Object?>{
         'babyProfiles': profiles.length,
         'trackingEvents': events.length,
+        'customReminders': customReminders.length,
         'reminderSettings': settings.length,
         'reminderDismissals': dismissals.length,
       },
       'babyProfiles': _mapProfiles(profiles),
       'trackingEvents': _mapEvents(events),
+      'customReminders': [
+        for (final reminder in customReminders)
+          <String, Object?>{
+            'id': reminder.id,
+            'label': reminder.label,
+            'subtypeValue': reminder.subtypeValue,
+            // Le code brut tel qu'en base (`daily`, `weekly`, `monthly`,
+            // `every_n_days`) et jamais un libellé traduit : une sauvegarde ne
+            // doit pas dépendre de la langue dans laquelle elle a été faite.
+            'frequency': reminder.frequency,
+            'intervalDays': reminder.intervalDays,
+          },
+      ],
       'reminderSettings': [
         for (final setting in settings)
           <String, Object?>{
@@ -87,11 +108,13 @@ class ExportRepositoryImpl implements ExportRepository {
   Future<ExportCounts> counts() async {
     final profiles = await database.getAllBabyProfiles();
     final events = await database.getAllTrackingEvents();
+    final customReminders = await database.getAllCustomReminders();
     final settings = await database.getAllReminderSettings();
     final dismissals = await database.getAllReminderDismissals();
     return ExportCounts(
       babyProfiles: profiles.length,
       trackingEvents: events.length,
+      customReminders: customReminders.length,
       reminderSettings: settings.length,
       reminderDismissals: dismissals.length,
     );

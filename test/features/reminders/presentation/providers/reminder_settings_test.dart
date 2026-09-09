@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
+import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
+import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
@@ -175,6 +177,155 @@ void main() {
       watchPills(container);
 
       expect(await container.read(reminderNotifierProvider.future), isEmpty);
+    });
+  });
+
+  group('custom reminders', () {
+    CustomReminder cream({
+      int? id,
+      String label = 'Crème du change',
+      ReminderFrequency? frequency,
+    }) =>
+        CustomReminder(
+          id: id,
+          label: label,
+          subtypeValue: 'nettoyage_nez',
+          frequency: frequency ?? const ReminderFrequency.daily(),
+        );
+
+    void storeCream({int id = 1, String label = 'Crème du change'}) {
+      mockReminders.customRemindersById[id] = cream(id: id, label: label);
+    }
+
+    test('there is none on a fresh install', () async {
+      expect(await container.read(customRemindersProvider.future), isEmpty);
+      expect(await container.read(customReminderItemsProvider.future), isEmpty);
+    });
+
+    test('a stored reminder reaches the home list under a stable key', () async {
+      storeCream();
+
+      final item = (await container.read(customReminderItemsProvider.future)).single;
+
+      // La clé est l'identifiant de ligne, pas le libellé : le parent peut
+      // renommer son rappel sans orpheliner son extinction ni son rang.
+      expect(item.id, 'custom_1');
+      expect(item.labelKey, 'Crème du change');
+      expect(item.subtypeValue, 'nettoyage_nez');
+      expect(item.trackingType, TrackingType.sante);
+    });
+
+    test('a monthly reminder rings on the birth day of the active baby', () async {
+      // Le jour n'est pas la propriété du rappel : comme la vitamine K, il suit
+      // le bébé actif, et changer de bébé décale le rappel avec lui.
+      storeCream(label: 'Bilan du mois');
+      mockReminders.customRemindersById[1] = cream(
+        id: 1,
+        label: 'Bilan du mois',
+        frequency: const ReminderFrequency.monthly(dayOfMonth: 1),
+      );
+
+      final item = (await container.read(customReminderItemsProvider.future)).single;
+
+      expect(item.frequency, ReminderFrequency.monthly(dayOfMonth: _baby.birthDate.day));
+    });
+
+    test('they join the presets instead of replacing them', () async {
+      storeCream();
+      final presetIds = ReminderItemPresets.buildForBaby(_baby).map((i) => i.id);
+
+      final items = await container.read(enabledRemindersProvider.future);
+
+      expect(items.map((i) => i.id), containsAll(presetIds));
+      expect(items.map((i) => i.id), contains('custom_1'));
+      expect(items, hasLength(presetIds.length + 1));
+    });
+
+    test('switching one off drops it and leaves the presets alone', () async {
+      storeCream();
+      mockReminders.enabledById['custom_1'] = false;
+
+      final items = await container.read(enabledRemindersProvider.future);
+
+      expect(items.map((i) => i.id), isNot(contains('custom_1')));
+      expect(items.map((i) => i.id), contains(ReminderItemPresets.vitaminD.id));
+    });
+
+    test('a custom reminder is not queried once switched off', () async {
+      storeCream();
+      mockReminders.enabledById['custom_1'] = false;
+      watchPills(container);
+
+      await container.read(reminderNotifierProvider.future);
+
+      expect(mockReminders.lookedUpItemIds, isNot(contains('custom_1')));
+    });
+
+    test('creating one writes it and puts the pill on the home screen at once',
+        () async {
+      watchPills(container);
+      final before = await container.read(reminderNotifierProvider.future);
+      expect(before[TrackingType.sante]?.map((s) => s.item.id),
+          isNot(contains('custom_1')));
+
+      final notifier = container.read(customRemindersProvider.notifier);
+      final key = await notifier.create(cream());
+
+      // La clé rendue est celle que l'écran Réglages va utiliser pour le switch.
+      expect(key, 'custom_1');
+      expect(mockReminders.customRemindersById[1]?.label, 'Crème du change');
+      expect(container.read(customRemindersProvider).value, hasLength(1));
+
+      final after = await container.read(reminderNotifierProvider.future);
+      expect(after[TrackingType.sante]?.map((s) => s.item.id), contains('custom_1'));
+    });
+
+    test('renaming keeps the settings key, so a disabled reminder stays off',
+        () async {
+      storeCream();
+      mockReminders.enabledById['custom_1'] = false;
+
+      await container
+          .read(customRemindersProvider.notifier)
+          .edit(cream(id: 1, label: 'Crème du soir')); 
+
+      final items = await container.read(enabledRemindersProvider.future);
+      expect(items.map((i) => i.id), isNot(contains('custom_1')));
+      expect(mockReminders.customRemindersById[1]?.label, 'Crème du soir');
+    });
+
+    test('deleting one takes its switch position along', () async {
+      storeCream();
+      mockReminders.enabledById['custom_1'] = false;
+      mockReminders.dismissalTimeById['custom_1'] = DateTime.now();
+      await container.read(reminderSettingsProvider.future);
+
+      await container.read(customRemindersProvider.notifier).remove(1);
+
+      expect(mockReminders.customRemindersById, isEmpty);
+      // Pas seulement vidé en base : l'écran Réglages doit relire la table, sinon
+      // son switch montrerait une position pour un rappel qui n'existe plus.
+      expect(
+        await container.read(reminderSettingsProvider.future),
+        isNot(contains('custom_1')),
+      );
+      expect(container.read(customRemindersProvider).value, isEmpty);
+    });
+
+    test('logging the linked care retires the pill, like a preset would', () async {
+      storeCream();
+      watchPills(container);
+      final before = await container.read(reminderNotifierProvider.future);
+      expect(before[TrackingType.sante]?.map((s) => s.item.id), contains('custom_1'));
+
+      // Le mock répond à la place de la table des événements : le soin associé a
+      // été enregistré à l'instant.
+      mockReminders.lastCompletedByItem['custom_1'] = DateTime.now();
+      container.invalidate(reminderNotifierProvider);
+
+      final after = await container.read(reminderNotifierProvider.future);
+      expect(after[TrackingType.sante]?.map((s) => s.item.id),
+          isNot(contains('custom_1')));
     });
   });
 }

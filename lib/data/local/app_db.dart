@@ -39,12 +39,38 @@ class ReminderSettings extends Table {
   BoolColumn get enabled => boolean()();
 }
 
-@DriftDatabase(tables: [BabyProfiles, TrackingEvents, ReminderDismissals, ReminderSettings])
+/// Rappels créés par le parent, à côté des quatre préréglages codés en dur.
+///
+/// Une ligne décrit *quand* réclamer, jamais *ce qui a été fait* : l'achèvement
+/// reste déduit de `tracking_events` (type `sante` + `subtype_value`), comme pour
+/// les préréglages. `label` est la saisie libre du parent : il n'est jamais
+/// traduit, et ne passe donc par aucune clé ARB.
+///
+/// `enabled` n'est **pas** ici : un rappel personnalisé obéit à la même table
+/// `reminder_settings` que les préréglages (clé `custom_<id>`), pour qu'il
+/// n'existe qu'un seul mécanisme d'extinction dans l'app.
+class CustomReminders extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get label => text().withLength(min: 1, max: 60)();
+
+  /// Valeur de `HealthSubtype` (`nettoyage_nez`, `nettoyage_nombril`, …) : le soin
+  /// dont l'absence dans `tracking_events` rend le rappel dû.
+  TextColumn get subtypeValue => text()();
+
+  /// `daily` | `weekly` | `monthly` | `every_n_days` — voir [CustomReminder].
+  TextColumn get frequency => text()();
+
+  /// Seulement pour `every_n_days` : longueur du roulement en jours.
+  IntColumn get intervalDays => integer().nullable()();
+}
+
+@DriftDatabase(
+    tables: [BabyProfiles, TrackingEvents, ReminderDismissals, ReminderSettings, CustomReminders])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
   @override
@@ -114,6 +140,12 @@ class AppDatabase extends _$AppDatabase {
           if (from < 9) {
             await m.database.customStatement(
                 'ALTER TABLE tracking_events ADD COLUMN texture TEXT');
+          }
+          // v9 → v10 : table des rappels personnalisés. `m.createTable` reprend
+          // la DDL de Drift (auto_increment) ; les installations neuves la
+          // reçoivent déjà par onCreate → createAll.
+          if (from < 10) {
+            await m.createTable(customReminders);
           }
         },
       );
@@ -224,6 +256,12 @@ class AppDatabase extends _$AppDatabase {
   /// Retourne toutes les lignes de `reminder_dismissals` (sans filtre).
   Future<List<ReminderDismissal>> getAllReminderDismissals() =>
       select(reminderDismissals).get();
+
+  /// Retourne tous les rappels personnalisés, dans l'ordre de création.
+  Future<List<CustomReminder>> getAllCustomReminders() =>
+      (select(customReminders)
+            ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+          .get();
 }
 
 

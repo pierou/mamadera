@@ -173,6 +173,62 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get reminderCustomSectionTitle => 'Recordatorios personalizados';
+
+  @override
+  String get reminderCustomSectionDescription =>
+      'Un recordatorio desaparece del inicio en cuanto registras el cuidado asociado.';
+
+  @override
+  String get reminderCustomAdd => 'Añadir recordatorio';
+
+  @override
+  String get reminderCustomEmpty => 'Aún no hay recordatorios personalizados.';
+
+  @override
+  String get reminderCustomSheetAdd => 'Nuevo recordatorio';
+
+  @override
+  String get reminderCustomSheetEdit => 'Editar recordatorio';
+
+  @override
+  String get reminderCustomLabelField => 'Nombre del recordatorio';
+
+  @override
+  String get reminderCustomLabelRequired => 'Dale un nombre al recordatorio';
+
+  @override
+  String get reminderCustomCareField => 'Cuidado asociado';
+
+  @override
+  String get reminderCustomFrequencyField => 'Frecuencia';
+
+  @override
+  String get reminderCustomIntervalField => 'Intervalo en días';
+
+  @override
+  String get reminderCustomIntervalRequired =>
+      'Indica un número de días, de 1 a 365';
+
+  @override
+  String get reminderFrequencyMonthlyBirth => 'El día de nacimiento, cada mes';
+
+  @override
+  String get reminderCustomDeleteConfirm => '¿Eliminar este recordatorio?';
+
+  @override
+  String get reminderCustomDeleteWarning =>
+      'El recordatorio desaparece del inicio. Los eventos ya registrados se conservan.';
+
+  @override
+  String get reminderCustomSaveError =>
+      'No se pudo guardar el recordatorio. Inténtalo de nuevo.';
+
+  @override
+  String get reminderCustomDeleteError =>
+      'No se pudo eliminar el recordatorio. Inténtalo de nuevo.';
+
+  @override
   String get yesterday => 'Ayer';
 
   @override

@@ -10,6 +10,7 @@ class ExportCounts {
   const ExportCounts({
     required this.babyProfiles,
     required this.trackingEvents,
+    required this.customReminders,
     required this.reminderSettings,
     required this.reminderDismissals,
   });
@@ -19,6 +20,9 @@ class ExportCounts {
 
   /// Number of rows in `tracking_events`.
   final int trackingEvents;
+
+  /// Number of rows in `custom_reminders`.
+  final int customReminders;
 
   /// Number of rows in `reminder_settings`.
   final int reminderSettings;
@@ -40,6 +44,10 @@ class ExportCounts {
 /// - events are exported UNFILTERED — every row, including rows whose
 ///   `babyId` is null and rows of every baby. A backup that quietly omits
 ///   rows is worse than no backup.
+/// - custom reminders are exported too: this file is the only copy of the data
+///   that can ever leave the device, and a copy that kept the `reminder_settings`
+///   row of a reminder while dropping the reminder itself would describe a
+///   reminder nobody can switch back on.
 /// - notes come out DECRYPTED: a backup the recipient (the user) cannot read
 ///   is no backup. Decryption happens only through the shared tracking event
 ///   mapper, never elsewhere.
@@ -48,10 +56,10 @@ class ExportCounts {
 abstract class ExportRepository {
   /// Builds the complete export document as a pretty-printed UTF-8 JSON string.
   ///
-  /// Contains the entire database (all four tables) with the shape described
+  /// Contains the entire database (all five tables) with the shape described
   /// in the class dartdoc. Pure string building — no file IO, no sharing.
   Future<String> buildExportJson();
 
-  /// Returns the row count of each of the four exported tables.
+  /// Returns the row count of each of the five exported tables.
   Future<ExportCounts> counts();
 }

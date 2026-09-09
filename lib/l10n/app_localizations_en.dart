@@ -173,6 +173,62 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get reminderCustomSectionTitle => 'Custom reminders';
+
+  @override
+  String get reminderCustomSectionDescription =>
+      'A reminder leaves Home as soon as you log the linked care.';
+
+  @override
+  String get reminderCustomAdd => 'Add a reminder';
+
+  @override
+  String get reminderCustomEmpty => 'No custom reminders yet.';
+
+  @override
+  String get reminderCustomSheetAdd => 'New reminder';
+
+  @override
+  String get reminderCustomSheetEdit => 'Edit reminder';
+
+  @override
+  String get reminderCustomLabelField => 'Reminder name';
+
+  @override
+  String get reminderCustomLabelRequired => 'Give the reminder a name';
+
+  @override
+  String get reminderCustomCareField => 'Linked care';
+
+  @override
+  String get reminderCustomFrequencyField => 'Frequency';
+
+  @override
+  String get reminderCustomIntervalField => 'Interval in days';
+
+  @override
+  String get reminderCustomIntervalRequired =>
+      'Enter a number of days, from 1 to 365';
+
+  @override
+  String get reminderFrequencyMonthlyBirth => 'On the birth day, every month';
+
+  @override
+  String get reminderCustomDeleteConfirm => 'Delete this reminder?';
+
+  @override
+  String get reminderCustomDeleteWarning =>
+      'The reminder leaves Home. Events you already logged are kept.';
+
+  @override
+  String get reminderCustomSaveError =>
+      'Could not save the reminder. Please try again.';
+
+  @override
+  String get reminderCustomDeleteError =>
+      'Could not delete the reminder. Please try again.';
+
+  @override
   String get yesterday => 'Yesterday';
 
   @override

@@ -116,6 +116,23 @@
       "days": {}
     }
   },
+  "reminderCustomSectionTitle": "Rappels personnalisés",
+  "reminderCustomSectionDescription": "Un rappel s'efface de l'accueil dès que vous enregistrez le soin associé.",
+  "reminderCustomAdd": "Ajouter un rappel",
+  "reminderCustomEmpty": "Aucun rappel personnalisé pour l'instant.",
+  "reminderCustomSheetAdd": "Nouveau rappel",
+  "reminderCustomSheetEdit": "Modifier le rappel",
+  "reminderCustomLabelField": "Nom du rappel",
+  "reminderCustomLabelRequired": "Donnez un nom au rappel",
+  "reminderCustomCareField": "Soin associé",
+  "reminderCustomFrequencyField": "Fréquence",
+  "reminderCustomIntervalField": "Intervalle en jours",
+  "reminderCustomIntervalRequired": "Indiquez un nombre de jours, de 1 à 365",
+  "reminderFrequencyMonthlyBirth": "Le jour de naissance, chaque mois",
+  "reminderCustomDeleteConfirm": "Supprimer ce rappel ?",
+  "reminderCustomDeleteWarning": "Le rappel disparaît de l'accueil. Les événements déjà enregistrés sont conservés.",
+  "reminderCustomSaveError": "Le rappel n'a pas pu être enregistré. Réessayez.",
+  "reminderCustomDeleteError": "Le rappel n'a pas pu être supprimé. Réessayez.",
 
   "yesterday": "Hier",
   "daysAgo": " jours",

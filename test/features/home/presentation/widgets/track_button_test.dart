@@ -242,5 +242,82 @@ void main() {
       );
       expect(find.text('Dark Mode Test'), findsOneWidget);
     });
+
+    group('pastelles comptées au-delà du troisième rappel', () {
+      List<ReminderStatus> pending(int count) => [
+            for (var i = 1; i <= count; i++)
+              buildReminder(
+                trackingType: TrackingType.sante,
+                id: 'custom_$i',
+                labelKey: 'Crème numéro $i',
+              ),
+          ];
+
+      testWidgets('trois rappels en attente tiennent tous sur le bouton',
+          (tester) async {
+        await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+            label: 'Santé',
+            color: AppTheme.sante,
+            reminders: pending(3),
+          ),
+        ));
+
+        expect(find.byType(ReminderPill), findsNWidgets(3));
+        expect(find.text('+1'), findsNothing);
+      });
+
+      // Le bouton a une hauteur fixe : une quatrième pastille se paierait en
+      // place sur le libellé, et l'aire d'appui du bouton est ce qui reste.
+      testWidgets('le quatrième rappel est compté, pas affiché', (tester) async {
+        await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+            label: 'Santé',
+            color: AppTheme.sante,
+            reminders: pending(4),
+          ),
+        ));
+
+        // Deux libellés + un compteur : trois éléments, que ce soit 4 ou 10.
+        expect(find.byType(ReminderPill), findsNWidgets(3));
+        expect(find.text('+2'), findsOneWidget);
+        expect(find.text('Crème numéro 1'), findsOneWidget);
+        expect(find.text('Crème numéro 2'), findsOneWidget);
+        // Ce qui est caché l'est vraiment — sinon le compteur ne gagnerait rien.
+        expect(find.text('Crème numéro 3'), findsNothing);
+      });
+
+      testWidgets('le compteur dit combien de rappels restent à lire',
+          (tester) async {
+        await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+            label: 'Santé',
+            color: AppTheme.sante,
+            reminders: pending(7),
+          ),
+        ));
+
+        expect(find.byType(ReminderPill), findsNWidgets(3));
+        expect(find.text('+5'), findsOneWidget);
+      });
+
+      // Le cas qui a motivé le cap : six rappels personnalisés aux noms allongés
+      // ne doivent pas faire déborder l'affichage ni casser l'appui.
+      testWidgets('une dizaine de rappels ne déborde pas du bouton',
+          (tester) async {
+        await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+            label: 'Santé',
+            color: AppTheme.sante,
+            reminders: pending(10),
+          ),
+        ));
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Santé'), findsOneWidget);
+        expect(find.byType(ReminderPill), findsNWidgets(3));
+        expect(find.text('+8'), findsOneWidget);
+      });
+    });
   });
 }
