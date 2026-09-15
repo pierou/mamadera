@@ -88,7 +88,7 @@ class _VersionHeader extends StatelessWidget {
     required this.releaseDate,
   });
 
-  /// Latest version string, e.g. "1.0.1".
+  /// Latest version string, e.g. "1.1.0".
   final String version;
 
   /// Release date as stored in the JSON asset.
