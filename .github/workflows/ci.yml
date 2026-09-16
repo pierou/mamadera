@@ -15,7 +15,10 @@ on:
     branches: [ main, develop ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ main ]
+    # develop included: the v1.1.0 flow lands release content through
+    # feature → develop PRs first (#7), and those PRs are release material —
+    # they must clear the same gates as develop → main.
+    branches: [ main, develop ]
   schedule:
     # Daily smoke run on `main` (schedule only fires on the default
     # branch) — keeps a real-Android signal flowing without holding PRs.
