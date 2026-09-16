@@ -7,6 +7,10 @@
   "navHistory": "Historique",
   "navMenu": "Menu",
 
+  "routerPageNotFoundTitle": "Page introuvable",
+  "routerBackToHome": "Retour à l'accueil",
+  "routerGenericError": "Une erreur est survenue.",
+
   "homeButtonMiam": "Miam",
   "homeButtonSante": "Santé",
   "homeButtonCaca": "Caca",
@@ -94,6 +98,41 @@
   "reminderVitaminK": "Vit. K",
   "reminderEyeCleaning": "Yeux",
   "reminderFaceCleaning": "Visage",
+  "reminderSettingsTile": "Choisir les rappels affichés",
+  "reminderSettingsTitle": "Rappels",
+  "reminderSettingsError": "Échec du chargement des rappels",
+  "reminderSettingsDescription": "Bandeaux affichés sur l'accueil tant que le soin n'a pas été saisi. Aucune notification système n'est envoyée : tout reste sur cet appareil.",
+  "reminderFrequencyDaily": "Tous les jours",
+  "reminderFrequencyWeekly": "Chaque semaine",
+  "reminderFrequencyMonthly": "Le {day} de chaque mois",
+  "@reminderFrequencyMonthly": {
+    "placeholders": {
+      "day": {}
+    }
+  },
+  "reminderFrequencyEveryNDays": "Tous les {days} jours",
+  "@reminderFrequencyEveryNDays": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "reminderCustomSectionTitle": "Rappels personnalisés",
+  "reminderCustomSectionDescription": "Un rappel s'efface de l'accueil dès que vous enregistrez le soin associé.",
+  "reminderCustomAdd": "Ajouter un rappel",
+  "reminderCustomEmpty": "Aucun rappel personnalisé pour l'instant.",
+  "reminderCustomSheetAdd": "Nouveau rappel",
+  "reminderCustomSheetEdit": "Modifier le rappel",
+  "reminderCustomLabelField": "Nom du rappel",
+  "reminderCustomLabelRequired": "Donnez un nom au rappel",
+  "reminderCustomCareField": "Soin associé",
+  "reminderCustomFrequencyField": "Fréquence",
+  "reminderCustomIntervalField": "Intervalle en jours",
+  "reminderCustomIntervalRequired": "Indiquez un nombre de jours, de 1 à 365",
+  "reminderFrequencyMonthlyBirth": "Le jour de naissance, chaque mois",
+  "reminderCustomDeleteConfirm": "Supprimer ce rappel ?",
+  "reminderCustomDeleteWarning": "Le rappel disparaît de l'accueil. Les événements déjà enregistrés sont conservés.",
+  "reminderCustomSaveError": "Le rappel n'a pas pu être enregistré. Réessayez.",
+  "reminderCustomDeleteError": "Le rappel n'a pas pu être supprimé. Réessayez.",
 
   "yesterday": "Hier",
   "daysAgo": " jours",
@@ -116,6 +155,12 @@
   "cacaColorVertOlive": "Vert olive",
   "cacaColorJauneMoutarde": "Jaune moutarde",
   "cacaColorJauneClair": "Jaune clair",
+  "stoolTextureSectionTitle": "Texture du caca",
+  "stoolTextureAqueuse": "Aqueuse",
+  "stoolTextureGrumeleuse": "Grumeleuse",
+  "stoolTexturePateuse": "Pâteuse",
+  "stoolTextureMoulee": "Moulée",
+  "stoolTextureDure": "Dure",
 
   "historyTitle": "Historique",
   "filterAll": "Tous",
@@ -155,7 +200,7 @@
   "feedingSubtypeArtificial": "Lait Artificiel",
 
   "editDialogTitle": "Modifier l'événement",
-  "editDateSectionTitle": "Date et heure",
+  "eventDateSectionTitle": "Date et heure",
   "editDurationSectionTitle": "Durée",
   "editTypeSectionTitle": "Type",
   "editPipiColorSectionTitle": "Couleur du pipi",
@@ -197,6 +242,43 @@
   },
   "cancel": "Annuler",
   "closeButton": "Fermer",
+
+  "exportDataTitle": "Exporter mes données",
+  "exportDataDescription": "Sauvegarde JSON de toutes vos données",
+  "exportDataConfirm": "Exporter",
+  "exportDataWarning": "Ce fichier contiendra toutes vos données, y compris les notes de santé en texte lisible. Vous choisissez où l'enregistrer : rien n'est envoyé automatiquement.",
+  "exportDataSuccess": "Export terminé",
+  "exportDataError": "L'export a échoué",
+  "exportDataEmpty": "Aucune donnée à exporter",
+
+  "importDataTitle": "Restaurer depuis une sauvegarde",
+  "importDataDescription": "Restaurez toutes vos données depuis un fichier JSON que vous avez exporté",
+  "importDataConfirm": "Choisir un fichier…",
+  "importDataWarning": "Cette action supprimera définitivement toutes les données actuellement sur cet appareil et les remplacera par le contenu du fichier. Choisissez le fichier que vous avez exporté.",
+  "importDataSummary": "Ce fichier contient {profiles} profil(s) bébé, {events} événement(s) et {reminders} rappel(s) personnalisé(s). Restaurer effacera toutes les données actuelles de cet appareil.",
+  "@importDataSummary": {
+    "placeholders": {
+      "profiles": { "type": "int" },
+      "events": { "type": "int" },
+      "reminders": { "type": "int" }
+    }
+  },
+  "importDataNoProfile": "Attention : ce fichier ne contient aucun profil bébé. Les événements seront restaurés mais rattachés à aucun bébé, et il faudra créer un profil pour les voir.",
+  "importDataProceed": "Restaurer",
+  "importDataSuccess": "Restauration terminée : {profiles} profil(s) et {events} événement(s)",
+  "@importDataSuccess": {
+    "placeholders": {
+      "profiles": { "type": "int" },
+      "events": { "type": "int" }
+    }
+  },
+  "importDataErrorInvalidFile": "Fichier non reconnu : ce n'est pas une sauvegarde Mamadera valide.",
+  "importDataErrorNotMamadera": "Ce fichier n'a pas été créé par Mamadera.",
+  "importDataErrorNewerVersion": "Ce fichier a été créé par une version plus récente de l'application. Mettez à jour Mamadera avant de le restaurer.",
+  "importDataErrorNewerSchema": "Ce fichier contient des données plus récentes que cette version de l'application. Mettez à jour Mamadera avant de le restaurer.",
+  "importDataErrorEmpty": "Ce fichier ne contient aucune donnée à restaurer.",
+  "importDataErrorUnreadable": "Impossible de lire le fichier choisi.",
+  "importDataErrorFailed": "Échec de la restauration. Vos données actuelles sont intactes.",
 
   "babyProfilesSectionTitle": "Bébés",
   "babyProfilesEmpty": "Aucun profil bébé",
@@ -272,6 +354,7 @@
   "termsLoadingError": "Échec du chargement des conditions. Veuillez réessayer.",
 
   "patchNotesTitle": "Nouvelles Fonctionnalités",
+  "patchNotesUnavailable": "Aucune note de version disponible",
   "patchNotesClose": "Fermer",
   "patchNotesDontShowAgain": "Ne plus afficher",
   "patchNotesWhatChanged": "Ce qui a changé",

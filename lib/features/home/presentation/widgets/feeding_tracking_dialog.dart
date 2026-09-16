@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
+import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
 import 'quantity_picker_inline.dart';
@@ -13,7 +14,8 @@ import 'quantity_picker_inline.dart';
 /// Contains:
 /// - Feeding subtype chip selector (natural/artificial) at the top
 /// - Quantity picker (ml) below
-/// - Confirm button that returns (feedingSubtype, quantity)
+/// - Date and time of the feed (defaults to now)
+/// - Confirm button that returns (feedingSubtype, quantity, timestamp)
 class FeedingTrackingDialog extends ConsumerStatefulWidget {
   const FeedingTrackingDialog({super.key});
 
@@ -24,6 +26,11 @@ class FeedingTrackingDialog extends ConsumerStatefulWidget {
 class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
   late FeedingSubtype _selectedSubtype;
   double _selectedQuantity = 0;
+
+  /// Date and time of the feed. Defaulted once at open time: the dialog is
+  /// rebuilt on every slider tick, so a plain field initialiser keeps the
+  /// displayed "now" stable while the parent is choosing.
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -121,6 +128,13 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
 
             const SizedBox(height: 24),
 
+            EventDateTimeField(
+              value: _selectedDate,
+              onChanged: (date) => setState(() => _selectedDate = date),
+            ),
+
+            const SizedBox(height: 24),
+
             DialogActionButtons(
               onCancelPressed: () => Navigator.pop(context),
               onConfirmPressed: () {
@@ -128,6 +142,7 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                   Navigator.pop(context, {
                     'subtype': _selectedSubtype,
                     'quantity': _selectedQuantity,
+                    'timestamp': _selectedDate,
                   });
                 }
               },

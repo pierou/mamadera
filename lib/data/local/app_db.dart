@@ -23,6 +23,7 @@ class TrackingEvents extends Table {
   TextColumn get notes => text().nullable()();    // encrypted user text only
   TextColumn get wasteType => text().nullable()(); // pipi, caca, les_deux (diaper events only)
   TextColumn get color => text().nullable()();     // couleur de la selle ou pipe-délimitée (pipi|caca)
+  TextColumn get texture => text().nullable()();   // consistance de la selle (diaper events only)
   TextColumn get babyId => text().nullable()();    // nullable FK to baby_profiles(id), backward compatible
   RealColumn get quantity => real().nullable()();   // volume in ml (feeding) or minutes (sleep)
 }
@@ -38,12 +39,38 @@ class ReminderSettings extends Table {
   BoolColumn get enabled => boolean()();
 }
 
-@DriftDatabase(tables: [BabyProfiles, TrackingEvents, ReminderDismissals, ReminderSettings])
+/// Rappels créés par le parent, à côté des quatre préréglages codés en dur.
+///
+/// Une ligne décrit *quand* réclamer, jamais *ce qui a été fait* : l'achèvement
+/// reste déduit de `tracking_events` (type `sante` + `subtype_value`), comme pour
+/// les préréglages. `label` est la saisie libre du parent : il n'est jamais
+/// traduit, et ne passe donc par aucune clé ARB.
+///
+/// `enabled` n'est **pas** ici : un rappel personnalisé obéit à la même table
+/// `reminder_settings` que les préréglages (clé `custom_<id>`), pour qu'il
+/// n'existe qu'un seul mécanisme d'extinction dans l'app.
+class CustomReminders extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get label => text().withLength(min: 1, max: 60)();
+
+  /// Valeur de `HealthSubtype` (`nettoyage_nez`, `nettoyage_nombril`, …) : le soin
+  /// dont l'absence dans `tracking_events` rend le rappel dû.
+  TextColumn get subtypeValue => text()();
+
+  /// `daily` | `weekly` | `monthly` | `every_n_days` — voir [CustomReminder].
+  TextColumn get frequency => text()();
+
+  /// Seulement pour `every_n_days` : longueur du roulement en jours.
+  IntColumn get intervalDays => integer().nullable()();
+}
+
+@DriftDatabase(
+    tables: [BabyProfiles, TrackingEvents, ReminderDismissals, ReminderSettings, CustomReminders])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 10;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
   @override
@@ -91,6 +118,34 @@ class AppDatabase extends _$AppDatabase {
                 "UPDATE tracking_events SET subtype = 'natural' WHERE type = 'miam' AND (subtype IS NULL OR subtype IN ('sein', 'naturel'))");
             await m.database.customStatement(
                 "UPDATE tracking_events SET subtype = 'artificial' WHERE type = 'miam' AND subtype IN ('bib', 'artificiel')");
+          }
+          // v7 → v8 : créer `reminder_settings` si absente.
+          // La table était déclarée dans @DriftDatabase mais jamais créée par
+          // onUpgrade : toute base créée avant la v7 (v3..v6) montait en v8
+          // sans la table, et toute lecture/écriture de réglage de rappel
+          // échouait avec « no such table: reminder_settings ».
+          // IF NOT EXISTS : les installations neuves (onCreate → createAll) la
+          // possèdent déjà.
+          if (from < 8) {
+            await m.database.customStatement(
+              'CREATE TABLE IF NOT EXISTS reminder_settings ('
+              'item_id TEXT NOT NULL PRIMARY KEY,'
+              'enabled BOOLEAN NOT NULL'
+              ')',
+            );
+          }
+          // v8 → v9 : ajout de la colonne texture (consistance des selles).
+          // Laissé NULL pour toutes les couches déjà enregistrées : on ne
+          // devine pas la texture d'un change déjà noté.
+          if (from < 9) {
+            await m.database.customStatement(
+                'ALTER TABLE tracking_events ADD COLUMN texture TEXT');
+          }
+          // v9 → v10 : table des rappels personnalisés. `m.createTable` reprend
+          // la DDL de Drift (auto_increment) ; les installations neuves la
+          // reçoivent déjà par onCreate → createAll.
+          if (from < 10) {
+            await m.createTable(customReminders);
           }
         },
       );
@@ -149,10 +204,16 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
-  /// Retourne le profil actif (premier trouvé avec is_active == true).
+  /// Retourne le profil actif (avec is_active == true).
+  ///
+  /// Tri déterministe `birth_date` puis `id` : si deux lignes se retrouvent
+  /// actives (fenêtre de bug avant la transaction de `setActiveProfile`), le
+  /// profil retourné est toujours le même plutôt que le premier rendu par
+  /// SQLite.
   Future<BabyProfile?> getActiveBabyProfile() async {
     final profiles = await (select(babyProfiles)
-          ..where((t) => t.isActive.equals(true)))
+          ..where((t) => t.isActive.equals(true))
+          ..orderBy([(t) => OrderingTerm.asc(t.birthDate), (t) => OrderingTerm.asc(t.id)]))
         .get();
     return profiles.isEmpty ? null : profiles.first;
   }
@@ -169,6 +230,15 @@ class AppDatabase extends _$AppDatabase {
     return deleted > 0;
   }
 
+  /// Supprime tous les événements de suivi rattachés à [babyId].
+  /// Retourne le nombre de lignes supprimées.
+  ///
+  /// À appeler dans la même transaction que [deleteBabyProfile] : sans clés
+  /// étrangères ni cascade dans le schéma, c'est la seule chose qui empêche
+  /// les événements de survivre à leur bébé.
+  Future<int> deleteTrackingEventsByBabyId(String babyId) =>
+      (delete(trackingEvents)..where((t) => t.babyId.equals(babyId))).go();
+
   /// Retourne les événements pour un bébé spécifique.
   Future<List<TrackingEvent>> getEventsByBabyId(String babyId) {
     return (select(trackingEvents)
@@ -176,6 +246,22 @@ class AppDatabase extends _$AppDatabase {
           ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
         .get();
   }
+
+  /// ── Reminder Queries ─────────────────────────────────────────────
+
+  /// Retourne toutes les lignes de `reminder_settings` (sans filtre).
+  Future<List<ReminderSetting>> getAllReminderSettings() =>
+      select(reminderSettings).get();
+
+  /// Retourne toutes les lignes de `reminder_dismissals` (sans filtre).
+  Future<List<ReminderDismissal>> getAllReminderDismissals() =>
+      select(reminderDismissals).get();
+
+  /// Retourne tous les rappels personnalisés, dans l'ordre de création.
+  Future<List<CustomReminder>> getAllCustomReminders() =>
+      (select(customReminders)
+            ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+          .get();
 }
 
 

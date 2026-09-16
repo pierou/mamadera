@@ -4,6 +4,9 @@ import 'package:flutter/services.dart';
 
 /// Repository that loads patch notes from locale-specific JSON assets.
 class PatchNotesRepository {
+  /// Stateless: it only reads locale-specific JSON assets.
+  const PatchNotesRepository();
+
   /// Loads patch notes JSON for the given locale.
   Future<Map<String, dynamic>> loadPatchNotes(String locale) async {
     String assetPath;

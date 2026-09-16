@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/providers/active_baby_provider.dart';
 import '../../../../../shared/domain/entities/tracking_type.dart';
-import '../../../home/presentation/providers/repository_provider.dart';
 import '../../domain/entities/reminders_state.dart';
 import 'reminder_providers.dart';
 
@@ -52,28 +51,33 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
   }
 
   /// Query the service for due reminders, then group into per-[TrackingType] [ReminderStatus].
+  ///
+  /// Completion and "last event" lookups are scoped to the active baby, and both
+  /// go through `RemindersRepository.getLastCompleted` — a single indexed
+  /// `ORDER BY timestamp DESC LIMIT 1` query per item, instead of pulling the whole
+  /// event history of a tracking type per item on every poll.
   Future<Map<TrackingType, List<ReminderStatus>>> _checkDue() async {
     final service = await ref.read(remindersServiceProvider.future);
     if (!ref.mounted) return {};
-    final result = await service.checkDue();
+    final repository = await ref.read(remindersRepositoryProvider.future);
+    if (!ref.mounted) return {};
+    // Active baby, null while it is still loading or on an install without a
+    // profile yet. build() watches the same provider, so a baby switch (or its
+    // first resolution after a cold start) re-runs this method scoped.
+    final babyId = ref.read(activeBabyProvider).value?.id;
+    final result = await service.checkDue(babyId: babyId);
 
-    // Enrich each ReminderStatus with lastEventAt from the tracking repository.
+    // Enrich each ReminderStatus with lastEventAt from the reminders repository.
     if (result case RemindersDue(items: final List<ReminderStatus> originalItems)) {
-      final trackingRepo = await ref.watch(trackingRepositoryProvider.future);
-      if (!ref.mounted) return {};
       final items = List<ReminderStatus>.from(originalItems);
       for (final (index, status) in items.indexed) {
-        final lastEventAt = await trackingRepo.getLastEventByTypeAndSubtype(
-          status.item.trackingType,
-          subtypeValue: status.item.subtypeValue,
+        final lastEventAt = await repository.getLastCompleted(
+          status.item,
+          babyId: babyId,
         );
         if (!ref.mounted) return {};
         // Replace with enriched copy
-        items[index] = ReminderStatus(
-          item: status.item,
-          lastDismissedAt: status.lastDismissedAt,
-          lastEventAt: lastEventAt,
-        );
+        items[index] = status.copyWith(lastEventAt: lastEventAt);
       }
       // Return the enriched items grouped by TrackingType
       return _groupByTrackingType(items);

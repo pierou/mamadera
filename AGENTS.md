@@ -14,7 +14,7 @@ See [README.md](README.md) for full feature list and architecture overview.
 |------|--------|
 | 🚫 **No analytics/telemetry** | Never suggest or add cloud crash reporting, analytics SDKs, or tracking services |
 | 🚫 **No third-party data leakage** | No dependencies with hidden trackers; audit deps for privacy before adding |
-| ✅ **Local-only storage** | All data stays on device. No export feature yet; full data deletion available via database reset |
+| ✅ **Local-only storage** | All data stays on device. The one sanctioned exit is the manual JSON export (Menu → confirm → OS share sheet); no network transport exists anywhere in the app. Full data deletion via database reset |
 | ✅ **Minimal permissions** | None by default. Camera/storage only for explicit features + clear consent flow |
 | ✅ **Encryption at rest** | Sensitive fields (notes, weight, allergies) encrypted with `flutter_secure_storage` before DB insert |
 | ✅ **GDPR/CCPA/COPPA ready** | No data collection = compliance out-of-the-box. Privacy policy bundled in-app |
@@ -26,7 +26,7 @@ When suggesting features: always propose local/offline solutions first. If cloud
 | Category | Package |
 |----------|---------|
 | Framework | Flutter 3.x / Dart 3.x (null-safe, records, pattern matching, sealed classes) |
-| State Management | `flutter_riverpod` — `StateNotifier` + `AsyncNotifier` only. No mixin-based state mgmt |
+| State Management | `flutter_riverpod` 3.x — `Notifier` + `AsyncNotifier` only. No mixin-based state mgmt, no legacy `StateNotifier` |
 | Routing | `go_router` |
 | Local DB | `drift` (SQLite), DDL source of truth: [`lib/data/local/app_db.dart`](lib/data/local/app_db.dart) (schema.sql is a generated reference) |
 | Encryption | `flutter_secure_storage` + AES-GCM via `encrypt` package |
@@ -91,8 +91,9 @@ class TrackingRepositoryImpl implements TrackingRepository {
 
 ### State Management (Riverpod)
 
-- Local mutable state → `StateNotifier`
-- Async operations with loading/error states → `AsyncNotifier`
+- Local mutable state → `Notifier` (`NotifierProvider`)
+- Async operations with loading/error states → `AsyncNotifier` (`AsyncNotifierProvider`)
+- Keep-alive providers cache a value for the whole session: anything that disposes the underlying resource (e.g. closing the database on reset) MUST `ref.invalidate` that provider and its dependents, or the app keeps serving a dead object
 - Override providers in tests using `ProviderContainer(overrides: [...])`
 - No global DI container (`get_it`) unless a single global singleton is genuinely needed
 
@@ -101,6 +102,9 @@ class TrackingRepositoryImpl implements TrackingRepository {
 - Dart class source of truth: [`lib/data/local/app_db.dart`](lib/data/local/app_db.dart) (schema.sql is generated)
 - Versioned migrations — always update migration logic when schema changes
 - Encrypt sensitive columns before insert; decrypt on read in the repository layer
+- A new table must also be added to the export in `lib/features/export/` (unfiltered read, notes decrypted only through `tracking_event_mapper`, counts kept in sync) — an export that silently omits a table is a broken backup
+- …and to the import in `lib/features/import/` (section validation, row contract, insert inside the restore transaction): a table exported but not imported turns a *restore* into data loss, so the two features move together
+- Any field added to or removed from the export document must bump `exportFormatVersion` in `ExportRepositoryImpl` **and** the supported version in `ImportRepositoryImpl`. The importer also refuses a document whose `databaseSchemaVersion` exceeds `AppDatabase.schemaVersion` — that guard only catches what a forgotten version bump would otherwise drop silently
 
 ## 🛠️ Build & Test Commands
 

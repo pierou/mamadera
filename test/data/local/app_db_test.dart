@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 7 (feeding subtype migration: sein/bib → natural/artificial)', () {
-      expect(db.schemaVersion, equals(7));
+    test('schemaVersion is 10 (adds the custom_reminders table)', () {
+      expect(db.schemaVersion, equals(10));
     });
   });
 
@@ -335,6 +335,53 @@ void main() {
       final active = await db.getActiveBabyProfile();
       expect(active, isA<BabyProfile>());
       expect(active!.name, equals('Active Baby'));
+    });
+
+    test('getActiveBabyProfile is deterministic with multiple active rows', () async {
+      await db.insertBabyProfile(
+        BabyProfilesCompanion(
+          id: Value('later-baby'),
+          name: Value('Later'),
+          birthDate: Value(DateTime(2026, 8, 1).millisecondsSinceEpoch),
+          isActive: Value(true),
+        ),
+      );
+      await db.insertBabyProfile(
+        BabyProfilesCompanion(
+          id: Value('earlier-baby'),
+          name: Value('Earlier'),
+          birthDate: Value(DateTime(2026, 1, 1).millisecondsSinceEpoch),
+          isActive: Value(true),
+        ),
+      );
+
+      final active = await db.getActiveBabyProfile();
+      expect(active, isA<BabyProfile>());
+      expect(active!.id, equals('earlier-baby'));
+    });
+
+    test('getActiveBabyProfile breaks birth date ties by id', () async {
+      final sameBirthDate = DateTime(2026, 5, 10).millisecondsSinceEpoch;
+      await db.insertBabyProfile(
+        BabyProfilesCompanion(
+          id: Value('id-b'),
+          name: Value('B'),
+          birthDate: Value(sameBirthDate),
+          isActive: Value(true),
+        ),
+      );
+      await db.insertBabyProfile(
+        BabyProfilesCompanion(
+          id: Value('id-a'),
+          name: Value('A'),
+          birthDate: Value(sameBirthDate),
+          isActive: Value(true),
+        ),
+      );
+
+      final active = await db.getActiveBabyProfile();
+      expect(active, isA<BabyProfile>());
+      expect(active!.id, equals('id-a'));
     });
 
     test('getEventsByBabyId filters events correctly', () async {

@@ -325,6 +325,12 @@ class $TrackingEventsTable extends TrackingEvents
   late final GeneratedColumn<String> color = GeneratedColumn<String>(
       'color', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _textureMeta =
+      const VerificationMeta('texture');
+  @override
+  late final GeneratedColumn<String> texture = GeneratedColumn<String>(
+      'texture', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _babyIdMeta = const VerificationMeta('babyId');
   @override
   late final GeneratedColumn<String> babyId = GeneratedColumn<String>(
@@ -346,6 +352,7 @@ class $TrackingEventsTable extends TrackingEvents
         notes,
         wasteType,
         color,
+        texture,
         babyId,
         quantity
       ];
@@ -394,6 +401,10 @@ class $TrackingEventsTable extends TrackingEvents
       context.handle(
           _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
     }
+    if (data.containsKey('texture')) {
+      context.handle(_textureMeta,
+          texture.isAcceptableOrUnknown(data['texture']!, _textureMeta));
+    }
     if (data.containsKey('baby_id')) {
       context.handle(_babyIdMeta,
           babyId.isAcceptableOrUnknown(data['baby_id']!, _babyIdMeta));
@@ -427,6 +438,8 @@ class $TrackingEventsTable extends TrackingEvents
           .read(DriftSqlType.string, data['${effectivePrefix}waste_type']),
       color: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}color']),
+      texture: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}texture']),
       babyId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}baby_id']),
       quantity: attachedDatabase.typeMapping
@@ -449,6 +462,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
   final String? notes;
   final String? wasteType;
   final String? color;
+  final String? texture;
   final String? babyId;
   final double? quantity;
   const TrackingEvent(
@@ -460,6 +474,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       this.notes,
       this.wasteType,
       this.color,
+      this.texture,
       this.babyId,
       this.quantity});
   @override
@@ -482,6 +497,9 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
     }
     if (!nullToAbsent || color != null) {
       map['color'] = Variable<String>(color);
+    }
+    if (!nullToAbsent || texture != null) {
+      map['texture'] = Variable<String>(texture);
     }
     if (!nullToAbsent || babyId != null) {
       map['baby_id'] = Variable<String>(babyId);
@@ -510,6 +528,9 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           : Value(wasteType),
       color:
           color == null && nullToAbsent ? const Value.absent() : Value(color),
+      texture: texture == null && nullToAbsent
+          ? const Value.absent()
+          : Value(texture),
       babyId:
           babyId == null && nullToAbsent ? const Value.absent() : Value(babyId),
       quantity: quantity == null && nullToAbsent
@@ -530,6 +551,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       notes: serializer.fromJson<String?>(json['notes']),
       wasteType: serializer.fromJson<String?>(json['wasteType']),
       color: serializer.fromJson<String?>(json['color']),
+      texture: serializer.fromJson<String?>(json['texture']),
       babyId: serializer.fromJson<String?>(json['babyId']),
       quantity: serializer.fromJson<double?>(json['quantity']),
     );
@@ -546,6 +568,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       'notes': serializer.toJson<String?>(notes),
       'wasteType': serializer.toJson<String?>(wasteType),
       'color': serializer.toJson<String?>(color),
+      'texture': serializer.toJson<String?>(texture),
       'babyId': serializer.toJson<String?>(babyId),
       'quantity': serializer.toJson<double?>(quantity),
     };
@@ -560,6 +583,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           Value<String?> notes = const Value.absent(),
           Value<String?> wasteType = const Value.absent(),
           Value<String?> color = const Value.absent(),
+          Value<String?> texture = const Value.absent(),
           Value<String?> babyId = const Value.absent(),
           Value<double?> quantity = const Value.absent()}) =>
       TrackingEvent(
@@ -571,6 +595,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
         notes: notes.present ? notes.value : this.notes,
         wasteType: wasteType.present ? wasteType.value : this.wasteType,
         color: color.present ? color.value : this.color,
+        texture: texture.present ? texture.value : this.texture,
         babyId: babyId.present ? babyId.value : this.babyId,
         quantity: quantity.present ? quantity.value : this.quantity,
       );
@@ -584,6 +609,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       notes: data.notes.present ? data.notes.value : this.notes,
       wasteType: data.wasteType.present ? data.wasteType.value : this.wasteType,
       color: data.color.present ? data.color.value : this.color,
+      texture: data.texture.present ? data.texture.value : this.texture,
       babyId: data.babyId.present ? data.babyId.value : this.babyId,
       quantity: data.quantity.present ? data.quantity.value : this.quantity,
     );
@@ -600,6 +626,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           ..write('notes: $notes, ')
           ..write('wasteType: $wasteType, ')
           ..write('color: $color, ')
+          ..write('texture: $texture, ')
           ..write('babyId: $babyId, ')
           ..write('quantity: $quantity')
           ..write(')'))
@@ -608,7 +635,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
 
   @override
   int get hashCode => Object.hash(id, type, timestamp, duration, subtype, notes,
-      wasteType, color, babyId, quantity);
+      wasteType, color, texture, babyId, quantity);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -621,6 +648,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           other.notes == this.notes &&
           other.wasteType == this.wasteType &&
           other.color == this.color &&
+          other.texture == this.texture &&
           other.babyId == this.babyId &&
           other.quantity == this.quantity);
 }
@@ -634,6 +662,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
   final Value<String?> notes;
   final Value<String?> wasteType;
   final Value<String?> color;
+  final Value<String?> texture;
   final Value<String?> babyId;
   final Value<double?> quantity;
   const TrackingEventsCompanion({
@@ -645,6 +674,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     this.notes = const Value.absent(),
     this.wasteType = const Value.absent(),
     this.color = const Value.absent(),
+    this.texture = const Value.absent(),
     this.babyId = const Value.absent(),
     this.quantity = const Value.absent(),
   });
@@ -657,6 +687,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     this.notes = const Value.absent(),
     this.wasteType = const Value.absent(),
     this.color = const Value.absent(),
+    this.texture = const Value.absent(),
     this.babyId = const Value.absent(),
     this.quantity = const Value.absent(),
   })  : type = Value(type),
@@ -670,6 +701,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     Expression<String>? notes,
     Expression<String>? wasteType,
     Expression<String>? color,
+    Expression<String>? texture,
     Expression<String>? babyId,
     Expression<double>? quantity,
   }) {
@@ -682,6 +714,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       if (notes != null) 'notes': notes,
       if (wasteType != null) 'waste_type': wasteType,
       if (color != null) 'color': color,
+      if (texture != null) 'texture': texture,
       if (babyId != null) 'baby_id': babyId,
       if (quantity != null) 'quantity': quantity,
     });
@@ -696,6 +729,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       Value<String?>? notes,
       Value<String?>? wasteType,
       Value<String?>? color,
+      Value<String?>? texture,
       Value<String?>? babyId,
       Value<double?>? quantity}) {
     return TrackingEventsCompanion(
@@ -707,6 +741,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       notes: notes ?? this.notes,
       wasteType: wasteType ?? this.wasteType,
       color: color ?? this.color,
+      texture: texture ?? this.texture,
       babyId: babyId ?? this.babyId,
       quantity: quantity ?? this.quantity,
     );
@@ -739,6 +774,9 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     if (color.present) {
       map['color'] = Variable<String>(color.value);
     }
+    if (texture.present) {
+      map['texture'] = Variable<String>(texture.value);
+    }
     if (babyId.present) {
       map['baby_id'] = Variable<String>(babyId.value);
     }
@@ -759,6 +797,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
           ..write('notes: $notes, ')
           ..write('wasteType: $wasteType, ')
           ..write('color: $color, ')
+          ..write('texture: $texture, ')
           ..write('babyId: $babyId, ')
           ..write('quantity: $quantity')
           ..write(')'))
@@ -1162,6 +1201,325 @@ class ReminderSettingsCompanion extends UpdateCompanion<ReminderSetting> {
   }
 }
 
+class $CustomRemindersTable extends CustomReminders
+    with TableInfo<$CustomRemindersTable, CustomReminder> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CustomRemindersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+      'label', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 60),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _subtypeValueMeta =
+      const VerificationMeta('subtypeValue');
+  @override
+  late final GeneratedColumn<String> subtypeValue = GeneratedColumn<String>(
+      'subtype_value', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _frequencyMeta =
+      const VerificationMeta('frequency');
+  @override
+  late final GeneratedColumn<String> frequency = GeneratedColumn<String>(
+      'frequency', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _intervalDaysMeta =
+      const VerificationMeta('intervalDays');
+  @override
+  late final GeneratedColumn<int> intervalDays = GeneratedColumn<int>(
+      'interval_days', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, label, subtypeValue, frequency, intervalDays];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'custom_reminders';
+  @override
+  VerificationContext validateIntegrity(Insertable<CustomReminder> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+          _labelMeta, label.isAcceptableOrUnknown(data['label']!, _labelMeta));
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('subtype_value')) {
+      context.handle(
+          _subtypeValueMeta,
+          subtypeValue.isAcceptableOrUnknown(
+              data['subtype_value']!, _subtypeValueMeta));
+    } else if (isInserting) {
+      context.missing(_subtypeValueMeta);
+    }
+    if (data.containsKey('frequency')) {
+      context.handle(_frequencyMeta,
+          frequency.isAcceptableOrUnknown(data['frequency']!, _frequencyMeta));
+    } else if (isInserting) {
+      context.missing(_frequencyMeta);
+    }
+    if (data.containsKey('interval_days')) {
+      context.handle(
+          _intervalDaysMeta,
+          intervalDays.isAcceptableOrUnknown(
+              data['interval_days']!, _intervalDaysMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CustomReminder map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CustomReminder(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      label: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}label'])!,
+      subtypeValue: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}subtype_value'])!,
+      frequency: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}frequency'])!,
+      intervalDays: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}interval_days']),
+    );
+  }
+
+  @override
+  $CustomRemindersTable createAlias(String alias) {
+    return $CustomRemindersTable(attachedDatabase, alias);
+  }
+}
+
+class CustomReminder extends DataClass implements Insertable<CustomReminder> {
+  final int id;
+  final String label;
+
+  /// Valeur de `HealthSubtype` ([nettoyage_nez], `nettoyage_nombril`, …) : le soin
+  /// dont l'absence dans `tracking_events` rend le rappel dû.
+  final String subtypeValue;
+
+  /// `daily` | `weekly` | `monthly` | `every_n_days` — voir [CustomReminder].
+  final String frequency;
+
+  /// Seulement pour `every_n_days` : longueur du roulement en jours.
+  final int? intervalDays;
+  const CustomReminder(
+      {required this.id,
+      required this.label,
+      required this.subtypeValue,
+      required this.frequency,
+      this.intervalDays});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['label'] = Variable<String>(label);
+    map['subtype_value'] = Variable<String>(subtypeValue);
+    map['frequency'] = Variable<String>(frequency);
+    if (!nullToAbsent || intervalDays != null) {
+      map['interval_days'] = Variable<int>(intervalDays);
+    }
+    return map;
+  }
+
+  CustomRemindersCompanion toCompanion(bool nullToAbsent) {
+    return CustomRemindersCompanion(
+      id: Value(id),
+      label: Value(label),
+      subtypeValue: Value(subtypeValue),
+      frequency: Value(frequency),
+      intervalDays: intervalDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(intervalDays),
+    );
+  }
+
+  factory CustomReminder.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CustomReminder(
+      id: serializer.fromJson<int>(json['id']),
+      label: serializer.fromJson<String>(json['label']),
+      subtypeValue: serializer.fromJson<String>(json['subtypeValue']),
+      frequency: serializer.fromJson<String>(json['frequency']),
+      intervalDays: serializer.fromJson<int?>(json['intervalDays']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'label': serializer.toJson<String>(label),
+      'subtypeValue': serializer.toJson<String>(subtypeValue),
+      'frequency': serializer.toJson<String>(frequency),
+      'intervalDays': serializer.toJson<int?>(intervalDays),
+    };
+  }
+
+  CustomReminder copyWith(
+          {int? id,
+          String? label,
+          String? subtypeValue,
+          String? frequency,
+          Value<int?> intervalDays = const Value.absent()}) =>
+      CustomReminder(
+        id: id ?? this.id,
+        label: label ?? this.label,
+        subtypeValue: subtypeValue ?? this.subtypeValue,
+        frequency: frequency ?? this.frequency,
+        intervalDays:
+            intervalDays.present ? intervalDays.value : this.intervalDays,
+      );
+  CustomReminder copyWithCompanion(CustomRemindersCompanion data) {
+    return CustomReminder(
+      id: data.id.present ? data.id.value : this.id,
+      label: data.label.present ? data.label.value : this.label,
+      subtypeValue: data.subtypeValue.present
+          ? data.subtypeValue.value
+          : this.subtypeValue,
+      frequency: data.frequency.present ? data.frequency.value : this.frequency,
+      intervalDays: data.intervalDays.present
+          ? data.intervalDays.value
+          : this.intervalDays,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CustomReminder(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('subtypeValue: $subtypeValue, ')
+          ..write('frequency: $frequency, ')
+          ..write('intervalDays: $intervalDays')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, label, subtypeValue, frequency, intervalDays);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CustomReminder &&
+          other.id == this.id &&
+          other.label == this.label &&
+          other.subtypeValue == this.subtypeValue &&
+          other.frequency == this.frequency &&
+          other.intervalDays == this.intervalDays);
+}
+
+class CustomRemindersCompanion extends UpdateCompanion<CustomReminder> {
+  final Value<int> id;
+  final Value<String> label;
+  final Value<String> subtypeValue;
+  final Value<String> frequency;
+  final Value<int?> intervalDays;
+  const CustomRemindersCompanion({
+    this.id = const Value.absent(),
+    this.label = const Value.absent(),
+    this.subtypeValue = const Value.absent(),
+    this.frequency = const Value.absent(),
+    this.intervalDays = const Value.absent(),
+  });
+  CustomRemindersCompanion.insert({
+    this.id = const Value.absent(),
+    required String label,
+    required String subtypeValue,
+    required String frequency,
+    this.intervalDays = const Value.absent(),
+  })  : label = Value(label),
+        subtypeValue = Value(subtypeValue),
+        frequency = Value(frequency);
+  static Insertable<CustomReminder> custom({
+    Expression<int>? id,
+    Expression<String>? label,
+    Expression<String>? subtypeValue,
+    Expression<String>? frequency,
+    Expression<int>? intervalDays,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (label != null) 'label': label,
+      if (subtypeValue != null) 'subtype_value': subtypeValue,
+      if (frequency != null) 'frequency': frequency,
+      if (intervalDays != null) 'interval_days': intervalDays,
+    });
+  }
+
+  CustomRemindersCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? label,
+      Value<String>? subtypeValue,
+      Value<String>? frequency,
+      Value<int?>? intervalDays}) {
+    return CustomRemindersCompanion(
+      id: id ?? this.id,
+      label: label ?? this.label,
+      subtypeValue: subtypeValue ?? this.subtypeValue,
+      frequency: frequency ?? this.frequency,
+      intervalDays: intervalDays ?? this.intervalDays,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (subtypeValue.present) {
+      map['subtype_value'] = Variable<String>(subtypeValue.value);
+    }
+    if (frequency.present) {
+      map['frequency'] = Variable<String>(frequency.value);
+    }
+    if (intervalDays.present) {
+      map['interval_days'] = Variable<int>(intervalDays.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CustomRemindersCompanion(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('subtypeValue: $subtypeValue, ')
+          ..write('frequency: $frequency, ')
+          ..write('intervalDays: $intervalDays')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1171,12 +1529,19 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $ReminderDismissalsTable(this);
   late final $ReminderSettingsTable reminderSettings =
       $ReminderSettingsTable(this);
+  late final $CustomRemindersTable customReminders =
+      $CustomRemindersTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [babyProfiles, trackingEvents, reminderDismissals, reminderSettings];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+        babyProfiles,
+        trackingEvents,
+        reminderDismissals,
+        reminderSettings,
+        customReminders
+      ];
 }
 
 typedef $$BabyProfilesTableCreateCompanionBuilder = BabyProfilesCompanion
@@ -1347,6 +1712,7 @@ typedef $$TrackingEventsTableCreateCompanionBuilder = TrackingEventsCompanion
   Value<String?> notes,
   Value<String?> wasteType,
   Value<String?> color,
+  Value<String?> texture,
   Value<String?> babyId,
   Value<double?> quantity,
 });
@@ -1360,6 +1726,7 @@ typedef $$TrackingEventsTableUpdateCompanionBuilder = TrackingEventsCompanion
   Value<String?> notes,
   Value<String?> wasteType,
   Value<String?> color,
+  Value<String?> texture,
   Value<String?> babyId,
   Value<double?> quantity,
 });
@@ -1396,6 +1763,9 @@ class $$TrackingEventsTableFilterComposer
 
   ColumnFilters<String> get color => $composableBuilder(
       column: $table.color, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get texture => $composableBuilder(
+      column: $table.texture, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get babyId => $composableBuilder(
       column: $table.babyId, builder: (column) => ColumnFilters(column));
@@ -1437,6 +1807,9 @@ class $$TrackingEventsTableOrderingComposer
   ColumnOrderings<String> get color => $composableBuilder(
       column: $table.color, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get texture => $composableBuilder(
+      column: $table.texture, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get babyId => $composableBuilder(
       column: $table.babyId, builder: (column) => ColumnOrderings(column));
 
@@ -1476,6 +1849,9 @@ class $$TrackingEventsTableAnnotationComposer
 
   GeneratedColumn<String> get color =>
       $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get texture =>
+      $composableBuilder(column: $table.texture, builder: (column) => column);
 
   GeneratedColumn<String> get babyId =>
       $composableBuilder(column: $table.babyId, builder: (column) => column);
@@ -1519,6 +1895,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             Value<String?> notes = const Value.absent(),
             Value<String?> wasteType = const Value.absent(),
             Value<String?> color = const Value.absent(),
+            Value<String?> texture = const Value.absent(),
             Value<String?> babyId = const Value.absent(),
             Value<double?> quantity = const Value.absent(),
           }) =>
@@ -1531,6 +1908,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             notes: notes,
             wasteType: wasteType,
             color: color,
+            texture: texture,
             babyId: babyId,
             quantity: quantity,
           ),
@@ -1543,6 +1921,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             Value<String?> notes = const Value.absent(),
             Value<String?> wasteType = const Value.absent(),
             Value<String?> color = const Value.absent(),
+            Value<String?> texture = const Value.absent(),
             Value<String?> babyId = const Value.absent(),
             Value<double?> quantity = const Value.absent(),
           }) =>
@@ -1555,6 +1934,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             notes: notes,
             wasteType: wasteType,
             color: color,
+            texture: texture,
             babyId: babyId,
             quantity: quantity,
           ),
@@ -1839,6 +2219,176 @@ typedef $$ReminderSettingsTableProcessedTableManager = ProcessedTableManager<
     ),
     ReminderSetting,
     PrefetchHooks Function()>;
+typedef $$CustomRemindersTableCreateCompanionBuilder = CustomRemindersCompanion
+    Function({
+  Value<int> id,
+  required String label,
+  required String subtypeValue,
+  required String frequency,
+  Value<int?> intervalDays,
+});
+typedef $$CustomRemindersTableUpdateCompanionBuilder = CustomRemindersCompanion
+    Function({
+  Value<int> id,
+  Value<String> label,
+  Value<String> subtypeValue,
+  Value<String> frequency,
+  Value<int?> intervalDays,
+});
+
+class $$CustomRemindersTableFilterComposer
+    extends Composer<_$AppDatabase, $CustomRemindersTable> {
+  $$CustomRemindersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get label => $composableBuilder(
+      column: $table.label, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get subtypeValue => $composableBuilder(
+      column: $table.subtypeValue, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get frequency => $composableBuilder(
+      column: $table.frequency, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get intervalDays => $composableBuilder(
+      column: $table.intervalDays, builder: (column) => ColumnFilters(column));
+}
+
+class $$CustomRemindersTableOrderingComposer
+    extends Composer<_$AppDatabase, $CustomRemindersTable> {
+  $$CustomRemindersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get label => $composableBuilder(
+      column: $table.label, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get subtypeValue => $composableBuilder(
+      column: $table.subtypeValue,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get frequency => $composableBuilder(
+      column: $table.frequency, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get intervalDays => $composableBuilder(
+      column: $table.intervalDays,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$CustomRemindersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CustomRemindersTable> {
+  $$CustomRemindersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get subtypeValue => $composableBuilder(
+      column: $table.subtypeValue, builder: (column) => column);
+
+  GeneratedColumn<String> get frequency =>
+      $composableBuilder(column: $table.frequency, builder: (column) => column);
+
+  GeneratedColumn<int> get intervalDays => $composableBuilder(
+      column: $table.intervalDays, builder: (column) => column);
+}
+
+class $$CustomRemindersTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $CustomRemindersTable,
+    CustomReminder,
+    $$CustomRemindersTableFilterComposer,
+    $$CustomRemindersTableOrderingComposer,
+    $$CustomRemindersTableAnnotationComposer,
+    $$CustomRemindersTableCreateCompanionBuilder,
+    $$CustomRemindersTableUpdateCompanionBuilder,
+    (
+      CustomReminder,
+      BaseReferences<_$AppDatabase, $CustomRemindersTable, CustomReminder>
+    ),
+    CustomReminder,
+    PrefetchHooks Function()> {
+  $$CustomRemindersTableTableManager(
+      _$AppDatabase db, $CustomRemindersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CustomRemindersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CustomRemindersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CustomRemindersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> label = const Value.absent(),
+            Value<String> subtypeValue = const Value.absent(),
+            Value<String> frequency = const Value.absent(),
+            Value<int?> intervalDays = const Value.absent(),
+          }) =>
+              CustomRemindersCompanion(
+            id: id,
+            label: label,
+            subtypeValue: subtypeValue,
+            frequency: frequency,
+            intervalDays: intervalDays,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String label,
+            required String subtypeValue,
+            required String frequency,
+            Value<int?> intervalDays = const Value.absent(),
+          }) =>
+              CustomRemindersCompanion.insert(
+            id: id,
+            label: label,
+            subtypeValue: subtypeValue,
+            frequency: frequency,
+            intervalDays: intervalDays,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$CustomRemindersTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $CustomRemindersTable,
+    CustomReminder,
+    $$CustomRemindersTableFilterComposer,
+    $$CustomRemindersTableOrderingComposer,
+    $$CustomRemindersTableAnnotationComposer,
+    $$CustomRemindersTableCreateCompanionBuilder,
+    $$CustomRemindersTableUpdateCompanionBuilder,
+    (
+      CustomReminder,
+      BaseReferences<_$AppDatabase, $CustomRemindersTable, CustomReminder>
+    ),
+    CustomReminder,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1851,4 +2401,6 @@ class $AppDatabaseManager {
       $$ReminderDismissalsTableTableManager(_db, _db.reminderDismissals);
   $$ReminderSettingsTableTableManager get reminderSettings =>
       $$ReminderSettingsTableTableManager(_db, _db.reminderSettings);
+  $$CustomRemindersTableTableManager get customReminders =>
+      $$CustomRemindersTableTableManager(_db, _db.customReminders);
 }

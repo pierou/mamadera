@@ -1,99 +1,47 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
+import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
-
-/// State interne du dialog de sélection de selle.
-class _WasteDialogState {
-  const _WasteDialogState({
-    this.selectedType = WasteType.caca,
-    this.pipiColor,
-    this.cacaColor,
-  });
-
-  final WasteType selectedType;
-  final PipiColor? pipiColor;
-  final CacaColor? cacaColor;
-
-  _WasteDialogState copyWith({
-    WasteType? selectedType,
-    PipiColor? pipiColor,
-    CacaColor? cacaColor,
-  }) {
-    return _WasteDialogState(
-      selectedType: selectedType ?? this.selectedType,
-      pipiColor: pipiColor ?? this.pipiColor,
-      cacaColor: cacaColor ?? this.cacaColor,
-    );
-  }
-
-  /// Retourne la valeur DB formatée pour wasteType.
-  String? get wasteTypeValue => selectedType.dbValue;
-
-  /// Retourne la valeur DB formatée pour color (pipe-délimité si lesDeux).
-  String? get colorDbValue {
-    switch (selectedType) {
-      case WasteType.pipi:
-        return pipiColor?.value;
-      case WasteType.caca:
-        return cacaColor?.value;
-      case WasteType.lesDeux:
-        final p = pipiColor?.value ?? '';
-        final c = cacaColor?.value ?? '';
-        if (p.isNotEmpty && c.isNotEmpty) {
-          return '$p|$c';
-        }
-        return p.isEmpty ? c : p;
-    }
-  }
-
-  /// Retourne les données à retourner au parent (typed enums).
-  Map<String, dynamic> toResult() {
-    return {
-      'wasteType': selectedType,
-      'pipiColor': pipiColor,
-      'cacaColor': cacaColor,
-    };
-  }
-}
-
-/// Provider pour gérer l'état du dialog de selle.
-final _wasteDialogStateProvider = NotifierProvider<_WasteDialogNotifier, _WasteDialogState>(
-  _WasteDialogNotifier.new,
-);
-
-class _WasteDialogNotifier extends Notifier<_WasteDialogState> {
-  @override
-  _WasteDialogState build() => const _WasteDialogState();
-
-  void setSelectedType(WasteType type) {
-    state = state.copyWith(selectedType: type);
-  }
-
-  void setPipiColor(PipiColor? color) {
-    state = state.copyWith(pipiColor: color);
-  }
-
-  void setCacaColor(CacaColor? color) {
-    state = state.copyWith(cacaColor: color);
-  }
-
-  void reset() {
-    state = const _WasteDialogState();
-  }
-}
+import '../../../../shared/utils/stool_texture_label_resolver.dart';
 
 /// Widget pour sélectionner le type de selle et les couleurs associées.
-class WasteDialog extends ConsumerWidget {
+///
+/// L'état de sélection est local au [StatefulWidget] : il ne survit pas à la
+/// fermeture du dialog et ne fuit pas d'une ouverture à l'autre.
+class WasteDialog extends StatefulWidget {
   const WasteDialog({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(_wasteDialogStateProvider);
+  State<WasteDialog> createState() => _WasteDialogState();
+}
 
+class _WasteDialogState extends State<WasteDialog> {
+  WasteType _selectedType = WasteType.caca;
+  PipiColor? _pipiColor;
+  CacaColor? _cacaColor;
+
+  /// Consistance de la selle — optionnelle, uniquement pour un caca.
+  StoolTexture? _stoolTexture;
+
+  /// Date and time of the diaper, defaulted to the moment the sheet opened.
+  DateTime _selectedDate = DateTime.now();
+
+  /// Retourne les données à retourner au parent (typed enums).
+  Map<String, dynamic> _toResult() {
+    return {
+      'wasteType': _selectedType,
+      'pipiColor': _pipiColor,
+      'cacaColor': _cacaColor,
+      'texture': _stoolTexture,
+      'timestamp': _selectedDate,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: SingleChildScrollView(
@@ -109,34 +57,57 @@ class WasteDialog extends ConsumerWidget {
             const SizedBox(height: 16),
 
             // Sélection du type (chips radio)
-            const WasteDialogTypeChips(),
+            WasteDialogTypeChips(
+              selectedType: _selectedType,
+              onSelectedType: (type) => setState(() => _selectedType = type),
+            ),
             const SizedBox(height: 24),
 
             // Section couleur pipi (conditionnelle)
-            if (state.selectedType == WasteType.pipi || state.selectedType == WasteType.lesDeux) ...[
+            if (_selectedType == WasteType.pipi || _selectedType == WasteType.lesDeux) ...[
               Text(context.l.pipiColorSectionTitle,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              const WasteDialogPipiColorChips(),
+              WasteDialogPipiColorChips(
+                selectedColor: _pipiColor,
+                onSelectedColor: (color) => setState(() => _pipiColor = color),
+              ),
             ],
-            if (state.selectedType == WasteType.lesDeux) const SizedBox(height: 24),
+            if (_selectedType == WasteType.lesDeux) const SizedBox(height: 24),
 
             // Section couleur caca (conditionnelle)
-            if (state.selectedType == WasteType.caca || state.selectedType == WasteType.lesDeux) ...[
+            if (_selectedType == WasteType.caca || _selectedType == WasteType.lesDeux) ...[
               Text(context.l.cacaColorSectionTitle,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              const WasteDialogCacaColorChips(),
+              WasteDialogCacaColorChips(
+                selectedColor: _cacaColor,
+                onSelectedColor: (color) => setState(() => _cacaColor = color),
+              ),
+              const SizedBox(height: 24),
+              Text(context.l.stoolTextureSectionTitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              WasteDialogTextureChips(
+                selectedTexture: _stoolTexture,
+                onSelectedTexture: (texture) => setState(() => _stoolTexture = texture),
+              ),
             ],
+
+            const SizedBox(height: 24),
+
+            EventDateTimeField(
+              value: _selectedDate,
+              onChanged: (date) => setState(() => _selectedDate = date),
+            ),
 
             const SizedBox(height: 24),
 
             DialogActionButtons(
               onCancelPressed: () => Navigator.pop(context),
               onConfirmPressed: () {
-                final state = ref.read(_wasteDialogStateProvider);
                 if (context.mounted) {
-                  Navigator.pop(context, state.toResult());
+                  Navigator.pop(context, _toResult());
                 }
               },
               cancelLabel: context.l.cancelButton,
@@ -150,14 +121,20 @@ class WasteDialog extends ConsumerWidget {
 }
 
 /// Widget pour les chips de sélection du type de selle.
-class WasteDialogTypeChips extends ConsumerWidget {
-  const WasteDialogTypeChips({super.key});
+class WasteDialogTypeChips extends StatelessWidget {
+  const WasteDialogTypeChips({
+    required this.selectedType,
+    required this.onSelectedType,
+    super.key,
+  });
+
+  final WasteType selectedType;
+  final ValueChanged<WasteType> onSelectedType;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(_wasteDialogStateProvider);
+  Widget build(BuildContext context) {
     return Wrap(spacing: 8, runSpacing: 8, children: WasteType.values.map((type) {
-      final isSelected = type == state.selectedType;
+      final isSelected = type == selectedType;
       return _ChipRadio(
         label: switch (type) {
           WasteType.pipi => context.l.wasteTypePipi,
@@ -165,26 +142,59 @@ class WasteDialogTypeChips extends ConsumerWidget {
           WasteType.lesDeux => context.l.wasteTypeLesDeux,
         },
         isSelected: isSelected,
-        onTap: () => ref.read(_wasteDialogStateProvider.notifier).setSelectedType(type),
+        onTap: () => onSelectedType(type),
+      );
+    }).toList());
+  }
+}
+
+/// Widget pour les chips de consistance des selles.
+class WasteDialogTextureChips extends StatelessWidget {
+  const WasteDialogTextureChips({
+    required this.selectedTexture,
+    required this.onSelectedTexture,
+    super.key,
+  });
+
+  final StoolTexture? selectedTexture;
+  final ValueChanged<StoolTexture?> onSelectedTexture;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(spacing: 8, runSpacing: 8, children: stoolTextures.map((t) {
+      final isSelected = t == selectedTexture;
+      return FilterChip(
+        label: Text(resolveStoolTextureLabel(context, t)),
+        selected: isSelected,
+        // Retaper sur la puce choisie l'efface : la consistance reste
+        // optionnelle et un mauvais tap ne doit pas obliger à passer par
+        // l'historique pour être corrigé.
+        onSelected: (_) => onSelectedTexture(isSelected ? null : t),
       );
     }).toList());
   }
 }
 
 /// Widget pour les chips de couleur pipi.
-class WasteDialogPipiColorChips extends ConsumerWidget {
-  const WasteDialogPipiColorChips({super.key});
+class WasteDialogPipiColorChips extends StatelessWidget {
+  const WasteDialogPipiColorChips({
+    required this.selectedColor,
+    required this.onSelectedColor,
+    super.key,
+  });
+
+  final PipiColor? selectedColor;
+  final ValueChanged<PipiColor?> onSelectedColor;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(_wasteDialogStateProvider);
+  Widget build(BuildContext context) {
     return Wrap(spacing: 8, runSpacing: 8, children: pipiColors.map((c) {
-      final isSelected = c == state.pipiColor;
+      final isSelected = c == selectedColor;
       final cs = Theme.of(context).colorScheme;
       return FilterChip(
         label: Text(_resolvePipiLabel(context, c)),
         selected: isSelected,
-        onSelected: (_) => ref.read(_wasteDialogStateProvider.notifier).setPipiColor(isSelected ? null : c),
+        onSelected: (_) => onSelectedColor(isSelected ? null : c),
         backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.8),
         selectedColor: Color(c.colorHex).withValues(alpha: 0.3),
         checkmarkColor: cs.onPrimary,
@@ -197,19 +207,25 @@ class WasteDialogPipiColorChips extends ConsumerWidget {
 }
 
 /// Widget pour les chips de couleur caca.
-class WasteDialogCacaColorChips extends ConsumerWidget {
-  const WasteDialogCacaColorChips({super.key});
+class WasteDialogCacaColorChips extends StatelessWidget {
+  const WasteDialogCacaColorChips({
+    required this.selectedColor,
+    required this.onSelectedColor,
+    super.key,
+  });
+
+  final CacaColor? selectedColor;
+  final ValueChanged<CacaColor?> onSelectedColor;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(_wasteDialogStateProvider);
+  Widget build(BuildContext context) {
     return Wrap(spacing: 8, runSpacing: 8, children: cacaColors.map((c) {
-      final isSelected = c == state.cacaColor;
+      final isSelected = c == selectedColor;
       final cs = Theme.of(context).colorScheme;
       return FilterChip(
         label: Text(_resolveCacaLabel(context, c)),
         selected: isSelected,
-        onSelected: (_) => ref.read(_wasteDialogStateProvider.notifier).setCacaColor(isSelected ? null : c),
+        onSelected: (_) => onSelectedColor(isSelected ? null : c),
         backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.8),
         selectedColor: Color(c.colorHex).withValues(alpha: 0.3),
         checkmarkColor: cs.onPrimary,

@@ -7,6 +7,10 @@
   "navHistory": "Historial",
   "navMenu": "Menú",
 
+  "routerPageNotFoundTitle": "Página no encontrada",
+  "routerBackToHome": "Volver al inicio",
+  "routerGenericError": "Se ha producido un error inesperado.",
+
   "homeButtonMiam": "Alimento",
   "homeButtonSante": "Salud",
   "homeButtonCaca": "Pañal",
@@ -94,6 +98,41 @@
   "reminderVitaminK": "Vit. K",
   "reminderEyeCleaning": "Ojos",
   "reminderFaceCleaning": "Rostro",
+  "reminderSettingsTile": "Elige qué recordatorios se muestran",
+  "reminderSettingsTitle": "Recordatorios",
+  "reminderSettingsError": "No se pudieron cargar los recordatorios",
+  "reminderSettingsDescription": "Avisos en la pantalla de inicio hasta que registres el cuidado. No se envía ninguna notificación del sistema: todo se queda en este dispositivo.",
+  "reminderFrequencyDaily": "Todos los días",
+  "reminderFrequencyWeekly": "Cada semana",
+  "reminderFrequencyMonthly": "El día {day} de cada mes",
+  "@reminderFrequencyMonthly": {
+    "placeholders": {
+      "day": {}
+    }
+  },
+  "reminderFrequencyEveryNDays": "Cada {days} días",
+  "@reminderFrequencyEveryNDays": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "reminderCustomSectionTitle": "Recordatorios personalizados",
+  "reminderCustomSectionDescription": "Un recordatorio desaparece del inicio en cuanto registras el cuidado asociado.",
+  "reminderCustomAdd": "Añadir recordatorio",
+  "reminderCustomEmpty": "Aún no hay recordatorios personalizados.",
+  "reminderCustomSheetAdd": "Nuevo recordatorio",
+  "reminderCustomSheetEdit": "Editar recordatorio",
+  "reminderCustomLabelField": "Nombre del recordatorio",
+  "reminderCustomLabelRequired": "Dale un nombre al recordatorio",
+  "reminderCustomCareField": "Cuidado asociado",
+  "reminderCustomFrequencyField": "Frecuencia",
+  "reminderCustomIntervalField": "Intervalo en días",
+  "reminderCustomIntervalRequired": "Indica un número de días, de 1 a 365",
+  "reminderFrequencyMonthlyBirth": "El día de nacimiento, cada mes",
+  "reminderCustomDeleteConfirm": "¿Eliminar este recordatorio?",
+  "reminderCustomDeleteWarning": "El recordatorio desaparece del inicio. Los eventos ya registrados se conservan.",
+  "reminderCustomSaveError": "No se pudo guardar el recordatorio. Inténtalo de nuevo.",
+  "reminderCustomDeleteError": "No se pudo eliminar el recordatorio. Inténtalo de nuevo.",
 
   "yesterday": "Ayer",
   "daysAgo": " días",
@@ -116,6 +155,12 @@
   "cacaColorVertOlive": "Verde oliva",
   "cacaColorJauneMoutarde": "Amarillo mostaza",
   "cacaColorJauneClair": "Amarillo claro",
+  "stoolTextureSectionTitle": "Textura de la caca",
+  "stoolTextureAqueuse": "Acuosa",
+  "stoolTextureGrumeleuse": "Grumosa",
+  "stoolTexturePateuse": "Pastosa",
+  "stoolTextureMoulee": "Moldeada",
+  "stoolTextureDure": "Dura",
 
   "historyTitle": "Historial",
   "filterAll": "Todos",
@@ -155,7 +200,7 @@
   "feedingSubtypeArtificial": "Fórmula Infantil",
 
   "editDialogTitle": "Editar evento",
-  "editDateSectionTitle": "Fecha y hora",
+  "eventDateSectionTitle": "Fecha y hora",
   "editDurationSectionTitle": "Duración",
   "editTypeSectionTitle": "Tipo",
   "editPipiColorSectionTitle": "Color de la orina",
@@ -197,6 +242,43 @@
   },
   "cancel": "Cancelar",
   "closeButton": "Cerrar",
+
+  "exportDataTitle": "Exportar mis datos",
+  "exportDataDescription": "Copia de seguridad JSON de todos tus datos",
+  "exportDataConfirm": "Exportar",
+  "exportDataWarning": "Este archivo contendrá todos tus datos, incluidas las notas de salud en texto legible. Tú eliges dónde guardarlo: no se envía nada automáticamente.",
+  "exportDataSuccess": "Exportación completada",
+  "exportDataError": "La exportación falló",
+  "exportDataEmpty": "No hay datos para exportar",
+
+  "importDataTitle": "Restaurar desde una copia de seguridad",
+  "importDataDescription": "Restaura todos tus datos desde un archivo JSON que hayas exportado",
+  "importDataConfirm": "Elegir un archivo…",
+  "importDataWarning": "Esta acción eliminará definitivamente todos los datos que haya actualmente en este dispositivo y los reemplazará por el contenido del archivo. Elige el archivo que exportaste.",
+  "importDataSummary": "Este archivo contiene {profiles} perfil(es) de bebé, {events} evento(s) y {reminders} recordatorio(s) personalizado(s). Restaurar borrará todos los datos actuales de este dispositivo.",
+  "@importDataSummary": {
+    "placeholders": {
+      "profiles": { "type": "int" },
+      "events": { "type": "int" },
+      "reminders": { "type": "int" }
+    }
+  },
+  "importDataNoProfile": "Atención: este archivo no contiene ningún perfil de bebé. Los eventos se restaurarán pero no estarán vinculados a ningún bebé, y tendrás que crear un perfil para verlos.",
+  "importDataProceed": "Restaurar",
+  "importDataSuccess": "Restauración terminada: {profiles} perfil(es) y {events} evento(s)",
+  "@importDataSuccess": {
+    "placeholders": {
+      "profiles": { "type": "int" },
+      "events": { "type": "int" }
+    }
+  },
+  "importDataErrorInvalidFile": "Archivo no reconocido: no es una copia de seguridad de Mamadera válida.",
+  "importDataErrorNotMamadera": "Este archivo no fue creado por Mamadera.",
+  "importDataErrorNewerVersion": "Este archivo fue creado por una versión más reciente de la aplicación. Actualiza Mamadera antes de restaurarlo.",
+  "importDataErrorNewerSchema": "Este archivo contiene datos más recientes que esta versión de la aplicación. Actualiza Mamadera antes de restaurarlo.",
+  "importDataErrorEmpty": "Este archivo no contiene datos para restaurar.",
+  "importDataErrorUnreadable": "No se puede leer el archivo elegido.",
+  "importDataErrorFailed": "Error al restaurar. Tus datos actuales están intactos.",
 
   "babyProfilesSectionTitle": "Bebés",
   "babyProfilesEmpty": "Sin perfiles de bebé",
@@ -272,6 +354,7 @@
   "termsLoadingError": "No se pudieron cargar los términos. Inténtalo de nuevo.",
 
   "patchNotesTitle": "Novedades",
+  "patchNotesUnavailable": "No hay notas de la versión disponibles",
   "patchNotesClose": "Cerrar",
   "patchNotesDontShowAgain": "No volver a mostrar",
   "patchNotesWhatChanged": "Qué ha cambiado",

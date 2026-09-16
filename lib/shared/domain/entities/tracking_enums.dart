@@ -195,6 +195,68 @@ CacaColor findCacaColorFromDbValue(String? dbValue) =>
     findCacaColorByValue(dbValue) ?? cacaColorJauneMoutarde;
 
 // ──────────────────────────────────────────────
+// Stool texture
+// ──────────────────────────────────────────────
+
+/// Consistance d'une selle, du plus liquide au plus dur.
+///
+/// Échelle en 5 crans inspirée des grilles de surveillance pédiatrique : elle
+/// sert à repérer une texture inhabituelle (aqueuse = risque de déshydratation,
+/// dure = constipation), pas à poser un diagnostic.
+@freezed
+abstract class StoolTexture with _$StoolTexture {
+  const factory StoolTexture({
+    required String value,
+    required String label,
+    required String labelKey,
+  }) = _StoolTexture;
+}
+
+/// Aqueuse (liquide, projette) — à surveiller chez le nouveau-né.
+const stoolTextureAqueuse = StoolTexture(
+    value: 'aqueuse', label: 'Aqueuse', labelKey: 'stoolTextureAqueuse');
+
+/// Grumeleuse (grumeaux type grain de ricin, molle).
+const stoolTextureGrumeleuse = StoolTexture(
+    value: 'grumeleuse',
+    label: 'Grumeleuse',
+    labelKey: 'stoolTextureGrumeleuse');
+
+/// Pâteuse (crémeuse, homogène, forme le couche).
+const stoolTexturePateuse = StoolTexture(
+    value: 'pateuse', label: 'Pâteuse', labelKey: 'stoolTexturePateuse');
+
+/// Moulée (boudin souple, formé).
+const stoolTextureMoulee = StoolTexture(
+    value: 'moulee', label: 'Moulée', labelKey: 'stoolTextureMoulee');
+
+/// Dure (billes sèches, difficile à évacuer).
+const stoolTextureDure = StoolTexture(
+    value: 'dure', label: 'Dure', labelKey: 'stoolTextureDure');
+
+/// Liste de toutes les textures disponibles, de la plus liquide à la plus dure.
+///
+/// Les `value` stockées en base restent en ASCII (les accents ne vivent que
+/// dans `label`) pour rester lisibles dans un export JSON édité à la main.
+const List<StoolTexture> stoolTextures = [
+  stoolTextureAqueuse,
+  stoolTextureGrumeleuse,
+  stoolTexturePateuse,
+  stoolTextureMoulee,
+  stoolTextureDure,
+];
+
+/// Lookup par valeur DB. Retourne null si inconnu ou colonne vide : la texture
+/// est optionnelle, aucune valeur par défaut n'est inventée.
+StoolTexture? findStoolTextureByValue(String? v) {
+  if (v == null || v.isEmpty) return null;
+  for (final t in stoolTextures) {
+    if (t.value == v) return t;
+  }
+  return null;
+}
+
+// ──────────────────────────────────────────────
 // Health subtypes (stockés dans la colonne notes)
 // ──────────────────────────────────────────────
 

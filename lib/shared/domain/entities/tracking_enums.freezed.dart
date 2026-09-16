@@ -703,6 +703,325 @@ class __$CacaColorCopyWithImpl<$Res> implements _$CacaColorCopyWith<$Res> {
 }
 
 /// @nodoc
+mixin _$StoolTexture {
+  String get value;
+  String get label;
+  String get labelKey;
+
+  /// Create a copy of StoolTexture
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $StoolTextureCopyWith<StoolTexture> get copyWith =>
+      _$StoolTextureCopyWithImpl<StoolTexture>(
+          this as StoolTexture, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is StoolTexture &&
+            (identical(other.value, value) || other.value == value) &&
+            (identical(other.label, label) || other.label == label) &&
+            (identical(other.labelKey, labelKey) ||
+                other.labelKey == labelKey));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, value, label, labelKey);
+
+  @override
+  String toString() {
+    return 'StoolTexture(value: $value, label: $label, labelKey: $labelKey)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $StoolTextureCopyWith<$Res> {
+  factory $StoolTextureCopyWith(
+          StoolTexture value, $Res Function(StoolTexture) _then) =
+      _$StoolTextureCopyWithImpl;
+  @useResult
+  $Res call({String value, String label, String labelKey});
+}
+
+/// @nodoc
+class _$StoolTextureCopyWithImpl<$Res> implements $StoolTextureCopyWith<$Res> {
+  _$StoolTextureCopyWithImpl(this._self, this._then);
+
+  final StoolTexture _self;
+  final $Res Function(StoolTexture) _then;
+
+  /// Create a copy of StoolTexture
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? value = null,
+    Object? label = null,
+    Object? labelKey = null,
+  }) {
+    return _then(_self.copyWith(
+      value: null == value
+          ? _self.value
+          : value // ignore: cast_nullable_to_non_nullable
+              as String,
+      label: null == label
+          ? _self.label
+          : label // ignore: cast_nullable_to_non_nullable
+              as String,
+      labelKey: null == labelKey
+          ? _self.labelKey
+          : labelKey // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// Adds pattern-matching-related methods to [StoolTexture].
+extension StoolTexturePatterns on StoolTexture {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_StoolTexture value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _StoolTexture() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_StoolTexture value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _StoolTexture():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_StoolTexture value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _StoolTexture() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String value, String label, String labelKey)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _StoolTexture() when $default != null:
+        return $default(_that.value, _that.label, _that.labelKey);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String value, String label, String labelKey) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _StoolTexture():
+        return $default(_that.value, _that.label, _that.labelKey);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String value, String label, String labelKey)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _StoolTexture() when $default != null:
+        return $default(_that.value, _that.label, _that.labelKey);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+
+class _StoolTexture implements StoolTexture {
+  const _StoolTexture(
+      {required this.value, required this.label, required this.labelKey});
+
+  @override
+  final String value;
+  @override
+  final String label;
+  @override
+  final String labelKey;
+
+  /// Create a copy of StoolTexture
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$StoolTextureCopyWith<_StoolTexture> get copyWith =>
+      __$StoolTextureCopyWithImpl<_StoolTexture>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _StoolTexture &&
+            (identical(other.value, value) || other.value == value) &&
+            (identical(other.label, label) || other.label == label) &&
+            (identical(other.labelKey, labelKey) ||
+                other.labelKey == labelKey));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, value, label, labelKey);
+
+  @override
+  String toString() {
+    return 'StoolTexture(value: $value, label: $label, labelKey: $labelKey)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$StoolTextureCopyWith<$Res>
+    implements $StoolTextureCopyWith<$Res> {
+  factory _$StoolTextureCopyWith(
+          _StoolTexture value, $Res Function(_StoolTexture) _then) =
+      __$StoolTextureCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String value, String label, String labelKey});
+}
+
+/// @nodoc
+class __$StoolTextureCopyWithImpl<$Res>
+    implements _$StoolTextureCopyWith<$Res> {
+  __$StoolTextureCopyWithImpl(this._self, this._then);
+
+  final _StoolTexture _self;
+  final $Res Function(_StoolTexture) _then;
+
+  /// Create a copy of StoolTexture
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? value = null,
+    Object? label = null,
+    Object? labelKey = null,
+  }) {
+    return _then(_StoolTexture(
+      value: null == value
+          ? _self.value
+          : value // ignore: cast_nullable_to_non_nullable
+              as String,
+      label: null == label
+          ? _self.label
+          : label // ignore: cast_nullable_to_non_nullable
+              as String,
+      labelKey: null == labelKey
+          ? _self.labelKey
+          : labelKey // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
 mixin _$HealthSubtype {
   String get value;
   String get label;

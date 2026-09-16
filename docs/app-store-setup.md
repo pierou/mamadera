@@ -161,11 +161,7 @@ Answer honestly. For mamadera you'll likely get rated **4+**. The questionnaire 
 
 ## Step 8 — Encryption Declaration
 
-Because we set `ITSAppUsesNonExemptEncryption = false` in Info.plist, Apple will ask about encryption on their questionnaire. Answer:
-
-> "This app uses encryption solely for personal use / local data protection. No transmission of encrypted data occurs."
-
-No additional export compliance paperwork is needed.
+Because we set `ITSAppUsesNonExemptEncryption = true` in Info.plist (the app ships its own AES-256-GCM implementation via the `encrypt` package rather than calling Apple's crypto APIs), Apple will not show the per-submission encryption questionnaire. You must instead keep export compliance documentation on file (EAR self-classification report for everyday/mass-market encryption) — no per-build paperwork in App Store Connect.
 
 ---
 

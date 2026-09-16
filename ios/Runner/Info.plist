@@ -67,7 +67,7 @@
 			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
 		<key>ITSAppUsesNonExemptEncryption</key>
-		<false/>
+		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>

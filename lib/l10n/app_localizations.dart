@@ -124,6 +124,24 @@ abstract class AppLocalizations {
   /// **'Menu'**
   String get navMenu;
 
+  /// No description provided for @routerPageNotFoundTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Page introuvable'**
+  String get routerPageNotFoundTitle;
+
+  /// No description provided for @routerBackToHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à l\'accueil'**
+  String get routerBackToHome;
+
+  /// No description provided for @routerGenericError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une erreur est survenue.'**
+  String get routerGenericError;
+
   /// No description provided for @homeButtonMiam.
   ///
   /// In fr, this message translates to:
@@ -316,6 +334,156 @@ abstract class AppLocalizations {
   /// **'Visage'**
   String get reminderFaceCleaning;
 
+  /// No description provided for @reminderSettingsTile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir les rappels affichés'**
+  String get reminderSettingsTile;
+
+  /// No description provided for @reminderSettingsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels'**
+  String get reminderSettingsTitle;
+
+  /// No description provided for @reminderSettingsError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec du chargement des rappels'**
+  String get reminderSettingsError;
+
+  /// No description provided for @reminderSettingsDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bandeaux affichés sur l\'accueil tant que le soin n\'a pas été saisi. Aucune notification système n\'est envoyée : tout reste sur cet appareil.'**
+  String get reminderSettingsDescription;
+
+  /// No description provided for @reminderFrequencyDaily.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les jours'**
+  String get reminderFrequencyDaily;
+
+  /// No description provided for @reminderFrequencyWeekly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque semaine'**
+  String get reminderFrequencyWeekly;
+
+  /// No description provided for @reminderFrequencyMonthly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le {day} de chaque mois'**
+  String reminderFrequencyMonthly(Object day);
+
+  /// No description provided for @reminderFrequencyEveryNDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les {days} jours'**
+  String reminderFrequencyEveryNDays(Object days);
+
+  /// No description provided for @reminderCustomSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels personnalisés'**
+  String get reminderCustomSectionTitle;
+
+  /// No description provided for @reminderCustomSectionDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un rappel s\'efface de l\'accueil dès que vous enregistrez le soin associé.'**
+  String get reminderCustomSectionDescription;
+
+  /// No description provided for @reminderCustomAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un rappel'**
+  String get reminderCustomAdd;
+
+  /// No description provided for @reminderCustomEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun rappel personnalisé pour l\'instant.'**
+  String get reminderCustomEmpty;
+
+  /// No description provided for @reminderCustomSheetAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau rappel'**
+  String get reminderCustomSheetAdd;
+
+  /// No description provided for @reminderCustomSheetEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le rappel'**
+  String get reminderCustomSheetEdit;
+
+  /// No description provided for @reminderCustomLabelField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du rappel'**
+  String get reminderCustomLabelField;
+
+  /// No description provided for @reminderCustomLabelRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donnez un nom au rappel'**
+  String get reminderCustomLabelRequired;
+
+  /// No description provided for @reminderCustomCareField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soin associé'**
+  String get reminderCustomCareField;
+
+  /// No description provided for @reminderCustomFrequencyField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fréquence'**
+  String get reminderCustomFrequencyField;
+
+  /// No description provided for @reminderCustomIntervalField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Intervalle en jours'**
+  String get reminderCustomIntervalField;
+
+  /// No description provided for @reminderCustomIntervalRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez un nombre de jours, de 1 à 365'**
+  String get reminderCustomIntervalRequired;
+
+  /// No description provided for @reminderFrequencyMonthlyBirth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le jour de naissance, chaque mois'**
+  String get reminderFrequencyMonthlyBirth;
+
+  /// No description provided for @reminderCustomDeleteConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer ce rappel ?'**
+  String get reminderCustomDeleteConfirm;
+
+  /// No description provided for @reminderCustomDeleteWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le rappel disparaît de l\'accueil. Les événements déjà enregistrés sont conservés.'**
+  String get reminderCustomDeleteWarning;
+
+  /// No description provided for @reminderCustomSaveError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le rappel n\'a pas pu être enregistré. Réessayez.'**
+  String get reminderCustomSaveError;
+
+  /// No description provided for @reminderCustomDeleteError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le rappel n\'a pas pu être supprimé. Réessayez.'**
+  String get reminderCustomDeleteError;
+
   /// No description provided for @yesterday.
   ///
   /// In fr, this message translates to:
@@ -417,6 +585,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Jaune clair'**
   String get cacaColorJauneClair;
+
+  /// No description provided for @stoolTextureSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Texture du caca'**
+  String get stoolTextureSectionTitle;
+
+  /// No description provided for @stoolTextureAqueuse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aqueuse'**
+  String get stoolTextureAqueuse;
+
+  /// No description provided for @stoolTextureGrumeleuse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Grumeleuse'**
+  String get stoolTextureGrumeleuse;
+
+  /// No description provided for @stoolTexturePateuse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pâteuse'**
+  String get stoolTexturePateuse;
+
+  /// No description provided for @stoolTextureMoulee.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moulée'**
+  String get stoolTextureMoulee;
+
+  /// No description provided for @stoolTextureDure.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dure'**
+  String get stoolTextureDure;
 
   /// No description provided for @historyTitle.
   ///
@@ -562,11 +766,11 @@ abstract class AppLocalizations {
   /// **'Modifier l\'événement'**
   String get editDialogTitle;
 
-  /// No description provided for @editDateSectionTitle.
+  /// No description provided for @eventDateSectionTitle.
   ///
   /// In fr, this message translates to:
   /// **'Date et heure'**
-  String get editDateSectionTitle;
+  String get eventDateSectionTitle;
 
   /// No description provided for @editDurationSectionTitle.
   ///
@@ -753,6 +957,138 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Fermer'**
   String get closeButton;
+
+  /// No description provided for @exportDataTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter mes données'**
+  String get exportDataTitle;
+
+  /// No description provided for @exportDataDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegarde JSON de toutes vos données'**
+  String get exportDataDescription;
+
+  /// No description provided for @exportDataConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter'**
+  String get exportDataConfirm;
+
+  /// No description provided for @exportDataWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier contiendra toutes vos données, y compris les notes de santé en texte lisible. Vous choisissez où l\'enregistrer : rien n\'est envoyé automatiquement.'**
+  String get exportDataWarning;
+
+  /// No description provided for @exportDataSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Export terminé'**
+  String get exportDataSuccess;
+
+  /// No description provided for @exportDataError.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'export a échoué'**
+  String get exportDataError;
+
+  /// No description provided for @exportDataEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune donnée à exporter'**
+  String get exportDataEmpty;
+
+  /// No description provided for @importDataTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer depuis une sauvegarde'**
+  String get importDataTitle;
+
+  /// No description provided for @importDataDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurez toutes vos données depuis un fichier JSON que vous avez exporté'**
+  String get importDataDescription;
+
+  /// No description provided for @importDataConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir un fichier…'**
+  String get importDataConfirm;
+
+  /// No description provided for @importDataWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette action supprimera définitivement toutes les données actuellement sur cet appareil et les remplacera par le contenu du fichier. Choisissez le fichier que vous avez exporté.'**
+  String get importDataWarning;
+
+  /// No description provided for @importDataSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier contient {profiles} profil(s) bébé, {events} événement(s) et {reminders} rappel(s) personnalisé(s). Restaurer effacera toutes les données actuelles de cet appareil.'**
+  String importDataSummary(int profiles, int events, int reminders);
+
+  /// No description provided for @importDataNoProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Attention : ce fichier ne contient aucun profil bébé. Les événements seront restaurés mais rattachés à aucun bébé, et il faudra créer un profil pour les voir.'**
+  String get importDataNoProfile;
+
+  /// No description provided for @importDataProceed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer'**
+  String get importDataProceed;
+
+  /// No description provided for @importDataSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restauration terminée : {profiles} profil(s) et {events} événement(s)'**
+  String importDataSuccess(int profiles, int events);
+
+  /// No description provided for @importDataErrorInvalidFile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fichier non reconnu : ce n\'est pas une sauvegarde Mamadera valide.'**
+  String get importDataErrorInvalidFile;
+
+  /// No description provided for @importDataErrorNotMamadera.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier n\'a pas été créé par Mamadera.'**
+  String get importDataErrorNotMamadera;
+
+  /// No description provided for @importDataErrorNewerVersion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier a été créé par une version plus récente de l\'application. Mettez à jour Mamadera avant de le restaurer.'**
+  String get importDataErrorNewerVersion;
+
+  /// No description provided for @importDataErrorNewerSchema.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier contient des données plus récentes que cette version de l\'application. Mettez à jour Mamadera avant de le restaurer.'**
+  String get importDataErrorNewerSchema;
+
+  /// No description provided for @importDataErrorEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier ne contient aucune donnée à restaurer.'**
+  String get importDataErrorEmpty;
+
+  /// No description provided for @importDataErrorUnreadable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire le fichier choisi.'**
+  String get importDataErrorUnreadable;
+
+  /// No description provided for @importDataErrorFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la restauration. Vos données actuelles sont intactes.'**
+  String get importDataErrorFailed;
 
   /// No description provided for @babyProfilesSectionTitle.
   ///
@@ -987,6 +1323,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Nouvelles Fonctionnalités'**
   String get patchNotesTitle;
+
+  /// No description provided for @patchNotesUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune note de version disponible'**
+  String get patchNotesUnavailable;
 
   /// No description provided for @patchNotesClose.
   ///

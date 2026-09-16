@@ -9,6 +9,7 @@ import '../../l10n/app_localizations.dart';
 ///
 /// - FR → `dd/MM/yyyy HH:mm` (24-hour, day-first)
 /// - EN → `MM/dd/yyyy hh:aa` (12-hour with AM/PM, month-first)
+/// - ES → `dd/MM/yyyy HH:mm` (24-hour, day-first, Spanish symbols)
 ///
 /// Falls back to the French format for unsupported locales.
 String formatDate(BuildContext context, DateTime date) {
@@ -18,6 +19,8 @@ String formatDate(BuildContext context, DateTime date) {
   switch (languageCode) {
     case 'en':
       return DateFormat('MM/dd/yyyy hh:aa', 'en_US').format(date);
+    case 'es':
+      return DateFormat('dd/MM/yyyy HH:mm', 'es').format(date);
     case 'fr':
     default:
       return DateFormat('dd/MM/yyyy HH:mm', 'fr_FR').format(date);
@@ -25,6 +28,12 @@ String formatDate(BuildContext context, DateTime date) {
 }
 
 /// Formats a [DateTime] displaying date only (no time).
+///
+/// - FR → `dd/MM/yyyy`
+/// - EN → `MM/dd/yyyy`
+/// - ES → `dd/MM/yyyy` (day-first, Spanish symbols)
+///
+/// Falls back to the French format for unsupported locales.
 String formatDateShort(BuildContext context, DateTime date) {
   final localeName = AppLocalizations.of(context).localeName;
   final languageCode = localeName.split('_').first.toLowerCase();
@@ -32,6 +41,8 @@ String formatDateShort(BuildContext context, DateTime date) {
   switch (languageCode) {
     case 'en':
       return DateFormat('MM/dd/yyyy', 'en_US').format(date);
+    case 'es':
+      return DateFormat('dd/MM/yyyy', 'es').format(date);
     case 'fr':
     default:
       return DateFormat('dd/MM/yyyy', 'fr_FR').format(date);

@@ -2,14 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
 import 'package:mamadera/features/baby/domain/repositories/baby_profile_repository.dart';
-import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart';
-import 'package:mamadera/features/home/presentation/providers/repository_provider.dart' as repo_prov;
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminders_state.dart';
 import 'package:mamadera/features/reminders/domain/services/reminders_service.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
-import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 import '../../data/repositories/mock_reminders_repository.dart';
@@ -23,43 +20,15 @@ class _ActiveBabyStub extends ActiveBabyNotifier {
   Future<BabyProfile?> build() async => _profile;
 }
 
-// Mock for TrackingRepository (simple in-memory implementation)
-class MockTrackingRepository implements TrackingRepository {
-  final Map<String, DateTime?> _lastEventByType = {};
-
-  void setLastEvent(TrackingType type, String? subtype, DateTime? timestamp) {
-    _lastEventByType['${type.name}|$subtype'] = timestamp;
-  }
-
-  @override
-  Future<DateTime?> getLastEventByTypeAndSubtype(
-    TrackingType type, {
-    String? subtypeValue,
-  }) async {
-    return _lastEventByType['${type.name}|$subtypeValue'];
-  }
-
-  @override
-  Future<int> insertEvent(TrackingEvent event) async => throw UnimplementedError();
-
-  @override
-  Future<List<TrackingEvent>> getAllEventsOrdered() async => throw UnimplementedError();
-
-  @override
-  Future<List<TrackingEvent>> getEventsByType(TrackingType type) async => throw UnimplementedError();
-}
-
-
-
 void main() {
   group('reminderNotifierProvider', () {
-    late MockTrackingRepository mockTrackingRepo;
+    late MockRemindersRepository mockReminders;
     late ProviderContainer container;
 
     setUp(() {
-      mockTrackingRepo = MockTrackingRepository();
+      mockReminders = MockRemindersRepository();
       container = ProviderContainer(overrides: [
-        repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
+        remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
       ]);
     });
 
@@ -68,7 +37,6 @@ void main() {
     });
 
     testWidgets('returns empty map when RemindersAllCompleted', (tester) async {
-      final mockReminders = MockRemindersRepository();
       // Set all items as completed today → no reminders due
       mockReminders.lastCompletedByItem[ReminderItemPresets.vitaminD.id] = DateTime.now();
 
@@ -79,7 +47,7 @@ void main() {
 
       container = ProviderContainer(overrides: [
         remindersServiceProvider.overrideWith((ref) => Future.value(service)),
-        repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
+        remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
       ]);
 
       final result = await container.read(reminderNotifierProvider.future);
@@ -88,16 +56,9 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('enriches ReminderStatus with lastEventAt from tracking repo', (tester) async {
-      // Set up: Vitamin D was tracked yesterday
-      mockTrackingRepo.setLastEvent(
-        TrackingType.sante,
-        'vitamine_d',
-        DateTime.utc(2024, 6, 1),
-      );
-
-      final mockReminders = MockRemindersRepository();
-      // No last completed → reminder IS due
+    testWidgets('enriches ReminderStatus with lastEventAt from the reminders repo', (tester) async {
+      // Set up: Vitamin D was tracked on 1 June 2024 (long ago → still due today).
+      mockReminders.lastCompletedByItem[ReminderItemPresets.vitaminD.id] = DateTime.utc(2024, 6, 1);
 
       final service = RemindersService(
         items: [ReminderItemPresets.vitaminD],
@@ -106,7 +67,7 @@ void main() {
 
       container = ProviderContainer(overrides: [
         remindersServiceProvider.overrideWith((ref) => Future.value(service)),
-        repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
+        remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
       ]);
 
       final result = await container.read(reminderNotifierProvider.future);
@@ -119,13 +80,6 @@ void main() {
     });
 
     testWidgets('groups multiple reminders by TrackingType', (tester) async {
-      mockTrackingRepo.setLastEvent(
-        TrackingType.sante, 'vitamine_d', DateTime.utc(2024, 5, 1),
-      );
-      mockTrackingRepo.setLastEvent(
-        TrackingType.sante, 'nettoyage_yeux', DateTime.utc(2024, 6, 1),
-      );
-
       final mockReminders = MockRemindersRepository();
 
       final service = RemindersService(
@@ -135,7 +89,7 @@ void main() {
 
       container = ProviderContainer(overrides: [
         remindersServiceProvider.overrideWith((ref) => Future.value(service)),
-        repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
+        remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
       ]);
 
       final result = await container.read(reminderNotifierProvider.future);
@@ -157,7 +111,7 @@ void main() {
 
       container = ProviderContainer(overrides: [
         remindersServiceProvider.overrideWith((ref) => Future.value(service)),
-        repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
+        remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
       ]);
 
       final result = await container.read(reminderNotifierProvider.future);
@@ -167,14 +121,30 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('refresh() triggers re-evaluation of reminders', (tester) async {
-      // Set up: Vitamin D tracked initially
-      mockTrackingRepo.setLastEvent(
-        TrackingType.sante,
-        'vitamine_d',
-        DateTime.utc(2024, 6, 1),
+    testWidgets('scopes due lookups to the active baby', (tester) async {
+      final baby = BabyProfile(id: 'baby_a', name: 'Baby A', birthDate: DateTime(2024, 1, 5));
+      final mockReminders = MockRemindersRepository();
+
+      final service = RemindersService(
+        items: [ReminderItemPresets.vitaminD],
+        repository: mockReminders,
       );
 
+      container = ProviderContainer(overrides: [
+        remindersServiceProvider.overrideWith((ref) => Future.value(service)),
+        remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
+        activeBabyProvider.overrideWith(() => _ActiveBabyStub(baby)),
+      ]);
+
+      // Resolve the baby before the notifier builds, so its first pass is scoped.
+      await container.read(activeBabyProvider.future);
+      await container.read(reminderNotifierProvider.future);
+
+      expect(mockReminders.lastCompletedBabyId, equals('baby_a'));
+      container.dispose();
+    });
+
+    testWidgets('refresh() triggers re-evaluation of reminders', (tester) async {
       final mockReminders = MockRemindersRepository();
       final service = RemindersService(
         items: [ReminderItemPresets.vitaminD, ReminderItemPresets.eyeCleaning],
@@ -183,20 +153,14 @@ void main() {
 
       container = ProviderContainer(overrides: [
         remindersServiceProvider.overrideWith((ref) => Future.value(service)),
-        repo_prov.trackingRepositoryProvider.overrideWith((ref) async => mockTrackingRepo),
+        remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
       ]);
 
       // Initial read
       final firstResult = await container.read(reminderNotifierProvider.future);
       expect(firstResult[TrackingType.sante]!.length, equals(2));
 
-      // Update mock repo to simulate new event
-      mockTrackingRepo.setLastEvent(
-        TrackingType.sante,
-        'vitamine_d',
-        DateTime.now(),
-      );
-      // Mark one item as completed
+      // Mark one item as completed today
       mockReminders.lastCompletedByItem[ReminderItemPresets.vitaminD.id] = DateTime.now();
 
       // Refresh
@@ -244,7 +208,8 @@ void main() {
         final remindersB = await containerB.read(dynamicRemindersProvider.future);
         expect(remindersB, isNotEmpty);
 
-        // Both babies get the same 4 reminders (Vitamin D daily, Vitamin K every 30 days, eye/face cleaning)
+        // Both babies get the same 4 reminder ids (Vitamin D daily, Vitamin K monthly
+        // on the birth day, eye/face cleaning); only the monthly anchor differs.
         expect(remindersA.length, equals(4));
         expect(remindersB.length, equals(4));
         expect(remindersA.map((e) => e.id), equals(remindersB.map((e) => e.id)));
@@ -295,7 +260,8 @@ void main() {
 
         final readServiceB = await containerB.read(remindersServiceProvider.future);
 
-        // Both babies get the same reminder item list (all constants since Vitamin K uses CustomInterval)
+        // Same reminder ids for both babies; Vitamin K is monthly and anchored on
+        // each baby's birth day, which differs (5 vs 20).
         expect(readServiceB.items.length, equals(4));
         expect(readServiceB.items.map((e) => e.id), equals(readServiceA.items.map((e) => e.id)));
 

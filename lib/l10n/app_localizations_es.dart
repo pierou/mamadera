@@ -21,6 +21,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navMenu => 'Menú';
 
   @override
+  String get routerPageNotFoundTitle => 'Página no encontrada';
+
+  @override
+  String get routerBackToHome => 'Volver al inicio';
+
+  @override
+  String get routerGenericError => 'Se ha producido un error inesperado.';
+
+  @override
   String get homeButtonMiam => 'Alimento';
 
   @override
@@ -135,6 +144,91 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reminderFaceCleaning => 'Rostro';
 
   @override
+  String get reminderSettingsTile => 'Elige qué recordatorios se muestran';
+
+  @override
+  String get reminderSettingsTitle => 'Recordatorios';
+
+  @override
+  String get reminderSettingsError => 'No se pudieron cargar los recordatorios';
+
+  @override
+  String get reminderSettingsDescription =>
+      'Avisos en la pantalla de inicio hasta que registres el cuidado. No se envía ninguna notificación del sistema: todo se queda en este dispositivo.';
+
+  @override
+  String get reminderFrequencyDaily => 'Todos los días';
+
+  @override
+  String get reminderFrequencyWeekly => 'Cada semana';
+
+  @override
+  String reminderFrequencyMonthly(Object day) {
+    return 'El día $day de cada mes';
+  }
+
+  @override
+  String reminderFrequencyEveryNDays(Object days) {
+    return 'Cada $days días';
+  }
+
+  @override
+  String get reminderCustomSectionTitle => 'Recordatorios personalizados';
+
+  @override
+  String get reminderCustomSectionDescription =>
+      'Un recordatorio desaparece del inicio en cuanto registras el cuidado asociado.';
+
+  @override
+  String get reminderCustomAdd => 'Añadir recordatorio';
+
+  @override
+  String get reminderCustomEmpty => 'Aún no hay recordatorios personalizados.';
+
+  @override
+  String get reminderCustomSheetAdd => 'Nuevo recordatorio';
+
+  @override
+  String get reminderCustomSheetEdit => 'Editar recordatorio';
+
+  @override
+  String get reminderCustomLabelField => 'Nombre del recordatorio';
+
+  @override
+  String get reminderCustomLabelRequired => 'Dale un nombre al recordatorio';
+
+  @override
+  String get reminderCustomCareField => 'Cuidado asociado';
+
+  @override
+  String get reminderCustomFrequencyField => 'Frecuencia';
+
+  @override
+  String get reminderCustomIntervalField => 'Intervalo en días';
+
+  @override
+  String get reminderCustomIntervalRequired =>
+      'Indica un número de días, de 1 a 365';
+
+  @override
+  String get reminderFrequencyMonthlyBirth => 'El día de nacimiento, cada mes';
+
+  @override
+  String get reminderCustomDeleteConfirm => '¿Eliminar este recordatorio?';
+
+  @override
+  String get reminderCustomDeleteWarning =>
+      'El recordatorio desaparece del inicio. Los eventos ya registrados se conservan.';
+
+  @override
+  String get reminderCustomSaveError =>
+      'No se pudo guardar el recordatorio. Inténtalo de nuevo.';
+
+  @override
+  String get reminderCustomDeleteError =>
+      'No se pudo eliminar el recordatorio. Inténtalo de nuevo.';
+
+  @override
   String get yesterday => 'Ayer';
 
   @override
@@ -184,6 +278,24 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cacaColorJauneClair => 'Amarillo claro';
+
+  @override
+  String get stoolTextureSectionTitle => 'Textura de la caca';
+
+  @override
+  String get stoolTextureAqueuse => 'Acuosa';
+
+  @override
+  String get stoolTextureGrumeleuse => 'Grumosa';
+
+  @override
+  String get stoolTexturePateuse => 'Pastosa';
+
+  @override
+  String get stoolTextureMoulee => 'Moldeada';
+
+  @override
+  String get stoolTextureDure => 'Dura';
 
   @override
   String get historyTitle => 'Historial';
@@ -264,7 +376,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get editDialogTitle => 'Editar evento';
 
   @override
-  String get editDateSectionTitle => 'Fecha y hora';
+  String get eventDateSectionTitle => 'Fecha y hora';
 
   @override
   String get editDurationSectionTitle => 'Duración';
@@ -363,6 +475,88 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get closeButton => 'Cerrar';
+
+  @override
+  String get exportDataTitle => 'Exportar mis datos';
+
+  @override
+  String get exportDataDescription =>
+      'Copia de seguridad JSON de todos tus datos';
+
+  @override
+  String get exportDataConfirm => 'Exportar';
+
+  @override
+  String get exportDataWarning =>
+      'Este archivo contendrá todos tus datos, incluidas las notas de salud en texto legible. Tú eliges dónde guardarlo: no se envía nada automáticamente.';
+
+  @override
+  String get exportDataSuccess => 'Exportación completada';
+
+  @override
+  String get exportDataError => 'La exportación falló';
+
+  @override
+  String get exportDataEmpty => 'No hay datos para exportar';
+
+  @override
+  String get importDataTitle => 'Restaurar desde una copia de seguridad';
+
+  @override
+  String get importDataDescription =>
+      'Restaura todos tus datos desde un archivo JSON que hayas exportado';
+
+  @override
+  String get importDataConfirm => 'Elegir un archivo…';
+
+  @override
+  String get importDataWarning =>
+      'Esta acción eliminará definitivamente todos los datos que haya actualmente en este dispositivo y los reemplazará por el contenido del archivo. Elige el archivo que exportaste.';
+
+  @override
+  String importDataSummary(int profiles, int events, int reminders) {
+    return 'Este archivo contiene $profiles perfil(es) de bebé, $events evento(s) y $reminders recordatorio(s) personalizado(s). Restaurar borrará todos los datos actuales de este dispositivo.';
+  }
+
+  @override
+  String get importDataNoProfile =>
+      'Atención: este archivo no contiene ningún perfil de bebé. Los eventos se restaurarán pero no estarán vinculados a ningún bebé, y tendrás que crear un perfil para verlos.';
+
+  @override
+  String get importDataProceed => 'Restaurar';
+
+  @override
+  String importDataSuccess(int profiles, int events) {
+    return 'Restauración terminada: $profiles perfil(es) y $events evento(s)';
+  }
+
+  @override
+  String get importDataErrorInvalidFile =>
+      'Archivo no reconocido: no es una copia de seguridad de Mamadera válida.';
+
+  @override
+  String get importDataErrorNotMamadera =>
+      'Este archivo no fue creado por Mamadera.';
+
+  @override
+  String get importDataErrorNewerVersion =>
+      'Este archivo fue creado por una versión más reciente de la aplicación. Actualiza Mamadera antes de restaurarlo.';
+
+  @override
+  String get importDataErrorNewerSchema =>
+      'Este archivo contiene datos más recientes que esta versión de la aplicación. Actualiza Mamadera antes de restaurarlo.';
+
+  @override
+  String get importDataErrorEmpty =>
+      'Este archivo no contiene datos para restaurar.';
+
+  @override
+  String get importDataErrorUnreadable =>
+      'No se puede leer el archivo elegido.';
+
+  @override
+  String get importDataErrorFailed =>
+      'Error al restaurar. Tus datos actuales están intactos.';
 
   @override
   String get babyProfilesSectionTitle => 'Bebés';
@@ -493,6 +687,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get patchNotesTitle => 'Novedades';
+
+  @override
+  String get patchNotesUnavailable => 'No hay notas de la versión disponibles';
 
   @override
   String get patchNotesClose => 'Cerrar';

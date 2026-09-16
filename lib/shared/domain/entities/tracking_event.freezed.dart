@@ -230,6 +230,7 @@ extension TrackingEventPatterns on TrackingEvent {
             WasteType? wasteType,
             PipiColor? pipiColor,
             CacaColor? cacaColor,
+            StoolTexture? stoolTexture,
             String? notes)?
         diaper,
     TResult Function(HealthSubtype subtype, DateTime timestamp, int? id,
@@ -249,7 +250,7 @@ extension TrackingEventPatterns on TrackingEvent {
             _that.babyId, _that.notes);
       case DiaperEvent() when diaper != null:
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
-            _that.pipiColor, _that.cacaColor, _that.notes);
+            _that.pipiColor, _that.cacaColor, _that.stoolTexture, _that.notes);
       case HealthEvent() when health != null:
         return health(_that.subtype, _that.timestamp, _that.id, _that.babyId,
             _that.notes);
@@ -287,6 +288,7 @@ extension TrackingEventPatterns on TrackingEvent {
             WasteType? wasteType,
             PipiColor? pipiColor,
             CacaColor? cacaColor,
+            StoolTexture? stoolTexture,
             String? notes)
         diaper,
     required TResult Function(HealthSubtype subtype, DateTime timestamp,
@@ -305,7 +307,7 @@ extension TrackingEventPatterns on TrackingEvent {
             _that.babyId, _that.notes);
       case DiaperEvent():
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
-            _that.pipiColor, _that.cacaColor, _that.notes);
+            _that.pipiColor, _that.cacaColor, _that.stoolTexture, _that.notes);
       case HealthEvent():
         return health(_that.subtype, _that.timestamp, _that.id, _that.babyId,
             _that.notes);
@@ -340,6 +342,7 @@ extension TrackingEventPatterns on TrackingEvent {
             WasteType? wasteType,
             PipiColor? pipiColor,
             CacaColor? cacaColor,
+            StoolTexture? stoolTexture,
             String? notes)?
         diaper,
     TResult? Function(HealthSubtype subtype, DateTime timestamp, int? id,
@@ -358,7 +361,7 @@ extension TrackingEventPatterns on TrackingEvent {
             _that.babyId, _that.notes);
       case DiaperEvent() when diaper != null:
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
-            _that.pipiColor, _that.cacaColor, _that.notes);
+            _that.pipiColor, _that.cacaColor, _that.stoolTexture, _that.notes);
       case HealthEvent() when health != null:
         return health(_that.subtype, _that.timestamp, _that.id, _that.babyId,
             _that.notes);
@@ -702,6 +705,7 @@ class DiaperEvent implements TrackingEvent {
       this.wasteType,
       this.pipiColor,
       this.cacaColor,
+      this.stoolTexture,
       this.notes});
 
   @override
@@ -713,6 +717,7 @@ class DiaperEvent implements TrackingEvent {
   final WasteType? wasteType;
   final PipiColor? pipiColor;
   final CacaColor? cacaColor;
+  final StoolTexture? stoolTexture;
   final String? notes;
 
   /// Create a copy of TrackingEvent
@@ -738,16 +743,18 @@ class DiaperEvent implements TrackingEvent {
                 other.pipiColor == pipiColor) &&
             (identical(other.cacaColor, cacaColor) ||
                 other.cacaColor == cacaColor) &&
+            (identical(other.stoolTexture, stoolTexture) ||
+                other.stoolTexture == stoolTexture) &&
             (identical(other.notes, notes) || other.notes == notes));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, timestamp, id, babyId, wasteType,
-      pipiColor, cacaColor, notes);
+      pipiColor, cacaColor, stoolTexture, notes);
 
   @override
   String toString() {
-    return 'TrackingEvent.diaper(timestamp: $timestamp, id: $id, babyId: $babyId, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor, notes: $notes)';
+    return 'TrackingEvent.diaper(timestamp: $timestamp, id: $id, babyId: $babyId, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor, stoolTexture: $stoolTexture, notes: $notes)';
   }
 }
 
@@ -766,10 +773,12 @@ abstract mixin class $DiaperEventCopyWith<$Res>
       WasteType? wasteType,
       PipiColor? pipiColor,
       CacaColor? cacaColor,
+      StoolTexture? stoolTexture,
       String? notes});
 
   $PipiColorCopyWith<$Res>? get pipiColor;
   $CacaColorCopyWith<$Res>? get cacaColor;
+  $StoolTextureCopyWith<$Res>? get stoolTexture;
 }
 
 /// @nodoc
@@ -790,6 +799,7 @@ class _$DiaperEventCopyWithImpl<$Res> implements $DiaperEventCopyWith<$Res> {
     Object? wasteType = freezed,
     Object? pipiColor = freezed,
     Object? cacaColor = freezed,
+    Object? stoolTexture = freezed,
     Object? notes = freezed,
   }) {
     return _then(DiaperEvent(
@@ -817,6 +827,10 @@ class _$DiaperEventCopyWithImpl<$Res> implements $DiaperEventCopyWith<$Res> {
           ? _self.cacaColor
           : cacaColor // ignore: cast_nullable_to_non_nullable
               as CacaColor?,
+      stoolTexture: freezed == stoolTexture
+          ? _self.stoolTexture
+          : stoolTexture // ignore: cast_nullable_to_non_nullable
+              as StoolTexture?,
       notes: freezed == notes
           ? _self.notes
           : notes // ignore: cast_nullable_to_non_nullable
@@ -849,6 +863,20 @@ class _$DiaperEventCopyWithImpl<$Res> implements $DiaperEventCopyWith<$Res> {
 
     return $CacaColorCopyWith<$Res>(_self.cacaColor!, (value) {
       return _then(_self.copyWith(cacaColor: value));
+    });
+  }
+
+  /// Create a copy of TrackingEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $StoolTextureCopyWith<$Res>? get stoolTexture {
+    if (_self.stoolTexture == null) {
+      return null;
+    }
+
+    return $StoolTextureCopyWith<$Res>(_self.stoolTexture!, (value) {
+      return _then(_self.copyWith(stoolTexture: value));
     });
   }
 }

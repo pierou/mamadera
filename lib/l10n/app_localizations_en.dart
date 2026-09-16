@@ -21,6 +21,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navMenu => 'Menu';
 
   @override
+  String get routerPageNotFoundTitle => 'Page not found';
+
+  @override
+  String get routerBackToHome => 'Back to home';
+
+  @override
+  String get routerGenericError => 'An unexpected error occurred.';
+
+  @override
   String get homeButtonMiam => 'Feeding';
 
   @override
@@ -135,6 +144,91 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderFaceCleaning => 'Face';
 
   @override
+  String get reminderSettingsTile => 'Choose which reminders to show';
+
+  @override
+  String get reminderSettingsTitle => 'Reminders';
+
+  @override
+  String get reminderSettingsError => 'Failed to load reminders';
+
+  @override
+  String get reminderSettingsDescription =>
+      'Banners shown on the home screen until the care has been logged. No system notifications are sent: everything stays on this device.';
+
+  @override
+  String get reminderFrequencyDaily => 'Every day';
+
+  @override
+  String get reminderFrequencyWeekly => 'Every week';
+
+  @override
+  String reminderFrequencyMonthly(Object day) {
+    return 'On day $day of each month';
+  }
+
+  @override
+  String reminderFrequencyEveryNDays(Object days) {
+    return 'Every $days days';
+  }
+
+  @override
+  String get reminderCustomSectionTitle => 'Custom reminders';
+
+  @override
+  String get reminderCustomSectionDescription =>
+      'A reminder leaves Home as soon as you log the linked care.';
+
+  @override
+  String get reminderCustomAdd => 'Add a reminder';
+
+  @override
+  String get reminderCustomEmpty => 'No custom reminders yet.';
+
+  @override
+  String get reminderCustomSheetAdd => 'New reminder';
+
+  @override
+  String get reminderCustomSheetEdit => 'Edit reminder';
+
+  @override
+  String get reminderCustomLabelField => 'Reminder name';
+
+  @override
+  String get reminderCustomLabelRequired => 'Give the reminder a name';
+
+  @override
+  String get reminderCustomCareField => 'Linked care';
+
+  @override
+  String get reminderCustomFrequencyField => 'Frequency';
+
+  @override
+  String get reminderCustomIntervalField => 'Interval in days';
+
+  @override
+  String get reminderCustomIntervalRequired =>
+      'Enter a number of days, from 1 to 365';
+
+  @override
+  String get reminderFrequencyMonthlyBirth => 'On the birth day, every month';
+
+  @override
+  String get reminderCustomDeleteConfirm => 'Delete this reminder?';
+
+  @override
+  String get reminderCustomDeleteWarning =>
+      'The reminder leaves Home. Events you already logged are kept.';
+
+  @override
+  String get reminderCustomSaveError =>
+      'Could not save the reminder. Please try again.';
+
+  @override
+  String get reminderCustomDeleteError =>
+      'Could not delete the reminder. Please try again.';
+
+  @override
   String get yesterday => 'Yesterday';
 
   @override
@@ -184,6 +278,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cacaColorJauneClair => 'Light Yellow';
+
+  @override
+  String get stoolTextureSectionTitle => 'Stool Texture';
+
+  @override
+  String get stoolTextureAqueuse => 'Watery';
+
+  @override
+  String get stoolTextureGrumeleuse => 'Seedy';
+
+  @override
+  String get stoolTexturePateuse => 'Pasty';
+
+  @override
+  String get stoolTextureMoulee => 'Formed';
+
+  @override
+  String get stoolTextureDure => 'Hard';
 
   @override
   String get historyTitle => 'History';
@@ -264,7 +376,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editDialogTitle => 'Edit Event';
 
   @override
-  String get editDateSectionTitle => 'Date and Time';
+  String get eventDateSectionTitle => 'Date and Time';
 
   @override
   String get editDurationSectionTitle => 'Duration';
@@ -363,6 +475,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get closeButton => 'Close';
+
+  @override
+  String get exportDataTitle => 'Export my data';
+
+  @override
+  String get exportDataDescription => 'JSON backup of all your data';
+
+  @override
+  String get exportDataConfirm => 'Export';
+
+  @override
+  String get exportDataWarning =>
+      'This file will contain all of your data, including health notes as readable text. You choose where to save it: nothing is sent automatically.';
+
+  @override
+  String get exportDataSuccess => 'Export complete';
+
+  @override
+  String get exportDataError => 'Export failed';
+
+  @override
+  String get exportDataEmpty => 'No data to export';
+
+  @override
+  String get importDataTitle => 'Restore from a backup';
+
+  @override
+  String get importDataDescription =>
+      'Restore all your data from a JSON file you exported';
+
+  @override
+  String get importDataConfirm => 'Choose a file…';
+
+  @override
+  String get importDataWarning =>
+      'This will permanently delete all data currently on this device and replace it with the file\'s contents. Choose the file you exported.';
+
+  @override
+  String importDataSummary(int profiles, int events, int reminders) {
+    return 'This file contains $profiles baby profile(s), $events event(s) and $reminders custom reminder(s). Restoring will erase all data currently on this device.';
+  }
+
+  @override
+  String get importDataNoProfile =>
+      'Warning: this file contains no baby profile. The events will be restored but attached to no baby, and you will need to create a profile to see them.';
+
+  @override
+  String get importDataProceed => 'Restore';
+
+  @override
+  String importDataSuccess(int profiles, int events) {
+    return 'Restore finished: $profiles profile(s) and $events event(s)';
+  }
+
+  @override
+  String get importDataErrorInvalidFile =>
+      'Unrecognised file: this is not a valid Mamadera backup.';
+
+  @override
+  String get importDataErrorNotMamadera =>
+      'This file was not created by Mamadera.';
+
+  @override
+  String get importDataErrorNewerVersion =>
+      'This file was created by a newer version of the app. Update Mamadera before restoring it.';
+
+  @override
+  String get importDataErrorNewerSchema =>
+      'This file contains data newer than this version of the app. Update Mamadera before restoring it.';
+
+  @override
+  String get importDataErrorEmpty => 'This file contains no data to restore.';
+
+  @override
+  String get importDataErrorUnreadable => 'The chosen file could not be read.';
+
+  @override
+  String get importDataErrorFailed =>
+      'Restore failed. Your current data is unchanged.';
 
   @override
   String get babyProfilesSectionTitle => 'Babies';
@@ -492,6 +683,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get patchNotesTitle => 'What\'s New';
+
+  @override
+  String get patchNotesUnavailable => 'No patch notes available';
 
   @override
   String get patchNotesClose => 'Close';

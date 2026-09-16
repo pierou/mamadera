@@ -41,5 +41,26 @@
       "- Fix theme selection not refreshing the app",
       ""
     ]
+  },
+  "1.1.0": {
+    "releaseDate": "2026-09-15",
+    "title": "What's New in Mamadera 1.1.0",
+    "items": [
+      "### New Features",
+      "- Add custom reminders tied to a care",
+      "- Switch off preset reminders you don't need",
+      "- Track stool texture on diaper changes",
+      "- Choose the date and time when adding an event",
+      "- Export all data as JSON via the share sheet",
+      "- Restore all data from an exported backup file",
+      "### Improvements",
+      "- Serve Spanish users their own terms, dates and patch notes",
+      "### Bug Fixes",
+      "- Keep notes when editing a health entry",
+      "- Recover correctly after deleting all data",
+      "- Honour the configured day in reminders and scope them to the selected baby",
+      "- Create missing reminder settings when upgrading from older versions",
+      ""
+    ]
   }
 }
