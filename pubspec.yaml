@@ -32,6 +32,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   drift: ^2.22.0
   encrypt: ^5.0.3
+  # 13.x federated API: static FilePicker.pickFile() + PlatformFile.readAsBytes().
+  # The import path reads files and nothing else: never saveFile() nor
+  # clearTemporaryFiles(), which write plaintext into cacheDir/file_picker/
+  # and would break the "no plaintext copy on disk" mandate.
+  file_picker: ^13.1.0
   flutter:
     sdk: flutter
   flutter_localizations:
