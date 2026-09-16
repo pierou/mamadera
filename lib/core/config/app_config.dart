@@ -2,12 +2,12 @@
 class AppConfig {
   AppConfig._();
 
-  /// The app's display version (e.g. '1.0.0').
+  /// The app's display version (e.g. '1.0.1').
   ///
-  /// This is the canonical source of truth. At runtime, the version is also
-  /// read from `package_info_plus` and compared against this value to detect
-  /// updates for patch notes.
-  static const String version = '1.0.0';
+  /// Must stay in sync with `version:` in `pubspec.yaml` (enforced in CI).
+  /// Used to detect app updates for the patch-notes dialog and displayed
+  /// on the About and feedback screens.
+  static const String version = '1.0.1';
 
   /// Contact email for bug reports and feature requests.
   static const String contactEmail = 'support@pvj.io';

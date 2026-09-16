@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mamadera/core/config/app_config.dart';
 import 'package:mamadera/core/providers/app_preferences_provider.dart';
 import 'package:mamadera/core/providers/encryption_provider.dart';
 import 'package:mamadera/core/services/app_preferences_service.dart';
@@ -10,8 +11,10 @@ import 'package:mamadera/features/home/presentation/widgets/track_button.dart';
 import 'package:mamadera/main.dart';
 
 /// Test preferences with terms accepted so the router goes to /home.
+/// [AppConfig.version] keeps the fixture in sync with the app version so the
+/// patch-notes gate never fires in these tests.
 const _testPrefs = AppPreferences(
-  appVersion: '1.0.0',
+  appVersion: AppConfig.version,
   termsAccepted: true,
   patchNotesOptOut: false,
 );

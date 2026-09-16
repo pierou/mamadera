@@ -44,13 +44,30 @@ android {
 
     buildTypes {
         release {
-            if (hasReleaseSigning) {
-                signingConfig = signingConfigs.getByName("release")
-            } else {
-                // Fallback to debug signing when keystore env vars are not set
-                signingConfig = signingConfigs.getByName("debug")
-            }
+            // No debug fallback on purpose: without a keystore the release
+            // variant is left unsigned and the guard below fails the build
+            // with an actionable error (see taskGraph hook at the bottom).
+            signingConfig = signingConfigs.findByName("release")
         }
+    }
+}
+
+// Fail fast instead of silently falling back to debug signing:
+// a "release" build without the release keystore would produce a
+// debug-signed APK that looks like a production build.
+gradle.taskGraph.whenReady {
+    val releaseBuildRequested =
+        allTasks.any { it.name == "assembleRelease" || it.name == "bundleRelease" }
+    if (releaseBuildRequested && !hasReleaseSigning) {
+        throw GradleException(
+            "Release build requested but the release keystore is not configured.\n"
+                + "Set the following environment variables and re-run:\n"
+                + "  KEYSTORE_PATH      path to the .jks/.keystore file\n"
+                + "  KEYSTORE_PASSWORD  password for the keystore\n"
+                + "  KEY_ALIAS          key alias inside the keystore\n"
+                + "  KEY_PASSWORD       password for the key\n"
+                + "Refusing to fall back to debug signing for a release build."
+        )
     }
 }
 

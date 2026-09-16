@@ -1,9 +1,12 @@
-# Gitleaks ignore list — known false positives (commit SHAs)
-# Format: one SHA per line, comments with # allowed.
+# Gitleaks ignore list — known false positives (secret fingerprints)
 #
-# This file is used when scanning git history (--log). With --source=. (HEAD only),
-# inline `// gitleaks:allow` annotations take precedence instead.
-
-# Mock encryption key in tests (test/core/services/encryption_service_test.dart)
-23754b35a898c4aa5ddface92bfa03bad3a2d5b6
-
+# Entries here must be the SHA-1 *fingerprint of the secret value* that
+# gitleaks reports (not a commit SHA). Only add one when a specific secret
+# already in git history must be exempted from history scans.
+#
+# Prefer inline annotations in source files instead:
+#   // gitleaks:allow
+# e.g. the test-only mock key in
+#   test/core/services/encryption_service_test.dart
+#
+# Currently empty — no exemptions needed.

@@ -1,13 +1,13 @@
 {
   "1.0.0": {
     "releaseDate": "2026-07-25",
-    "title": "Nouvelles Fonctionnalités de Mamadera 1.0.0",
+    "title": "Nouveautés de Mamadera 1.0.0",
     "items": [
       "### Nouvelles fonctionnalités",
       "- Mise à jour de l'enumération FeedingSubtype et migration des valeurs de la base de données",
-      "- Mise à jour des libellés des boutons des dialogs pour utiliser « Confirm » au lieu de « Save », avec ajustement de la localisation",
-      "- Restructuration des boutons des dialogs et ajout du sélecteur de quantité",
-      "- Ajout d'un bouton fermer aux dialogs, avec texte des boutons localisé en anglais et français",
+      "- Mise à jour des libellés des boutons des dialogues pour utiliser « Confirm » au lieu de « Save », avec ajustement de la localisation",
+      "- Restructuration des boutons des dialogues et ajout du sélecteur de quantité",
+      "- Ajout d'un bouton fermer aux dialogues, avec texte des boutons localisé en anglais et français",
       "- Mise à jour des paramètres du projet et amélioration de la cohérence du thème entre les écrans",
       "- Restructuration de l'utilisation du thème sur les écrans historique, accueil, menu et rappels",
       "- Affichage d'un dialogue de prise en main selon la présence ou non d'un profil bébé",
@@ -23,29 +23,18 @@
       "- Implémentation d'un service de thème pour des préférences persistantes",
       "- Ajout de la localisation des sous-types de santé et de la sélection de langue du menu",
       "- Ajout de tests unitaires pour les enumérations de suivi et leurs entités associées",
-      "- Suppression de l'action Gitleaks du flux CI",
-      "- Passage de l'action Gitleaks en v3, avec mise à jour de la variable d'environnement pour l'option sans git",
-      "- Mise à jour de la version de l'action Gitleaks et enrichissement des options des commandes d'audit locales",
-      "- Mise à jour de la configuration CI pour améliorer l'utilisation de Gitleaks et simplifier les commandes CI locales",
-      "- Enrichissement de la configuration CI avec un audit Trivy non bloquant et des contrôles de couverture améliorés",
-      "- Mise à jour du flux CI pour utiliser les dernières versions d'actions, avec une meilleure cohérence",
-      "- Mise à jour de la configuration de Gitleaks et ajout d'une liste d'ignorance pour les faux positifs connus",
       "- Refonte du README : détail des fonctionnalités, aperçu de l'architecture et informations confidentialité/sécurité",
-      "- Enrichissement de la chaîne CI avec des contrôles de couverture, et ajout d'un Makefile pour les commandes CI locales",
       "- Implémentation du chiffrement des notes sensibles, avec migration des données existantes",
       "- Restructuration des composants de thème et de navigation inférieure, mise à jour des dépendances du pubspec",
       "- Amélioration de la qualité et de la structure du code : options d'analyse strictes, journalisation améliorée et composants restructurés",
       "- Implémentation du repository de suivi (Tracking Repository) et restructuration de l'écran d'accueil",
       "- Implémentation du service de base de données locale et des fonctionnalités d'historique",
-      "",
-      "### Corrections de bugs",
-      "- Correction de la référence à une variable lors de l'extraction du résumé lcov, pour un rapport de couverture précis",
       ""
     ]
   },
   "1.0.1": {
     "releaseDate": "2026-08-11",
-    "title": "Nouvelles Fonctionnalités de Mamadera 1.0.1",
+    "title": "Nouveautés de Mamadera 1.0.1",
     "items": [
       "### Corrections de bugs",
       "- Correction de la sélection de langue qui ne rafraîchit pas l'application",

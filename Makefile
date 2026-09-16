@@ -1,4 +1,14 @@
-.PHONY: ci lint test build-android build-aab build-ipa clean codegen check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration splash-create
+.PHONY: ci lint test build-android build-aab build-ipa clean codegen check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration integration-driver splash-create
+
+# Harness-based integration tests (integration_test binding — require a
+# connected device). driver_integration_test.dart is excluded: it is a
+# host-side flutter_driver script, run via `make integration-driver`.
+INTEGRATION_TESTS := integration_test/baby_profile_flow_test.dart \
+	integration_test/feeding_tracking_flow_test.dart \
+	integration_test/history_flow_test.dart \
+	integration_test/navigation_flow_test.dart \
+	integration_test/onboarding_flow_test.dart \
+	integration_test/rendering_validation_test.dart
 
 ci: pub-get lint test check-coverage ## Run full local CI pipeline (aligned with GitHub Actions)
 pub-get:
@@ -89,14 +99,21 @@ check-ui: pub-get
 	@grep -rn "fontSize:" lib/features --include="*.dart" | grep -v "theme.dart" | grep -v "ignore_for_file" | head -20
 	@echo "✅ UI rules check complete"
 
-# 📱 Integration tests (run on iOS simulator or CI device)
-integration-test-simulator:
-	@echo "📱 Running integration tests on connected iOS simulator..."
-	flutter test integration_test/
+# 📱 Integration tests (require a connected device/emulator —
+# same file list as the GitHub Actions integration-tests job)
+integration-test-simulator: pub-get
+	@echo "📱 Running integration tests on the connected device..."
+	flutter test $(INTEGRATION_TESTS)
 
 ci-integration: pub-get
-	@echo "🤖 Running full integration test suite (CI mode)..."
-	# Integration Test API tests (no device required — runs in VM)
-	flutter test integration_test/
+	@echo "🤖 Running full integration test suite (CI file list, requires a device)..."
+	flutter test $(INTEGRATION_TESTS)
+
+# 🎛️ Flutter Driver test (host-side script; app entry: lib/driver_main.dart)
+integration-driver: pub-get
+	@echo "🎛️ Running Flutter Driver test on the connected device..."
+	flutter drive \
+		--driver=integration_test/driver_integration_test.dart \
+		--target=lib/driver_main.dart
 
 

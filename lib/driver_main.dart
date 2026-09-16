@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_driver/driver_extension.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/config/app_config.dart';
 import 'core/providers/any_baby_exists_provider.dart';
 import 'core/providers/app_preferences_provider.dart';
 import 'core/services/app_preferences_service.dart';
@@ -17,7 +18,7 @@ class _AcceptedTermsNotifier extends AppPreferencesNotifier {
   @override
   Future<AppPreferences> build() async {
     const prefs = AppPreferences(
-      appVersion: '1.0.0',
+      appVersion: AppConfig.version,
       termsAccepted: true,
       patchNotesOptOut: false,
     );

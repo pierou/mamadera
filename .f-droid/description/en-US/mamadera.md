@@ -14,6 +14,6 @@ Mamadera is a privacy-first newborn tracking app for parents who want to log the
 
 * 100% offline — all data stays on your device
 * No analytics, no telemetry, no cloud sync
-* End-to-end encryption for sensitive notes (AES-GCM)
+* Sensitive notes encrypted at rest (AES-256-GCM, key in the device keystore)
 * Minimal permissions — nothing collected without explicit consent
 * Open source under the MIT license

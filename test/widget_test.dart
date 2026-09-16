@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mamadera/core/config/app_config.dart';
 import 'package:mamadera/core/providers/app_preferences_provider.dart';
 import 'package:mamadera/core/providers/locale_provider.dart';
 import 'package:mamadera/core/services/app_preferences_service.dart';
@@ -12,8 +13,10 @@ import 'package:mamadera/main.dart';
 const frenchLocale = LocalePreference(languageCode: 'fr', isManualOverride: false);
 
 /// Test preferences with terms accepted so the router goes to /home.
+/// [AppConfig.version] keeps the fixture in sync with the app version so the
+/// patch-notes gate never fires in these tests.
 const _testPrefs = AppPreferences(
-  appVersion: '1.0.0',
+  appVersion: AppConfig.version,
   termsAccepted: true,
   patchNotesOptOut: false,
 );

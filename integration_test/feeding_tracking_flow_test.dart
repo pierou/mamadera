@@ -25,6 +25,7 @@ void main() {
       expectUnique(tester, TestKeys.trackMiam);
 
       // Tap the "miam" tracking button — should open a modal bottom sheet.
+      await tester.ensureVisible(findByKey(TestKeys.trackMiam));
       await tester.tap(findByKey(TestKeys.trackMiam));
       await tester.pumpAndSettle();
 
@@ -54,6 +55,7 @@ void main() {
       await pumpMamadera(tester);
 
       // Open the dialog.
+      await tester.ensureVisible(findByKey(TestKeys.trackMiam));
       await tester.tap(findByKey(TestKeys.trackMiam));
       await tester.pumpAndSettle();
 
@@ -76,6 +78,7 @@ void main() {
       await pumpMamadera(tester);
 
       // Tap "sante" tracking button — should show health subtype options.
+      await tester.ensureVisible(findByKey(TestKeys.trackSante));
       await tester.tap(findByKey(TestKeys.trackSante));
       await tester.pumpAndSettle();
 
@@ -92,6 +95,7 @@ void main() {
       await pumpMamadera(tester);
 
       // Tap "caca" tracking button — should show waste type picker.
+      await tester.ensureVisible(findByKey(TestKeys.trackCaca));
       await tester.tap(findByKey(TestKeys.trackCaca));
       await tester.pumpAndSettle();
 
@@ -107,6 +111,7 @@ void main() {
       await pumpMamadera(tester);
 
       // Tap "dodo" tracking button — should show sleep duration picker.
+      await tester.ensureVisible(findByKey(TestKeys.trackDodo));
       await tester.tap(findByKey(TestKeys.trackDodo));
       await tester.pumpAndSettle();
 
