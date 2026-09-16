@@ -14,13 +14,18 @@ class RemindersService {
   final RemindersRepository repository;
 
   /// Returns the list of reminders that are currently due.
-  Future<RemindersState> checkDue() async {
+  ///
+  /// [babyId] scopes completion lookups to the active baby (see
+  /// [RemindersRepository.getLastCompleted]); pass null when no baby profile
+  /// exists yet. Dismissal cooldowns are not baby-scoped — see
+  /// [RemindersRepository.saveDismissalTime].
+  Future<RemindersState> checkDue({String? babyId}) async {
     final now = DateTime.now();
     final dueItems = <ReminderStatus>[];
 
     for (final item in items) {
       // Get timestamp of last tracked event (any date), then check frequency logic.
-      final lastCompleted = await repository.getLastCompleted(item);
+      final lastCompleted = await repository.getLastCompleted(item, babyId: babyId);
       if (!item.frequency.isDue(now, lastCompleted)) continue;
 
       // Check cooldown — was the reminder recently dismissed?

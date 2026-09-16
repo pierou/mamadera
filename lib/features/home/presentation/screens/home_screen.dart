@@ -133,6 +133,7 @@ class _HomeContent extends ConsumerWidget {
             type: TrackingType.miam,
             feedingSubtype: subtype,
             quantity: quantity,
+            timestamp: feedingResult['timestamp'] as DateTime?,
           );
       if (context.mounted) {
         unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
@@ -142,7 +143,7 @@ class _HomeContent extends ConsumerWidget {
   }
 
   Future<void> _onTapDodo(BuildContext context, WidgetRef ref) async {
-    final minutes = await showModalBottomSheet<double>(
+    final selection = await showModalBottomSheet<SleepSelection>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -154,8 +155,8 @@ class _HomeContent extends ConsumerWidget {
         return StatefulBuilder(
           builder: (context, setState) {
             return DurationPickerDialog(
-              onDurationSelected: (minutes) {
-                Navigator.of(context).pop(minutes);
+              onSleepSelected: (result) {
+                Navigator.of(context).pop(result);
               },
             );
           },
@@ -163,15 +164,16 @@ class _HomeContent extends ConsumerWidget {
       },
     );
 
-    if (minutes != null && context.mounted) {
+    if (selection != null && context.mounted) {
       await ref.read(trackNotifierProvider.notifier).track(
             type: TrackingType.dodo,
-            duration: minutes,
-            quantity: minutes,
+            duration: selection.minutes,
+            quantity: selection.minutes,
+            timestamp: selection.start,
           );
       if (context.mounted) {
         unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
-        showFeedback(context, context.l.feedbackSleep(minutes.round()));
+        showFeedback(context, context.l.feedbackSleep(selection.minutes.round()));
       }
     }
   }
@@ -195,6 +197,8 @@ class _HomeContent extends ConsumerWidget {
             wasteType: wasteType,
             pipiColor: result['pipiColor'] as PipiColor?,
             cacaColor: result['cacaColor'] as CacaColor?,
+            stoolTexture: result['texture'] as StoolTexture?,
+            timestamp: result['timestamp'] as DateTime?,
           );
       if (context.mounted) {
         unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
@@ -221,6 +225,7 @@ class _HomeContent extends ConsumerWidget {
       await ref.read(trackNotifierProvider.notifier).track(
             type: TrackingType.sante,
             healthSubtype: subtype,
+            timestamp: result['timestamp'] as DateTime?,
           );
       if (context.mounted) {
         unawaited(ref.read(reminderNotifierProvider.notifier).refresh());

@@ -53,7 +53,7 @@ Follow → [`docs/app-store-setup.md`](app-store-setup.md)
 | Upload screenshots (iPhone 6.7" + 5.5") — at least 3 per language | ☐ |
 | Set privacy policy URL | ☐ |
 | Complete age rating questionnaire | ☐ |
-| Verify `ITSAppUsesNonExemptEncryption = false` is in Info.plist ✅ done | ☐ |
+| Verify `ITSAppUsesNonExemptEncryption = true` is in Info.plist ✅ done | ☐ |
 | Submit for review | ☐ |
 
 **Expected timeline:** First review takes 1–3 business days.
@@ -130,4 +130,3 @@ git tag v1.0.0-rc.1 && git push origin v1.0.0-rc.1
 | Xcode signing errors | Delete DerivedData (`~/Library/Developer/Xcode/DerivedData`) and re-open `.xcworkspace` |
 | Google Play says package name mismatch | Verify `android/app/build.gradle.kts` has `applicationId = "com.pvjio.mamadera"` — must match exactly |
 | App Store Connect can't find bundle ID | Wait 10–30 minutes after creating it, or manually create in Developer Portal → Identifiers |
-| F-Droid rejects build due to sqlcipher EOL tag | Reply to maintainer explaining the dependency is GPL-compatible; they may accept with note |

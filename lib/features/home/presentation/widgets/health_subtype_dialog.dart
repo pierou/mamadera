@@ -1,39 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/utils/health_label_resolver.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
+import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
 
-/// Notifier d'état pour le dialog de sous-types santé.
-final healthSubtypeDialogProvider =
-    NotifierProvider<HealthSubtypeDialogNotifier, HealthSubtype?>(
-  HealthSubtypeDialogNotifier.new,
-);
-
-class HealthSubtypeDialogNotifier extends Notifier<HealthSubtype?> {
-  @override
-  HealthSubtype? build() => null;
-
-  void setSelected(HealthSubtype subtype) {
-    state = subtype;
-  }
-
-  void clear() {
-    state = null;
-  }
-}
-
 /// Widget pour afficher les sous-types de soins santé.
-class HealthSubtypeDialog extends ConsumerWidget {
+///
+/// L'état de sélection est local au [StatefulWidget] : il ne survit pas à la
+/// fermeture du dialog et ne fuit pas d'une ouverture à l'autre.
+class HealthSubtypeDialog extends StatefulWidget {
   const HealthSubtypeDialog({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final selectedType = ref.watch(healthSubtypeDialogProvider);
+  State<HealthSubtypeDialog> createState() => _HealthSubtypeDialogState();
+}
+
+class _HealthSubtypeDialogState extends State<HealthSubtypeDialog> {
+  HealthSubtype? _selectedType;
+
+  /// Date and time of the care routine, defaulted to the moment the sheet opened.
+  DateTime _selectedDate = DateTime.now();
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedType = _selectedType;
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -61,20 +55,30 @@ class HealthSubtypeDialog extends ConsumerWidget {
                     ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
                     : null,
                 onTap: () {
-                  ref.read(healthSubtypeDialogProvider.notifier).setSelected(subtype);
+                  setState(() => _selectedType = subtype);
                 },
               );
             }),
 
             const SizedBox(height: 20),
 
+            EventDateTimeField(
+              value: _selectedDate,
+              onChanged: (date) => setState(() => _selectedDate = date),
+            ),
+
+            const SizedBox(height: 20),
+
             DialogActionButtons(
               onCancelPressed: () => Navigator.pop(context),
               onConfirmPressed: () {
-                final state = ref.read(healthSubtypeDialogProvider);
+                final state = _selectedType;
                 if (state != null) {
                   if (context.mounted) {
-                    Navigator.pop(context, {'subtype': state});
+                    Navigator.pop(context, {
+                      'subtype': state,
+                      'timestamp': _selectedDate,
+                    });
                   }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(

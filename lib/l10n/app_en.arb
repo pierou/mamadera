@@ -7,6 +7,10 @@
   "navHistory": "History",
   "navMenu": "Menu",
 
+  "routerPageNotFoundTitle": "Page not found",
+  "routerBackToHome": "Back to home",
+  "routerGenericError": "An unexpected error occurred.",
+
   "homeButtonMiam": "Feeding",
   "homeButtonSante": "Health",
   "homeButtonCaca": "Diaper",
@@ -94,6 +98,41 @@
   "reminderVitaminK": "Vit. K",
   "reminderEyeCleaning": "Eyes",
   "reminderFaceCleaning": "Face",
+  "reminderSettingsTile": "Choose which reminders to show",
+  "reminderSettingsTitle": "Reminders",
+  "reminderSettingsError": "Failed to load reminders",
+  "reminderSettingsDescription": "Banners shown on the home screen until the care has been logged. No system notifications are sent: everything stays on this device.",
+  "reminderFrequencyDaily": "Every day",
+  "reminderFrequencyWeekly": "Every week",
+  "reminderFrequencyMonthly": "On day {day} of each month",
+  "@reminderFrequencyMonthly": {
+    "placeholders": {
+      "day": {}
+    }
+  },
+  "reminderFrequencyEveryNDays": "Every {days} days",
+  "@reminderFrequencyEveryNDays": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "reminderCustomSectionTitle": "Custom reminders",
+  "reminderCustomSectionDescription": "A reminder leaves Home as soon as you log the linked care.",
+  "reminderCustomAdd": "Add a reminder",
+  "reminderCustomEmpty": "No custom reminders yet.",
+  "reminderCustomSheetAdd": "New reminder",
+  "reminderCustomSheetEdit": "Edit reminder",
+  "reminderCustomLabelField": "Reminder name",
+  "reminderCustomLabelRequired": "Give the reminder a name",
+  "reminderCustomCareField": "Linked care",
+  "reminderCustomFrequencyField": "Frequency",
+  "reminderCustomIntervalField": "Interval in days",
+  "reminderCustomIntervalRequired": "Enter a number of days, from 1 to 365",
+  "reminderFrequencyMonthlyBirth": "On the birth day, every month",
+  "reminderCustomDeleteConfirm": "Delete this reminder?",
+  "reminderCustomDeleteWarning": "The reminder leaves Home. Events you already logged are kept.",
+  "reminderCustomSaveError": "Could not save the reminder. Please try again.",
+  "reminderCustomDeleteError": "Could not delete the reminder. Please try again.",
 
   "yesterday": "Yesterday",
   "daysAgo": " days ago",
@@ -116,6 +155,12 @@
   "cacaColorVertOlive": "Olive Green",
   "cacaColorJauneMoutarde": "Mustard Yellow",
   "cacaColorJauneClair": "Light Yellow",
+  "stoolTextureSectionTitle": "Stool Texture",
+  "stoolTextureAqueuse": "Watery",
+  "stoolTextureGrumeleuse": "Seedy",
+  "stoolTexturePateuse": "Pasty",
+  "stoolTextureMoulee": "Formed",
+  "stoolTextureDure": "Hard",
 
   "historyTitle": "History",
   "filterAll": "All",
@@ -155,7 +200,7 @@
   "feedingSubtypeArtificial": "Formula",
 
   "editDialogTitle": "Edit Event",
-  "editDateSectionTitle": "Date and Time",
+  "eventDateSectionTitle": "Date and Time",
   "editDurationSectionTitle": "Duration",
   "editTypeSectionTitle": "Type",
   "editPipiColorSectionTitle": "Urine Color",
@@ -197,6 +242,43 @@
   },
   "cancel": "Cancel",
   "closeButton": "Close",
+
+  "exportDataTitle": "Export my data",
+  "exportDataDescription": "JSON backup of all your data",
+  "exportDataConfirm": "Export",
+  "exportDataWarning": "This file will contain all of your data, including health notes as readable text. You choose where to save it: nothing is sent automatically.",
+  "exportDataSuccess": "Export complete",
+  "exportDataError": "Export failed",
+  "exportDataEmpty": "No data to export",
+
+  "importDataTitle": "Restore from a backup",
+  "importDataDescription": "Restore all your data from a JSON file you exported",
+  "importDataConfirm": "Choose a file…",
+  "importDataWarning": "This will permanently delete all data currently on this device and replace it with the file's contents. Choose the file you exported.",
+  "importDataSummary": "This file contains {profiles} baby profile(s), {events} event(s) and {reminders} custom reminder(s). Restoring will erase all data currently on this device.",
+  "@importDataSummary": {
+    "placeholders": {
+      "profiles": { "type": "int" },
+      "events": { "type": "int" },
+      "reminders": { "type": "int" }
+    }
+  },
+  "importDataNoProfile": "Warning: this file contains no baby profile. The events will be restored but attached to no baby, and you will need to create a profile to see them.",
+  "importDataProceed": "Restore",
+  "importDataSuccess": "Restore finished: {profiles} profile(s) and {events} event(s)",
+  "@importDataSuccess": {
+    "placeholders": {
+      "profiles": { "type": "int" },
+      "events": { "type": "int" }
+    }
+  },
+  "importDataErrorInvalidFile": "Unrecognised file: this is not a valid Mamadera backup.",
+  "importDataErrorNotMamadera": "This file was not created by Mamadera.",
+  "importDataErrorNewerVersion": "This file was created by a newer version of the app. Update Mamadera before restoring it.",
+  "importDataErrorNewerSchema": "This file contains data newer than this version of the app. Update Mamadera before restoring it.",
+  "importDataErrorEmpty": "This file contains no data to restore.",
+  "importDataErrorUnreadable": "The chosen file could not be read.",
+  "importDataErrorFailed": "Restore failed. Your current data is unchanged.",
 
   "babyProfilesSectionTitle": "Babies",
   "babyProfilesEmpty": "No baby profiles yet",
@@ -272,6 +354,7 @@
   "termsLoadingError": "Failed to load terms. Please try again.",
 
   "patchNotesTitle": "What's New",
+  "patchNotesUnavailable": "No patch notes available",
   "patchNotesClose": "Close",
   "patchNotesDontShowAgain": "Don't show again",
   "patchNotesWhatChanged": "What's Changed",

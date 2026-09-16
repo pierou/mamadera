@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Data extraction rules — read by Android 12 (API 31) and newer.
+  Referenced from AndroidManifest.xml via android:dataExtractionRules.
+
+  android:allowBackup="false" on <application> is what actually disables both
+  transports; the allowBackup attributes on the two child elements and the
+  explicit <exclude> entries are defence-in-depth, so nothing is backed up or
+  transferred even on OEM builds that honour only part of the declaration.
+  Device-to-device transfer is not covered by the manifest flag alone on some
+  OEM builds, which is why <device-transfer> is spelled out here.
+-->
+<data-extraction-rules xmlns:android="http://schemas.android.com/apk/res/android">
+    <cloud-backup android:allowBackup="false">
+        <!-- Baby database (path_provider documents dir = getExternalFilesDir()). -->
+        <exclude domain="external" path="Documents/mamadera.db" />
+        <exclude domain="file" path="Documents/mamadera.db" />
+
+        <!-- Local JSON preferences (terms acceptance, patch-notes opt-out, locale, theme). -->
+        <exclude domain="external" path="Documents/.mamadera_prefs.json" />
+        <exclude domain="file" path="Documents/.mamadera_prefs.json" />
+        <exclude domain="external" path="Documents/.mamadera_locale.json" />
+        <exclude domain="file" path="Documents/.mamadera_locale.json" />
+        <exclude domain="external" path="Documents/.mamadera_theme.json" />
+        <exclude domain="file" path="Documents/.mamadera_theme.json" />
+
+        <!-- flutter_secure_storage: encrypted values and their wrapped master key. -->
+        <exclude domain="sharedpref" path="FlutterSecureStorage.xml" />
+        <exclude domain="sharedpref" path="FlutterSecureKeyStorage.xml" />
+    </cloud-backup>
+
+    <device-transfer android:allowBackup="false">
+        <exclude domain="external" path="Documents/mamadera.db" />
+        <exclude domain="file" path="Documents/mamadera.db" />
+
+        <exclude domain="external" path="Documents/.mamadera_prefs.json" />
+        <exclude domain="file" path="Documents/.mamadera_prefs.json" />
+        <exclude domain="external" path="Documents/.mamadera_locale.json" />
+        <exclude domain="file" path="Documents/.mamadera_locale.json" />
+        <exclude domain="external" path="Documents/.mamadera_theme.json" />
+        <exclude domain="file" path="Documents/.mamadera_theme.json" />
+
+        <exclude domain="sharedpref" path="FlutterSecureStorage.xml" />
+        <exclude domain="sharedpref" path="FlutterSecureKeyStorage.xml" />
+    </device-transfer>
+</data-extraction-rules>

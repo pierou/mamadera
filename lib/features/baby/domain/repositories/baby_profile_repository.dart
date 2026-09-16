@@ -20,9 +20,11 @@ abstract class BabyProfileRepository {
   /// Returns the updated profile on success, or `null` if [id] was not found.
   Future<BabyProfile?> updateProfile(String id, {String? name, DateTime? birthDate});
 
-  /// Delete a baby profile (cascade: events linked to this profile remain but become orphaned).
+  /// Delete a baby profile and, in the same transaction, every tracking event
+  /// belonging to it — no event is ever left orphaned behind a deleted baby.
   Future<bool> deleteProfile(String id);
 
-  /// Set a single profile as the active one (deactivates any previously active profile).
+  /// Set a single profile as the active one, atomically deactivating any
+  /// previously active profile — the two updates never land separately.
   Future<void> setActiveProfile(String id);
 }

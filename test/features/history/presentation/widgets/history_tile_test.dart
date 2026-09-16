@@ -373,4 +373,47 @@ void main() {
       expect(find.byType(Semantics), findsWidgets);
     });
   });
+
+  group('HistoryTile — Consistance de la selle', () {
+    testWidgets('la texture enregistrée est affichée sur la ligne', (tester) async {
+      await pumpTile(
+        tester,
+        DiaperEvent(
+          timestamp: DateTime.utc(2024),
+          wasteType: WasteType.caca,
+          stoolTexture: stoolTexturePateuse,
+        ),
+      );
+
+      expect(find.text('Pâteuse'), findsOneWidget);
+    });
+
+    // Les changes notées avant la v9 n'ont pas de texture : la ligne ne doit
+    // pas inventer un cran ni afficher une ligne vide.
+    testWidgets('aucune ligne de texture pour une couche sans texture', (tester) async {
+      await pumpTile(
+        tester,
+        DiaperEvent(
+          timestamp: DateTime.utc(2024),
+          wasteType: WasteType.caca,
+          cacaColor: cacaColorJauneMoutarde,
+        ),
+      );
+
+      expect(find.text('Pâteuse'), findsNothing);
+      expect(find.text('Aqueuse'), findsNothing);
+      // Les indicateurs de couleur existants restent affichés (une couleur est
+      // rendue en pastille + Tooltip, pas en texte).
+      expect(find.byType(Tooltip), findsOneWidget);
+    });
+
+    testWidgets('un événement non-couche n\'affiche aucune texture', (tester) async {
+      await pumpTile(
+        tester,
+        SleepEvent(timestamp: DateTime.utc(2024), duration: 45),
+      );
+
+      expect(find.text('Moulée'), findsNothing);
+    });
+  });
 }

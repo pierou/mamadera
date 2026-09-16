@@ -41,5 +41,26 @@
       "- Corrección de la selección del tema, que no actualizaba la aplicación",
       ""
     ]
+  },
+  "1.1.0": {
+    "releaseDate": "2026-09-15",
+    "title": "Novedades de Mamadera 1.1.0",
+    "items": [
+      "### Nuevas funcionalidades",
+      "- Adición de recordatorios personalizados vinculados a un cuidado",
+      "- Opción para desactivar los recordatorios predefinidos no deseados",
+      "- Seguimiento de la textura de las heces en los cambios de pañal",
+      "- Elección de la fecha y la hora al añadir un evento",
+      "- Exportación manual de todos los datos en JSON mediante el menú para compartir",
+      "- Restauración completa desde un archivo de copia de seguridad exportado",
+      "### Mejoras",
+      "- Texto en español para los usuarios hispanohablantes: términos de uso, fechas y notas de la versión",
+      "### Correcciones de errores",
+      "- Conservación de las notas al editar una entrada de salud",
+      "- Recuperación tras el borrado completo de los datos",
+      "- Respeto del día configurado en los recordatorios, limitados al bebé seleccionado",
+      "- Creación de la configuración de recordatorios ausente al actualizar desde versiones anteriores",
+      ""
+    ]
   }
 }

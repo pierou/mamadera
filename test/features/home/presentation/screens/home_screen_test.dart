@@ -8,12 +8,14 @@ import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
 import 'package:mamadera/core/providers/any_baby_exists_provider.dart';
+import 'package:mamadera/core/widgets/event_date_time_field.dart';
 import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart';
 import 'package:mamadera/features/home/presentation/providers/repository_provider.dart';
 import 'package:mamadera/features/home/presentation/screens/home_screen.dart';
 import 'package:mamadera/features/home/presentation/widgets/onboarding_dialog.dart';
 import 'package:mamadera/features/home/presentation/widgets/track_button.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
+import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -320,6 +322,145 @@ void main() {
 
       final captured = verify(mockRepo.insertEvent(captureAny)).captured;
       expect(captured.first, isA<DiaperEvent>());
+    });
+  });
+
+  // ──────────────────────────────────────────────
+  // Date de l'événement à la création
+  // ──────────────────────────────────────────────
+  group('Date de saisie', () {
+    Future<void> openSheetAndConfirm(WidgetTester tester, String buttonLabel) async {
+      when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
+
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(findTrackButton(buttonLabel));
+      await tester.pumpAndSettle();
+
+      // Toute feuille de saisie expose le champ de date/heure.
+      expect(find.byType(EventDateTimeField), findsOneWidget,
+          reason: 'le dialogue $buttonLabel doit laisser choisir la date');
+
+      final confirmBtn = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('Confirmer'),
+      );
+      await tester.ensureVisible(confirmBtn);
+      await tester.tap(confirmBtn, warnIfMissed: false);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Miam : la date par défaut est le moment de la saisie', (tester) async {
+      final before = DateTime.now();
+      await openSheetAndConfirm(tester, 'Miam');
+
+      final event =
+          verify(mockRepo.insertEvent(captureAny)).captured.single as TrackingEvent;
+      expect(event.timestamp.isBefore(before.subtract(const Duration(minutes: 1))), isFalse);
+      expect(event.timestamp.isAfter(DateTime.now()), isFalse);
+    });
+
+    testWidgets('Dodo : la date par défaut recule de la durée saisie', (tester) async {
+      await openSheetAndConfirm(tester, 'Dodo');
+
+      final event =
+          verify(mockRepo.insertEvent(captureAny)).captured.single as SleepEvent;
+      // Durée par défaut du slider : 30 min → une sieste commencée à 20:30 est
+      // enregistrée à 20:30, pas à l'heure du tic.
+      final expected = DateTime.now().subtract(const Duration(minutes: 30));
+      expect(event.timestamp.difference(expected).inSeconds.abs(), lessThan(65),
+          reason: 'timestamp=${event.timestamp}, attendu≈$expected');
+    });
+
+    testWidgets('Caca : la date par défaut est le moment de la saisie', (tester) async {
+      final before = DateTime.now();
+      await openSheetAndConfirm(tester, 'Caca');
+
+      final event =
+          verify(mockRepo.insertEvent(captureAny)).captured.single as TrackingEvent;
+      expect(event.timestamp.isBefore(before.subtract(const Duration(minutes: 1))), isFalse);
+      expect(event.timestamp.isAfter(DateTime.now()), isFalse);
+    });
+
+    testWidgets('Santé : la date par défaut est le moment de la saisie', (tester) async {
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(findTrackButton('Santé'));
+      await tester.pumpAndSettle();
+      expect(find.byType(EventDateTimeField), findsOneWidget);
+
+      // Une sélection est obligatoire : choisir un sous-type puis confirmer.
+      final subtype = find.text('Nettoyage des yeux');
+      await tester.ensureVisible(subtype);
+      await tester.tap(subtype, warnIfMissed: false);
+      await tester.pumpAndSettle();
+      final confirmBtn = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('Confirmer'),
+      );
+      await tester.ensureVisible(confirmBtn);
+      await tester.tap(confirmBtn, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      final event =
+          verify(mockRepo.insertEvent(captureAny)).captured.single as TrackingEvent;
+      expect(event.timestamp.isAfter(DateTime.now().add(const Duration(minutes: 1))), isFalse);
+    });
+  });
+
+  // ──────────────────────────────────────────────
+  // Consistance des selles
+  // ──────────────────────────────────────────────
+  group('Consistance du caca', () {
+    testWidgets('une texture choisie est enregistrée sur l\'événement', (tester) async {
+      when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
+
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(findTrackButton('Caca'));
+      await tester.pumpAndSettle();
+
+      final chip = find.widgetWithText(FilterChip, 'Pâteuse');
+      await tester.ensureVisible(chip);
+      await tester.tap(chip, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      final confirmBtn = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('Confirmer'),
+      );
+      await tester.ensureVisible(confirmBtn);
+      await tester.tap(confirmBtn, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single as DiaperEvent;
+      expect(event.stoolTexture, equals(stoolTexturePateuse));
+    });
+
+    // Régression : la consistance reste optionnelle. Un parent qui ne saisit
+    // rien ne doit pas voir son historique rempli d'un cran deviné.
+    testWidgets('aucune texture saisie → événement sans texture', (tester) async {
+      when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
+
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(findTrackButton('Caca'));
+      await tester.pumpAndSettle();
+
+      final confirmBtn = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('Confirmer'),
+      );
+      await tester.ensureVisible(confirmBtn);
+      await tester.tap(confirmBtn, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single as DiaperEvent;
+      expect(event.stoolTexture, equals(null));
     });
   });
 

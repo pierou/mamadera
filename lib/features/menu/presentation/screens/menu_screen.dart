@@ -3,9 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/providers/active_baby_provider.dart';
+import '../../../../core/providers/any_baby_exists_provider.dart';
+import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/theme.dart';
+import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
+import '../../../../features/export/presentation/widgets/export_data_dialog.dart';
+import '../../../../features/history/presentation/providers/history_notifier.dart';
+import '../../../../features/history/presentation/providers/history_repository_provider.dart';
+import '../../../../features/home/presentation/providers/repository_provider.dart';
+import '../../../../features/import/presentation/widgets/import_data_dialog.dart';
+import '../../../../features/reminders/presentation/providers/reminder_providers.dart';
 import '../providers/menu_repository_provider.dart';
 import '../widgets/baby_profile_section.dart';
 
@@ -68,6 +78,22 @@ class MenuScreen extends ConsumerWidget {
               _buildThemeTile(context, ref, 'light', currentThemeMode, Icons.light_mode_outlined, Icons.light_mode, context.l.themeLight),
               _buildThemeTile(context, ref, 'dark', currentThemeMode, Icons.dark_mode_outlined, Icons.dark_mode, context.l.themeDark),
 
+              // Reminders Section
+              const SizedBox(height: AppTheme.spacingXxl),
+              Text(
+                context.l.reminderSettingsTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              ListTile(
+                leading: const Icon(Icons.event_available_outlined),
+                title: Text(context.l.reminderSettingsTile),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/reminder-settings'),
+              ),
+
               // Terms Section
               const SizedBox(height: AppTheme.spacingXxl),
               Text(
@@ -126,6 +152,27 @@ class MenuScreen extends ConsumerWidget {
                     ),
               ),
               const SizedBox(height: AppTheme.spacingMd),
+              ListTile(
+                leading: const Icon(Icons.upload_outlined),
+                title: Text(context.l.exportDataTitle),
+                subtitle: Text(context.l.exportDataDescription),
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => const ExportDataDialog(),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              _buildDangerTile(
+                context: context,
+                icon: Icons.settings_backup_restore,
+                title: context.l.importDataTitle,
+                description: context.l.importDataDescription,
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => const ImportDataDialog(),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
               _buildResetDatabaseTile(context, ref),
             ],
           ),
@@ -180,21 +227,57 @@ class MenuScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildResetDatabaseTile(BuildContext context, WidgetRef ref) {
+  Widget _buildResetDatabaseTile(BuildContext context, WidgetRef ref) => _buildDangerTile(
+        context: context,
+        icon: Icons.warning_amber_rounded,
+        title: context.l.resetDatabaseButton,
+        description: context.l.resetDatabaseWarningDetail,
+        onTap: () => _showResetDatabaseDialog(context, ref),
+      );
+
+  /// One tile in the danger zone: bordered in error colours, because both
+  /// actions it offers replace or erase everything on the device.
+  Widget _buildDangerTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => _showResetDatabaseDialog(context, ref),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: _dangerZoneDecoration(colorScheme),
           child: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: colorScheme.error),
+              Icon(icon, color: colorScheme.error),
               const SizedBox(width: 12),
-              Expanded(child: _resetDatabaseInfo(context, colorScheme)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.error,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colorScheme.error,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
               Icon(Icons.chevron_right, color: colorScheme.error),
             ],
           ),
@@ -208,24 +291,6 @@ class MenuScreen extends ConsumerWidget {
         border: Border.all(color: colorScheme.errorContainer, width: 1.5),
         borderRadius: BorderRadius.circular(8),
       );
-
-  Widget _resetDatabaseInfo(BuildContext context, ColorScheme colorScheme) {
-    final titleStyle = TextStyle(
-      fontWeight: FontWeight.bold,
-      color: colorScheme.error,
-    );
-    final descStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: colorScheme.error,
-        );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(context.l.resetDatabaseButton, style: titleStyle),
-        const SizedBox(height: 4),
-        Text(context.l.resetDatabaseWarningDetail, style: descStyle),
-      ],
-    );
-  }
 
   Future<void> _showResetDatabaseDialog(BuildContext context, WidgetRef ref) async {
     final colorScheme = Theme.of(context).colorScheme;
@@ -254,6 +319,26 @@ class MenuScreen extends ConsumerWidget {
     final errorLabel = context.l.resetDatabaseError;
     try {
       await ref.read(menuRepositoryProvider).resetDatabase();
+      // Invalidation is MANDATORY, not cosmetic: resetDatabase() closes the
+      // SQLite connection and deletes the file, but databaseProvider is a
+      // keep-alive (non autoDispose) FutureProvider — without invalidating it,
+      // Riverpod would keep handing out the *closed* database for the rest of
+      // the session and every later query would throw "database is not open".
+      // The whole dependent chain is discarded so a fresh database is built on
+      // the next read and no screen can show pre-reset data.
+      ref
+        ..invalidate(databaseProvider)
+        ..invalidate(trackingRepositoryProvider)
+        ..invalidate(historyRepositoryProvider)
+        ..invalidate(babyProfileRepositoryProvider)
+        ..invalidate(remindersRepositoryProvider)
+        ..invalidate(babyProfileProvider)
+        ..invalidate(menuRepositoryProvider)
+        ..invalidate(activeBabyProvider)
+        ..invalidate(babyProfileListProvider)
+        ..invalidate(anyBabyExistsProvider)
+        ..invalidate(historyNotifierProvider)
+        ..invalidate(reminderNotifierProvider);
       if (context.mounted) _showSnackBar(context, successLabel);
     } catch (e) {
       if (context.mounted) _showSnackBar(context, errorLabel(e.toString()), isError: true);

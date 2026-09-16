@@ -76,6 +76,7 @@ class HistoryRepositoryImpl implements HistoryRepository {
           babyId: Value(e.babyId),
           wasteType: Value(e.wasteType?.dbValue),
           color: Value(e.colorDbValue),
+          texture: Value(e.textureDbValue),
         );
       },
       health: (e) {

@@ -121,10 +121,38 @@ class _TrackButtonContent extends StatelessWidget {
 
   bool get _hasPendingReminders => reminders != null && reminders!.isNotEmpty;
 
+  /// Nombre maximal de pastilles posées sur le bouton, compteur compris.
+  ///
+  /// Le bouton a une hauteur fixe (200–230 px) et les pastilles tournent à la
+  /// ligne : à partir de quatre rappels en attente sur un même type — deux ou
+  /// trois personnalisés suffisent — le `Wrap` mange l'espace du libellé et
+  /// l'appui sur le bouton devient aléatoire. Au-delà du cap on compte plutôt
+  /// qu'on n'affiche : le parent voit qu'il reste des rappels, et les lit sur
+  /// l'accueil ou dans Réglages → Rappels.
+  static const int _maxVisiblePills = 3;
+
+  /// Pastilles à afficher, suivi du nombre de celles restées cachées.
+  ///
+  /// L'ordre d'arrivée est celui du notifieur (préréglages puis personnalisés,
+  /// ordre de création) : borné par `take`, il reste stable d'une reconstruction
+  /// à l'autre — les pastilles ne dansent pas à chaque sondage de cinq minutes.
+  ({List<ReminderStatus> visible, int hidden}) _visiblePills(List<ReminderStatus> items) {
+    if (items.length <= _maxVisiblePills) {
+      return (visible: items, hidden: 0);
+    }
+    // Un emplacement est réservé au compteur : trois éléments maximum, que le
+    // parent ait quatre rappels ou dix.
+    return (
+      visible: items.take(_maxVisiblePills - 1).toList(growable: false),
+      hidden: items.length - (_maxVisiblePills - 1),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasPending = _hasPendingReminders;
     final items = reminders ?? [];
+    final pills = _visiblePills(items);
     final theme = Theme.of(context);
     final brightness = theme.brightness;
 
@@ -200,8 +228,10 @@ class _TrackButtonContent extends StatelessWidget {
                     runSpacing: AppTheme.spacingSm,
                     alignment: WrapAlignment.center,
                     children: [
-                      for (final status in items)
+                      for (final status in pills.visible)
                         ReminderPill(label: pillLabelBuilder(this.context, status)),
+                      if (pills.hidden > 0)
+                        ReminderPill(label: '+${pills.hidden}'),
                     ],
                   ),
                 ),

@@ -58,7 +58,13 @@ All data is stored locally on your device using a SQLite database (Drift). We st
 
 ### Backup & Export
 
-mamadera provides **no automatic backups**. A data export feature is not currently available; you can delete all of your data at any time via the database reset in settings.
+mamadera provides **no automatic backups**. Android system backup and iOS iCloud backup are both explicitly excluded for every app-owned file, so nothing is uploaded behind your back.
+
+The only way data leaves the device is an export **you** start: in the app, choose *Export my data*, confirm, and pick a destination in the operating system's own share sheet. This writes a JSON file containing your data — including health notes as readable text — and hands it to the destination you chose. The app never transmits it anywhere, opens no network connection for it, and deletes the temporary plaintext copy afterwards. Note that the destination you pick (email, cloud drive, messaging app) is outside this app's privacy boundary: once shared, the file is governed by that service.
+
+Because exported notes are readable text, an export is only as private as where you put it. If the encryption key is ever lost or the app data is reinstalled, notes that cannot be decrypted are marked as such in the file rather than silently dropped.
+
+You can delete all of your data at any time via the database reset in settings.
 
 ## Permissions
 
@@ -106,7 +112,6 @@ We use only the following third-party packages, all of which are offline-only:
 | `go_router` | Routing | None |
 | `logger` | Logging | None |
 | `url_launcher` | Opening URLs (e.g. GitHub) | Only when explicitly triggered by user |
-| `package_info_plus` | Reading app version | None |
 | `path_provider` | File paths | None |
 | `intl` / `flutter_localizations` | i18n (EN/FR/ES) | None |
 | `markdown` | Rendering terms of service | None |

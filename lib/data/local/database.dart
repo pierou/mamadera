@@ -26,7 +26,8 @@ Future<AppDatabase> createAppDatabase({String? directoryPath}) async {
   }
 
 /// Réinitialise la base de données en supprimant le fichier SQLite physique.
-/// La prochaine invocation de `createAppDatabase()` reconstruira une DB fraîche avec le schéma v4.
+/// La prochaine invocation de `createAppDatabase()` reconstruira une DB fraîche
+/// avec le schéma courant (`AppDatabase.schemaVersion`), via `onCreate`.
 /// Si [directoryPath] est fourni, utilise ce chemin sinon utilise path_provider.
 Future<void> resetDatabase({String? directoryPath}) async {
   final dbFolder = directoryPath != null

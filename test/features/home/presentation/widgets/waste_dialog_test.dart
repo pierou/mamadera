@@ -133,6 +133,73 @@ void main() {
       expect(find.text('Jaune moutarde'), findsOneWidget);
     });
 
+    // ── Consistance des selles ────────────────────────────────────
+    testWidgets('les 5 crans de texture sont proposés pour un caca', (tester) async {
+      await pumpDialog(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Texture du caca'), findsOneWidget);
+      for (final label in ['Aqueuse', 'Grumeleuse', 'Pâteuse', 'Moulée', 'Dure']) {
+        expect(find.text(label), findsOneWidget, reason: 'crans manquants : $label');
+      }
+    });
+
+    testWidgets('aucune section texture pour un simple pipi', (tester) async {
+      await pumpDialog(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('🟡 Pipi'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Texture du caca'), findsNothing);
+      expect(find.text('Pâteuse'), findsNothing);
+    });
+
+    testWidgets('« Les deux » propose aussi la texture', (tester) async {
+      await pumpDialog(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('🟡🟤 Les deux'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Texture du caca'), findsOneWidget);
+    });
+
+    testWidgets('aucune texture n\'est présélectionnée', (tester) async {
+      await pumpDialog(tester);
+      await tester.pumpAndSettle();
+
+      final chips = tester.widget<WasteDialogTextureChips>(
+          find.byType(WasteDialogTextureChips));
+      expect(chips.selectedTexture, isNull);
+    });
+
+    testWidgets('sélectionner une texture la transmet au state', (tester) async {
+      await pumpDialog(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilterChip, 'Pâteuse'));
+      await tester.pumpAndSettle();
+
+      final chips = tester.widget<WasteDialogTextureChips>(
+          find.byType(WasteDialogTextureChips));
+      expect(chips.selectedTexture, equals(stoolTexturePateuse));
+    });
+
+    testWidgets('retaper sur la texture choisie l\'efface', (tester) async {
+      await pumpDialog(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilterChip, 'Dure'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'Dure'));
+      await tester.pumpAndSettle();
+
+      final chips = tester.widget<WasteDialogTextureChips>(
+          find.byType(WasteDialogTextureChips));
+      expect(chips.selectedTexture, isNull);
+    });
+
     // ── Accessibility tests ──────────────────────────────────────
 
     testWidgets('has Semantics on _ChipRadio buttons', (tester) async {

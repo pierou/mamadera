@@ -18,7 +18,9 @@
 | ❤️ **Health routines** | Track eye/face/nose cleaning, belly button care, Vitamin D (daily), and Vitamin K (every 30 days rolling interval) with reminder pills for overdue items |
 | 🔔 **Reminders** | Periodic health reminders with dismissal cooldowns; supports daily, weekly, monthly, and custom intervals via sealed `ReminderFrequency` variants |
 | 📜 **History** | Chronological event browser with filter by type, inline editing, and deletion support |
-| ⚙️ **Settings & Menu** | Language selector (fr/en/es), theme mode toggle (light/dark/system), database reset, feedback screen with direct email/GitHub links |
+| ⚙️ **Settings & Menu** | Language selector (fr/en/es), theme mode toggle (light/dark/system), data export, restore from backup, database reset, feedback screen with direct email/GitHub links |
+| 📤 **Data export** | Manual JSON backup of the entire database (all five tables, orphan rows included) handed to the system share sheet; warned-and-confirmed first, nothing ever leaves automatically |
+| 📥 **Data import** | Manual restore from a file you choose: the document is fully validated before a single row is written, then applied in one all-or-nothing transaction; two confirmations — the second shows what the file actually contains — and the OS file picker is the only consent step |
 | ✅ **Onboarding** | First-launch Terms of Service acceptance flow with localized markdown content; app access gated until accepted via router guards |
 | 📝 **Patch notes** | Version-update changelog dialog on app upgrade, loaded from locale-specific JSON assets; opt-out preference supported |
 
@@ -103,7 +105,9 @@ lib/
 | **Encryption at rest** | Sensitive notes encrypted with AES-256-GCM before DB insertion. The database file itself is stored unencrypted on the device (field-level encryption only) |
 | **Key storage** | Master key secured in platform-native keystore (iOS Keychain / Android Keystore) via `flutter_secure_storage`; memory fallback with warning on desktop without keyring |
 | **No telemetry** | Zero analytics, tracking, or external network calls by default |
-| **Minimal permissions** | No camera, no location — only what's strictly necessary |
+| **Minimal permissions** | No camera, no location — the export uses no permission at all (system share sheet, URI-granted file); the import uses the OS document picker (Android SAF / iOS document picker), which needs no permission either and adds none to the manifest |
+| **Explicit exit only** | The one sanctioned path off-device is a JSON file the user generates and hands to the share sheet themselves; OS auto-backups are disabled and the encryption key never leaves the keystore |
+| **Explicit entry only** | The one sanctioned path onto the device is a backup file the user selects in the OS picker. It is parsed in full and rejected whole before anything is written, its plaintext notes live only in memory and are re-encrypted on insert, and the file is never copied, moved, or modified by the app |
 | **Consent flow** | Terms of Service acceptance required before app access; patch notes opt-out preference after first dismissal. Persisted as local JSON preferences |
 | **GDPR/CCPA/COPPA compliant** | Privacy policy included in-app. Open-source code audit welcome. |
 
@@ -122,6 +126,8 @@ Master key stored securely ← flutter_secure_storage (Keychain / Keystore)
 - **Read:** Decrypted on retrieval — UI only sees plaintext in memory during rendering
 - **Update/Edit:** Re-encrypted with fresh IV on save
 - **Delete:** Cascade-aware deletion (e.g., deleting a baby profile removes associated events)
+- **Export:** Menu → "Export my data" serialises every table to a versioned JSON document (`exportFormatVersion`), notes decrypted through the shared mapper, written to the OS temp cache and shared via `share_plus`; the plaintext temp file is deleted once the share sheet is dismissed
+- **Import:** Menu → "Restore from backup" reads a file the user picks and *replaces* all five tables with its contents in one transaction — any structural error rejects the whole file and leaves the database untouched. Notes come back as ciphertext under a fresh IV; ids are preserved; a file whose `databaseSchemaVersion` (or `exportFormatVersion`) is newer than this build is refused rather than partially understood. It is a **replace**, never a merge, and the file itself is only ever read — never copied into app storage, never modified
 - **Reset:** Database reset option in Settings physically deletes the SQLite file via `resetDatabase()` in the data layer
 
 ---
@@ -301,7 +307,7 @@ make integration-driver
 | Package | Purpose |
 |---------|---------|
 | `flutter_riverpod` / `riverpod` | State management |
-| `drift` + `sqflite_common_ffi` | Local SQLite database (Drift ORM with FFI for desktop) |
+| `drift` | Local SQLite database (Drift ORM, native SQLite driver) |
 | `encrypt` | AES-GCM encryption logic |
 | `flutter_secure_storage` | Platform-native key storage (Keychain/Keystore) |
 | `go_router` | Declarative navigation with shell navigator & deep linking |
@@ -312,9 +318,7 @@ make integration-driver
 | `intl` | Date/time/number formatting per locale |
 | `flutter_native_splash` | Native splash screen generation (Android drawables + iOS launch images) |
 | `markdown` | Markdown rendering for Terms of Service and patch notes content |
-| `package_info_plus` | Runtime app version reading for update detection & patch note triggers |
 | `path_provider` | File system paths for JSON preference persistence files |
-| `sqlcipher_flutter_libs` | SQLCipher native libraries (encrypted SQLite on mobile platforms) |
 | `url_launcher` | Launch external URLs: email to support, GitHub issues link in feedback screen |
 
 ### Development & Build Tools

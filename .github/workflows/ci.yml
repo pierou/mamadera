@@ -15,7 +15,10 @@ on:
     branches: [ main, develop ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ main ]
+    # develop included: the v1.1.0 flow lands release content through
+    # feature → develop PRs first (#7), and those PRs are release material —
+    # they must clear the same gates as develop → main.
+    branches: [ main, develop ]
   schedule:
     # Daily smoke run on `main` (schedule only fires on the default
     # branch) — keeps a real-Android signal flowing without holding PRs.
@@ -36,7 +39,10 @@ jobs:
           fetch-depth: 0
 
       - name: Trivy (vuln dépendances)
-        uses: aquasecurity/trivy-action@master
+        # Blocking: HIGH/CRITICAL findings fail the pipeline (`exit-code: 1`).
+        # Pinned to a version tag (was @master) so the scanner itself cannot
+        # change underneath a build.
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: 'fs'
           severity: 'HIGH,CRITICAL'
@@ -44,13 +50,12 @@ jobs:
           # Skip Dart/Flutter lockfile — Trivy has poor support for pubspec.lock
           # and produces false positives. Use `dart pub outdated` + manual review instead.
           skip-dirs: '${{ github.workspace }}/.pub-cache'
-        continue-on-error: true  # Non-blocking until we migrate to a Dart-aware scanner
 
       - name: Semgrep (SAST basique)
+        # Blocking: any new SAST finding fails the pipeline.
         uses: semgrep/semgrep-action@v1
         with:
           config: 'auto'
-        continue-on-error: true
 
       - name: Gitleaks (secrets in git history)
         # Blocking: any new secret in history fails the pipeline.
@@ -72,7 +77,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.1'
+          flutter-version: '3.44.8'
           cache: true
 
       - name: Get dependencies
@@ -110,14 +115,22 @@ jobs:
           MIN_COVERAGE=80
 
           # Clean coverage report (exclude generated/test files)
-          lcov --ignore-errors unused,empty --remove coverage/lcov.info \
+          if ! lcov --ignore-errors unused,empty --remove coverage/lcov.info \
             'lib/generated/*' \
             '*_freezed.dart' \
             '*.g.dart' \
             'test/*' \
             '/tmp/*' \
             'lib/l10n/*' \
-            -o coverage/lcov.info.cleaned 2>/dev/null || true
+            -o coverage/lcov.info.cleaned 2>/dev/null; then
+            echo "⚠️ lcov could not build the cleaned report (no coverage data, or everything filtered out)"
+          fi
+
+          # Never fall through to a bogus threshold check on a missing report.
+          if [ ! -s coverage/lcov.info.cleaned ]; then
+            echo "❌ coverage/lcov.info.cleaned is missing or empty — cannot verify coverage"
+            exit 1
+          fi
 
           # Extract actual line coverage from lcov --summary stdout
           ACTUAL=$(lcov --ignore-errors empty --summary coverage/lcov.info.cleaned 2>&1 | grep "lines" | awk '{print $2}' | cut -d'.' -f1)
@@ -147,7 +160,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.1'
+          flutter-version: '3.44.8'
           cache: true
 
       - name: Setup Java
@@ -204,7 +217,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.1'
+          flutter-version: '3.44.8'
           cache: true
 
       - name: Get dependencies
@@ -219,7 +232,10 @@ jobs:
       - name: Archive Runner.app
         run: |
           cd build/ios/iphoneos
-          zip -r ../../../../ios-Runner-app.zip Runner.app
+          # Must land INSIDE the workspace — `../../../../` from here is one
+          # dir too many (parent of the workspace), which is how iOS artifacts
+          # silently vanished from every release since v1.0.0.
+          zip -qr "${GITHUB_WORKSPACE}/ios-Runner-app.zip" Runner.app
 
       - name: Upload iOS artifact
         if: success()
@@ -227,6 +243,9 @@ jobs:
         with:
           name: ios-release
           path: ios-Runner-app.zip
+          # Default `warn` let empty uploads pass for a year. A missing
+          # artifact must fail the job, never the release quietly.
+          if-no-files-found: error
 
   # 5. 📱 Integration tests on Android emulator
   #
@@ -279,7 +298,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.1'
+          flutter-version: '3.44.8'
           cache: true
 
       - name: Get dependencies
@@ -329,7 +348,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.1'
+          flutter-version: '3.44.8'
           cache: true
 
       - name: Get dependencies

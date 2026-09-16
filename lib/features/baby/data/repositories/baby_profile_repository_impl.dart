@@ -2,6 +2,7 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:logger/logger.dart';
 
+import '../../../../core/services/app_logger.dart';
 import '../../../../data/local/app_db.dart' as db_app;
 import '../../../../shared/domain/entities/baby_profile.dart';
 import '../../domain/repositories/baby_profile_repository.dart';
@@ -12,7 +13,7 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
 
   final db_app.AppDatabase database;
 
-  static final Logger _logger = Logger();
+  static final Logger _logger = appLogger();
 
   @override
   Future<List<BabyProfile>> getAllProfiles() async {
@@ -30,7 +31,7 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
     try {
       final row = await database.getActiveBabyProfile();
       if (row == null) return null;
-      _logger.d('Found active profile: ${row.name}');
+      _logger.d('Found active profile: ${row.id}');
       return _toDomain(row);
     } catch (e, stack) {
       _logger.e('getActiveProfile error', error: e, stackTrace: stack);
@@ -48,7 +49,7 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
         isActive: Value(profile.isActive),
       );
       await database.insertBabyProfile(companion);
-      _logger.d('Inserted baby profile: ${profile.name}');
+      _logger.d('Inserted baby profile: ${profile.id}');
       return profile.id;
     } catch (e, stack) {
       _logger.e('insertProfile error', error: e, stackTrace: stack);
@@ -81,7 +82,15 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
   @override
   Future<bool> deleteProfile(String id) async {
     try {
-      final deleted = await database.deleteBabyProfile(id);
+      // Les événements du bébé et la ligne de profil partent dans une seule
+      // transaction : le schéma n'a ni clé étrangère ni cascade, donc une
+      // erreur entre les deux DELETE laisserait soit des événements orphelins,
+      // soit un profil dont les événements ont déjà disparu — alors que la
+      // boîte de confirmation promet à l'utilisateur les deux suppressions.
+      final deleted = await database.transaction(() async {
+        await database.deleteTrackingEventsByBabyId(id);
+        return database.deleteBabyProfile(id);
+      });
       if (deleted) _logger.d('Deleted baby profile: $id');
       return deleted;
     } catch (e, stack) {
@@ -93,21 +102,26 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
   @override
   Future<void> setActiveProfile(String id) async {
     try {
-      // First deactivate all profiles.
-      final all = await getAllProfiles();
-      for (final profile in all) {
-        if (!profile.isActive) continue;
-        await database.updateBabyProfile(
-          profile.id,
-          const db_app.BabyProfilesCompanion(isActive: Value(false)),
-        );
-      }
+      // Désactiver tout puis activer l'élu doit être atomique : sans
+      // transaction, un échec entre les deux UPDATE laisse l'app sans aucun
+      // bébé actif (l'échec précédent laissait la fenêtre ouverte).
+      await database.transaction(() async {
+        // First deactivate all profiles.
+        final all = await getAllProfiles();
+        for (final profile in all) {
+          if (!profile.isActive) continue;
+          await database.updateBabyProfile(
+            profile.id,
+            const db_app.BabyProfilesCompanion(isActive: Value(false)),
+          );
+        }
 
-      // Then activate the selected one.
-      await database.updateBabyProfile(
-        id,
-        const db_app.BabyProfilesCompanion(isActive: Value(true)),
-      );
+        // Then activate the selected one.
+        await database.updateBabyProfile(
+          id,
+          const db_app.BabyProfilesCompanion(isActive: Value(true)),
+        );
+      });
       _logger.d('Set active profile to $id');
     } catch (e, stack) {
       _logger.e('setActiveProfile error', error: e, stackTrace: stack);

@@ -41,5 +41,26 @@
       "- Correction de la sélection du thème qui ne rafraîchit pas l'application",
       ""
     ]
+  },
+  "1.1.0": {
+    "releaseDate": "2026-09-15",
+    "title": "Nouveautés de Mamadera 1.1.0",
+    "items": [
+      "### Nouvelles fonctionnalités",
+      "- Ajout de rappels personnalisés liés à un soin",
+      "- Possibilité de désactiver les rappels prédéfinis inutiles",
+      "- Suivi de la texture des selles lors des changements de couche",
+      "- Choix de la date et de l'heure à la création d'un événement",
+      "- Export manuel de l'ensemble des données au format JSON via la feuille de partage",
+      "- Restauration complète depuis un fichier de sauvegarde exporté",
+      "### Améliorations",
+      "- Texte en espagnol pour les utilisateurs espagnols : conditions d'utilisation, dates et notes de version",
+      "### Corrections de bugs",
+      "- Conservation des notes lors de la modification d'une entrée santé",
+      "- Récupération fiable après l'effacement complet des données",
+      "- Prise en compte du jour configuré pour les rappels, limités au bébé sélectionné",
+      "- Création des paramètres de rappels manquants lors de la mise à jour depuis une version antérieure",
+      ""
+    ]
   }
 }
