@@ -39,11 +39,14 @@ dropped (never used in `lib/`), `schemaVersion` 10.
 
 ## Phase 2A — Prove iOS compiles locally (catches real dependency/version issues)
 
-- [ ] `flutter build ipa --release --export-method app-store` on this Mac (Xcode 27).
-      If a plugin package (share_plus 13, flutter_secure_storage 10) demands a higher
-      `IPHONEOS_DEPLOYMENT_TARGET`, bump in Runner project + Package settings — NOT by
-      version-downgrading dependencies.
-- [ ] Keep the `.ipa` — it's the local-archive fallback for Phase 6.
+- [x] **Compile proof done 2026-09-17**: `flutter build ios --release --no-codesign` →
+      `✓ Runner.app (21.8 MB)` in 34 s on Xcode 27 — all SPM plugins (share_plus 13,
+      file_picker 13, flutter_secure_storage 10, path_provider, url_launcher) compile fine.
+- [x] **This caught root-cause #2 of the Apple failures**: `IPHONEOS_DEPLOYMENT_TARGET = 13.0`
+      in Runner.xcodeproj (3 configs) is rejected by modern Xcode (supported range 15.0+).
+      Raised to 15.0 in `4019809` — Xcode Cloud would have hit this right after the hook fix.
+- [x] Signed `.ipa` intentionally left to Xcode Cloud (Phase 2B trigger); local archive stays
+      fallback.
 
 ## Phase 2B — Fix Xcode Cloud (the actual "Apple CI" fix)
 
@@ -75,11 +78,11 @@ flutter build ios --config-only --release     # generates ios/Flutter/ephemeral/
 
 ## Phase 3 — Make GitHub Actions iOS honest (same PR; store path is Xcode Cloud, but stop the lie)
 
-- [ ] Zip to `"${{ github.workspace }}/ios-Runner-app.zip"` (fix `../../../../` off-by-one)
-- [ ] `if-no-files-found: error` on the iOS upload so an empty artifact **fails the job**
-- [ ] Either move the job to `macos-latest` (+ `xcode-select` to a version ≥ local) so the
-      compile check is meaningful, or delete the job and let Xcode Cloud be the single iOS build
-      (recommended once 2B is green: one toolchain, one place)
+- [x] Zip to `"${GITHUB_WORKSPACE}/ios-Runner-app.zip"` (fixed `../../../../` off-by-one) — `fbeb877`
+- [x] `if-no-files-found: error` on the iOS upload so an empty artifact **fails the job** — `fbeb877`
+- [ ] Runner-image decision deferred until the first green Xcode Cloud archive: keep
+      `macos-14` as an old-toolchain compat check, or delete the job and let Xcode Cloud be the
+      single iOS build
 - [ ] Keep the release workflow's iOS asset optional-or-required decision consistent with the above
 
 ## Phase 4 — Merge & tag (existing flow)
