@@ -229,7 +229,10 @@ jobs:
       - name: Archive Runner.app
         run: |
           cd build/ios/iphoneos
-          zip -r ../../../../ios-Runner-app.zip Runner.app
+          # Must land INSIDE the workspace — `../../../../` from here is one
+          # dir too many (parent of the workspace), which is how iOS artifacts
+          # silently vanished from every release since v1.0.0.
+          zip -qr "${GITHUB_WORKSPACE}/ios-Runner-app.zip" Runner.app
 
       - name: Upload iOS artifact
         if: success()
@@ -237,6 +240,9 @@ jobs:
         with:
           name: ios-release
           path: ios-Runner-app.zip
+          # Default `warn` let empty uploads pass for a year. A missing
+          # artifact must fail the job, never the release quietly.
+          if-no-files-found: error
 
   # 5. 📱 Integration tests on Android emulator
   #
