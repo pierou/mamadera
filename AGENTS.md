@@ -103,6 +103,8 @@ class TrackingRepositoryImpl implements TrackingRepository {
 - Versioned migrations — always update migration logic when schema changes
 - Encrypt sensitive columns before insert; decrypt on read in the repository layer
 - A new table must also be added to the export in `lib/features/export/` (unfiltered read, notes decrypted only through `tracking_event_mapper`, counts kept in sync) — an export that silently omits a table is a broken backup
+- …and to the import in `lib/features/import/` (section validation, row contract, insert inside the restore transaction): a table exported but not imported turns a *restore* into data loss, so the two features move together
+- Any field added to or removed from the export document must bump `exportFormatVersion` in `ExportRepositoryImpl` **and** the supported version in `ImportRepositoryImpl`. The importer also refuses a document whose `databaseSchemaVersion` exceeds `AppDatabase.schemaVersion` — that guard only catches what a forgotten version bump would otherwise drop silently
 
 ## 🛠️ Build & Test Commands
 
