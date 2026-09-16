@@ -1,10 +1,11 @@
 # RELEASE PLAN — v1.1.0 (target: Google Play update + first App Store release)
 
 Status: **draft — awaiting Phase 0 decisions.** Source: `feature/audit-corrections-and-db-export`
-(31 commits ahead of `main`, not in `develop`). Content: custom reminders tied to a care, preset
+(31+ commits ahead of `main`, not in `develop`). Content: custom reminders tied to a care, preset
 reminder toggles, stool texture on diapers, date/time picker for new events, manual JSON export
-via share sheet, l10n/privacy/backup-leak fixes, DB layer: SQLCipher dropped → field-level
-AES-GCM, `schemaVersion` 10.
+via share sheet, **full DB restore from an exported backup** (`file_picker` 13.1.0, replace-only,
+transactional, schema-guarded), l10n/privacy/backup-leak fixes; dead `sqlcipher_flutter_libs` dep
+dropped (never used in `lib/`), `schemaVersion` 10.
 
 ## Verified state (measured 2026-09-15, do not re-litigate)
 
@@ -65,9 +66,11 @@ flutter precache --ios
 flutter build ios --config-only --release     # generates ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage
 ```
 
-- [ ] Script must also `chmod +x` after committing; verify `git show --stat` keeps mode `100755`
-- [ ] Push to the release branch; Xcode Cloud → trigger Archive on that branch
-      (current workflow builds `main` — retarget it or add a branch)
+- [x] Script committed with exec bit (`git ls-files -s` → `100755`, verified 2026-09-17);
+      hook's critical command validated locally (`--config-only` generated the package, dev team
+      `CQZH3JBXLD` is set in the project)
+- [ ] Push branch; in ASC point the Xcode Cloud workflow at the release branch (currently
+      `main`) and trigger an archive
 - [ ] First green archive ⇒ build number/version in ASC shows up under Builds
 
 ## Phase 3 — Make GitHub Actions iOS honest (same PR; store path is Xcode Cloud, but stop the lie)
@@ -95,6 +98,9 @@ flutter build ios --config-only --release     # generates ios/Flutter/ephemeral/
       UNCHANGED (SQLCipher was a dead dep — never referenced in `lib/` at v1.0.1, verified
       2026-09-15), so this is a drift schema-migration test (→ v10, incl. the pre-v7
       `reminder_settings` fix 246fc87), not a decryption migration. Still gates the release.
+- [ ] **Restore round-trip gate**: export JSON from the 1.0.1 install → import it on 1.1.0 →
+      counts/notes/reminders intact; plus rejecting a future-schema file (`ImportRejectionReason`
+      surfaces a translated reason, DB untouched).
 - [ ] Upload `app-release.aab` from the v1.1.0 GitHub release (never rebuild/sign elsewhere —
       same release keystore or Play rejects the update)
 - [ ] Play Console: release notes ×3 languages (reuse patch notes) → internal testing → production

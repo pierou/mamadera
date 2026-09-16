@@ -52,6 +52,7 @@
       "- Suivi de la texture des selles lors des changements de couche",
       "- Choix de la date et de l'heure à la création d'un événement",
       "- Export manuel de l'ensemble des données au format JSON via la feuille de partage",
+      "- Restauration complète depuis un fichier de sauvegarde exporté",
       "### Améliorations",
       "- Texte en espagnol pour les utilisateurs espagnols : conditions d'utilisation, dates et notes de version",
       "### Corrections de bugs",

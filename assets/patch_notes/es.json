@@ -52,6 +52,7 @@
       "- Seguimiento de la textura de las heces en los cambios de pañal",
       "- Elección de la fecha y la hora al añadir un evento",
       "- Exportación manual de todos los datos en JSON mediante el menú para compartir",
+      "- Restauración completa desde un archivo de copia de seguridad exportado",
       "### Mejoras",
       "- Texto en español para los usuarios hispanohablantes: términos de uso, fechas y notas de la versión",
       "### Correcciones de errores",

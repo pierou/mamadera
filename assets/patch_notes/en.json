@@ -52,6 +52,7 @@
       "- Track stool texture on diaper changes",
       "- Choose the date and time when adding an event",
       "- Export all data as JSON via the share sheet",
+      "- Restore all data from an exported backup file",
       "### Improvements",
       "- Serve Spanish users their own terms, dates and patch notes",
       "### Bug Fixes",
