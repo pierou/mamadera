@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import '../../../../core/services/app_logger.dart';
 // Alias for drift-generated row types (distinct from domain entities)
 import '../../../../data/local/app_db.dart' as db_app;
+import '../../../../data/local/db_constants.dart' as db_const;
 import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_frequency.dart';
 import '../../domain/entities/reminder_item.dart';
@@ -149,13 +150,15 @@ class RemindersRepositoryImpl implements RemindersRepository {
 
   /// Codes écrits dans `custom_reminders.frequency`.
   ///
-  /// Gravés en dur : les renommer changerait de sens chaque installation
-  /// existante. `every_n_days` est écrit en toutes lettres parce que la colonne
-  /// se relit telle quelle dans un JSON de sauvegarde.
-  static const String _freqDaily = 'daily';
-  static const String _freqWeekly = 'weekly';
-  static const String _freqMonthly = 'monthly';
-  static const String _freqEveryNDays = 'every_n_days';
+  /// Définis dans `db_constants.dart` : les renommer changerait de sens chaque
+  /// installation existante, et l'importateur de sauvegarde doit valider ces
+  /// mêmes codes sans dépendre de cette classe. `every_n_days` est écrit en
+  /// toutes lettres parce que la colonne se relit telle quelle dans un JSON de
+  /// sauvegarde.
+  static const String _freqDaily = db_const.freqDaily;
+  static const String _freqWeekly = db_const.freqWeekly;
+  static const String _freqMonthly = db_const.freqMonthly;
+  static const String _freqEveryNDays = db_const.freqEveryNDays;
 
   /// Longueur maximale du libellé : `withLength(max: 60)` de la table, alignée
   /// sur le `maxLength` du formulaire.

@@ -14,6 +14,7 @@ import '../../../../features/export/presentation/widgets/export_data_dialog.dart
 import '../../../../features/history/presentation/providers/history_notifier.dart';
 import '../../../../features/history/presentation/providers/history_repository_provider.dart';
 import '../../../../features/home/presentation/providers/repository_provider.dart';
+import '../../../../features/import/presentation/widgets/import_data_dialog.dart';
 import '../../../../features/reminders/presentation/providers/reminder_providers.dart';
 import '../providers/menu_repository_provider.dart';
 import '../widgets/baby_profile_section.dart';
@@ -161,6 +162,17 @@ class MenuScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppTheme.spacingMd),
+              _buildDangerTile(
+                context: context,
+                icon: Icons.settings_backup_restore,
+                title: context.l.importDataTitle,
+                description: context.l.importDataDescription,
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => const ImportDataDialog(),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
               _buildResetDatabaseTile(context, ref),
             ],
           ),
@@ -215,21 +227,57 @@ class MenuScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildResetDatabaseTile(BuildContext context, WidgetRef ref) {
+  Widget _buildResetDatabaseTile(BuildContext context, WidgetRef ref) => _buildDangerTile(
+        context: context,
+        icon: Icons.warning_amber_rounded,
+        title: context.l.resetDatabaseButton,
+        description: context.l.resetDatabaseWarningDetail,
+        onTap: () => _showResetDatabaseDialog(context, ref),
+      );
+
+  /// One tile in the danger zone: bordered in error colours, because both
+  /// actions it offers replace or erase everything on the device.
+  Widget _buildDangerTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => _showResetDatabaseDialog(context, ref),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: _dangerZoneDecoration(colorScheme),
           child: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: colorScheme.error),
+              Icon(icon, color: colorScheme.error),
               const SizedBox(width: 12),
-              Expanded(child: _resetDatabaseInfo(context, colorScheme)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.error,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colorScheme.error,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
               Icon(Icons.chevron_right, color: colorScheme.error),
             ],
           ),
@@ -243,24 +291,6 @@ class MenuScreen extends ConsumerWidget {
         border: Border.all(color: colorScheme.errorContainer, width: 1.5),
         borderRadius: BorderRadius.circular(8),
       );
-
-  Widget _resetDatabaseInfo(BuildContext context, ColorScheme colorScheme) {
-    final titleStyle = TextStyle(
-      fontWeight: FontWeight.bold,
-      color: colorScheme.error,
-    );
-    final descStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: colorScheme.error,
-        );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(context.l.resetDatabaseButton, style: titleStyle),
-        const SizedBox(height: 4),
-        Text(context.l.resetDatabaseWarningDetail, style: descStyle),
-      ],
-    );
-  }
 
   Future<void> _showResetDatabaseDialog(BuildContext context, WidgetRef ref) async {
     final colorScheme = Theme.of(context).colorScheme;

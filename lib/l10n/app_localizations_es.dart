@@ -500,6 +500,65 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportDataEmpty => 'No hay datos para exportar';
 
   @override
+  String get importDataTitle => 'Restaurar desde una copia de seguridad';
+
+  @override
+  String get importDataDescription =>
+      'Restaura todos tus datos desde un archivo JSON que hayas exportado';
+
+  @override
+  String get importDataConfirm => 'Elegir un archivo…';
+
+  @override
+  String get importDataWarning =>
+      'Esta acción eliminará definitivamente todos los datos que haya actualmente en este dispositivo y los reemplazará por el contenido del archivo. Elige el archivo que exportaste.';
+
+  @override
+  String importDataSummary(int profiles, int events, int reminders) {
+    return 'Este archivo contiene $profiles perfil(es) de bebé, $events evento(s) y $reminders recordatorio(s) personalizado(s). Restaurar borrará todos los datos actuales de este dispositivo.';
+  }
+
+  @override
+  String get importDataNoProfile =>
+      'Atención: este archivo no contiene ningún perfil de bebé. Los eventos se restaurarán pero no estarán vinculados a ningún bebé, y tendrás que crear un perfil para verlos.';
+
+  @override
+  String get importDataProceed => 'Restaurar';
+
+  @override
+  String importDataSuccess(int profiles, int events) {
+    return 'Restauración terminada: $profiles perfil(es) y $events evento(s)';
+  }
+
+  @override
+  String get importDataErrorInvalidFile =>
+      'Archivo no reconocido: no es una copia de seguridad de Mamadera válida.';
+
+  @override
+  String get importDataErrorNotMamadera =>
+      'Este archivo no fue creado por Mamadera.';
+
+  @override
+  String get importDataErrorNewerVersion =>
+      'Este archivo fue creado por una versión más reciente de la aplicación. Actualiza Mamadera antes de restaurarlo.';
+
+  @override
+  String get importDataErrorNewerSchema =>
+      'Este archivo contiene datos más recientes que esta versión de la aplicación. Actualiza Mamadera antes de restaurarlo.';
+
+  @override
+  String get importDataErrorEmpty =>
+      'Este archivo no contiene datos para restaurar.';
+
+  @override
+  String get importDataErrorUnreadable =>
+      'No se puede leer el archivo elegido.';
+
+  @override
+  String get importDataErrorFailed =>
+      'Error al restaurar. Tus datos actuales están intactos.';
+
+  @override
   String get babyProfilesSectionTitle => 'Bebés';
 
   @override

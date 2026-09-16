@@ -251,6 +251,35 @@
   "exportDataError": "La exportación falló",
   "exportDataEmpty": "No hay datos para exportar",
 
+  "importDataTitle": "Restaurar desde una copia de seguridad",
+  "importDataDescription": "Restaura todos tus datos desde un archivo JSON que hayas exportado",
+  "importDataConfirm": "Elegir un archivo…",
+  "importDataWarning": "Esta acción eliminará definitivamente todos los datos que haya actualmente en este dispositivo y los reemplazará por el contenido del archivo. Elige el archivo que exportaste.",
+  "importDataSummary": "Este archivo contiene {profiles} perfil(es) de bebé, {events} evento(s) y {reminders} recordatorio(s) personalizado(s). Restaurar borrará todos los datos actuales de este dispositivo.",
+  "@importDataSummary": {
+    "placeholders": {
+      "profiles": { "type": "int" },
+      "events": { "type": "int" },
+      "reminders": { "type": "int" }
+    }
+  },
+  "importDataNoProfile": "Atención: este archivo no contiene ningún perfil de bebé. Los eventos se restaurarán pero no estarán vinculados a ningún bebé, y tendrás que crear un perfil para verlos.",
+  "importDataProceed": "Restaurar",
+  "importDataSuccess": "Restauración terminada: {profiles} perfil(es) y {events} evento(s)",
+  "@importDataSuccess": {
+    "placeholders": {
+      "profiles": { "type": "int" },
+      "events": { "type": "int" }
+    }
+  },
+  "importDataErrorInvalidFile": "Archivo no reconocido: no es una copia de seguridad de Mamadera válida.",
+  "importDataErrorNotMamadera": "Este archivo no fue creado por Mamadera.",
+  "importDataErrorNewerVersion": "Este archivo fue creado por una versión más reciente de la aplicación. Actualiza Mamadera antes de restaurarlo.",
+  "importDataErrorNewerSchema": "Este archivo contiene datos más recientes que esta versión de la aplicación. Actualiza Mamadera antes de restaurarlo.",
+  "importDataErrorEmpty": "Este archivo no contiene datos para restaurar.",
+  "importDataErrorUnreadable": "No se puede leer el archivo elegido.",
+  "importDataErrorFailed": "Error al restaurar. Tus datos actuales están intactos.",
+
   "babyProfilesSectionTitle": "Bebés",
   "babyProfilesEmpty": "Sin perfiles de bebé",
   "babyProfilesError": "No se pudieron cargar los perfiles",

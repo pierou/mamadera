@@ -251,6 +251,35 @@
   "exportDataError": "Export failed",
   "exportDataEmpty": "No data to export",
 
+  "importDataTitle": "Restore from a backup",
+  "importDataDescription": "Restore all your data from a JSON file you exported",
+  "importDataConfirm": "Choose a file…",
+  "importDataWarning": "This will permanently delete all data currently on this device and replace it with the file's contents. Choose the file you exported.",
+  "importDataSummary": "This file contains {profiles} baby profile(s), {events} event(s) and {reminders} custom reminder(s). Restoring will erase all data currently on this device.",
+  "@importDataSummary": {
+    "placeholders": {
+      "profiles": { "type": "int" },
+      "events": { "type": "int" },
+      "reminders": { "type": "int" }
+    }
+  },
+  "importDataNoProfile": "Warning: this file contains no baby profile. The events will be restored but attached to no baby, and you will need to create a profile to see them.",
+  "importDataProceed": "Restore",
+  "importDataSuccess": "Restore finished: {profiles} profile(s) and {events} event(s)",
+  "@importDataSuccess": {
+    "placeholders": {
+      "profiles": { "type": "int" },
+      "events": { "type": "int" }
+    }
+  },
+  "importDataErrorInvalidFile": "Unrecognised file: this is not a valid Mamadera backup.",
+  "importDataErrorNotMamadera": "This file was not created by Mamadera.",
+  "importDataErrorNewerVersion": "This file was created by a newer version of the app. Update Mamadera before restoring it.",
+  "importDataErrorNewerSchema": "This file contains data newer than this version of the app. Update Mamadera before restoring it.",
+  "importDataErrorEmpty": "This file contains no data to restore.",
+  "importDataErrorUnreadable": "The chosen file could not be read.",
+  "importDataErrorFailed": "Restore failed. Your current data is unchanged.",
+
   "babyProfilesSectionTitle": "Babies",
   "babyProfilesEmpty": "No baby profiles yet",
   "babyProfilesError": "Failed to load baby profiles",

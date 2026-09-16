@@ -111,5 +111,48 @@ void main() {
       expect(find.text('Exporter'), findsOneWidget);
       expect(find.text('Annuler'), findsOneWidget);
     });
+
+    testWidgets('affiche la tuile restauration entre export et reset et ouvre le dialogue import', (tester) async {
+      await pumpMenuScreen(tester: tester);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Restaurer depuis une sauvegarde'), findsOneWidget);
+      expect(find.text('Réinitialiser la base de données'), findsOneWidget);
+
+      // Ordre vertical de la zone danger : export, puis restauration, puis reset.
+      final exportY = tester.getCenter(find.text('Exporter mes données')).dy;
+      final restoreY = tester.getCenter(find.text('Restaurer depuis une sauvegarde')).dy;
+      final resetY = tester.getCenter(find.text('Réinitialiser la base de données')).dy;
+      expect(restoreY, greaterThan(exportY));
+      expect(resetY, greaterThan(restoreY));
+
+      // La zone danger est sous le pli : rendre la tuile visible avant de tap.
+      await tester.ensureVisible(find.text('Restaurer depuis une sauvegarde'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.text('Restaurer depuis une sauvegarde'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // String propre au dialogue : l'avertissement destructif, avant toute action.
+      expect(
+        find.textContaining('supprimera définitivement toutes les données actuellement sur cet appareil'),
+        findsOneWidget,
+      );
+      expect(find.text('Choisir un fichier…'), findsOneWidget);
+    });
+
+    testWidgets('la tuile reset est toujours présente et ouvre sa confirmation', (tester) async {
+      await pumpMenuScreen(tester: tester);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Réinitialiser la base de données'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Réinitialiser la base de données'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.text('Réinitialiser la base de données'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text('Réinitialiser la base de données ?'), findsOneWidget);
+      expect(find.text('Annuler'), findsOneWidget);
+    });
   });
 }

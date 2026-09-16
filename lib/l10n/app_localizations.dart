@@ -1000,6 +1000,96 @@ abstract class AppLocalizations {
   /// **'Aucune donnée à exporter'**
   String get exportDataEmpty;
 
+  /// No description provided for @importDataTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer depuis une sauvegarde'**
+  String get importDataTitle;
+
+  /// No description provided for @importDataDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurez toutes vos données depuis un fichier JSON que vous avez exporté'**
+  String get importDataDescription;
+
+  /// No description provided for @importDataConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir un fichier…'**
+  String get importDataConfirm;
+
+  /// No description provided for @importDataWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette action supprimera définitivement toutes les données actuellement sur cet appareil et les remplacera par le contenu du fichier. Choisissez le fichier que vous avez exporté.'**
+  String get importDataWarning;
+
+  /// No description provided for @importDataSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier contient {profiles} profil(s) bébé, {events} événement(s) et {reminders} rappel(s) personnalisé(s). Restaurer effacera toutes les données actuelles de cet appareil.'**
+  String importDataSummary(int profiles, int events, int reminders);
+
+  /// No description provided for @importDataNoProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Attention : ce fichier ne contient aucun profil bébé. Les événements seront restaurés mais rattachés à aucun bébé, et il faudra créer un profil pour les voir.'**
+  String get importDataNoProfile;
+
+  /// No description provided for @importDataProceed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer'**
+  String get importDataProceed;
+
+  /// No description provided for @importDataSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restauration terminée : {profiles} profil(s) et {events} événement(s)'**
+  String importDataSuccess(int profiles, int events);
+
+  /// No description provided for @importDataErrorInvalidFile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fichier non reconnu : ce n\'est pas une sauvegarde Mamadera valide.'**
+  String get importDataErrorInvalidFile;
+
+  /// No description provided for @importDataErrorNotMamadera.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier n\'a pas été créé par Mamadera.'**
+  String get importDataErrorNotMamadera;
+
+  /// No description provided for @importDataErrorNewerVersion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier a été créé par une version plus récente de l\'application. Mettez à jour Mamadera avant de le restaurer.'**
+  String get importDataErrorNewerVersion;
+
+  /// No description provided for @importDataErrorNewerSchema.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier contient des données plus récentes que cette version de l\'application. Mettez à jour Mamadera avant de le restaurer.'**
+  String get importDataErrorNewerSchema;
+
+  /// No description provided for @importDataErrorEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier ne contient aucune donnée à restaurer.'**
+  String get importDataErrorEmpty;
+
+  /// No description provided for @importDataErrorUnreadable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire le fichier choisi.'**
+  String get importDataErrorUnreadable;
+
+  /// No description provided for @importDataErrorFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la restauration. Vos données actuelles sont intactes.'**
+  String get importDataErrorFailed;
+
   /// No description provided for @babyProfilesSectionTitle.
   ///
   /// In fr, this message translates to:

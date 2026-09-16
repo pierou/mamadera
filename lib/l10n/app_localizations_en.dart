@@ -499,6 +499,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportDataEmpty => 'No data to export';
 
   @override
+  String get importDataTitle => 'Restore from a backup';
+
+  @override
+  String get importDataDescription =>
+      'Restore all your data from a JSON file you exported';
+
+  @override
+  String get importDataConfirm => 'Choose a file…';
+
+  @override
+  String get importDataWarning =>
+      'This will permanently delete all data currently on this device and replace it with the file\'s contents. Choose the file you exported.';
+
+  @override
+  String importDataSummary(int profiles, int events, int reminders) {
+    return 'This file contains $profiles baby profile(s), $events event(s) and $reminders custom reminder(s). Restoring will erase all data currently on this device.';
+  }
+
+  @override
+  String get importDataNoProfile =>
+      'Warning: this file contains no baby profile. The events will be restored but attached to no baby, and you will need to create a profile to see them.';
+
+  @override
+  String get importDataProceed => 'Restore';
+
+  @override
+  String importDataSuccess(int profiles, int events) {
+    return 'Restore finished: $profiles profile(s) and $events event(s)';
+  }
+
+  @override
+  String get importDataErrorInvalidFile =>
+      'Unrecognised file: this is not a valid Mamadera backup.';
+
+  @override
+  String get importDataErrorNotMamadera =>
+      'This file was not created by Mamadera.';
+
+  @override
+  String get importDataErrorNewerVersion =>
+      'This file was created by a newer version of the app. Update Mamadera before restoring it.';
+
+  @override
+  String get importDataErrorNewerSchema =>
+      'This file contains data newer than this version of the app. Update Mamadera before restoring it.';
+
+  @override
+  String get importDataErrorEmpty => 'This file contains no data to restore.';
+
+  @override
+  String get importDataErrorUnreadable => 'The chosen file could not be read.';
+
+  @override
+  String get importDataErrorFailed =>
+      'Restore failed. Your current data is unchanged.';
+
+  @override
   String get babyProfilesSectionTitle => 'Babies';
 
   @override
