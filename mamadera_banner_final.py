@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """Generate store images for Mamadera.
 
-Produces two marketing images matching the app icon's brand palette
+Produces per-language marketing images matching the app icon's brand palette
 (warm gold, soft teal, lavender on a light cream background):
+
+  store/play_feature_graphic[_lang].png  1024x500  Google Play feature graphic
+  store/appstore_promo[_lang].png        1280x800  App Store / web promo tile
+
+Languages (LANGS below): fr (unsuffixed, legacy names kept), en, es.
 
   store/play_feature_graphic.png  1024x500  Google Play feature graphic
   store/appstore_promo.png        1280x800  App Store / web promo tile
@@ -233,14 +238,48 @@ def glyph_lock(d, box, color, chip):
     d.rectangle([kx - kr * 0.45, ky, kx + kr * 0.45, ky + kr * 1.6], fill=chip)
 
 
-FEATURES = [
-    ("Tétées & biberons",  glyph_bottle, GOLD),
-    ("Sommeil",            glyph_moon,   CHIP_INDIGO),
-    ("Couches",            glyph_diaper, TEAL),
-    ("Rappels santé",      glyph_pill,   CHIP_GREEN),
-    ("Profils multiples",  glyph_baby,   CHIP_PEACH),
-    ("Chiffrement local",  glyph_lock,   CHIP_PLUM),
+# Feature chips: glyph + colour per slot, label per language from LANGS.
+FEATURE_CHIPS = [
+    (glyph_bottle, GOLD),
+    (glyph_moon,   CHIP_INDIGO),
+    (glyph_diaper, TEAL),
+    (glyph_pill,   CHIP_GREEN),
+    (glyph_baby,   CHIP_PEACH),
+    (glyph_lock,   CHIP_PLUM),
 ]
+
+LANGS = {
+    "fr": {
+        "subtitle": "Suivi nouveau-né · 100 % local & chiffré",
+        "labels": ["Tétées & biberons", "Sommeil", "Couches",
+                   "Rappels santé", "Profils multiples", "Chiffrement local"],
+        "lock_line": "100 % local · sans cloud · sans suivi",
+        "foot_right": "Open source · MIT",
+        "footer": "100 % local · sans cloud · sans suivi"
+                  "    ·    Open source (MIT)",
+        "suffix": "",
+    },
+    "en": {
+        "subtitle": "Newborn tracker · 100 % local & encrypted",
+        "labels": ["Feeds & bottles", "Sleep", "Diapers",
+                   "Health reminders", "Multiple profiles", "Local encryption"],
+        "lock_line": "100 % local · no cloud · no tracking",
+        "foot_right": "Open source · MIT",
+        "footer": "100 % local · no cloud · no tracking"
+                  "    ·    Open source (MIT)",
+        "suffix": "_en",
+    },
+    "es": {
+        "subtitle": "Recién nacido · 100 % local y cifrado",
+        "labels": ["Tomas y biberones", "Sueño", "Pañales",
+                   "Recordatorios", "Varios perfiles", "Cifrado local"],
+        "lock_line": "100 % local · sin nube · sin rastreo",
+        "foot_right": "Código abierto · MIT",
+        "footer": "100 % local · sin nube · sin rastreo"
+                  "    ·    Código abierto (MIT)",
+        "suffix": "_es",
+    },
+}
 
 
 def feature_item(img, x, y, chip_size, chip_color, glyph, label, font,
@@ -272,7 +311,8 @@ def draw_lock_line(img, x, y, text, font, color, glyph_size=22):
 
 
 # ── 1. Google Play feature graphic (1024x500) ──────────────────────────────
-def build_play_banner():
+def build_play_banner(lang):
+    t = LANGS[lang]
     w, h = 1024, 500
     img = paint_background(w, h, glows=[
         (0.70 * w, 0.15 * h, 250, GOLD, 42),
@@ -290,28 +330,28 @@ def build_play_banner():
     title_font = sf_rounded(92, 900)
     sub_font = sf_pro(30, 600)
     d.text((320, 84), "Mamadera", font=title_font, fill=INK)
-    d.text((322, 214), "Suivi nouveau-né · 100 % local & chiffré",
-           font=sub_font, fill=BODY)
+    d.text((322, 214), t["subtitle"], font=sub_font, fill=BODY)
 
     # Features: 2 columns x 3 rows
     feat_font = sf_pro(24, 550)
     cols = (320, 664)
     rows = (272, 324, 376)
-    for i, (label, glyph, color) in enumerate(FEATURES):
+    for i, ((glyph, color), label) in enumerate(zip(FEATURE_CHIPS, t["labels"])):
         feature_item(img, cols[i % 2], rows[i // 2], 44, color, glyph, label,
                      feat_font, BODY)
 
     # Footers
-    draw_lock_line(img, 64, 434, "100 % local · sans cloud · sans suivi",
+    draw_lock_line(img, 64, 434, t["lock_line"],
                    sf_pro(21, 600), BODY)
-    d.text((w - 64, 444), "Open source · MIT",
+    d.text((w - 64, 444), t["foot_right"],
            font=sf_pro(20, 500), fill=MUTED, anchor="rm")
 
     return img
 
 
 # ── 2. App Store / web promo tile (1280x800) ───────────────────────────────
-def build_appstore_promo():
+def build_appstore_promo(lang):
+    t = LANGS[lang]
     w, h = 1280, 800
     img = paint_background(w, h, glows=[
         (0.78 * w, 0.12 * h, 330, GOLD, 40),
@@ -328,19 +368,18 @@ def build_appstore_promo():
     # Title + subtitle (centered)
     d.text((w / 2, 470), "Mamadera", font=sf_rounded(104, 900),
            fill=INK, anchor="mm")
-    d.text((w / 2, 570), "Suivi nouveau-né · 100 % local & chiffré",
+    d.text((w / 2, 570), t["subtitle"],
            font=sf_pro(34, 600), fill=BODY, anchor="mm")
 
     # Features: row of 6, labels under chips
     slot = 164
-    x0 = (w - slot * len(FEATURES)) // 2
-    for i, (label, glyph, color) in enumerate(FEATURES):
+    x0 = (w - slot * len(FEATURE_CHIPS)) // 2
+    for i, ((glyph, color), label) in enumerate(zip(FEATURE_CHIPS, t["labels"])):
         feature_item(img, x0 + slot * i + slot // 2 - 28, 636, 56, color, glyph,
                      label, sf_pro(18, 550), BODY, label_below=True)
 
     # Footer (centered)
-    d.text((w / 2, 752),
-           "100 % local · sans cloud · sans suivi    ·    Open source (MIT)",
+    d.text((w / 2, 752), t["footer"],
            font=sf_pro(22, 550), fill=MUTED, anchor="mm")
 
     return img
@@ -348,12 +387,15 @@ def build_appstore_promo():
 
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
-    outputs = [
-        (build_play_banner(), os.path.join(OUT_DIR, "play_feature_graphic.png"),
-         (1024, 500)),
-        (build_appstore_promo(), os.path.join(OUT_DIR, "appstore_promo.png"),
-         (1280, 800)),
-    ]
+    outputs = []
+    for lang, t in LANGS.items():
+        s = t["suffix"]
+        outputs += [
+            (build_play_banner(lang),
+             os.path.join(OUT_DIR, f"play_feature_graphic{s}.png"), (1024, 500)),
+            (build_appstore_promo(lang),
+             os.path.join(OUT_DIR, f"appstore_promo{s}.png"), (1280, 800)),
+        ]
     for img, path, expected in outputs:
         if img.size != expected:
             raise SystemExit(f"{path}: size {img.size} != expected {expected}")
