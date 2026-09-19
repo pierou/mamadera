@@ -50,13 +50,16 @@ dropped (never used in `lib/`), `schemaVersion` 10.
 
 ## Phase 2B — Fix Xcode Cloud (the actual "Apple CI" fix)
 
-Create **`ci_scripts/ci_post_clone.sh`** at repo root (exec bit committed, `#!/bin/bash`).
+Create **`ios/ci_scripts/ci_post_clone.sh`** — in the same directory as
+`ios/Runner.xcworkspace` (Apple convention, "Writing custom build scripts": Xcode Cloud
+auto-detects a `ci_scripts` dir next to the project/workspace; a `ci_scripts/` at the repo
+root is IGNORED). Exec bit committed, `#!/bin/bash`.
 Runs on the Xcode Cloud VM after clone, **must finish < 10 min**. Sketch:
 
 ```bash
 #!/bin/bash
 set -euo pipefail
-cd "$(dirname "$0")/.."                       # repo root = $CI_WORKSPACE
+cd "${CI_PRIMARY_REPOSITORY_PATH:-$(cd "$(dirname "$0")/../../" && pwd)}"  # repo root (script lives in ios/ci_scripts/)
 
 FLUTTER_VERSION=3.44.8                        # keep in sync with ci.yml
 ZIP="https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_${FLUTTER_VERSION}-stable.zip"
@@ -72,8 +75,18 @@ flutter build ios --config-only --release     # generates ios/Flutter/ephemeral/
 - [x] Script committed with exec bit (`git ls-files -s` → `100755`, verified 2026-09-17);
       hook's critical command validated locally (`--config-only` generated the package, dev team
       `CQZH3JBXLD` is set in the project)
-- [ ] Push branch; in ASC point the Xcode Cloud workflow at the release branch (currently
-      `main`) and trigger an archive
+- [x] **Location bug found 2026-09-20 (Xcode Cloud builds 3–5, all "2 errors")**: the script
+      sat at the repo root, so Xcode Cloud logged `Post-Clone script not found at
+      ci_scripts/ci_post_clone.sh` and skipped it → SPM package never generated →
+      `Could not resolve package dependencies` (the "2 errors" = the missing-package line twice;
+      everything after is downstream). There is NO UI field for this — detection is purely
+      file-convention based (Apple docs, "Writing custom build scripts"). Moved to `ios/ci_scripts/`
+      + `cd` fixed to use `CI_PRIMARY_REPOSITORY_PATH`. End-to-end proven locally 2026-09-20:
+      fresh clone of `v1.1.0-rc.1` → hook → `xcodebuild archive` (Xcode 27) →
+      **ARCHIVE SUCCEEDED** in ~3 min (repo-root layout would have given the identical result —
+      only the DISCOVERY step was broken).
+- [ ] Push to `main` (workflow triggers on any file change → new archive build auto-fires;
+      no ASC changes needed)
 - [ ] First green archive ⇒ build number/version in ASC shows up under Builds
 
 ## Phase 3 — Make GitHub Actions iOS honest (same PR; store path is Xcode Cloud, but stop the lie)
