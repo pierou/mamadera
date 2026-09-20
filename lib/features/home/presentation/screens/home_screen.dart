@@ -32,7 +32,39 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  /// La feuille a été ouverte — une seule fois par instantiation de l'écran.
   bool _onboardingShown = false;
+
+  /// Une frame est en attente d'ouvrir la feuille. Distinguer « en attente » de
+  /// « ouverte » est nécessaire : si la revérification ci-dessous fait annuler
+  /// l'affichage, un latch unique laisserait un premier lancement sans feuille
+  /// d'onboarding — un échec pire que celui qu'on corrige.
+  bool _onboardingScheduled = false;
+
+  /// Ouvre la feuille d'onboarding à la frame suivante, en revérifiant à cet
+  /// instant précis.
+  ///
+  /// La décision se prenait sur la valeur du fournisseur à la frame précédente et
+  /// la callback ne regardait plus rien : si une restauration aboutissait entre
+  /// les deux, la feuille restait ouverte au-dessus d'une base déjà peuplée et
+  /// son formulaire y ajoutait un profil. `null` (invalidation en cours) vaut
+  /// « on ne sait pas » : on n'ouvre pas sur une absence qu'on n'a pas constatée,
+  /// et on reste en attente qu'une valeur arrive.
+  void _scheduleOnboardingSheet() {
+    _onboardingScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _onboardingScheduled = false;
+      if (!mounted) return;
+      if (ref.read(anyBabyExistsProvider).value ?? true) return;
+      _onboardingShown = true;
+      showModalBottomSheet<Object?>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => const OnboardingWrapper(),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,23 +83,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // from another screen (e.g., Settings) while HomeScreen is mounted.
     ref.listen<AsyncValue<bool>>(anyBabyExistsProvider, (previous, next) {
       if (!next.hasValue || !next.value!) return;
-      setState(() => _onboardingShown = true);
+      if (mounted) setState(() => _onboardingShown = true);
     });
-    if (anyExistsAsync.hasValue && !_onboardingShown) {
+    if (anyExistsAsync.hasValue && !_onboardingShown && !_onboardingScheduled) {
       final hasProfiles = anyExistsAsync.value!;
       if (!hasProfiles) {
         // Trigger once, then mark as shown so we don't repeat on rebuilds.
-        _onboardingShown = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            showModalBottomSheet<Object?>(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => const OnboardingWrapper(),
-            );
-          }
-        });
+        _scheduleOnboardingSheet();
       }
     }
 
