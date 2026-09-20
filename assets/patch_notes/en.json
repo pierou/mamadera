@@ -61,6 +61,7 @@
       "- Honour the configured day in reminders and scope them to the selected baby",
       "- Create missing reminder settings when upgrading from older versions",
       "- Fix the patch notes printing their own markup as plain text",
+      "- Fix the welcome sheet offering to create a second baby after a restore",
       ""
     ]
   }

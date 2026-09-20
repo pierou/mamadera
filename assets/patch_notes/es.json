@@ -61,6 +61,7 @@
       "- Respeto del día configurado en los recordatorios, limitados al bebé seleccionado",
       "- Creación de la configuración de recordatorios ausente al actualizar desde versiones anteriores",
       "- Corrección de la visualización de las notas de la versión, que mostraba el markdown como texto",
+      "- Corrección de la ventana de bienvenida que ofrecía crear un segundo bebé tras una restauración",
       ""
     ]
   }

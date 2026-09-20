@@ -26,6 +26,22 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
   late DateTime _selectedDate;
   late AppLocalizations _locale;
 
+  /// Un `pop` a déjà été émis : un second en enlèverait une autre route du
+  /// navigator, et la feuille d'onboarding se fermerait sur un écran sans rapport.
+  bool _closed = false;
+
+  /// Une sauvegarde est en cours : l'écoute de `anyBabyExistsProvider` ne doit
+  /// pas rendre la feuille avant qu'elle l'ait fait elle-même, avec le message de
+  /// succès — sinon une création réussie se termine en fermeture silencieuse.
+  bool _saving = false;
+
+  /// Rend la feuille. [created] dit si un profil vient d'être créé ici.
+  void _dismiss(bool created) {
+    if (_closed || !mounted) return;
+    _closed = true;
+    Navigator.of(context).pop(created);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +59,16 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
   @override
   Widget build(BuildContext context) {
     _locale = context.l;
+
+    // Une restauration peut aboutir pendant que cette feuille est ouverte (import
+    // déclenché ailleurs, autre appareil). Son formulaire n'a plus de sens : il
+    // ajouterait un deuxième profil à une liste qui n'est plus vide. Elle se rend
+    // donc d'elle-même, sans message — la liste d'accueil qui se rafraîchit
+    // juste derrière explique l'affaire mieux qu'un texte.
+    ref.listen<AsyncValue<bool>>(anyBabyExistsProvider, (previous, next) {
+      if (_saving) return;
+      if (next.value ?? false) _dismiss(false);
+    });
 
     return Dialog(
         child: Padding(
@@ -115,7 +141,7 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
 
                   // Actions
                   DialogActionButtons(
-                    onCancelPressed: () => Navigator.pop(context, false),
+                    onCancelPressed: () => _dismiss(false),
                     onConfirmPressed: _selectedDate.isAfter(
                             DateTime.now().add(const Duration(days: 365 * 20)))
                         ? null
@@ -149,6 +175,11 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
 
+    // Marquée avant la moindre écriture : les rafraîchissements qui suivent
+    // l'insertion déclenchent l'écoute posée dans `build()`, et elle ne doit pas
+    // prendre la main sur la fermeture de la sauvegarde.
+    _saving = true;
+
     try {
       final repository = await ref.read(babyProfileRepositoryProvider.future);
 
@@ -158,7 +189,17 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
         (p) => p.name.toLowerCase() == name.toLowerCase(),
       );
       if (duplicateName && mounted) {
+        _saving = false;
         showError(context, _locale.babyNameAlreadyExists(name));
+        return;
+      }
+
+      // Cette feuille n'existe que parce qu'aucun profil n'existait. Si la base en
+      // contient maintenant, un import a abouti pendant la saisie : insérer ne
+      // créerait pas « le premier bébé » mais le deuxième, sans que personne
+      // n'ait rien demandé — d'où la fermeture plutôt que l'écriture.
+      if (existingProfiles.isNotEmpty) {
+        _dismiss(false);
         return;
       }
 
@@ -176,10 +217,11 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
 
       if (mounted) {
         showFeedback(context, _locale.babyAddedWithName(name));
-        // Dismiss the onboarding dialog after successful creation.
-        Navigator.of(context).pop(true);
       }
+      // Dismiss the onboarding dialog after successful creation.
+      _dismiss(true);
     } catch (e) {
+      _saving = false;
       if (mounted) {
         showError(context, _locale.onboardingError);
       }
