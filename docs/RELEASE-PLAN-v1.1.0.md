@@ -85,9 +85,12 @@ flutter build ios --config-only --release     # generates ios/Flutter/ephemeral/
       fresh clone of `v1.1.0-rc.1` → hook → `xcodebuild archive` (Xcode 27) →
       **ARCHIVE SUCCEEDED** in ~3 min (repo-root layout would have given the identical result —
       only the DISCOVERY step was broken).
-- [ ] Push to `main` (workflow triggers on any file change → new archive build auto-fires;
-      no ASC changes needed)
-- [ ] First green archive ⇒ build number/version in ASC shows up under Builds
+- [x] Landed on `main` 2026-09-20 via PR #9 (feature → develop) + PR #10
+      (develop → main), all gates green on both
+- [x] **First green archive 2026-09-20**: Xcode Cloud build SUCCEEDED — post-clone hook
+      ran (Flutter 3.44.8, SPM package generated), compiled on Xcode 27, and **
+      auto-signing worked** (the only untested leg). Signed 1.1.0 build in ASC under
+      Builds, ready to attach to the 1.1.0 version
 
 ## Phase 3 — Make GitHub Actions iOS honest (same PR; store path is Xcode Cloud, but stop the lie)
 
@@ -136,8 +139,8 @@ flutter build ios --config-only --release     # generates ios/Flutter/ephemeral/
 
 ## Phase 7 — Post-release hygiene
 
-- [ ] Update `docs/SUBMISSION-CHECKLIST.md` (Apple enrollment + ASC creation are done; add
-      Xcode Cloud reality) and `docs/app-store-setup.md` (SPM + `ci_scripts`, not Podfile)
+- [x] `docs/SUBMISSION-CHECKLIST.md` + `docs/app-store-setup.md` updated for the Xcode Cloud
+      reality (SPM + `ios/ci_scripts/` convention, auto-signing, main-push trigger)
 - [ ] Optional: real signed-IPA pipeline in Actions via the existing local runner (Xcode 27 +
       keychain + ASC API key) — only if Xcode Cloud's limits ever hurt
 

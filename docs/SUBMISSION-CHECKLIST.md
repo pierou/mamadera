@@ -46,10 +46,10 @@ Follow → [`docs/app-store-setup.md`](app-store-setup.md)
 
 | Task | Status |
 |------|--------|
-| Enroll in Apple Developer Program ($99/year) | ☐ |
-| Create app entry in App Store Connect (`com.pvjio.mamadera`) | ☐ |
-| Build & upload first IPA via Xcode Archive | ☐ |
-| Fill metadata (name, subtitle, description × 3 languages) | ☐ |
+| Enroll in Apple Developer Program ($99/year) | ✅ done |
+| Create app entry in App Store Connect (`com.pvjio.mamadera`) | ✅ done |
+| Archive + sign + upload via **Xcode Cloud** (auto on `main` push; auto-managed signing) | ✅ first green build 2026-09-20 — 1.1.0 build in ASC, ready to attach |
+| Fill metadata (name, subtitle, description × 3 languages — copy in `docs/app-store-setup.md` Step 5) | ☐ |
 | Upload screenshots (iPhone 6.7" + 5.5") — at least 3 per language | ☐ |
 | Set privacy policy URL | ☐ |
 | Complete age rating questionnaire | ☐ |
@@ -113,8 +113,9 @@ make build-aab       # AAB for Google Play Store
 # Validate signature
 apksigner verify --verbose build/app/outputs/flutter-apk/app-release.apk
 
-# iOS unsigned IPA (use Xcode to sign + archive)
-make build-ipa
+# iOS: no local signed build needed — Xcode Cloud archives, signs (auto-managed)
+# and uploads on every push to main. Local fallback:
+flutter build ios --config-only   # generates the gitignored SPM package, then archive in Xcode
 
 # Test CI pipeline with a release candidate tag
 git tag v1.0.0-rc.1 && git push origin v1.0.0-rc.1
@@ -128,5 +129,7 @@ git tag v1.0.0-rc.1 && git push origin v1.0.0-rc.1
 |---------|----------|
 | `apksigner` not found | Install via SDK Manager: `sdkmanager "build-tools;34.0.0"` or use Homebrew: `brew install android-build-tools` |
 | Xcode signing errors | Delete DerivedData (`~/Library/Developer/Xcode/DerivedData`) and re-open `.xcworkspace` |
+| Xcode Cloud: `Post-Clone script not found at ci_scripts/ci_post_clone.sh` | The hook must live in `ios/ci_scripts/` — next to `ios/Runner.xcworkspace`, NOT the repo root (Apple detection convention, see `docs/app-store-setup.md` Step 3) |
+| Xcode Cloud: `Could not resolve package dependencies … FlutterGeneratedPluginSwiftPackage` | The post-clone hook did not run (see above) — the SPM package is gitignored and Flutter-tool-generated |
 | Google Play says package name mismatch | Verify `android/app/build.gradle.kts` has `applicationId = "com.pvjio.mamadera"` — must match exactly |
 | App Store Connect can't find bundle ID | Wait 10–30 minutes after creating it, or manually create in Developer Portal → Identifiers |
