@@ -1,6 +1,13 @@
 #!/bin/bash
 # ci_post_clone.sh — Xcode Cloud post-clone hook (must finish within 10 min).
 #
+# LOCATION CONVENTION (Apple docs, "Writing custom build scripts"): Xcode Cloud
+# auto-detects this file in a `ci_scripts` directory located in the SAME directory
+# as the Xcode project/workspace — for this repo that is `ios/`, next to
+# ios/Runner.xcworkspace. A ci_scripts/ at the repo root is IGNORED (build log:
+# "Post-Clone script not found at ci_scripts/ci_post_clone.sh"). Xcode Cloud runs
+# the script with the ci_scripts directory as CWD.
+#
 # WHY THIS EXISTS
 # iOS plugins are integrated via Swift Package Manager through the LOCAL package
 # ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage. That
@@ -18,7 +25,9 @@ set -euo pipefail
 FLUTTER_VERSION=3.44.8
 FLUTTER_ZIP="https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_${FLUTTER_VERSION}-stable.zip"
 
-cd "${CI_WORKSPACE:-$(cd "$(dirname "$0")/.." && pwd)}"
+# Repo root: documented Xcode Cloud variable, else two levels up from ios/ci_scripts.
+cd "${CI_PRIMARY_REPOSITORY_PATH:-$(cd "$(dirname "$0")/../../" && pwd)}"
+echo "ci_post_clone: repo root = $(pwd)"
 
 # Fresh VM per build: the SDK download is NOT cached by Xcode Cloud (~2-4 min).
 # Only unzip when absent so a re-run within the same build is cheap.
