@@ -87,14 +87,35 @@ Under **Release → Managed open testing** (or Production), select all countries
 
 ## Step 6 — Store Listings
 
+> v1.1.0 listing copy. Full descriptions are plain text in fenced blocks —
+> copy them verbatim (Play does not render HTML; an earlier revision of this
+> doc used `<br>` tags which would have shipped literally).
+
 ### Main Listing (English)
 
 | Field | Content |
 |-------|---------|
-| **Title** | Mamadera Baby Tracker |
-| **Short description** (80 chars max) | Privacy-first baby tracker: feedings, sleep, diapers — all offline & encrypted |
-| **Full description** | Track your newborn's feedings, sleep patterns, diaper changes, and health routines with complete privacy. All data stays on your device — no cloud, no tracking, no telemetry.<br><br>**Features:**<br>• Breastfeeding & bottle feeding logs<br>• Sleep session tracker<br>• Diaper change history<br>• Health routine reminders (Vitamin D/K)<br>• Multiple baby profiles<br>• Encrypted local storage<br><br>Mamadera is open source under MIT license. Your baby data never leaves your phone. |
+| **Title** (30) | Mamadera Baby Tracker |
+| **Short description** (78/80) | Privacy-first baby tracker: feedings, sleep, diapers — all offline & encrypted |
 | **Editor's note** (optional) | Open-source, offline-first app built with Flutter & Riverpod |
+
+**Full description:**
+
+```
+Track your newborn's feedings, sleep patterns, diaper changes, and health routines with complete privacy. All data stays on your device — no cloud, no tracking, no telemetry.
+
+Features:
+• Breastfeeding & bottle feeding logs
+• Sleep session tracker
+• Diaper change history, with stool texture
+• Health routine reminders (Vitamin D/K) — plus your own custom reminders tied to any care
+• Log an event with its exact date and time, even after the fact
+• Multiple baby profiles
+• JSON backup & restore — export everything, restore anytime, on-device
+• Notes encrypted at rest
+
+Mamadera is open source under the MIT license. Your baby's data never leaves your phone.
+```
 
 ### French Listing
 
@@ -102,17 +123,51 @@ Go to **Store presence → Localizations** → Add French:
 
 | Field | Content |
 |-------|---------|
-| **Title** | Mamadera Suivi Bébé |
-| **Short description** (80 chars max) | Suivi bébé 100% privé : tétées, sommeil, couches — hors-ligne & chiffré |
-| **Full description** | Suivez les tétées, le sommeil, les changements de couche et la santé de votre nouveau-né avec une confidentialité totale. Toutes les données restent sur votre appareil — pas de cloud, pas de suivi.<br><br>**Fonctionnalités :**<br>• Historique des tétées (seins/biberons)<br>• Suivi du sommeil<br>• Journal des couches<br>• Rappels santé (Vitamine D/K)<br>• Profils multiples pour bébé<br>• Stockage local chiffré<br><br>Mamadera est open source sous licence MIT. Les données de votre bébé ne quittent jamais votre téléphone. |
+| **Title** (19/30) | Mamadera Suivi Bébé |
+| **Short description** (71/80) | Suivi bébé 100% privé : tétées, sommeil, couches — hors-ligne & chiffré |
+
+**Full description:**
+
+```
+Suivez les tétées, le sommeil, les changements de couche et la santé de votre nouveau-né avec une confidentialité totale. Toutes les données restent sur votre appareil — pas de cloud, pas de suivi.
+
+Fonctionnalités :
+• Historique des tétées (seins/biberons)
+• Suivi du sommeil
+• Journal des couches, avec texture des selles
+• Rappels santé (Vitamine D/K) — et rappels personnalisés liés à un soin
+• Saisie rétroactive d'un événement avec date et heure exactes
+• Profils multiples pour bébé
+• Sauvegarde et restauration JSON, 100 % sur l'appareil
+• Notes chiffrées au repos
+
+Mamadera est open source sous licence MIT. Les données de votre bébé ne quittent jamais votre téléphone.
+```
 
 ### Spanish Listing
 
 | Field | Content |
 |-------|---------|
-| **Title** | Mamadera Bebé Tracker |
-| **Short description** (80 chars max) | Seguimiento privado de bebé: tomas, sueño, pañales — sin nube ni rastreo |
-| **Full description** | Registra las tomas, el sueño, los cambios de pañal y la rutina de salud de tu recién nacido con privacidad total. Todos los datos se guardan en tu dispositivo — sin nube, sin telemetría.<br><br>**Características:**<br>• Registro de tomas (pecho/biberón)<br>• Seguimiento del sueño<br>• Historial de pañales<br>• Recordatorios de salud (Vitamina D/K)<br>• Múltiples perfiles de bebé<br>• Almacenamiento local cifrado |
+| **Title** (25/30) | Mamadera Seguimiento Bebé |
+| **Short description** (72/80) | Seguimiento privado de bebé: tomas, sueño, pañales — sin nube ni rastreo |
+
+**Full description:**
+
+```
+Registra las tomas, el sueño, los cambios de pañal y la rutina de salud de tu recién nacido con privacidad total. Todos los datos se guardan en tu dispositivo — sin nube, sin telemetría.
+
+Características:
+• Registro de tomas (pecho/biberón)
+• Seguimiento del sueño
+• Historial de pañales, con textura de las heces
+• Recordatorios de salud (Vitamina D/K) — y recordatorios personalizados vinculados a un cuidado
+• Registro retroactivo de un evento con fecha y hora exactas
+• Múltiples perfiles de bebé
+• Copia de seguridad y restauración en JSON, 100 % en el dispositivo
+• Notas cifradas en reposo
+
+Mamadera es de código abierto bajo licencia MIT. Los datos de tu bebé nunca salen de tu teléfono.
+```
 
 ---
 
