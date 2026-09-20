@@ -277,8 +277,12 @@ jobs:
   # every PR just paints a reliable red cross that cannot gate anything
   # useful. It therefore does NOT run on pull_request or v* tags; it
   # feeds the daily cron and manual dispatches as an informational
-  # fallback signal (still useful when the Mac is unavailable). The
-  # genuine release GATE lives in integration-tests-local below.
+  # fallback signal (still useful when the Mac is unavailable). It is
+  # SMOKE-ONLY: the Flutter Driver suite's cold start alone took 29 min
+  # on this runner (run 35427216241: 19:07 → 19:36) — more than its
+  # 30-min budget — so it can never be a signal here; it runs on the
+  # self-hosted Mac runner instead. The genuine release GATE lives in
+  # integration-tests-local below.
   # Ordinary pushes to main/develop skip
   # it to save free-tier minutes. PR-level integration feedback belongs
   # on the self-hosted runner, which runs the same suite in ~3 min.
@@ -313,14 +317,17 @@ jobs:
           # NOTE: android-emulator-runner splits `script` into one `sh -c`
           # per non-comment line — backslash line-continuations are NOT
           # supported. Each command must be a single self-contained line.
-          # Line 1 = smoke suite in ONE app launch, with a background
+          # Smoke suite ONLY, in ONE app launch, with a background
           # live-logcat + a 25-min watchdog: if "Dart VM service is
           # listening" never appears (surface flake → engine never boots),
-          # kill the test process instead of burning the 60-min bound.
-          # Line 2 = driver test (separate entrypoint, own build/install).
+          # kill the test process instead of burning the 90-min bound.
+          # The Flutter Driver suite was REMOVED from this job (run
+          # 35427216241): on this no-KVM runner its cold start alone took
+          # 29 min (19:07 → 19:36) — more than its 30-min budget — so it
+          # could never be a signal here. It runs on the self-hosted Mac
+          # runner (integration-tests-local) in ~2 min.
           script: |
-            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 3600 flutter test integration_test/ci_smoke_suite.dart & T=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — VM service may never have come up (surface flake)"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
-            timeout -k 60 1800 flutter drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart || { timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; }
+            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 5400 flutter test integration_test/ci_smoke_suite.dart & T=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — VM service may never have come up (surface flake) — smoke-only signal; the driver suite runs on the Mac runner"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
 
       - name: Upload emulator logcat (on failure)
         if: failure()
@@ -360,9 +367,10 @@ jobs:
           api-level: 34
           arch: x86_64
           profile: pixel_6
+          # Smoke-only, same as the first attempt (driver suite removed —
+          # see the integration-tests job notes above).
           script: |
-            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 3600 flutter test integration_test/ci_smoke_suite.dart & T=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — VM service may never have come up (surface flake)"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
-            timeout -k 60 1800 flutter drive --driver=integration_test/driver_integration_test.dart --target=lib/driver_main.dart || { timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; }
+            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 5400 flutter test integration_test/ci_smoke_suite.dart & T=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — VM service may never have come up (surface flake) — smoke-only signal; the driver suite runs on the Mac runner"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
 
       - name: Upload emulator logcat (on failure)
         if: failure()
