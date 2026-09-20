@@ -477,10 +477,73 @@ void main() {
       expect(find.byType(OnboardingDialog), findsNothing);
     });
 
-    // Note: Testing "onboarding shown when no babies exist" is skipped here because
-    // showModalBottomSheet in HomeScreen.initState() creates irreconcilable layout
-    // overflow (72x204 constraints) in widget tests. The negative test above validates
-    // the core fix logic (no false positives). The positive case is covered by manual/E2E testing.
+    // Note: le cas positif était resté non couvert — `showModalBottomSheet`
+    // débordait des 600x900 du harnais, et l'overflow faisait tomber le test pour
+    // une raison étrangère à ce qu'il vérifiait. Il est couvert ci-dessous sur un
+    // écran à la hauteur de la feuille.
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Effacé puis réimporté : la base est de nouveau peuplée, mais la feuille
+  // d'onboarding était déjà ouverte. Elle ne doit pas survivre à ce retour, et ne
+  // doit surtout pas y répondre par un second profil.
+  // ─────────────────────────────────────────────────────────────────────────
+  group('Onboarding sheet over a restored database', () {
+    Future<void> pumpHomeTall(WidgetTester tester) async {
+      // L'instance précédente appartient à un notifier détruit : la garder
+      // vivante ferait publier un état dans un fournisseur disparu.
+      TestAnyBabyExistsNotifier.instance = null;
+      // La feuille est plus haute que l'écran du harnais ; sur 900 px elle
+      // déborde et le test tombe pour un motif de layout, pas de comportement.
+      tester.view.physicalSize = const Size(1200, 3200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
+            activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
+            anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
+          ],
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            theme: AppTheme.theme,
+            home: Scaffold(body: const HomeScreen()),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('shown when no profile exists', (tester) async {
+      TestAnyBabyExistsNotifier.anyExists = false;
+      await pumpHomeTall(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OnboardingDialog), findsOneWidget);
+    });
+
+    testWidgets('closed as soon as a profile exists while it is open',
+        (tester) async {
+      TestAnyBabyExistsNotifier.anyExists = false;
+      await pumpHomeTall(tester);
+      await tester.pumpAndSettle();
+      expect(find.byType(OnboardingDialog), findsOneWidget);
+
+      // La restauration aboutit pendant que la feuille est affichée.
+      TestAnyBabyExistsNotifier.restored();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OnboardingDialog), findsNothing);
+    });
   });
 }
 
@@ -501,8 +564,20 @@ class TestActiveBabyNotifier extends ActiveBabyNotifier {
 class TestAnyBabyExistsNotifier extends AnyBabyExistsNotifier {
   static bool anyExists = false;
 
+  /// Fait apparaître un profil alors que la feuille d'onboarding est déjà ouverte
+  /// — ce que produit une restauration qui aboutit à ce moment-là.
+  static void restored() {
+    anyExists = true;
+    instance?._publishRestored();
+  }
+
+  static TestAnyBabyExistsNotifier? instance;
+
+  void _publishRestored() => state = const AsyncValue<bool>.data(true);
+
   @override
   Future<bool> build() {
+    instance = this;
     state = AsyncValue.data(anyExists);
     return Future.value(anyExists);
   }
