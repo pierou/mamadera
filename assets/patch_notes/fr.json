@@ -60,6 +60,7 @@
       "- Récupération fiable après l'effacement complet des données",
       "- Prise en compte du jour configuré pour les rappels, limités au bébé sélectionné",
       "- Création des paramètres de rappels manquants lors de la mise à jour depuis une version antérieure",
+      "- Correction de l'affichage des notes de version, dont le markdown paraissait en texte brut",
       ""
     ]
   }

@@ -5,8 +5,12 @@ import 'package:flutter/material.dart';
 /// Supports headers (#, ##, ###), lists (- or *), bold (**text**),
 /// italic (*text*), links [text](url), and horizontal rules (---).
 ///
-/// Used by the Terms & Conditions screens to render markdown assets
-/// without adding a heavy markdown-parsing dependency.
+/// Used by the onboarding terms screens to render markdown assets, and by the
+/// patch notes list, without adding a markdown-parsing dependency: `markdown`
+/// was declared in pubspec for years and never imported once (it is gone as of
+/// 1.1.0 — a declared dependency you do not use is still an audit surface).
+/// If richer markdown is ever needed, a real span visitor belongs here, not a
+/// silent re-add of that package.
 List<TextSpan> parseMarkdownToTextSpans(List<String> lines, BuildContext context) {
   final spans = <TextSpan>[];
   final theme = Theme.of(context);
@@ -86,6 +90,10 @@ List<TextSpan> parseMarkdownToTextSpans(List<String> lines, BuildContext context
 ///
 /// Strips formatting markers and returns the plain text content.
 /// For links, returns the link text (not the URL).
+///
+/// The patch notes rows run through this: the JSON is authored in markdown
+/// (`- 🎚️ **Compact** mode inside the snooze dialog…`), and printing the
+/// markers was the bug.
 String parseInlineMarkdown(String input) {
   var result = input;
 
