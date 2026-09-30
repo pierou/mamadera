@@ -120,7 +120,7 @@ void main() {
       final context = await pumpWithContext(tester, const Locale('fr'));
       expect(
         getHistoryFilterLabel(context, HistoryFilter.miam),
-        'Miam',
+        'Nourriture',
       );
     });
 
@@ -134,7 +134,7 @@ void main() {
 
     testWidgets('filterCaca → localized label', (tester) async {
       final context = await pumpWithContext(tester, const Locale('fr'));
-      expect(getHistoryFilterLabel(context, HistoryFilter.caca), 'Caca');
+      expect(getHistoryFilterLabel(context, HistoryFilter.caca), 'Couche');
     });
 
     testWidgets('filterSante → "Santé"', (tester) async {
@@ -177,7 +177,7 @@ void main() {
   group('getTrackingTypeLabel — FR locale', () {
     testWidgets('miam → label maison FR', (tester) async {
       final context = await pumpWithContext(tester, const Locale('fr'));
-      expect(getTrackingTypeLabel(context, TrackingType.miam), 'Miam');
+      expect(getTrackingTypeLabel(context, TrackingType.miam), 'Nourriture');
     });
 
     testWidgets('dodo → Dodo', (tester) async {
@@ -188,9 +188,9 @@ void main() {
       );
     });
 
-    testWidgets('caca → Caca', (tester) async {
+    testWidgets('caca → Couche', (tester) async {
       final context = await pumpWithContext(tester, const Locale('fr'));
-      expect(getTrackingTypeLabel(context, TrackingType.caca), 'Caca');
+      expect(getTrackingTypeLabel(context, TrackingType.caca), 'Couche');
     });
 
     testWidgets('sante → Santé', (tester) async {

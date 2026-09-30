@@ -30,13 +30,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get routerGenericError => 'Une erreur est survenue.';
 
   @override
-  String get homeButtonMiam => 'Miam';
+  String get homeButtonMiam => 'Nourriture';
 
   @override
   String get homeButtonSante => 'Santé';
 
   @override
-  String get homeButtonCaca => 'Caca';
+  String get homeButtonCaca => 'Couche';
 
   @override
   String get homeButtonDodo => 'Dodo';
@@ -307,13 +307,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get filterAll => 'Tous';
 
   @override
-  String get filterMiam => 'Miam';
+  String get filterMiam => 'Nourriture';
 
   @override
   String get filterDodo => 'Sommeil';
 
   @override
-  String get filterCaca => 'Caca';
+  String get filterCaca => 'Couche';
 
   @override
   String get filterSante => 'Santé';
@@ -327,7 +327,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get typeLabelMiam => 'Miam';
+  String get typeLabelMiam => 'Nourriture';
 
   @override
   String get typeLabelSommeil => 'Sommeil';

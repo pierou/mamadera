@@ -131,13 +131,13 @@ void main() {
     });
 
     testWidgets('renders with all tracking type colors', (tester) async {
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Miam', color: AppTheme.miam)));
+      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Nourriture', color: AppTheme.miam)));
       expect(find.byType(TrackButton), findsOneWidget);
 
       await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Sante', color: AppTheme.sante)));
       expect(find.byType(TrackButton), findsOneWidget);
 
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Caca', color: AppTheme.caca)));
+      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Couche', color: AppTheme.caca)));
       expect(find.byType(TrackButton), findsOneWidget);
 
       await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Dodo', color: AppTheme.dodo)));

@@ -55,6 +55,7 @@
       "- Restore all data from an exported backup file",
       "### Improvements",
       "- Serve Spanish users their own terms, dates and patch notes",
+      "- Update of the home button labels to use « Nourriture » and « Couche » instead of « Miam » and « Caca »",
       "### Bug Fixes",
       "- Keep notes when editing a health entry",
       "- Recover correctly after deleting all data",

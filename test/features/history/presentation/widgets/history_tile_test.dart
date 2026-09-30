@@ -85,12 +85,12 @@ void main() {
   });
 
   group('HistoryTile — Type label par événement', () {
-    testWidgets('FeedingEvent → "Miam"', (tester) async {
+    testWidgets('FeedingEvent → "Nourriture"', (tester) async {
       await pumpTile(
         tester,
         FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
       );
-      expect(find.text('Miam'), findsOneWidget);
+      expect(find.text('Nourriture'), findsOneWidget);
     });
 
     testWidgets('SleepEvent → "Sommeil"', (tester) async {
@@ -337,7 +337,7 @@ void main() {
           ),
         ),
       );
-      expect(find.text('Miam'), findsOneWidget);
+      expect(find.text('Nourriture'), findsOneWidget);
     });
 
     testWidgets('renders correctly in dark mode', (tester) async {
@@ -362,7 +362,7 @@ void main() {
           ),
         ),
       );
-      expect(find.text('Miam'), findsOneWidget);
+      expect(find.text('Nourriture'), findsOneWidget);
     });
 
     testWidgets('has Semantics widgets for accessibility', (tester) async {

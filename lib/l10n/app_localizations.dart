@@ -145,7 +145,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeButtonMiam.
   ///
   /// In fr, this message translates to:
-  /// **'Miam'**
+  /// **'Nourriture'**
   String get homeButtonMiam;
 
   /// No description provided for @homeButtonSante.
@@ -157,7 +157,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeButtonCaca.
   ///
   /// In fr, this message translates to:
-  /// **'Caca'**
+  /// **'Couche'**
   String get homeButtonCaca;
 
   /// No description provided for @homeButtonDodo.
@@ -637,7 +637,7 @@ abstract class AppLocalizations {
   /// No description provided for @filterMiam.
   ///
   /// In fr, this message translates to:
-  /// **'Miam'**
+  /// **'Nourriture'**
   String get filterMiam;
 
   /// No description provided for @filterDodo.
@@ -649,7 +649,7 @@ abstract class AppLocalizations {
   /// No description provided for @filterCaca.
   ///
   /// In fr, this message translates to:
-  /// **'Caca'**
+  /// **'Couche'**
   String get filterCaca;
 
   /// No description provided for @filterSante.
@@ -673,7 +673,7 @@ abstract class AppLocalizations {
   /// No description provided for @typeLabelMiam.
   ///
   /// In fr, this message translates to:
-  /// **'Miam'**
+  /// **'Nourriture'**
   String get typeLabelMiam;
 
   /// No description provided for @typeLabelSommeil.
