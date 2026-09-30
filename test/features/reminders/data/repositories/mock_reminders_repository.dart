@@ -7,9 +7,6 @@ class MockRemindersRepository implements RemindersRepository {
   /// Maps item ID → last completed DateTime (simulates tracking event).
   final Map<String, DateTime?> lastCompletedByItem = {};
 
-  /// Maps item ID → dismissal time (simulates cooldown dismissals).
-  final Map<String, DateTime> dismissalTimeById = {};
-
   /// Maps item ID → persisted enabled flag (absent = jamais touché = activé).
   final Map<String, bool> enabledById = {};
 
@@ -54,16 +51,6 @@ class MockRemindersRepository implements RemindersRepository {
   }
 
   @override
-  Future<void> saveDismissalTime(String reminderId, DateTime time) async {
-    dismissalTimeById[reminderId] = time;
-  }
-
-  @override
-  Future<DateTime?> getDismissalTime(String reminderId) async {
-    return dismissalTimeById[reminderId];
-  }
-
-  @override
   Future<Map<String, bool>> getEnabledByItemId() async => Map.of(enabledById);
 
   @override
@@ -105,10 +92,10 @@ class MockRemindersRepository implements RemindersRepository {
     deleteCustomCallCount++;
     if (failCustomDelete) throw StateError('stockage refusé');
     customRemindersById.remove(id);
-    // Comme la vraie implémentation : supprimer le rappel emporte son
-    // extinction et son rang, sinon un fantôme survit à chaque export.
+    // Comme la vraie implémentation : supprimer le rappel emporte son rang
+    // (et sa ligne `reminder_dismissals`, en base), sinon un fantôme survit
+    // à chaque export.
     final key = '${CustomReminderPresets.customIdPrefix}$id';
     enabledById.remove(key);
-    dismissalTimeById.remove(key);
   }
 }

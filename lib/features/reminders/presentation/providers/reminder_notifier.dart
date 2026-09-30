@@ -7,16 +7,24 @@ import '../../../../../shared/domain/entities/tracking_type.dart';
 import '../../domain/entities/reminders_state.dart';
 import 'reminder_providers.dart';
 
-/// Polling interval for checking due reminders.
-const Duration _pollInterval = Duration(minutes: 5);
+/// Default polling interval for checking due reminders.
+const Duration _defaultPollInterval = Duration(minutes: 5);
 
 /// Provider that emits a map of [TrackingType] → list of pending [ReminderStatus].
-/// Polls every [_pollInterval] to re-evaluate which reminders are due.
+/// Polls every [_defaultPollInterval] to re-evaluate which reminders are due.
 final reminderNotifierProvider = AsyncNotifierProvider<RemindersNotifier, Map<TrackingType, List<ReminderStatus>>>(
   RemindersNotifier.new,
 );
 
 class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderStatus>>> {
+  RemindersNotifier({this.pollInterval = _defaultPollInterval});
+
+  /// Intervalle entre deux sondages de rappels dus.
+  ///
+  /// Injectable pour les tests (un intervalle court) ; la production garde
+  /// cinq minutes.
+  final Duration pollInterval;
+
   Timer? _pollTimer;
 
   @override
@@ -24,7 +32,7 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
     // Watch active baby — rebuilds when it changes (re-evaluates reminders).
     ref.watch(activeBabyProvider);
 
-    // Start periodic polling every 5 minutes (only once, survives rebuilds).
+    // Start periodic polling (only once; the timer outlives rebuilds).
     if (_pollTimer == null) {
       _startPolling();
     }
@@ -32,12 +40,23 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
     // Clean up timer when the provider is disposed (no watchers).
     ref.onDispose(_stopPolling);
 
+    // Dépendance réactive sur le service : quand la chaîne réglages →
+    // rappels activés → service se cale (toggle dans Réglages, création
+    // d'un rappel custom, reset), ce provider se ré-évalue de lui-même
+    // avec le service reconstruit, et l'accueil reçoit le nouvel état sans
+    // attendre le sondage de cinq minutes. Ne plus appuyer sur une
+    // invalidation en une fois du côté des écrans : pendant une
+    // reconstruction concurrente, la lecture transitoire du service
+    // autoDispose pouvait livrer l'ancienne liste et la pastille éteinte
+    // survivait (item 5 du plan).
+    await ref.watch(remindersServiceProvider.future);
+
     return _checkDue();
   }
 
   void _startPolling() {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(_pollInterval, (_) => _tick());
+    _pollTimer = Timer.periodic(pollInterval, (_) => _tick());
   }
 
   void _stopPolling() {

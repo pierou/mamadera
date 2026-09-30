@@ -16,22 +16,6 @@ abstract class RemindersRepository {
   /// reminder the parent already did.
   Future<DateTime?> getLastCompleted(ReminderItem item, {String? babyId});
 
-  /// Persists when a user dismissed a reminder (for cooldown tracking).
-  ///
-  /// NOTE: dismissals are global across babies by design-at-v1. `reminder_dismissals`
-  /// keys rows by a unique `item_id` and has no baby column (and no FK to
-  /// `baby_profiles`), so one dismissal mutes the item for every baby until the
-  /// cooldown expires. Scoping a dismissal per baby would mean rebuilding that table
-  /// (composite key + migration), which is out of scope here — unlike tracking
-  /// events, a dismissal is a short-lived "not now" (4 h cooldown), not user data.
-  Future<void> saveDismissalTime(String itemId, DateTime time);
-
-  /// Returns the last dismissal timestamp for [itemId], or null if never dismissed.
-  ///
-  /// NOTE: global across babies by design-at-v1 — see [saveDismissalTime] for why
-  /// the value cannot be scoped to a baby without rebuilding `reminder_dismissals`.
-  Future<DateTime?> getDismissalTime(String itemId);
-
   /// Enabled flag persisted for every reminder item id.
   ///
   /// A missing id means the reminder was never touched: it is **enabled**. The

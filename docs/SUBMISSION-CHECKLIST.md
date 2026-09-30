@@ -53,7 +53,7 @@ Follow → [`docs/app-store-setup.md`](app-store-setup.md)
 | Upload screenshots (iPhone 6.7" + 5.5") — at least 3 per language | ☐ |
 | Set privacy policy URL | ☐ |
 | Complete age rating questionnaire | ☐ |
-| Verify `ITSAppUsesNonExemptEncryption = true` is in Info.plist ✅ done | ☐ |
+| Declare no non-exempt encryption — `ITSAppUsesNonExemptEncryption = false` in Info.plist, matching the ASC export-compliance answer | ✅ done |
 | Submit for review | ☐ |
 
 **Expected timeline:** First review takes 1–3 business days.
@@ -61,6 +61,13 @@ Follow → [`docs/app-store-setup.md`](app-store-setup.md)
 ---
 
 ### 🤖 Step C — Google Play Store (Android)
+
+**Status 2026-09-29 — v1.1.0 is live on Google Play** (shipped 2026-09-15, updated from 1.0.1):
+account, app entry, data safety, IARC, listing ×3, graphics and the
+internal→production track are done. **1.1.1 is a routine update:** signed AAB
+from the `v1.1.1` tag (Actions, production keystore) → internal testing →
+production. The 1.0.1→1.1.x upgrade test (schema → v10) and the restore
+round-trip from `RELEASE-PLAN-v1.1.0.md` Phase 5 were the gating checks.
 
 Follow → [`docs/google-play-setup.md`](google-play-setup.md)
 
