@@ -1,0 +1,38 @@
+# .bagent/project.yml -- self-declaration; bagent validates the CONTRACT, not the meaning.
+# Edit scope/owns freely. Renaming 'name' orphans the existing index namespace.
+name: mamadera
+scope: 'Privacy-first newborn tracking app (Flutter 3.x / Dart 3.x, iOS & Android targets, v1.1.0+4):
+  feedings (breast/bottle + duration), sleep, diapers, and health routines (eye/face/nose cleaning,
+  belly button, Vitamin D daily, Vitamin K on a 30-day rolling interval) with reminder pills,
+  multi-baby profiles, and fr/en/es localization. Offline-only by mandate: zero telemetry, no network
+  transport anywhere in the app; sensitive fields (notes, weight, allergies) encrypted at rest
+  (flutter_secure_storage + AES-GCM) before Drift/SQLite insert. Feature-first Clean Architecture
+  (lib/features/<module>/{domain,data,presentation}), Riverpod Notifier/AsyncNotifier only, go_router,
+  freezed codegen. The one sanctioned data exit is the manual JSON export of ALL tables via the OS
+  share sheet, paired with a validated all-or-nothing import/restore; export and import move together
+  (new table = both features + exportFormatVersion/import version bump).'
+role: project
+owns:
+- newborn_tracking
+- feeding_sleep_diaper_logging
+- health_routine_reminders
+- local_only_storage
+- json_export_restore
+publishes: []          # no money/metrics -- consumer app, nothing appended to ~/.rag/money.db
+aliases: {}            # no collision with central vocabulary (no client/revenue terms in this project)
+paths:
+- lib/
+- test/
+- integration_test/
+- docs/
+- assets/
+flags:
+- privacy mandate (AGENTS.md, non-negotiable): never add analytics/telemetry/crash reporting or any network dependency; propose local/offline solutions first
+- web/, linux/, macos/, windows/ platform folders exist but are NOT targets (iOS/Android only unless explicitly requested)
+- lib/data/local/app_db.dart is the DDL source of truth; schema.sql is a generated reference
+- docs/ holds store-submission material: google-play-setup.md, app-store-setup.md, fdroiddata/, keystore-setup.md, RELEASE-PLAN-v1.1.0.md, ROADMAP-reminders-and-sync.md, import-database-plan.md
+declared_by: agent
+declared_on: '2026-09-27'
+updated_on: '2026-09-29'
+confidence: high       # scope from the project's own AGENTS.md + README.md + directory survey, not filenames
+confirm_needed: true   # owner has asked for the update; scope text still awaiting a human read-and-agree
