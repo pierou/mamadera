@@ -1,0 +1,100 @@
+# ASC screenshots pipeline (iPhone)
+
+Captures the six store screens on the **iPhone 17 simulator** and produces the
+ribbon-free, ASC-exact-size PNGs ready to upload to App Store Connect.
+
+## Layout
+
+```
+screenshots/ios/asc/
+├── raw/          simulator captures, native res (1206×2622 / 2622×1206)
+├── clean/        ribbon removed, still native res
+├── 1242x2688/    ASC iPhone 6.5" (3D Touch) — portrait
+├── 2688x1242/    ASC iPhone 6.5" (3D Touch) — landscape
+├── 1284x2778/    ASC iPhone 6.7" (3D Touch) — portrait
+├── 2778x1284/    ASC iPhone 6.7" (3D Touch) — landscape
+├── Patch.swift   pixel-level ribbon removal (Swift, CoreGraphics)
+└── postprocess.sh orchestrates clean → resize
+```
+
+Six screens per orientation: `home`, `feeding`, `sleep`, `diaper` (bottom
+sheets), `history`, `menu`.
+
+## Step 1 — Capture
+
+Seeded driver target (`lib/asc_driver_main.dart`) + host-side driver
+(`test_driver/asc_screenshots.dart`, scrollIntoView-based navigation):
+
+```bash
+flutter drive \
+  --target=lib/asc_driver_main.dart \
+  --driver=test_driver/asc_screenshots.dart \
+  -d "iPhone 17"
+```
+
+Writes `raw/<name>.png` and `raw/<name>_landscape.png`. The simulator's red
+**DEBUG ribbon** (diagonal stripe, top-right corner) is present on every
+capture and is removed in step 2.
+
+## Step 2 — Clean + resize
+
+```bash
+bash screenshots/ios/asc/postprocess.sh
+```
+
+`Patch.swift` (top-down `NSBitmapImageRep` buffers — no manual row flipping):
+
+- **portrait**: pastes the top 170 px status-bar strip from the accepted
+  reference `screenshots/ios/home.png` (19:28 clock, Dynamic Island,
+  signal/Wi-Fi/battery icons — verified 0 red pixels), then erases the
+  diagonal stripe tail (rows 160–210, top-right) that extends below the
+  pasted strip, with the flat `#2D2D2D` background.
+- **landscape**: paints the top-right corner zone (x ≥ 2400, y < 320) with
+  per-column colors sampled from y = 340 — that zone is the black screen
+  corner curve, so the result is seamless.
+
+Then `sips -z` resizes each clean PNG into the four ASC folders (exact
+dimensions, verified at the end of the script).
+
+## Verification
+
+`postprocess.sh` validates every one of the 24 output files at the end:
+exact dimensions **and** no alpha channel — `sips -g hasAlpha` must be
+`no` for all of them. App Store Connect rejects PNGs carrying an alpha
+channel, even when fully opaque, so `Patch.swift` writes 24-bit RGB
+(`samplesPerPixel: 3, hasAlpha: false`) rather than RGBA.
+
+For the ribbon itself, a red-pixel scan of the ribbon zones must return 0:
+
+- portrait: rows 0–210 → `0 reddish pixels`
+- landscape: x ≥ 2350, rows 0–340 → `0 reddish pixels`
+
+(Working scan: `swift` one-liner loading `NSBitmapImageRep`, test
+`r > 100 && r > g + 30 && r > b + 30`.)
+
+## Dependencies & gotchas
+
+- **Reference strip**: `screenshots/ios/home.png` must stay ribbon-free — it
+  is the status-bar donor for every portrait capture.
+- Raw captures need the simulator's *native* resolution (no Retina scaling
+  surprises): iPhone 17 is 1206×2622 portrait / 2622×1206 landscape.
+- Re-running the driver overwrites `raw/` and therefore everything downstream
+  — re-run `postprocess.sh` afterwards.
+- The landscape captures switch orientation via the driver; the home/menu
+  landscape shots explicitly re-tap the home tab first (a portrait run ends
+  on the menu tab).
+
+## Store presentation / promo images
+
+Separate from screenshots: `mamadera_banner_final.py` (Pillow, repo root)
+generates the branded promo images in `store/`:
+
+```
+store/appstore_promo[_lang].png                       1280×800   web / App Store presence
+store/appstore_promo_portrait_1242x2688[_lang].png    1242×2688  ASC portrait slot
+store/appstore_promo_portrait_1284x2778[_lang].png    1284×2778  ASC portrait slot
+store/play_feature_graphic[_lang].png                 1024×500   Google Play
+```
+
+`[_lang]` = unsuffixed fr, `_en`, `_es`. Regenerate with
+`/usr/bin/python3 mamadera_banner_final.py`.

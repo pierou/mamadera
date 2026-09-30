@@ -7,7 +7,7 @@ class AppConfig {
   /// Must stay in sync with `version:` in `pubspec.yaml` (enforced in CI).
   /// Used to detect app updates for the patch-notes dialog and displayed
   /// on the About and feedback screens.
-  static const String version = '1.1.0';
+  static const String version = '1.1.1';
 
   /// Contact email for bug reports and feature requests.
   static const String contactEmail = 'support@pvj.io';

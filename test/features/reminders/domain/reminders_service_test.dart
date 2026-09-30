@@ -54,26 +54,6 @@ void main() {
       expect(result, isA<RemindersDue>());
     });
 
-    test('skips reminder within cooldown period', () async {
-      // Reminder is due (last completed yesterday) but was dismissed recently.
-      mockRepo.lastCompletedByItem['vitamin_d'] = DateTime.now().subtract(const Duration(days: 1));
-      mockRepo.dismissalTimeById['vitamin_d'] = DateTime.now();
-      service = RemindersService(items: [vitaminDItem], repository: mockRepo);
-
-      final result = await service.checkDue();
-      expect(result, isA<RemindersAllCompleted>());
-    });
-
-    test('includes reminder after cooldown period expires', () async {
-      // Reminder is due (last completed yesterday) and dismissed 5 hours ago (> 4h cooldown).
-      mockRepo.lastCompletedByItem['vitamin_d'] = DateTime.now().subtract(const Duration(days: 1));
-      mockRepo.dismissalTimeById['vitamin_d'] = DateTime.now().subtract(const Duration(hours: 5));
-      service = RemindersService(items: [vitaminDItem], repository: mockRepo);
-
-      final result = await service.checkDue();
-      expect(result, isA<RemindersDue>());
-    });
-
     test('passes the active baby id down to the completion lookup', () async {
       // Guards against the cross-baby leak: completing a routine for baby A must be
       // looked up under baby A only, so it cannot silence baby B's reminder.
@@ -86,22 +66,6 @@ void main() {
       // No profile yet → unscoped lookup (backward compatible v1 behaviour).
       await service.checkDue();
       expect(mockRepo.lastCompletedBabyId, isNull);
-    });
-  });
-
-  group('RemindersService.dismiss()', () {
-    setUp(() {
-      mockRepo = MockRemindersRepository();
-    });
-
-    test('saves dismissal time for item', () async {
-      service = RemindersService(items: [vitaminDItem], repository: mockRepo);
-
-      expect(mockRepo.dismissalTimeById['vitamin_d'], isNull);
-
-      await service.dismiss('vitamin_d');
-
-      expect(mockRepo.dismissalTimeById['vitamin_d'], isNotNull);
     });
   });
 }

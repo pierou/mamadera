@@ -21,18 +21,18 @@ class ReminderSettingsNotifier extends AsyncNotifier<Map<String, bool>> {
     return repository.getEnabledByItemId();
   }
 
-  /// Enregistre le choix, puis rafraîchit les pastilles de l'accueil.
+  /// Enregistre le choix, puis met à jour l'état local — le switch ne
+  /// clignote pas le temps de relire la base.
   ///
-  /// L'état local est mis à jour immédiatement — le switch ne clignote pas le
-  /// temps de relire la base — et [reminderNotifierProvider] est invalidé : sans
-  /// ça, un rappel que l'on vient d'éteindre resterait affiché sur l'accueil
-  /// jusqu'au prochain sondage de cinq minutes.
+  /// L'accueil, lui, se met à jour tout seul : le notifieur de rappels
+  /// dépend réactivement de la chaîne réglages → rappels activés → service
+  /// (voir [RemindersNotifier.build]), donc l'extinction d'un rappel
+  /// propage jusqu'aux pastilles sans invalidation en une fois.
   Future<void> setEnabled(String itemId, {required bool enabled}) async {
     final repository = await ref.read(remindersRepositoryProvider.future);
     await repository.setEnabled(itemId, enabled: enabled);
 
     final current = state.value ?? const <String, bool>{};
     state = AsyncData({...current, itemId: enabled});
-    ref.invalidate(reminderNotifierProvider);
   }
 }

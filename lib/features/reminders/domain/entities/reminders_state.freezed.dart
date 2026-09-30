@@ -15,7 +15,6 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ReminderStatus {
   ReminderItem get item;
-  DateTime? get lastDismissedAt;
   DateTime? get lastEventAt;
 
   /// Create a copy of ReminderStatus
@@ -32,19 +31,16 @@ mixin _$ReminderStatus {
         (other.runtimeType == runtimeType &&
             other is ReminderStatus &&
             (identical(other.item, item) || other.item == item) &&
-            (identical(other.lastDismissedAt, lastDismissedAt) ||
-                other.lastDismissedAt == lastDismissedAt) &&
             (identical(other.lastEventAt, lastEventAt) ||
                 other.lastEventAt == lastEventAt));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, item, lastDismissedAt, lastEventAt);
+  int get hashCode => Object.hash(runtimeType, item, lastEventAt);
 
   @override
   String toString() {
-    return 'ReminderStatus(item: $item, lastDismissedAt: $lastDismissedAt, lastEventAt: $lastEventAt)';
+    return 'ReminderStatus(item: $item, lastEventAt: $lastEventAt)';
   }
 }
 
@@ -54,8 +50,7 @@ abstract mixin class $ReminderStatusCopyWith<$Res> {
           ReminderStatus value, $Res Function(ReminderStatus) _then) =
       _$ReminderStatusCopyWithImpl;
   @useResult
-  $Res call(
-      {ReminderItem item, DateTime? lastDismissedAt, DateTime? lastEventAt});
+  $Res call({ReminderItem item, DateTime? lastEventAt});
 
   $ReminderItemCopyWith<$Res> get item;
 }
@@ -74,7 +69,6 @@ class _$ReminderStatusCopyWithImpl<$Res>
   @override
   $Res call({
     Object? item = null,
-    Object? lastDismissedAt = freezed,
     Object? lastEventAt = freezed,
   }) {
     return _then(_self.copyWith(
@@ -82,10 +76,6 @@ class _$ReminderStatusCopyWithImpl<$Res>
           ? _self.item
           : item // ignore: cast_nullable_to_non_nullable
               as ReminderItem,
-      lastDismissedAt: freezed == lastDismissedAt
-          ? _self.lastDismissedAt
-          : lastDismissedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       lastEventAt: freezed == lastEventAt
           ? _self.lastEventAt
           : lastEventAt // ignore: cast_nullable_to_non_nullable
@@ -197,15 +187,13 @@ extension ReminderStatusPatterns on ReminderStatus {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(ReminderItem item, DateTime? lastDismissedAt,
-            DateTime? lastEventAt)?
-        $default, {
+    TResult Function(ReminderItem item, DateTime? lastEventAt)? $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _ReminderStatus() when $default != null:
-        return $default(_that.item, _that.lastDismissedAt, _that.lastEventAt);
+        return $default(_that.item, _that.lastEventAt);
       case _:
         return orElse();
     }
@@ -226,14 +214,12 @@ extension ReminderStatusPatterns on ReminderStatus {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(
-            ReminderItem item, DateTime? lastDismissedAt, DateTime? lastEventAt)
-        $default,
+    TResult Function(ReminderItem item, DateTime? lastEventAt) $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ReminderStatus():
-        return $default(_that.item, _that.lastDismissedAt, _that.lastEventAt);
+        return $default(_that.item, _that.lastEventAt);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -253,14 +239,12 @@ extension ReminderStatusPatterns on ReminderStatus {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(ReminderItem item, DateTime? lastDismissedAt,
-            DateTime? lastEventAt)?
-        $default,
+    TResult? Function(ReminderItem item, DateTime? lastEventAt)? $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ReminderStatus() when $default != null:
-        return $default(_that.item, _that.lastDismissedAt, _that.lastEventAt);
+        return $default(_that.item, _that.lastEventAt);
       case _:
         return null;
     }
@@ -270,13 +254,10 @@ extension ReminderStatusPatterns on ReminderStatus {
 /// @nodoc
 
 class _ReminderStatus implements ReminderStatus {
-  const _ReminderStatus(
-      {required this.item, this.lastDismissedAt, this.lastEventAt});
+  const _ReminderStatus({required this.item, this.lastEventAt});
 
   @override
   final ReminderItem item;
-  @override
-  final DateTime? lastDismissedAt;
   @override
   final DateTime? lastEventAt;
 
@@ -294,19 +275,16 @@ class _ReminderStatus implements ReminderStatus {
         (other.runtimeType == runtimeType &&
             other is _ReminderStatus &&
             (identical(other.item, item) || other.item == item) &&
-            (identical(other.lastDismissedAt, lastDismissedAt) ||
-                other.lastDismissedAt == lastDismissedAt) &&
             (identical(other.lastEventAt, lastEventAt) ||
                 other.lastEventAt == lastEventAt));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, item, lastDismissedAt, lastEventAt);
+  int get hashCode => Object.hash(runtimeType, item, lastEventAt);
 
   @override
   String toString() {
-    return 'ReminderStatus(item: $item, lastDismissedAt: $lastDismissedAt, lastEventAt: $lastEventAt)';
+    return 'ReminderStatus(item: $item, lastEventAt: $lastEventAt)';
   }
 }
 
@@ -318,8 +296,7 @@ abstract mixin class _$ReminderStatusCopyWith<$Res>
       __$ReminderStatusCopyWithImpl;
   @override
   @useResult
-  $Res call(
-      {ReminderItem item, DateTime? lastDismissedAt, DateTime? lastEventAt});
+  $Res call({ReminderItem item, DateTime? lastEventAt});
 
   @override
   $ReminderItemCopyWith<$Res> get item;
@@ -339,7 +316,6 @@ class __$ReminderStatusCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   $Res call({
     Object? item = null,
-    Object? lastDismissedAt = freezed,
     Object? lastEventAt = freezed,
   }) {
     return _then(_ReminderStatus(
@@ -347,10 +323,6 @@ class __$ReminderStatusCopyWithImpl<$Res>
           ? _self.item
           : item // ignore: cast_nullable_to_non_nullable
               as ReminderItem,
-      lastDismissedAt: freezed == lastDismissedAt
-          ? _self.lastDismissedAt
-          : lastDismissedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       lastEventAt: freezed == lastEventAt
           ? _self.lastEventAt
           : lastEventAt // ignore: cast_nullable_to_non_nullable

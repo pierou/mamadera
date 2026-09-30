@@ -4,13 +4,12 @@
 Produces per-language marketing images matching the app icon's brand palette
 (warm gold, soft teal, lavender on a light cream background):
 
-  store/play_feature_graphic[_lang].png  1024x500  Google Play feature graphic
-  store/appstore_promo[_lang].png        1280x800  App Store / web promo tile
+  store/play_feature_graphic[_lang].png       1024x500  Google Play feature graphic
+  store/appstore_promo[_lang].png             1280x800  App Store / web promo tile
+  store/appstore_promo_portrait_1242x2688[_lang].png   1242x2688  ASC portrait (iPhone 6.5")
+  store/appstore_promo_portrait_1284x2778[_lang].png   1284x2778  ASC portrait (iPhone 6.7")
 
 Languages (LANGS below): fr (unsuffixed, legacy names kept), en, es.
-
-  store/play_feature_graphic.png  1024x500  Google Play feature graphic
-  store/appstore_promo.png        1280x800  App Store / web promo tile
 
 Design notes
 ------------
@@ -385,6 +384,58 @@ def build_appstore_promo(lang):
     return img
 
 
+# ── 3. App Store portrait promo (1242x2688 & 1284x2778) ─────────────────────
+# Same brand system as the landscape promo, reflowed for the ASC portrait
+# slots: icon, title, subtitle on top; 2x3 feature grid; lock line + footer
+# at the bottom. All positions are fractions of (w, h) so both sizes share
+# one code path.
+def build_appstore_promo_portrait(lang, w, h):
+    t = LANGS[lang]
+    img = paint_background(w, h, glows=[
+        (0.75 * w, 0.08 * h, 0.27 * w, GOLD, 40),
+        (0.08 * w, 0.55 * h, 0.26 * w, TEAL, 36),
+        (0.85 * w, 0.90 * h, 0.30 * w, LAVENDER, 34),
+    ])
+    d = ImageDraw.Draw(img)
+
+    # App icon (top center)
+    icon_size = int(round(w * 0.38))
+    icon_top = int(round(h * 0.072))
+    tile = icon_tile(icon_size)
+    img.paste(tile, ((w - icon_size) // 2, icon_top), tile)
+
+    # Title + subtitle (centered)
+    title_font = sf_rounded(int(round(w * 0.118)), 900)
+    sub_font = sf_pro(int(round(w * 0.036)), 600)
+    title_y = icon_top + icon_size + int(round(h * 0.042))
+    d.text((w / 2, title_y), "Mamadera", font=title_font, fill=INK, anchor="mm")
+    sub_y = title_y + int(round(w * 0.118) * 0.62) + int(round(w * 0.036) * 0.9)
+    d.text((w / 2, sub_y), t["subtitle"], font=sub_font, fill=BODY, anchor="mm")
+
+    # Features: 2 columns x 3 rows, labels under chips
+    chip = int(round(w * 0.104))
+    feat_font = sf_pro(int(round(w * 0.031)), 550)
+    cols = (0.27 * w, 0.73 * w)
+    rows = (0.468 * h, 0.598 * h, 0.728 * h)
+    for i, ((glyph, color), label) in enumerate(zip(FEATURE_CHIPS, t["labels"])):
+        feature_item(img, cols[i % 2] - chip / 2, rows[i // 2], chip, color, glyph,
+                     label, feat_font, BODY, label_below=True)
+
+    # Lock line (centered as a unit: glyph + text)
+    lock_font = sf_pro(int(round(w * 0.033)), 600)
+    glyph_size = int(round(w * 0.033))
+    text = t["lock_line"]
+    lx = (w - glyph_size - 10 - d.textlength(text, font=lock_font)) / 2
+    draw_lock_line(img, lx, int(round(h * 0.868)), text, lock_font, BODY,
+                   glyph_size=glyph_size)
+
+    # Footer (centered)
+    d.text((w / 2, h * 0.918), t["footer"],
+           font=sf_pro(int(round(w * 0.026)), 550), fill=MUTED, anchor="mm")
+
+    return img
+
+
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     outputs = []
@@ -395,6 +446,12 @@ def main():
              os.path.join(OUT_DIR, f"play_feature_graphic{s}.png"), (1024, 500)),
             (build_appstore_promo(lang),
              os.path.join(OUT_DIR, f"appstore_promo{s}.png"), (1280, 800)),
+            (build_appstore_promo_portrait(lang, 1242, 2688),
+             os.path.join(OUT_DIR, f"appstore_promo_portrait_1242x2688{s}.png"),
+             (1242, 2688)),
+            (build_appstore_promo_portrait(lang, 1284, 2778),
+             os.path.join(OUT_DIR, f"appstore_promo_portrait_1284x2778{s}.png"),
+             (1284, 2778)),
         ]
     for img, path, expected in outputs:
         if img.size != expected:
