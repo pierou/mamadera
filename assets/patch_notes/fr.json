@@ -62,14 +62,6 @@
       "- Création des paramètres de rappels manquants lors de la mise à jour depuis une version antérieure",
       "- Correction de l'affichage des notes de version, dont le markdown paraissait en texte brut",
       "- Correction de la fenêtre d'accueil proposée après une restauration, qui créait un deuxième profil bébé",
-      ""
-    ]
-  },
-  "1.1.1": {
-    "releaseDate": "2026-09-29",
-    "title": "Nouveautés de Mamadera 1.1.1",
-    "items": [
-      "### Corrections de bugs",
       "- Correction d'un rappel désactivé dans les réglages qui restait affiché sur l'accueil",
       ""
     ]
