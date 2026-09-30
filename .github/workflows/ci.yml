@@ -496,7 +496,15 @@ jobs:
             echo "WARNING: ios-release/ios-Runner-app.zip not found, skipping"
           fi
 
-          gh release create "${GITHUB_REF#refs/tags/}" \
-            --title "Release ${{ github.ref_name }}" \
-            --generate-notes \
-            "${FILES[@]}"
+          TAG="${GITHUB_REF#refs/tags/}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            # Idempotent: the release already exists (pre-created by a maintainer
+            # or a re-run of this job) — attach the assets instead of failing.
+            echo "Release $TAG already exists — uploading assets"
+            gh release upload "$TAG" "${FILES[@]}" --clobber
+          else
+            gh release create "$TAG" \
+              --title "Release $TAG" \
+              --generate-notes \
+              "${FILES[@]}"
+          fi
