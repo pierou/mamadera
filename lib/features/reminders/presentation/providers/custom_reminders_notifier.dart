@@ -58,14 +58,16 @@ class CustomRemindersNotifier extends AsyncNotifier<List<CustomReminder>> {
     await _refreshAfterWrite();
   }
 
-  /// Recharge la liste et redemande les pastilles d'accueil.
+  /// Recharge la liste.
   ///
-  /// Sans l'invalidation, un rappel créé n'apparaîtrait sur l'accueil qu'au
-  /// prochain sondage de cinq minutes — et un rappel supprimé continuerait de
-  /// réclamer jusque-là.
+  /// Les pastilles d'accueil suivent tout seules : le notifieur de rappels
+  /// dépend réactivement de la chaîne rappels activés → service (voir
+  /// [RemindersNotifier.build]), donc un rappel créé apparaît et un rappel
+  /// supprimé disparaît sans invalidation en une fois — et sans le risque
+  /// d'une réévaluation orpheline bloquée sur une lecture transitoire du
+  /// service autoDispose que l'ancienne `ref.invalidate` provoquait.
   Future<void> _refreshAfterWrite() async {
     final repository = await ref.read(remindersRepositoryProvider.future);
     state = AsyncData(await repository.getCustomReminders());
-    ref.invalidate(reminderNotifierProvider);
   }
 }

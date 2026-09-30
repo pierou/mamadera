@@ -64,5 +64,14 @@
       "- Correction de la fenêtre d'accueil proposée après une restauration, qui créait un deuxième profil bébé",
       ""
     ]
+  },
+  "1.1.1": {
+    "releaseDate": "2026-09-29",
+    "title": "Nouveautés de Mamadera 1.1.1",
+    "items": [
+      "### Corrections de bugs",
+      "- Correction d'un rappel désactivé dans les réglages qui restait affiché sur l'accueil",
+      ""
+    ]
   }
 }

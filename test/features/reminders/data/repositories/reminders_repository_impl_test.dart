@@ -164,58 +164,6 @@ void main() {
       });
     });
 
-    group('saveDismissalTime', () {
-      test('saves dismissal and retrieves it', () async {
-        final now = DateTime.now();
-        await repository.saveDismissalTime(vitaminDItem.id, now);
-
-        final result = await repository.getDismissalTime(vitaminDItem.id);
-        expect(result, isNotNull);
-        expect(result!.year, equals(now.year));
-      });
-
-      test('updates existing dismissal on second save', () async {
-        final first = DateTime.now().subtract(const Duration(hours: 5));
-        await repository.saveDismissalTime(vitaminDItem.id, first);
-
-        final second = DateTime.now();
-        await repository.saveDismissalTime(vitaminDItem.id, second);
-
-        final result = await repository.getDismissalTime(vitaminDItem.id);
-        expect(result!.hour, equals(second.hour));
-      });
-
-      test('stores different items independently', () async {
-        final vitaminK = ReminderItemPresets.vitaminK;
-        final nowD = DateTime.now();
-        final nowK = DateTime.now().add(const Duration(hours: 1));
-
-        await repository.saveDismissalTime(vitaminDItem.id, nowD);
-        await repository.saveDismissalTime(vitaminK.id, nowK);
-
-        final resultD = await repository.getDismissalTime(vitaminDItem.id);
-        final resultK = await repository.getDismissalTime(vitaminK.id);
-
-        expect(resultD!.hour, equals(nowD.hour));
-        expect(resultK!.hour, equals(nowK.hour));
-      });
-    });
-
-    group('getDismissalTime', () {
-      test('returns null for non-existent item', () async {
-        final result = await repository.getDismissalTime(vitaminDItem.id);
-        expect(result, isNull);
-      });
-
-      test('returns saved dismissal time', () async {
-        final now = DateTime.now();
-        await repository.saveDismissalTime(vitaminDItem.id, now);
-
-        final result = await repository.getDismissalTime(vitaminDItem.id);
-        expect(result, isNotNull);
-      });
-    });
-
     group('reminder settings (opt-out)', () {
       test('returns an empty map on a fresh database', () async {
         // Table vide = personne n'a encore rien décoché, et donc tous les
@@ -440,14 +388,22 @@ void main() {
         final id = await repository.insertCustomReminder(reminder());
         final key = '${CustomReminderPresets.customIdPrefix}$id';
         await repository.setEnabled(key, enabled: false);
-        await repository.saveDismissalTime(key, DateTime.now());
+        // Ligne d'extinction insérée à la main : les sauvegardes importées en
+        // contiennent, et la suppression doit les emporter.
+        await database.into(database.reminderDismissals).insert(
+          ReminderDismissalsCompanion.insert(
+            itemId: key,
+            dismissedAt: DateTime.now(),
+          ),
+        );
         expect(await repository.getEnabledByItemId(), contains(key));
+        expect(await database.getAllReminderDismissals(), hasLength(1));
 
         await repository.deleteCustomReminder(id);
 
         expect(await repository.getCustomReminders(), isEmpty);
         expect(await repository.getEnabledByItemId(), isEmpty);
-        expect(await repository.getDismissalTime(key), isNull);
+        expect(await database.getAllReminderDismissals(), isEmpty);
       });
 
       test('deleting an unknown id changes nothing and does not throw',

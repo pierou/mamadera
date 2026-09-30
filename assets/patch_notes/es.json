@@ -64,5 +64,14 @@
       "- Corrección de la ventana de bienvenida que ofrecía crear un segundo bebé tras una restauración",
       ""
     ]
+  },
+  "1.1.1": {
+    "releaseDate": "2026-09-29",
+    "title": "Novedades de Mamadera 1.1.1",
+    "items": [
+      "### Correcciones de errores",
+      "- Corrección del recordatorio desactivado en los ajustes que permanecía en la pantalla de inicio",
+      ""
+    ]
   }
 }

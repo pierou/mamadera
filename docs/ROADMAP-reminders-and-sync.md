@@ -1,6 +1,6 @@
-# ROADMAP — Reminders, multi-baby scoping, onboarding, two-phone sync
+# ROADMAP — Reminders, multi-baby scoping, onboarding, two-phone sync, growth measurements
 
-Status: **§2 shipped in v1.1.0+4 (2026-09-21) — the 5 decisions in §7 still await you.** Everything in §2 is implemented, tested and `make ci`-green; §1 is withdrawn; §3 onward is still proposal.
+Status: **§2 shipped in v1.1.0+4 (2026-09-21); §4.2 (measurements) added 2026-09-29, decisions resolved the same day; §5 (v1.1.1) implemented and `make ci`-green 2026-09-29.** Everything in §2 and §5 is implemented, tested and green; §1 is withdrawn; §3 onward is still proposal; decisions 1, 2, 6 and 7–9 in §7 are resolved, the rest (3, 4, 5) still await you.
 Opened 2026-09-20, while v1.1.0 was mid-flight (Phase 2B, Xcode Cloud).
 
 Five requests came in together:
@@ -12,6 +12,7 @@ Five requests came in together:
 5. Refresh of reminders when reminders shown are modified in Settings
 6. *(added later)* After wiping the DB and re-importing, the baby-creation popup is shown even though the backup contains a baby → **§2.1, v1.1.0**
 7. *(added later)* Patch notes screen prints raw markdown (`### Nouvelles fonctionnalités`, `- bullet`) → **§2.2, v1.1.0** — and it has been printing since 1.0.0, see below
+8. *(added later, 2026-09-29)* Temperature, weight and size tracking, with dedicated home buttons → **§4.2, planned for v1.2.0 (decisions 7–9 resolved 2026-09-29)**
 
 ---
 
@@ -24,10 +25,10 @@ Five requests came in together:
 | Presets are 4 hardcoded items; only `vitamine_k`'s *frequency* is derived from the baby | `reminder_item.dart:26-84`, `buildForBaby` → `monthly(dayOfMonth: profile.birthDate.day)` |
 | `dynamicRemindersProvider` falls back to Vit. D + rolling 30-day Vit. K with no profile | `reminder_providers.dart:43-52` |
 | Custom reminders are stored, but `subtype_value` is **NOT NULL** and the care dropdown lists only the 6 `HealthSubtype`s | `app_db.dart:52-66`, `custom_reminder_form_sheet.dart:196-210` |
-| Settings/create/edit/delete **do** invalidate the home notifier | `reminder_settings_notifier.dart:36`, `custom_reminders_notifier.dart:63-70`, `menu_screen.dart:334-341`, `import_providers.dart:173-186` |
-| Due reminders re-evaluate on a **5-minute poll** and on active-baby change only | `reminder_notifier.dart:8`, `build()` watches `activeBabyProvider` |
+| Settings/create/edit **no longer** invalidate the home notifier — the notifier reactively awaits `remindersServiceProvider` in `build()`, so the settings→enabled→service chain settling *is* the re-evaluation (§5, v1.1.1) | `reminder_notifier.dart` `build()`, `reminder_settings_notifier.dart`, `custom_reminders_notifier.dart`; the bulk-reset invalidation stays at `menu_screen.dart` and `import_providers.dart` |
+| Due reminders re-evaluate on a **5-minute poll**, on active-baby change, **and on any change to the reminder chain** (toggle, custom-reminder write) via the reactive dependency | `reminder_notifier.dart` `build()` watches `activeBabyProvider` and `remindersServiceProvider.future` |
 | **No `WidgetsBindingObserver` / `AppLifecycleListener` anywhere in `lib/`** | `grep -rn "AppLifecycle\|didChangeAppLifecycleState\|WidgetsBindingObserver" lib/` → 0 hits |
-| `RemindersService.dismiss()` has **zero callers in `lib/`** — the 4 h cooldown is dead code today | `reminders_service.dart:48`; the only `saveDismissalTime` caller is the service itself |
+| ~~`RemindersService.dismiss()` had zero callers~~ — **dead dismiss/cooldown code deleted in v1.1.1**; the `reminder_dismissals` table stays (imported backups carry rows; v1.2.0 re-purposes it) | §5; deleted surface: `dismiss()`, `cooldownPeriod`, `save/getDismissalTime`, `ReminderStatus.lastDismissedAt`; kept: table, `getAllReminderDismissals()` (export), cleanup-on-delete |
 | Pills on a track button are capped at **3 + "+N"** | `track_button.dart:128-146` |
 | `HomeScreen` is **disposed and recreated on every tab switch** — plain `ShellRoute` + `MaterialPage`, no indexed stack / keep-alive | `router.dart:136-160` |
 | Restore is **replace-only**, in one transaction | `import_repository_impl.dart:439` |
@@ -42,6 +43,11 @@ Five requests came in together:
 | A markdown renderer **already exists** in the app; the patch notes list now shares it | `core/utils/markdown_parser.dart`: `parseMarkdownToTextSpans` (`#`/`##`/`###`, `- `/`* `, `**bold**`, `*italic*`, `[text](url)`, `---`) serves `features/onboarding/.../terms_screen.dart`; `parseInlineMarkdown` (plain-text strip) serves the patch notes bullets |
 | Every `items[]` array ends with a `""` entry — rendered as nothing since 1.1.0+4, and left in the assets | same assets; locked by `patch_notes_screen_test.dart` “an empty entry renders no row at all” |
 | `markdown: ^7.2.2` was declared but never imported — **dropped in 1.1.0+4** | `grep -rn "package:markdown"` across the repo → 0 hits; `flutter pub deps --style=compact` → gone from the lockfile, and `flutter analyze` stays clean |
+| **No table exists for weight/height/temperature** — 5 tables total, schema v10 | `app_db.dart:7-66` (`BabyProfiles`, `TrackingEvents`, `ReminderDismissals`, `ReminderSettings`, `CustomReminders`) |
+| The home grid is a **2×2 `GridView.count` with exactly 4 `TrackButton`s**, scrollable, no sectioning | `home_screen.dart:303-338` |
+| `TrackingType` has exactly 4 values and is **not just a label**: `HistoryFilter` mirrors it 1:1, reminder pills key on it, icons key on it | `tracking_type.dart:1-24`, `tracking_enums.dart:310-346` |
+| `tracking_events.quantity` is already **overloaded without units** (ml for feedings, minutes for sleep); no unit-carrying numeric column exists | `app_db.dart:28-29` |
+| The privacy charter **already names weight as a sensitive field** to encrypt at rest | `AGENTS.md` "Encryption at rest" row (notes, weight, allergies) |
 
 ---
 
@@ -199,8 +205,8 @@ cost.
 | Release | Content | Schema / format | Gate cost |
 |---|---|---|---|
 | **v1.1.0** (shipped `1.1.0+4`) | **§2.1** onboarding after restore **+ §2.2** patch notes raw markdown, + dead `markdown` dep dropped | none | done: `make ci` green — 1174 tests, lint clean, 86.9 % lines |
-| **v1.1.1** | Item 5 (stale reminders), missing dismiss affordance | none | full patch gate |
-| **v1.2.0** | Item M (baby scoping) + item 4 (detached custom reminders) + item 3 (home reminders list) | drift **v11**, `exportFormatVersion` **2** | full gate + migration test + patch notes en/es/fr + store copy |
+| **v1.1.1** | Item 5 (stale reminders) — reactive fix, red→green verified; dead dismiss cooldown deleted; time-axis lifecycle refresh deferred to v1.2.0 | none | implemented 2026-09-29, `make ci` green — 1174 tests, lint clean, 87.0 % lines; patch notes en/es/fr to write with the tag |
+| **v1.2.0** | Item M (baby scoping) + item 4 (detached custom reminders) + item 3 (home reminders list) **+ item 8 (measurements: weight/height/temperature, 3 home buttons — §4.2)** | drift **v11**, `exportFormatVersion` **2** (one bump carries both the reminder keying change and the new table) | full gate + migration test + patch notes en/es/fr + store copy |
 | **v1.3.0** | Item 1 (two-phone sync), phase A (merge, manual transport) | drift **v12**, format **3** | full gate + privacy decision (§7.5) |
 
 Rules inherited from `AGENTS.md`, applying to every row above:
@@ -214,7 +220,9 @@ Rules inherited from `AGENTS.md`, applying to every row above:
 
 ---
 
-## 4. v1.2.0 scope — the reminder model
+## 4. v1.2.0 scope
+
+### 4.1 The reminder model
 
 Answering one question once: **what does a reminder belong to, and who says it is done?**
 
@@ -236,16 +244,121 @@ Answering one question once: **what does a reminder belong to, and who says it i
 * **New l10n keys** en/es/fr; **export + import + counts** updated in the same commit;
   `deleteProfile` cleans the new rows.
 
-## 5. v1.1.1 scope
+### 4.2 Item 8 — growth measurements: weight, height, temperature (new, proposed v1.2.0)
 
-* **Item 5 — stale reminders.** Reproduce before touching: the invalidation chain is correct on paper
-  (§0). Suspect #1 is the *time* axis, not the settings axis: **no lifecycle observer exists**, so
-  midnight rollover, the 4 h cooldown expiry and the month boundary only re-evaluate on the 5-min poll.
-  Fix shape: an `AppLifecycleListener` calling `reminderNotifierProvider.notifier.refresh()` on resume.
-  Suspect #2: whichever surface the new home list becomes, it must refresh live when Réglages changes —
-  same pattern as §2: **no widget-local bool caching a provider fact.**
-* **Dismiss affordance** — `RemindersService.dismiss()` is currently unreachable (§0). Wire it to the list,
-  or delete the cooldown. Shipping dead code that promises a 4 h mute nobody can trigger is the worse option.
+**Model — a new table, not `tracking_events`.**
+
+`tracking_events.quantity` is already an untyped, overloaded numeric (ml for feedings, minutes for
+sleep — `app_db.dart:29`); a measurement is a *recorded value with a unit and a sane range*, not an
+event quantity. And `TrackingType` is not a free label — a fifth value ripples through `HistoryFilter`,
+the reminder pills and the icon table for data that is not a care event. So:
+
+```
+measurements(
+  id          INTEGER PK AUTOINCREMENT,
+  baby_id     TEXT NULL REFERENCES baby_profiles(id),  -- same nullability as tracking_events (item M)
+  kind        TEXT NOT NULL,   -- 'poids' | 'taille' | 'temperature'
+  value       TEXT NOT NULL,   -- AES-GCM ciphertext, NOT REAL (see encryption below)
+  unit        TEXT NOT NULL,   -- 'g' | 'cm' | 'degC'
+  recorded_at DATETIME NOT NULL,
+  notes       TEXT NULL        -- encrypted, same pipeline as tracking_events.notes
+)
+```
+
+* **Values are encrypted at rest.** The privacy charter in `AGENTS.md` already lists *weight* as a
+  sensitive field; temperature and length are the same class (health data under GDPR). The numeric is
+  AES-GCM ciphertext through the existing `EncryptionService` (a TEXT column), decrypted in the
+  repository — the exact pattern `notes` already uses. `REAL` would leave plaintext health data in
+  SQLite and contradict the mandate.
+* **Feature module**: `features/growth/` — domain `MeasurementRepository` (pure Dart), data impl
+  injecting `AppDatabase` + `EncryptionService`, presentation with the input sheet and the history
+  screen. `MeasureKind` enum (`poids`/`taille`/`temperature`) carries unit, label key, icon and
+  validation range.
+* **Home — three dedicated buttons** (the user's request, not a single "Mesures" button). The grid is
+  today a 2×2 of 4 `TrackButton`s (`home_screen.dart:303-338`); 4+3 = 7 cells. **Layout A, resolved
+  §7.8:** keep the 2×2 care grid untouched, add a row of 3 equal-width measurement buttons below —
+  the only option that cannot regress the existing tap targets (`track_button.dart:128`). The rejected
+  alternative (*B*, one 2×4 grid) shrinks every existing target.
+  Each button opens a quick-input sheet (numeric + unit fixed per kind + optional note + date/time,
+  reusing the event date/time picker) and shows the **latest value as a subtitle** — not a pill, pills
+  are reminder-driven and capped at 3+"+N" (`track_button.dart:128-146`).
+* **History** — a dedicated "Mesures" screen (menu entry), scoped to the active baby: latest value per
+  kind + descending list (date, kind, value, note). **Growth curves are out of scope for v1.2.0** —
+  WHO percentiles are their own feature (local computation vs. a chart dependency, its own privacy
+  review) and belong in a later bucket; the table shape already supports it (one value per
+  `(baby, kind, recorded_at)`).
+* **Schema + export (same-commit rule, §3).** Rides the drift **v11** + `exportFormatVersion` **2**
+  bump v1.2.0 already takes: one migration adding one table, the format-2 document gains one section
+  (unfiltered read, values decrypted on export like notes — the export is plaintext JSON by design).
+  Import validates the section (kind/unit contract, decryptable value) and inserts inside the replace
+  transaction; summary counts stay in sync. `deleteProfile` cleans the rows — baby-scoped from day
+  one, so item M's backfill never touches this table.
+* **Carve-out to v1.2.1 rejected** (§7.7) — but for the record: had it been taken, the whole bucket
+  chain would shift (v1.2.1 at v12/format 3, and **v1.3.0 sync at v13/format 4**).
+* **l10n + tests**: keys en/es/fr (buttons, sheet, screen, feedback, errors); widget tests for the 3
+  buttons + input sheet incl. range validation; repository unit tests with mocked DB + encryption;
+  export/import round-trip incl. rejection of a malformed `measurements` section.
+
+## 5. v1.1.1 scope — **implemented, verified 2026-09-29**
+
+### 5.1 Item 5 — stale reminders (settings axis) ✅ fixed
+
+Reproduced per decision #2 **right after a toggle** (settings axis, not the time axis). Root cause,
+confirmed by a red→green regression test, not by inspection: `setEnabled()` wrote the repo and pushed its
+own state, then fired a one-shot `ref.invalidate(reminderNotifierProvider)`. That nudge rebuilt the
+notifier while the `remindersServiceProvider` was **still resolving its `enabledRemindersProvider` read
+from the pre-toggle settings** — `build()` then committed the stale due list, and nothing re-evaluated
+until the next 5-minute tick, because one-shot invalidations do not survive the chain settling.
+
+**Fix** — the nudge became a real dependency: `RemindersNotifier.build()` now awaits
+`ref.watch(remindersServiceProvider.future)` before computing the due list, so the toggle's
+settings→enabled→service settling *is* the re-evaluation, deterministically, whatever the timing.
+The one-shot invalidations in the settings and custom-reminder write paths were **removed** (they only
+could race — and did race; the custom-reminder one additionally triggered an orphan re-evaluation that
+read a transient empty list). The bulk invalidations in `menu_screen.dart` (wipe/restore) and
+`import_providers.dart` (import commit) stay: they are ceremonies that invalidate everything and
+explicitly document intent.
+
+**Verified red before green.** `test/features/reminders/presentation/providers/reminder_toggle_reactivity_test.dart`
+(2 tests, plain `test()` — see the harness note below):
+* *toggling off a reminder removes its pill without waiting for the tick* — **RED against the old code**
+  (stale `eye_cleaning` pill survives after the chain settles, exactly the reported symptom), green after
+  the fix;
+* *the 5-minute poll survives an invalidation-triggered rebuild* — green on **both** old and new code:
+  the timer lifecycle (`_pollTimer == null` guard + `ref.onDispose(_stopPolling)`) was never the bug, and
+  this test locks that fact.
+
+**Deferred to v1.2.0** (time axis): the old suspect #1 stands as a polish item, not a bug — midnight
+rollover and month boundaries re-evaluate on the next poll (≤ 5 min after app resume, since timers are
+the only clock). An `AppLifecycleListener` → `refresh()` on resume makes that instant; it ships with the
+v1.2.0 reminder rework (item M), which touches the same providers.
+
+### 5.2 Dismiss affordance — resolved by **deletion** ✅
+
+`RemindersService.dismiss()` had zero callers: v1.1.0 shipped reminders with the 4 h cooldown in the
+model but no UI surface to trigger it (§5's "wire it or delete it" — wiring an affordance for a
+cooldown nobody asked for was the worse option). Deleted in v1.1.1:
+
+* `RemindersService.dismiss()` + `cooldownPeriod` + the per-item cooldown read in `checkDue()`;
+* `RemindersRepository.saveDismissalTime` / `getDismissalTime` (interface, impl, mock);
+* `ReminderStatus.lastDismissedAt` (freezed regen done);
+* the corresponding service/repo/provider tests (9 tests removed, 2 added = 151 in the suite).
+
+**Kept, deliberately:** the `reminder_dismissals` table (schema v10), `getAllReminderDismissals()` in
+the export, and the `DELETE FROM reminder_dismissals` cleanup in `deleteCustomReminder` — imported
+backups contain dismissal rows (a wipe-then-restore must not lose them), and §4.1's v1.2.0 migration
+re-purposes the table with a `(baby_id, item_id)` key. An export that omits a table is a broken backup
+(`AGENTS.md`); the table therefore survives the death of its only reader.
+
+### 5.3 Test-harness finding (kept for the next person)
+
+The new regression tests run under **plain `test()` with a real event loop**, not `testWidgets`. Under
+`testWidgets`' FakeAsync, `tester.pump()` does **not** progress this suite's real-future provider chain
+(verified empirically: 200 pumped frames left `reminderSettingsProvider` and friends stuck in
+`AsyncLoading` while a stubbed `activeBabyProvider` reached `AsyncData`). `reminder_settings_test.dart`
+already used plain `test()` for exactly this shape. `RemindersNotifier` gained an injectable
+`pollInterval` (constructor param, default unchanged 5 min) so the timer-survival test runs at 200 ms
+instead of `runAsync`-sleeping.
 
 ## 6. v1.3.0 scope — two phones, privacy-first
 
@@ -275,8 +388,8 @@ explicitly; do not let it happen by accident.
 1. **v1.1.0**: take §2.1 + §2.2 pre-freeze (needs re-gate + versionCode `+4`), or hold either for 1.1.1?
    *Recommendation: take both — §2.1 is a defect in this release's headline feature and can duplicate a
    baby profile; §2.2 is one bump for a defect already live since 1.0.0 that this release re-exposes.*
-2. **Item 5**: can you reproduce it right after a toggle, or does it show up after the day/month rolls
-   over? (Decides whether 1.1.1 is a lifecycle fix or a tree/invalidation fix.)
+2. **Item 5 — RESOLVED 2026-09-29: reproduced right after a toggle** (settings axis). Fixed reactively,
+   red→green verified (§5.1); the time axis is deferred to v1.2.0 as polish.
 3. **Multi-baby semantics**: one merged list showing both babies (twins → two "Vit. D" lines), or the
    active baby only with a badge "1 reminder pending for Léa"?
 4. **Detached custom reminder**: manual "done" only, or manual-with-event-latching (an event, when present,
@@ -285,6 +398,16 @@ explicitly; do not let it happen by accident.
    the privacy mandate change must come from you, in writing, before any code.
 6. **Dead `markdown` dep**: drop `markdown: ^7.2.2` in this release with §2.2 (after verifying nothing pulls
    it transitively), or defer to 1.1.1 to keep the in-flight lockfile untouched?
+7. **Measurements placement — RESOLVED 2026-09-29: v1.2.0.** Rides the already-paid v11/format-2
+   bump; the table is purely additive and the feature is independent of sync. *Fallback if v1.2.0's
+   reminder scope overruns: carve out to v1.2.1 (§4.2 records the bucket-chain shift).*
+8. **Measurements layout — RESOLVED 2026-09-29: A** (2×2 care grid untouched + row of 3 measurement
+   buttons below). The only option that cannot regress the existing tap targets
+   (`track_button.dart:128`).
+9. **Measurements model — RESOLVED 2026-09-29: dedicated `measurements` table** (§4.2). A fifth
+   `TrackingType` on top of `tracking_events.quantity` was rejected: it overloads an already-ambiguous
+   column, ripples into `HistoryFilter`/pills/icons, and would store health numbers unencrypted by
+   default.
 
 ---
 
@@ -294,9 +417,21 @@ explicitly; do not let it happen by accident.
   history it is **not**. Decide the tie-break and say so in the migration comment.
 * `reminder_settings` writes are delete+insert **without a transaction** (`reminders_repository_impl.dart:139-155`);
   a composite PK makes a torn write more visible. Wrap it while in there.
-* Adding `baby_id` to dismissed reminders interacts with the 4 h cooldown: define whether a dismissal of a
-  *preset* applies to a newborn added later (it must not).
+* The v1.2.0 `(baby_id, item_id)` dismissal key must not make a dismissal of a *preset* apply to a
+  newborn added later (the 4 h cooldown that motivated per-row scoping was deleted in v1.1.1, §5.2 —
+  define the per-baby dismissal semantics in the migration either way).
 * The home list must not become the new place where a 2×2 grid loses its tap target — `track_button.dart:128`
   exists because that already happened once.
 * `anyBabyExistsProvider` is read by Home, Menu and onboarding; if §2 introduces a settled-state provider,
   keep one source of truth rather than a second boolean.
+* **Measurements input ranges** — fix and lock in tests: weight 200–20 000 g, height 30–110 cm,
+  temperature 33–42 °C (newborn → toddler). Out-of-range input must be rejected in the sheet, not
+  stored and then explained in history. Weight is entered in grams (displayed in kg to 3 decimals
+  above 1 000 g); height in cm to 1 decimal; temperature in °C to 1 decimal — **metric only, no °F**
+  (three locales, two metric markets plus one optional; a unit toggle is a later feature, not v1.2.0).
+* The latest-value subtitle on a measurement button must not reuse the reminder-pill mechanism
+  (`track_button.dart:128-146` is capped at 3+"+N" and is reminder-owned); it is a distinct, smaller
+  text line, and its absence (no measurement yet) must not read as an error state.
+* The "Mesures" history screen and the v1.2.0 home reminders list (§4.1) both want the area below the
+  grid — sequence them so one does not displace the other's scroll position (the home screen is
+  already `SingleChildScrollView`-wrapped for exactly this reason).

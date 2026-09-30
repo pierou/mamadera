@@ -53,54 +53,6 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<void> saveDismissalTime(String itemId, DateTime dismissedAt) async {
-    try {
-      _logger.d('saveDismissalTime($itemId, $dismissedAt)');
-
-      // Manual upsert: delete existing row then insert new one.
-      await database.customStatement(
-        'DELETE FROM reminder_dismissals WHERE item_id = ?',
-        [itemId],
-      );
-      await database.into(database.reminderDismissals).insert(
-        db_app.ReminderDismissalsCompanion.insert(
-          itemId: itemId,
-          dismissedAt: dismissedAt,
-        ),
-      );
-    } catch (e, stack) {
-      _logger.e(
-        'saveDismissalTime error',
-        error: e,
-        stackTrace: stack,
-      );
-      rethrow;
-    }
-  }
-
-  @override
-  Future<DateTime?> getDismissalTime(String itemId) async {
-    try {
-      final dismissals = (database.select(database.reminderDismissals)
-        ..where((t) => t.itemId.equals(itemId)))
-          .get();
-
-      final results = await dismissals;
-      if (results.isEmpty) return null;
-
-      _logger.d('getDismissalTime($itemId) — found dismissal: ${results.first.dismissedAt}');
-      return results.first.dismissedAt;
-    } catch (e, stack) {
-      _logger.e(
-        'getDismissalTime error',
-        error: e,
-        stackTrace: stack,
-      );
-      rethrow;
-    }
-  }
-
-  @override
   Future<Map<String, bool>> getEnabledByItemId() async {
     try {
       final rows = await database.select(database.reminderSettings).get();

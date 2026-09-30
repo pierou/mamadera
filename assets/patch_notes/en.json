@@ -64,5 +64,14 @@
       "- Fix the welcome sheet offering to create a second baby after a restore",
       ""
     ]
+  },
+  "1.1.1": {
+    "releaseDate": "2026-09-29",
+    "title": "What's New in Mamadera 1.1.1",
+    "items": [
+      "### Bug Fixes",
+      "- A reminder switched off in Settings now disappears from the Home screen right away",
+      ""
+    ]
   }
 }

@@ -217,19 +217,19 @@ void main() {
     testWidgets('fr notes contain no raw markdown', (tester) async {
       await pump(tester, repository: shippedAsset('fr'), locale: const Locale('fr'));
       expectNoMarkup(tester);
-      expect(find.text('Nouvelles fonctionnalités'), findsOneWidget);
+      expect(find.text('Corrections de bugs'), findsOneWidget);
     });
 
     testWidgets('en notes contain no raw markdown', (tester) async {
       await pump(tester, repository: shippedAsset('en'), locale: const Locale('en'));
       expectNoMarkup(tester);
-      expect(find.text('New Features'), findsOneWidget);
+      expect(find.text('Bug Fixes'), findsOneWidget);
     });
 
     testWidgets('es notes contain no raw markdown', (tester) async {
       await pump(tester, repository: shippedAsset('es'), locale: const Locale('es'));
       expectNoMarkup(tester);
-      expect(find.text('Nuevas funcionalidades'), findsOneWidget);
+      expect(find.text('Correcciones de errores'), findsOneWidget);
     });
 
     testWidgets('fr notes check one row per bullet', (tester) async {

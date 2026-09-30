@@ -297,7 +297,6 @@ void main() {
     test('deleting one takes its switch position along', () async {
       storeCream();
       mockReminders.enabledById['custom_1'] = false;
-      mockReminders.dismissalTimeById['custom_1'] = DateTime.now();
       await container.read(reminderSettingsProvider.future);
 
       await container.read(customRemindersProvider.notifier).remove(1);
@@ -319,12 +318,13 @@ void main() {
       expect(before[TrackingType.sante]?.map((s) => s.item.id), contains('custom_1'));
 
       // Le mock répond à la place de la table des événements : le soin associé a
-      // été enregistré à l'instant.
+      // été enregistré à l'instant. L'accueil, lui, appelle `refresh()` après
+      // chaque soin tracé — c'est ce chemin de production que ce test vérifie.
       mockReminders.lastCompletedByItem['custom_1'] = DateTime.now();
-      container.invalidate(reminderNotifierProvider);
+      await container.read(reminderNotifierProvider.notifier).refresh();
 
-      final after = await container.read(reminderNotifierProvider.future);
-      expect(after[TrackingType.sante]?.map((s) => s.item.id),
+      final after = container.read(reminderNotifierProvider).value;
+      expect(after?[TrackingType.sante]?.map((s) => s.item.id),
           isNot(contains('custom_1')));
     });
   });

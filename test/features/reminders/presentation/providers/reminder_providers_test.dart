@@ -288,16 +288,6 @@ void main() {
       expect(status.lastEventAt, isNull);
     });
 
-    testWidgets('preserves lastDismissedAt for cooldown tracking', (tester) async {
-      final dismissed = DateTime.utc(2024, 6, 1, 8, 0, 0);
-      final status = ReminderStatus(
-        item: ReminderItemPresets.vitaminD,
-        lastDismissedAt: dismissed,
-      );
-
-      expect(status.lastDismissedAt, equals(dismissed));
-    });
-
     testWidgets('ReminderStatus equality works correctly', (tester) async {
       final tracked = DateTime.utc(2024, 5, 15, 10, 30, 0);
       final status1 = ReminderStatus(

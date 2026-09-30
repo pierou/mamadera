@@ -1316,7 +1316,7 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
   final int id;
   final String label;
 
-  /// Valeur de `HealthSubtype` ([nettoyage_nez], `nettoyage_nombril`, …) : le soin
+  /// Valeur de `HealthSubtype` (`nettoyage_nez`, `nettoyage_nombril`, …) : le soin
   /// dont l'absence dans `tracking_events` rend le rappel dû.
   final String subtypeValue;
 
