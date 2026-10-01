@@ -183,16 +183,22 @@ Mamadera es de código abierto bajo licencia MIT. Los datos de tu bebé nunca sa
 
 ### Capturing Screenshots
 
-```bash
-# Run on an Android emulator or device
-flutter run -d <device_id> --release
+Seven store screens (home, history, menu, and the four tracking bottom
+sheets) are captured automatically on the Pixel_10_Pro emulator (1280×2856,
+English, no DEBUG banner) and committed under
+[`screenshots/android/`](../screenshots/android/README.md):
 
-# Take screenshots with adb (from terminal):
-adb shell screencap -p /sdcard/screenshot.png
-adb pull /sdcard/screenshot.png ./screenshots/
+```bash
+flutter drive \
+  --target=integration_test/screenshot_capture.dart \
+  --driver=test_driver/screenshot_capture.driver.dart \
+  -d emulator-5554
 ```
 
-Or use the built-in screenshot shortcut on your device/emulator. Show at least 3 key screens: home, history view, and baby profile.
+Since Flutter 3.44 `takeScreenshot()` returns the PNG bytes in-band in the
+test report, so the driver saves them to `screenshots/android/` directly —
+no `adb pull`. Pipeline details and gotchas:
+[`screenshots/android/README.md`](../screenshots/android/README.md).
 
 ### Feature Graphic Design Tips
 

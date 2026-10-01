@@ -20,6 +20,9 @@ screenshots/ios/asc/
 Six screens per orientation: `home`, `feeding`, `sleep`, `diaper` (bottom
 sheets), `history`, `menu`.
 
+The same driver target is also used for the iPad pipeline — see
+[`../asc-ipad/README.md`](../asc-ipad/README.md).
+
 ## Step 1 — Capture
 
 Seeded driver target (`lib/asc_driver_main.dart`) + host-side driver
@@ -71,6 +74,17 @@ For the ribbon itself, a red-pixel scan of the ribbon zones must return 0:
 
 (Working scan: `swift` one-liner loading `NSBitmapImageRep`, test
 `r > 100 && r > g + 30 && r > b + 30`.)
+
+## Driver environment flags
+
+`test_driver/asc_screenshots.dart` honors three host env vars (iPhone runs
+use all defaults):
+
+| Flag | Default | Effect |
+|------|---------|--------|
+| `ASC_RAW_DIR` | `screenshots/ios/asc/raw` | where the raw captures are written (the iPad pipeline redirects to `asc-ipad/raw-11` / `raw-13`) |
+| `ASC_LANDSCAPE` | `1` | set to `0` to skip the landscape set (iPad runs — iPadOS ignores orientation locking) |
+| `ASC_NO_BANNER` (dart-define) | off | set to `true` to suppress the DEBUG ribbon *at app level* (`debugAllowBannerOverride = false`); the iPhone pipeline deliberately keeps the ribbon because `Patch.swift` depends on it |
 
 ## Dependencies & gotchas
 

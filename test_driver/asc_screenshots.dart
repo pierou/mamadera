@@ -20,7 +20,10 @@ import 'dart:io' as io;
 
 import 'package:flutter_driver/flutter_driver.dart';
 
-const _dir = 'screenshots/ios/asc/raw';
+// Overridable via the ASC_RAW_DIR host env var so the same driver can feed
+// other device pipelines (e.g. the iPad run writes to
+// screenshots/ios/asc-ipad/raw-11 / raw-13 without touching iPhone raws).
+final _dir = io.Platform.environment['ASC_RAW_DIR'] ?? 'screenshots/ios/asc/raw';
 
 // Semantic keys (must match lib/core/router.dart + home screen ValueKeys).
 const _homeTab = 'home-tab';
@@ -55,28 +58,35 @@ Future<void> main() async {
     await tabShot(driver, _menuTab, 'menu');
 
     // ---- Landscape set ----
-    print('[ROTATE] -> landscape');
-    await driver.requestData('ascRotate:landscape');
-    await waitOrientation(driver, landscape: true);
+    // Skipped when ASC_LANDSCAPE=0: iPadOS ignores
+    // SystemChrome.setPreferredOrientations (see asc-ipad pipeline), so the
+    // iPad run captures portrait only.
+    if (io.Platform.environment['ASC_LANDSCAPE'] != '0') {
+      print('[ROTATE] -> landscape');
+      await driver.requestData('ascRotate:landscape');
+      await waitOrientation(driver, landscape: true);
 
-    // The portrait set ends on the menu tab: return home first.
-    await driver.tap(find.byValueKey(_homeTab),
-        timeout: const Duration(seconds: 10));
-    await sleep(900);
-    await capture(driver, 'home_landscape');
-    await sheetShot(driver, _trackMiam, 'feeding_landscape', landscape: true,
-        dismissAnchor: "Suivre l'Alimentation");
-    await sheetShot(driver, _trackDodo, 'sleep_landscape', landscape: true,
-        dismissAnchor: 'Durée du sommeil');
-    await sheetShot(driver, _trackCaca, 'diaper_landscape', landscape: true,
-        dismissAnchor: 'Type de selle');
-    await tabShot(driver, _historyTab, 'history_landscape');
-    await tabShot(driver, _menuTab, 'menu_landscape');
+      // The portrait set ends on the menu tab: return home first.
+      await driver.tap(find.byValueKey(_homeTab),
+          timeout: const Duration(seconds: 10));
+      await sleep(900);
+      await capture(driver, 'home_landscape');
+      await sheetShot(driver, _trackMiam, 'feeding_landscape', landscape: true,
+          dismissAnchor: "Suivre l'Alimentation");
+      await sheetShot(driver, _trackDodo, 'sleep_landscape', landscape: true,
+          dismissAnchor: 'Durée du sommeil');
+      await sheetShot(driver, _trackCaca, 'diaper_landscape', landscape: true,
+          dismissAnchor: 'Type de selle');
+      await tabShot(driver, _historyTab, 'history_landscape');
+      await tabShot(driver, _menuTab, 'menu_landscape');
 
-    // Restore portrait for the next run.
-    print('[ROTATE] -> portrait');
-    await driver.requestData('ascRotate:portrait');
-    await waitOrientation(driver, landscape: false);
+      // Restore portrait for the next run.
+      print('[ROTATE] -> portrait');
+      await driver.requestData('ascRotate:portrait');
+      await waitOrientation(driver, landscape: false);
+    } else {
+      print('[SKIP] Landscape set (ASC_LANDSCAPE=0)');
+    }
   } finally {
     await driver.close();
   }
