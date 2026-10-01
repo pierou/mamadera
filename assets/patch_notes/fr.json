@@ -55,6 +55,7 @@
       "- Restauration complète depuis un fichier de sauvegarde exporté",
       "### Améliorations",
       "- Texte en espagnol pour les utilisateurs espagnols : conditions d'utilisation, dates et notes de version",
+      "- Renommage des boutons d'accueil : « Nourriture » au lieu de « Miam » et « Couche » au lieu de « Caca »",
       "### Corrections de bugs",
       "- Conservation des notes lors de la modification d'une entrée santé",
       "- Récupération fiable après l'effacement complet des données",

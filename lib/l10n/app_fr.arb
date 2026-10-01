@@ -11,9 +11,9 @@
   "routerBackToHome": "Retour à l'accueil",
   "routerGenericError": "Une erreur est survenue.",
 
-  "homeButtonMiam": "Miam",
+  "homeButtonMiam": "Nourriture",
   "homeButtonSante": "Santé",
-  "homeButtonCaca": "Caca",
+  "homeButtonCaca": "Couche",
   "homeButtonDodo": "Dodo",
 
   "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
@@ -164,9 +164,9 @@
 
   "historyTitle": "Historique",
   "filterAll": "Tous",
-  "filterMiam": "Miam",
+  "filterMiam": "Nourriture",
   "filterDodo": "Sommeil",
-  "filterCaca": "Caca",
+  "filterCaca": "Couche",
   "filterSante": "Santé",
 
   "noEvents": "Aucun événement",
@@ -177,7 +177,7 @@
   },
   "errorMessage": "Erreur: {error}",
 
-  "typeLabelMiam": "Miam",
+  "typeLabelMiam": "Nourriture",
   "typeLabelSommeil": "Sommeil",
   "typeLabelPipi": "Pipi",
   "typeLabelCaca": "Caca",

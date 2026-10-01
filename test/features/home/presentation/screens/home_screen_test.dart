@@ -81,13 +81,13 @@ void main() {
   // Affichage des TrackButtons
   // ──────────────────────────────────────────────
   group('Affichage des 4 TrackButtons', () {
-    testWidgets('Miam, Sante, Caca, Dodo sont affiches', (tester) async {
+    testWidgets('Nourriture, Sante, Couche, Dodo sont affiches', (tester) async {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
-      expect(find.text('Miam'), findsOneWidget);
+      expect(find.text('Nourriture'), findsOneWidget);
       expect(find.text('Sant\u00e9'), findsOneWidget);
-      expect(find.text('Caca'), findsOneWidget);
+      expect(find.text('Couche'), findsOneWidget);
       expect(find.text('Dodo'), findsOneWidget);
     });
 
@@ -100,9 +100,9 @@ void main() {
       expect(trackButtons.length, 4);
 
       final colors = trackButtons.map((b) => b.color).toSet();
-      expect(colors.contains(AppTheme.miam), isTrue, reason: 'Miam');
+      expect(colors.contains(AppTheme.miam), isTrue, reason: 'Nourriture');
       expect(colors.contains(AppTheme.sante), isTrue, reason: 'Sant\u00e9');
-      expect(colors.contains(AppTheme.caca), isTrue, reason: 'Caca');
+      expect(colors.contains(AppTheme.caca), isTrue, reason: 'Couche');
       expect(colors.contains(AppTheme.dodo), isTrue, reason: 'Dodo');
     });
 
@@ -139,14 +139,14 @@ void main() {
   // ──────────────────────────────────────────────
   // Interactions TrackButtons -> dialogs ouverts
   // ──────────────────────────────────────────────
-  group('Interactions Miam/Sante/Caca/Dodo', () {
-    testWidgets('tap Miam -> ouvre FeedingTrackingDialog', (tester) async {
+  group('Interactions Nourriture/Sante/Couche/Dodo', () {
+    testWidgets('tap Nourriture -> ouvre FeedingTrackingDialog', (tester) async {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
-      final miamBtn = find.text('Miam');
+      final miamBtn = find.text('Nourriture');
       expect(miamBtn, findsOneWidget);
 
       await tester.tap(miamBtn);
@@ -171,11 +171,11 @@ void main() {
       expect(find.text('Nettoyage des yeux'), findsOneWidget);
     });
 
-    testWidgets('tap Caca -> ouverture WasteDialog', (tester) async {
+    testWidgets('tap Couche -> ouverture WasteDialog', (tester) async {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
-      final cacaBtn = findTrackButton('Caca');
+      final cacaBtn = findTrackButton('Couche');
       expect(cacaBtn, findsOneWidget);
 
       await tester.tap(cacaBtn);
@@ -299,13 +299,13 @@ void main() {
       expect(captured.first, isA<HealthEvent>());
     });
 
-    testWidgets('Caca: Confirmer -> DiaperEvent via insertEvent', (tester) async {
+    testWidgets('Couche: Confirmer -> DiaperEvent via insertEvent', (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
-      final cacaBtn = findTrackButton('Caca');
+      final cacaBtn = findTrackButton('Couche');
       await tester.tap(cacaBtn);
       await tester.pumpAndSettle();
 
@@ -351,9 +351,9 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('Miam : la date par défaut est le moment de la saisie', (tester) async {
+    testWidgets('Nourriture : la date par défaut est le moment de la saisie', (tester) async {
       final before = DateTime.now();
-      await openSheetAndConfirm(tester, 'Miam');
+      await openSheetAndConfirm(tester, 'Nourriture');
 
       final event =
           verify(mockRepo.insertEvent(captureAny)).captured.single as TrackingEvent;
@@ -373,9 +373,9 @@ void main() {
           reason: 'timestamp=${event.timestamp}, attendu≈$expected');
     });
 
-    testWidgets('Caca : la date par défaut est le moment de la saisie', (tester) async {
+    testWidgets('Couche : la date par défaut est le moment de la saisie', (tester) async {
       final before = DateTime.now();
-      await openSheetAndConfirm(tester, 'Caca');
+      await openSheetAndConfirm(tester, 'Couche');
 
       final event =
           verify(mockRepo.insertEvent(captureAny)).captured.single as TrackingEvent;
@@ -420,7 +420,7 @@ void main() {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
-      await tester.tap(findTrackButton('Caca'));
+      await tester.tap(findTrackButton('Couche'));
       await tester.pumpAndSettle();
 
       final chip = find.widgetWithText(FilterChip, 'Pâteuse');
@@ -448,7 +448,7 @@ void main() {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
-      await tester.tap(findTrackButton('Caca'));
+      await tester.tap(findTrackButton('Couche'));
       await tester.pumpAndSettle();
 
       final confirmBtn = find.descendant(

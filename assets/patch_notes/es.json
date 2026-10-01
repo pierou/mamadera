@@ -55,6 +55,7 @@
       "- Restauración completa desde un archivo de copia de seguridad exportado",
       "### Mejoras",
       "- Texto en español para los usuarios hispanohablantes: términos de uso, fechas y notas de la versión",
+      "- Actualización de las etiquetas de los botones de inicio para usar « Nourriture » y « Couche » en lugar de « Miam » y « Caca »",
       "### Correcciones de errores",
       "- Conservación de las notas al editar una entrada de salud",
       "- Recuperación tras el borrado completo de los datos",
