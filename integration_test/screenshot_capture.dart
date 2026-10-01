@@ -23,8 +23,9 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Store Screenshots', () {
-    /// Capture a screenshot via the binding's takeScreenshot, then save PNG
-    /// bytes to disk using dart:io.
+    /// Capture a screenshot via the binding's takeScreenshot. Since Flutter
+    /// 3.44 the PNG bytes are returned in-band (test reportData) and saved to
+    /// screenshots/android/ by the driver — nothing is written on the device.
     Future<void> captureScreen(
       IntegrationTestWidgetsFlutterBinding binding,
       String name,
@@ -86,9 +87,15 @@ void main() {
 
     // ─── Feature Dialog Screenshots ────────────────────────────────────────
 
+    // NOTE: tab selection survives pumpWidget re-pumps (the stateful shell
+    // is not replaced), so a previous test can end the app on another tab.
+    // Every dialog test taps the home tab first to make the track buttons
+    // exist regardless of test order.
+
     testWidgets('feeding_dialog.png', (tester) async {
       await pumpMamadera(tester);
-      await tester.pumpAndSettle();
+      await tester.tap(findByKey(TestKeys.homeTab));
+      await tester.pumpAndSettle(const Duration(seconds: 2));
 
       // Tap the feeding track button.
       await tester.tap(findByKey(TestKeys.trackMiam));
@@ -101,7 +108,8 @@ void main() {
 
     testWidgets('sleep_diagram.png', (tester) async {
       await pumpMamadera(tester);
-      await tester.pumpAndSettle();
+      await tester.tap(findByKey(TestKeys.homeTab));
+      await tester.pumpAndSettle(const Duration(seconds: 2));
 
       // Tap the sleep track button.
       await tester.tap(findByKey(TestKeys.trackDodo));
@@ -114,7 +122,8 @@ void main() {
 
     testWidgets('diaper_dialog.png', (tester) async {
       await pumpMamadera(tester);
-      await tester.pumpAndSettle();
+      await tester.tap(findByKey(TestKeys.homeTab));
+      await tester.pumpAndSettle(const Duration(seconds: 2));
 
       // Tap the diaper track button.
       await tester.tap(findByKey(TestKeys.trackCaca));
@@ -127,7 +136,8 @@ void main() {
 
     testWidgets('health_diagram.png', (tester) async {
       await pumpMamadera(tester);
-      await tester.pumpAndSettle();
+      await tester.tap(findByKey(TestKeys.homeTab));
+      await tester.pumpAndSettle(const Duration(seconds: 2));
 
       // Tap the health track button.
       await tester.tap(findByKey(TestKeys.trackSante));

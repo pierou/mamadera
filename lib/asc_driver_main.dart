@@ -164,6 +164,14 @@ Future<AppDatabase> _seededDb() async {
 void main() async {
   // NOTE: do not call WidgetsFlutterBinding.ensureInitialized() here —
   // enableFlutterDriverExtension must install its own binding first.
+  //
+  // iPad captures run with --dart-define=ASC_NO_BANNER=true so the raw PNGs
+  // carry no DEBUG ribbon (the iPhone pipeline keeps the ribbon and patches
+  // it out in postprocess.sh, which expects it to be present).
+  if (const bool.fromEnvironment('ASC_NO_BANNER')) {
+    WidgetsApp.debugAllowBannerOverride = false;
+  }
+
   final db = await _seededDb();
 
   enableFlutterDriverExtension(
