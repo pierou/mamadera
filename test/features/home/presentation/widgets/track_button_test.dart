@@ -130,6 +130,22 @@ void main() {
       expect(textFinder, findsOneWidget);
     });
 
+    // Régression : "Nourriture" (10 caractères) ne tient pas en 32 pt dans la
+    // tuile 2 colonnes de l'écran d'accueil — il doit être réduit en largeur
+    // (FittedBox scaleDown) plutôt que coupé sur deux lignes.
+    testWidgets('keeps long labels on a single line via scaleDown', (tester) async {
+      await tester.pumpWidget(ProviderScope(
+        child: pumpTrackButton(label: 'Nourriture', color: AppTheme.miam),
+      ));
+      final fitted = find.descendant(
+        of: find.byType(TrackButton),
+        matching: find.byType(FittedBox),
+      );
+      expect(fitted, findsOneWidget);
+      expect(tester.widget<FittedBox>(fitted).fit, BoxFit.scaleDown);
+      expect(tester.widget<Text>(find.text('Nourriture')).maxLines, 1);
+    });
+
     testWidgets('renders with all tracking type colors', (tester) async {
       await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Nourriture', color: AppTheme.miam)));
       expect(find.byType(TrackButton), findsOneWidget);

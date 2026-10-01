@@ -200,7 +200,10 @@ class _TrackButtonContent extends StatelessWidget {
               flex: icon != null
                   ? (hasPending ? 2 : 3)
                   : (hasPending ? 3 : 4),
-              child: Center(
+              // Single line + scaleDown: a long label (FR "Nourriture") is
+              // shrunk to fit instead of wrapping into an orphaned fragment.
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
                 child: Text(
                   label,
                   style: theme.textTheme.headlineLarge?.copyWith(
@@ -214,8 +217,7 @@ class _TrackButtonContent extends StatelessWidget {
                         ],
                       ),
                   textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
             ),
