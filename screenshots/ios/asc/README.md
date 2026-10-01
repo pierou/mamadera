@@ -107,6 +107,8 @@ generates the branded promo images in `store/`:
 store/appstore_promo[_lang].png                       1280×800   web / App Store presence
 store/appstore_promo_portrait_1242x2688[_lang].png    1242×2688  ASC portrait slot
 store/appstore_promo_portrait_1284x2778[_lang].png    1284×2778  ASC portrait slot
+store/appstore_promo_portrait_1668x2388[_lang].png    1668×2388  ASC iPad promo (11")
+store/appstore_promo_portrait_2048x2732[_lang].png    2048×2732  ASC iPad promo (13")
 store/play_feature_graphic[_lang].png                 1024×500   Google Play
 ```
 

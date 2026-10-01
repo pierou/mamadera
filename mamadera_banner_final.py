@@ -8,6 +8,8 @@ Produces per-language marketing images matching the app icon's brand palette
   store/appstore_promo[_lang].png             1280x800  App Store / web promo tile
   store/appstore_promo_portrait_1242x2688[_lang].png   1242x2688  ASC portrait (iPhone 6.5")
   store/appstore_promo_portrait_1284x2778[_lang].png   1284x2778  ASC portrait (iPhone 6.7")
+  store/appstore_promo_portrait_1668x2388[_lang].png   1668x2388  ASC iPad promo (11")
+  store/appstore_promo_portrait_2048x2732[_lang].png   2048x2732  ASC iPad promo (13")
 
 Languages (LANGS below): fr (unsuffixed, legacy names kept), en, es.
 
@@ -391,6 +393,11 @@ def build_appstore_promo(lang):
 # one code path.
 def build_appstore_promo_portrait(lang, w, h):
     t = LANGS[lang]
+    # Display elements are sized in an “iPhone-equivalent width”: for the two
+    # portrait iPhone slots w_eq == w (byte-identical output), while the
+    # wider iPad slots scale the elements down to match — otherwise the 2×3
+    # grid collides with the subtitle and the lock line.
+    w_eq = min(w, int(round(h * 1242 / 2688)))
     img = paint_background(w, h, glows=[
         (0.75 * w, 0.08 * h, 0.27 * w, GOLD, 40),
         (0.08 * w, 0.55 * h, 0.26 * w, TEAL, 36),
@@ -399,22 +406,22 @@ def build_appstore_promo_portrait(lang, w, h):
     d = ImageDraw.Draw(img)
 
     # App icon (top center)
-    icon_size = int(round(w * 0.38))
+    icon_size = int(round(w_eq * 0.38))
     icon_top = int(round(h * 0.072))
     tile = icon_tile(icon_size)
     img.paste(tile, ((w - icon_size) // 2, icon_top), tile)
 
     # Title + subtitle (centered)
-    title_font = sf_rounded(int(round(w * 0.118)), 900)
-    sub_font = sf_pro(int(round(w * 0.036)), 600)
+    title_font = sf_rounded(int(round(w_eq * 0.118)), 900)
+    sub_font = sf_pro(int(round(w_eq * 0.036)), 600)
     title_y = icon_top + icon_size + int(round(h * 0.042))
     d.text((w / 2, title_y), "Mamadera", font=title_font, fill=INK, anchor="mm")
-    sub_y = title_y + int(round(w * 0.118) * 0.62) + int(round(w * 0.036) * 0.9)
+    sub_y = title_y + int(round(w_eq * 0.118) * 0.62) + int(round(w_eq * 0.036) * 0.9)
     d.text((w / 2, sub_y), t["subtitle"], font=sub_font, fill=BODY, anchor="mm")
 
     # Features: 2 columns x 3 rows, labels under chips
-    chip = int(round(w * 0.104))
-    feat_font = sf_pro(int(round(w * 0.031)), 550)
+    chip = int(round(w_eq * 0.104))
+    feat_font = sf_pro(int(round(w_eq * 0.031)), 550)
     cols = (0.27 * w, 0.73 * w)
     rows = (0.468 * h, 0.598 * h, 0.728 * h)
     for i, ((glyph, color), label) in enumerate(zip(FEATURE_CHIPS, t["labels"])):
@@ -422,8 +429,8 @@ def build_appstore_promo_portrait(lang, w, h):
                      label, feat_font, BODY, label_below=True)
 
     # Lock line (centered as a unit: glyph + text)
-    lock_font = sf_pro(int(round(w * 0.033)), 600)
-    glyph_size = int(round(w * 0.033))
+    lock_font = sf_pro(int(round(w_eq * 0.033)), 600)
+    glyph_size = int(round(w_eq * 0.033))
     text = t["lock_line"]
     lx = (w - glyph_size - 10 - d.textlength(text, font=lock_font)) / 2
     draw_lock_line(img, lx, int(round(h * 0.868)), text, lock_font, BODY,
@@ -431,7 +438,7 @@ def build_appstore_promo_portrait(lang, w, h):
 
     # Footer (centered)
     d.text((w / 2, h * 0.918), t["footer"],
-           font=sf_pro(int(round(w * 0.026)), 550), fill=MUTED, anchor="mm")
+           font=sf_pro(int(round(w_eq * 0.026)), 550), fill=MUTED, anchor="mm")
 
     return img
 
@@ -452,6 +459,12 @@ def main():
             (build_appstore_promo_portrait(lang, 1284, 2778),
              os.path.join(OUT_DIR, f"appstore_promo_portrait_1284x2778{s}.png"),
              (1284, 2778)),
+            (build_appstore_promo_portrait(lang, 1668, 2388),
+             os.path.join(OUT_DIR, f"appstore_promo_portrait_1668x2388{s}.png"),
+             (1668, 2388)),
+            (build_appstore_promo_portrait(lang, 2048, 2732),
+             os.path.join(OUT_DIR, f"appstore_promo_portrait_2048x2732{s}.png"),
+             (2048, 2732)),
         ]
     for img, path, expected in outputs:
         if img.size != expected:
