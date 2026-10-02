@@ -327,6 +327,22 @@ jobs:
           api-level: 34
           arch: x86_64
           profile: pixel_6
+          # Pre-install the CMake AGP's default build requests. The Flutter
+          # Gradle plugin forces a no-op CMake configure on EVERY Android
+          # build (forceNdkDownload: an empty CMakeLists.txt that only
+          # exists to make AGP fetch its SDK components); when cmake;3.22.1
+          # is missing, AGP auto-downloads it INSIDE the gradle build — and
+          # that download flaked with a transient "Premature EOF" from
+          # dl.google.com (run 37056936839), surfacing 33 min later as a
+          # misleading "flutter test failed" instead of a fast SDK-install
+          # error. The action installs it via sdkmanager during its own
+          # "Install Android SDK" phase, before the emulator boots.
+          # Keep in sync with AGP's request: if a Flutter/AGP bump ever
+          # fails with "Failed to install the following SDK components:
+          # cmake;X", update this value to X. (NDK deliberately not pinned:
+          # the ubuntu-latest image ships it — no NDK install line in any
+          # historical run.)
+          cmake: '3.22.1'
           # NOTE: android-emulator-runner splits `script` into one `sh -c`
           # per non-comment line — backslash line-continuations are NOT
           # supported. Each command must be a single self-contained line.
@@ -350,7 +366,7 @@ jobs:
           # could never be a signal here. It runs on the self-hosted Mac
           # runner (integration-tests-local) in ~2 min.
           script: |
-            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 5400 flutter test integration_test/ci_smoke_suite.dart > ft_out.txt 2>&1 & T=$!; tail -n +1 -f ft_out.txt & TF=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null; sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt && ! grep -q "✅" ft_out.txt && kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG $TF 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — VM service never came up (surface flake) or tests stalled after it (headless-rendering stall) — smoke-only signal; the driver suite runs on the Mac runner"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
+            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 5400 flutter test integration_test/ci_smoke_suite.dart > ft_out.txt 2>&1 & T=$!; tail -n +1 -f ft_out.txt & TF=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null; sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt && ! grep -q "✅" ft_out.txt && kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG $TF 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — see the log above for the actual cause: Gradle build failure (e.g. SDK download flake), VM service never came up (surface flake), or tests stalled after it (headless-rendering stall) — smoke-only signal; the driver suite runs on the Mac runner"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
 
       - name: Upload emulator logcat (on failure)
         if: failure()
@@ -392,10 +408,11 @@ jobs:
           api-level: 34
           arch: x86_64
           profile: pixel_6
+          cmake: '3.22.1'   # CMake pre-install — same rationale as the first attempt above
           # Smoke-only, same as the first attempt (driver suite removed —
           # see the integration-tests job notes above).
           script: |
-            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 5400 flutter test integration_test/ci_smoke_suite.dart > ft_out.txt 2>&1 & T=$!; tail -n +1 -f ft_out.txt & TF=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null; sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt && ! grep -q "✅" ft_out.txt && kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG $TF 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — VM service never came up (surface flake) or tests stalled after it (headless-rendering stall) — smoke-only signal; the driver suite runs on the Mac runner"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
+            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 5400 flutter test integration_test/ci_smoke_suite.dart > ft_out.txt 2>&1 & T=$!; tail -n +1 -f ft_out.txt & TF=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null; sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt && ! grep -q "✅" ft_out.txt && kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG $TF 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — see the log above for the actual cause: Gradle build failure (e.g. SDK download flake), VM service never came up (surface flake), or tests stalled after it (headless-rendering stall) — smoke-only signal; the driver suite runs on the Mac runner"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
 
       - name: Upload emulator logcat (on failure)
         if: failure()
