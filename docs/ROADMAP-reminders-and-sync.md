@@ -1,12 +1,6 @@
 # ROADMAP — Reminders, multi-baby scoping, onboarding, two-phone sync, growth measurements
 
-Status: **§2 shipped in v1.1.0+4 (2026-09-21); §4.2 (measurements) added 2026-09-29, decisions resolved the same day; §5 (v1.1.1) implemented and `make ci`-green 2026-09-29. §4 (items M, 3, 4, 8) implemented in full on branch `feat/v1.2.0-growth-and-baby-scoped-reminders` on 2026-10-03, executed from [`docs/PLAN-v1.2.0.md`](PLAN-v1.2.0.md) — drift v11, export format v2, `make ci`-green (1305 scoped / 1311 full, 0 skipped, 88 % lines). §1 remains withdrawn; §6 (v1.3.0 sync) is still proposal; decisions 1, 2, 6 and 7–9 in §7 are resolved, and **3, 4, 5 are now resolved too — 3 → D1 and 4 → D2 as decided in PLAN §2, 5 still awaits you** (sync needs a written privacy mandate change from the owner before any code).
-
-> **Amendment 2026-10-03 (PLAN §2.6):** §4.1's "each row: … + a done/dismiss action" is
-> inconsistent with D2 — a care-bound reminder is settled by `tracking_events`, so a Done button on
-> its row would write a completion nothing reads and leave the row looking checked. Shipped shape:
-> **Done renders only when `completionSource == manual`**; care-bound rows keep Dismiss and are
-> settled by tracking the care.
+Status: **§2 shipped in v1.1.0+4 (2026-09-21); §4.2 (measurements) added 2026-09-29, decisions resolved the same day; §5 (v1.1.1) implemented and `make ci`-green 2026-09-29. §4 (items M, 3, 4, 8) implemented in full on branch `feat/v1.2.0-growth-and-baby-scoped-reminders` on 2026-10-03, executed from [`docs/PLAN-v1.2.0.md`](PLAN-v1.2.0.md) — drift v11, export format v2, `make ci`-green (1305 scoped / 1311 full, 0 skipped, 88 % lines). §10 (backlog, items 11–19) recorded 2026-10-02; §9 (items 9 + 10, slider colour) recorded 2026-10-05; §1 remains withdrawn; §6 (v1.3.0 sync) is still proposal; decisions 1, 2, 6 and 7–9 in §7 are resolved, and **3, 4, 5 are now resolved too — 3 → D1 and 4 → D2 as decided in PLAN §2, 5 still awaits you** (sync needs a written privacy mandate change from the owner before any code).
 Opened 2026-09-20, while v1.1.0 was mid-flight (Phase 2B, Xcode Cloud).
 
 Five requests came in together:
@@ -472,3 +466,96 @@ Reported by Pierre-Vincent 2026-10-05 while reviewing build 1.1.1 on a physical 
 * Before coding: reproduce on the submitted 1.1.1 build and pin down exactly which two elements
   clash (screenshot). Candidate fixes: theme the `TextField` border/focus colour with the section
   accent, or align the edit-section styling with the creation dialog.
+
+---
+
+## 10. Backlog — **unbucketed**, recorded 2026-10-02 from Pierre-Vincent's backlog list
+
+Items 11–19, reported 2026-10-02. None is bucketed yet; each carries a **proposed bucket**
+(recommendation only — the decision stays with Pierre-Vincent, as for §7). Items 1–10 and M are
+unchanged; item 1 (sync) and item 8 (measurements) from the original backlog are already bucketed
+in §3/§4.2.
+
+### 10.1 Item 11 — age-conditioned reminders
+
+* Reminders whose existence or frequency depends on the baby's age (e.g. a Vit. D stop date,
+  new presets that appear only after a given age).
+* Extends the §4.1 preset model; today only `vitamine_k`'s *frequency* is derived from the baby
+  (`reminder_item.dart:26-84`).
+* Directional overlap with the **withdrawn** item 2 — item 2 was a misread of the same mechanism;
+  this one is a real feature. Needs a decision: which presets are age-bounded and by what rule
+  (hardcoded cutoffs vs user-adjustable dates — the latter touches the custom-reminder model, item 4).
+* Proposed bucket: **v1.2.0** (rides the reminder-model work of items 3+4) — or v1.3.0 if the
+  rule turns out to need user-adjustable dates.
+
+### 10.2 Item 12 — reminder notifications
+
+* System notifications for due reminders. §0 verified: in-app banners only, **no**
+  `flutter_local_notifications` in `pubspec.yaml`.
+* Cost: one new local-only dependency (privacy-neutral — no network, no payload), a permission
+  consent flow (iOS + Android, per AGENTS.md minimal-permissions: explicit, on first opt-in, not
+  on launch), and a scheduling model aligned with the 5-minute poll (§0) or per-due-time local
+  schedules.
+* Proposed bucket: **v1.2.0 or v1.3.0** — the permission flow adds a store-review surface, so
+  keep it out of a cosmetic v1.1.2.
+
+### 10.3 Item 13 — add "bain" to hygiene
+
+* New `HealthSubtype` `bain` alongside the existing six (4 nettoyages + vitD + vitK,
+  `tracking_enums.dart:265-295`).
+* `subtype_value` is a free string in the DB → **no migration**; the work is the enum constant,
+  l10n ×3, an icon (`tracking_icons.dart:70` lists the cleaning set), and the health-form dropdown
+  entry.
+* Proposed bucket: **v1.2.0** (small, but it changes the settings UI — not v1.1.2 material).
+
+### 10.4 Item 14 — +/− step buttons on sliders
+
+* Explicit +/− buttons next to the duration/quantity sliders (`QuantityPickerInline`,
+  `duration_picker_dialog.dart`) for precise input without dragging.
+* UI-only, no schema change. Note: it shares surface with the §9 colour-consistency fixes — sequence
+  them in the same release to avoid touching the same widgets twice.
+* Proposed bucket: **v1.1.2 candidate** (UX, light gate) or **v1.2.0** if the slider surface churns
+  there anyway.
+
+### 10.5 Item 15 — add a brown caca colour
+
+* New `CacaColor` `marron`. Today: exactly 4 (mécônium, vert olive, jaune moutarde, jaune clair —
+  `tracking_enums.dart:160-185`).
+* DB value is a string → new value is **backward-compatible, no migration**; work is the enum
+  constant + hex, l10n ×3, position in the picker row, history swatch. Decide the hue (single
+  `marron`, or two shades).
+* Proposed bucket: **v1.1.2 or v1.2.0**.
+
+### 10.6 Item 16 — pvj.io credit
+
+* Add a "pvj.io" credit mention (Menu → à propos / credits area).
+* Open: exact wording and placement (plain text vs tappable link — a link is still local-only, it
+  just opens the OS browser).
+* Proposed bucket: **trivial, any** — piggyback on the next release's store copy.
+
+### 10.7 Item 17 — no scroll in landscape + half-screen box in portrait
+
+* Reported wording: *« Pas de scroll en paysage + box moitié d'écran en portrait ».*
+* **Not yet pinned to a screen.** Before coding: reproduce on the submitted 1.1.1 build and identify
+  the affected surface (same procedure as item 10, §9.2). Prime suspects: a dialog/sheet that caps
+  its height (half-screen box) and a list that stops scrolling when rotated.
+* Proposed bucket: after reproduction — likely **v1.1.2** if cosmetic, **v1.2.0** if structural.
+
+### 10.8 Item 18 — baby age not localized
+
+* `baby_profile_section.dart:478-492` (`_formatBirthdate`) hardcodes **English** strings —
+  `'$days days old'`, `'$months months old'`, `'$age years old'` — ignoring the active locale.
+* Fix: l10n keys with count parameters for the three branches (en/es/fr); no schema change.
+* Proposed bucket: **v1.1.2 candidate** (small l10n fix, light gate) or **v1.2.0**.
+
+### 10.9 Item 19 — « littérature »: in-app reference guide
+
+* Clarified 2026-10-02: static reference documentation for parents (first topic: **baby car seat**,
+  « and all » — the article list is open).
+* Fully local content (privacy: no network — bundled markdown assets), rendered with the existing
+  `core/utils/markdown_parser.dart`, l10n ×3.
+* Open questions before any bucket: scope of the initial article set, who authors/maintains the
+  content, placement (Menu → « Guide »?), and the legal framing (informational, not medical advice —
+  a disclaimer line, and it belongs in the in-app privacy/terms surface too).
+* Proposed bucket: **its own feature** — v1.2.0 if the article set is small, v1.3.0 if it grows;
+  content authoring, not code, is the critical path.
