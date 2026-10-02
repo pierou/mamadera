@@ -212,6 +212,7 @@ cost.
 |---|---|---|---|
 | **v1.1.0** (shipped `1.1.0+4`) | **§2.1** onboarding after restore **+ §2.2** patch notes raw markdown, + dead `markdown` dep dropped | none | done: `make ci` green — 1174 tests, lint clean, 86.9 % lines |
 | **v1.1.1** | Item 5 (stale reminders) — reactive fix, red→green verified; dead dismiss cooldown deleted; time-axis lifecycle refresh deferred to v1.2.0 | none | implemented 2026-09-29, `make ci` green — 1174 tests, lint clean, 87.0 % lines; patch notes en/es/fr to write with the tag |
+| **v1.1.2** (optional quick patch once 1.1.1 is approved) | Items 9 + 10 — slider colour consistency (§9) | none | light gate: `make ci` green + patch notes en/es/fr + store copy (cosmetic only) |
 | **v1.2.0** | Item M (baby scoping) + item 4 (detached custom reminders) + item 3 (home reminders list) **+ item 8 (measurements: weight/height/temperature, 3 home buttons — §4.2)** | drift **v11**, `exportFormatVersion` **2** (one bump carries both the reminder keying change and the new table) | full gate + migration test + patch notes en/es/fr + store copy |
 | **v1.3.0** | Item 1 (two-phone sync), phase A (merge, manual transport) | drift **v12**, format **3** | full gate + privacy decision (§7.5) |
 
@@ -441,3 +442,33 @@ explicitly; do not let it happen by accident.
 * The "Mesures" history screen and the v1.2.0 home reminders list (§4.1) both want the area below the
   grid — sequence them so one does not displace the other's scroll position (the home screen is
   already `SingleChildScrollView`-wrapped for exactly this reason).
+
+---
+
+## 9. Open UI defects (cosmetic) — items 9 + 10
+
+Reported by Pierre-Vincent 2026-10-05 while reviewing build 1.1.1 on a physical device.
+
+### 9.1 Item 9 — sleep slider: edit colour ≠ creation colour
+
+* Creation: `DurationPickerDialog` themes the value text **and** the slider with `AppTheme.dodo`
+  (blue) — `duration_picker_dialog.dart:80-93`.
+* Edit: `EditEventDialog._buildDurationSection` embeds `QuantityPickerInline`, which hardcodes
+  `AppTheme.miam` (yellow) — `edit_event_dialog.dart:218-234`,
+  `quantity_picker_inline.dart:78,83-91`.
+  → the same sleep duration is blue when created, yellow when edited.
+* Fix direction: give `QuantityPickerInline` an `accent` parameter (default `AppTheme.miam`) and
+  pass `AppTheme.dodo` from `_buildDurationSection`; value text and slider stay on the same accent.
+
+### 9.2 Item 10 — feeding quantity slider vs the edit box
+
+* Observation: the feeding quantity slider is not consistent with the edit box.
+* On current main both creation (`FeedingTrackingDialog` → `QuantityPickerInline`,
+  `feeding_tracking_dialog.dart:120`) and edit (`EditEventDialog._buildQuantitySection` →
+  `QuantityPickerInline`, `edit_event_dialog.dart:236-253`) use the same widget, so the slider and
+  big value already share the miam yellow on both sides. The visible clash is *inside* the edit
+  section: the miam-yellow slider/value sitting above a `TextField` with the default grey
+  `OutlineInputBorder` (`quantity_picker_inline.dart:99-108`).
+* Before coding: reproduce on the submitted 1.1.1 build and pin down exactly which two elements
+  clash (screenshot). Candidate fixes: theme the `TextField` border/focus colour with the section
+  accent, or align the edit-section styling with the creation dialog.
