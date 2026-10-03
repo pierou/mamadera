@@ -84,13 +84,19 @@ enum MeasureKind {
   /// Pas du slider, en unité de base.
   ///
   /// Le poids se règle par poignées de grammes (200 g), la taille par
-  /// centimètre, la température par **demi-degré** : la fièvre d'un nourrisson
-  /// se lit à 37,5 ou 38,0, et un slider qui ne connaît que les degrés entiers
-  /// ne dit rien de ce qui intéresse le parent.
+  /// centimètre, la température par **dixième de degré** : la fièvre d'un
+  /// nourrisson se suit à 37,1 près, et un cran de 0,5 ferait enregistrer
+  /// 37,5 là où le thermomètre affichait 37,4 — une mesure arrondie n'est pas
+  /// une mesure.
+  ///
+  /// Neuf crans par degré, soit 90 sur toute la plage : environ 3 px par cran
+  /// sur un téléphone. Le slider est donc un réglage grossier assumé — la
+  /// précision vient du champ de saisie, qui accepte le dixième et le conserve
+  /// tel quel. Le slider sert à atteindre le voisinage, pas la valeur exacte.
   double get step => switch (this) {
         MeasureKind.poids => 200,
         MeasureKind.taille => 1,
-        MeasureKind.temperature => 0.5,
+        MeasureKind.temperature => 0.1,
       };
 
   /// Nombre de divisions du slider, borné à la plage et au pas ci-dessus.

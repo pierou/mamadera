@@ -194,6 +194,33 @@ void main() {
       expect(find.byType(MeasurementSheet), findsNothing);
     });
 
+    testWidgets(
+        'temperature: the tenth of degree survives the whole path — typed '
+        '37,4 is stored as 37.4, not rounded to 37 or 37,5', (tester) async {
+      await pumpSheet(tester, MeasureKind.temperature);
+      await tester.pumpAndSettle();
+
+      // Le slider offre un cran par dixième : 90 crans sur la plage.
+      final slider = tester.widget<Slider>(find.byType(Slider));
+      expect(slider.divisions, 90);
+      expect(slider.max - slider.min, 9);
+
+      await tester.enterText(valueField(), '37,4');
+      await tester.pumpAndSettle();
+
+      // Trois endroits où un arrondi pourrait se glisser : l'affichage, la
+      // valeur transmise, et ce que le repository reçoit.
+      expect(find.text('37,4 °C'), findsWidgets);
+
+      await tester.tap(saveButton());
+      await tester.pumpAndSettle();
+
+      expect(fakeRepo.lastAdded!.value, 37.4,
+          reason: 'la valeur doit traverser la feuille intacte : stocker 37,5 '
+              'ou 37 serait une mesure fausse au dixième près');
+      expect(fakeRepo.lastAdded!.unit, 'degC');
+    });
+
     testWidgets('titles follow the kind', (tester) async {
       await pumpSheet(tester, MeasureKind.poids);
       await tester.pumpAndSettle();

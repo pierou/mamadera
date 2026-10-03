@@ -79,7 +79,7 @@
       "- Inclusion des mesures et des achèvements de rappels dans la sauvegarde manuelle",
       "### Améliorations",
       "- Chiffrement au repos des valeurs de croissance (poids, taille, température), comme les notes",
-      "- Saisie de la température au demi-degré et affichage avec la virgule de votre langue",
+      "- Saisie de la température au dixième de degré et affichage avec la virgule de votre langue",
       "- Réévaluation immédiate de la liste des rappels après un « fait » ou un « ignorer »",
       "### Corrections",
       "- Indépendance des rappels par bébé : éteindre, ignorer ou marquer fait pour un bébé ne s'applique plus à ses frères et sœurs",

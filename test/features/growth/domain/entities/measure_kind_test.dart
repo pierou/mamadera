@@ -43,11 +43,12 @@ void main() {
       expect(MeasureKind.poids.divisions, 99);
       expect(MeasureKind.taille.step, 1);
       expect(MeasureKind.taille.divisions, 80);
-      // Le demi-degré, pas le degré : la fièvre d'un nourrisson se lit à 37,5.
-      // Un slider à degrés entiers ne peut pas viser la valeur qui intéresse
-      // le parent, et l'affichage seul ne suffit pas si le slider la donne.
-      expect(MeasureKind.temperature.step, 0.5);
-      expect(MeasureKind.temperature.divisions, 18);
+      // Le dixième de degré : un cran de 0,5 ferait enregistrer 37,5 là où le
+      // thermomètre affichait 37,4. Dans une app de suivi, une mesure arrondie
+      // n'est pas une mesure — c'est une mesure fausse, dans le sens qui peut
+      // compter (le seuil de fièvre d'un nourrisson).
+      expect(MeasureKind.temperature.step, 0.1);
+      expect(MeasureKind.temperature.divisions, 90);
       // Le pas ne franchit jamais la précision affichée : sinon le slider
       // produit des valeurs que l'écran puis la base ne sauraient rendre.
       for (final kind in MeasureKind.values) {
