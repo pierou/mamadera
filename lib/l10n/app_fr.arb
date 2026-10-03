@@ -15,6 +15,36 @@
   "homeButtonSante": "Santé",
   "homeButtonCaca": "Couche",
   "homeButtonDodo": "Dodo",
+  "homeButtonPoids": "Poids",
+  "homeButtonTaille": "Taille",
+  "homeButtonTemperature": "Température",
+  "@growthValueOutOfRange": {
+    "placeholders": {
+      "min": {},
+      "max": {},
+      "unit": {}
+    }
+  },
+  "growthValueOutOfRange": "Valeur hors plage : entre {min} et {max} {unit}.",
+  "@growthFeedbackSaved": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "growthFeedbackSaved": "Mesure enregistrée · {value}",
+  "growthMenuTile": "Croissance",
+  "growthScreenTitle": "Croissance",
+  "growthSectionTitle": "Mesures de croissance",
+  "growthEmptyState": "Aucune mesure pour l'instant.",
+  "growthLatestWeight": "Dernier poids",
+  "growthLatestHeight": "Dernière taille",
+  "growthLatestTemperature": "Dernière température",
+  "growthSheetTitleWeight": "Nouveau poids",
+  "growthSheetTitleHeight": "Nouvelle taille",
+  "growthSheetTitleTemperature": "Nouvelle température",
+  "growthSheetNoteField": "Note (facultatif)",
+  "growthSheetSave": "Enregistrer",
+  "growthValueUndecryptable": "Valeur illisible",
 
   "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
   "@feedbackFeedingWithQuantity": {

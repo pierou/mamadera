@@ -42,6 +42,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeButtonDodo => 'Sleep';
 
   @override
+  String get homeButtonPoids => 'Weight';
+
+  @override
+  String get homeButtonTaille => 'Height';
+
+  @override
+  String get homeButtonTemperature => 'Temperature';
+
+  @override
+  String growthValueOutOfRange(Object min, Object max, Object unit) {
+    return 'Out of range: between $min and $max $unit.';
+  }
+
+  @override
+  String growthFeedbackSaved(Object value) {
+    return 'Measurement saved · $value';
+  }
+
+  @override
+  String get growthMenuTile => 'Growth';
+
+  @override
+  String get growthScreenTitle => 'Growth';
+
+  @override
+  String get growthSectionTitle => 'Growth measurements';
+
+  @override
+  String get growthEmptyState => 'No measurements yet.';
+
+  @override
+  String get growthLatestWeight => 'Latest weight';
+
+  @override
+  String get growthLatestHeight => 'Latest height';
+
+  @override
+  String get growthLatestTemperature => 'Latest temperature';
+
+  @override
+  String get growthSheetTitleWeight => 'New weight';
+
+  @override
+  String get growthSheetTitleHeight => 'New height';
+
+  @override
+  String get growthSheetTitleTemperature => 'New temperature';
+
+  @override
+  String get growthSheetNoteField => 'Note (optional)';
+
+  @override
+  String get growthSheetSave => 'Save';
+
+  @override
+  String get growthValueUndecryptable => 'Value unreadable';
+
+  @override
   String feedbackFeedingWithQuantity(Object subtype, Object quantity) {
     return '$subtype · $quantity';
   }

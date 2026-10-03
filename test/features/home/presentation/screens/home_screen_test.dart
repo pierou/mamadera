@@ -9,6 +9,9 @@ import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
 import 'package:mamadera/core/providers/any_baby_exists_provider.dart';
 import 'package:mamadera/core/widgets/event_date_time_field.dart';
+import 'package:mamadera/features/growth/domain/entities/growth_measurement.dart';
+import 'package:mamadera/features/growth/presentation/providers/measurement_providers.dart';
+import 'package:mamadera/features/growth/presentation/widgets/measurement_button.dart';
 import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart';
 import 'package:mamadera/features/home/presentation/providers/repository_provider.dart';
 import 'package:mamadera/features/home/presentation/screens/home_screen.dart';
@@ -57,6 +60,9 @@ void main() {
       ProviderScope(
         overrides: [
           trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
+          // La rangée de croissance ne doit pas ouvrir la vraie base en test.
+          measurementNotifierProvider
+              .overrideWith(() => TestMeasurementNotifier(const [])),
           // Override with a test notifier that resolves synchronously via Future.microtask.
           activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
           anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
@@ -80,6 +86,30 @@ void main() {
   // ──────────────────────────────────────────────
   // Affichage des TrackButtons
   // ──────────────────────────────────────────────
+  // ──────────────────────────────────────────────
+  // Boutons de mesure (croissance, item 1 de v1.2.0)
+  // ──────────────────────────────────────────────
+  group('Boutons de mesure (croissance)', () {
+    testWidgets('les 3 boutons de mesure s affichent sans toucher la grille',
+        (tester) async {
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TrackButton), findsNWidgets(4));
+      expect(find.byType(MeasurementButton), findsNWidgets(3));
+      expect(find.text('Poids'), findsOneWidget);
+      expect(find.text('Taille'), findsOneWidget);
+      expect(find.text('Température'), findsOneWidget);
+    });
+
+    testWidgets('sans mesure, chaque bouton affiche un tiret', (tester) async {
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('—'), findsNWidgets(3));
+    });
+  });
+
   group('Affichage des 4 TrackButtons', () {
     testWidgets('Nourriture, Sante, Couche, Dodo sont affiches', (tester) async {
       await pumpHome(tester);
@@ -504,6 +534,8 @@ void main() {
         ProviderScope(
           overrides: [
             trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
+            measurementNotifierProvider
+                .overrideWith(() => TestMeasurementNotifier(const [])),
             activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
             anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
           ],
@@ -545,6 +577,16 @@ void main() {
       expect(find.byType(OnboardingDialog), findsNothing);
     });
   });
+}
+
+/// Notifier de test pour la croissance : liste fixe, sans dépendance à la base.
+class TestMeasurementNotifier extends MeasurementNotifier {
+  TestMeasurementNotifier(this.measurements);
+
+  final List<GrowthMeasurement> measurements;
+
+  @override
+  Future<List<GrowthMeasurement>> build() async => measurements;
 }
 
 /// Test notifier that resolves the active baby profile synchronously.

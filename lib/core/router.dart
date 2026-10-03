@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/growth/presentation/screens/growth_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/menu/presentation/screens/feedback_screen.dart';
@@ -132,6 +133,12 @@ final GoRouter router = GoRouter(
       path: '/reminder-settings',
       name: 'reminder-settings',
       builder: (context, state) => const ReminderSettingsScreen(),
+    ),
+    // Growth route (outside shell, reached from the menu — item 1 de v1.2)
+    GoRoute(
+      path: '/growth',
+      name: 'growth',
+      builder: (context, state) => const GrowthScreen(),
     ),
     ShellRoute(
       navigatorKey: shellNavigatorKey,

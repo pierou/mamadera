@@ -11,6 +11,7 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
+import '../../../growth/presentation/widgets/measurement_button.dart';
 import '../../../reminders/domain/entities/reminders_state.dart';
 import '../../../reminders/presentation/providers/reminder_notifier.dart';
 import '../../../reminders/presentation/providers/reminder_providers.dart';
@@ -300,44 +301,53 @@ class _HomeContent extends ConsumerWidget {
       // (small phones, resized desktop windows).
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTheme.spacingXl),
-        child: GridView.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: AppTheme.spacingXl,
-          crossAxisSpacing: AppTheme.spacingXl,
-          shrinkWrap: true,
+        child: Column(
           children: [
-            TrackButton(
-              key: const ValueKey('track-miam'),
-              label: context.l.homeButtonMiam,
-              color: AppTheme.miam,
-              icon: TrackingType.miam.icon,
-              reminders: statusMap[TrackingType.miam],
-              onTap: () => _onTrack(context, ref, TrackingType.miam.name),
+            GridView.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: AppTheme.spacingXl,
+              crossAxisSpacing: AppTheme.spacingXl,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                TrackButton(
+                  key: const ValueKey('track-miam'),
+                  label: context.l.homeButtonMiam,
+                  color: AppTheme.miam,
+                  icon: TrackingType.miam.icon,
+                  reminders: statusMap[TrackingType.miam],
+                  onTap: () => _onTrack(context, ref, TrackingType.miam.name),
+                ),
+                TrackButton(
+                  key: const ValueKey('track-sante'),
+                  label: context.l.homeButtonSante,
+                  color: AppTheme.sante,
+                  icon: TrackingType.sante.icon,
+                  reminders: statusMap[TrackingType.sante],
+                  onTap: () => _onTrack(context, ref, TrackingType.sante.name),
+                ),
+                TrackButton(
+                  key: const ValueKey('track-caca'),
+                  label: context.l.homeButtonCaca,
+                  color: AppTheme.caca,
+                  icon: TrackingType.caca.icon,
+                  reminders: statusMap[TrackingType.caca],
+                  onTap: () => _onTrack(context, ref, TrackingType.caca.name),
+                ),
+                TrackButton(
+                  key: const ValueKey('track-dodo'),
+                  label: context.l.homeButtonDodo,
+                  color: AppTheme.dodo,
+                  icon: TrackingType.dodo.icon,
+                  reminders: statusMap[TrackingType.dodo],
+                  onTap: () => _onTapDodo(context, ref),
+                ),
+              ],
             ),
-            TrackButton(
-              key: const ValueKey('track-sante'),
-              label: context.l.homeButtonSante,
-              color: AppTheme.sante,
-              icon: TrackingType.sante.icon,
-              reminders: statusMap[TrackingType.sante],
-              onTap: () => _onTrack(context, ref, TrackingType.sante.name),
-            ),
-            TrackButton(
-              key: const ValueKey('track-caca'),
-              label: context.l.homeButtonCaca,
-              color: AppTheme.caca,
-              icon: TrackingType.caca.icon,
-              reminders: statusMap[TrackingType.caca],
-              onTap: () => _onTrack(context, ref, TrackingType.caca.name),
-            ),
-            TrackButton(
-              key: const ValueKey('track-dodo'),
-              label: context.l.homeButtonDodo,
-              color: AppTheme.dodo,
-              icon: TrackingType.dodo.icon,
-              reminders: statusMap[TrackingType.dodo],
-              onTap: () => _onTapDodo(context, ref),
-            ),
+            const SizedBox(height: AppTheme.spacingXl),
+            // Boutons de croissance (item 1 de v1.2) : widget autonome, la
+            // grille 2×2 ci-dessus est inchangée.
+            const MeasurementButtonRow(),
           ],
         ),
       ),

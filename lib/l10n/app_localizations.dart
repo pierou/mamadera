@@ -166,6 +166,114 @@ abstract class AppLocalizations {
   /// **'Dodo'**
   String get homeButtonDodo;
 
+  /// No description provided for @homeButtonPoids.
+  ///
+  /// In fr, this message translates to:
+  /// **'Poids'**
+  String get homeButtonPoids;
+
+  /// No description provided for @homeButtonTaille.
+  ///
+  /// In fr, this message translates to:
+  /// **'Taille'**
+  String get homeButtonTaille;
+
+  /// No description provided for @homeButtonTemperature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Température'**
+  String get homeButtonTemperature;
+
+  /// No description provided for @growthValueOutOfRange.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valeur hors plage : entre {min} et {max} {unit}.'**
+  String growthValueOutOfRange(Object min, Object max, Object unit);
+
+  /// No description provided for @growthFeedbackSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mesure enregistrée · {value}'**
+  String growthFeedbackSaved(Object value);
+
+  /// No description provided for @growthMenuTile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Croissance'**
+  String get growthMenuTile;
+
+  /// No description provided for @growthScreenTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Croissance'**
+  String get growthScreenTitle;
+
+  /// No description provided for @growthSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mesures de croissance'**
+  String get growthSectionTitle;
+
+  /// No description provided for @growthEmptyState.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune mesure pour l\'instant.'**
+  String get growthEmptyState;
+
+  /// No description provided for @growthLatestWeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernier poids'**
+  String get growthLatestWeight;
+
+  /// No description provided for @growthLatestHeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière taille'**
+  String get growthLatestHeight;
+
+  /// No description provided for @growthLatestTemperature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière température'**
+  String get growthLatestTemperature;
+
+  /// No description provided for @growthSheetTitleWeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau poids'**
+  String get growthSheetTitleWeight;
+
+  /// No description provided for @growthSheetTitleHeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle taille'**
+  String get growthSheetTitleHeight;
+
+  /// No description provided for @growthSheetTitleTemperature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle température'**
+  String get growthSheetTitleTemperature;
+
+  /// No description provided for @growthSheetNoteField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note (facultatif)'**
+  String get growthSheetNoteField;
+
+  /// No description provided for @growthSheetSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get growthSheetSave;
+
+  /// No description provided for @growthValueUndecryptable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valeur illisible'**
+  String get growthValueUndecryptable;
+
   /// No description provided for @feedbackFeedingWithQuantity.
   ///
   /// In fr, this message translates to:

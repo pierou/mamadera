@@ -15,6 +15,36 @@
   "homeButtonSante": "Salud",
   "homeButtonCaca": "Pañal",
   "homeButtonDodo": "Sueño",
+  "homeButtonPoids": "Peso",
+  "homeButtonTaille": "Altura",
+  "homeButtonTemperature": "Temperatura",
+  "@growthValueOutOfRange": {
+    "placeholders": {
+      "min": {},
+      "max": {},
+      "unit": {}
+    }
+  },
+  "growthValueOutOfRange": "Fuera de rango: entre {min} y {max} {unit}.",
+  "@growthFeedbackSaved": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "growthFeedbackSaved": "Medida guardada · {value}",
+  "growthMenuTile": "Crecimiento",
+  "growthScreenTitle": "Crecimiento",
+  "growthSectionTitle": "Medidas de crecimiento",
+  "growthEmptyState": "Aún no hay medidas.",
+  "growthLatestWeight": "Último peso",
+  "growthLatestHeight": "Última altura",
+  "growthLatestTemperature": "Última temperatura",
+  "growthSheetTitleWeight": "Nuevo peso",
+  "growthSheetTitleHeight": "Nueva altura",
+  "growthSheetTitleTemperature": "Nueva temperatura",
+  "growthSheetNoteField": "Nota (opcional)",
+  "growthSheetSave": "Guardar",
+  "growthValueUndecryptable": "Valor ilegible",
 
   "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
   "@feedbackFeedingWithQuantity": {
