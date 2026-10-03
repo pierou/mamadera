@@ -39,8 +39,8 @@ void main() {
     });
 
     test('slider divisions span the whole range at the kind\'s step', () {
-      expect(MeasureKind.poids.step, 200);
-      expect(MeasureKind.poids.divisions, 99);
+      expect(MeasureKind.poids.step, 10);
+      expect(MeasureKind.poids.divisions, 1980);
       expect(MeasureKind.taille.step, 1);
       expect(MeasureKind.taille.divisions, 80);
       // Le dixième de degré : un cran de 0,5 ferait enregistrer 37,5 là où le

@@ -79,7 +79,7 @@
       "- Inclusión de las medidas y los registros de recordatorios en la copia de seguridad manual",
       "### Mejoras",
       "- Cifrado en reposo de los valores de crecimiento (peso, estatura, temperatura), igual que las notas",
-      "- Ajuste de la temperatura en décimas de grado y visualización con la coma decimal de su idioma",
+      "- Ajuste del peso en pasos de 10 gramos, la estatura en centímetros y la temperatura en décimas de grado",
       "- Actualización inmediata de la lista de recordatorios tras marcar hecho o ignorar",
       "### Correcciones",
       "- Independencia de los recordatorios por bebé: apagar, ignorar o marcar como hecho para un bebé ya no afecta a los demás",
