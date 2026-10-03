@@ -11,11 +11,19 @@ import '../../../../data/local/db_constants.dart' as db_const;
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../domain/repositories/import_repository.dart';
 
-/// Format version this build can restore.
+/// Newest format version this build can restore.
 ///
 /// The exporter owns this number; anything above it belongs to a future app and
 /// must not be guessed at.
-const int _supportedFormatVersion = 1;
+const int _supportedFormatVersion = 2;
+
+/// Oldest document format this build can still restore.
+///
+/// A format-1 backup (pre-M4) must keep restoring: it may omit the two new
+/// sections and the `babyId` fields, and both absences read as « shared / »
+/// « empty ». Only the upper bound is a wall — format 3 belongs to a future
+/// app.
+const int _oldestFormatVersion = 1;
 
 /// `generator` value written by documents this app exports.
 const String _generatorName = 'mamadera';
@@ -64,8 +72,12 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
   final profileIds = <String>{};
   final eventIds = <int>{};
   final reminderIds = <int>{};
-  final settingItemIds = <String>{};
-  final dismissalItemIds = <String>{};
+  // Clés composites (bébé, item) : le même item peut être réglé ou ignoré
+  // une fois par bébé sans être en doublon.
+  final settingKeys = <Object>{};
+  final dismissalKeys = <Object>{};
+  final measurementIds = <int>{};
+  final completionKeys = <Object>{};
 
   final babyProfiles = _section<ImportedBabyProfile>(document, 'babyProfiles',
       (row) => _parseProfile(row, profileIds));
@@ -74,10 +86,17 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
   final customReminders = _section<ImportedCustomReminder>(
       document, 'customReminders', (row) => _parseCustomReminder(row, reminderIds));
   final reminderSettings = _section<ImportedReminderSetting>(
-      document, 'reminderSettings', (row) => _parseSetting(row, settingItemIds));
+      document, 'reminderSettings', (row) => _parseSetting(row, settingKeys));
   final reminderDismissals = _section<ImportedReminderDismissal>(
       document, 'reminderDismissals',
-      (row) => _parseDismissal(row, dismissalItemIds));
+      (row) => _parseDismissal(row, dismissalKeys));
+  final measurements = _section<ImportedMeasurement>(
+      document, 'measurements', (row) => _parseMeasurement(row, measurementIds),
+      optional: true);
+  final reminderCompletions = _section<ImportedReminderCompletion>(
+      document, 'reminderCompletions',
+      (row) => _parseCompletion(row, completionKeys),
+      optional: true);
 
   _validateCounts(document, {
     'babyProfiles': babyProfiles.length,
@@ -85,6 +104,8 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
     'customReminders': customReminders.length,
     'reminderSettings': reminderSettings.length,
     'reminderDismissals': reminderDismissals.length,
+    'measurements': measurements.length,
+    'reminderCompletions': reminderCompletions.length,
   });
 
   final parsed = ParsedExport(
@@ -93,6 +114,8 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
     customReminders: customReminders,
     reminderSettings: reminderSettings,
     reminderDismissals: reminderDismissals,
+    measurements: measurements,
+    reminderCompletions: reminderCompletions,
   );
   if (parsed.hasNoRestorableData) {
     throw const ImportFormatException(ImportRejectionReason.emptyFile);
@@ -121,7 +144,7 @@ void _validateHeader(Map<String, dynamic> document, int schemaVersion) {
   if (formatVersion > _supportedFormatVersion) {
     throw const ImportFormatException(ImportRejectionReason.newerFormatVersion);
   }
-  if (formatVersion < _supportedFormatVersion) {
+  if (formatVersion < _oldestFormatVersion) {
     throw const ImportFormatException(ImportRejectionReason.notAMamaderaFile);
   }
 
@@ -131,13 +154,20 @@ void _validateHeader(Map<String, dynamic> document, int schemaVersion) {
   }
 }
 
-/// Reads one of the five table sections and maps its rows with [parseRow].
+/// Reads one of the seven table sections and maps its rows with [parseRow].
+///
+/// [optional] marks the two format-2 sections (`measurements`,
+/// `reminderCompletions`): a format-1 backup does not carry them, and
+/// « absent » must read as « empty » — never as « missing table ». The five
+/// historical sections are always mandatory.
 List<T> _section<T>(
   Map<String, dynamic> document,
   String key,
-  T Function(Map<String, dynamic> row) parseRow,
-) {
+  T Function(Map<String, dynamic> row) parseRow, {
+  bool optional = false,
+}) {
   final raw = document[key];
+  if (raw == null && optional) return const [];
   if (raw is! List) {
     throw ImportFormatException(ImportRejectionReason.missingTable, section: key);
   }
@@ -160,7 +190,20 @@ void _validateCounts(Map<String, dynamic> document, Map<String, int> actual) {
     throw const ImportFormatException(ImportRejectionReason.countsMismatch);
   }
   for (final expected in actual.entries) {
-    if (counts[expected.key] != expected.value) {
+    final declared = counts[expected.key];
+    if (declared == null) {
+      // Une sauvegarde de format 1 ne déclare pas les deux tables du format
+      // 2 : la clé absente se lit comme « zéro ligne » — mais seulement si
+      // la section est bien vide, sinon le fichier n'est pas d'ici.
+      if (expected.value != 0) {
+        throw ImportFormatException(
+          ImportRejectionReason.countsMismatch,
+          section: expected.key,
+        );
+      }
+      continue;
+    }
+    if (declared != expected.value) {
       throw ImportFormatException(
         ImportRejectionReason.countsMismatch,
         section: expected.key,
@@ -234,15 +277,25 @@ ImportedCustomReminder _parseCustomReminder(
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
         section: section);
   }
-  // Validated against the domain enum: a reminder pointing at a care this build
-  // does not know could never be marked done, and would sit there undiagnosable.
-  final subtypeValue = _requiredString(row, 'subtypeValue', section);
-  if (HealthSubtype.byValue(subtypeValue) == null) {
+  // Validated against the domain enum when present: a reminder pointing at a
+  // care this build does not know could never be marked done, and would sit
+  // there undiagnosable. `null` = reminder **detached** from any care (M4/D2):
+  // only the parent's « Fait » tap can complete it.
+  final subtypeValue = _optionalString(row, 'subtypeValue', section);
+  if (subtypeValue != null && HealthSubtype.byValue(subtypeValue) == null) {
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
         section: section);
   }
   final frequency = _requiredString(row, 'frequency', section);
   if (!db_const.allFrequencyValues.contains(frequency)) {
+    throw const ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
+  // Absent (format 1) : `from_events`, la seule valeur qui existait alors.
+  final completionSource =
+      _optionalString(row, 'completionSource', section) ??
+      db_const.completionFromEvents;
+  if (!db_const.allCompletionSourceValues.contains(completionSource)) {
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
         section: section);
   }
@@ -252,29 +305,96 @@ ImportedCustomReminder _parseCustomReminder(
     subtypeValue: subtypeValue,
     frequency: frequency,
     intervalDays: _optionalPositiveInt(row, 'intervalDays', section),
+    // Absent (format 1) : rappel partagé entre tous les bébés.
+    babyId: _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId,
+    completionSource: completionSource,
   );
 }
 
-ImportedReminderSetting _parseSetting(Map<String, dynamic> row, Set<String> seenIds) {
+ImportedReminderSetting _parseSetting(Map<String, dynamic> row, Set<Object> seenKeys) {
   const section = 'reminderSettings';
+  // Absent (format 1) : réglage partagé entre tous les bébés.
+  final babyId = _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
   final itemId = _requiredString(row, 'itemId', section);
-  _requireUnique(itemId, seenIds, section);
+  _requireUnique((babyId, itemId), seenKeys, section);
   final enabled = row['enabled'];
   if (enabled is! bool) {
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
         section: section);
   }
-  return ImportedReminderSetting(itemId: itemId, enabled: enabled);
+  return ImportedReminderSetting(
+    babyId: babyId,
+    itemId: itemId,
+    enabled: enabled,
+  );
 }
 
 ImportedReminderDismissal _parseDismissal(
-    Map<String, dynamic> row, Set<String> seenIds) {
+    Map<String, dynamic> row, Set<Object> seenKeys) {
   const section = 'reminderDismissals';
+  // Absent (format 1) : rejet partagé entre tous les bébés.
+  final babyId = _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
   final itemId = _requiredString(row, 'itemId', section);
-  _requireUnique(itemId, seenIds, section);
+  _requireUnique((babyId, itemId), seenKeys, section);
   return ImportedReminderDismissal(
+    babyId: babyId,
     itemId: itemId,
     dismissedAt: _seconds(row, 'dismissedAtEpochSeconds', 'dismissedAtUtc', section),
+  );
+}
+
+ImportedMeasurement _parseMeasurement(
+    Map<String, dynamic> row, Set<int> seenIds) {
+  const section = 'measurements';
+  final id = _requiredInt(row, 'id', section);
+  _requireUnique(id, seenIds, section);
+  final kind = _requiredString(row, 'kind', section);
+  if (!db_const.allMeasureKindValues.contains(kind)) {
+    throw const ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
+  final unit = _requiredString(row, 'unit', section);
+  if (unit != db_const.unitG &&
+      unit != db_const.unitCm &&
+      unit != db_const.unitDegC) {
+    throw const ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
+  // Le fichier porte le nombre en clair (l'export l'a déchiffré) : il doit
+  // rester un nombre pour être re-chiffré tel quel à l'insertion. Une mesure
+  // exportée `valueUndecryptable` porte `value: null` et est rejetée ici : sans
+  // nombre, la ligne n'a rien à restaurer, et l'accepter écrirait une mesure
+  // vide au lieu d'un poids.
+  final value = _requiredString(row, 'value', section);
+  if (double.tryParse(value) == null) {
+    throw const ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
+  return ImportedMeasurement(
+    id: id,
+    // Orpheline (babyId présent mais profil absent du fichier) : conservée,
+    // comme les événements.
+    babyId: _optionalString(row, 'babyId', section),
+    kind: kind,
+    value: value,
+    unit: unit,
+    recordedAt:
+        _seconds(row, 'recordedAtEpochSeconds', 'recordedAtUtc', section),
+    notes: _optionalString(row, 'notes', section),
+  );
+}
+
+ImportedReminderCompletion _parseCompletion(
+    Map<String, dynamic> row, Set<Object> seenKeys) {
+  const section = 'reminderCompletions';
+  final babyId = _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
+  final itemId = _requiredString(row, 'itemId', section);
+  _requireUnique((babyId, itemId), seenKeys, section);
+  return ImportedReminderCompletion(
+    babyId: babyId,
+    itemId: itemId,
+    completedAt:
+        _seconds(row, 'completedAtEpochSeconds', 'completedAtUtc', section),
   );
 }
 
@@ -438,6 +558,10 @@ class ImportRepositoryImpl implements ImportRepository {
 
     await database.transaction(() async {
       // Full replace, in dependency-free order (there are no foreign keys).
+      // Les deux tables du format 2 (M4) rejoignent les cinq historiques :
+      // tout ou rien, jamais à moitié.
+      await database.delete(database.measurements).go();
+      await database.delete(database.reminderCompletions).go();
       await database.delete(database.babyProfiles).go();
       await database.delete(database.trackingEvents).go();
       await database.delete(database.customReminders).go();
@@ -482,12 +606,21 @@ class ImportRepositoryImpl implements ImportRepository {
                 id: Value(reminder.id),
                 label: reminder.label,
                 subtypeValue: Value(reminder.subtypeValue),
-                // Une sauvegarde de format 1 ne connaît que le rappel lié ; le
-                // holder d'import reste non nullable jusqu'à M4, où la colonne
-                // nullable du format 2 amènera la dérivation vers `manual`.
-                completionSource: const Value(db_const.completionFromEvents),
+                // M4 : la colonne nullable existe, la dérivation devient réelle
+                // — même règle qu'à chaque autre écriture (D2) : détaché
+                // (`subtypeValue == null`) ⟺ `manual`. La valeur portée par le
+                // fichier est validée au parsing mais pas écrite telle quelle :
+                // incohérente avec le `subtypeValue`, elle ne pourrait
+                // s'installer par une restauration.
+                completionSource: Value(
+                  reminder.subtypeValue == null
+                      ? db_const.completionManual
+                      : db_const.completionFromEvents,
+                ),
                 frequency: reminder.frequency,
                 intervalDays: Value(reminder.intervalDays),
+                // Absent dans les sauvegardes de format 1 : partagé.
+                babyId: Value(reminder.babyId),
               ),
             );
       }
@@ -495,6 +628,9 @@ class ImportRepositoryImpl implements ImportRepository {
       for (final setting in parsed.reminderSettings) {
         await database.into(database.reminderSettings).insert(
               db_app.ReminderSettingsCompanion.insert(
+                // `babyId` a une valeur par défaut côté colonne : le paramètre
+                // d'insertion est un `Value` optionnel, on l'enveloppe.
+                babyId: Value(setting.babyId),
                 itemId: setting.itemId,
                 enabled: setting.enabled,
               ),
@@ -504,8 +640,42 @@ class ImportRepositoryImpl implements ImportRepository {
       for (final dismissal in parsed.reminderDismissals) {
         await database.into(database.reminderDismissals).insert(
               db_app.ReminderDismissalsCompanion.insert(
+                babyId: Value(dismissal.babyId),
                 itemId: dismissal.itemId,
                 dismissedAt: dismissal.dismissedAt,
+              ),
+            );
+      }
+
+      for (final measurement in parsed.measurements) {
+        await database.into(database.measurements).insert(
+              db_app.MeasurementsCompanion.insert(
+                // Explicit rowid, comme les événements : l'id du fichier est
+                // l'id de la table.
+                id: Value(measurement.id),
+                babyId: Value(measurement.babyId),
+                kind: measurement.kind,
+                // Le fichier porte le nombre en clair (l'export l'a déchiffré) ;
+                // l'invariant « chiffré au repos » repasse par le même service,
+                // IV frais, comme les notes des événements.
+                value: encryption.encrypt(measurement.value),
+                unit: measurement.unit,
+                recordedAt: measurement.recordedAt,
+                notes: Value(
+                  measurement.notes == null
+                      ? null
+                      : encryption.encrypt(measurement.notes!),
+                ),
+              ),
+            );
+      }
+
+      for (final completion in parsed.reminderCompletions) {
+        await database.into(database.reminderCompletions).insert(
+              db_app.ReminderCompletionsCompanion.insert(
+                babyId: Value(completion.babyId),
+                itemId: completion.itemId,
+                completedAt: completion.completedAt,
               ),
             );
       }
@@ -521,6 +691,8 @@ class ImportRepositoryImpl implements ImportRepository {
       'customReminders=${parsed.customReminders.length} '
       'settings=${parsed.reminderSettings.length} '
       'dismissals=${parsed.reminderDismissals.length} '
+      'measurements=${parsed.measurements.length} '
+      'completions=${parsed.reminderCompletions.length} '
       'in ${stopwatch.elapsedMilliseconds} ms',
     );
     return parsed.counts;

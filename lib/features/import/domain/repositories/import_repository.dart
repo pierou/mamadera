@@ -18,6 +18,8 @@ class ImportCounts {
     required this.customReminders,
     required this.reminderSettings,
     required this.reminderDismissals,
+    required this.measurements,
+    required this.reminderCompletions,
   });
 
   /// Number of rows in `baby_profiles`.
@@ -34,6 +36,12 @@ class ImportCounts {
 
   /// Number of rows in `reminder_dismissals`.
   final int reminderDismissals;
+
+  /// Number of rows in `measurements` (M4).
+  final int measurements;
+
+  /// Number of rows in `reminder_completions` (M4).
+  final int reminderCompletions;
 }
 
 /// A `baby_profiles` row as read from a backup document.
@@ -126,6 +134,8 @@ class ImportedCustomReminder {
     required this.subtypeValue,
     required this.frequency,
     required this.intervalDays,
+    required this.babyId,
+    required this.completionSource,
   });
 
   /// Reminder identifier, preserved so the `custom_<id>` keys in
@@ -136,18 +146,39 @@ class ImportedCustomReminder {
   final String label;
 
   /// `HealthSubtype` value: the care whose absence makes the reminder due.
-  final String subtypeValue;
+  ///
+  /// `null` = reminder **detached** from any care (D2): only the parent's
+  /// « Fait » tap can complete it. Format-1 files always carry a value.
+  final String? subtypeValue;
 
   /// Stored frequency code (`daily` | `weekly` | `monthly` | `every_n_days`).
   final String frequency;
 
   /// Roll length in days, only meaningful for `every_n_days`.
   final int? intervalDays;
+
+  /// `''` = reminder shared by every baby (sentinel, never null); format-1
+  /// files omit the field and read as shared.
+  final String babyId;
+
+  /// As carried by the file (`from_events` | `manual`), validated by the
+  /// parser. The restore derives the stored value from [subtypeValue] —
+  /// same rule as every other writer — so an incoherent file value cannot
+  /// install itself through a restore.
+  final String completionSource;
 }
 
 /// A `reminder_settings` row as read from a backup document.
 class ImportedReminderSetting {
-  const ImportedReminderSetting({required this.itemId, required this.enabled});
+  const ImportedReminderSetting({
+    required this.babyId,
+    required this.itemId,
+    required this.enabled,
+  });
+
+  /// `''` = shared by every baby (sentinel); format-1 files omit the field
+  /// and read as shared.
+  final String babyId;
 
   /// Preset key (`miam`, `caca`, …) or `custom_<id>`.
   final String itemId;
@@ -159,9 +190,14 @@ class ImportedReminderSetting {
 /// A `reminder_dismissals` row as read from a backup document.
 class ImportedReminderDismissal {
   const ImportedReminderDismissal({
+    required this.babyId,
     required this.itemId,
     required this.dismissedAt,
   });
+
+  /// `''` = shared by every baby (sentinel); format-1 files omit the field
+  /// and read as shared.
+  final String babyId;
 
   /// Reminder key this dismissal belongs to.
   final String itemId;
@@ -170,7 +206,71 @@ class ImportedReminderDismissal {
   final DateTime dismissedAt;
 }
 
-/// A validated backup document: five typed row lists, nothing else.
+/// A `measurements` row as read from a backup document.
+///
+/// [value] is PLAINTEXT here: the export decrypts it (a backup the owner
+/// cannot read is no backup), and the importer re-encrypts it with a fresh IV
+/// on insert — exactly as [ImportedTrackingEvent.notes]. Nothing between the
+/// parser and the insert may write this value to a log or to disk.
+class ImportedMeasurement {
+  const ImportedMeasurement({
+    required this.id,
+    required this.babyId,
+    required this.kind,
+    required this.value,
+    required this.unit,
+    required this.recordedAt,
+    required this.notes,
+  });
+
+  /// Row identifier, preserved from the file (explicit rowid on insert).
+  final int id;
+
+  /// Owning profile id, or null (orphan, kept as the export kept it).
+  final String? babyId;
+
+  /// `poids` | `taille` | `temperature`, validated against
+  /// `db_const.allMeasureKindValues` by the parser.
+  final String kind;
+
+  /// The number itself, in the base unit, as the parent typed it; a
+  /// non-empty numeric string, re-encrypted before it reaches the database.
+  final String value;
+
+  /// `g` | `cm` | `degC`.
+  final String unit;
+
+  /// When the measurement was taken.
+  final DateTime recordedAt;
+
+  /// Plaintext note, to be re-encrypted before it reaches the database.
+  final String? notes;
+}
+
+/// A `reminder_completions` row as read from a backup document.
+///
+/// The journal is append-only and carries no row id in the document: on
+/// restore the rows are re-inserted with fresh auto-increment ids, which is
+/// harmless — a completion only ever means « last completed at ».
+class ImportedReminderCompletion {
+  const ImportedReminderCompletion({
+    required this.babyId,
+    required this.itemId,
+    required this.completedAt,
+  });
+
+  /// `''` = shared by every baby (sentinel, never null); format-1 files do
+  /// not have this section at all.
+  final String babyId;
+
+  /// Reminder key (`custom_<id>` for a detached reminder).
+  final String itemId;
+
+  /// When the parent tapped « Fait ».
+  final DateTime completedAt;
+}
+
+/// A validated backup document: seven typed row lists, nothing else.
 ///
 /// Produced by [ImportRepository.parseExport] and consumed by
 /// [ImportRepository.restore]. Deliberately contains only primitives,
@@ -182,6 +282,8 @@ class ParsedExport {
     required this.customReminders,
     required this.reminderSettings,
     required this.reminderDismissals,
+    this.measurements = const [],
+    this.reminderCompletions = const [],
   });
 
   /// Profiles to restore.
@@ -199,6 +301,12 @@ class ParsedExport {
   /// Dismissals to restore.
   final List<ImportedReminderDismissal> reminderDismissals;
 
+  /// Growth measurements to restore (format-2 files only).
+  final List<ImportedMeasurement> measurements;
+
+  /// Manual reminder completions to restore (format-2 files only).
+  final List<ImportedReminderCompletion> reminderCompletions;
+
   /// Row counts for the confirmation summary and the success message.
   ImportCounts get counts => ImportCounts(
         babyProfiles: babyProfiles.length,
@@ -206,14 +314,22 @@ class ParsedExport {
         customReminders: customReminders.length,
         reminderSettings: reminderSettings.length,
         reminderDismissals: reminderDismissals.length,
+        measurements: measurements.length,
+        reminderCompletions: reminderCompletions.length,
       );
 
-  /// True when the file holds neither a profile nor an event.
+  /// True when the file holds nothing worth restoring.
   ///
-  /// Mirrors the export's own definition of empty: restoring such a file would
-  /// only erase the current database.
+  /// Mirrors the export's own definition of empty (`ExportCounts.isEmpty`):
+  /// reminder rows alone do not make a useful backup, but a file whose only
+  /// content is a weigh-in or a « Fait » tap must stay restorable, or the
+  /// export would hand the parent a backup this build refuses to read back.
+  /// Restoring a file like that would only erase the current database.
   bool get hasNoRestorableData =>
-      babyProfiles.isEmpty && trackingEvents.isEmpty;
+      babyProfiles.isEmpty &&
+      trackingEvents.isEmpty &&
+      measurements.isEmpty &&
+      reminderCompletions.isEmpty;
 
   /// True when the file holds at least one baby profile.
   ///
@@ -310,7 +426,7 @@ void enforceBackupSizeLimit({
 ///   of the plan and throws [ImportFormatException] with a specific reason.
 ///   A failure here leaves the database untouched, by construction.
 /// - [restore] is the only method that writes. It replaces the content of all
-///   five tables inside ONE transaction, so a mid-way failure rolls back to
+///   seven tables inside ONE transaction, so a mid-way failure rolls back to
 ///   the exact pre-restore state.
 abstract class ImportRepository {
   /// Parses and validates [json], returning the rows to restore.
@@ -320,7 +436,7 @@ abstract class ImportRepository {
   /// plaintext notes at this point and must not be persisted anywhere.
   Future<ParsedExport> parseExport(String json);
 
-  /// Replaces the entire content of the five tables with [parsed].
+  /// Replaces the entire content of the seven tables with [parsed].
   ///
   /// Runs in a single transaction: delete all rows, re-insert with the ids from
   /// the file, notes re-encrypted with a fresh IV. Returns the counts actually

@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 
 import '../../../../core/services/app_logger.dart';
 import '../../../../data/local/app_db.dart' as db_app;
+import '../../../../features/reminders/domain/entities/custom_reminder.dart';
 import '../../../../shared/domain/entities/baby_profile.dart';
 import '../../domain/repositories/baby_profile_repository.dart';
 
@@ -87,8 +88,28 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
       // erreur entre les deux DELETE laisserait soit des événements orphelins,
       // soit un profil dont les événements ont déjà disparu — alors que la
       // boîte de confirmation promet à l'utilisateur les deux suppressions.
+      //
+      // M4 : le bébé emporte aussi ses mesures, ses achèvements manuels, ses
+      // réglages de rappels et ses « ignorer aujourd'hui » — les lignes où
+      // `baby_id` vaut son id. Les lignes portées par la sentinelle partagée
+      // `''` n'appartiennent à aucun profil et survivent à la suppression.
+      // Ses rappels personnalisés partent avec leurs clés `custom_<id>`
+      // purgées **tous bébés** : la clé est unique avec la ligne, elle meurt
+      // avec elle (même règle que `deleteCustomReminder`), et une copie
+      // orpheline sous un autre portage survivrait jusqu'à l'export.
+      final customItemKeys = await _customReminderItemKeysOf(id);
       final deleted = await database.transaction(() async {
         await database.deleteTrackingEventsByBabyId(id);
+        await database.deleteMeasurementsByBabyId(id);
+        await database.deleteReminderCompletionsByBabyId(id);
+        await database.deleteReminderSettingsByBabyId(id);
+        await database.deleteReminderDismissalsByBabyId(id);
+        if (customItemKeys.isNotEmpty) {
+          await database.deleteReminderSettingsByItemIds(customItemKeys);
+          await database.deleteReminderDismissalsByItemIds(customItemKeys);
+          await database.deleteReminderCompletionsByItemIds(customItemKeys);
+        }
+        await database.deleteCustomRemindersByBabyId(id);
         return database.deleteBabyProfile(id);
       });
       if (deleted) _logger.d('Deleted baby profile: $id');
@@ -97,6 +118,17 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
       _logger.e('deleteProfile error', error: e, stackTrace: stack);
       rethrow;
     }
+  }
+
+  /// Clés de rappel (`custom_<id>`) des rappels personnalisés créés par le
+  /// bébé [babyId], lues **avant** la transaction de suppression.
+  Future<List<String>> _customReminderItemKeysOf(String babyId) async {
+    final reminders = await database.getAllCustomReminders();
+    return reminders
+        .where((reminder) => reminder.babyId == babyId)
+        .map((reminder) =>
+            '${CustomReminderPresets.customIdPrefix}${reminder.id}')
+        .toList();
   }
 
   @override

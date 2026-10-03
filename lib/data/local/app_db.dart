@@ -387,6 +387,39 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteTrackingEventsByBabyId(String babyId) =>
       (delete(trackingEvents)..where((t) => t.babyId.equals(babyId))).go();
 
+  /// Supprime toutes les mesures rattachées à [babyId].
+  /// Retourne le nombre de lignes supprimées.
+  ///
+  /// Ne touche ni les mesures sans profil (`baby_id` NULL) ni celles des
+  /// autres bébés : `WHERE baby_id = ?` ne les sélectionne pas.
+  Future<int> deleteMeasurementsByBabyId(String babyId) =>
+      (delete(measurements)..where((t) => t.babyId.equals(babyId))).go();
+
+  /// Supprime tous les achèvements manuels rattachés à [babyId] (toutes les
+  /// clés d'item). Retourne le nombre de lignes supprimées.
+  ///
+  /// Les lignes portées par la sentinelle `''` appartiennent à tous les bébés
+  /// et survivent à la suppression d'un profil.
+  Future<int> deleteReminderCompletionsByBabyId(String babyId) =>
+      (delete(reminderCompletions)
+            ..where((t) => t.babyId.equals(babyId)))
+          .go();
+
+  /// Supprime tous les réglages de rappels rattachés à [babyId] (toutes les
+  /// clés d'item). Retourne le nombre de lignes supprimées.
+  Future<int> deleteReminderSettingsByBabyId(String babyId) =>
+      (delete(reminderSettings)..where((t) => t.babyId.equals(babyId))).go();
+
+  /// Supprime tous les « ignorer aujourd'hui » rattachés à [babyId] (toutes
+  /// les clés d'item). Retourne le nombre de lignes supprimées.
+  Future<int> deleteReminderDismissalsByBabyId(String babyId) =>
+      (delete(reminderDismissals)..where((t) => t.babyId.equals(babyId))).go();
+
+  /// Supprime tous les rappels personnalisés rattachés à [babyId].
+  /// Retourne le nombre de lignes supprimées.
+  Future<int> deleteCustomRemindersByBabyId(String babyId) =>
+      (delete(customReminders)..where((t) => t.babyId.equals(babyId))).go();
+
   /// Retourne les événements pour un bébé spécifique.
   Future<List<TrackingEvent>> getEventsByBabyId(String babyId) {
     return (select(trackingEvents)
@@ -410,6 +443,32 @@ class AppDatabase extends _$AppDatabase {
       (select(customReminders)
             ..orderBy([(t) => OrderingTerm.asc(t.id)]))
           .get();
+
+  /// Retourne toutes les lignes de `measurements` (sans filtre, export M4).
+  Future<List<Measurement>> getAllMeasurements() => select(measurements).get();
+
+  /// Retourne toutes les lignes de `reminder_completions` (sans filtre,
+  /// export M4).
+  Future<List<ReminderCompletion>> getAllReminderCompletions() =>
+      select(reminderCompletions).get();
+
+  /// Supprime les réglages dont la clé d'item fait partie de [itemIds],
+  /// **quel que soit le bébé**. Sert au nettoyage des clés `custom_<id>`
+  /// orphelines quand un rappel personnalisé est supprimé.
+  Future<int> deleteReminderSettingsByItemIds(List<String> itemIds) =>
+      (delete(reminderSettings)..where((t) => t.itemId.isIn(itemIds))).go();
+
+  /// Supprime les « ignorer aujourd'hui » dont la clé d'item fait partie de
+  /// [itemIds], quel que soit le bébé (même usage que
+  /// [deleteReminderSettingsByItemIds]).
+  Future<int> deleteReminderDismissalsByItemIds(List<String> itemIds) =>
+      (delete(reminderDismissals)..where((t) => t.itemId.isIn(itemIds))).go();
+
+  /// Supprime les achèvements dont la clé d'item fait partie de [itemIds],
+  /// quel que soit le bébé (même usage que
+  /// [deleteReminderSettingsByItemIds]).
+  Future<int> deleteReminderCompletionsByItemIds(List<String> itemIds) =>
+      (delete(reminderCompletions)..where((t) => t.itemId.isIn(itemIds))).go();
 }
 
 

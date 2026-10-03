@@ -93,11 +93,27 @@ void main() {
           intervalDays: const Value(3),
         ),
       );
+      // Rappel détaché (M4) : aucun soin lié, achèvement manuel.
+      await database.into(database.customReminders).insert(
+        CustomRemindersCompanion.insert(
+          id: const Value(2),
+          label: 'Vitamine du soir',
+          subtypeValue: const Value(null),
+          completionSource: const Value('manual'),
+          frequency: 'weekly',
+        ),
+      );
       // Le rappel éteint porte la clé de ce rappel personnalisé : c'est le
       // couple qui doit se retrouver à la lecture, pas deux listes séparées.
       await database.customStatement(
         'INSERT INTO reminder_settings (item_id, enabled) VALUES (?, ?)',
         ['custom_1', 0],
+      );
+      // Réglage scopé par bébé (M4) : la colonne baby_id doit survivre à
+      // l'export, pas se replier sur la sentinelle partagée.
+      await database.customStatement(
+        'INSERT INTO reminder_settings (baby_id, item_id, enabled) VALUES (?, ?, ?)',
+        ['baby_1', 'vitamine_d', 1],
       );
       await database.into(database.reminderDismissals).insert(
         ReminderDismissalsCompanion.insert(
@@ -105,10 +121,62 @@ void main() {
           dismissedAt: timestamp,
         ),
       );
+      await database.into(database.reminderDismissals).insert(
+        ReminderDismissalsCompanion.insert(
+          babyId: const Value('baby_1'),
+          itemId: 'vitamine_d',
+          dismissedAt: timestamp,
+        ),
+      );
+      await database.into(database.measurements).insert(
+        MeasurementsCompanion.insert(
+          id: const Value(101),
+          babyId: const Value('baby_1'),
+          kind: 'poids',
+          value: encryption.encrypt('3400'),
+          unit: 'g',
+          recordedAt: timestamp,
+          notes: Value(encryption.encrypt('Première pesée')), // nombre rond de l'audit
+        ),
+      );
+      // Mesure orpheline : l'export ne filtre jamais.
+      await database.into(database.measurements).insert(
+        MeasurementsCompanion.insert(
+          id: const Value(102),
+          kind: 'taille',
+          value: encryption.encrypt('48'),
+          unit: 'cm',
+          recordedAt: timestamp,
+        ),
+      );
+      // Clé tournée : le chiffre part null, le flag le dit.
+      await database.into(database.measurements).insert(
+        MeasurementsCompanion.insert(
+          id: const Value(103),
+          babyId: const Value('baby_1'),
+          kind: 'temperature',
+          value: 'BAD:rotated-key-ciphertext',
+          unit: 'degC',
+          recordedAt: timestamp,
+        ),
+      );
+      await database.into(database.reminderCompletions).insert(
+        ReminderCompletionsCompanion.insert(
+          itemId: 'custom_1',
+          completedAt: timestamp,
+        ),
+      );
+      await database.into(database.reminderCompletions).insert(
+        ReminderCompletionsCompanion.insert(
+          babyId: const Value('baby_1'),
+          itemId: 'custom_2',
+          completedAt: timestamp,
+        ),
+      );
     }
 
     group('buildExportJson — base complète', () {
-      test('contient les cinq tables avec les bons counts', () async {
+      test('contient les sept tables avec les bons counts', () async {
         await seedFullDatabase();
 
         final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
@@ -116,20 +184,26 @@ void main() {
         final counts = doc['counts'] as Map<String, dynamic>;
         expect(counts['babyProfiles'], 1);
         expect(counts['trackingEvents'], 3);
-        expect(counts['customReminders'], 1);
-        expect(counts['reminderSettings'], 2);
-        expect(counts['reminderDismissals'], 1);
+        expect(counts['customReminders'], 2);
+        expect(counts['reminderSettings'], 3);
+        expect(counts['reminderDismissals'], 2);
+        expect(counts['measurements'], 3);
+        expect(counts['reminderCompletions'], 2);
         expect((doc['babyProfiles'] as List).length, 1);
         expect((doc['trackingEvents'] as List).length, 3);
-        expect((doc['customReminders'] as List).length, 1);
-        expect((doc['reminderSettings'] as List).length, 2);
-        expect((doc['reminderDismissals'] as List).length, 1);
+        expect((doc['customReminders'] as List).length, 2);
+        expect((doc['reminderSettings'] as List).length, 3);
+        expect((doc['reminderDismissals'] as List).length, 2);
+        expect((doc['measurements'] as List).length, 3);
+        expect((doc['reminderCompletions'] as List).length, 2);
 
         // Un tableau exporté dont le count divergerait serait une sauvegarde
         // menteuse : les deux chiffres viennent de la même lecture.
         final declared = await repository.counts();
         expect(declared.customReminders, counts['customReminders']);
         expect(declared.reminderSettings, counts['reminderSettings']);
+        expect(declared.measurements, counts['measurements']);
+        expect(declared.reminderCompletions, counts['reminderCompletions']);
       });
 
       test('métadonnées de document correctes', () async {
@@ -137,7 +211,9 @@ void main() {
 
         final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
 
-        expect(doc['exportFormatVersion'], 1);
+        // Format 2 (M4) : les deux nouvelles sections et les champs babyId
+        // y sont ; un lecteur de ce build refuse au-dessus, pas en dessous.
+        expect(doc['exportFormatVersion'], 2);
         expect(doc['generator'], 'mamadera');
         // Informationnel : suivi de la version réelle du schéma, pas un
         // contrat de l'export (un bump de schéma ne doit pas casser ce test).
@@ -223,21 +299,32 @@ void main() {
         expect(profiles.first['birthDateUtc'], '2023-11-14T22:13:20.000Z');
       });
 
-      test('les rangs de rappels sont exportés avec secondes + ISO', () async {
+      test('les rangs de rappels sont exportés avec secondes + ISO et babyId', () async {
         await seedFullDatabase();
 
         final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
         final settings = (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
         final dismissals = (doc['reminderDismissals'] as List).cast<Map<String, dynamic>>();
 
-        expect(dismissals.single['itemId'], 'vitaminK');
-        expect(dismissals.single['dismissedAtEpochSeconds'], 1700000000);
-        expect(dismissals.single['dismissedAtUtc'], '2023-11-14T22:13:20.000Z');
-        // Deux lignes de réglages depuis que le rappel personnalisé seedé est
+        // Trois lignes de réglages depuis que le rappel personnalisé seedé est
         // éteint : on vise la préréglée par sa clé, pas par sa position.
+        final sharedDismissal =
+            dismissals.firstWhere((d) => d['itemId'] == 'vitaminK');
+        expect(sharedDismissal['babyId'], '');
+        expect(sharedDismissal['dismissedAtEpochSeconds'], 1700000000);
+        expect(sharedDismissal['dismissedAtUtc'], '2023-11-14T22:13:20.000Z');
+        // La copie scopée porte le bébé, la partagée la sentinelle.
+        final scopedSetting =
+            settings.firstWhere((s) => s['itemId'] == 'vitamine_d');
+        expect(scopedSetting['babyId'], 'baby_1');
+        expect(scopedSetting['enabled'], isTrue);
         expect(
-          settings.firstWhere((s) => s['itemId'] == 'vitaminD')['enabled'],
-          isTrue,
+          settings.firstWhere((s) => s['itemId'] == 'vitaminD')['babyId'],
+          '',
+        );
+        expect(
+          dismissals.firstWhere((d) => d['itemId'] == 'vitamine_d')['babyId'],
+          'baby_1',
         );
       });
 
@@ -267,7 +354,10 @@ void main() {
         final settings = (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
         final reminders = (doc['customReminders'] as List).cast<Map<String, dynamic>>();
 
-        expect(reminders.single['id'], 1);
+        expect(
+          reminders.firstWhere((r) => r['id'] == 1)['id'],
+          1,
+        );
         expect(
           settings.firstWhere((s) => s['itemId'] == 'custom_1')['enabled'],
           isFalse,
@@ -276,18 +366,31 @@ void main() {
 
       // Le rythme s'exporte en code brut, pas en libellé traduit : un fichier
       // créé en français doit se relire à l'identique sur un téléphone espagnol.
-      test('le rythme d\'un rappel personnalisé s\'exporte en code brut', () async {
+      test('le rythme d\'un rappel personnalisé s\'exporte en code brut, babyId et completionSource compris', () async {
         await seedFullDatabase();
 
         final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
         final reminders = (doc['customReminders'] as List).cast<Map<String, dynamic>>();
 
-        expect(reminders.single, {
+        expect(reminders.firstWhere((r) => r['id'] == 1), {
           'id': 1,
           'label': 'Crème du change',
           'subtypeValue': 'nettoyage_nez',
           'frequency': 'every_n_days',
           'intervalDays': 3,
+          'babyId': '',
+          'completionSource': 'from_events',
+        });
+        // Détaché : subtypeValue null est LA représentation d'un rappel sans
+        // soin (D2), et l'export ne l'invente pas en 'from_events'.
+        expect(reminders.firstWhere((r) => r['id'] == 2), {
+          'id': 2,
+          'label': 'Vitamine du soir',
+          'subtypeValue': null,
+          'frequency': 'weekly',
+          'intervalDays': null,
+          'babyId': '',
+          'completionSource': 'manual',
         });
       });
 
@@ -311,6 +414,61 @@ void main() {
       });
     });
 
+    group('mesures (M4)', () {
+      test('value et notes partent déchiffrées, orphelines comprises', () async {
+        await seedFullDatabase();
+
+        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final rows = (doc['measurements'] as List).cast<Map<String, dynamic>>();
+
+        final weight = rows.firstWhere((m) => m['id'] == 101);
+        expect(weight['value'], '3400');
+        expect(weight['notes'], 'Première pesée');
+        expect(weight['babyId'], 'baby_1');
+        expect(weight['kind'], 'poids');
+        expect(weight['unit'], 'g');
+        expect(weight['recordedAtEpochSeconds'], 1700000000);
+        expect(weight['recordedAtUtc'], '2023-11-14T22:13:20.000Z');
+
+        // Orpheline : null de babyId, exportée comme les événements orphelins.
+        final height = rows.firstWhere((m) => m['id'] == 102);
+        expect(height['babyId'], isNull);
+        expect(height['notes'], isNull);
+        expect(height.containsKey('notesUndecryptable'), isFalse);
+      });
+
+      test('ciphertext indisponible → value null + valueUndecryptable, ligne saine → pas de flag', () async {
+        await seedFullDatabase();
+
+        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final rows = (doc['measurements'] as List).cast<Map<String, dynamic>>();
+
+        final bad = rows.firstWhere((m) => m['id'] == 103);
+        expect(bad['value'], isNull);
+        expect(bad['valueUndecryptable'], isTrue);
+
+        final good = rows.firstWhere((m) => m['id'] == 101);
+        expect(good.containsKey('valueUndecryptable'), isFalse);
+      });
+
+      test('achèvements manuels exportés sans id, babyId compris', () async {
+        await seedFullDatabase();
+
+        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final rows = (doc['reminderCompletions'] as List).cast<Map<String, dynamic>>();
+
+        expect(rows, hasLength(2));
+        final shared = rows.firstWhere((c) => c['babyId'] == '');
+        expect(shared['itemId'], 'custom_1');
+        expect(shared['completedAtEpochSeconds'], 1700000000);
+        expect(shared.containsKey('id'), isFalse);
+        expect(
+          rows.firstWhere((c) => c['babyId'] == 'baby_1')['itemId'],
+          'custom_2',
+        );
+      });
+    });
+
     group('base vide', () {
       test('counts tous à zéro et JSON valide', () async {
         final counts = await repository.counts();
@@ -320,6 +478,8 @@ void main() {
         expect(counts.customReminders, 0);
         expect(counts.reminderSettings, 0);
         expect(counts.reminderDismissals, 0);
+        expect(counts.measurements, 0);
+        expect(counts.reminderCompletions, 0);
         expect(counts.isEmpty, isTrue);
 
         final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
@@ -329,10 +489,14 @@ void main() {
         expect(jsonCounts['customReminders'], 0);
         expect(jsonCounts['reminderSettings'], 0);
         expect(jsonCounts['reminderDismissals'], 0);
+        expect(jsonCounts['measurements'], 0);
+        expect(jsonCounts['reminderCompletions'], 0);
         expect((doc['trackingEvents'] as List), isEmpty);
         // Table vide exportée en tableau vide : une clé absente se lirait comme
         // « ancienne version de l'app », pas comme « aucun rappel ».
         expect((doc['customReminders'] as List), isEmpty);
+        expect((doc['measurements'] as List), isEmpty);
+        expect((doc['reminderCompletions'] as List), isEmpty);
       });
     });
   });

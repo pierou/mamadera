@@ -12,7 +12,7 @@ import '../../domain/repositories/export_repository.dart';
 
 /// Concrete implementation of [ExportRepository].
 ///
-/// Reads the entire database (all five tables, unfiltered), decrypts event
+/// Reads the entire database (all seven tables, unfiltered), decrypts event
 /// notes through the shared tracking event mapper — the single place in the
 /// codebase where decryption happens — and serializes everything into the
 /// export document. Only counts and timings are logged; no exported content,
@@ -22,6 +22,11 @@ import '../../domain/repositories/export_repository.dart';
 /// parent typed to name a care, not a medical value. The medical fields this
 /// app keeps encrypted — notes, weight, allergies — still leave only after
 /// decryption through the mapper.
+///
+/// M4 (format 2): `measurements.value` is decrypted with the same pattern as
+/// the event notes and leaves in the clear, on purpose — the backup is the
+/// owner's copy of the data, and an unreadable number is no backup. The
+/// importer re-encrypts it (fresh IV) before it reaches a database.
 class ExportRepositoryImpl implements ExportRepository {
   const ExportRepositoryImpl({
     required this.database,
@@ -32,6 +37,14 @@ class ExportRepositoryImpl implements ExportRepository {
   final EncryptionService encryption;
 
   static final Logger _logger = appLogger();
+
+  /// Format du document écrit par cette version de l'app.
+  ///
+  /// 2 (M4) : ajout des sections `measurements` et `reminderCompletions`,
+  /// `babyId` sur les réglages/rejets de rappels, `babyId` +
+  /// `completionSource` sur les rappels personnalisés (et `subtypeValue`
+  /// nullable sur ces derniers).
+  static const int _exportFormatVersion = 2;
 
   @override
   Future<String> buildExportJson() async {
@@ -44,6 +57,8 @@ class ExportRepositoryImpl implements ExportRepository {
     final customReminders = await database.getAllCustomReminders();
     final settings = await database.getAllReminderSettings();
     final dismissals = await database.getAllReminderDismissals();
+    final measurements = await database.getAllMeasurements();
+    final completions = await database.getAllReminderCompletions();
     stopwatch.stop();
 
     // Counts and timings only — never any exported content.
@@ -51,11 +66,12 @@ class ExportRepositoryImpl implements ExportRepository {
       'buildExportJson: profiles=${profiles.length} events=${events.length} '
       'customReminders=${customReminders.length} '
       'settings=${settings.length} dismissals=${dismissals.length} '
+      'measurements=${measurements.length} completions=${completions.length} '
       'in ${stopwatch.elapsedMilliseconds} ms',
     );
 
     final document = <String, Object?>{
-      'exportFormatVersion': 1,
+      'exportFormatVersion': _exportFormatVersion,
       'generator': 'mamadera',
       'appVersion': AppConfig.version,
       'databaseSchemaVersion': database.schemaVersion,
@@ -66,6 +82,8 @@ class ExportRepositoryImpl implements ExportRepository {
         'customReminders': customReminders.length,
         'reminderSettings': settings.length,
         'reminderDismissals': dismissals.length,
+        'measurements': measurements.length,
+        'reminderCompletions': completions.length,
       },
       'babyProfiles': _mapProfiles(profiles),
       'trackingEvents': _mapEvents(events),
@@ -80,11 +98,16 @@ class ExportRepositoryImpl implements ExportRepository {
             // doit pas dépendre de la langue dans laquelle elle a été faite.
             'frequency': reminder.frequency,
             'intervalDays': reminder.intervalDays,
+            'babyId': reminder.babyId,
+            // Tel qu'en base ; l'import le re-dérive de `subtypeValue`, donc
+            // une valeur incohérente ne peut pas s'installer par ici.
+            'completionSource': reminder.completionSource,
           },
       ],
       'reminderSettings': [
         for (final setting in settings)
           <String, Object?>{
+            'babyId': setting.babyId,
             'itemId': setting.itemId,
             'enabled': setting.enabled,
           },
@@ -92,11 +115,26 @@ class ExportRepositoryImpl implements ExportRepository {
       'reminderDismissals': [
         for (final dismissal in dismissals)
           <String, Object?>{
+            'babyId': dismissal.babyId,
             'itemId': dismissal.itemId,
             'dismissedAtEpochSeconds':
                 dismissal.dismissedAt.millisecondsSinceEpoch ~/ 1000,
             'dismissedAtUtc':
                 dismissal.dismissedAt.toUtc().toIso8601String(),
+          },
+      ],
+      'measurements': [for (final row in measurements) _mapMeasurement(row)],
+      'reminderCompletions': [
+        for (final completion in completions)
+          <String, Object?>{
+            'babyId': completion.babyId,
+            'itemId': completion.itemId,
+            // Journal sans id dans le document : la table est append-only, la
+            // restauration ne doit pas pouvoir recoller un id déjà pris.
+            'completedAtEpochSeconds':
+                completion.completedAt.millisecondsSinceEpoch ~/ 1000,
+            'completedAtUtc':
+                completion.completedAt.toUtc().toIso8601String(),
           },
       ],
     };
@@ -111,12 +149,16 @@ class ExportRepositoryImpl implements ExportRepository {
     final customReminders = await database.getAllCustomReminders();
     final settings = await database.getAllReminderSettings();
     final dismissals = await database.getAllReminderDismissals();
+    final measurements = await database.getAllMeasurements();
+    final completions = await database.getAllReminderCompletions();
     return ExportCounts(
       babyProfiles: profiles.length,
       trackingEvents: events.length,
       customReminders: customReminders.length,
       reminderSettings: settings.length,
       reminderDismissals: dismissals.length,
+      measurements: measurements.length,
+      reminderCompletions: completions.length,
     );
   }
 
@@ -184,4 +226,38 @@ class ExportRepositoryImpl implements ExportRepository {
         diaper: (id, ts, baby, wt, pc, cc, st, notes) => notes,
         health: (id, ts, baby, sub, notes) => notes,
       );
+
+  /// Mappe une ligne de `measurements`. `recorded_at` est stocké en
+  /// secondes, émis donc en entier sans perte ET en ISO8601 UTC — deux
+  /// champs, à l'image des événements.
+  ///
+  /// `value` part **déchiffré**, même pattern que `_decryptedNotes` : une
+  /// sauvegarde que le propriétaire ne peut pas lire n'est pas une sauvegarde.
+  /// L'échec de déchiffrement (clé perdue/tournée) se flagge au lieu de faire
+  /// échouer l'export.
+  Map<String, Object?> _mapMeasurement(db_app.Measurement row) {
+    final value = encryption.decrypt(row.value);
+    final valueUndecryptable = value == null;
+
+    final notes = row.notes == null ? null : encryption.decrypt(row.notes);
+    final notesUndecryptable = row.notes != null && notes == null;
+
+    final measurement = <String, Object?>{
+      'id': row.id,
+      'babyId': row.babyId,
+      'kind': row.kind,
+      'value': value,
+      'unit': row.unit,
+      'recordedAtEpochSeconds': row.recordedAt.millisecondsSinceEpoch ~/ 1000,
+      'recordedAtUtc': row.recordedAt.toUtc().toIso8601String(),
+      'notes': notes,
+    };
+    if (valueUndecryptable) {
+      measurement['valueUndecryptable'] = true;
+    }
+    if (notesUndecryptable) {
+      measurement['notesUndecryptable'] = true;
+    }
+    return measurement;
+  }
 }
