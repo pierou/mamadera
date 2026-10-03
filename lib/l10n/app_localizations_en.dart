@@ -153,6 +153,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmButton => 'Confirm';
 
   @override
+  String get increment => 'Increase';
+
+  @override
+  String get decrement => 'Decrease';
+
+  @override
   String get saveButton => 'Save';
 
   @override

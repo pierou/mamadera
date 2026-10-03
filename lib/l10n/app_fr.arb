@@ -98,6 +98,8 @@
   "durationPickerTitle": "Durée du sommeil",
   "cancelButton": "Annuler",
   "confirmButton": "Confirmer",
+  "increment": "Incrémenter",
+  "decrement": "Décrémenter",
   "saveButton": "Enregistrer",
   "@durationFormatHoursMinutes": {
     "placeholders": {

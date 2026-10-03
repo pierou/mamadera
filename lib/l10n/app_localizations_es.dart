@@ -153,6 +153,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get confirmButton => 'Confirmar';
 
   @override
+  String get increment => 'Aumentar';
+
+  @override
+  String get decrement => 'Disminuir';
+
+  @override
   String get saveButton => 'Guardar';
 
   @override

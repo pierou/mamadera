@@ -222,6 +222,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         min: 0,
         max: 480,
         divisions: 96,
+        // Stepper aligné sur le pas du slider : 96 crans sur 480 min.
+        step: 5,
         value: _quantity ?? 0.0,
         onValueChanged: (double value) {
           setState(() {
@@ -242,6 +244,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         min: 0,
         max: 300,
         divisions: 30,
+        // Stepper aligné sur le pas du slider : 30 crans sur 300 ml.
+        step: 10,
         value: _quantity ?? 0.0,
         onValueChanged: (double value) {
           setState(() => _quantity = value);

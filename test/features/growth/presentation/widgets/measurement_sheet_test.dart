@@ -221,6 +221,22 @@ void main() {
       expect(fakeRepo.lastAdded!.unit, 'degC');
     });
 
+    testWidgets('weight stepper: + moves by 10 g', (tester) async {
+      await pumpSheet(tester, MeasureKind.poids);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(valueField(), '3500');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.add_circle_outline));
+      await tester.pumpAndSettle();
+      expect(find.text('3510 g'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.remove_circle_outline));
+      await tester.pumpAndSettle();
+      expect(find.text('3500 g'), findsOneWidget);
+    });
+
     testWidgets('titles follow the kind', (tester) async {
       await pumpSheet(tester, MeasureKind.poids);
       await tester.pumpAndSettle();

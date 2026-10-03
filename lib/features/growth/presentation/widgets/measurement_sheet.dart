@@ -108,6 +108,9 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
             max: kind.max,
             divisions: kind.divisions,
             decimals: kind.decimals,
+            // Stepper +/- d'un pas du slider : c'est le seul instrument de
+            // précision qui reste quand la plage compte des milliers de crans.
+            step: kind.step,
             value: _value,
             onValueChanged: (value) => setState(() => _value = value),
             accentColor: kind.accent,

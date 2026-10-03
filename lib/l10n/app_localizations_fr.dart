@@ -153,6 +153,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get confirmButton => 'Confirmer';
 
   @override
+  String get increment => 'Incrémenter';
+
+  @override
+  String get decrement => 'Décrémenter';
+
+  @override
   String get saveButton => 'Enregistrer';
 
   @override

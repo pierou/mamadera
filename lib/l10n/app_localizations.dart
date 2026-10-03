@@ -352,6 +352,18 @@ abstract class AppLocalizations {
   /// **'Confirmer'**
   String get confirmButton;
 
+  /// No description provided for @increment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incrémenter'**
+  String get increment;
+
+  /// No description provided for @decrement.
+  ///
+  /// In fr, this message translates to:
+  /// **'Décrémenter'**
+  String get decrement;
+
   /// No description provided for @saveButton.
   ///
   /// In fr, this message translates to:

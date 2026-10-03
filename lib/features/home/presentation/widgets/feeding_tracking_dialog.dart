@@ -122,6 +122,8 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
               min: 0,
               max: 300,
               divisions: 30,
+              // Stepper aligné sur le pas du slider : 30 crans sur 300 ml.
+              step: 10,
               value: _selectedQuantity,
               onValueChanged: _onQuantityChanged,
             ),
