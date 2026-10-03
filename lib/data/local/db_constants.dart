@@ -44,3 +44,24 @@ const Set<String> allFrequencyValues = {
   freqMonthly,
   freqEveryNDays,
 };
+
+// ── Growth measurement kinds (`measurements.kind`) ─────────────────────
+const String kindPoids = 'poids';
+const String kindTaille = 'taille';
+const String kindTemperature = 'temperature';
+const Set<String> allMeasureKindValues = {kindPoids, kindTaille, kindTemperature};
+
+// Units — metric only in v1.2.0, no °F.
+const String unitG = 'g';
+const String unitCm = 'cm';
+const String unitDegC = 'degC';
+
+// ── Reminder completion source (`custom_reminders.completion_source`) ──
+const String completionFromEvents = 'from_events'; // a `sante` event of subtype settles it
+const String completionManual = 'manual';          // a tap on reminder_completions settles it
+const Set<String> allCompletionSourceValues = {completionFromEvents, completionManual};
+
+/// Sentinelle « tous les bébés » des clés composites (baby_id, item_id).
+/// NULL n'est **pas** utilisé : SQLite l'autorise dans une PRIMARY KEY composite,
+/// et l'autorise en double.
+const String sharedBabyId = '';

@@ -88,7 +88,7 @@ void main() {
         CustomRemindersCompanion.insert(
           id: const Value(1),
           label: 'Crème du change',
-          subtypeValue: 'nettoyage_nez',
+          subtypeValue: const Value('nettoyage_nez'),
           frequency: 'every_n_days',
           intervalDays: const Value(3),
         ),
@@ -297,7 +297,7 @@ void main() {
         await database.into(database.customReminders).insert(
           CustomRemindersCompanion.insert(
             label: 'Crème des pieds',
-            subtypeValue: 'autre',
+            subtypeValue: const Value('autre'),
             frequency: 'monthly',
           ),
         );

@@ -809,7 +809,7 @@ Future<void> _seedRichDatabase(AppDatabase database,
         CustomRemindersCompanion.insert(
           id: const Value(4),
           label: 'Nettoyage nez du soir',
-          subtypeValue: 'nettoyage_nez',
+          subtypeValue: const Value('nettoyage_nez'),
           frequency: 'every_n_days',
           intervalDays: const Value(2),
         ),

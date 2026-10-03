@@ -88,7 +88,7 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    expect(db.schemaVersion, equals(10));
+    expect(db.schemaVersion, equals(11));
     expect(await db.getAllCustomReminders(), isEmpty);
 
     // Le rappel éteint avant la mise à jour l'est toujours : la migration n'a
@@ -107,10 +107,12 @@ void main() {
     var db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     final id = await db.into(db.customReminders).insert(
           CustomRemindersCompanion.insert(
+            babyId: const Value(''),
             label: 'Crème du change',
-            subtypeValue: 'nettoyage_nez',
+            subtypeValue: const Value('nettoyage_nez'),
             frequency: 'every_n_days',
             intervalDays: const Value(3),
+            completionSource: const Value('from_events'),
           ),
         );
     // L'extinction du rappel personnalisé vit dans l'autre table, sous sa clé.
@@ -145,9 +147,11 @@ void main() {
     for (final label in ['Deuxième', 'Premier', 'Troisième']) {
       await db.into(db.customReminders).insert(
             CustomRemindersCompanion.insert(
+              babyId: const Value(''),
               label: label,
-              subtypeValue: 'nettoyage_nez',
+              subtypeValue: const Value('nettoyage_nez'),
               frequency: 'daily',
+              completionSource: const Value('from_events'),
             ),
           );
     }

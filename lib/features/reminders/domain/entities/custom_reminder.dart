@@ -19,13 +19,18 @@ abstract class CustomReminder with _$CustomReminder {
     /// Saisie libre du parent, affichée telle quelle (jamais traduite).
     required String label,
 
-    /// Valeur de `HealthSubtype` dont l'absence rend le rappel dû.
-    required String subtypeValue,
-
     /// Rythme demandé. [ReminderFrequency.monthly] est stocké sans jour
     /// précis : le jour est celui de naissance du bébé actif, lu au moment de
     /// construire la liste — comme pour la vitamine K.
     required ReminderFrequency frequency,
+
+    /// Valeur de `HealthSubtype` dont l'absence rend le rappel dû.
+    ///
+    /// `null` = rappel **détaché** (D2) : aucun soin n'y est lié, c'est le tap
+    /// « Fait » qui l'achève (`completion_source = 'manual'`). Invariant :
+    /// `subtypeValue == null` ⟺ `completionSource == manual` — un rappel détaché
+    /// laissé en `from_events` matcherait *n'importe quel* événement `sante`.
+    String? subtypeValue,
 
     /// Clé de `custom_reminders`, `null` tant que le rappel n'est pas écrit.
     int? id,

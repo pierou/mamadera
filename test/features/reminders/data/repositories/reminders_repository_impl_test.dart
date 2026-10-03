@@ -224,7 +224,7 @@ void main() {
           database.into(database.customReminders).insert(
                 CustomRemindersCompanion.insert(
                   label: label,
-                  subtypeValue: 'nettoyage_nez',
+                  subtypeValue: const Value('nettoyage_nez'),
                   frequency: frequency,
                   intervalDays: Value(intervalDays),
                 ),

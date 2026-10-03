@@ -212,7 +212,15 @@ class RemindersRepositoryImpl implements RemindersRepository {
       final id = await database.into(database.customReminders).insert(
         db_app.CustomRemindersCompanion.insert(
           label: _validatedLabel(reminder.label),
-          subtypeValue: reminder.subtypeValue,
+          subtypeValue: Value(reminder.subtypeValue),
+          // L'invariant est posé ici, à la frontière d'écriture : un rappel sans
+          // soin ne peut pas rester déduit des événements, il serait dû sur le
+          // premier événement de santé venu.
+          completionSource: Value(
+            reminder.subtypeValue == null
+                ? db_const.completionManual
+                : db_const.completionFromEvents,
+          ),
           frequency: code,
           intervalDays: Value(intervalDays),
         ),
@@ -249,6 +257,13 @@ class RemindersRepositoryImpl implements RemindersRepository {
         db_app.CustomRemindersCompanion(
           label: Value(_validatedLabel(reminder.label)),
           subtypeValue: Value(reminder.subtypeValue),
+          // Même invariant qu'à l'insertion : passer un rappel du détaché au lié
+          // (ou l'inverse) change qui décide qu'il est fait.
+          completionSource: Value(
+            reminder.subtypeValue == null
+                ? db_const.completionManual
+                : db_const.completionFromEvents,
+          ),
           frequency: Value(code),
           intervalDays: Value(intervalDays),
         ),

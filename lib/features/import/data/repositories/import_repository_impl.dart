@@ -481,7 +481,11 @@ class ImportRepositoryImpl implements ImportRepository {
               db_app.CustomRemindersCompanion.insert(
                 id: Value(reminder.id),
                 label: reminder.label,
-                subtypeValue: reminder.subtypeValue,
+                subtypeValue: Value(reminder.subtypeValue),
+                // Une sauvegarde de format 1 ne connaît que le rappel lié ; le
+                // holder d'import reste non nullable jusqu'à M4, où la colonne
+                // nullable du format 2 amènera la dérivation vers `manual`.
+                completionSource: const Value(db_const.completionFromEvents),
                 frequency: reminder.frequency,
                 intervalDays: Value(reminder.intervalDays),
               ),
