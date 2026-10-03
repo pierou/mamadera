@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/providers/active_baby_provider.dart';
+import '../../../../../data/local/db_constants.dart';
 import '../../../../../shared/domain/entities/tracking_type.dart';
+import '../../domain/entities/reminder_item.dart';
 import '../../domain/entities/reminders_state.dart';
 import 'reminder_providers.dart';
 
@@ -90,10 +92,21 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
     if (result case RemindersDue(items: final List<ReminderStatus> originalItems)) {
       final items = List<ReminderStatus>.from(originalItems);
       for (final (index, status) in items.indexed) {
-        final lastEventAt = await repository.getLastCompleted(
+        var lastEventAt = await repository.getLastCompleted(
           status.item,
           babyId: babyId,
         );
+        if (!ref.mounted) return {};
+        // Un rappel détaché n'est loggé que dans le journal manuel
+        // (reminder_completions) : sans ce repli, « dernière fois » dirait
+        // « jamais fait » juste après un tap « fait ».
+        if (lastEventAt == null &&
+            status.item.completionSource == completionManual) {
+          lastEventAt = await repository.getLastManualCompletion(
+            status.item.id,
+            babyId: babyId,
+          );
+        }
         if (!ref.mounted) return {};
         // Replace with enriched copy
         items[index] = status.copyWith(lastEventAt: lastEventAt);
@@ -121,5 +134,30 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
   Future<void> refresh() async {
     final result = await AsyncValue.guard(_checkDue);
     if (ref.mounted) state = result;
+  }
+
+  /// Fait (D1) : l'action de la ligne pour un rappel détaché — le seul moyen
+  /// de le régler. Écrit le journal manuel scopé au bébé actif, puis
+  /// ré-évalue localement pour que la ligne parte sans attendre le sondage
+  /// de cinq minutes. Pour un rappel lié à un soin, l'événement du soin le
+  /// règle (invariant D2) : le bouton ne fabrique pas de journal manuel —
+  /// il se contente de ré-évaluer.
+  Future<void> markDone(ReminderItem item) async {
+    if (item.completionSource == completionManual) {
+      final babyId = ref.read(activeBabyProvider).value?.id;
+      final repository = await ref.read(remindersRepositoryProvider.future);
+      await repository.recordCompletion(item.id, babyId: babyId);
+    }
+    await refresh();
+  }
+
+  /// Ignorer (D3) : supprime le rappel du champ du parent pour la fenêtre du
+  /// service (24 h par défaut), scopée au bébé actif, puis ré-évalue
+  /// localement. Un ignoré par un autre bébé ne se voit jamais.
+  Future<void> snooze(ReminderItem item) async {
+    final babyId = ref.read(activeBabyProvider).value?.id;
+    final repository = await ref.read(remindersRepositoryProvider.future);
+    await repository.dismissReminder(item.id, babyId: babyId);
+    await refresh();
   }
 }

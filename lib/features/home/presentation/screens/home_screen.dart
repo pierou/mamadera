@@ -15,6 +15,7 @@ import '../../../growth/presentation/widgets/measurement_button.dart';
 import '../../../reminders/domain/entities/reminders_state.dart';
 import '../../../reminders/presentation/providers/reminder_notifier.dart';
 import '../../../reminders/presentation/providers/reminder_providers.dart';
+import '../../../reminders/presentation/widgets/home_reminders_section.dart';
 import '../providers/track_notifier.dart';
 import '../widgets/duration_picker_dialog.dart';
 import '../widgets/feeding_tracking_dialog.dart';
@@ -348,6 +349,9 @@ class _HomeContent extends ConsumerWidget {
             // Boutons de croissance (item 1 de v1.2) : widget autonome, la
             // grille 2×2 ci-dessus est inchangée.
             const MeasurementButtonRow(),
+            // Liste des rappels dus (D1) : remplace la lecture du « +N »
+            // des pastilles, sans toucher à la grille ni aux boutons.
+            const HomeRemindersSection(),
           ],
         ),
       ),

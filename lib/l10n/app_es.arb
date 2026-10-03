@@ -165,6 +165,17 @@
   "reminderCustomDeleteWarning": "El recordatorio desaparece del inicio. Los eventos ya registrados se conservan.",
   "reminderCustomSaveError": "No se pudo guardar el recordatorio. Inténtalo de nuevo.",
   "reminderCustomDeleteError": "No se pudo eliminar el recordatorio. Inténtalo de nuevo.",
+  "reminderListTitle": "Recordatorios por hacer",
+  "reminderListEmpty": "Nada que hacer por ahora.",
+  "reminderMarkDone": "Marcar como hecho",
+  "reminderDismiss": "Ignorar recordatorio",
+  "reminderLastDone": "Última vez: {date}",
+  "@reminderLastDone": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderNeverDone": "Nunca hecho",
 
   "yesterday": "Ayer",
   "daysAgo": " días",

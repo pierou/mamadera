@@ -604,6 +604,42 @@ abstract class AppLocalizations {
   /// **'Le rappel n\'a pas pu être supprimé. Réessayez.'**
   String get reminderCustomDeleteError;
 
+  /// No description provided for @reminderListTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels à faire'**
+  String get reminderListTitle;
+
+  /// No description provided for @reminderListEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à faire pour l\'instant.'**
+  String get reminderListEmpty;
+
+  /// No description provided for @reminderMarkDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer comme fait'**
+  String get reminderMarkDone;
+
+  /// No description provided for @reminderDismiss.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ignorer ce rappel'**
+  String get reminderDismiss;
+
+  /// No description provided for @reminderLastDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière fois: {date}'**
+  String reminderLastDone(Object date);
+
+  /// No description provided for @reminderNeverDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jamais fait'**
+  String get reminderNeverDone;
+
   /// No description provided for @yesterday.
   ///
   /// In fr, this message translates to:

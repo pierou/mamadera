@@ -165,6 +165,17 @@
   "reminderCustomDeleteWarning": "The reminder leaves Home. Events you already logged are kept.",
   "reminderCustomSaveError": "Could not save the reminder. Please try again.",
   "reminderCustomDeleteError": "Could not delete the reminder. Please try again.",
+  "reminderListTitle": "Reminders to do",
+  "reminderListEmpty": "Nothing to do for now.",
+  "reminderMarkDone": "Mark as done",
+  "reminderDismiss": "Dismiss reminder",
+  "reminderLastDone": "Last done: {date}",
+  "@reminderLastDone": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderNeverDone": "Never done",
 
   "yesterday": "Yesterday",
   "daysAgo": " days ago",

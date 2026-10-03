@@ -293,6 +293,26 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo eliminar el recordatorio. Inténtalo de nuevo.';
 
   @override
+  String get reminderListTitle => 'Recordatorios por hacer';
+
+  @override
+  String get reminderListEmpty => 'Nada que hacer por ahora.';
+
+  @override
+  String get reminderMarkDone => 'Marcar como hecho';
+
+  @override
+  String get reminderDismiss => 'Ignorar recordatorio';
+
+  @override
+  String reminderLastDone(Object date) {
+    return 'Última vez: $date';
+  }
+
+  @override
+  String get reminderNeverDone => 'Nunca hecho';
+
+  @override
   String get yesterday => 'Ayer';
 
   @override

@@ -297,6 +297,26 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le rappel n\'a pas pu être supprimé. Réessayez.';
 
   @override
+  String get reminderListTitle => 'Rappels à faire';
+
+  @override
+  String get reminderListEmpty => 'Rien à faire pour l\'instant.';
+
+  @override
+  String get reminderMarkDone => 'Marquer comme fait';
+
+  @override
+  String get reminderDismiss => 'Ignorer ce rappel';
+
+  @override
+  String reminderLastDone(Object date) {
+    return 'Dernière fois: $date';
+  }
+
+  @override
+  String get reminderNeverDone => 'Jamais fait';
+
+  @override
   String get yesterday => 'Hier';
 
   @override

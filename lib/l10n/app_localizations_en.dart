@@ -293,6 +293,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not delete the reminder. Please try again.';
 
   @override
+  String get reminderListTitle => 'Reminders to do';
+
+  @override
+  String get reminderListEmpty => 'Nothing to do for now.';
+
+  @override
+  String get reminderMarkDone => 'Mark as done';
+
+  @override
+  String get reminderDismiss => 'Dismiss reminder';
+
+  @override
+  String reminderLastDone(Object date) {
+    return 'Last done: $date';
+  }
+
+  @override
+  String get reminderNeverDone => 'Never done';
+
+  @override
   String get yesterday => 'Yesterday';
 
   @override

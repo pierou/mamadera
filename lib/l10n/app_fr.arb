@@ -165,6 +165,17 @@
   "reminderCustomDeleteWarning": "Le rappel disparaît de l'accueil. Les événements déjà enregistrés sont conservés.",
   "reminderCustomSaveError": "Le rappel n'a pas pu être enregistré. Réessayez.",
   "reminderCustomDeleteError": "Le rappel n'a pas pu être supprimé. Réessayez.",
+  "reminderListTitle": "Rappels à faire",
+  "reminderListEmpty": "Rien à faire pour l'instant.",
+  "reminderMarkDone": "Marquer comme fait",
+  "reminderDismiss": "Ignorer ce rappel",
+  "reminderLastDone": "Dernière fois: {date}",
+  "@reminderLastDone": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderNeverDone": "Jamais fait",
 
   "yesterday": "Hier",
   "daysAgo": " jours",

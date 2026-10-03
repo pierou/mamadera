@@ -543,7 +543,17 @@ New keys, all three ARBs, same key sets (234 → ~258). Names follow the existin
 | **M3** | next | Detached custom reminders (D2): care dropdown gains "Aucun soin", form writes `completionSource`, `forCustom` honours it, settings screen shows detached reminders distinctly | `custom_reminder_form_sheet.dart` (dropdown L199-217 — the hardcoded coupling point), `custom_reminder_tile.dart`, `reminder_providers.dart`, `custom_reminders_notifier.dart`, `reminder_settings_screen.dart`, `custom_reminder.dart` (+`completionSource` on the entity — M2 left it derived at the write boundary, M3 makes it readable back) | `flutter test test/features/reminders/` |
 | **M4** | | Export/import format 2 (§4): sections, counts, parsers, restore, **format-1 backward compatibility**, baby-scoped `deleteProfile`. **M2 note:** `deleteCustomReminder` now purges `reminder_completions` too (four tables, one transaction) — the export must therefore carry that table, or a restore resurrects completions for reminders that no longer exist | `export_repository{,_impl}.dart`, `import_repository{,_impl}.dart`, `baby_profile_repository{,_impl}.dart`, `app_db.dart` queries | `flutter test test/features/export/ test/features/import/ test/features/baby/` |
 | **M5** | | Growth module end-to-end (§5.2, §5.5): entities, repo+encryption, providers, sheet, screen, 3 home buttons, router, menu tile | `lib/features/growth/**`, `home_screen.dart`, `router.dart`, `menu_screen.dart`, `quantity_picker_inline.dart` (one param) | `flutter test test/features/growth/ test/features/home/ test/core/router_test.dart test/features/menu/` |
-| **M6** | | Reminders list on home (§5.3, §5.4) | `home_reminders_section.dart`, `reminder_row.dart`, `home_screen.dart`, `reminder_notifier.dart` | `flutter test test/features/reminders/ test/features/home/` |
+| **M6** | ✅ **done** | Reminders list on home (§5.3, §5.4) **+ the 3 pre-existing skips resolved** — they pumped `HomeScreen` bare so the bottom nav did not exist; now they pump the real router with the providers whose futures never complete in tests (`path_provider` hangs, it does not throw) overridden, and assert real navigation | `reminder_row.dart`, `home_reminders_section.dart`, `home_screen.dart` (+4 lines), `reminder_notifier.dart` (`markDone`/`snooze`, no invalidation nudge), 3 test files, 6 l10n keys | analyze clean, 1305 pass / **0 skip** |
+
+### 2.6 D2 has a UI consequence, decided at M6 (this overrides §5.3)
+
+§5.3 asked for "a done/dismiss action" on every row. That is internally inconsistent with D2:
+for a care-bound reminder, `markDone` must not write `reminder_completions` (the service reads
+`tracking_events`), so the button would tap, do nothing, and leave the row there — a control that
+lies. **Resolved: "Done" renders only when `completionSource == manual`.** A care-bound row keeps
+Dismiss and is settled the way the app already says it is settled — by tracking the care. Locked by
+tests asserting the affordance is *absent* from a preset row, which is stronger than asserting the
+tap does nothing: the parent cannot even believe the vitamin was recorded.
 | **M7** | | l10n sweep (§6) + patch notes `1.2.0` in en/es/fr (noun form) + `pubspec.yaml version: 1.2.0+1` + `AppConfig.version = '1.2.0'` + ROADMAP status update + `make ci` | ARBs + generated files, `assets/patch_notes/{en,es,fr}.json`, `pubspec.yaml`, `app_config.dart`, `Makefile`, `docs/ROADMAP-…md` | **`make ci`** full gate, green |
 
 **Order is load-bearing:** M4 before M5/M6 (a new table whose rows cannot be backed up is a data-loss
