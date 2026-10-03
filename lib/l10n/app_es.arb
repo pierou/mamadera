@@ -125,6 +125,8 @@
   "reminderCustomLabelField": "Nombre del recordatorio",
   "reminderCustomLabelRequired": "Dale un nombre al recordatorio",
   "reminderCustomCareField": "Cuidado asociado",
+  "reminderCustomCareNone": "Ningún cuidado",
+  "reminderCustomCareNoneHint": "Desaparece cuando lo marcas hecho.",
   "reminderCustomFrequencyField": "Frecuencia",
   "reminderCustomIntervalField": "Intervalo en días",
   "reminderCustomIntervalRequired": "Indica un número de días, de 1 a 365",

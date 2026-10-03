@@ -125,6 +125,8 @@
   "reminderCustomLabelField": "Reminder name",
   "reminderCustomLabelRequired": "Give the reminder a name",
   "reminderCustomCareField": "Linked care",
+  "reminderCustomCareNone": "No care",
+  "reminderCustomCareNoneHint": "Clears once you mark it done.",
   "reminderCustomFrequencyField": "Frequency",
   "reminderCustomIntervalField": "Interval in days",
   "reminderCustomIntervalRequired": "Enter a number of days, from 1 to 365",

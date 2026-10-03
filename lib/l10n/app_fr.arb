@@ -125,6 +125,8 @@
   "reminderCustomLabelField": "Nom du rappel",
   "reminderCustomLabelRequired": "Donnez un nom au rappel",
   "reminderCustomCareField": "Soin associé",
+  "reminderCustomCareNone": "Aucun soin",
+  "reminderCustomCareNoneHint": "S'efface quand vous le marquez fait.",
   "reminderCustomFrequencyField": "Fréquence",
   "reminderCustomIntervalField": "Intervalle en jours",
   "reminderCustomIntervalRequired": "Indiquez un nombre de jours, de 1 à 365",

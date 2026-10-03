@@ -306,6 +306,9 @@ class RemindersRepositoryImpl implements RemindersRepository {
         id: row.id,
         label: row.label,
         subtypeValue: row.subtypeValue,
+        // Lu en retour tel quel : la colonne est la source de vérité de qui
+        // règle le rappel, jamais un défaut recalculé ici.
+        completionSource: row.completionSource,
         frequency: _decodeFrequency(row.frequency, row.intervalDays),
       );
 

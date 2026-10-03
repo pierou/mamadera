@@ -201,6 +201,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reminderCustomCareField => 'Cuidado asociado';
 
   @override
+  String get reminderCustomCareNone => 'Ningún cuidado';
+
+  @override
+  String get reminderCustomCareNoneHint => 'Desaparece cuando lo marcas hecho.';
+
+  @override
   String get reminderCustomFrequencyField => 'Frecuencia';
 
   @override

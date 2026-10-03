@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mamadera/data/local/db_constants.dart';
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/presentation/widgets/custom_reminder_form_sheet.dart';
@@ -264,6 +265,106 @@ void main() {
 
       expect(_popped, isNull);
       expect(find.text('Rappel abandonné'), findsNothing);
+    });
+  });
+
+  group('soin détaché (M3)', () {
+    testWidgets('le menu des soins commence par « Aucun soin »', (tester) async {
+      await _open(tester);
+
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+
+      // Une entrée sans soin existe dans le menu…
+      expect(find.text('Aucun soin'), findsOneWidget);
+      final menuItems = tester
+          .widgetList<DropdownMenuItem<String>>(
+              find.byType(DropdownMenuItem<String>))
+          .toList();
+      expect(menuItems.where((item) => item.value == null), hasLength(1));
+      // …et elle est en tête, au-dessus du premier soin.
+      expect(
+        tester.getRect(find.text('Aucun soin')).top,
+        lessThan(tester.getRect(find.text('Nettoyage des yeux')).top),
+      );
+    });
+
+    testWidgets(
+        'choisir « Aucun soin » rend un rappel détaché réglé par tap',
+        (tester) async {
+      await _open(tester);
+      await tester.enterText(_labelField(), 'Thermomètre');
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Aucun soin'));
+      await tester.pumpAndSettle();
+
+      // Le nom et la fréquence restent : rien n'est masqué par le détachement.
+      expect(_labelField(), findsOneWidget);
+      expect(_frequencyField(), findsOneWidget);
+
+      await _confirm(tester);
+
+      expect(_popped, isNotNull);
+      expect(_popped!.label, 'Thermomètre');
+      expect(_popped!.subtypeValue, isNull);
+      expect(_popped!.completionSource, completionManual);
+      expect(_popped!.frequency, const ReminderFrequency.daily());
+      expect(_popped!.id, isNull);
+    });
+
+    testWidgets(
+        'modifier un rappel détaché le laisse détaché (verrou de régression)',
+        (tester) async {
+      await _open(
+        tester,
+        existing: CustomReminder(
+          id: 7,
+          label: 'Thermomètre',
+          frequency: const ReminderFrequency.customInterval(days: 2),
+          subtypeValue: null,
+          completionSource: completionManual,
+        ),
+      );
+
+      // Le formulaire forçait ici `nettoyage_nez` : verrou sur la valeur nue.
+      expect(
+        tester
+            .widget<DropdownButtonFormField<String>>(
+                find.byType(DropdownButtonFormField<String>))
+            .initialValue,
+        isNull,
+      );
+
+      await _confirm(tester);
+
+      expect(_popped, isNotNull);
+      expect(_popped!.id, 7);
+      expect(_popped!.label, 'Thermomètre');
+      expect(_popped!.subtypeValue, isNull);
+      expect(_popped!.completionSource, completionManual);
+      expect(_popped!.frequency, const ReminderFrequency.customInterval(days: 2));
+    });
+
+    testWidgets('un rappel lié au soin reste lié, réglé par événement',
+        (tester) async {
+      await _open(
+        tester,
+        existing: CustomReminder(
+          id: 8,
+          label: 'Crème du change',
+          frequency: const ReminderFrequency.daily(),
+          subtypeValue: HealthSubtype.nettoyageNez.value,
+        ),
+      );
+
+      await _confirm(tester);
+
+      expect(_popped, isNotNull);
+      expect(_popped!.id, 8);
+      expect(_popped!.subtypeValue, HealthSubtype.nettoyageNez.value);
+      expect(_popped!.completionSource, completionFromEvents);
+      expect(_popped!.frequency, const ReminderFrequency.daily());
     });
   });
 }

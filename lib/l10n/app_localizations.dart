@@ -436,6 +436,18 @@ abstract class AppLocalizations {
   /// **'Soin associé'**
   String get reminderCustomCareField;
 
+  /// No description provided for @reminderCustomCareNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun soin'**
+  String get reminderCustomCareNone;
+
+  /// No description provided for @reminderCustomCareNoneHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'S\'efface quand vous le marquez fait.'**
+  String get reminderCustomCareNoneHint;
+
   /// No description provided for @reminderCustomFrequencyField.
   ///
   /// In fr, this message translates to:

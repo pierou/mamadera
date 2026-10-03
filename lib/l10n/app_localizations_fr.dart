@@ -203,6 +203,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reminderCustomCareField => 'Soin associé';
 
   @override
+  String get reminderCustomCareNone => 'Aucun soin';
+
+  @override
+  String get reminderCustomCareNoneHint =>
+      'S\'efface quand vous le marquez fait.';
+
+  @override
   String get reminderCustomFrequencyField => 'Fréquence';
 
   @override

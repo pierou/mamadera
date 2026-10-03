@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../data/local/db_constants.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import 'reminder_frequency.dart';
 import 'reminder_item.dart';
@@ -8,11 +9,13 @@ part 'custom_reminder.freezed.dart';
 
 /// Un rappel inventé par le parent : « pommade sur le cordon, tous les 2 jours ».
 ///
-/// Il ne décrit que *quand* réclamer. Comme les quatre préréglages, il n'a pas
-/// d'état « fait » propre : il est accompli dès qu'un événement `sante` du
-/// [subtypeValue] lié existe dans la période (`isDue` de [ReminderFrequency]). C'est
-/// ce lien qui le distingue d'une alarme, et c'est aussi ce qui l'oblige à
-/// porter un soin existant plutôt qu'un texte libre côté suivi.
+/// Il ne décrit que *quand* réclamer ; [completionSource] dit qui décide
+/// qu'il est fait. Lié à un soin, il est accompli dès qu'un événement `sante`
+/// de son [subtypeValue] existe dans la période (`isDue` de [ReminderFrequency])
+/// — c'est ce lien qui le distingue d'une alarme, et qui l'oblige à porter un
+/// soin existant plutôt qu'un texte libre côté suivi. Détaché
+/// (`subtypeValue == null`), il n'est achevé que par le tap « Fait »
+/// de l'utilisateur.
 @freezed
 abstract class CustomReminder with _$CustomReminder {
   const factory CustomReminder({
@@ -31,6 +34,16 @@ abstract class CustomReminder with _$CustomReminder {
     /// `subtypeValue == null` ⟺ `completionSource == manual` — un rappel détaché
     /// laissé en `from_events` matcherait *n'importe quel* événement `sante`.
     String? subtypeValue,
+
+    /// Qui décide que le rappel est fait : [completionFromEvents] — l'absence
+    /// d'un événement `sante` portant [subtypeValue] dans la période le règle,
+    /// comme les préréglages — ou [completionManual] — seul le tap « Fait »
+    /// l'achève, via `reminder_completions`.
+    ///
+    /// Invariant D2 : `subtypeValue == null` ⟺ [completionSource] vaut
+    /// [completionManual] — un rappel détaché laissé en [completionFromEvents]
+    /// matcherait *n'importe quel* événement de santé.
+    @Default(completionFromEvents) String completionSource,
 
     /// Clé de `custom_reminders`, `null` tant que le rappel n'est pas écrit.
     int? id,
@@ -57,6 +70,8 @@ extension CustomReminderPresets on ReminderItem {
   /// un rythme mensuel, et [monthlyFallbackDay] s'applique sans profil.
   /// L'id est la clé stable `custom_<id>` — jamais le libellé, que le parent
   /// peut renommer sans orpheliner ses réglages et ses rangs d'acquittement.
+  /// [CustomReminder.completionSource] est propagé tel quel : c'est lui qui
+  /// dit au service de quel journal lire l'achèvement.
   static ReminderItem forCustom(
     CustomReminder reminder, {
     int? monthlyDay,
@@ -71,7 +86,11 @@ extension CustomReminderPresets on ReminderItem {
         final ReminderFrequency frequency => frequency,
       },
       trackingType: TrackingType.sante,
+      // Le détaché reste sans soin ici : c'est [reminder.completionSource] qui
+      // dit qui le règle, et lui inventer un sous-type le referait au premier
+      // événement de santé venu (invariant D2).
       subtypeValue: reminder.subtypeValue,
+      completionSource: reminder.completionSource,
     );
   }
 }
