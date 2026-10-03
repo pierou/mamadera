@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/active_baby_provider.dart';
 import '../../domain/entities/custom_reminder.dart';
 import 'reminder_providers.dart';
 
@@ -19,17 +20,21 @@ class CustomRemindersNotifier extends AsyncNotifier<List<CustomReminder>> {
   @override
   Future<List<CustomReminder>> build() async {
     // ref.watch : une réinitialisation de la base depuis le menu doit vider la
-    // liste des rappels personnalisés, pas servir les anciens objets.
+    // liste des rappels personnalisés, pas servir les anciens objets. Le
+    // rappel est porté par la ligne : on ne lit que ceux du profil actif, plus
+    // le portage partagé hérité d'une installation sans profil.
+    final profile = await ref.watch(activeBabyProvider.future);
     final repository = await ref.watch(remindersRepositoryProvider.future);
-    return repository.getCustomReminders();
+    return repository.getCustomReminders(babyId: profile?.id);
   }
 
   /// Écrit [reminder] et renvoie la clé `custom_<id>` à utiliser dans
   /// `reminder_settings` — c'est cette clé que le switch de l'écran Réglages
   /// manipule, jamais le libellé.
   Future<String> create(CustomReminder reminder) async {
+    final profile = await ref.read(activeBabyProvider.future);
     final repository = await ref.read(remindersRepositoryProvider.future);
-    final id = await repository.insertCustomReminder(reminder);
+    final id = await repository.insertCustomReminder(reminder, babyId: profile?.id);
     await _refreshAfterWrite();
     return '${CustomReminderPresets.customIdPrefix}$id';
   }
@@ -40,8 +45,9 @@ class CustomRemindersNotifier extends AsyncNotifier<List<CustomReminder>> {
   /// remplace l'état complet, et le shadowing d'une méthode du framework par un
   /// verbe métier est une source de bugs silencieux.
   Future<void> edit(CustomReminder reminder) async {
+    final profile = await ref.read(activeBabyProvider.future);
     final repository = await ref.read(remindersRepositoryProvider.future);
-    await repository.updateCustomReminder(reminder);
+    await repository.updateCustomReminder(reminder, babyId: profile?.id);
     await _refreshAfterWrite();
   }
 
@@ -52,8 +58,9 @@ class CustomRemindersNotifier extends AsyncNotifier<List<CustomReminder>> {
   /// laisserait un `false` fantôme — inoffensif aujourd'hui, mais condamné à
   /// survivre à chaque export tant qu'on ne relit pas la table.
   Future<void> remove(int id) async {
+    final profile = await ref.read(activeBabyProvider.future);
     final repository = await ref.read(remindersRepositoryProvider.future);
-    await repository.deleteCustomReminder(id);
+    await repository.deleteCustomReminder(id, babyId: profile?.id);
     ref.invalidate(reminderSettingsProvider);
     await _refreshAfterWrite();
   }
@@ -67,7 +74,8 @@ class CustomRemindersNotifier extends AsyncNotifier<List<CustomReminder>> {
   /// d'une réévaluation orpheline bloquée sur une lecture transitoire du
   /// service autoDispose que l'ancienne `ref.invalidate` provoquait.
   Future<void> _refreshAfterWrite() async {
+    final profile = await ref.read(activeBabyProvider.future);
     final repository = await ref.read(remindersRepositoryProvider.future);
-    state = AsyncData(await repository.getCustomReminders());
+    state = AsyncData(await repository.getCustomReminders(babyId: profile?.id));
   }
 }

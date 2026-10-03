@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mamadera/data/local/db_constants.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
@@ -225,6 +226,31 @@ void main() {
       final reminders = ReminderItemPresets.buildForBaby(profile);
       final ids = reminders.map((r) => r.id).toList();
       expect(ids.toSet().length, equals(ids.length)); // all unique
+    });
+  });
+
+  group('champs M2 (babyId / completionSource)', () {
+    test('les quatre préréglages sont réglés par événements et sans bébé', () {
+      // Le portage vit dans les lignes de base, pas dans l'item : les
+      // préréglages partagent leur id entre tous les bébés.
+      for (final item in [
+        ReminderItemPresets.vitaminD,
+        ReminderItemPresets.vitaminK,
+        ReminderItemPresets.eyeCleaning,
+        ReminderItemPresets.faceCleaning,
+      ]) {
+        expect(item.babyId, isNull);
+        expect(item.completionSource, completionFromEvents);
+      }
+    });
+
+    test('buildForBaby propage la source de complétion à la copie vitamine K', () {
+      final profile = BabyProfile(id: '1', name: 'T', birthDate: DateTime(2024, 3, 28));
+
+      final vitaminK = ReminderItemPresets.buildForBaby(profile)[1];
+
+      expect(vitaminK.completionSource, completionFromEvents);
+      expect(vitaminK.babyId, isNull);
     });
   });
 }
