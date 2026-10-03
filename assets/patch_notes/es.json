@@ -66,5 +66,25 @@
       "- Corrección del recordatorio desactivado en los ajustes que permanecía en la pantalla de inicio",
       ""
     ]
+  },
+  "1.2.0": {
+    "releaseDate": "2026-10-03",
+    "title": "Novedades de Mamadera 1.2.0",
+    "items": [
+      "### Nuevas funcionalidades",
+      "- Seguimiento del peso, la estatura y la temperatura desde tres botones nuevos en la pantalla de inicio",
+      "- Adición de la pantalla Crecimiento: último valor de cada medida e historial completo",
+      "- Visualización de la lista de recordatorios pendientes bajo los botones de seguimiento, donde «+2» ya no se leía",
+      "- Creación de recordatorios personalizados sin cuidado vinculado, marcados como hechos con un toque",
+      "- Inclusión de las medidas y los registros de recordatorios en la copia de seguridad manual",
+      "### Mejoras",
+      "- Cifrado en reposo de los valores de crecimiento (peso, estatura, temperatura), igual que las notas",
+      "- Ajuste de la temperatura en medios grados y visualización con la coma decimal de su idioma",
+      "- Actualización inmediata de la lista de recordatorios tras marcar hecho o ignorar",
+      "### Correcciones",
+      "- Independencia de los recordatorios por bebé: apagar, ignorar o marcar como hecho para un bebé ya no afecta a los demás",
+      "- Eliminación completa de los datos de un bebé borrado: recordatorios, ajustes, registros y medidas se retiran del dispositivo",
+      ""
+    ]
   }
 }

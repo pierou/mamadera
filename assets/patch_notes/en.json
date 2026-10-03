@@ -66,5 +66,25 @@
       "- A reminder switched off in Settings now disappears from the Home screen right away",
       ""
     ]
+  },
+  "1.2.0": {
+    "releaseDate": "2026-10-03",
+    "title": "What's New in Mamadera 1.2.0",
+    "items": [
+      "### New features",
+      "- Track weight, height and temperature from three new home-screen buttons",
+      "- Add the Growth screen: the latest value of each measurement and the full history",
+      "- Show the due reminders under the tracking buttons, where “+2” used to stop being readable",
+      "- Create custom reminders with no care attached, and mark them done with one tap",
+      "- Include measurements and reminder completions in the manual backup",
+      "### Improvements",
+      "- Encrypt growth values at rest — weight, height and temperature — the way notes already are",
+      "- Set temperature in half-degrees, shown with your language's decimal comma",
+      "- Refresh the reminder list immediately after a done or a dismiss",
+      "### Fixes",
+      "- Keep reminders independent per baby: switching one off, dismissing or completing it for one baby no longer does it for the others",
+      "- Remove a deleted baby's reminders, switches, completions and measurements from the device",
+      ""
+    ]
   }
 }
