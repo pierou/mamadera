@@ -85,6 +85,26 @@ void main() {
       expect(find.text('Anna'), findsOneWidget);
     });
 
+    testWidgets('the name is carried by the AppBar title, not the body',
+        (tester) async {
+      await pumpHome(tester, baby: babyA);
+
+      // Le prénom vit dans le titre de la barre d'app (dans le SafeArea du
+      // Scaffold) : posé en tête du corps de l'écran, il passait sous la
+      // bande de statut du système sur Android.
+      final appBar = tester.widget<AppBar>(find.byType(AppBar));
+      expect(appBar.title, isA<Text>());
+      expect((appBar.title! as Text).data, 'Anna');
+    });
+
+    testWidgets('no active baby means no AppBar on home', (tester) async {
+      await pumpHome(tester, baby: null);
+
+      // Pas de bébé actif : pas de barre d'app, et le contenu reste
+      // sous la bande de statut par son propre SafeArea.
+      expect(find.byType(AppBar), findsNothing);
+    });
+
     testWidgets('switching the active baby updates the name shown',
         (tester) async {
       final babyNotifier = await pumpHome(tester, baby: babyA);

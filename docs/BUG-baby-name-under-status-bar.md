@@ -1,7 +1,15 @@
 # BUG — le prénom du bébé est sous la barre d'état (Android), invisible
 
-**Statut:** ouvert · **Priorité:** bloquant pour la release (c'est la fonctionnalité demandée le
-2026-10-03) · **Plateforme:** Android (iOS : visible, mais placement déjà douteux)
+**Statut:** **CORRIGÉ** (manifeste + prénom déplacé dans le `AppBar`) · **Plateforme:** Android
+**Cause racine :** `android:theme="@style/LaunchTheme"` absent sur `MainActivity`. `LaunchTheme` est
+`Theme.Light.NoTitleBar` ; sans lui, Android dresse une ActionBar native « Mamadera » ET laisse le
+thème clair par défaut. Ce sont bien cette barre native et ce fond clair vus dans les captures — je
+les avais pris pour l'app bar Flutter et pour un splash bloqué.
+
+**Provenance — vérifiée :** `main` n'a pas non plus ce thème (`git show main:android/app/src/main/AndroidManifest.xml`).
+Donc **pas une régression de cette branche** : un défaut **déjà présent dans la version publiée**,
+latent depuis `892ff41` (2026-07-26), que la branche a seulement rendu visible en plaçant du contenu
+dans cette bande. En production, la barre ActionBar fantôme existe donc aussi aujourd'hui.
 
 ## Constat, vérifié à l'œil et par le dump
 - Capture Android (`/tmp/mamadera-path/step8-home-lea.png`) : barre supérieure « Mamadera », aucune
@@ -11,9 +19,12 @@
 - Sur iOS la même place retombe juste à côté de l'horloge (« 16:18 Léa ») et reste lisible : le
   défaut est Android, mais le *placement* est déjà suspect sur les deux plateformes.
 
-## Mécanisme probable
-Le prénom est posé dans la zone hors `SafeArea` : Android ne laisse pas la barre d'état transparente de
-la même façon qu'iOS, donc ce qui passe en `y=32` est masqué par le système là où iOS le montre.
+## Mécanisme, établi (et non « probable »)
+Sans `LaunchTheme`, l'activité reçoit un thème par défaut **avec** ActionBar : cette barre occupe la
+bande système et pousse le contenu Flutter vers le bas, alors que le prénom était posé en haut du
+corps scrollable → `y=32`, sous la barre. iOS n'a pas d'ActionBar native, donc le même placement y
+retombeait juste à côté de l'horloge et restait lisible. Le « splash qui ne finit jamais » de
+`BUG-android-splash-hang.md` n'était donc **pas** une famine mémoire : c'était ce même défaut de thème.
 
 ## Ce qui n'est PAS un bug (noté pour éviter une fausse piste)
 La troisième rangée (Poids / Taille / Température) coupée à mi-hauteur est **normale** : le domicile

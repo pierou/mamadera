@@ -1,7 +1,7 @@
 # BUG — Android ne dépasse jamais le splash ( Small_Phone, 360×640 dp )
 
-**Statut:** **CLOSED — FAUSSE ALARME. Non reproductible hors de l'hôte d'origine. N'est PAS
-une régression de la branche.** (voir "Clôture" en bas — lire AVANT le reste du document) · **Ouvert:** 2026-10-04 · **Plateforme:** Android ( deux émulateurs )
+**Statut:** **CLOSED — cause trouvée : `android:theme="@style/LaunchTheme"` absent du manifeste.**
+Ni une régression de la branche, ni une famine mémoire. Voir `BUG-baby-name-under-status-bar.md`. · **Ouvert:** 2026-10-04 · **Plateforme:** Android ( deux émulateurs )
 **Build:** app-debug.apk de la branche `feat/v1.2.0-growth-and-baby-scoped-reminders` (95 835 048 octets), installé avec `install -r -g` → Success.
 
 ## Fait établi, pas supposé
@@ -115,3 +115,17 @@ pas après.
 
 ## Reste ouvert
 Le parcours manuel (biberon en ml, tétée en min, solide en g, poids) et l'inspection du JSON exporté.
+
+## Cause réelle (trouvée, pas devinée)
+`MainActivity` n'avait pas `android:theme="@style/LaunchTheme"` (`Theme.Light.NoTitleBar`). Sans lui,
+Android monte une ActionBar native « Mamadera » et garde le thème clair par défaut : ce que j'ai pris
+pour un splash bloqué était **l'app rendue derrière la barre native**, sur fond clair. Le splash
+bouteille appartenait au thème par défaut. Le prénom, posé en haut du corps scrollable, tombait à
+`y=32` — sous la barre système.
+
+**Ce que j'ai affirmé à tort, dans l'ordre :** (1) « régression de la branche » — non, `main` a le
+même manifeste ; (2) « le limiteur mémoire du Mac affame qemu » — non plus, c'était le thème ;
+(3) des captures du launcher et une capture derrière l'ActionBar lues comme des preuves. Chaque
+conclusion tenait sur un seul signal au lieu de la convergence. La règle qui manque : identifier
+l'écran (dumpsys + regard) avant d'interpréter, et faire l'A/B sur **deux machines** avant de
+conclure à une régression.
