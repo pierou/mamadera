@@ -137,7 +137,22 @@ invisibles pour le bébé A. Décision :
   du correctif.
 - Aucune donnée détruite dans les deux cas ; export/import continue de faire l'aller-retour.
 
-## Choix de locale — la virgvale décimale est acceptée partout (owner, 2026-10-04)
+## Choix de locale — la virgule décimale est acceptée partout (owner, 2026-10-04) — **VÉRIFIÉ APPAREIL, OK**
+Passé sur l'appareil Android en locale anglais (switch par le menu de l'app, pas par adb) : la
+saisie caractère par caractère donne `3` `37` `37,` `37,4` — la virgule inscrite telle quelle, **aucun
+point inséré avant**. L'en-tête affiche `37.4 °C` en anglais, `Enregistrer` actif, aucune erreur.
+Aucun `InputFormatter` n'existe sur ce chemin : `keyboardType` n'est qu'une indication, et
+`_onTextChanged` normalise par `replaceAll(',', '.')`, donc locale-neutre.
+**Mon observation antérieure `0.037,4` était un artefact de mon propre geste** : j'ai tapé dans un
+champ non vidé, curseur au milieu — `37.037,4` → `tryParse` nul → ignoré, même symptôme « rien ne se
+passe », zéro défaut. Leçon notée : avant d'appeler un bug un bug, vider le champ et recommencer.
+
+### Vrai détail repéré au passage (v1.2.1, cosmétique)
+Le texte **initial du champ** est toujours formaté avec un point (`_textFor` → `toStringAsFixed`,
+`quantity_picker_inline.dart:113`) alors que l'**en-tête** est formaté selon la locale. En fr/es, le
+parent voit donc `37,5` en haut et `37.5` dans le champ vide. Incohérence réelle, visible, sans impact
+sur la donnée — à corriger avec le pré-remplissage par la dernière mesure, qui touchera le même code.
+
 `37,4` doit être accepté en `en` comme en `fr`/`es`. Le refus observé sur l'appareil en anglais
 venait du clavier/touche décimale, pas du parsing — **à revérifier sur l'appareil en `en`**, car une
 observation manuelle avait donné « 0.037,4 » hors plage : si le champ reformate le point avant la
