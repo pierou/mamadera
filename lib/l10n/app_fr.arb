@@ -168,6 +168,12 @@
   "reminderCustomSaveError": "Le rappel n'a pas pu être enregistré. Réessayez.",
   "reminderCustomDeleteError": "Le rappel n'a pas pu être supprimé. Réessayez.",
   "reminderListTitle": "Rappels à faire",
+  "reminderListTitleFor": "Rappels de {name} à faire",
+  "@reminderListTitleFor": {
+    "placeholders": {
+      "name": {}
+    }
+  },
   "reminderListEmpty": "Rien à faire pour l'instant.",
   "reminderMarkDone": "Marquer comme fait",
   "reminderDismiss": "Ignorer ce rappel",

@@ -302,6 +302,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderListTitle => 'Reminders to do';
 
   @override
+  String reminderListTitleFor(Object name) {
+    return '$name\'s reminders';
+  }
+
+  @override
   String get reminderListEmpty => 'Nothing to do for now.';
 
   @override

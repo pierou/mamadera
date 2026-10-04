@@ -217,7 +217,10 @@ void main() {
       expect(find.byType(MeasurementButton), findsNWidgets(3));
 
       // Les 4 rappels dus sont listés, pas agrégés en « +2 ».
-      expect(find.text('Rappels à faire'), findsOneWidget);
+      // Le titre porte le prénom du bébé actif (v1.2, message l10n avec
+      // placeholder) : l'ancienne attente exacte « Rappels à faire »
+      // décrivait l'état sans prénom, remplacé par celui de la chaîne.
+      expect(find.text('Rappels de Test Baby à faire'), findsOneWidget);
       expect(find.byType(ReminderRow), findsNWidgets(4));
       expect(find.text('Vitamine D'), findsOneWidget);
       expect(find.text('Vitamine K'), findsOneWidget);

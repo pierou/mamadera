@@ -112,7 +112,10 @@ void main() {
       repo.customRemindersById[1] = thermometer();
       await pumpSection(tester, repo: repo, baby: babyA);
 
-      expect(find.text('Rappels à faire'), findsOneWidget);
+      // Le titre porte le prénom du bébé actif (v1.2, message l10n avec
+      // placeholder) : l'ancienne attente exacte « Rappels à faire »
+      // décrivait l'état sans prénom, remplacé par celui de la chaîne.
+      expect(find.text('Rappels de Anna à faire'), findsOneWidget);
       final rows = tester.widgetList<ReminderRow>(find.byType(ReminderRow));
       expect(
         rows.map((r) => r.item.id).toList(),
@@ -192,7 +195,9 @@ void main() {
       final repo = MockRemindersRepository();
       await pumpSection(tester, repo: repo, baby: babyA);
 
-      expect(find.text('Rappels à faire'), findsOneWidget);
+      // Même mise à jour du titre que plus haut : prénom du bébé actif
+      // dans le message l10n, jamais de concaténation.
+      expect(find.text('Rappels de Anna à faire'), findsOneWidget);
       expect(find.byType(ReminderRow), findsNWidgets(4));
       expect(find.text('Vitamine D'), findsOneWidget);
       expect(find.text('Vitamine K'), findsOneWidget);

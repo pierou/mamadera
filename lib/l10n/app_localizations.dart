@@ -622,6 +622,12 @@ abstract class AppLocalizations {
   /// **'Rappels à faire'**
   String get reminderListTitle;
 
+  /// No description provided for @reminderListTitleFor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels de {name} à faire'**
+  String reminderListTitleFor(Object name);
+
   /// No description provided for @reminderListEmpty.
   ///
   /// In fr, this message translates to:

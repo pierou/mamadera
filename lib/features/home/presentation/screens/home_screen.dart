@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/show_feedback.dart';
@@ -309,6 +310,11 @@ class _HomeContent extends ConsumerWidget {
     final statusMap =
         statusesAsync.value ?? const <TrackingType, List<ReminderStatus>>{};
 
+    // Prénom du bébé actif au-dessus de la grille : contexte, pas titre.
+    // `watch` (pas `read`) : l'en-tête doit suivre un changement de bébé,
+    // jamais afficher un prénom capturé à la première construction.
+    final babyName = ref.watch(activeBabyProvider).value?.name;
+
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
       // Scrollable so the 2x2 grid stays reachable on small viewports
@@ -317,6 +323,22 @@ class _HomeContent extends ConsumerWidget {
         padding: const EdgeInsets.all(AppTheme.spacingXl),
         child: Column(
           children: [
+            // Sans bébé actif, rien ne s'affiche : pas de « null », pas de
+            // faux identité — le parcours de premier lancement gère la
+            // création du profil. Un prénom long se tronque, ne déborde pas.
+            if (babyName != null && babyName.trim().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(
+                    bottom: AppTheme.spacingXl),
+                child: Text(
+                  babyName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ),
             GridView.count(
               crossAxisCount: 2,
               mainAxisSpacing: AppTheme.spacingXl,

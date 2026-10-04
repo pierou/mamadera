@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../domain/entities/reminders_state.dart';
@@ -36,6 +37,16 @@ class HomeRemindersSection extends ConsumerWidget {
     final items = _due(ref.watch(reminderNotifierProvider));
     final theme = Theme.of(context);
 
+    // Le prénom du bébé actif passe par le placeholder du message l10n, jamais
+    // par concaténation : l'ordre des mots n'est pas universel.
+    // `watch` : le titre suit un changement de bébé. Sans bébé actif, le
+    // titre neutre « Rappels à faire » — pas de « null », pas de faux
+    // identité.
+    final babyName = ref.watch(activeBabyProvider).value?.name;
+    final title = (babyName != null && babyName.trim().isNotEmpty)
+        ? context.l.reminderListTitleFor(babyName)
+        : context.l.reminderListTitle;
+
     if (items.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(top: AppTheme.spacingXl),
@@ -55,7 +66,9 @@ class HomeRemindersSection extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(top: AppTheme.spacingXl),
           child: Text(
-            context.l.reminderListTitle,
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),

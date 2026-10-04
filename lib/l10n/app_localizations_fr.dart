@@ -306,6 +306,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reminderListTitle => 'Rappels à faire';
 
   @override
+  String reminderListTitleFor(Object name) {
+    return 'Rappels de $name à faire';
+  }
+
+  @override
   String get reminderListEmpty => 'Rien à faire pour l\'instant.';
 
   @override
