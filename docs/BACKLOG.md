@@ -54,12 +54,46 @@ both unverified on hardware, is how you lose a user's data.
 4. `measurements` (v1.2.0) *does* carry a `unit` column (`app_db.dart:102`). The schema now contradicts
    itself: one table states its unit, the other assumes it.
 
+### Decision (owner, 2026-10-03): fix it in v1.2.1, and breastfeeding becomes MINUTES
+Per-subtype units are now the product contract, not an accident of inference:
+
+| subtype | quantity means | `unit` |
+|---------|----------------|--------|
+| `natural` | **minutes at the breast** | `min` |
+| `artificial` | millilitres of formula | `ml` |
+| `solid` | grams of solid food | `g` |
+| `dodo` | minutes | `min` |
+
+That makes the `unit` column a **prerequisite**, not a cleanup: without it, `quantity` would hold
+minutes and millilitres under one subtype name with nothing distinguishing them.
+
+### The backfill trap, stated before anyone writes the migration
+Rows written before v1.2.1 under `natural` contain **millilitres** — entered through an `ml` picker,
+labelled `ml`, on builds already shipped. There is no way to recover whether a given historical
+`natural` row of `20` meant 20 ml or 20 minutes, so **do not convert them**. They backfill to `'ml'`
+and stay `'ml'`, truthfully. Consequences, all of them intended:
+
+- `natural` rows carry two units across time, distinguished only by `unit`. Any query, chart or
+  "last fed" logic that ignores `unit` will mix volumes and durations. Verify there is no such query
+  before shipping — today there is none, nothing sums feeding volume (checked 2026-10-03).
+- **Expressed milk loses its input field.** Once breast means minutes, there is nowhere to record
+  "30 ml at the pump". If that matters — and for a pumped-milk parent it will — it needs a fourth
+  subtype (`pumped`) or a second optional field, decided before the migration, not after it.
+- Duration of a feed becomes available per row, which is what a paediatrician asking "how long does
+  she feed?" actually wants. That is the gain paying for all of the above.
+
 ### The fix
-Schema v12: `ALTER TABLE tracking_events ADD COLUMN unit TEXT NOT NULL DEFAULT 'ml'`, backfilled by
-subtype (`natural`→`min`, `artificial`→`ml`, `solid`→`g`), then make every read path use the column
-instead of inferring, and delete the hardcoded `'ml'` literals. Export format 3, importer accepts 2
-and 3. Same discipline as v11: explicit column list in any `INSERT … SELECT`, and the export
-stability test extended to cover `unit`.
+Schema v12: `ALTER TABLE tracking_events ADD COLUMN unit TEXT`. Backfill honestly, per row:
+`sleep`→`min`; `miam`+`artificial`→`ml`; `miam`+`solid`→`g`; **`miam`+`natural`→`ml` for every row
+that already exists** (that is what they mean), and `'min'` only for rows written by v1.2.1 and later.
+Default for new rows comes from the subtype at insert time, so no code path can write a unit-less row.
+Then make every read path render from `unit` and delete the hardcoded `'ml'` literals. Export format 3,
+importer accepts 2 and 3, and a format-2 backup's feeding rows backfill to `'ml'` — never `'min'`.
+Same discipline as v11: explicit column list in any `INSERT … SELECT`, export stability test extended
+to cover `unit`, and an emulator migration pass with pre-existing v11 data before the PR (AGENTS.md).
+
+**Ordering:** v1.2.0 (schema v11) ships and is verified on a device first. v1.2.1 carries v12. Two
+unverified irreversible migrations in one release is how a re-key goes wrong with no rollback.
 
 ### Do not
 Do not "fix" this by widening reminder matching to `type == miam`. Reminders match `subtype`
@@ -68,17 +102,22 @@ reminder. That exactness is behaviour, not oversight.
 
 ---
 
-## B2 — Weight slider has 1980 stops
+## B2 — Weight slider has 1980 stops → coarse + fine slider pair
 
-**Status:** accepted · **Severity:** low · **Cost:** UI, ~1 h
+**Status:** **approved for v1.2.1** (owner, 2026-10-03) · **Severity:** low · **Cost:** UI, ~2 h
 **Found:** 2026-10-03, when the step moved from 200 g to 10 g
 
 Half a pixel per stop on a phone. The slider is an aiming device, not an input device; the text
 field and the ±steppers set the real value. Accepted deliberately because 10 g of granularity is
 what the parent is looking at, and a coarse slider is a lesser sin than a coarse measurement.
 
-Revisit if: anyone complains about hitting an exact weight, then replace the weight slider with a
-coarse slider (50 g) **plus** the fine stepper, rather than reverting the step.
+**Decision:** two sliders, not one. A **coarse** slider spanning the whole range for rapid finding
+(50 g, or 100 g below 3 kg) and a **fine** slider spanning a narrow window around the current value
+for the exact one (±50 g, step 10 g), the window re-centring as the coarse slider moves. Same pattern
+resolves temperature (coarse 33–42 by 0,5, fine ±1 °C by 0,1) and height. The ±steppers stay — they
+are the fastest way to nudge one quantum, and the fine slider is the fastest way to see the neighbours.
+Reused across all measurement kinds and the feeding picker, so this is one widget change, not four.
+Reverting the step to 200 g is **not** an option: coarse selection and fine value are both required.
 
 ---
 

@@ -154,6 +154,31 @@ Then run `make lint` to verify no unresolved imports remain.
 - Required files: [`CONTRIBUTING.md`](CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), [`SECURITY.md`](.github/SECURITY.md)
 - Commit messages: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `security:`)
 
+## 🧪 Release Gate: emulator pass before EVERY PR (non negotiable, added 2026-10-03)
+
+**Every PR is preceded by an emulator pass.** No exceptions for "small" changes, no exceptions for
+"docs only" once code is in the branch. Unit tests cannot execute a SQLite migration, cannot render a
+layout on a 4,7-inch screen, and cannot open the share sheet — the three things most likely to be
+broken by a release.
+
+The pass, in order:
+
+1. **Migration path, on a device that has old data.** Install the previously released build first,
+   seed events, then install the new build over it and confirm the migration ran and the old data is
+   still *visible and correct*. A fresh install creates the schema directly and therefore proves
+   nothing about upgrading. Never ship an irreversible migration (`REKEY`, table rebuild) that has
+   only been seen on a fresh database.
+2. **Screenshots of every touched screen** on the smallest target (`Small_Phone`) and a normal one —
+   `xcrun simctl io <udid> screenshot out.png`, then look at the file. Overflow is silent in tests
+   that bump their own viewport; it is not silent on a real screen.
+3. **The manual entry path**: record a feeding, a sleep, a measurement, then export and inspect the
+   JSON. An export that silently omits a section is a broken backup and no test catches it if the
+   fixture only contains what the test writes.
+
+Available targets: `flutter emulators` (Android: `Pixel_10_Pro`, `Small_Phone`, `ci_test`) and
+`xcrun simctl list devices available` (iOS). Record in the PR description which pass was run, on
+which simulator, and what was seen — an unrecorded pass is a pass that didn't happen.
+
 ## 🤖 AI Interaction Guidelines
 
 1. Propose local/offline solutions first; flag privacy implications for any cloud suggestion
