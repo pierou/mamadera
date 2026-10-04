@@ -142,3 +142,25 @@ invisibles pour le bébé A. Décision :
 venait du clavier/touche décimale, pas du parsing — **à revérifier sur l'appareil en `en`**, car une
 observation manuelle avait donné « 0.037,4 » hors plage : si le champ reformate le point avant la
 virgule, un `InputFormatter` est en cause et le test en `en` ne le voit pas nécessairement.
+
+## v1.2.1 — mesures comme événements, avec écran d'édition/suppression (owner, 2026-10-04)
+Confirmé pour v1.2.1 (et non v1.2.0) : frise unifiée **plus** un vrai écran pour **modifier** et
+**supprimer** une mesure. Édition et suppression adressent la table `measurements` d'origine — jamais
+une copie. `unit` suit la ligne éditée : changer une mesure de 37,4 °C à 38,1 °C ne doit pas réécrire
+l'unité ni arrondir.
+
+## Valeur par défaut = la dernière mesure de ce type (owner, 2026-10-04)
+Le sheet pré-remplit avec la dernière mesure **du même `kind`** (`ORDER BY recorded_at DESC LIMIT 1`,
+chiffrée au repos → déchiffrée pour l'affichage). S'il n'y en a aucune, on retombe sur les défauts
+actuels : 3500 g, 50 cm, 37 °C.
+
+### Le piège, et ce qu'on fait dessus (à ne pas laisser implicite)
+Un champ pré-rempli que le parent peut valider sans toucher enregistre **la valeur d'hier comme la
+mesure d'aujourd'hui**. Dans une app de santé, ce n'est pas une commodité, c'est une donnée inventée :
+36,8 °C relevé ce matin et rejoué ce soir efface la fièvre qui n'était pas là, ou en fabrique une.
+
+Règle proposée : la dernière mesure s'affiche comme **indice** (`hintText`, teinte doux, « dernière :
+36,8 °C »), et non comme une valeur déjà saisie ; le champ démarre vide et **Enregistrer reste
+désactivé tant que rien n'a été saisi**. Le parent garde la référence sous les yeux sans pouvoir la
+valider par inadvertance. Si le pré-remplissage en valeur active est malgré tout voulu, alors la
+sauvegarde sans modification doit être refusée avec un message — pas silencieusement acceptée.
