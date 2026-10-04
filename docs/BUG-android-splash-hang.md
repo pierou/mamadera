@@ -71,3 +71,15 @@ court-circuitent.
 
 Ne pas masquer le symptôme (pas de timeout de splash, pas de \`postFrameCallback\` de contournement)
 avant d'avoir la cause.
+
+## Clarification de la méthode (mes erreurs, notées pour qu'on ne les répète pas)
+- Les captures de 708 Ko et 37 Ko étaient **le launcher Android**, pas l'app : le fond d'écran
+  riche explique la taille. Une capture n'est un fait qu'après avoir été regardée ET identifiée.
+- `am start -W` → `Status: timeout` ne prouve pas la mort du process : l'app était vivante et
+  `topResumedActivity` était bien `com.pvjio.mamadera/.MainActivity`.
+- Ce qui est établi, par convergence et non par un seul signal : process vivant, activity au
+  premier plan, `crash` buffer vide, aucune ligne `AndroidRuntime`/`F DEBUG`/`MissingPlugin`,
+  et l'écran reste le **splash natif** (fond clair, alors que l'app vérifiée est sombre) pendant
+  des minutes. Donc : **le premier rendu Flutter ne remplace jamais le splash.**
+- La règle manquante dès le départ : comparer la taille des captures ne dit rien. `dumpsys` pour
+  savoir quelle activity est au premier plan, puis regarder l'image, puis conclure.
