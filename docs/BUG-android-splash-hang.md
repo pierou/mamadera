@@ -1,0 +1,38 @@
+# BUG — Android ne dépasse jamais le splash ( Small_Phone, 360×640 dp )
+
+**Statut:** bloquant pour la release · **Ouvert:** 2026-10-04 · **Plateforme:** Android ( émulateur )
+**Build:** app-debug.apk de la branche `feat/v1.2.0-growth-and-baby-scoped-reminders` (95 835 048 octets), installé avec `install -r -g` → Success.
+
+## Fait établi, pas supposé
+- `am start -W -n com.pvjio.mamadera/.MainActivity` → **`Status: timeout`** : l'activité ne signale
+  jamais son premier rendu. Ce n'est pas une écran lent, c'est un premier rendu qui n'arrive pas.
+- Le processus **vit** (pid 6346), le moteur Flutter démarre, la surface est créée en 720x1280, les
+  viewport metrics sont envoyés — puis plus rien que des **"Skipped N frames"** (64, 116, 34, 57).
+  Aucune exception, aucun FATAL, aucun crash dans le buffer `crash`.
+- `FlutterRenderer: Width is zero. 0,0` apparaît deux fois au démarrage, avant la création de surface.
+- Les mêmes écrans **réussissent** sous `flutter test integration_test` sur ce même émulateur
+  (rendering_validation_test.dart + feeding_tracking_flow_test.dart → tous passés). Donc le widget
+  tree sait rendre sur cet appareil : la différence est le lanceur, pas le rendu.
+- `FlutterSecureStorage` a complété sa migration sans erreur lors d'une exécution précédente
+  (pid 4902, 17:52) — "Data migration completed successfully". Le keystroke n'est donc pas
+  prouvé coupable ; c'est un suspect, pas un verdict.
+- iOS (iPhone 17, même build) : aucunsplash hang, tous les écrans rendus et vérifiés visuellement.
+
+## Ce que la passe a manqué
+Le parcours manuel (biberon en ml, solide en g, poids, export JSON inspecté) et l'écran de
+consentement tapé pour de vrai n'ont **pas** été faits : l'app ne quitte pas le splash.
+
+## Prochain diagnostic, dans cet ordre
+1. `am start -W` sur `Pixel_10_Pro` (même build) : si ça démarre, le problème est lié à la
+   configuration de Small_Phone (résolution/densité/API), pas au code applicatif.
+2. `logcat` filtré sur le pid courant, en cherchant la **dernière** ligne avant le silence — pour
+   savoir si le blocage est avant `runApp`, dans un canal plugin, ou dans la main de Dart.
+3. `flutter run --verbose -d emulator-5554` : le handshake engine↔app est visible, contrairement
+   a `am start`.
+4. Ne pas masquer le symptome (pas de splash timeout, pas de `postFrameCallback\) de contournement)
+   avant d'avoir la cause : un splash qui ne finit jamais sur un device Android livré est un
+   utilisateur perdu, pas un détail cosmetique.
+
+## Preuves conservées
+`/tmp/sp.png` `/tmp/sp2.png` `/tmp/sp3.png` `/tmp/small_home.png` `/tmp/clean.png` (splash)
+`/tmp/name.jpg` (iOS, domicile avec le prénom) · journal: `/tmp/integ.log` `/tmp/emu.log`
