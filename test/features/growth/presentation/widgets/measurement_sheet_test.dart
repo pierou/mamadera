@@ -119,13 +119,54 @@ void main() {
 
     Finder saveButton() => find.widgetWithText(ElevatedButton, 'Enregistrer');
 
-    testWidgets('opens out of range: inline error shown and save disabled',
+    testWidgets('temperature opens at 37,0 °C with no out-of-range error',
+        (tester) async {
+      await pumpSheet(tester, MeasureKind.temperature);
+      await tester.pumpAndSettle();
+
+      expect(find.text('37,0 °C'), findsOneWidget);
+      expect(
+        find.text('Valeur hors plage : entre 33 et 42 °C.'),
+        findsNothing,
+      );
+      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNotNull);
+    });
+
+    testWidgets('weight opens at 3500 g with no out-of-range error',
         (tester) async {
       await pumpSheet(tester, MeasureKind.poids);
       await tester.pumpAndSettle();
 
-      expect(find.text('Valeur hors plage : entre 200 et 20000 g.'), findsOneWidget);
-      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNull);
+      expect(find.text('3500 g'), findsOneWidget);
+      expect(
+        find.text('Valeur hors plage : entre 200 et 20000 g.'),
+        findsNothing,
+      );
+      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNotNull);
+    });
+
+    testWidgets('height opens at 50,0 cm with no out-of-range error',
+        (tester) async {
+      await pumpSheet(tester, MeasureKind.taille);
+      await tester.pumpAndSettle();
+
+      expect(find.text('50,0 cm'), findsOneWidget);
+      expect(
+        find.text('Valeur hors plage : entre 30 et 110 cm.'),
+        findsNothing,
+      );
+      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNotNull);
+    });
+
+    testWidgets('cancelling a freshly opened sheet stores nothing', (tester) async {
+      await pumpSheet(tester, MeasureKind.temperature);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Annuler'));
+      await tester.pumpAndSettle();
+
+      expect(fakeRepo.stored, isEmpty);
+      expect(fakeRepo.lastAdded, isNull);
     });
 
     testWidgets('typed value in range clears the error and enables save',

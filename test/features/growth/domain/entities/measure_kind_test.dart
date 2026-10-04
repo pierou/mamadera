@@ -29,6 +29,20 @@ void main() {
       }
     });
 
+    test('defaultValue is inside the range and on the step grid, for every kind',
+        () {
+      expect(MeasureKind.poids.defaultValue, 3500);
+      expect(MeasureKind.taille.defaultValue, 50);
+      expect(MeasureKind.temperature.defaultValue, 37);
+      for (final kind in MeasureKind.values) {
+        expect(kind.contains(kind.defaultValue), isTrue,
+            reason: '${kind.dbValue}: défaut dans la plage');
+        final steps = (kind.defaultValue - kind.min) / kind.step;
+        expect((steps - steps.roundToDouble()).abs(), lessThan(1e-6),
+            reason: '${kind.dbValue}: défaut sur la grille du pas');
+      }
+    });
+
     test('one step outside either bound is rejected', () {
       expect(MeasureKind.poids.contains(199), isFalse);
       expect(MeasureKind.poids.contains(20001), isFalse);

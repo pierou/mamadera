@@ -181,3 +181,37 @@ la lisibilité du texte.
    thèmes, sur le plus petit appareil.
 3. Ne pas changer une couleur d'identité à la légère : ces quatre teintes sont le système de
    repérage de l'app, et un đổi couleur non mesuré peut en casser deux autres.
+
+---
+
+## B5 — une saisie hors plage est avalée sans message
+
+**Statut:** ouvert · **Priorité:** haute (santé) · **Coût:** petit — le mécanisme d'erreur existe déjà
+**Trouvé:** 2026-10-04, en vérifiant une conséquence signalée par un worker
+**Fichier:** `lib/features/home/presentation/widgets/quantity_picker_inline.dart:174`
+
+### Le fait
+```dart
+if (parsed != null && parsed >= widget.min && parsed <= widget.max) {
+  widget.onValueChanged(parsed);
+}
+```
+Hors plage : `parsed` est non nul, mais rien n'est appelé et **aucune erreur n'est affichée**.
+Le parent qui tape « 99999 » g, ou « 45 » °C, ne reçoit aucun retour : le libellé continue
+d'afficher la valeur précédente. Il peut croire avoir enregistré ce qu'il a tapé.
+
+C'est le même péché que le point-virgule de température avalé en silence, corrigé en v1.2.0 : une
+saisie qui ne produit ni valeur ni message est un enregistrement inventé.
+
+### Pourquoi le test ne l'a pas attrapé
+Un test affirmait que le sheet « s'ouvre hors plage » — ce qui n'était pas le comportement de la
+saisie, mais l'effet de bug `_value = 0`. Le vrai chemin (la frappe hors plage) n'a **jamais** été
+testé, et l'assertion est morte avec le défaut qu'elle masquait.
+
+### À faire
+1. Quand `parsed != null` et hors plage : afficher le libellé d'erreur existant
+   (« Valeur hors plage : entre X et Y ») et désactiver l'enregistrement — ne rien appeler d'autre.
+2. Ne pas borner silencieusement (`clamp`) : corriger le nombre du parent sans le lui dire est
+   exactement ce qu'on refuse de faire.
+3. Tester : taper 99999 en poids → erreur visible + save désactivée ; taper 45 en température →
+   idem ; revenir dans la plage → erreur effacée.

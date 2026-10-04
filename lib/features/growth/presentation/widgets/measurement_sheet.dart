@@ -13,10 +13,11 @@ import 'measure_kind_accent.dart';
 
 /// Feuille de saisie d'une mesure de croissance (poids, taille, température).
 ///
-/// La valeur de départ est 0 — toujours hors bornes — pour que le parent
-/// choisisse un nombre : l'état « hors plage » (erreur inline + enregistrement
-/// désactivé) fait partie du parcours normal, pas d'un cas d'erreur. Le
-/// slider ramène la valeur dans les bornes dès le premier glissement.
+/// La valeur de départ est le [MeasureKind.defaultValue] du type — une valeur
+/// plausible de nouveau-né, toujours dans les bornes — pour que la feuille
+/// s'ouvre sans erreur : le parent ajuste depuis là, et l'état « hors plage »
+/// (erreur inline + enregistrement désactivé) n'apparaît que s'il saisit un
+/// nombre hors des bornes.
 ///
 /// Sauvegarde en [double] : `null` = annulée, sinon la valeur enregistrée
 /// (l'appelant affiche la confirmation, comme les feuilles d'accueil).
@@ -31,7 +32,7 @@ class MeasurementSheet extends ConsumerStatefulWidget {
 
 class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
   /// Valeur courante, en unité de base (g, cm, °C).
-  double _value = 0;
+  late double _value;
 
   /// Date de la mesure, modifiable comme sur les autres fiches.
   late final DateTime _selectedDate;
@@ -43,6 +44,7 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
   @override
   void initState() {
     super.initState();
+    _value = widget.kind.defaultValue;
     _selectedDate = DateTime.now();
     _noteController = TextEditingController();
   }

@@ -106,6 +106,16 @@ enum MeasureKind {
   /// Un cran au-delà des bornes est refusé : les intervalles sont inclusifs.
   bool contains(num value) => value >= min && value <= max;
 
+  /// Valeur initiale du sheet, en unité de base.
+  ///
+  /// Toujours dans `[min, max]` et sur la grille de [step] : la feuille
+  /// s'ouvre sans erreur, sur une valeur plausible de nouveau-né.
+  double get defaultValue => switch (this) {
+        MeasureKind.poids => 3500,
+        MeasureKind.taille => 50,
+        MeasureKind.temperature => 37,
+      };
+
   /// Formate une borne (nombre seul, sans unité) pour les messages d'erreur.
   ///
   /// Les bornes sont des entiers par construction : pas de séparateur
