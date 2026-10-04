@@ -21,8 +21,8 @@ class CustomRemindersNotifier extends AsyncNotifier<List<CustomReminder>> {
   Future<List<CustomReminder>> build() async {
     // ref.watch : une réinitialisation de la base depuis le menu doit vider la
     // liste des rappels personnalisés, pas servir les anciens objets. Le
-    // rappel est porté par la ligne : on ne lit que ceux du profil actif, plus
-    // le portage partagé hérité d'une installation sans profil.
+    // rappel est porté par la ligne : on ne lit que ceux du profil actif, et
+    // le portage sans profil ('') seulement quand aucun profil n'existe.
     final profile = await ref.watch(activeBabyProvider.future);
     final repository = await ref.watch(remindersRepositoryProvider.future);
     return repository.getCustomReminders(babyId: profile?.id);

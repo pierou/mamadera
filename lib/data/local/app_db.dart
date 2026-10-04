@@ -29,7 +29,7 @@ class TrackingEvents extends Table {
 }
 
 class ReminderDismissals extends Table {
-  /// NOT NULL, `''` = partagé entre tous les bébés (sentinelle [db_const.sharedBabyId]).
+  /// NOT NULL, `''` = installation sans profil (sentinelle [db_const.sharedBabyId]).
   TextColumn get babyId =>
       text().withDefault(const Constant(db_const.sharedBabyId))();
   TextColumn get itemId => text()();
@@ -40,7 +40,7 @@ class ReminderDismissals extends Table {
 }
 
 class ReminderSettings extends Table {
-  /// NOT NULL, `''` = partagé entre tous les bébés (sentinelle [db_const.sharedBabyId]).
+  /// NOT NULL, `''` = installation sans profil (sentinelle [db_const.sharedBabyId]).
   TextColumn get babyId =>
       text().withDefault(const Constant(db_const.sharedBabyId))();
   TextColumn get itemId => text()();
@@ -63,8 +63,9 @@ class ReminderSettings extends Table {
 class CustomReminders extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  /// NOT NULL, `''` = rappel valable pour tous les bébés (lecture honnête des
-  /// lignes héritées de v10, où la table n'était pas scopée).
+  /// NOT NULL, `''` = rappel créé sans profil, visible sans profil seulement
+  /// (les lignes héritées de v10, où la table n'était pas scopée, restent
+  /// restaurables : l'import s'appuie sur la colonne, pas sur ce portage).
   TextColumn get babyId =>
       text().withDefault(const Constant(db_const.sharedBabyId))();
   TextColumn get label => text().withLength(min: 1, max: 60)();
@@ -398,8 +399,8 @@ class AppDatabase extends _$AppDatabase {
   /// Supprime tous les achèvements manuels rattachés à [babyId] (toutes les
   /// clés d'item). Retourne le nombre de lignes supprimées.
   ///
-  /// Les lignes portées par la sentinelle `''` appartiennent à tous les bébés
-  /// et survivent à la suppression d'un profil.
+  /// Les lignes portées par la sentinelle `''` appartiennent à l'installation
+  /// sans profil et survivent à la suppression d'un profil.
   Future<int> deleteReminderCompletionsByBabyId(String babyId) =>
       (delete(reminderCompletions)
             ..where((t) => t.babyId.equals(babyId)))

@@ -115,6 +115,11 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
             step: kind.step,
             value: _value,
             onValueChanged: (value) => setState(() => _value = value),
+            // Une saisie hors plage ne se tait plus : la valeur saisie remplace
+            // la courante, `_inRange` passe à false, et la feuille révèle son
+            // label d'erreur existant en désactivant la sauvegarde. Re-saisir
+            // dans la plage repasse par `onValueChanged` et lève l'erreur.
+            onValueOutOfRange: (value) => setState(() => _value = value),
             accentColor: kind.accent,
           ),
           if (!_inRange)

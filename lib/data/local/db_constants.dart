@@ -61,7 +61,14 @@ const String completionFromEvents = 'from_events'; // a `sante` event of subtype
 const String completionManual = 'manual';          // a tap on reminder_completions settles it
 const Set<String> allCompletionSourceValues = {completionFromEvents, completionManual};
 
-/// Sentinelle « tous les bébés » des clés composites (baby_id, item_id).
+/// Sentinelle « installation sans profil » des clés composites (baby_id, item_id).
 /// NULL n'est **pas** utilisé : SQLite l'autorise dans une PRIMARY KEY composite,
 /// et l'autorise en double.
+///
+/// Les lignes portées par `''` sont l'état de l'app **sans bébé actif**
+/// (installation avant tout profil, ou basculement pendant le chargement).
+/// Elles ne s'appliquent à aucun bébé réel : un bébé n'hérite que de ses
+/// propres lignes — et d'un bébé créé après coup, on ne peut pas « hériter »
+/// (le partage « tous les bébés » de la v10 faisait fuiter réglages, ignorés
+/// et réglages manuels d'un bébé sur le suivant).
 const String sharedBabyId = '';

@@ -18,20 +18,20 @@ class RemindersRepositoryImpl implements RemindersRepository {
   final db_app.AppDatabase database;
   static final Logger _logger = appLogger();
 
-  /// Portage effectif des écritures : le bébé demandé, sinon la sentinelle
-  /// partagée — c'est ici, à la frontière, que `null` devient `''` ; les
-  /// requêtes d'en-dessous ne voient plus que des bébés concrets.
+  /// Portage effectif des écritures : le bébé demandé, sinon la sentinelle de
+  /// l'état sans profil — c'est ici, à la frontière, que `null` devient `''` ;
+  /// les requêtes d'en-dessous ne voient plus que des bébés concrets.
   String _scope(String? babyId) => babyId ?? db_const.sharedBabyId;
 
-  /// Portages visibles pour une lecture : la ligne du bébé **et** la ligne
-  /// partagée, qui s'applique à tous les bébés (notamment les lignes héritées
-  /// d'une installation sans profil).
-  List<String> _visibleScopes(String? babyId) {
-    final scope = _scope(babyId);
-    return scope == db_const.sharedBabyId
-        ? const [db_const.sharedBabyId]
-        : [db_const.sharedBabyId, scope];
-  }
+  /// Portage visible pour une lecture : **la ligne du bébé, rien d'autre**.
+  ///
+  /// La sentinelle `''` est le portage de l'installation **sans profil** et ne
+  /// s'applique à aucun bébé réel : l'appliquer à tous (héritage v10) faisait
+  /// fuiter l'extinction, l'ignoré et le réglage manuel d'un bébé sur le
+  /// suivant, y compris un bébé créé après coup, qui héritait d'un état écrit
+  /// avant son existence. Un bébé nouveau part des défauts.
+  List<String> _visibleScopes(String? babyId) =>
+      babyId == null ? const [db_const.sharedBabyId] : [babyId];
 
   @override
   Future<DateTime?> getLastCompleted(ReminderItem item, {String? babyId}) async {
@@ -50,12 +50,15 @@ class RemindersRepositoryImpl implements RemindersRepository {
 
       // Get most recent event — no date restriction, returns last completed ever.
       // Scoped to the active baby when one is known (see interface dartdoc).
+      // L'état sans profil ne lit que les événements posés **sans** profil
+      // (`baby_id IS NULL`) : un événement d'un bébé ne règle plus le rappel
+      // de l'autre.
       final q = (database.select(database.trackingEvents)
         ..where((t) {
           final exp = t.type.equals(item.trackingType.name) &
               t.subtype.equals(subtypeValue) &
               (scope == db_const.sharedBabyId
-                  ? const Constant(true)
+                  ? t.babyId.isNull()
                   : t.babyId.equals(scope));
           return exp;
         })
@@ -81,8 +84,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
   Future<DateTime?> getLastManualCompletion(String itemId, {String? babyId}) async {
     try {
       // Journal append-only : la lecture est la plus récente ligne du portage
-      // du bébé, la ligne partagée ('') s'ajoutant — même forme que
-      // [getLastCompleted] côté événements.
+      // du bébé — rien d'autre, la ligne `''` étant celle de l'état sans
+      // profil (même forme que [getLastCompleted] côté événements).
       final scopes = _visibleScopes(babyId);
       final q = database.select(database.reminderCompletions)
         ..where((t) => t.itemId.equals(itemId) & t.babyId.isIn(scopes))
@@ -105,7 +108,7 @@ class RemindersRepositoryImpl implements RemindersRepository {
   @override
   Future<DateTime?> getLastDismissal(String itemId, {String? babyId}) async {
     try {
-      // Au plus deux lignes (portage du bébé + partage), la plus récente gagne.
+      // Une seule ligne par portage : la plus récente du portage du bébé.
       final scopes = _visibleScopes(babyId);
       final q = database.select(database.reminderDismissals)
         ..where((t) => t.itemId.equals(itemId) & t.babyId.isIn(scopes))
@@ -188,14 +191,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
           .get();
       // Une table vide est le cas normal (personne n'a encore rien décoché) :
       // ce n'est pas une erreur, et l'appelant interprète l'absence comme « activé ».
-      // La ligne propre au bébé écrase la ligne partagée : on pose d'abord le
-      // partage, puis le propre.
-      final shared = rows.where((row) => row.babyId == db_const.sharedBabyId);
-      final own = rows.where((row) => row.babyId != db_const.sharedBabyId);
-      return {
-        for (final row in shared) row.itemId: row.enabled,
-        for (final row in own) row.itemId: row.enabled,
-      };
+      // Une seule ligne par portage, plus aucun écrasement à fusionner.
+      return {for (final row in rows) row.itemId: row.enabled};
     } catch (e, stack) {
       _logger.e(
         'getEnabledByItemId error',
@@ -335,8 +332,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
   Future<List<CustomReminder>> getCustomReminders({String? babyId}) async {
     try {
       // Le rappel est porté par la ligne : créé pour un bébé, il ne sonne que
-      // pour lui — sauf le portage partagé (''), hérité de v10, qui s'applique
-      // à tous.
+      // pour lui. Le portage `''` (installation sans profil) ne sonne plus
+      // que sans profil.
       final scopes = _visibleScopes(babyId);
       final rows = await (database.select(database.customReminders)
             ..where((t) => t.babyId.isIn(scopes))

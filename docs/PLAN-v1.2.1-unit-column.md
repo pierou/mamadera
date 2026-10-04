@@ -105,3 +105,40 @@ analytics, no new dependencies, no `HistoryFilter` value for growth, `TrackButto
    → screenshots on `Small_Phone` and one normal target, **viewed, not just captured** → manual entry
    of a ml feeding, a min feeding, a solid and a weight → export inspected. Simulator id and what was
    seen recorded in the PR description.
+
+## Décision — les mesures doivent apparaître comme événements (owner, 2026-10-04)
+Aujourd'hui `measurements` vit dans sa propre table et **n'apparaît pas dans l'historique**
+(vérifié sur l'appareil : poids et température ne s'affichent que sur les tuiles du domicile).
+Le parent doit pouvoir voir « 37,4 °C à 20:26 » dans la même frise que les biberons et les siestes.
+
+**Approche retenue : lecture unifiée, PAS de duplication.**
+- `measurements` reste la source de vérité, **chiffrée au repos** comme aujourd'hui.
+- L'historique construit une frise en fusionnant `tracking_events` et `measurements`, triée par
+  horodatage, chaque ligne sachant rendre son unité depuis sa propre colonne `unit`.
+- Modification et suppression adressées à la table d'origine — jamais aux deux.
+
+**Pourquoi pas dupliquer dans `tracking_events` :** cela écrirait deux fois un chiffre de santé,
+dont une copie dans une colonne `quantity` **en clair** (vérifié : `quantity` est en clair au repos,
+seules les notes et la valeur de `measurements` sont chiffrées). Dupliquer, c'est créer un doublon
+non chiffré de la donnée la plus sensible de l'app. C'est refusé.
+
+Coût réel : une jointure de lecture triée + un type de ligne d'historique pour les mesures + une
+route d'édition vers la bonne table. Rien dans le schéma de stockage ne change — seule la lecture.
+
+## Décision — devenir des lignes `''` à la migration v12 (orchestrateur, 2026-10-04)
+Le correctif de fuite restreint la portée au bébé actif ; les lignes `''` existantes deviennent
+invisibles pour le bébé A. Décision :
+- **si exactement un bébé existe** : réaffecter `''` → ce bébé (`reminder_settings`,
+  `reminder_dismissals`, `reminder_completions`, `custom_reminders`). Un seul bébé = l'état lui
+  appartient sans ambiguïté, et ce sont des **contenus** (rappels personnalisés) autant que des états :
+  les perdre serait une régression pour l'immense majorité des installations.
+- **si 0 ou plusieurs bébés** : **ne rien réaffecter**. Choisir à quel bébé appartient un rappel
+  `''` sur un appareil multi-bébés serait une devinette ; on laisse l'état « sans profil », sémantique
+  du correctif.
+- Aucune donnée détruite dans les deux cas ; export/import continue de faire l'aller-retour.
+
+## Choix de locale — la virgvale décimale est acceptée partout (owner, 2026-10-04)
+`37,4` doit être accepté en `en` comme en `fr`/`es`. Le refus observé sur l'appareil en anglais
+venait du clavier/touche décimale, pas du parsing — **à revérifier sur l'appareil en `en`**, car une
+observation manuelle avait donné « 0.037,4 » hors plage : si le champ reformate le point avant la
+virgule, un `InputFormatter` est en cause et le test en `en` ne le voit pas nécessairement.

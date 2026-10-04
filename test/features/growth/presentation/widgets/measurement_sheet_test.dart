@@ -85,7 +85,11 @@ void main() {
       fakeRepo = _FakeMeasurementRepository();
     });
 
-    Future<void> pumpSheet(WidgetTester tester, MeasureKind kind) async {
+    Future<void> pumpSheet(
+      WidgetTester tester,
+      MeasureKind kind, {
+      String locale = 'fr',
+    }) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -97,8 +101,8 @@ void main() {
             activeBabyProvider.overrideWith(_TestActiveBabyNotifier.new),
           ],
           child: MaterialApp(
-            locale: const Locale('fr'),
-            supportedLocales: const [Locale('fr')],
+            locale: Locale(locale),
+            supportedLocales: [Locale(locale)],
             localizationsDelegates: const [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
@@ -181,6 +185,94 @@ void main() {
       expect(find.text('3500 g'), findsOneWidget);
       expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNotNull);
     });
+
+    testWidgets(
+        'weight: out-of-range input shows the range error and disables save, '
+        'back in range clears it', (tester) async {
+      await pumpSheet(tester, MeasureKind.poids);
+      await tester.pumpAndSettle();
+
+      // 99999 g n'est pas un poids de nouveau-né : le nombre saisi reste
+      // affiché tel quel (jamais clampé), la feuille révèle son erreur
+      // existante, et la sauvegarde est désactivée.
+      await tester.enterText(valueField(), '99999');
+      await tester.pumpAndSettle();
+
+      expect(find.text('99999 g'), findsOneWidget);
+      expect(
+        find.text('Valeur hors plage : entre 200 et 20000 g.'),
+        findsOneWidget,
+      );
+      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNull);
+
+      // De retour dans la plage : l'erreur se lève, la sauvegarde se réactive.
+      await tester.enterText(valueField(), '3500');
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Valeur hors plage : entre 200 et 20000 g.'),
+        findsNothing,
+      );
+      expect(find.text('3500 g'), findsOneWidget);
+      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNotNull);
+    });
+
+    testWidgets(
+        'temperature: out-of-range input shows the range error and disables '
+        'save, back in range clears it', (tester) async {
+      await pumpSheet(tester, MeasureKind.temperature);
+      await tester.pumpAndSettle();
+
+      // 45 °C est au-dessus du maximum : même chemin que le poids.
+      await tester.enterText(valueField(), '45');
+      await tester.pumpAndSettle();
+
+      expect(find.text('45,0 °C'), findsOneWidget);
+      expect(
+        find.text('Valeur hors plage : entre 33 et 42 °C.'),
+        findsOneWidget,
+      );
+      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNull);
+
+      await tester.enterText(valueField(), '37,4');
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Valeur hors plage : entre 33 et 42 °C.'),
+        findsNothing,
+      );
+      expect(find.text('37,4 °C'), findsOneWidget);
+      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNotNull);
+    });
+
+    // La virgule est le séparateur de la locale modèle (fr), mais l'app tourne
+    // dans les trois locales : « 37,4 » doit se parser sans erreur de plage
+    // partout. Le champ garde le texte saisi, l'affichage large est formaté
+    // dans la locale courante.
+    for (final (tag, display) in const [
+      ('en', '37.4 °C'),
+      ('fr', '37,4 °C'),
+      ('es', '37,4 °C'),
+    ]) {
+      testWidgets(
+          'temperature: comma decimal 37,4 parses and shows $display in $tag',
+          (tester) async {
+        await pumpSheet(tester, MeasureKind.temperature, locale: tag);
+        await tester.pumpAndSettle();
+
+        await tester.enterText(valueField(), '37,4');
+        await tester.pumpAndSettle();
+
+        expect(find.text(display), findsOneWidget);
+        // Le seul ElevatedButton de la feuille est la sauvegarde : la valeur
+        // étant dans la plage, elle doit rester active.
+        expect(find.byType(ElevatedButton), findsOneWidget);
+        expect(
+          tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+          isNotNull,
+        );
+      });
+    }
 
     testWidgets('save calls the repository with the picked value and no note',
         (tester) async {

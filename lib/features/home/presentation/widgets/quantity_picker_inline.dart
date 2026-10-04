@@ -22,6 +22,7 @@ class QuantityPickerInline extends StatefulWidget {
     this.accentColor = AppTheme.miam,
     this.decimals = 0,
     this.step,
+    this.onValueOutOfRange,
     super.key,
   });
 
@@ -31,6 +32,14 @@ class QuantityPickerInline extends StatefulWidget {
   final int divisions;
   final double value;
   final void Function(double) onValueChanged;
+
+  /// Nombre parsé **hors** de `[min, max]`, si l'hôte en veut la vue.
+  ///
+  /// `null` (défaut) : une saisie hors plage est ignorée, comportement
+  /// historique. Fourni, l'hôte affiche son erreur existante et désactive
+  /// sa sauvegarde — le chiffre est transmis tel quel, **jamais clamped** :
+  /// corriger silencieusement un nombre de parent, c'est inventer une mesure.
+  final void Function(double)? onValueOutOfRange;
 
   /// Pas des boutons +/-, en unités de [min]/[max].
   ///
@@ -169,10 +178,18 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
     // La virgule est le séparateur décimal du clavier français, celui de la
     // locale modèle de l'app : sans cette normalisation, « 37,5 » ne se parse
     // pas, `onValueChanged` n'est jamais appelé, et le parent croit avoir saisi
-    // une température que l'app n'a jamais enregistrée.
+    // une température que l'app n'a jamais enregistrée. La normalisation est
+    // locale-neutre : point ET virgule se saisissent dans chaque locale.
     final parsed = double.tryParse(text.replaceAll(',', '.'));
-    if (parsed != null && parsed >= widget.min && parsed <= widget.max) {
+    if (parsed == null) return;
+    if (parsed >= widget.min && parsed <= widget.max) {
       widget.onValueChanged(parsed);
+    } else {
+      // Hors plage : ne plus se taire. L'hôte reçoit la valeur saisie et
+      // décide de l'affichage (son label d'erreur, sa sauvegarde désactivée).
+      // L'erreur se lève et se lève seule : re-saisir dans la plage repasse
+      // par `onValueChanged`.
+      widget.onValueOutOfRange?.call(parsed);
     }
   }
 

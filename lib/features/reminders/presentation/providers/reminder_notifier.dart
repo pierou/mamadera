@@ -82,9 +82,13 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
     if (!ref.mounted) return {};
     final repository = await ref.read(remindersRepositoryProvider.future);
     if (!ref.mounted) return {};
-    // Active baby, null while it is still loading or on an install without a
-    // profile yet. build() watches the same provider, so a baby switch (or its
-    // first resolution after a cold start) re-runs this method scoped.
+    // Active baby, null pendant le chargement transitoire ou sur une
+    // installation sans profil. Lecture de `.value` (pas d'attente) : un
+    // basculement met le provider en AsyncLoading, `null` lit alors sous le
+    // portage sans profil — sans fuite possible (les lignes `''` ne
+    // contiennent que de l'état sans profil) — et build() watche le même
+    // provider, donc la résolution relance cette méthode scopée au bébé
+    // entrant. Les écritures ([markDone], [snooze]), elles, attendent.
     final babyId = ref.read(activeBabyProvider).value?.id;
     final result = await service.checkDue(babyId: babyId);
 
@@ -144,9 +148,14 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
   /// il se contente de ré-évaluer.
   Future<void> markDone(ReminderItem item) async {
     if (item.completionSource == completionManual) {
-      final babyId = ref.read(activeBabyProvider).value?.id;
+      // Résolution attendue, pas `.value` : un tap pendant le basculement de
+      // profil écrirait le journal sous `''` au lieu du bébé actif — et avec
+      // le partage v10, cette ligne `''` se lisait ensuite pour **tous** les
+      // bébés.
+      final profile = await ref.read(activeBabyProvider.future);
+      if (!ref.mounted) return;
       final repository = await ref.read(remindersRepositoryProvider.future);
-      await repository.recordCompletion(item.id, babyId: babyId);
+      await repository.recordCompletion(item.id, babyId: profile?.id);
     }
     await refresh();
   }
@@ -155,9 +164,12 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
   /// service (24 h par défaut), scopée au bébé actif, puis ré-évalue
   /// localement. Un ignoré par un autre bébé ne se voit jamais.
   Future<void> snooze(ReminderItem item) async {
-    final babyId = ref.read(activeBabyProvider).value?.id;
+    // Idem [markDone] : l'ignoré se pose sous le portage du bébé résolu, jamais
+    // sous `''` à cause d'une lecture transitoire.
+    final profile = await ref.read(activeBabyProvider.future);
+    if (!ref.mounted) return;
     final repository = await ref.read(remindersRepositoryProvider.future);
-    await repository.dismissReminder(item.id, babyId: babyId);
+    await repository.dismissReminder(item.id, babyId: profile?.id);
     await refresh();
   }
 }

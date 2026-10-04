@@ -180,8 +180,11 @@ void main() {
         expect(forB!.day, equals(babyBEvent.day));
       });
 
-      test('spans all babies when babyId is null', () async {
-        // Backward compatibility: a pre-profile install keeps the old behaviour.
+      test('reads only profileless events when babyId is null', () async {
+        // L'état sans profil lit les événements posés avant tout profil
+        // (`baby_id IS NULL`) — jamais un événement d'un bébé : cette
+        // lecture « tous bébés » était la fuite entre bébés, côté
+        // préréglages liés à un soin.
         final older = DateTime.now().subtract(const Duration(days: 5));
         final recent = DateTime.now().subtract(const Duration(days: 1));
         await database.into(database.trackingEvents).insert(
@@ -197,12 +200,12 @@ void main() {
             type: vitaminDItem.trackingType.name,
             subtype: Value(vitaminDItem.subtypeValue),
             timestamp: recent,
-            babyId: const Value('baby_b'),
           ),
         );
 
         final result = await repository.getLastCompleted(vitaminDItem);
 
+        expect(result, isNotNull);
         expect(result!.day, equals(recent.day));
       });
     });
@@ -610,44 +613,70 @@ void main() {
       });
     });
 
-    group("portage partagé (sentinelle '')", () {
-      test("une ligne réglée sans profil s'applique à un bébé créé après coup",
+    group("portage sans profil (sentinelle '')", () {
+      test(
+          "une ligne réglée sans profil ne s'applique à aucun bébé : le nouveau bébé part du défaut",
           () async {
         // Ligne héritée d'une installation sans profil : écrite sans bébé.
         await repository.setEnabled('vitamine_d', enabled: false);
         expect((await database.getAllReminderSettings()).single.babyId, '');
 
+        // Lisible dans l'état sans profil…
+        expect((await repository.getEnabledByItemId())['vitamine_d'], isFalse);
+        // …mais invisible pour un bébé créé après coup : son portage est
+        // vide, donc le préréglage reste activé par défaut.
         expect(
-          (await repository.getEnabledByItemId(babyId: 'nouveau'))['vitamine_d'],
-          isFalse,
+          await repository.getEnabledByItemId(babyId: 'nouveau'),
+          isNot(contains('vitamine_d')),
         );
       });
 
-      test('une ligne propre au bébé écrase la ligne partagée, pour lui seul', () async {
+      test('la ligne propre au bébé est la seule ligne lue, pour lui seul', () async {
         await repository.setEnabled('vitamine_d', enabled: false);
         await repository.setEnabled('vitamine_d', enabled: true, babyId: 'nouveau');
 
         expect((await repository.getEnabledByItemId(babyId: 'nouveau'))['vitamine_d'], isTrue);
-        expect((await repository.getEnabledByItemId(babyId: 'autre'))['vitamine_d'], isFalse);
+        // Le bébé « autre » ne lit ni sa propre ligne (absente) ni la ligne
+        // sans profil : défaut, donc activé.
+        expect(
+          await repository.getEnabledByItemId(babyId: 'autre'),
+          isNot(contains('vitamine_d')),
+        );
         expect(await database.getAllReminderSettings(), hasLength(2));
       });
 
-      test("un ignoré partagé s'applique à tous les bébés", () async {
+      test("un ignoré sans profil ne s'applique à aucun bébé", () async {
         await repository.dismissReminder('vitamine_d');
 
         expect(
           await repository.getLastDismissal('vitamine_d', babyId: 'bébé_tard'),
-          isNotNull,
+          isNull,
         );
+        // Mais il reste lisible dans l'état sans profil.
+        expect(await repository.getLastDismissal('vitamine_d'), isNotNull);
       });
 
-      test('une complétion partagée règle un bébé créé après coup', () async {
+      test('une complétion sans profil ne règle aucun bébé', () async {
         await repository.recordCompletion('vitamine_d');
 
         expect(
           await repository.getLastManualCompletion('vitamine_d', babyId: 'bébé_tard'),
-          isNotNull,
+          isNull,
         );
+        expect(await repository.getLastManualCompletion('vitamine_d'), isNotNull);
+      });
+
+      test('a baby created later sees defaults, not another baby state', () async {
+        // Le premier a éteint Vit. D, l'a ignorée et l'a marquée faite.
+        await repository.setEnabled('vitamine_d', enabled: false, babyId: 'a');
+        await repository.dismissReminder('vitamine_d', babyId: 'a');
+        await repository.recordCompletion('vitamine_d', babyId: 'a');
+
+        // Le bébé b, créé après coup, n'hérite de rien : pas de réglage, pas
+        // d'ignoré, pas de réglage manuel.
+        expect(await repository.getEnabledByItemId(babyId: 'b'), isEmpty);
+        expect(await repository.getLastDismissal('vitamine_d', babyId: 'b'), isNull);
+        expect(await repository.getLastManualCompletion('vitamine_d', babyId: 'b'), isNull);
       });
     });
 
@@ -665,13 +694,14 @@ void main() {
         expect(await repository.getCustomReminders(babyId: 'baby_b'), isEmpty);
       });
 
-      test('un rappel créé sans profil est visible par tous les bébés', () async {
+      test("un rappel créé sans profil n'est visible que sans profil", () async {
         await repository.insertCustomReminder(custom());
         final row = await database.select(database.customReminders).getSingle();
         expect(row.babyId, '');
 
-        expect(await repository.getCustomReminders(babyId: 'baby_a'), hasLength(1));
-        expect(await repository.getCustomReminders(babyId: 'baby_b'), hasLength(1));
+        expect(await repository.getCustomReminders(), hasLength(1));
+        expect(await repository.getCustomReminders(babyId: 'baby_a'), isEmpty);
+        expect(await repository.getCustomReminders(babyId: 'baby_b'), isEmpty);
       });
     });
   });
