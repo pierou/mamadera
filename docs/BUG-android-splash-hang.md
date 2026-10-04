@@ -1,6 +1,6 @@
 # BUG — Android ne dépasse jamais le splash ( Small_Phone, 360×640 dp )
 
-**Statut:** bloquant pour la release · **Ouvert:** 2026-10-04 · **Plateforme:** Android ( émulateur )
+**Statut:** **REGRESSIF CONFIRMÉ — bloquant pour la release** · **Ouvert:** 2026-10-04 · **Plateforme:** Android ( deux émulateurs )
 **Build:** app-debug.apk de la branche `feat/v1.2.0-growth-and-baby-scoped-reminders` (95 835 048 octets), installé avec `install -r -g` → Success.
 
 ## Fait établi, pas supposé
@@ -36,3 +36,38 @@ consentement tapé pour de vrai n'ont **pas** été faits : l'app ne quitte pas 
 ## Preuves conservées
 `/tmp/sp.png` `/tmp/sp2.png` `/tmp/sp3.png` `/tmp/small_home.png` `/tmp/clean.png` (splash)
 `/tmp/name.jpg` (iOS, domicile avec le prénom) · journal: `/tmp/integ.log` `/tmp/emu.log`
+
+## A/B décisif — c'est notre branche, pas l'émulateur
+Même émulateur (emulator-5556, Pixel_10_Pro), même appareil de build, deux APK :
+
+| build | \`am start -W\` | premier rendu | écran vu |
+|---|---|---|---|
+| **v1.1.1 (main)** | **\`Status: ok\`** | **TotalTime 4021 ms** | Conditions affichées, bouton « I Accept » rendu |
+| **v1.2.0 (cette branche)** | **\`Status: timeout\`** | jamais | splash natif, écran clair, aucun contenu Flutter |
+
+Reproduit sur \`Small_Phone\` (360×640 dp) **et** \`Pixel_10_Pro\` : ce n'est pas une configuration
+d'écran. Et la version publiée fonctionne sur le même appareil : **c'est une régression introduite
+par cette branche.**
+
+## Ce que cela implique pour la vérification iOS (honnêteté, pas une note en bas de page)
+La passe iOS a été faite avec **une base v10 plantée puis migrée** : elle prouve la montée
+v10 → v11 et le rendu, elle ne prouve **pas** un \`onCreate\` v11 depuis une installation vraiment
+fraîche. Le tout premier lancement iOS de v1.2.0 a bien affiché les conditions — mais la base est
+en \`LazyDatabase\` : elle n'est créée qu'au premier accès, donc après consentement. **Aucune
+plateforme n'a encore exercé \`onCreate\` v11 jusqu'au bout.** Le suspect n°1 est donc un chemin
+d'initialisation bloquant avant le premier rendu Android — la piste principale étant l'init du
+stockage sécurisé / du service de chiffrement invoqué au démarrage, que les tests d'intégration
+court-circuitent.
+
+## Prochain diagnostic, dans cet ordre
+1. \`flutter run --verbose -d emulator-5556\` sur la branche : le handshake engine↔app est visible,
+   contrairement a \`am start\` — on verra où ça bloque.
+2. \`logcat\` filtré sur le pid courant, chasser la **dernière** ligne avant le silence, en cherchant
+   \`FlutterSecureStorage\`, \`EncryptionService\`, \`drift\`, \`SQLite\`.
+3. Bisecter la branche : \`git revert\` provisoire de M5 (module croissance) puis M1 (schéma v11)
+   sur une branche jetable, pour encadrer la régression par commit.
+4. Vérifier un \`onCreate\` v11 depuis une installation réellement fraîche, sur **les deux**
+   plateformes, avant toute ouverture de PR.
+
+Ne pas masquer le symptôme (pas de timeout de splash, pas de \`postFrameCallback\` de contournement)
+avant d'avoir la cause.
