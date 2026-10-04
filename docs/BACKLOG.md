@@ -145,3 +145,39 @@ The app's core promise is *no network transport exists anywhere*. LAN peer sync 
 sentence, so it is not a feature decision but a promise decision, and only the owner can rewrite the
 promise. No code, no dependency, no spike until that sentence changes — see `AGENTS.md`
 "Privacy-First Mandates (NON NEGOTIABLE)".
+
+---
+
+## B4 — Contraste insuffisant : le jaune (jour) et le brun (nuit)
+
+**Statut:** ouvert, candidate v1.2.1 · **Priorité:** accessibilité réelle · **Coût:** choix couleur + passe de vérification
+**Trouvé:** 2026-10-04, à l'œil sur captures Android (clair) et iOS (sombre)
+
+### Le problème, vu et non deviné
+- **Mode clair :** le bouton « Feeding » est en jaune pâle sur fond jaune pâle — à peine lisible.
+- **Mode sombre :** le bouton « Couche » est en brun sombre sur fond sombre — à peine lisible.
+Les deux sont **déjà en production** (le thème n'a pas changé sur cette branche). Ce n'est pas un
+goût, c'est un parent qui lit l'écran d'une main à moitié endormi, à 3 h, sur un écran réduit.
+
+### Candidats, avec le ratio à mesurer — pas à deviner
+Règle WCAG AA : **4,5:1** pour le texte normal, **3:1** pour le texte large (≥ 24 px / gras ≥ 18,7 px).
+Les titres de bouton sont larges, mais les pilules (« Vit. D ») et les valeurs (« 3 510 g ») ne le
+sont pas — c'est donc 4,5:1 qu'il faut viser sur les libellés de ces boutons.
+
+| rôle | problème | candidat à tester |
+|---|---|---|
+| `miam` (jaune, clair) | trop pâle sur fond clair | ambre foncé `#B26A00`, ou jaune saturé `#E0A400` **avec texte brun foncé** par-dessus |
+| `couche` (brun, sombre) | trop sombre sur fond sombre | terracotta `#C97B5A`, ou argile `#D08B6A` |
+| alternative structurelle | — | garder les teintes, mais passer le **libellé** en couleur de texte à contraste garanti (foncé sur fond clair, clair sur fond sombre), et réserver la teinte au fond et à l'icône |
+
+L'alternative structurelle est probablement la bonne : elle garde l'identité visuelle (les quatre
+couleurs qui distinguent soin/nourriture/couche/sommeil) sans demander à une teinte pastel de porter
+la lisibilité du texte.
+
+### À faire avant de toucher aux couleurs
+1. Mesurer le ratio réel des paires actuelles (extrait de capture + calculateur WCAG) et noter les
+   chiffres — une fiche de couleurs sans ratios est une opinion.
+2. Choisir une paire par thème, vérifier 4,5:1 sur les libellés et les pilules dans **les deux**
+   thèmes, sur le plus petit appareil.
+3. Ne pas changer une couleur d'identité à la légère : ces quatre teintes sont le système de
+   repérage de l'app, et un đổi couleur non mesuré peut en casser deux autres.
