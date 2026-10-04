@@ -1,6 +1,7 @@
 # BUG — Android ne dépasse jamais le splash ( Small_Phone, 360×640 dp )
 
-**Statut:** **REGRESSIF CONFIRMÉ — bloquant pour la release** · **Ouvert:** 2026-10-04 · **Plateforme:** Android ( deux émulateurs )
+**Statut:** **CLOSED — FAUSSE ALARME. Non reproductible hors de l'hôte d'origine. N'est PAS
+une régression de la branche.** (voir "Clôture" en bas — lire AVANT le reste du document) · **Ouvert:** 2026-10-04 · **Plateforme:** Android ( deux émulateurs )
 **Build:** app-debug.apk de la branche `feat/v1.2.0-growth-and-baby-scoped-reminders` (95 835 048 octets), installé avec `install -r -g` → Success.
 
 ## Fait établi, pas supposé
@@ -83,3 +84,34 @@ avant d'avoir la cause.
   des minutes. Donc : **le premier rendu Flutter ne remplace jamais le splash.**
 - La règle manquante dès le départ : comparer la taille des captures ne dit rien. `dumpsys` pour
   savoir quelle activity est au premier plan, puis regarder l'image, puis conclure.
+
+## Clôture — ma conclusion était fausse
+Un autre poste (même dépôt, même HEAD `a112d5a`, même Flutter, images émulateur identiques) construit
+l'APK de la branche et lance :
+
+| lancement | résultat |
+|---|---|
+| `install -r` + prefs (consentement accepté) | \`Status: ok\`, TotalTime **1756 ms** → **écran « Nouveautés de Mamadera 1.2.0 » rendu** |
+| `pm clear` (installation fraîche, sans consentement) | \`Status: ok\`, TotalTime **1920 ms** → **Conditions rendues, bouton « I Accept »** |
+| tap « I Accept » | **domicile rendu** avec la dialogue d'ajout de bébé → **un \`onCreate\` v11 frais s'exécute sans blocage** |
+| \`logcat -s flutter:* ActivityManager:*\` pendant 60 s | aucune erreur Flutter, aucun \`MissingPlugin\`, aucun crash |
+
+Il n'y a **donc pas de régression de code.** La cause est l'hôte d'origine : le limiteur mémoire du
+Mac affame ou redémarre qemu. Les symptômes collent exactement à un thread de rendu affamé plutôt
+qu'à un Dart bloqué — rafales de « Skipped N frames » (un vrai blocage avant \`runApp\` ne produirait
+pas de sauts d'images, il n'y aurait pas de boucle d'images du tout), \`FlutterRenderer: Width is
+zero\`, moteur vivant sans premier rendu, et les tests d'intégration verts sur ce même émulateur.
+
+**Ce que mon A/B n'était pas : un A/B.** Comparer 1.1.1 et 1.2.0 sur le même émulateur *après*
+plusieurs builds lourds sur un poste déjà sous pression mémoire ne compare pas deux builds, ça
+compare deux états de l'hôte. Leçon à garder : un A/B ne vaut que si l'environnement est tenu
+constant, et « ça marche sur une autre machine » est une donnée qui doit venir avant une conclusion,
+pas après.
+
+## Ce que cette clôture valide au passage (et qui n'avait jamais été vérifié)
+- **\`onCreate\` v11 depuis une installation réellement fraîche**, exécuté et rendu — le point que la
+  passe iOS (base plantée et migrée) ne prouvait pas.
+- **L'écran des notes de version 1.2.0 rendu pour de vrai** sur l'appareil.
+
+## Reste ouvert
+Le parcours manuel (biberon en ml, tétée en min, solide en g, poids) et l'inspection du JSON exporté.
