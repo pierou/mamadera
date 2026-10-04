@@ -228,6 +228,9 @@ void main() {
     testWidgets('la grille reste utilisable : Nourriture ouvre sa feuille',
         (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
+      // Trois puces de sous-type : la feuille déborde du harnais 200×300.
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
       await pumpHomeWithDueReminders(tester);
 
       await tester.tap(findTrackButton('Nourriture'));
@@ -351,6 +354,9 @@ void main() {
   // ──────────────────────────────────────────────
   group('Interactions Nourriture/Sante/Couche/Dodo', () {
     testWidgets('tap Nourriture -> ouvre FeedingTrackingDialog', (tester) async {
+      // Trois puces de sous-type : la feuille déborde du harnais 200×300.
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
@@ -562,6 +568,11 @@ void main() {
     }
 
     testWidgets('Nourriture : la date par défaut est le moment de la saisie', (tester) async {
+      // Trois puces de sous-type : la feuille d'alimentation déborde du
+      // harnais 200×300 par défaut (comme les autres feuilles hautes).
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final before = DateTime.now();
       await openSheetAndConfirm(tester, 'Nourriture');
 

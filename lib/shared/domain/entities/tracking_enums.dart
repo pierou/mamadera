@@ -18,12 +18,16 @@ enum FeedingSubtype {
   /// Allaitement maternel (lait maternel).
   natural, // 'natural'
   /// Allaitement artificiel (lait artificiel).
-  artificial; // 'artificial'
+  artificial, // 'artificial'
+  /// Alimentation solide (purée, diversification) — la quantité s'exprime
+  /// en grammes, pas en millilitres.
+  solid; // 'solid'
 
   /// Retourne la valeur DB correspondante.
   String get dbValue => switch (this) {
         FeedingSubtype.natural => 'natural',
         FeedingSubtype.artificial => 'artificial',
+        FeedingSubtype.solid => 'solid',
       };
 
   /// Convertit une valeur DB en enum.
@@ -40,6 +44,9 @@ enum FeedingSubtype {
         return FeedingSubtype.natural;
       case 'bib':
         return FeedingSubtype.artificial;
+      case 'solid':
+        return FeedingSubtype.solid;
+      // Aucun alias hérité n'existe pour 'solid' : pas de compatibilité à inventer.
       default:
         return null;
     }

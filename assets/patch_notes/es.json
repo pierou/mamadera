@@ -73,6 +73,7 @@
     "items": [
       "### Nuevas funcionalidades",
       "- Seguimiento del peso, la estatura y la temperatura desde tres botones nuevos en la pantalla de inicio",
+      "- Adición del tipo de alimentación «Sólido» con la cantidad en gramos",
       "- Adición de la pantalla Crecimiento: último valor de cada medida e historial completo",
       "- Visualización de la lista de recordatorios pendientes bajo los botones de seguimiento, donde «+2» ya no se leía",
       "- Creación de recordatorios personalizados sin cuidado vinculado, marcados como hechos con un toque",

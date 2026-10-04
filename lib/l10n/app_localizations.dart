@@ -928,6 +928,12 @@ abstract class AppLocalizations {
   /// **'Lait Artificiel'**
   String get feedingSubtypeArtificial;
 
+  /// No description provided for @feedingSolid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solide'**
+  String get feedingSolid;
+
   /// No description provided for @editDialogTitle.
   ///
   /// In fr, this message translates to:
@@ -987,6 +993,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'min'**
   String get minuteSuffix;
+
+  /// No description provided for @gramSuffix.
+  ///
+  /// In fr, this message translates to:
+  /// **'g'**
+  String get gramSuffix;
 
   /// No description provided for @deleteDialogTitle.
   ///

@@ -49,6 +49,29 @@ void main() {
         expect(rows.first.notes, isNot(contains('sensitive feeding note')));
       });
 
+      test('persists a solid feeding event with subtype solid and quantity in grams', () async {
+        // Un aliment solide s'enregistre en grammes dans la même colonne
+        // quantity REAL — pas de migration : le sous-type porte le sens.
+        final event = FeedingEvent(
+          timestamp: DateTime.utc(2024, 6, 1, 12, 0),
+          subtype: FeedingSubtype.solid,
+          quantity: 40,
+        );
+        await repository.insertEvent(event);
+
+        final rows = await database.select(database.trackingEvents).get();
+        expect(rows.length, 1);
+        expect(rows.first.type, 'miam');
+        expect(rows.first.subtype, 'solid');
+        expect(rows.first.quantity, 40);
+
+        // La lecture repasse par le mapper : le sous-type survit au round-trip.
+        final read = await repository.getAllEventsOrdered();
+        final feeding = read.single as FeedingEvent;
+        expect(feeding.subtype, FeedingSubtype.solid);
+        expect(feeding.quantity, 40);
+      });
+
       test('does not encrypt when notes are null', () async {
         final event = FeedingEvent(
           timestamp: DateTime.utc(2024, 1, 1, 10, 0),

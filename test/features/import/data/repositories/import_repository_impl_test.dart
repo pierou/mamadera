@@ -791,6 +791,37 @@ void main() {
       );
     });
 
+    test('a solid food event survives export → restore → export with its subtype and quantity intact', () async {
+      // Le sous-type 'solid' n'a pas de whitelist de validation dans l'import :
+      // il doit donc survivre intact, comme n'importe quelle valeur
+      // d'alimentation (pas de conversion silencieuse ni de rejet).
+      final source = _openDatabase();
+      addTearDown(source.close);
+      await source.insertEvent(TrackingEventsCompanion.insert(
+        type: 'miam',
+        subtype: const Value('solid'),
+        quantity: const Value(40.0),
+        timestamp: DateTime.utc(2024, 3, 1, 12),
+      ));
+      final first =
+          await ExportRepositoryImpl(database: source, encryption: encryption)
+              .buildExportJson();
+
+      await repository.restore(await repository.parseExport(first));
+
+      final restored = (await database.getAllTrackingEvents()).single;
+      expect(restored.type, 'miam');
+      expect(restored.subtype, 'solid');
+      expect(restored.quantity, 40.0);
+
+      // Re-export : le document reste stable, sous-type et quantité intacts.
+      final second = await ExportRepositoryImpl(
+        database: database,
+        encryption: encryption,
+      ).buildExportJson();
+      expect(_withoutVolatileFields(second), equals(_withoutVolatileFields(first)));
+    });
+
     test('format 1: a pre-M4 backup restores into shared rows, empty new tables',
         () async {
       final counts =

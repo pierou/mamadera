@@ -73,6 +73,7 @@
     "items": [
       "### New features",
       "- Track weight, height and temperature from three new home-screen buttons",
+      "- Added a \"Solid\" feeding type with the quantity entered in grams",
       "- Add the Growth screen: the latest value of each measurement and the full history",
       "- Show the due reminders under the tracking buttons, where “+2” used to stop being readable",
       "- Create custom reminders with no care attached, and mark them done with one tap",

@@ -73,6 +73,7 @@
     "items": [
       "### Nouvelles fonctionnalités",
       "- Suivi du poids, de la taille et de la température depuis trois nouveaux boutons de l'écran d'accueil",
+      "- Ajout du type d'alimentation « Solide » avec saisie de la quantité en grammes",
       "- Ajout de l'écran Croissance : dernière valeur de chaque mesure et historique complet",
       "- Affichage de la liste des rappels à faire sous les boutons de suivi, là où le « +2 » ne se lisait pas",
       "- Création de rappels personnalisés sans soin lié, que l'on marque faits d'un simple tap",

@@ -243,6 +243,7 @@
   "feedingSubtypeLabel": "Feeding Type",
   "feedingSubtypeNatural": "Breast milk",
   "feedingSubtypeArtificial": "Formula",
+  "feedingSolid": "Solid",
 
   "editDialogTitle": "Edit Event",
   "eventDateSectionTitle": "Date and Time",
@@ -254,6 +255,7 @@
   "editNotesHint": "Add a note...",
   "minutesHintText": "Minutes",
   "minuteSuffix": "min",
+  "gramSuffix": "g",
 
   "deleteDialogTitle": "Delete Event",
   "deleteDialogContent": "Are you sure you want to delete this event? This action cannot be undone.",

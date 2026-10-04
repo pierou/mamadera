@@ -261,11 +261,24 @@ class _HomeContent extends ConsumerWidget {
   /// Formats and shows a feeding tracking confirmation with quantity details.
   void _showFeedingFeedback(
       BuildContext context, FeedingSubtype subtype, double? quantity) {
-    final subtypeLabel = subtype == FeedingSubtype.natural
-        ? context.l.feedingSubtypeNatural
-        : context.l.feedingSubtypeArtificial;
+    // Le label ET l'unité suivent le sous-type : un « 40 ml » dans le
+    // feedback d'un purée serait un chiffre de santé faux.
+    final subtypeLabel = switch (subtype) {
+      FeedingSubtype.natural => context.l.feedingSubtypeNatural,
+      FeedingSubtype.artificial => context.l.feedingSubtypeArtificial,
+      FeedingSubtype.solid => context.l.feedingSolid,
+    };
     if (quantity != null && quantity > 0) {
-      final qtyStr = '${quantity.round()}ml';
+      final unit = switch (subtype) {
+        // Le sein se saisit en ml comme le biberon — c'est ce que la colonne
+        // `quantity` a toujours stocké pour `miam` (`FeedingEvent` n'a pas de
+        // champ durée). Inventer des minutes ici re-étiquetterait des
+        // enregistrements existants de lait tiré en durée de tétée.
+        FeedingSubtype.natural => 'ml',
+        FeedingSubtype.artificial => 'ml',
+        FeedingSubtype.solid => context.l.gramSuffix,
+      };
+      final qtyStr = '${quantity.round()}$unit';
       showFeedback(
         context,
         context.l.feedbackFeedingWithQuantity(subtypeLabel, qtyStr),

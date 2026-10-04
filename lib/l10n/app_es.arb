@@ -243,6 +243,7 @@
   "feedingSubtypeLabel": "Tipo de Alimentación",
   "feedingSubtypeNatural": "Leche Materna",
   "feedingSubtypeArtificial": "Fórmula Infantil",
+  "feedingSolid": "Sólido",
 
   "editDialogTitle": "Editar evento",
   "eventDateSectionTitle": "Fecha y hora",
@@ -254,6 +255,7 @@
   "editNotesHint": "Añadir una nota...",
   "minutesHintText": "Minutos",
   "minuteSuffix": "min",
+  "gramSuffix": "g",
 
   "deleteDialogTitle": "Eliminar evento",
   "deleteDialogContent": "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",

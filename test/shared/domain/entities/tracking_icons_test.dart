@@ -31,6 +31,10 @@ void main() {
     test('artificial returns coffee_rounded icon', () {
       expect(FeedingSubtype.artificial.icon, Icons.coffee_rounded);
     });
+
+    test('solid returns rice_bowl icon', () {
+      expect(FeedingSubtype.solid.icon, Icons.rice_bowl);
+    });
   });
 
   group('WasteTypeIcon extension', () {

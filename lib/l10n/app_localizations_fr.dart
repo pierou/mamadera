@@ -467,6 +467,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get feedingSubtypeArtificial => 'Lait Artificiel';
 
   @override
+  String get feedingSolid => 'Solide';
+
+  @override
   String get editDialogTitle => 'Modifier l\'événement';
 
   @override
@@ -495,6 +498,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get minuteSuffix => 'min';
+
+  @override
+  String get gramSuffix => 'g';
 
   @override
   String get deleteDialogTitle => 'Supprimer l\'événement';

@@ -463,6 +463,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedingSubtypeArtificial => 'Formula';
 
   @override
+  String get feedingSolid => 'Solid';
+
+  @override
   String get editDialogTitle => 'Edit Event';
 
   @override
@@ -491,6 +494,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get minuteSuffix => 'min';
+
+  @override
+  String get gramSuffix => 'g';
 
   @override
   String get deleteDialogTitle => 'Delete Event';

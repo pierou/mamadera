@@ -243,6 +243,7 @@
   "feedingSubtypeLabel": "Type d'Alimentation",
   "feedingSubtypeNatural": "Lait Maternel",
   "feedingSubtypeArtificial": "Lait Artificiel",
+  "feedingSolid": "Solide",
 
   "editDialogTitle": "Modifier l'événement",
   "eventDateSectionTitle": "Date et heure",
@@ -254,6 +255,7 @@
   "editNotesHint": "Ajouter une note...",
   "minutesHintText": "Minutes",
   "minuteSuffix": "min",
+  "gramSuffix": "g",
 
   "deleteDialogTitle": "Supprimer l'événement",
   "deleteDialogContent": "Voulez-vous vraiment supprimer cet événement ? Cette action est irréversible.",

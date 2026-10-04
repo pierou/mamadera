@@ -50,7 +50,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   double? _duration;
   double? _quantity;
 
-  // Sous-type d'alimentation (natural/artificial) pour feedings
+  // Sous-type d'alimentation (natural/artificial/solid) pour feedings
   FeedingSubtype _subtype = FeedingSubtype.natural;
 
   // Pour les événements caca : type de selle et couleurs (typed via enums)
@@ -236,16 +236,19 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   }
 
   List<Widget> _buildQuantitySection() {
+    final isSolid = _subtype == FeedingSubtype.solid;
     return [
       const SizedBox(height: 20),
       _buildSectionTitle(context.l.editQuantitySectionTitle),
       QuantityPickerInline(
-        unit: 'ml',
+        unit: _feedingUnit(context),
         min: 0,
-        max: 300,
-        divisions: 30,
-        // Stepper aligné sur le pas du slider : 30 crans sur 300 ml.
-        step: 10,
+        // Les solides se pèsent en grammes sur une plus large plage.
+        max: isSolid ? 1000 : 300,
+        divisions: isSolid ? 200 : 30,
+        // Stepper aligné sur le pas du slider : 200 crans sur 1000 g,
+        // 30 crans sur 300 (min ou ml).
+        step: isSolid ? 5 : 10,
         value: _quantity ?? 0.0,
         onValueChanged: (double value) {
           setState(() => _quantity = value);
@@ -253,6 +256,19 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       ),
     ];
   }
+
+  /// L'unité du picker suit le sous-type d'alimentation : millilitres au sein et au
+  /// millilitres (sein et biberon), grammes pour les solides. Un « 40 ml » affiché
+  /// pour un purée serait un chiffre de santé faux.
+  String _feedingUnit(BuildContext context) => switch (_subtype) {
+        // Le sein se saisit en ml comme le biberon — c'est ce que la colonne
+        // `quantity` a toujours stocké pour `miam` (`FeedingEvent` n'a pas de
+        // champ durée). Inventer des minutes ici re-étiquetterait des
+        // enregistrements existants de lait tiré en durée de tétée.
+        FeedingSubtype.natural => 'ml',
+        FeedingSubtype.artificial => 'ml',
+        FeedingSubtype.solid => context.l.gramSuffix,
+      };
 
   List<Widget> _buildSubtypeSelectorSection() {
     return [
@@ -292,6 +308,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     return switch (subtype) {
       FeedingSubtype.natural => context.l.feedingSubtypeNatural,
       FeedingSubtype.artificial => context.l.feedingSubtypeArtificial,
+      FeedingSubtype.solid => context.l.feedingSolid,
     };
   }
 

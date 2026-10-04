@@ -35,6 +35,48 @@ void main() {
         expect(result, isNull);
       });
 
+      test('a solid food event does not complete milk feeding reminders (exact subtype match)', () async {
+        // Un purée ne réhydrate pas un nouveau-né : les rappels miam matchent
+        // le sous-type EXACTEMENT (choix assumé, pas une omission — BACKLOG
+        // B1). Un match approximatif marquerait « nourri » et éteindrait les
+        // rappels d'un bébé mal nourri.
+        const miamNatural = ReminderItem(
+          id: 'miam_natural',
+          labelKey: 'miamNatural',
+          frequency: Daily(),
+          trackingType: TrackingType.miam,
+          subtypeValue: 'natural',
+        );
+        const miamArtificial = ReminderItem(
+          id: 'miam_artificial',
+          labelKey: 'miamArtificial',
+          frequency: Daily(),
+          trackingType: TrackingType.miam,
+          subtypeValue: 'artificial',
+        );
+        const miamSolid = ReminderItem(
+          id: 'miam_solid',
+          labelKey: 'miamSolid',
+          frequency: Daily(),
+          trackingType: TrackingType.miam,
+          subtypeValue: 'solid',
+        );
+
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: 'miam',
+            subtype: const Value('solid'),
+            quantity: const Value(40.0),
+            timestamp: DateTime.now(),
+          ),
+        );
+
+        // Le purée règle uniquement le rappel « solide » — pas les laits.
+        expect(await repository.getLastCompleted(miamSolid), isNotNull);
+        expect(await repository.getLastCompleted(miamNatural), isNull);
+        expect(await repository.getLastCompleted(miamArtificial), isNull);
+      });
+
       test('returns event from yesterday (not just today)', () async {
         // Regression: previously filtered to TODAY only, causing Vitamin K reminder
         // to show as due even when tracked 1 day ago. Now returns last completed ever.

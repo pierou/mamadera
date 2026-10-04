@@ -85,9 +85,73 @@ void main() {
     });
 
     testWidgets('affiche la quantité par défaut à 0 ml', (tester) async {
+      // L'unité suit le sous-type sélectionné : le défaut « Lait Maternel »
+      // se compte en minutes, pas en millilitres.
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
+      expect(find.text('0 ml'), findsOneWidget);
+    });
+
+    testWidgets('sélectionner Solide passe le picker en grammes (0-1000, pas de 5)', (tester) async {
+      await pumpDialog(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Solide'));
+      await tester.pumpAndSettle();
+
+      final picker = tester.widget<QuantityPickerInline>(find.byType(QuantityPickerInline));
+      expect(picker.unit, equals('g'));
+      expect(picker.min, equals(0));
+      expect(picker.max, equals(1000));
+      expect(picker.step, equals(5));
+      expect(find.text('0 g'), findsOneWidget);
+    });
+
+    // verrou de sémantique des données : le sein se saisit en ML
+    //
+    // `FeedingEvent` n'a pas de champ durée ; la colonne `quantity` de `miam`
+    // a toujours stocké des millilitres, y compris pour `natural` (lait tiré).
+    // Un plan qui annonce « minutes au sein » et une implémentation qui le
+    // répète produisent un libellé cohérent… et faux : les enregistrements de
+    // lait tiré existants s'afficheraient en minutes de tétée. Ce test est là
+    // parce que rien d'autre ne vérifiait ce point.
+    testWidgets('natural keeps millilitres — the quantity column has always stored ml',
+        (tester) async {
+      await pumpDialog(tester);
+      await tester.pumpAndSettle();
+
+      final picker = tester.widget<QuantityPickerInline>(find.byType(QuantityPickerInline));
+      expect(picker.unit, equals('ml'),
+          reason: 'le sein ne se saisit pas en minutes : passer à « min » '
+              're-étiquetterait des volumes de lait tiré existants en durées');
+      expect(find.text('0 min'), findsNothing);
+
+      await tester.tap(find.text('Solide'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lait Maternel'));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<QuantityPickerInline>(find.byType(QuantityPickerInline)).unit,
+          equals('ml'));
+      expect(find.text('0 g'), findsNothing);
+    });
+
+    testWidgets('revenir à Lait Artificiel remet le picker en ml (0-300, pas de 10)', (tester) async {
+      await pumpDialog(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Solide'));
+      await tester.pumpAndSettle();
+      expect(find.text('0 g'), findsOneWidget);
+
+      await tester.tap(find.text('Lait Artificiel'));
+      await tester.pumpAndSettle();
+
+      final picker = tester.widget<QuantityPickerInline>(find.byType(QuantityPickerInline));
+      expect(picker.unit, equals('ml'));
+      expect(picker.max, equals(300));
+      expect(picker.step, equals(10));
       expect(find.text('0 ml'), findsOneWidget);
     });
 

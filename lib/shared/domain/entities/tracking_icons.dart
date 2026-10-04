@@ -36,6 +36,7 @@ extension FeedingSubtypeIcon on FeedingSubtype {
   IconData get icon => switch (this) {
         FeedingSubtype.natural => Icons.local_drink_outlined,
         FeedingSubtype.artificial => Icons.coffee_rounded,
+        FeedingSubtype.solid => Icons.rice_bowl,
       };
 }
 
