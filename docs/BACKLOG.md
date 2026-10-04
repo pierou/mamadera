@@ -57,12 +57,28 @@ both unverified on hardware, is how you lose a user's data.
 ### Decision (owner, 2026-10-03): fix it in v1.2.1, and breastfeeding becomes MINUTES
 Per-subtype units are now the product contract, not an accident of inference:
 
-| subtype | quantity means | `unit` |
-|---------|----------------|--------|
-| `natural` | **minutes at the breast** | `min` |
-| `artificial` | millilitres of formula | `ml` |
-| `solid` | grams of solid food | `g` |
-| `dodo` | minutes | `min` |
+| subtype | unit | who chooses |
+|---------|------|-------------|
+| `natural` | **`ml` or `min` — sélectionné par le parent** | le parent, à la saisie (toggle) |
+| `artificial` | `ml` | fixe |
+| `solid` | `g` | fixe |
+| `dodo` | `min` | fixe |
+
+Amendment owner 2026-10-03 (second): le sein ne se fige **ni** en minutes **ni** en ml. Le parent
+choisit. Téter se compte en minutes, tirer un biberon se compte en ml, et la même mère fait les deux
+le même jour — figer le sous-type supprimait l'un des deux usages, ce qui n'est pas un détail pour
+un parent qui tire. Le toggle n'apparaît que pour `natural` ; les autres sous-types restent figés,
+parce qu'une seule unité y a un sens.
+
+### Backfill à la migration v12 — règle explicite
+**Toutes les lignes `natural` existantes passent à `'ml'`**, parce que c'est ce que l'interface
+affichait : un parent qui a saisi 20 a vu « 20 ml », donc la donnée *veut* dire 20 ml. Aucune
+conversion arithmétique, aucune déduction : on nomme l'unité que l'utilisateur a vue. Une ligne dont
+l'unité devinerait la minute serait une invention.
+
+Conséquence assumée : au sein, `ml` et `min` coexistent dans la même colonne et le même sous-type.
+Tout agrégat doit filtrer sur `unit` — additionner des minutes à des millilitres n'est pas une
+approximation, c'est un non-sens. Vérifié : rien ne somme le volume d'alimentation aujourd'hui.
 
 That makes the `unit` column a **prerequisite**, not a cleanup: without it, `quantity` would hold
 minutes and millilitres under one subtype name with nothing distinguishing them.
@@ -76,9 +92,8 @@ and stay `'ml'`, truthfully. Consequences, all of them intended:
 - `natural` rows carry two units across time, distinguished only by `unit`. Any query, chart or
   "last fed" logic that ignores `unit` will mix volumes and durations. Verify there is no such query
   before shipping — today there is none, nothing sums feeding volume (checked 2026-10-03).
-- **Expressed milk loses its input field.** Once breast means minutes, there is nowhere to record
-  "30 ml at the pump". If that matters — and for a pumped-milk parent it will — it needs a fourth
-  subtype (`pumped`) or a second optional field, decided before the migration, not after it.
+- ~~Expressed milk loses its input field~~ — **résolu** par le toggle ml/min sur `natural`
+  (amendement ci-dessus) : pas de quatrième sous-type, le sein accepte les deux unités.
 - Duration of a feed becomes available per row, which is what a paediatrician asking "how long does
   she feed?" actually wants. That is the gain paying for all of the above.
 
