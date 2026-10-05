@@ -13,6 +13,8 @@ class ExportCounts {
     required this.customReminders,
     required this.reminderSettings,
     required this.reminderDismissals,
+    required this.measurements,
+    required this.reminderCompletions,
   });
 
   /// Number of rows in `baby_profiles`.
@@ -30,11 +32,22 @@ class ExportCounts {
   /// Number of rows in `reminder_dismissals`.
   final int reminderDismissals;
 
-  /// True when the database holds neither baby profile nor tracking event.
+  /// Number of rows in `measurements` (weight/height/temperature, M4).
+  final int measurements;
+
+  /// Number of rows in `reminder_completions` (the « Fait » tap journal, M4).
+  final int reminderCompletions;
+
+  /// True when the database holds nothing worth backing up.
   ///
   /// Reminder rows alone do not make a useful backup: sharing an empty file
-  /// is worse than not sharing at all.
-  bool get isEmpty => babyProfiles == 0 && trackingEvents == 0;
+  /// is worse than not sharing at all. Measurements, on the other hand, are
+  /// real health data — a database holding only weigh-ins is worth saving.
+  bool get isEmpty =>
+      babyProfiles == 0 &&
+      trackingEvents == 0 &&
+      measurements == 0 &&
+      reminderCompletions == 0;
 }
 
 /// Contract for producing a portable export of the entire local database.
@@ -56,10 +69,10 @@ class ExportCounts {
 abstract class ExportRepository {
   /// Builds the complete export document as a pretty-printed UTF-8 JSON string.
   ///
-  /// Contains the entire database (all five tables) with the shape described
+  /// Contains the entire database (all seven tables) with the shape described
   /// in the class dartdoc. Pure string building — no file IO, no sharing.
   Future<String> buildExportJson();
 
-  /// Returns the row count of each of the five exported tables.
+  /// Returns the row count of each of the seven exported tables.
   Future<ExportCounts> counts();
 }

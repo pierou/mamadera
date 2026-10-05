@@ -29,14 +29,25 @@ class TrackingEvents extends Table {
 }
 
 class ReminderDismissals extends Table {
-  TextColumn get itemId => text().unique()();
-
+  /// NOT NULL, `''` = installation sans profil (sentinelle [db_const.sharedBabyId]).
+  TextColumn get babyId =>
+      text().withDefault(const Constant(db_const.sharedBabyId))();
+  TextColumn get itemId => text()();
   DateTimeColumn get dismissedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {babyId, itemId};
 }
 
 class ReminderSettings extends Table {
-  TextColumn get itemId => text().unique()();
+  /// NOT NULL, `''` = installation sans profil (sentinelle [db_const.sharedBabyId]).
+  TextColumn get babyId =>
+      text().withDefault(const Constant(db_const.sharedBabyId))();
+  TextColumn get itemId => text()();
   BoolColumn get enabled => boolean()();
+
+  @override
+  Set<Column> get primaryKey => {babyId, itemId};
 }
 
 /// Rappels créés par le parent, à côté des quatre préréglages codés en dur.
@@ -51,26 +62,77 @@ class ReminderSettings extends Table {
 /// n'existe qu'un seul mécanisme d'extinction dans l'app.
 class CustomReminders extends Table {
   IntColumn get id => integer().autoIncrement()();
+
+  /// NOT NULL, `''` = rappel créé sans profil, visible sans profil seulement
+  /// (les lignes héritées de v10, où la table n'était pas scopée, restent
+  /// restaurables : l'import s'appuie sur la colonne, pas sur ce portage).
+  TextColumn get babyId =>
+      text().withDefault(const Constant(db_const.sharedBabyId))();
   TextColumn get label => text().withLength(min: 1, max: 60)();
 
+  /// Null = rappel **détaché** : aucun soin lié, achèvement manuel (D2).
   /// Valeur de `HealthSubtype` (`nettoyage_nez`, `nettoyage_nombril`, …) : le soin
   /// dont l'absence dans `tracking_events` rend le rappel dû.
-  TextColumn get subtypeValue => text()();
+  TextColumn get subtypeValue => text().nullable()();
 
   /// `daily` | `weekly` | `monthly` | `every_n_days` — voir [CustomReminder].
   TextColumn get frequency => text()();
 
   /// Seulement pour `every_n_days` : longueur du roulement en jours.
   IntColumn get intervalDays => integer().nullable()();
+
+  /// `'from_events'` | `'manual'` — qui décide que le rappel est fait (D2).
+  TextColumn get completionSource =>
+      text().withDefault(const Constant(db_const.completionFromEvents))();
+}
+
+/// Mesures de croissance (poids, taille, température) — v11.
+///
+/// `value` est du **chiffré AES-GCM** (`iv:ciphertext` base64), pas un REAL :
+/// le mandat de confidentialité (`AGENTS.md`) classe le poids comme donnée
+/// sensible ; la température et la taille sont de la même famille (données de
+/// santé RGPD). Le en-clair n'existe qu'au moment de l'export JSON, qui est
+/// en clair par conception — comme les `notes`.
+class Measurements extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Nullable, comme `tracking_events.baby_id` : un suivi sans profil reste lisible.
+  TextColumn get babyId => text().nullable()();
+  TextColumn get kind => text()();          // 'poids' | 'taille' | 'temperature'
+  TextColumn get value => text()();        // chiffré
+  TextColumn get unit => text()();         // 'g' | 'cm' | 'degC'
+  DateTimeColumn get recordedAt => dateTime()();
+  TextColumn get notes => text().nullable()(); // chiffré, même pipeline que events
+}
+
+/// Achèvement **manuel** d'un rappel (`completion_source = 'manual'`, D2).
+///
+/// Journal append-only : une ligne par tap « Fait ». La lecture est
+/// `MAX(completed_at)`, ce qui rend la forme identique à `getLastCompleted`
+/// côté événements.
+class ReminderCompletions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get babyId =>
+      text().withDefault(const Constant(db_const.sharedBabyId))();
+  TextColumn get itemId => text()();
+  DateTimeColumn get completedAt => dateTime()();
 }
 
 @DriftDatabase(
-    tables: [BabyProfiles, TrackingEvents, ReminderDismissals, ReminderSettings, CustomReminders])
+    tables: [
+      BabyProfiles,
+      TrackingEvents,
+      ReminderDismissals,
+      ReminderSettings,
+      CustomReminders,
+      Measurements,
+      ReminderCompletions,
+    ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
   @override
@@ -82,6 +144,13 @@ class AppDatabase extends _$AppDatabase {
               'CREATE INDEX IF NOT EXISTS idx_tracking_events_type ON tracking_events(type)');
           await m.database.customStatement(
               'CREATE INDEX IF NOT EXISTS idx_tracking_events_timestamp_type ON tracking_events(timestamp DESC, type)');
+          // Index v11 : sans eux, les installations **neuves** n'auraient que les
+          // deux index historiques alors que les bases migrées en ont quatre — un
+          // écart invisible au test, visible sur un téléphone qui scrolle.
+          await m.database.customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_measurements_baby_kind_recorded ON measurements(baby_id, kind, recorded_at DESC)');
+          await m.database.customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_reminder_completions_baby_item ON reminder_completions(baby_id, item_id, completed_at DESC)');
         },
         onUpgrade: (Migrator m, int from, int to) async {
           // v2 → v3 : ajout de la table reminder_dismissals
@@ -146,6 +215,86 @@ class AppDatabase extends _$AppDatabase {
           // reçoivent déjà par onCreate → createAll.
           if (from < 10) {
             await m.createTable(customReminders);
+          }
+
+          // v10 → v11 : trois mouvements, un seul passage.
+          //  (a) `reminder_settings` et `reminder_dismissals` sont re-clés par bébé :
+          //      un rappel éteint pour l'un ne l'est plus pour l'autre (item M).
+          //  (b) `custom_reminders` gagne `baby_id` + `completion_source` et surtout
+          //      `subtype_value` NULLABLE, ce qu'`ALTER TABLE` ne sait pas faire : la
+          //      table est reconstruite.
+          //  (c) deux tables neuves : `measurements` et `reminder_completions`.
+          // Les PRIMARY KEY composites déclarent `baby_id NOT NULL` : SQLite autorise
+          // NULL dans une clé composite et l'autorise en double (vérifié, sqlite 3.51),
+          // ce qui ferait deux lignes « partagées » pour un même rappel. La sentinelle
+          // `''` signifie « tous les bébés ».
+          // Les ids de `custom_reminders` sont recopiés explicitement : la clé
+          // d'extinction `custom_<id>` de `reminder_settings` s'y rapporte, changer un id
+          // éteindrait un rappel au hasard.
+          if (from < 11) {
+            // (a) settings
+            await m.database.customStatement('''
+              CREATE TABLE reminder_settings_new (
+                baby_id TEXT    NOT NULL DEFAULT '',
+                item_id TEXT    NOT NULL,
+                enabled BOOLEAN NOT NULL,
+                PRIMARY KEY (baby_id, item_id)
+              )''');
+            await m.database.customStatement(
+              'INSERT INTO reminder_settings_new (baby_id, item_id, enabled) '
+              "SELECT '', item_id, enabled FROM reminder_settings");
+            await m.database.customStatement('DROP TABLE reminder_settings');
+            await m.database.customStatement(
+              'ALTER TABLE reminder_settings_new RENAME TO reminder_settings');
+
+            // (a) dismissals
+            await m.database.customStatement('''
+              CREATE TABLE reminder_dismissals_new (
+                baby_id      TEXT    NOT NULL DEFAULT '',
+                item_id      TEXT    NOT NULL,
+                dismissed_at TIMESTAMP NOT NULL,
+                PRIMARY KEY (baby_id, item_id)
+              )''');
+            await m.database.customStatement(
+              'INSERT INTO reminder_dismissals_new (baby_id, item_id, dismissed_at) '
+              "SELECT '', item_id, dismissed_at FROM reminder_dismissals");
+            await m.database.customStatement('DROP TABLE reminder_dismissals');
+            await m.database.customStatement(
+              'ALTER TABLE reminder_dismissals_new RENAME TO reminder_dismissals');
+
+            // (b) custom reminders — rebuilt for the nullable subtype_value
+            await m.database.customStatement('''
+              CREATE TABLE custom_reminders_new (
+                id               INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                baby_id          TEXT    NOT NULL DEFAULT '',
+                label            TEXT    NOT NULL,
+                subtype_value    TEXT,
+                frequency        TEXT    NOT NULL,
+                interval_days    INTEGER,
+                completion_source TEXT   NOT NULL DEFAULT 'from_events'
+              )''');
+            await m.database.customStatement(
+              'INSERT INTO custom_reminders_new (id, baby_id, label, subtype_value, frequency, interval_days) '
+              "SELECT id, '', label, subtype_value, frequency, interval_days FROM custom_reminders");
+            await m.database.customStatement('DROP TABLE custom_reminders');
+            await m.database.customStatement(
+              'ALTER TABLE custom_reminders_new RENAME TO custom_reminders');
+            // Safety net : un AUTOINCREMENT renommé peut repartir de 1 et entrer en collision
+            // avec un id recopié. Le test de migration l'attrape ; la ligne l'empêche.
+            await m.database.customStatement(
+              'UPDATE sqlite_sequence SET seq = (SELECT COALESCE(MAX(id), 0) FROM custom_reminders) '
+              "WHERE name = 'custom_reminders'");
+
+            // (c) new tables (drift emits the DDL from the classes above)
+            await m.createTable(measurements);
+            await m.createTable(reminderCompletions);
+
+            await m.database.customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_measurements_baby_kind_recorded '
+              'ON measurements(baby_id, kind, recorded_at DESC)');
+            await m.database.customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_reminder_completions_baby_item '
+              'ON reminder_completions(baby_id, item_id, completed_at DESC)');
           }
         },
       );
@@ -239,6 +388,39 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteTrackingEventsByBabyId(String babyId) =>
       (delete(trackingEvents)..where((t) => t.babyId.equals(babyId))).go();
 
+  /// Supprime toutes les mesures rattachées à [babyId].
+  /// Retourne le nombre de lignes supprimées.
+  ///
+  /// Ne touche ni les mesures sans profil (`baby_id` NULL) ni celles des
+  /// autres bébés : `WHERE baby_id = ?` ne les sélectionne pas.
+  Future<int> deleteMeasurementsByBabyId(String babyId) =>
+      (delete(measurements)..where((t) => t.babyId.equals(babyId))).go();
+
+  /// Supprime tous les achèvements manuels rattachés à [babyId] (toutes les
+  /// clés d'item). Retourne le nombre de lignes supprimées.
+  ///
+  /// Les lignes portées par la sentinelle `''` appartiennent à l'installation
+  /// sans profil et survivent à la suppression d'un profil.
+  Future<int> deleteReminderCompletionsByBabyId(String babyId) =>
+      (delete(reminderCompletions)
+            ..where((t) => t.babyId.equals(babyId)))
+          .go();
+
+  /// Supprime tous les réglages de rappels rattachés à [babyId] (toutes les
+  /// clés d'item). Retourne le nombre de lignes supprimées.
+  Future<int> deleteReminderSettingsByBabyId(String babyId) =>
+      (delete(reminderSettings)..where((t) => t.babyId.equals(babyId))).go();
+
+  /// Supprime tous les « ignorer aujourd'hui » rattachés à [babyId] (toutes
+  /// les clés d'item). Retourne le nombre de lignes supprimées.
+  Future<int> deleteReminderDismissalsByBabyId(String babyId) =>
+      (delete(reminderDismissals)..where((t) => t.babyId.equals(babyId))).go();
+
+  /// Supprime tous les rappels personnalisés rattachés à [babyId].
+  /// Retourne le nombre de lignes supprimées.
+  Future<int> deleteCustomRemindersByBabyId(String babyId) =>
+      (delete(customReminders)..where((t) => t.babyId.equals(babyId))).go();
+
   /// Retourne les événements pour un bébé spécifique.
   Future<List<TrackingEvent>> getEventsByBabyId(String babyId) {
     return (select(trackingEvents)
@@ -262,6 +444,32 @@ class AppDatabase extends _$AppDatabase {
       (select(customReminders)
             ..orderBy([(t) => OrderingTerm.asc(t.id)]))
           .get();
+
+  /// Retourne toutes les lignes de `measurements` (sans filtre, export M4).
+  Future<List<Measurement>> getAllMeasurements() => select(measurements).get();
+
+  /// Retourne toutes les lignes de `reminder_completions` (sans filtre,
+  /// export M4).
+  Future<List<ReminderCompletion>> getAllReminderCompletions() =>
+      select(reminderCompletions).get();
+
+  /// Supprime les réglages dont la clé d'item fait partie de [itemIds],
+  /// **quel que soit le bébé**. Sert au nettoyage des clés `custom_<id>`
+  /// orphelines quand un rappel personnalisé est supprimé.
+  Future<int> deleteReminderSettingsByItemIds(List<String> itemIds) =>
+      (delete(reminderSettings)..where((t) => t.itemId.isIn(itemIds))).go();
+
+  /// Supprime les « ignorer aujourd'hui » dont la clé d'item fait partie de
+  /// [itemIds], quel que soit le bébé (même usage que
+  /// [deleteReminderSettingsByItemIds]).
+  Future<int> deleteReminderDismissalsByItemIds(List<String> itemIds) =>
+      (delete(reminderDismissals)..where((t) => t.itemId.isIn(itemIds))).go();
+
+  /// Supprime les achèvements dont la clé d'item fait partie de [itemIds],
+  /// quel que soit le bébé (même usage que
+  /// [deleteReminderSettingsByItemIds]).
+  Future<int> deleteReminderCompletionsByItemIds(List<String> itemIds) =>
+      (delete(reminderCompletions)..where((t) => t.itemId.isIn(itemIds))).go();
 }
 
 

@@ -18,7 +18,30 @@ mixin _$ReminderItem {
   String get labelKey;
   ReminderFrequency get frequency;
   TrackingType get trackingType;
+
+  /// Soin lié (sous-type du domaine de [trackingType]), quand le
+  /// rappel se règle d'après un événement saisi.
+  ///
+  /// `null` : rappel détaché d'un soin — sa complétion n'est décidée que
+  /// par l'utilisateur, jamais déduite d'un événement (invariant D2).
   String? get subtypeValue;
+
+  /// Bébé propriétaire du rappel, quand il existe.
+  ///
+  /// `null` sur les préréglages : le portage est porté par la ligne de
+  /// base (`reminder_settings.baby_id`), jamais par l'item lui-même.
+  String? get babyId;
+
+  /// Ce qui règle ce rappel :
+  /// - [completionFromEvents] : un événement de
+  ///   [trackingType] portant [subtypeValue] (sa date vaut pour la
+  ///   complétion) ;
+  /// - [completionManual] : une ligne de `reminder_completions`
+  ///   écrite par l'utilisateur — sans [subtypeValue], rien d'autre ne
+  ///   peut le régler (invariant D2).
+  ///
+  /// `null` se lit comme [completionFromEvents].
+  String? get completionSource;
 
   /// Create a copy of ReminderItem
   /// with the given fields replaced by the non-null parameter values.
@@ -41,16 +64,19 @@ mixin _$ReminderItem {
             (identical(other.trackingType, trackingType) ||
                 other.trackingType == trackingType) &&
             (identical(other.subtypeValue, subtypeValue) ||
-                other.subtypeValue == subtypeValue));
+                other.subtypeValue == subtypeValue) &&
+            (identical(other.babyId, babyId) || other.babyId == babyId) &&
+            (identical(other.completionSource, completionSource) ||
+                other.completionSource == completionSource));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, labelKey, frequency, trackingType, subtypeValue);
+  int get hashCode => Object.hash(runtimeType, id, labelKey, frequency,
+      trackingType, subtypeValue, babyId, completionSource);
 
   @override
   String toString() {
-    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue)';
+    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue, babyId: $babyId, completionSource: $completionSource)';
   }
 }
 
@@ -65,7 +91,9 @@ abstract mixin class $ReminderItemCopyWith<$Res> {
       String labelKey,
       ReminderFrequency frequency,
       TrackingType trackingType,
-      String? subtypeValue});
+      String? subtypeValue,
+      String? babyId,
+      String? completionSource});
 
   $ReminderFrequencyCopyWith<$Res> get frequency;
 }
@@ -87,6 +115,8 @@ class _$ReminderItemCopyWithImpl<$Res> implements $ReminderItemCopyWith<$Res> {
     Object? frequency = null,
     Object? trackingType = null,
     Object? subtypeValue = freezed,
+    Object? babyId = freezed,
+    Object? completionSource = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -108,6 +138,14 @@ class _$ReminderItemCopyWithImpl<$Res> implements $ReminderItemCopyWith<$Res> {
       subtypeValue: freezed == subtypeValue
           ? _self.subtypeValue
           : subtypeValue // ignore: cast_nullable_to_non_nullable
+              as String?,
+      babyId: freezed == babyId
+          ? _self.babyId
+          : babyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      completionSource: freezed == completionSource
+          ? _self.completionSource
+          : completionSource // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
   }
@@ -216,16 +254,28 @@ extension ReminderItemPatterns on ReminderItem {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(String id, String labelKey, ReminderFrequency frequency,
-            TrackingType trackingType, String? subtypeValue)?
+    TResult Function(
+            String id,
+            String labelKey,
+            ReminderFrequency frequency,
+            TrackingType trackingType,
+            String? subtypeValue,
+            String? babyId,
+            String? completionSource)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _ReminderItem() when $default != null:
-        return $default(_that.id, _that.labelKey, _that.frequency,
-            _that.trackingType, _that.subtypeValue);
+        return $default(
+            _that.id,
+            _that.labelKey,
+            _that.frequency,
+            _that.trackingType,
+            _that.subtypeValue,
+            _that.babyId,
+            _that.completionSource);
       case _:
         return orElse();
     }
@@ -246,15 +296,27 @@ extension ReminderItemPatterns on ReminderItem {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(String id, String labelKey, ReminderFrequency frequency,
-            TrackingType trackingType, String? subtypeValue)
+    TResult Function(
+            String id,
+            String labelKey,
+            ReminderFrequency frequency,
+            TrackingType trackingType,
+            String? subtypeValue,
+            String? babyId,
+            String? completionSource)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ReminderItem():
-        return $default(_that.id, _that.labelKey, _that.frequency,
-            _that.trackingType, _that.subtypeValue);
+        return $default(
+            _that.id,
+            _that.labelKey,
+            _that.frequency,
+            _that.trackingType,
+            _that.subtypeValue,
+            _that.babyId,
+            _that.completionSource);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -274,15 +336,27 @@ extension ReminderItemPatterns on ReminderItem {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(String id, String labelKey, ReminderFrequency frequency,
-            TrackingType trackingType, String? subtypeValue)?
+    TResult? Function(
+            String id,
+            String labelKey,
+            ReminderFrequency frequency,
+            TrackingType trackingType,
+            String? subtypeValue,
+            String? babyId,
+            String? completionSource)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ReminderItem() when $default != null:
-        return $default(_that.id, _that.labelKey, _that.frequency,
-            _that.trackingType, _that.subtypeValue);
+        return $default(
+            _that.id,
+            _that.labelKey,
+            _that.frequency,
+            _that.trackingType,
+            _that.subtypeValue,
+            _that.babyId,
+            _that.completionSource);
       case _:
         return null;
     }
@@ -297,7 +371,9 @@ class _ReminderItem implements ReminderItem {
       required this.labelKey,
       required this.frequency,
       required this.trackingType,
-      this.subtypeValue});
+      this.subtypeValue,
+      this.babyId,
+      this.completionSource});
 
   @override
   final String id;
@@ -307,8 +383,33 @@ class _ReminderItem implements ReminderItem {
   final ReminderFrequency frequency;
   @override
   final TrackingType trackingType;
+
+  /// Soin lié (sous-type du domaine de [trackingType]), quand le
+  /// rappel se règle d'après un événement saisi.
+  ///
+  /// `null` : rappel détaché d'un soin — sa complétion n'est décidée que
+  /// par l'utilisateur, jamais déduite d'un événement (invariant D2).
   @override
   final String? subtypeValue;
+
+  /// Bébé propriétaire du rappel, quand il existe.
+  ///
+  /// `null` sur les préréglages : le portage est porté par la ligne de
+  /// base (`reminder_settings.baby_id`), jamais par l'item lui-même.
+  @override
+  final String? babyId;
+
+  /// Ce qui règle ce rappel :
+  /// - [completionFromEvents] : un événement de
+  ///   [trackingType] portant [subtypeValue] (sa date vaut pour la
+  ///   complétion) ;
+  /// - [completionManual] : une ligne de `reminder_completions`
+  ///   écrite par l'utilisateur — sans [subtypeValue], rien d'autre ne
+  ///   peut le régler (invariant D2).
+  ///
+  /// `null` se lit comme [completionFromEvents].
+  @override
+  final String? completionSource;
 
   /// Create a copy of ReminderItem
   /// with the given fields replaced by the non-null parameter values.
@@ -331,16 +432,19 @@ class _ReminderItem implements ReminderItem {
             (identical(other.trackingType, trackingType) ||
                 other.trackingType == trackingType) &&
             (identical(other.subtypeValue, subtypeValue) ||
-                other.subtypeValue == subtypeValue));
+                other.subtypeValue == subtypeValue) &&
+            (identical(other.babyId, babyId) || other.babyId == babyId) &&
+            (identical(other.completionSource, completionSource) ||
+                other.completionSource == completionSource));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, labelKey, frequency, trackingType, subtypeValue);
+  int get hashCode => Object.hash(runtimeType, id, labelKey, frequency,
+      trackingType, subtypeValue, babyId, completionSource);
 
   @override
   String toString() {
-    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue)';
+    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue, babyId: $babyId, completionSource: $completionSource)';
   }
 }
 
@@ -357,7 +461,9 @@ abstract mixin class _$ReminderItemCopyWith<$Res>
       String labelKey,
       ReminderFrequency frequency,
       TrackingType trackingType,
-      String? subtypeValue});
+      String? subtypeValue,
+      String? babyId,
+      String? completionSource});
 
   @override
   $ReminderFrequencyCopyWith<$Res> get frequency;
@@ -381,6 +487,8 @@ class __$ReminderItemCopyWithImpl<$Res>
     Object? frequency = null,
     Object? trackingType = null,
     Object? subtypeValue = freezed,
+    Object? babyId = freezed,
+    Object? completionSource = freezed,
   }) {
     return _then(_ReminderItem(
       id: null == id
@@ -402,6 +510,14 @@ class __$ReminderItemCopyWithImpl<$Res>
       subtypeValue: freezed == subtypeValue
           ? _self.subtypeValue
           : subtypeValue // ignore: cast_nullable_to_non_nullable
+              as String?,
+      babyId: freezed == babyId
+          ? _self.babyId
+          : babyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      completionSource: freezed == completionSource
+          ? _self.completionSource
+          : completionSource // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
   }

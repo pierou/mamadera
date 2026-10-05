@@ -1,6 +1,12 @@
 # ROADMAP — Reminders, multi-baby scoping, onboarding, two-phone sync, growth measurements
 
-Status: **§2 shipped in v1.1.0+4 (2026-09-21); §4.2 (measurements) added 2026-09-29, decisions resolved the same day; §5 (v1.1.1) implemented and `make ci`-green 2026-09-29.** Everything in §2 and §5 is implemented, tested and green; §1 is withdrawn; §3 onward is still proposal; decisions 1, 2, 6 and 7–9 in §7 are resolved, the rest (3, 4, 5) still await you.
+Status: **§2 shipped in v1.1.0+4 (2026-09-21); §4.2 (measurements) added 2026-09-29, decisions resolved the same day; §5 (v1.1.1) implemented and `make ci`-green 2026-09-29. §4 (items M, 3, 4, 8) implemented in full on branch `feat/v1.2.0-growth-and-baby-scoped-reminders` on 2026-10-03, executed from [`docs/PLAN-v1.2.0.md`](PLAN-v1.2.0.md) — drift v11, export format v2, `make ci`-green (1305 scoped / 1311 full, 0 skipped, 88 % lines). §1 remains withdrawn; §6 (v1.3.0 sync) is still proposal; decisions 1, 2, 6 and 7–9 in §7 are resolved, and **3, 4, 5 are now resolved too — 3 → D1 and 4 → D2 as decided in PLAN §2, 5 still awaits you** (sync needs a written privacy mandate change from the owner before any code).
+
+> **Amendment 2026-10-03 (PLAN §2.6):** §4.1's "each row: … + a done/dismiss action" is
+> inconsistent with D2 — a care-bound reminder is settled by `tracking_events`, so a Done button on
+> its row would write a completion nothing reads and leave the row looking checked. Shipped shape:
+> **Done renders only when `completionSource == manual`**; care-bound rows keep Dismiss and are
+> settled by tracking the care.
 Opened 2026-09-20, while v1.1.0 was mid-flight (Phase 2B, Xcode Cloud).
 
 Five requests came in together:

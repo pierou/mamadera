@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
+import 'package:mamadera/data/local/db_constants.dart';
 import 'package:mamadera/features/baby/domain/repositories/baby_profile_repository.dart';
+import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
+import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminders_state.dart';
 import 'package:mamadera/features/reminders/domain/services/reminders_service.dart';
@@ -349,6 +352,120 @@ void main() {
         remindersServiceProvider,
         isA<FutureProvider<RemindersService>>(),
       );
+    });
+  });
+
+  group('detached custom reminder, full chain (M3)', () {
+    /// The ids of the items currently due, whatever the overall state is.
+    List<String> dueIds(RemindersState state) => state.maybeWhen(
+          due: (items) => items.map((status) => status.item.id).toList(),
+          orElse: () => const <String>[],
+        );
+
+    testWidgets(
+        'is built without a care, due at zero events, settled by recordCompletion and not by a sante event',
+        (tester) async {
+      final mockReminders = MockRemindersRepository();
+      mockReminders.customRemindersById[1] = CustomReminder(
+        id: 1,
+        label: 'Thermomètre',
+        frequency: const ReminderFrequency.customInterval(days: 2),
+        subtypeValue: null,
+        completionSource: completionManual,
+      );
+      final baby = BabyProfile(
+          id: 'baby-1',
+          name: 'Léa',
+          birthDate: DateTime(2024, 1, 15));
+
+      final container = ProviderContainer(overrides: [
+        remindersRepositoryProvider
+            .overrideWith((ref) async => mockReminders),
+        activeBabyProvider.overrideWith(() => _ActiveBabyStub(baby)),
+      ]);
+
+      // The item reaches the enabled list with no care and the manual source.
+      final items = await container.read(enabledRemindersProvider.future);
+      final item = items.singleWhere((it) => it.id == 'custom_1');
+      expect(item.subtypeValue, isNull);
+      expect(item.completionSource, completionManual);
+
+      final service = await container.read(remindersServiceProvider.future);
+
+      // Due immediately, with zero events.
+      expect(
+        dueIds(await service.checkDue(babyId: baby.id)),
+        contains('custom_1'),
+      );
+
+      // A sante event logged today does not settle it, and the manual
+      // journal is the one consulted, scoped to the active baby.
+      mockReminders.lastCompletedByItem['custom_1'] = DateTime.now();
+      expect(
+        dueIds(await service.checkDue(babyId: baby.id)),
+        contains('custom_1'),
+      );
+      expect(mockReminders.lastManualCompletedBabyId, baby.id);
+
+      // recordCompletion settles it.
+      await mockReminders.recordCompletion('custom_1', babyId: baby.id);
+      expect(
+        dueIds(await service.checkDue(babyId: baby.id)),
+        isNot(contains('custom_1')),
+      );
+
+      container.dispose();
+    });
+
+    testWidgets('a care-bound custom reminder round-trips unchanged',
+        (tester) async {
+      final mockReminders = MockRemindersRepository();
+      mockReminders.customRemindersById[1] = CustomReminder(
+        id: 1,
+        label: 'Crème du change',
+        frequency: const ReminderFrequency.daily(),
+        subtypeValue: 'nettoyage_nez',
+      );
+      final baby = BabyProfile(
+          id: 'baby-1',
+          name: 'Léa',
+          birthDate: DateTime(2024, 1, 15));
+
+      final container = ProviderContainer(overrides: [
+        remindersRepositoryProvider
+            .overrideWith((ref) async => mockReminders),
+        activeBabyProvider.overrideWith(() => _ActiveBabyStub(baby)),
+      ]);
+
+      // subtypeValue and completionSource survive the entity → item path.
+      final items = await container.read(enabledRemindersProvider.future);
+      final item = items.singleWhere((it) => it.id == 'custom_1');
+      expect(item.subtypeValue, 'nettoyage_nez');
+      expect(item.completionSource, completionFromEvents);
+
+      final service = await container.read(remindersServiceProvider.future);
+
+      // Due at zero events, settled by a matching sante event.
+      expect(
+        dueIds(await service.checkDue(babyId: baby.id)),
+        contains('custom_1'),
+      );
+      mockReminders.lastCompletedByItem['custom_1'] = DateTime.now();
+      expect(
+        dueIds(await service.checkDue(babyId: baby.id)),
+        isNot(contains('custom_1')),
+      );
+      expect(mockReminders.lastCompletedBabyId, baby.id);
+
+      // ...and a manual completion alone never settles it.
+      mockReminders.lastCompletedByItem['custom_1'] = null;
+      await mockReminders.recordCompletion('custom_1', babyId: baby.id);
+      expect(
+        dueIds(await service.checkDue(babyId: baby.id)),
+        contains('custom_1'),
+      );
+
+      container.dispose();
     });
   });
 }

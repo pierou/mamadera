@@ -1,4 +1,4 @@
-.PHONY: ci lint test build-android build-aab build-ipa clean codegen check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration integration-driver splash-create
+.PHONY: ci lint test build-android build-aab build-ipa clean codegen l10n check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration integration-driver splash-create
 
 # Harness-based integration tests (integration_test binding — require a
 # connected device). driver_integration_test.dart is excluded: it is a
@@ -59,6 +59,9 @@ codegen:
 	@echo "Running build_runner..."
 	dart run build_runner build --delete-conflicting-outputs
 	@echo "✅ Code generation complete. Run 'make lint' to verify."
+
+l10n:  ## Regenerate lib/l10n/app_localizations*.dart from the ARB files
+	flutter gen-l10n
 
 # 🎨 Regenerate native splash screen assets (Android drawables + iOS launch images)
 splash-create:

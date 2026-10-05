@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/features/history/presentation/widgets/edit_event_dialog.dart';
+import 'package:mamadera/features/home/presentation/widgets/quantity_picker_inline.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
@@ -711,6 +712,63 @@ void main() {
       );
 
       expect(find.text('Texture du caca'), findsNothing);
+    });
+  });
+
+  group('EditEventDialog — Re-typage en solide', () {
+    // Le re-typage biberon → purée doit repasser le picker en grammes, et
+    // l'horodatage original doit survivre au submit (pas un « now » neuf).
+    testWidgets('re-typing biberon → solide : unité g, horodatage préservé', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 1600);
+      addTearDown(tester.view.reset);
+
+      final completer = Completer<EditResult?>();
+      final original = FeedingEvent(
+        timestamp: DateTime.utc(2024, 1, 1, 9, 30),
+        subtype: FeedingSubtype.artificial,
+        quantity: 120,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: _DialogLauncher(
+              event: original,
+              onResult: (r) => completer.complete(r as EditResult?),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Ouvrir'));
+      await tester.pumpAndSettle();
+
+      // Retape en solide : le picker passe en grammes.
+      await tester.tap(find.text('Solide'));
+      await tester.pumpAndSettle();
+      expect(find.text('120 g'), findsOneWidget);
+
+      final picker = tester.widget<QuantityPickerInline>(find.byType(QuantityPickerInline));
+      expect(picker.unit, equals('g'));
+      expect(picker.max, equals(1000));
+      expect(picker.step, equals(5));
+
+      await tester.tap(find.text('Enregistrer'));
+      await tester.pumpAndSettle();
+
+      final result = (await completer.future) as UpdateResult?;
+      expect(result?.subtype, FeedingSubtype.solid);
+      expect(result?.quantity, 120);
+      expect(result?.timestamp, original.timestamp);
     });
   });
 }

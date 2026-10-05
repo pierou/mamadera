@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
+import 'package:mamadera/data/local/db_constants.dart';
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
@@ -239,6 +240,32 @@ void main() {
       await pumpScreen(tester);
 
       expect(find.text('Le 15 de chaque mois'), findsNWidgets(2));
+    });
+
+    testWidgets(
+        'un rappel détaché s\'affiche sans soin inventé, avec son avertissement',
+        (tester) async {
+      mockReminders.customRemindersById[1] = CustomReminder(
+        id: 1,
+        label: 'Thermomètre',
+        frequency: const ReminderFrequency.customInterval(days: 2),
+        subtypeValue: null,
+        completionSource: completionManual,
+      );
+
+      await pumpScreen(tester);
+
+      expect(find.byType(CustomReminderTile), findsOneWidget);
+      // Le libellé du parent, son rythme…
+      expect(find.text('Thermomètre'), findsOneWidget);
+      expect(find.text('Tous les 2 jours'), findsOneWidget);
+      // …et l'avertissement de complétion manuelle — sans nom de soin inventé
+      // derrière un rappel qui n'en porte pas.
+      expect(
+        find.text("S'efface quand vous le marquez fait."),
+        findsOneWidget,
+      );
+      expect(find.text('Nettoyage du nez'), findsNothing);
     });
 
     testWidgets('le switch d\'une ligne personnalisée éteint le rappel sous sa propre clé',

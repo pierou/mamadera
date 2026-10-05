@@ -54,10 +54,26 @@ class CustomReminderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Un rappel détaché n'a pas de soin à citer : on le dit plutôt que de
+    // laisser croire qu'il existe un suivi derrière.
+    final isDetached = reminder.subtypeValue == null;
+
     return ListTile(
       contentPadding: const EdgeInsets.only(right: AppTheme.spacingSm),
       title: Text(reminder.label),
-      subtitle: Text(reminderFrequencyLabel(context, display.frequency)),
+      subtitle: isDetached
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(reminderFrequencyLabel(context, display.frequency)),
+                Text(
+                  context.l.reminderCustomCareNoneHint,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            )
+          : Text(reminderFrequencyLabel(context, display.frequency)),
+
       onTap: () => onAction(CustomReminderAction.edit),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

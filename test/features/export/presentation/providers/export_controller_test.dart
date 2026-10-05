@@ -71,6 +71,8 @@ void main() {
       expect(counts.trackingEvents, 0);
       expect(counts.reminderSettings, 0);
       expect(counts.reminderDismissals, 0);
+      expect(counts.measurements, 0);
+      expect(counts.reminderCompletions, 0);
       expect(counts.isEmpty, isTrue);
     });
   });

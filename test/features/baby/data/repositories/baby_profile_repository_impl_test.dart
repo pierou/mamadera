@@ -241,6 +241,200 @@ void main() {
         // ...while the other baby's events survive.
         expect(await database.getEventsByBabyId('baby-002'), hasLength(1));
       });
+
+      test('deletes the baby-scoped growth and reminder rows, keeps shared rows and the other baby',
+          () async {
+        await repository.insertProfile(baby1);
+        await repository.insertProfile(baby2);
+
+        // Rappels personnalisés : deux pour baby-001 (dont un détaché),
+        // un pour baby-002.
+        await database.into(database.customReminders).insert(
+          db_app.CustomRemindersCompanion.insert(
+            id: const Value(1),
+            babyId: const Value('baby-001'),
+            label: 'Vitamine D',
+            subtypeValue: const Value('vitamine_d'),
+            frequency: 'daily',
+          ),
+        );
+        await database.into(database.customReminders).insert(
+          db_app.CustomRemindersCompanion.insert(
+            id: const Value(2),
+            babyId: const Value('baby-002'),
+            label: 'Crème du soir',
+            subtypeValue: const Value('nettoyage_nez'),
+            frequency: 'weekly',
+          ),
+        );
+        await database.into(database.customReminders).insert(
+          db_app.CustomRemindersCompanion.insert(
+            id: const Value(3),
+            babyId: const Value('baby-001'),
+            label: 'Bain',
+            subtypeValue: const Value(null),
+            completionSource: const Value('manual'),
+            frequency: 'weekly',
+          ),
+        );
+
+        await database.into(database.reminderSettings).insert(
+          db_app.ReminderSettingsCompanion.insert(
+            babyId: const Value('baby-001'),
+            itemId: 'custom_1',
+            enabled: true,
+          ),
+        );
+        // Le même rappel allumé pour l'autre bébé : la purge par clé touche
+        // TOUTES les portées, pas seulement celle du bébé supprimé.
+        await database.into(database.reminderSettings).insert(
+          db_app.ReminderSettingsCompanion.insert(
+            babyId: const Value('baby-002'),
+            itemId: 'custom_1',
+            enabled: true,
+          ),
+        );
+        await database.into(database.reminderSettings).insert(
+          db_app.ReminderSettingsCompanion.insert(
+            babyId: const Value('baby-001'),
+            itemId: 'miam',
+            enabled: false,
+          ),
+        );
+        await database.into(database.reminderSettings).insert(
+          db_app.ReminderSettingsCompanion.insert(
+            babyId: const Value('baby-002'),
+            itemId: 'miam',
+            enabled: true,
+          ),
+        );
+        // Sentinelle partagée : elle ne doit jamais mourir avec un bébé.
+        await database.into(database.reminderSettings).insert(
+          db_app.ReminderSettingsCompanion.insert(
+            itemId: 'vitamine_k',
+            enabled: true,
+          ),
+        );
+
+        await database.into(database.reminderDismissals).insert(
+          db_app.ReminderDismissalsCompanion.insert(
+            babyId: const Value('baby-001'),
+            itemId: 'custom_3',
+            dismissedAt: DateTime(2026, 9, 1),
+          ),
+        );
+        await database.into(database.reminderDismissals).insert(
+          db_app.ReminderDismissalsCompanion.insert(
+            itemId: 'custom_3',
+            dismissedAt: DateTime(2026, 9, 2),
+          ),
+        );
+        await database.into(database.reminderDismissals).insert(
+          db_app.ReminderDismissalsCompanion.insert(
+            babyId: const Value('baby-002'),
+            itemId: 'vitamine_d',
+            dismissedAt: DateTime(2026, 9, 3),
+          ),
+        );
+
+        await database.into(database.reminderCompletions).insert(
+          db_app.ReminderCompletionsCompanion.insert(
+            babyId: const Value('baby-001'),
+            itemId: 'custom_3',
+            completedAt: DateTime(2026, 9, 1, 12),
+          ),
+        );
+        await database.into(database.reminderCompletions).insert(
+          db_app.ReminderCompletionsCompanion.insert(
+            itemId: 'custom_1',
+            completedAt: DateTime(2026, 9, 2, 12),
+          ),
+        );
+        await database.into(database.reminderCompletions).insert(
+          db_app.ReminderCompletionsCompanion.insert(
+            babyId: const Value('baby-002'),
+            itemId: 'custom_2',
+            completedAt: DateTime(2026, 9, 3, 12),
+          ),
+        );
+
+        await database.into(database.measurements).insert(
+          db_app.MeasurementsCompanion.insert(
+            id: const Value(1),
+            babyId: const Value('baby-001'),
+            kind: 'poids',
+            value: '3400',
+            unit: 'g',
+            recordedAt: DateTime(2026, 9, 1),
+          ),
+        );
+        await database.into(database.measurements).insert(
+          db_app.MeasurementsCompanion.insert(
+            id: const Value(2),
+            babyId: const Value('baby-002'),
+            kind: 'taille',
+            value: '48',
+            unit: 'cm',
+            recordedAt: DateTime(2026, 9, 1),
+          ),
+        );
+        // Mesure orpheline (babyId null) : ne se rattache à aucun profil.
+        await database.into(database.measurements).insert(
+          db_app.MeasurementsCompanion.insert(
+            id: const Value(3),
+            kind: 'temperature',
+            value: '37.1',
+            unit: 'degC',
+            recordedAt: DateTime(2026, 9, 1),
+          ),
+        );
+
+        final deleted = await repository.deleteProfile('baby-001');
+        expect(deleted, isTrue);
+
+        // Rappels personnalisés du bébé supprimé : leurs clés `custom_*`
+        // sont purgées partout, même sous la sentinelle partagée.
+        final reminders = await database.getAllCustomReminders();
+        expect(reminders.map((r) => r.id), containsAll(<int>[2]));
+        expect(reminders.map((r) => r.id), isNot(contains(1)));
+        expect(reminders.map((r) => r.id), isNot(contains(3)));
+
+        final settings = await database.getAllReminderSettings();
+        final settingKeys =
+            settings.map((s) => (s.babyId, s.itemId)).toSet();
+        expect(settingKeys, isNot(contains(('baby-001', 'miam'))));
+        expect(settingKeys, isNot(contains(('baby-001', 'custom_1'))));
+        expect(settingKeys, isNot(contains(('baby-002', 'custom_1'))),
+            reason: 'la clé du rappel supprimé est purgée pour TOUS les bébés');
+        expect(settingKeys, contains(('baby-002', 'miam')));
+        expect(settingKeys, contains(('', 'vitamine_k')));
+
+        final dismissals = await database.getAllReminderDismissals();
+        final dismissalKeys =
+            dismissals.map((d) => (d.babyId, d.itemId)).toSet();
+        expect(dismissalKeys, isNot(contains(('baby-001', 'custom_3'))));
+        expect(dismissalKeys, isNot(contains(('', 'custom_3'))),
+            reason: 'le rejet partagé du rappel supprimé est purgé aussi');
+        expect(dismissalKeys, contains(('baby-002', 'vitamine_d')));
+
+        final completions = await database.getAllReminderCompletions();
+        final completionKeys =
+            completions.map((c) => (c.babyId, c.itemId)).toSet();
+        expect(completionKeys, isNot(contains(('baby-001', 'custom_3'))));
+        expect(completionKeys, isNot(contains(('', 'custom_1'))));
+        expect(completionKeys, contains(('baby-002', 'custom_2')));
+
+        // Croissance : la mesure du bébé part avec lui, l'autre bébé et
+        // l'orpheline restent.
+        final measurements = await database.getAllMeasurements();
+        expect(
+          measurements.map((m) => m.id),
+          containsAll(<int>[2, 3]),
+        );
+        expect(measurements.map((m) => m.id), isNot(contains(1)));
+        expect(measurements.map((m) => (m.id, m.babyId)),
+            contains((2, 'baby-002')));
+      });
     });
 
     group('setActiveProfile', () {

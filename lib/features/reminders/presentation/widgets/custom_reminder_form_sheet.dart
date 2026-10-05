@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
+import '../../../../data/local/db_constants.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../domain/entities/custom_reminder.dart';
@@ -38,7 +39,10 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final TextEditingController _labelController;
   late final TextEditingController _daysController;
-  late String _subtypeValue;
+
+  /// `null` = rappel **détaché** : « Aucun soin » est la première entrée du
+  /// menu et sa valeur, jamais un défaut imposé.
+  late String? _subtypeValue;
   late CustomReminderFrequencyChoice _choice;
 
   /// Intervalle par défaut proposé à la création : trois jours, le rythme
@@ -50,7 +54,12 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
     super.initState();
     final existing = widget.existing;
     _labelController = TextEditingController(text: existing?.label ?? '');
-    _subtypeValue = existing?.subtypeValue ?? HealthSubtype.nettoyageNez.value;
+    // À la modification, on garde le choix existant, détachement compris : lui
+    // imposer un soin par défaut referait un rappel sans soin au premier
+    // événement de santé venu. Seul un rappel neuf part sur le plus demandé.
+    _subtypeValue = existing == null
+        ? HealthSubtype.nettoyageNez.value
+        : existing.subtypeValue;
     _choice = _choiceOf(existing?.frequency);
     // Seul un roulement porte un nombre de jours à préremplir ; les autres
     // rythmes partent sur l'intervalle par défaut, invisible tant que le choix
@@ -117,6 +126,11 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
       CustomReminder(
         label: _labelController.text.trim(),
         subtypeValue: _subtypeValue,
+        // D2 : le choix du soin décide de la source — un rappel sans soin est
+        // réglé par le tap « Fait », jamais par un événement de santé.
+        completionSource: _subtypeValue == null
+            ? completionManual
+            : completionFromEvents,
         frequency: frequency,
         id: widget.existing?.id,
       ),
@@ -199,11 +213,18 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
   Widget _buildCareField() {
     return DropdownButtonFormField<String>(
       initialValue: _subtypeValue,
+      // « Aucun soin » est une entrée comme les autres, mais sa valeur est
+      // `null` : le dropdown la rend sélection en l'affichant comme indice.
+      hint: Text(context.l.reminderCustomCareNone),
       decoration: InputDecoration(
         labelText: context.l.reminderCustomCareField,
         border: const OutlineInputBorder(),
       ),
       items: [
+        DropdownMenuItem<String>(
+          value: null,
+          child: Text(context.l.reminderCustomCareNone),
+        ),
         for (final subtype in HealthSubtype.values)
           DropdownMenuItem(
             value: subtype.value,
@@ -211,7 +232,7 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
           ),
       ],
       onChanged: (value) {
-        if (value != null) _subtypeValue = value;
+        _subtypeValue = value;
       },
     );
   }

@@ -8,6 +8,7 @@ import 'package:mamadera/features/reminders/data/repositories/reminders_reposito
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
+import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 void main() {
   group('RemindersRepositoryImpl', () {
@@ -32,6 +33,48 @@ void main() {
       test('returns null when no tracking events exist', () async {
         final result = await repository.getLastCompleted(vitaminDItem);
         expect(result, isNull);
+      });
+
+      test('a solid food event does not complete milk feeding reminders (exact subtype match)', () async {
+        // Un purée ne réhydrate pas un nouveau-né : les rappels miam matchent
+        // le sous-type EXACTEMENT (choix assumé, pas une omission — BACKLOG
+        // B1). Un match approximatif marquerait « nourri » et éteindrait les
+        // rappels d'un bébé mal nourri.
+        const miamNatural = ReminderItem(
+          id: 'miam_natural',
+          labelKey: 'miamNatural',
+          frequency: Daily(),
+          trackingType: TrackingType.miam,
+          subtypeValue: 'natural',
+        );
+        const miamArtificial = ReminderItem(
+          id: 'miam_artificial',
+          labelKey: 'miamArtificial',
+          frequency: Daily(),
+          trackingType: TrackingType.miam,
+          subtypeValue: 'artificial',
+        );
+        const miamSolid = ReminderItem(
+          id: 'miam_solid',
+          labelKey: 'miamSolid',
+          frequency: Daily(),
+          trackingType: TrackingType.miam,
+          subtypeValue: 'solid',
+        );
+
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: 'miam',
+            subtype: const Value('solid'),
+            quantity: const Value(40.0),
+            timestamp: DateTime.now(),
+          ),
+        );
+
+        // Le purée règle uniquement le rappel « solide » — pas les laits.
+        expect(await repository.getLastCompleted(miamSolid), isNotNull);
+        expect(await repository.getLastCompleted(miamNatural), isNull);
+        expect(await repository.getLastCompleted(miamArtificial), isNull);
       });
 
       test('returns event from yesterday (not just today)', () async {
@@ -137,8 +180,11 @@ void main() {
         expect(forB!.day, equals(babyBEvent.day));
       });
 
-      test('spans all babies when babyId is null', () async {
-        // Backward compatibility: a pre-profile install keeps the old behaviour.
+      test('reads only profileless events when babyId is null', () async {
+        // L'état sans profil lit les événements posés avant tout profil
+        // (`baby_id IS NULL`) — jamais un événement d'un bébé : cette
+        // lecture « tous bébés » était la fuite entre bébés, côté
+        // préréglages liés à un soin.
         final older = DateTime.now().subtract(const Duration(days: 5));
         final recent = DateTime.now().subtract(const Duration(days: 1));
         await database.into(database.trackingEvents).insert(
@@ -154,12 +200,12 @@ void main() {
             type: vitaminDItem.trackingType.name,
             subtype: Value(vitaminDItem.subtypeValue),
             timestamp: recent,
-            babyId: const Value('baby_b'),
           ),
         );
 
         final result = await repository.getLastCompleted(vitaminDItem);
 
+        expect(result, isNotNull);
         expect(result!.day, equals(recent.day));
       });
     });
@@ -224,7 +270,7 @@ void main() {
           database.into(database.customReminders).insert(
                 CustomRemindersCompanion.insert(
                   label: label,
-                  subtypeValue: 'nettoyage_nez',
+                  subtypeValue: const Value('nettoyage_nez'),
                   frequency: frequency,
                   intervalDays: Value(intervalDays),
                 ),
@@ -415,6 +461,247 @@ void main() {
         // Une suppression qui ne vise aucune ligne ne doit pas emporter les
         // réglages des autres rappels.
         expect(await repository.getEnabledByItemId(), {'custom_99': false});
+      });
+
+      test('a deleted custom reminder leaves no row in any table', () async {
+        final id = await repository.insertCustomReminder(
+          const CustomReminder(
+            label: 'Crème du change',
+            frequency: ReminderFrequency.daily(),
+            subtypeValue: null,
+          ),
+        );
+        final key = 'custom_$id';
+
+        // Les trois tables satellites portent la clé du rappel : chacune doit
+        // mourir avec lui. `reminder_completions` aussi, parce que l'export lit
+        // cette table sans filtre — un achèvement orphelin serait écrit dans la
+        // sauvegarde, restauré, et réglerait un futur rappel reprenant cet id.
+        await repository.setEnabled(key, enabled: false);
+        await repository.recordCompletion(key, at: DateTime(2026, 3, 1));
+        await repository.dismissReminder(key, at: DateTime(2026, 3, 2));
+
+        expect(await repository.getLastManualCompletion(key), isNotNull);
+
+        await repository.deleteCustomReminder(id);
+
+        expect(await repository.getCustomReminders(), isEmpty);
+        expect(await repository.getEnabledByItemId(), isNot(contains(key)));
+        expect(await repository.getLastManualCompletion(key), isNull);
+        expect(await repository.getLastDismissal(key), isNull);
+      });
+    });
+
+    group('complétions manuelles (reminder_completions)', () {
+      test('recordCompletion appends a row readable by getLastManualCompletion', () async {
+        final at = DateTime(2026, 3, 12, 9, 30);
+        await repository.recordCompletion('vitamine_d', at: at);
+
+        expect(await repository.getLastManualCompletion('vitamine_d'), at);
+      });
+
+      test('the most recent completion wins', () async {
+        await repository.recordCompletion('vitamine_d', at: DateTime(2026, 3, 1));
+        await repository.recordCompletion('vitamine_d', at: DateTime(2026, 3, 2));
+
+        expect(
+          await repository.getLastManualCompletion('vitamine_d'),
+          DateTime(2026, 3, 2),
+        );
+      });
+
+      test('completions are per-baby: A does not settle B', () async {
+        await repository.recordCompletion(
+          'vitamine_d',
+          babyId: 'baby_a',
+          at: DateTime(2026, 3, 2),
+        );
+
+        expect(
+          await repository.getLastManualCompletion('vitamine_d', babyId: 'baby_a'),
+          isNotNull,
+        );
+        expect(
+          await repository.getLastManualCompletion('vitamine_d', babyId: 'baby_b'),
+          isNull,
+        );
+      });
+    });
+
+    group('invariant D2 (item détaché)', () {
+      test('an item without subtype is never settled by an event, even of its own type',
+          () async {
+        // Le piège : un événement `sante` existe, du bon domaine, même du bon
+        // sous-type — mais l'item est détaché, il ne se règle qu'à la main.
+        final detached = ReminderItem(
+          id: 'pedicure',
+          labelKey: 'reminderPedicure',
+          frequency: const ReminderFrequency.daily(),
+          trackingType: TrackingType.sante,
+        );
+        await database.into(database.trackingEvents).insert(
+          TrackingEventsCompanion.insert(
+            type: 'sante',
+            subtype: const Value('vitamine_d'),
+            timestamp: DateTime.now(),
+          ),
+        );
+
+        expect(await repository.getLastCompleted(detached), isNull);
+        expect(await repository.getLastCompleted(detached, babyId: 'baby_a'), isNull);
+      });
+    });
+
+    group('ignorer (reminder_dismissals)', () {
+      test('dismissReminder keeps one row per (baby, item) and refreshes it',
+          () async {
+        await repository.dismissReminder('vitamine_d', at: DateTime(2026, 3, 1));
+        await repository.dismissReminder('vitamine_d', at: DateTime(2026, 3, 2));
+
+        final rows = await database.select(database.reminderDismissals).get();
+        expect(rows, hasLength(1));
+        expect(rows.single.dismissedAt, DateTime(2026, 3, 2));
+      });
+
+      test('dismissals are per-baby', () async {
+        await repository.dismissReminder('vitamine_d', babyId: 'baby_a');
+
+        expect(
+          await repository.getLastDismissal('vitamine_d', babyId: 'baby_a'),
+          isNotNull,
+        );
+        expect(
+          await repository.getLastDismissal('vitamine_d', babyId: 'baby_b'),
+          isNull,
+        );
+      });
+    });
+
+    group('deux bébés partageant un préréglage (item M)', () {
+      test('enabled, dismissed et completed sont indépendants par bébé', () async {
+        const presetId = 'vitamine_d';
+
+        // Éteint pour A, intact pour B.
+        await repository.setEnabled(presetId, enabled: false, babyId: 'baby_a');
+        expect((await repository.getEnabledByItemId(babyId: 'baby_a'))[presetId], isFalse);
+        expect(
+          await repository.getEnabledByItemId(babyId: 'baby_b'),
+          isNot(contains(presetId)),
+        );
+
+        // Ignoré pour A, le frère B n'est pas touché.
+        await repository.dismissReminder(presetId, babyId: 'baby_a');
+        expect(await repository.getLastDismissal(presetId, babyId: 'baby_a'), isNotNull);
+        expect(await repository.getLastDismissal(presetId, babyId: 'baby_b'), isNull);
+
+        // Fait pour A, rien pour B.
+        await repository.recordCompletion(presetId, babyId: 'baby_a');
+        expect(
+          await repository.getLastManualCompletion(presetId, babyId: 'baby_a'),
+          isNotNull,
+        );
+        expect(
+          await repository.getLastManualCompletion(presetId, babyId: 'baby_b'),
+          isNull,
+        );
+
+        // Une ligne par bébé par table : rien de partagé n'a été créé au
+        // passage.
+        expect(await database.getAllReminderSettings(), hasLength(1));
+        expect(await database.getAllReminderDismissals(), hasLength(1));
+        expect(await database.select(database.reminderCompletions).get(), hasLength(1));
+      });
+    });
+
+    group("portage sans profil (sentinelle '')", () {
+      test(
+          "une ligne réglée sans profil ne s'applique à aucun bébé : le nouveau bébé part du défaut",
+          () async {
+        // Ligne héritée d'une installation sans profil : écrite sans bébé.
+        await repository.setEnabled('vitamine_d', enabled: false);
+        expect((await database.getAllReminderSettings()).single.babyId, '');
+
+        // Lisible dans l'état sans profil…
+        expect((await repository.getEnabledByItemId())['vitamine_d'], isFalse);
+        // …mais invisible pour un bébé créé après coup : son portage est
+        // vide, donc le préréglage reste activé par défaut.
+        expect(
+          await repository.getEnabledByItemId(babyId: 'nouveau'),
+          isNot(contains('vitamine_d')),
+        );
+      });
+
+      test('la ligne propre au bébé est la seule ligne lue, pour lui seul', () async {
+        await repository.setEnabled('vitamine_d', enabled: false);
+        await repository.setEnabled('vitamine_d', enabled: true, babyId: 'nouveau');
+
+        expect((await repository.getEnabledByItemId(babyId: 'nouveau'))['vitamine_d'], isTrue);
+        // Le bébé « autre » ne lit ni sa propre ligne (absente) ni la ligne
+        // sans profil : défaut, donc activé.
+        expect(
+          await repository.getEnabledByItemId(babyId: 'autre'),
+          isNot(contains('vitamine_d')),
+        );
+        expect(await database.getAllReminderSettings(), hasLength(2));
+      });
+
+      test("un ignoré sans profil ne s'applique à aucun bébé", () async {
+        await repository.dismissReminder('vitamine_d');
+
+        expect(
+          await repository.getLastDismissal('vitamine_d', babyId: 'bébé_tard'),
+          isNull,
+        );
+        // Mais il reste lisible dans l'état sans profil.
+        expect(await repository.getLastDismissal('vitamine_d'), isNotNull);
+      });
+
+      test('une complétion sans profil ne règle aucun bébé', () async {
+        await repository.recordCompletion('vitamine_d');
+
+        expect(
+          await repository.getLastManualCompletion('vitamine_d', babyId: 'bébé_tard'),
+          isNull,
+        );
+        expect(await repository.getLastManualCompletion('vitamine_d'), isNotNull);
+      });
+
+      test('a baby created later sees defaults, not another baby state', () async {
+        // Le premier a éteint Vit. D, l'a ignorée et l'a marquée faite.
+        await repository.setEnabled('vitamine_d', enabled: false, babyId: 'a');
+        await repository.dismissReminder('vitamine_d', babyId: 'a');
+        await repository.recordCompletion('vitamine_d', babyId: 'a');
+
+        // Le bébé b, créé après coup, n'hérite de rien : pas de réglage, pas
+        // d'ignoré, pas de réglage manuel.
+        expect(await repository.getEnabledByItemId(babyId: 'b'), isEmpty);
+        expect(await repository.getLastDismissal('vitamine_d', babyId: 'b'), isNull);
+        expect(await repository.getLastManualCompletion('vitamine_d', babyId: 'b'), isNull);
+      });
+    });
+
+    group('rappels personnalisés portés par la ligne', () {
+      CustomReminder custom() => CustomReminder(
+            label: 'Crème du change',
+            subtypeValue: 'nettoyage_nez',
+            frequency: const ReminderFrequency.daily(),
+          );
+
+      test("un rappel créé pour A n'est pas visible par B", () async {
+        await repository.insertCustomReminder(custom(), babyId: 'baby_a');
+
+        expect(await repository.getCustomReminders(babyId: 'baby_a'), hasLength(1));
+        expect(await repository.getCustomReminders(babyId: 'baby_b'), isEmpty);
+      });
+
+      test("un rappel créé sans profil n'est visible que sans profil", () async {
+        await repository.insertCustomReminder(custom());
+        final row = await database.select(database.customReminders).getSingle();
+        expect(row.babyId, '');
+
+        expect(await repository.getCustomReminders(), hasLength(1));
+        expect(await repository.getCustomReminders(babyId: 'baby_a'), isEmpty);
+        expect(await repository.getCustomReminders(babyId: 'baby_b'), isEmpty);
       });
     });
   });

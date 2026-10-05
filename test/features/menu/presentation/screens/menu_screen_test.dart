@@ -56,6 +56,14 @@ void main() {
       expect(find.text('Thème'), findsOneWidget);
     });
 
+    testWidgets('affiche la section croissance et sa tuile', (tester) async {
+      await pumpMenuScreen(tester: tester);
+      await tester.pump(const Duration(milliseconds: 100));
+      // Le libellé « Croissance » sert d'en-tête de section et de titre de tuile.
+      expect(find.text('Croissance'), findsNWidgets(2));
+      expect(find.byIcon(Icons.straighten), findsOneWidget);
+    });
+
     testWidgets('affiche la section rappels et sa tuile', (tester) async {
       await pumpMenuScreen(tester: tester);
       await tester.pump(const Duration(milliseconds: 100));

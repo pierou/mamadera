@@ -5,8 +5,8 @@ import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 
 void main() {
   group('FeedingSubtype', () {
-    test('has 2 values', () {
-      expect(FeedingSubtype.values.length, equals(2));
+    test('has 3 values', () {
+      expect(FeedingSubtype.values.length, equals(3));
     });
 
     test('natural name is correct', () {
@@ -22,6 +22,10 @@ void main() {
       expect(FeedingSubtype.artificial.dbValue, equals('artificial'));
     });
 
+    test('solid dbValue is correct', () {
+      expect(FeedingSubtype.solid.dbValue, equals('solid'));
+    });
+
     test('fromDbValue returns correct enum for new values', () {
       expect(FeedingSubtype.fromDbValue('natural'), equals(FeedingSubtype.natural));
       expect(FeedingSubtype.fromDbValue('artificial'), equals(FeedingSubtype.artificial));
@@ -30,6 +34,19 @@ void main() {
     test('fromDbValue returns correct enum for legacy values', () {
       expect(FeedingSubtype.fromDbValue('sein'), equals(FeedingSubtype.natural));
       expect(FeedingSubtype.fromDbValue('bib'), equals(FeedingSubtype.artificial));
+    });
+
+    test('fromDbValue returns solid for "solid"', () {
+      expect(FeedingSubtype.fromDbValue('solid'), equals(FeedingSubtype.solid));
+    });
+
+    test('fromDbValue never falls back to natural for unknown values', () {
+      // Comportement figé volontairement : un sous-type inconnu doit rester
+      // inconnu. L'interpréter en « lait maternel » inventerait un dossier de
+      // santé — c'est pourquoi l'import n'a pas de whitelist de sous-types
+      // d'alimentation : un 'purée' hérité doit survivre intact.
+      expect(FeedingSubtype.fromDbValue('purée'), isNull);
+      expect(FeedingSubtype.fromDbValue('unknown'), isNull);
     });
 
     test('fromDbValue returns null for null input', () {

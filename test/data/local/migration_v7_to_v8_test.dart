@@ -81,6 +81,7 @@ void main() {
     // La table existe maintenant et est writable.
     await db.into(db.reminderSettings).insert(
       const ReminderSettingsCompanion(
+        babyId: Value(''),
         itemId: Value('test-reminder'),
         enabled: Value(true),
       ),

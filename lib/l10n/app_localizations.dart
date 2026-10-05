@@ -166,6 +166,114 @@ abstract class AppLocalizations {
   /// **'Dodo'**
   String get homeButtonDodo;
 
+  /// No description provided for @homeButtonPoids.
+  ///
+  /// In fr, this message translates to:
+  /// **'Poids'**
+  String get homeButtonPoids;
+
+  /// No description provided for @homeButtonTaille.
+  ///
+  /// In fr, this message translates to:
+  /// **'Taille'**
+  String get homeButtonTaille;
+
+  /// No description provided for @homeButtonTemperature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Température'**
+  String get homeButtonTemperature;
+
+  /// No description provided for @growthValueOutOfRange.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valeur hors plage : entre {min} et {max} {unit}.'**
+  String growthValueOutOfRange(Object min, Object max, Object unit);
+
+  /// No description provided for @growthFeedbackSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mesure enregistrée · {value}'**
+  String growthFeedbackSaved(Object value);
+
+  /// No description provided for @growthMenuTile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Croissance'**
+  String get growthMenuTile;
+
+  /// No description provided for @growthScreenTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Croissance'**
+  String get growthScreenTitle;
+
+  /// No description provided for @growthSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mesures de croissance'**
+  String get growthSectionTitle;
+
+  /// No description provided for @growthEmptyState.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune mesure pour l\'instant.'**
+  String get growthEmptyState;
+
+  /// No description provided for @growthLatestWeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernier poids'**
+  String get growthLatestWeight;
+
+  /// No description provided for @growthLatestHeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière taille'**
+  String get growthLatestHeight;
+
+  /// No description provided for @growthLatestTemperature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière température'**
+  String get growthLatestTemperature;
+
+  /// No description provided for @growthSheetTitleWeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau poids'**
+  String get growthSheetTitleWeight;
+
+  /// No description provided for @growthSheetTitleHeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle taille'**
+  String get growthSheetTitleHeight;
+
+  /// No description provided for @growthSheetTitleTemperature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle température'**
+  String get growthSheetTitleTemperature;
+
+  /// No description provided for @growthSheetNoteField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note (facultatif)'**
+  String get growthSheetNoteField;
+
+  /// No description provided for @growthSheetSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get growthSheetSave;
+
+  /// No description provided for @growthValueUndecryptable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valeur illisible'**
+  String get growthValueUndecryptable;
+
   /// No description provided for @feedbackFeedingWithQuantity.
   ///
   /// In fr, this message translates to:
@@ -243,6 +351,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Confirmer'**
   String get confirmButton;
+
+  /// No description provided for @increment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incrémenter'**
+  String get increment;
+
+  /// No description provided for @decrement.
+  ///
+  /// In fr, this message translates to:
+  /// **'Décrémenter'**
+  String get decrement;
 
   /// No description provided for @saveButton.
   ///
@@ -436,6 +556,18 @@ abstract class AppLocalizations {
   /// **'Soin associé'**
   String get reminderCustomCareField;
 
+  /// No description provided for @reminderCustomCareNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun soin'**
+  String get reminderCustomCareNone;
+
+  /// No description provided for @reminderCustomCareNoneHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'S\'efface quand vous le marquez fait.'**
+  String get reminderCustomCareNoneHint;
+
   /// No description provided for @reminderCustomFrequencyField.
   ///
   /// In fr, this message translates to:
@@ -483,6 +615,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Le rappel n\'a pas pu être supprimé. Réessayez.'**
   String get reminderCustomDeleteError;
+
+  /// No description provided for @reminderListTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels à faire'**
+  String get reminderListTitle;
+
+  /// No description provided for @reminderListTitleFor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels de {name} à faire'**
+  String reminderListTitleFor(Object name);
+
+  /// No description provided for @reminderListEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à faire pour l\'instant.'**
+  String get reminderListEmpty;
+
+  /// No description provided for @reminderMarkDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer comme fait'**
+  String get reminderMarkDone;
+
+  /// No description provided for @reminderDismiss.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ignorer ce rappel'**
+  String get reminderDismiss;
+
+  /// No description provided for @reminderLastDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière fois: {date}'**
+  String reminderLastDone(Object date);
+
+  /// No description provided for @reminderNeverDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jamais fait'**
+  String get reminderNeverDone;
 
   /// No description provided for @yesterday.
   ///
@@ -760,6 +934,12 @@ abstract class AppLocalizations {
   /// **'Lait Artificiel'**
   String get feedingSubtypeArtificial;
 
+  /// No description provided for @feedingSolid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solide'**
+  String get feedingSolid;
+
   /// No description provided for @editDialogTitle.
   ///
   /// In fr, this message translates to:
@@ -819,6 +999,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'min'**
   String get minuteSuffix;
+
+  /// No description provided for @gramSuffix.
+  ///
+  /// In fr, this message translates to:
+  /// **'g'**
+  String get gramSuffix;
 
   /// No description provided for @deleteDialogTitle.
   ///
