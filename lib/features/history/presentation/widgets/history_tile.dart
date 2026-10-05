@@ -131,7 +131,10 @@ class HistoryTileSubtitle extends StatelessWidget {
         if (_getQuantity(event) != null)
           Text(context.l.quantityPrefix(_getQuantity(event)!.toInt(), event.map(
             (_) => '',
-            feeding: (_) => 'ml',
+            // L'unité suit le sous-type : un purée s'affiche en grammes, un
+            // biberon en millilitres — jamais l'inverse.
+            feeding: (e) =>
+                e.subtype == FeedingSubtype.solid ? context.l.gramSuffix : 'ml',
             sleep: (_) => context.l.minuteSuffix,
             diaper: (_) => '',
             health: (_) => '',
@@ -190,9 +193,11 @@ class HistoryTileSubtitle extends StatelessWidget {
           Icon(feeding.subtype.icon, size: 16, color: _getSubtypeColor(feeding.subtype)),
           const SizedBox(width: 4),
           Text(
-            feeding.subtype == FeedingSubtype.natural
-                ? context.l.feedingSubtypeNatural
-                : context.l.feedingSubtypeArtificial,
+            switch (feeding.subtype) {
+              FeedingSubtype.natural => context.l.feedingSubtypeNatural,
+              FeedingSubtype.artificial => context.l.feedingSubtypeArtificial,
+              FeedingSubtype.solid => context.l.feedingSolid,
+            },
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],

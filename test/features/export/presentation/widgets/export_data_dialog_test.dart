@@ -86,6 +86,8 @@ const _counts = ExportCounts(
   customReminders: 0,
   reminderSettings: 2,
   reminderDismissals: 1,
+  measurements: 0,
+  reminderCompletions: 0,
 );
 
 void main() {

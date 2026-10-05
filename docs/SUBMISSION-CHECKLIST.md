@@ -140,3 +140,10 @@ git tag v1.0.0-rc.1 && git push origin v1.0.0-rc.1
 | Xcode Cloud: `Could not resolve package dependencies … FlutterGeneratedPluginSwiftPackage` | The post-clone hook did not run (see above) — the SPM package is gitignored and Flutter-tool-generated |
 | Google Play says package name mismatch | Verify `android/app/build.gradle.kts` has `applicationId = "com.pvjio.mamadera"` — must match exactly |
 | App Store Connect can't find bundle ID | Wait 10–30 minutes after creating it, or manually create in Developer Portal → Identifiers |
+
+## Emulator pass (mandatory before every PR — AGENTS.md)
+
+- [ ] Old build installed, data seeded, new build installed OVER it — migration verified with pre-existing data
+- [ ] Screenshots taken and inspected on `Small_Phone` and one normal target
+- [ ] Manual entry: feeding + sleep + measurement recorded, exported, JSON inspected
+- [ ] Simulator id and what was seen recorded in the PR description

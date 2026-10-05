@@ -39,8 +39,10 @@ Map<String, dynamic> validDocument({
   List<dynamic>? customReminders,
   List<dynamic>? reminderSettings,
   List<dynamic>? reminderDismissals,
+  List<dynamic>? measurements,
+  List<dynamic>? reminderCompletions,
   Map<String, dynamic>? counts,
-  int formatVersion = 1,
+  int formatVersion = 2,
   int schemaVersion = 10,
   String? generator,
 }) {
@@ -79,20 +81,25 @@ Map<String, dynamic> validDocument({
           'subtypeValue': 'nettoyage_nez',
           'frequency': 'every_n_days',
           'intervalDays': 2,
+          'babyId': '',
+          'completionSource': 'from_events',
         },
       ];
   final settings = reminderSettings ??
       [
-        {'itemId': 'custom_4', 'enabled': true},
+        {'babyId': '', 'itemId': 'custom_4', 'enabled': true},
       ];
   final dismissals = reminderDismissals ??
       [
         {
+          'babyId': '',
           'itemId': 'vitamine_d',
           'dismissedAtEpochSeconds': 1700000000,
           'dismissedAtUtc': '2023-11-14T22:13:20.000Z',
         },
       ];
+  final measureRows = measurements ?? const <dynamic>[];
+  final completionRows = reminderCompletions ?? const <dynamic>[];
   return <String, dynamic>{
     'exportFormatVersion': formatVersion,
     'generator': generator ?? 'mamadera',
@@ -106,14 +113,77 @@ Map<String, dynamic> validDocument({
           'customReminders': reminders.length,
           'reminderSettings': settings.length,
           'reminderDismissals': dismissals.length,
+          'measurements': measureRows.length,
+          'reminderCompletions': completionRows.length,
         },
     'babyProfiles': profiles,
     'trackingEvents': events,
     'customReminders': reminders,
     'reminderSettings': settings,
     'reminderDismissals': dismissals,
+    'measurements': measureRows,
+    'reminderCompletions': completionRows,
   };
 }
+
+/// Un document de **format 1** : ce qu'écrivait l'app avant M4. Pas de
+/// sections `measurements`/`reminderCompletions`, pas de clés correspondantes
+/// dans `counts`, pas de `babyId` sur réglages/rejets/rappels, pas de
+/// `completionSource`. La restauration doit le lire en entier, absences
+/// comprises.
+Map<String, dynamic> formatOneDocument() => <String, dynamic>{
+      'exportFormatVersion': 1,
+      'generator': 'mamadera',
+      'appVersion': '1.1.0',
+      'databaseSchemaVersion': 10,
+      'exportedAt': '2023-11-14T22:13:20.000Z',
+      'counts': <String, dynamic>{
+        'babyProfiles': 1,
+        'trackingEvents': 1,
+        'customReminders': 1,
+        'reminderSettings': 1,
+        'reminderDismissals': 1,
+      },
+      'babyProfiles': [
+        {
+          'id': 'baby_1',
+          'name': 'Bébé Test',
+          'birthDateEpochMs': 1700000000000,
+          'birthDateUtc': '2023-11-14T22:13:20.000Z',
+          'isActive': true,
+        },
+      ],
+      'trackingEvents': [
+        {
+          'id': 1,
+          'type': 'miam',
+          'timestampEpochSeconds': 1700000000,
+          'timestampUtc': '2023-11-14T22:13:20.000Z',
+          'notes': '100 ml vers 8h',
+          'babyId': 'baby_1',
+          'quantity': 100,
+        },
+      ],
+      'customReminders': [
+        {
+          'id': 4,
+          'label': 'Nettoyage nez du soir',
+          'subtypeValue': 'nettoyage_nez',
+          'frequency': 'every_n_days',
+          'intervalDays': 2,
+        },
+      ],
+      'reminderSettings': [
+        {'itemId': 'custom_4', 'enabled': true},
+      ],
+      'reminderDismissals': [
+        {
+          'itemId': 'vitamine_d',
+          'dismissedAtEpochSeconds': 1700000000,
+          'dismissedAtUtc': '2023-11-14T22:13:20.000Z',
+        },
+      ],
+    };
 
 String _jsonOf(Map<String, dynamic> document) => jsonEncode(document);
 
@@ -161,6 +231,9 @@ Future<Map<String, int>> _allCounts(AppDatabase database) async => {
       'customReminders': (await database.getAllCustomReminders()).length,
       'reminderSettings': (await database.getAllReminderSettings()).length,
       'reminderDismissals': (await database.getAllReminderDismissals()).length,
+      'measurements': (await database.getAllMeasurements()).length,
+      'reminderCompletions':
+          (await database.getAllReminderCompletions()).length,
     };
 
 void main() {
@@ -190,7 +263,9 @@ void main() {
 
       expect(parsed.babyProfiles, hasLength(2));
       expect(parsed.trackingEvents, hasLength(3));
-      expect(parsed.customReminders.single.frequency, 'every_n_days');
+      expect(parsed.customReminders.length, 2);
+      expect(parsed.measurements, hasLength(2));
+      expect(parsed.reminderCompletions, hasLength(2));
       // Notes arrive as the plaintext the exporter wrote, not as ciphertext.
       expect(
         parsed.trackingEvents.map((event) => event.notes),
@@ -223,9 +298,163 @@ void main() {
 
     test('rejects a format version it does not know', () async {
       await expectRejected(
-        document: validDocument(formatVersion: 2),
+        document: validDocument(formatVersion: 3),
         reason: ImportRejectionReason.newerFormatVersion,
       );
+    });
+
+    test('still accepts a format-1 document: new sections absent read as empty',
+        () async {
+      final parsed =
+          await repository.parseExport(_jsonOf(formatOneDocument()));
+
+      expect(parsed.babyProfiles, hasLength(1));
+      expect(parsed.trackingEvents, hasLength(1));
+      expect(parsed.measurements, isEmpty);
+      expect(parsed.reminderCompletions, isEmpty);
+      // Absence de `babyId` = partagé, absence de `completionSource` =
+      // `from_events`.
+      expect(parsed.reminderSettings.single.babyId, '');
+      expect(parsed.reminderDismissals.single.babyId, '');
+      expect(parsed.customReminders.single.babyId, '');
+      expect(parsed.customReminders.single.completionSource,
+          'from_events');
+    });
+
+    test('rejects a format-1 file that grew a measurement row it does not declare in counts',
+        () async {
+      final document = formatOneDocument()
+        ..['measurements'] = [
+          <String, dynamic>{
+            'id': 101,
+            'kind': 'poids',
+            'value': '3400',
+            'unit': 'g',
+            'recordedAtEpochSeconds': 1700000000,
+          },
+        ];
+      await expectRejected(
+        document: document,
+        reason: ImportRejectionReason.countsMismatch,
+        section: 'measurements',
+      );
+    });
+
+    test('rejects a malformed measurement row (unknown kind)', () async {
+      await expectRejected(
+        document: validDocument(measurements: [
+          <String, dynamic>{
+            'id': 101,
+            'kind': 'poidsx',
+            'value': '3400',
+            'unit': 'g',
+            'recordedAtEpochSeconds': 1700000000,
+          },
+        ]),
+        reason: ImportRejectionReason.invalidRow,
+        section: 'measurements',
+      );
+    });
+
+    test('rejects a non-numeric measurement value', () async {
+      await expectRejected(
+        document: validDocument(measurements: [
+          <String, dynamic>{
+            'id': 101,
+            'kind': 'poids',
+            'value': 'environ 3 kg',
+            'unit': 'g',
+            'recordedAtEpochSeconds': 1700000000,
+          },
+        ]),
+        reason: ImportRejectionReason.invalidRow,
+        section: 'measurements',
+      );
+    });
+
+    test('rejects an undecryptable measurement value: there is no number to restore',
+        () async {
+      await expectRejected(
+        document: validDocument(measurements: [
+          <String, dynamic>{
+            'id': 103,
+            'kind': 'temperature',
+            'value': null,
+            'unit': 'degC',
+            'recordedAtEpochSeconds': 1700000000,
+            'valueUndecryptable': true,
+          },
+        ]),
+        reason: ImportRejectionReason.invalidRow,
+        section: 'measurements',
+      );
+    });
+
+    test('rejects a duplicate measurement id', () async {
+      await expectRejected(
+        document: validDocument(measurements: [
+          <String, dynamic>{
+            'id': 101,
+            'kind': 'poids',
+            'value': '3400',
+            'unit': 'g',
+            'recordedAtEpochSeconds': 1700000000,
+          },
+          <String, dynamic>{
+            'id': 101,
+            'kind': 'taille',
+            'value': '48',
+            'unit': 'cm',
+            'recordedAtEpochSeconds': 1700000000,
+          },
+        ]),
+        reason: ImportRejectionReason.invalidRow,
+        section: 'measurements',
+      );
+    });
+
+    test('rejects a duplicated setting for the same baby while the other baby may keep the same item',
+        () async {
+      await expectRejected(
+        document: validDocument(reminderSettings: [
+          <String, dynamic>{
+            'babyId': 'baby_1',
+            'itemId': 'miam',
+            'enabled': true,
+          },
+          <String, dynamic>{
+            'babyId': 'baby_2',
+            'itemId': 'miam',
+            'enabled': false,
+          },
+          <String, dynamic>{
+            'babyId': 'baby_1',
+            'itemId': 'miam',
+            'enabled': false,
+          },
+        ]),
+        reason: ImportRejectionReason.invalidRow,
+        section: 'reminderSettings',
+      );
+    });
+
+    test('keeps the same item legal under two babies', () async {
+      final parsed = await repository.parseExport(_jsonOf(validDocument(
+        reminderSettings: [
+          <String, dynamic>{
+            'babyId': 'baby_1',
+            'itemId': 'miam',
+            'enabled': true,
+          },
+          <String, dynamic>{
+            'babyId': 'baby_2',
+            'itemId': 'miam',
+            'enabled': false,
+          },
+        ],
+      )));
+
+      expect(parsed.reminderSettings, hasLength(2));
     });
 
     test(
@@ -374,11 +603,11 @@ void main() {
       );
     });
 
-    test('rejects duplicate reminder item ids', () async {
+    test('rejects duplicate reminder item ids within one baby', () async {
       await expectRejected(
         document: validDocument(reminderSettings: [
-          <String, dynamic>{'itemId': 'miam', 'enabled': true},
-          <String, dynamic>{'itemId': 'miam', 'enabled': false},
+          <String, dynamic>{'babyId': '', 'itemId': 'miam', 'enabled': true},
+          <String, dynamic>{'babyId': '', 'itemId': 'miam', 'enabled': false},
         ]),
         reason: ImportRejectionReason.invalidRow,
         section: 'reminderSettings',
@@ -466,9 +695,11 @@ void main() {
 
       expect(counts.babyProfiles, 2);
       expect(counts.trackingEvents, 3);
-      expect(counts.customReminders, 1);
-      expect(counts.reminderSettings, 2);
+      expect(counts.customReminders, 2);
+      expect(counts.reminderSettings, 3);
       expect(counts.reminderDismissals, 1);
+      expect(counts.measurements, 2);
+      expect(counts.reminderCompletions, 2);
 
       // Same rows, same ids, same instants.
       final restoredEvents = await database.getAllTrackingEvents();
@@ -484,12 +715,134 @@ void main() {
         await source.getAllBabyProfiles(),
       );
       final restoredReminders = await database.getAllCustomReminders();
-      expect(restoredReminders.single.frequency, 'every_n_days');
-      expect(restoredReminders.single.intervalDays, 2);
+      final linked = restoredReminders.firstWhere((r) => r.id == 4);
+      expect(linked.frequency, 'every_n_days');
+      expect(linked.intervalDays, 2);
+      // Détaché (M4) : la restauration re-dérive `manual` de `subtypeValue`
+      // null et installe la portée par bébé.
+      final detached = restoredReminders.firstWhere((r) => r.id == 5);
+      expect(detached.subtypeValue, isNull);
+      expect(detached.completionSource, 'manual');
+      expect(detached.babyId, 'baby_1');
       expect(
         (await database.getAllReminderSettings()).map((row) => row.itemId),
-        containsAll(<String>['custom_4', 'vitamine_k']),
+        containsAll(<String>['custom_4', 'vitamine_k', 'custom_5']),
       );
+      expect(
+        (await database.getAllReminderSettings())
+            .firstWhere((row) => row.itemId == 'custom_5')
+            .babyId,
+        'baby_1',
+      );
+
+      // Mesures : ids préservés, chiffres re-chiffrés, notes comprises.
+      final restoredMeasurements = await database.getAllMeasurements();
+      final weight =
+          restoredMeasurements.firstWhere((row) => row.id == 101);
+      expect(weight.babyId, 'baby_1');
+      expect(weight.kind, 'poids');
+      expect(weight.unit, 'g');
+      expect(weight.value, startsWith('enc:'));
+      expect(encryption.decrypt(weight.value), '3400');
+      expect(encryption.decrypt(weight.notes), 'Première pesée');
+      final height =
+          restoredMeasurements.firstWhere((row) => row.id == 102);
+      expect(height.babyId, 'baby_2');
+      expect(height.notes, isNull);
+
+      // Achèvements : la portée par bébé et la sentinelle partagée survivent.
+      final restoredCompletions = await database.getAllReminderCompletions();
+      expect(restoredCompletions.map((row) => (row.babyId, row.itemId)),
+          containsAll(<(String, String)>[
+            ('', 'custom_4'),
+            ('baby_1', 'custom_5'),
+          ]));
+    });
+
+    test(
+        'export, restore, export again: the two documents are identical — '
+        'the guard against the two halves drifting apart', () async {
+      final source = _openDatabase();
+      addTearDown(source.close);
+      await _seedRichDatabase(source, encryption);
+      final exporter =
+          ExportRepositoryImpl(database: source, encryption: encryption);
+      final first = await exporter.buildExportJson();
+
+      await repository.restore(await repository.parseExport(first));
+
+      // La cible est une base restaurée, pas la source : on l'exporte avec son
+      // propre repository. Les deux moitiés ne se connaissent que par le JSON.
+      final second = await ExportRepositoryImpl(
+        database: database,
+        encryption: encryption,
+      ).buildExportJson();
+
+      // Le document exporte des valeurs **en clair** (conception assumée, see
+      // the file dartdoc) : le renouvellement du IV à la restauration est donc
+      // invisible ici. La seule chose qui bouge légitimement est l'horodatage.
+      // Tout le reste doit être le même document, octet pour octet.
+      expect(
+        _withoutVolatileFields(second),
+        equals(_withoutVolatileFields(first)),
+        reason: 'un champ écrit par l''exporteur ne survit pas au passage '
+            'restauration puis réexport : le format des sauvegardes vient de '
+            'diverger en silence',
+      );
+    });
+
+    test('a solid food event survives export → restore → export with its subtype and quantity intact', () async {
+      // Le sous-type 'solid' n'a pas de whitelist de validation dans l'import :
+      // il doit donc survivre intact, comme n'importe quelle valeur
+      // d'alimentation (pas de conversion silencieuse ni de rejet).
+      final source = _openDatabase();
+      addTearDown(source.close);
+      await source.insertEvent(TrackingEventsCompanion.insert(
+        type: 'miam',
+        subtype: const Value('solid'),
+        quantity: const Value(40.0),
+        timestamp: DateTime.utc(2024, 3, 1, 12),
+      ));
+      final first =
+          await ExportRepositoryImpl(database: source, encryption: encryption)
+              .buildExportJson();
+
+      await repository.restore(await repository.parseExport(first));
+
+      final restored = (await database.getAllTrackingEvents()).single;
+      expect(restored.type, 'miam');
+      expect(restored.subtype, 'solid');
+      expect(restored.quantity, 40.0);
+
+      // Re-export : le document reste stable, sous-type et quantité intacts.
+      final second = await ExportRepositoryImpl(
+        database: database,
+        encryption: encryption,
+      ).buildExportJson();
+      expect(_withoutVolatileFields(second), equals(_withoutVolatileFields(first)));
+    });
+
+    test('format 1: a pre-M4 backup restores into shared rows, empty new tables',
+        () async {
+      final counts =
+          await repository.restore(await repository.parseExport(
+        _jsonOf(formatOneDocument()),
+      ));
+
+      expect(counts.babyProfiles, 1);
+      expect(counts.trackingEvents, 1);
+      expect(counts.customReminders, 1);
+      expect(counts.measurements, 0);
+      expect(counts.reminderCompletions, 0);
+
+      final reminder = (await database.getAllCustomReminders()).single;
+      expect(reminder.babyId, '');
+      expect(reminder.completionSource, 'from_events');
+      expect(reminder.subtypeValue, 'nettoyage_nez');
+      expect((await database.getAllReminderSettings()).single.babyId, '');
+      expect((await database.getAllReminderDismissals()).single.babyId, '');
+      expect(await database.getAllMeasurements(), isEmpty);
+      expect(await database.getAllReminderCompletions(), isEmpty);
     });
 
     test('export → restore → export is the same document', () async {
@@ -728,10 +1081,12 @@ void main() {
             subtypeValue: 'vitamine_d',
             frequency: 'daily',
             intervalDays: null,
+            babyId: '',
+            completionSource: 'from_events',
           ),
         ],
         reminderSettings: const [
-          ImportedReminderSetting(itemId: 'miam', enabled: false),
+          ImportedReminderSetting(babyId: '', itemId: 'miam', enabled: false),
         ],
         reminderDismissals: const [],
       );
@@ -809,9 +1164,21 @@ Future<void> _seedRichDatabase(AppDatabase database,
         CustomRemindersCompanion.insert(
           id: const Value(4),
           label: 'Nettoyage nez du soir',
-          subtypeValue: 'nettoyage_nez',
+          subtypeValue: const Value('nettoyage_nez'),
           frequency: 'every_n_days',
           intervalDays: const Value(2),
+        ),
+      );
+  // Rappel détaché scopé par bébé (M4) : la restauration doit re-dériver
+  // `manual` et garder la portée.
+  await database.into(database.customReminders).insert(
+        CustomRemindersCompanion.insert(
+          id: const Value(5),
+          babyId: const Value('baby_1'),
+          label: 'Vitamine du soir',
+          subtypeValue: const Value(null),
+          completionSource: const Value('manual'),
+          frequency: 'weekly',
         ),
       );
   await database.into(database.reminderSettings).insert(
@@ -820,10 +1187,51 @@ Future<void> _seedRichDatabase(AppDatabase database,
   await database.into(database.reminderSettings).insert(
         ReminderSettingsCompanion.insert(itemId: 'vitamine_k', enabled: false),
       );
+  await database.into(database.reminderSettings).insert(
+        ReminderSettingsCompanion.insert(
+          babyId: const Value('baby_1'),
+          itemId: 'custom_5',
+          enabled: true,
+        ),
+      );
   await database.into(database.reminderDismissals).insert(
         ReminderDismissalsCompanion.insert(
           itemId: 'vitamine_d',
           dismissedAt: timestamp,
+        ),
+      );
+  await database.into(database.measurements).insert(
+        MeasurementsCompanion.insert(
+          id: const Value(101),
+          babyId: const Value('baby_1'),
+          kind: 'poids',
+          value: encryption.encrypt('3400'),
+          unit: 'g',
+          recordedAt: timestamp,
+          notes: Value(encryption.encrypt('Première pesée')),
+        ),
+      );
+  await database.into(database.measurements).insert(
+        MeasurementsCompanion.insert(
+          id: const Value(102),
+          babyId: const Value('baby_2'),
+          kind: 'taille',
+          value: encryption.encrypt('48'),
+          unit: 'cm',
+          recordedAt: timestamp,
+        ),
+      );
+  await database.into(database.reminderCompletions).insert(
+        ReminderCompletionsCompanion.insert(
+          itemId: 'custom_4',
+          completedAt: timestamp,
+        ),
+      );
+  await database.into(database.reminderCompletions).insert(
+        ReminderCompletionsCompanion.insert(
+          babyId: const Value('baby_1'),
+          itemId: 'custom_5',
+          completedAt: timestamp,
         ),
       );
 }

@@ -76,7 +76,7 @@ class _ThrowingRestoreRepository extends ImportRepositoryImpl {
 Map<String, dynamic> validDocument({
   List<dynamic>? babyProfiles,
   List<dynamic>? trackingEvents,
-  int formatVersion = 1,
+  int formatVersion = 2,
   int schemaVersion = 10,
   String? generator,
 }) {
@@ -119,6 +119,8 @@ Map<String, dynamic> validDocument({
       'customReminders': 1,
       'reminderSettings': 1,
       'reminderDismissals': 1,
+      'measurements': 1,
+      'reminderCompletions': 1,
     },
     'babyProfiles': profiles,
     'trackingEvents': events,
@@ -132,13 +134,34 @@ Map<String, dynamic> validDocument({
       },
     ],
     'reminderSettings': [
-      <String, dynamic>{'itemId': 'custom_4', 'enabled': true},
+      <String, dynamic>{'babyId': '', 'itemId': 'custom_4', 'enabled': true},
     ],
     'reminderDismissals': [
       <String, dynamic>{
+        'babyId': '',
         'itemId': 'vitamine_d',
         'dismissedAtEpochSeconds': 1700000000,
         'dismissedAtUtc': '2023-11-14T22:13:20.000Z',
+      },
+    ],
+    'measurements': [
+      <String, dynamic>{
+        'id': 101,
+        'babyId': 'baby_1',
+        'kind': 'poids',
+        'value': '3400',
+        'unit': 'g',
+        'recordedAtEpochSeconds': 1700000000,
+        'recordedAtUtc': '2023-11-14T22:13:20.000Z',
+        'notes': 'Première pesée',
+      },
+    ],
+    'reminderCompletions': [
+      <String, dynamic>{
+        'babyId': '',
+        'itemId': 'custom_4',
+        'completedAtEpochSeconds': 1700000000,
+        'completedAtUtc': '2023-11-14T22:13:20.000Z',
       },
     ],
   };
@@ -320,6 +343,8 @@ void main() {
       expect(await database.getAllCustomReminders(), hasLength(1));
       expect(await database.getAllReminderSettings(), hasLength(1));
       expect(await database.getAllReminderDismissals(), hasLength(1));
+      expect(await database.getAllMeasurements(), hasLength(1));
+      expect(await database.getAllReminderCompletions(), hasLength(1));
     });
 
     testWidgets("événements sans profil : le résumé porte l'avertissement supplémentaire",
@@ -398,12 +423,48 @@ void main() {
     });
 
     testWidgets('exportFormatVersion plus récente : message dédié', (tester) async {
+      // Le format 2 est le format courant de ce build : c'est le 3 qui est
+      // l'inconnu du futur.
       await _pumpDialog(
         tester,
-        readBackup: () async => _jsonOf(validDocument(formatVersion: 2)),
+        readBackup: () async => _jsonOf(validDocument(formatVersion: 3)),
       );
 
       await expectResult(tester, find.textContaining('version plus récente'));
+    });
+
+    testWidgets("un fichier de format 1 (avant M4) se résume et restaure", (tester) async {
+      // Document 2 tronqué au format 1 : sections et clés de counts M4
+      // enlevées, c'est ce qu'écrivait réellement l'app précédente.
+      final doc = validDocument(formatVersion: 1);
+      doc.remove('measurements');
+      doc.remove('reminderCompletions');
+      final counts = doc['counts'] as Map<String, dynamic>;
+      counts.remove('measurements');
+      counts.remove('reminderCompletions');
+
+      final database = await _pumpDialog(
+        tester,
+        readBackup: () async => _jsonOf(doc),
+      );
+
+      await _chooseFile(tester);
+      await _pumpUntil(
+        tester,
+        find.textContaining('1 profil(s) bébé, 1 événement(s) et 1 rappel(s)'),
+      );
+      await tester.tap(find.text(_proceed));
+      await _pumpUntil(
+        tester,
+        find.textContaining('Restauration terminée : 1 profil(s) et 1 événement(s)'),
+      );
+
+      // Sections nouvelles absentes = vides ; les lignes existantes atterrissent
+      // dans la portée partagée.
+      expect(await database.getAllMeasurements(), isEmpty);
+      expect(await database.getAllReminderCompletions(), isEmpty);
+      expect((await database.getAllCustomReminders()).single.babyId, '');
+      expect((await database.getAllReminderSettings()).single.babyId, '');
     });
 
     testWidgets('databaseSchemaVersion plus récente : message dédié', (tester) async {

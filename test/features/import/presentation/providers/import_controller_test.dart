@@ -75,13 +75,16 @@ ParsedExport _sampleParsed() => ParsedExport(
           subtypeValue: 'nettoyage_nez',
           frequency: 'every_n_days',
           intervalDays: 2,
+          babyId: '',
+          completionSource: 'from_events',
         ),
       ],
       reminderSettings: const [
-        ImportedReminderSetting(itemId: 'custom_4', enabled: true),
+        ImportedReminderSetting(babyId: '', itemId: 'custom_4', enabled: true),
       ],
       reminderDismissals: [
         ImportedReminderDismissal(
+          babyId: '',
           itemId: 'vitamine_d',
           dismissedAt: DateTime.utc(2023, 11, 14, 22, 13, 20),
         ),
@@ -107,6 +110,8 @@ class _ScriptedImportRepository extends ImportRepository {
     customReminders: 1,
     reminderSettings: 1,
     reminderDismissals: 1,
+    measurements: 1,
+    reminderCompletions: 1,
   );
 
   int parseCalls = 0;
@@ -131,9 +136,10 @@ class _ScriptedImportRepository extends ImportRepository {
   }
 }
 
-/// Un document JSON valide que le vrai repository doit accepter.
+/// Un document JSON valide, au format 2 (M4), que le vrai repository doit
+/// accepter.
 Map<String, dynamic> validDocument() => <String, dynamic>{
-      'exportFormatVersion': 1,
+      'exportFormatVersion': 2,
       'generator': 'mamadera',
       'appVersion': '1.1.0',
       'databaseSchemaVersion': 10,
@@ -144,6 +150,8 @@ Map<String, dynamic> validDocument() => <String, dynamic>{
         'customReminders': 1,
         'reminderSettings': 1,
         'reminderDismissals': 1,
+        'measurements': 1,
+        'reminderCompletions': 1,
       },
       'babyProfiles': [
         <String, dynamic>{
@@ -180,13 +188,34 @@ Map<String, dynamic> validDocument() => <String, dynamic>{
         },
       ],
       'reminderSettings': [
-        <String, dynamic>{'itemId': 'custom_4', 'enabled': true},
+        <String, dynamic>{'babyId': '', 'itemId': 'custom_4', 'enabled': true},
       ],
       'reminderDismissals': [
         <String, dynamic>{
+          'babyId': '',
           'itemId': 'vitamine_d',
           'dismissedAtEpochSeconds': 1700000000,
           'dismissedAtUtc': '2023-11-14T22:13:20.000Z',
+        },
+      ],
+      'measurements': [
+        <String, dynamic>{
+          'id': 101,
+          'babyId': 'baby_1',
+          'kind': 'poids',
+          'value': '3400',
+          'unit': 'g',
+          'recordedAtEpochSeconds': 1700000000,
+          'recordedAtUtc': '2023-11-14T22:13:20.000Z',
+          'notes': 'Première pesée',
+        },
+      ],
+      'reminderCompletions': [
+        <String, dynamic>{
+          'babyId': '',
+          'itemId': 'custom_4',
+          'completedAtEpochSeconds': 1700000000,
+          'completedAtUtc': '2023-11-14T22:13:20.000Z',
         },
       ],
     };
@@ -243,6 +272,8 @@ void main() {
       expect(counts.customReminders, 1);
       expect(counts.reminderSettings, 1);
       expect(counts.reminderDismissals, 1);
+      expect(counts.measurements, 0);
+      expect(counts.reminderCompletions, 0);
       expect(container.read(importControllerProvider).value,
           isA<ImportSummaryReady>());
       expect(repository.restoreCalls, 0,
@@ -367,6 +398,17 @@ void main() {
       expect(history.single.trackingType, TrackingType.miam);
       final active = await container.read(activeBabyProvider.future);
       expect(active?.id, 'baby_1');
+
+      // Les deux tables de M4 ont traversé le restore, chiffre compris.
+      final measurements = await database.getAllMeasurements();
+      expect(measurements, hasLength(1));
+      expect(measurements.single.value, startsWith('enc:'));
+      expect(encryption.decrypt(measurements.single.value), '3400');
+      expect(
+        encryption.decrypt(measurements.single.notes),
+        'Première pesée',
+      );
+      expect(await database.getAllReminderCompletions(), hasLength(1));
     });
   });
 }

@@ -15,6 +15,36 @@
   "homeButtonSante": "Salud",
   "homeButtonCaca": "Pañal",
   "homeButtonDodo": "Sueño",
+  "homeButtonPoids": "Peso",
+  "homeButtonTaille": "Altura",
+  "homeButtonTemperature": "Temperatura",
+  "@growthValueOutOfRange": {
+    "placeholders": {
+      "min": {},
+      "max": {},
+      "unit": {}
+    }
+  },
+  "growthValueOutOfRange": "Fuera de rango: entre {min} y {max} {unit}.",
+  "@growthFeedbackSaved": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "growthFeedbackSaved": "Medida guardada · {value}",
+  "growthMenuTile": "Crecimiento",
+  "growthScreenTitle": "Crecimiento",
+  "growthSectionTitle": "Medidas de crecimiento",
+  "growthEmptyState": "Aún no hay medidas.",
+  "growthLatestWeight": "Último peso",
+  "growthLatestHeight": "Última altura",
+  "growthLatestTemperature": "Última temperatura",
+  "growthSheetTitleWeight": "Nuevo peso",
+  "growthSheetTitleHeight": "Nueva altura",
+  "growthSheetTitleTemperature": "Nueva temperatura",
+  "growthSheetNoteField": "Nota (opcional)",
+  "growthSheetSave": "Guardar",
+  "growthValueUndecryptable": "Valor ilegible",
 
   "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
   "@feedbackFeedingWithQuantity": {
@@ -68,6 +98,8 @@
   "durationPickerTitle": "Duración del sueño",
   "cancelButton": "Cancelar",
   "confirmButton": "Confirmar",
+  "increment": "Aumentar",
+  "decrement": "Disminuir",
   "saveButton": "Guardar",
   "@durationFormatHoursMinutes": {
     "placeholders": {
@@ -125,6 +157,8 @@
   "reminderCustomLabelField": "Nombre del recordatorio",
   "reminderCustomLabelRequired": "Dale un nombre al recordatorio",
   "reminderCustomCareField": "Cuidado asociado",
+  "reminderCustomCareNone": "Ningún cuidado",
+  "reminderCustomCareNoneHint": "Desaparece cuando lo marcas hecho.",
   "reminderCustomFrequencyField": "Frecuencia",
   "reminderCustomIntervalField": "Intervalo en días",
   "reminderCustomIntervalRequired": "Indica un número de días, de 1 a 365",
@@ -133,6 +167,23 @@
   "reminderCustomDeleteWarning": "El recordatorio desaparece del inicio. Los eventos ya registrados se conservan.",
   "reminderCustomSaveError": "No se pudo guardar el recordatorio. Inténtalo de nuevo.",
   "reminderCustomDeleteError": "No se pudo eliminar el recordatorio. Inténtalo de nuevo.",
+  "reminderListTitle": "Recordatorios por hacer",
+  "reminderListTitleFor": "Recordatorios de {name}",
+  "@reminderListTitleFor": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "reminderListEmpty": "Nada que hacer por ahora.",
+  "reminderMarkDone": "Marcar como hecho",
+  "reminderDismiss": "Ignorar recordatorio",
+  "reminderLastDone": "Última vez: {date}",
+  "@reminderLastDone": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderNeverDone": "Nunca hecho",
 
   "yesterday": "Ayer",
   "daysAgo": " días",
@@ -198,6 +249,7 @@
   "feedingSubtypeLabel": "Tipo de Alimentación",
   "feedingSubtypeNatural": "Leche Materna",
   "feedingSubtypeArtificial": "Fórmula Infantil",
+  "feedingSolid": "Sólido",
 
   "editDialogTitle": "Editar evento",
   "eventDateSectionTitle": "Fecha y hora",
@@ -209,6 +261,7 @@
   "editNotesHint": "Añadir una nota...",
   "minutesHintText": "Minutos",
   "minuteSuffix": "min",
+  "gramSuffix": "g",
 
   "deleteDialogTitle": "Eliminar evento",
   "deleteDialogContent": "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",

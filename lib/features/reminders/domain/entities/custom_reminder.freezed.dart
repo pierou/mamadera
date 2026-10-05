@@ -17,13 +17,28 @@ mixin _$CustomReminder {
   /// Saisie libre du parent, affichée telle quelle (jamais traduite).
   String get label;
 
-  /// Valeur de `HealthSubtype` dont l'absence rend le rappel dû.
-  String get subtypeValue;
-
   /// Rythme demandé. [ReminderFrequency.monthly] est stocké sans jour
   /// précis : le jour est celui de naissance du bébé actif, lu au moment de
   /// construire la liste — comme pour la vitamine K.
   ReminderFrequency get frequency;
+
+  /// Valeur de `HealthSubtype` dont l'absence rend le rappel dû.
+  ///
+  /// `null` = rappel **détaché** (D2) : aucun soin n'y est lié, c'est le tap
+  /// « Fait » qui l'achève (`completion_source = 'manual'`). Invariant :
+  /// `subtypeValue == null` ⟺ `completionSource == manual` — un rappel détaché
+  /// laissé en `from_events` matcherait *n'importe quel* événement `sante`.
+  String? get subtypeValue;
+
+  /// Qui décide que le rappel est fait : [completionFromEvents] — l'absence
+  /// d'un événement `sante` portant [subtypeValue] dans la période le règle,
+  /// comme les préréglages — ou [completionManual] — seul le tap « Fait »
+  /// l'achève, via `reminder_completions`.
+  ///
+  /// Invariant D2 : `subtypeValue == null` ⟺ [completionSource] vaut
+  /// [completionManual] — un rappel détaché laissé en [completionFromEvents]
+  /// matcherait *n'importe quel* événement de santé.
+  String get completionSource;
 
   /// Clé de `custom_reminders`, `null` tant que le rappel n'est pas écrit.
   int? get id;
@@ -42,20 +57,22 @@ mixin _$CustomReminder {
         (other.runtimeType == runtimeType &&
             other is CustomReminder &&
             (identical(other.label, label) || other.label == label) &&
-            (identical(other.subtypeValue, subtypeValue) ||
-                other.subtypeValue == subtypeValue) &&
             (identical(other.frequency, frequency) ||
                 other.frequency == frequency) &&
+            (identical(other.subtypeValue, subtypeValue) ||
+                other.subtypeValue == subtypeValue) &&
+            (identical(other.completionSource, completionSource) ||
+                other.completionSource == completionSource) &&
             (identical(other.id, id) || other.id == id));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, label, subtypeValue, frequency, id);
+  int get hashCode => Object.hash(
+      runtimeType, label, frequency, subtypeValue, completionSource, id);
 
   @override
   String toString() {
-    return 'CustomReminder(label: $label, subtypeValue: $subtypeValue, frequency: $frequency, id: $id)';
+    return 'CustomReminder(label: $label, frequency: $frequency, subtypeValue: $subtypeValue, completionSource: $completionSource, id: $id)';
   }
 }
 
@@ -67,8 +84,9 @@ abstract mixin class $CustomReminderCopyWith<$Res> {
   @useResult
   $Res call(
       {String label,
-      String subtypeValue,
       ReminderFrequency frequency,
+      String? subtypeValue,
+      String completionSource,
       int? id});
 
   $ReminderFrequencyCopyWith<$Res> get frequency;
@@ -88,8 +106,9 @@ class _$CustomReminderCopyWithImpl<$Res>
   @override
   $Res call({
     Object? label = null,
-    Object? subtypeValue = null,
     Object? frequency = null,
+    Object? subtypeValue = freezed,
+    Object? completionSource = null,
     Object? id = freezed,
   }) {
     return _then(_self.copyWith(
@@ -97,14 +116,18 @@ class _$CustomReminderCopyWithImpl<$Res>
           ? _self.label
           : label // ignore: cast_nullable_to_non_nullable
               as String,
-      subtypeValue: null == subtypeValue
-          ? _self.subtypeValue
-          : subtypeValue // ignore: cast_nullable_to_non_nullable
-              as String,
       frequency: null == frequency
           ? _self.frequency
           : frequency // ignore: cast_nullable_to_non_nullable
               as ReminderFrequency,
+      subtypeValue: freezed == subtypeValue
+          ? _self.subtypeValue
+          : subtypeValue // ignore: cast_nullable_to_non_nullable
+              as String?,
+      completionSource: null == completionSource
+          ? _self.completionSource
+          : completionSource // ignore: cast_nullable_to_non_nullable
+              as String,
       id: freezed == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -216,16 +239,16 @@ extension CustomReminderPatterns on CustomReminder {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(String label, String subtypeValue,
-            ReminderFrequency frequency, int? id)?
+    TResult Function(String label, ReminderFrequency frequency,
+            String? subtypeValue, String completionSource, int? id)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _CustomReminder() when $default != null:
-        return $default(
-            _that.label, _that.subtypeValue, _that.frequency, _that.id);
+        return $default(_that.label, _that.frequency, _that.subtypeValue,
+            _that.completionSource, _that.id);
       case _:
         return orElse();
     }
@@ -246,15 +269,15 @@ extension CustomReminderPatterns on CustomReminder {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(String label, String subtypeValue,
-            ReminderFrequency frequency, int? id)
+    TResult Function(String label, ReminderFrequency frequency,
+            String? subtypeValue, String completionSource, int? id)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _CustomReminder():
-        return $default(
-            _that.label, _that.subtypeValue, _that.frequency, _that.id);
+        return $default(_that.label, _that.frequency, _that.subtypeValue,
+            _that.completionSource, _that.id);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -274,15 +297,15 @@ extension CustomReminderPatterns on CustomReminder {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(String label, String subtypeValue,
-            ReminderFrequency frequency, int? id)?
+    TResult? Function(String label, ReminderFrequency frequency,
+            String? subtypeValue, String completionSource, int? id)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _CustomReminder() when $default != null:
-        return $default(
-            _that.label, _that.subtypeValue, _that.frequency, _that.id);
+        return $default(_that.label, _that.frequency, _that.subtypeValue,
+            _that.completionSource, _that.id);
       case _:
         return null;
     }
@@ -294,23 +317,41 @@ extension CustomReminderPatterns on CustomReminder {
 class _CustomReminder implements CustomReminder {
   const _CustomReminder(
       {required this.label,
-      required this.subtypeValue,
       required this.frequency,
+      this.subtypeValue,
+      this.completionSource = completionFromEvents,
       this.id});
 
   /// Saisie libre du parent, affichée telle quelle (jamais traduite).
   @override
   final String label;
 
-  /// Valeur de `HealthSubtype` dont l'absence rend le rappel dû.
-  @override
-  final String subtypeValue;
-
   /// Rythme demandé. [ReminderFrequency.monthly] est stocké sans jour
   /// précis : le jour est celui de naissance du bébé actif, lu au moment de
   /// construire la liste — comme pour la vitamine K.
   @override
   final ReminderFrequency frequency;
+
+  /// Valeur de `HealthSubtype` dont l'absence rend le rappel dû.
+  ///
+  /// `null` = rappel **détaché** (D2) : aucun soin n'y est lié, c'est le tap
+  /// « Fait » qui l'achève (`completion_source = 'manual'`). Invariant :
+  /// `subtypeValue == null` ⟺ `completionSource == manual` — un rappel détaché
+  /// laissé en `from_events` matcherait *n'importe quel* événement `sante`.
+  @override
+  final String? subtypeValue;
+
+  /// Qui décide que le rappel est fait : [completionFromEvents] — l'absence
+  /// d'un événement `sante` portant [subtypeValue] dans la période le règle,
+  /// comme les préréglages — ou [completionManual] — seul le tap « Fait »
+  /// l'achève, via `reminder_completions`.
+  ///
+  /// Invariant D2 : `subtypeValue == null` ⟺ [completionSource] vaut
+  /// [completionManual] — un rappel détaché laissé en [completionFromEvents]
+  /// matcherait *n'importe quel* événement de santé.
+  @override
+  @JsonKey()
+  final String completionSource;
 
   /// Clé de `custom_reminders`, `null` tant que le rappel n'est pas écrit.
   @override
@@ -330,20 +371,22 @@ class _CustomReminder implements CustomReminder {
         (other.runtimeType == runtimeType &&
             other is _CustomReminder &&
             (identical(other.label, label) || other.label == label) &&
-            (identical(other.subtypeValue, subtypeValue) ||
-                other.subtypeValue == subtypeValue) &&
             (identical(other.frequency, frequency) ||
                 other.frequency == frequency) &&
+            (identical(other.subtypeValue, subtypeValue) ||
+                other.subtypeValue == subtypeValue) &&
+            (identical(other.completionSource, completionSource) ||
+                other.completionSource == completionSource) &&
             (identical(other.id, id) || other.id == id));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, label, subtypeValue, frequency, id);
+  int get hashCode => Object.hash(
+      runtimeType, label, frequency, subtypeValue, completionSource, id);
 
   @override
   String toString() {
-    return 'CustomReminder(label: $label, subtypeValue: $subtypeValue, frequency: $frequency, id: $id)';
+    return 'CustomReminder(label: $label, frequency: $frequency, subtypeValue: $subtypeValue, completionSource: $completionSource, id: $id)';
   }
 }
 
@@ -357,8 +400,9 @@ abstract mixin class _$CustomReminderCopyWith<$Res>
   @useResult
   $Res call(
       {String label,
-      String subtypeValue,
       ReminderFrequency frequency,
+      String? subtypeValue,
+      String completionSource,
       int? id});
 
   @override
@@ -379,8 +423,9 @@ class __$CustomReminderCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   $Res call({
     Object? label = null,
-    Object? subtypeValue = null,
     Object? frequency = null,
+    Object? subtypeValue = freezed,
+    Object? completionSource = null,
     Object? id = freezed,
   }) {
     return _then(_CustomReminder(
@@ -388,14 +433,18 @@ class __$CustomReminderCopyWithImpl<$Res>
           ? _self.label
           : label // ignore: cast_nullable_to_non_nullable
               as String,
-      subtypeValue: null == subtypeValue
-          ? _self.subtypeValue
-          : subtypeValue // ignore: cast_nullable_to_non_nullable
-              as String,
       frequency: null == frequency
           ? _self.frequency
           : frequency // ignore: cast_nullable_to_non_nullable
               as ReminderFrequency,
+      subtypeValue: freezed == subtypeValue
+          ? _self.subtypeValue
+          : subtypeValue // ignore: cast_nullable_to_non_nullable
+              as String?,
+      completionSource: null == completionSource
+          ? _self.completionSource
+          : completionSource // ignore: cast_nullable_to_non_nullable
+              as String,
       id: freezed == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable

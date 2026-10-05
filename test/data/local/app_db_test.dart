@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 10 (adds the custom_reminders table)', () {
-      expect(db.schemaVersion, equals(10));
+    test('schemaVersion is 11 (re-keys reminders per baby, adds measurements)', () {
+      expect(db.schemaVersion, equals(11));
     });
   });
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/show_feedback.dart';
@@ -11,9 +12,11 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
+import '../../../growth/presentation/widgets/measurement_button.dart';
 import '../../../reminders/domain/entities/reminders_state.dart';
 import '../../../reminders/presentation/providers/reminder_notifier.dart';
 import '../../../reminders/presentation/providers/reminder_providers.dart';
+import '../../../reminders/presentation/widgets/home_reminders_section.dart';
 import '../providers/track_notifier.dart';
 import '../widgets/duration_picker_dialog.dart';
 import '../widgets/feeding_tracking_dialog.dart';
@@ -259,11 +262,24 @@ class _HomeContent extends ConsumerWidget {
   /// Formats and shows a feeding tracking confirmation with quantity details.
   void _showFeedingFeedback(
       BuildContext context, FeedingSubtype subtype, double? quantity) {
-    final subtypeLabel = subtype == FeedingSubtype.natural
-        ? context.l.feedingSubtypeNatural
-        : context.l.feedingSubtypeArtificial;
+    // Le label ET l'unité suivent le sous-type : un « 40 ml » dans le
+    // feedback d'un purée serait un chiffre de santé faux.
+    final subtypeLabel = switch (subtype) {
+      FeedingSubtype.natural => context.l.feedingSubtypeNatural,
+      FeedingSubtype.artificial => context.l.feedingSubtypeArtificial,
+      FeedingSubtype.solid => context.l.feedingSolid,
+    };
     if (quantity != null && quantity > 0) {
-      final qtyStr = '${quantity.round()}ml';
+      final unit = switch (subtype) {
+        // Le sein se saisit en ml comme le biberon — c'est ce que la colonne
+        // `quantity` a toujours stocké pour `miam` (`FeedingEvent` n'a pas de
+        // champ durée). Inventer des minutes ici re-étiquetterait des
+        // enregistrements existants de lait tiré en durée de tétée.
+        FeedingSubtype.natural => 'ml',
+        FeedingSubtype.artificial => 'ml',
+        FeedingSubtype.solid => context.l.gramSuffix,
+      };
+      final qtyStr = '${quantity.round()}$unit';
       showFeedback(
         context,
         context.l.feedbackFeedingWithQuantity(subtypeLabel, qtyStr),
@@ -294,51 +310,92 @@ class _HomeContent extends ConsumerWidget {
     final statusMap =
         statusesAsync.value ?? const <TrackingType, List<ReminderStatus>>{};
 
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      // Scrollable so the 2x2 grid stays reachable on small viewports
-      // (small phones, resized desktop windows).
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppTheme.spacingXl),
-        child: GridView.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: AppTheme.spacingXl,
-          crossAxisSpacing: AppTheme.spacingXl,
-          shrinkWrap: true,
-          children: [
-            TrackButton(
-              key: const ValueKey('track-miam'),
-              label: context.l.homeButtonMiam,
-              color: AppTheme.miam,
-              icon: TrackingType.miam.icon,
-              reminders: statusMap[TrackingType.miam],
-              onTap: () => _onTrack(context, ref, TrackingType.miam.name),
+    // Prénom du bébé actif au-dessus de la grille : contexte, pas titre.
+    // `watch` (pas `read`) : l'en-tête doit suivre un changement de bébé,
+    // jamais afficher un prénom capturé à la première construction.
+    final babyName = ref.watch(activeBabyProvider).value?.name;
+
+    // Le prénom porte la barre d'app (titre) : il reste toujours sous la
+    // bande de statut du système sur Android, là où un nom posé en tête de
+    // la grille se retrouvait masqué. Sans bébé actif, pas de barre d'app —
+    // le parcours de premier lancement gère la création du profil.
+    final name = (babyName != null && babyName.trim().isNotEmpty)
+        ? babyName
+        : null;
+    return Scaffold(
+      appBar: name == null
+          ? null
+          : AppBar(
+              title: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              centerTitle: true,
             ),
-            TrackButton(
-              key: const ValueKey('track-sante'),
-              label: context.l.homeButtonSante,
-              color: AppTheme.sante,
-              icon: TrackingType.sante.icon,
-              reminders: statusMap[TrackingType.sante],
-              onTap: () => _onTrack(context, ref, TrackingType.sante.name),
+      body: Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        // Sans barre d'app (aucun bébé actif), c'est le contenu lui-même qui
+        // respecte la bande de statut : le premier bloc ne doit pas s'y
+        // rendre.
+        child: SafeArea(
+          // Scrollable so the 2x2 grid stays reachable on small viewports
+          // (small phones, resized desktop windows).
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppTheme.spacingXl),
+            child: Column(
+              children: [
+                GridView.count(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: AppTheme.spacingXl,
+                  crossAxisSpacing: AppTheme.spacingXl,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    TrackButton(
+                      key: const ValueKey('track-miam'),
+                      label: context.l.homeButtonMiam,
+                      color: AppTheme.miam,
+                      icon: TrackingType.miam.icon,
+                      reminders: statusMap[TrackingType.miam],
+                      onTap: () => _onTrack(context, ref, TrackingType.miam.name),
+                    ),
+                    TrackButton(
+                      key: const ValueKey('track-sante'),
+                      label: context.l.homeButtonSante,
+                      color: AppTheme.sante,
+                      icon: TrackingType.sante.icon,
+                      reminders: statusMap[TrackingType.sante],
+                      onTap: () => _onTrack(context, ref, TrackingType.sante.name),
+                    ),
+                    TrackButton(
+                      key: const ValueKey('track-caca'),
+                      label: context.l.homeButtonCaca,
+                      color: AppTheme.caca,
+                      icon: TrackingType.caca.icon,
+                      reminders: statusMap[TrackingType.caca],
+                      onTap: () => _onTrack(context, ref, TrackingType.caca.name),
+                    ),
+                    TrackButton(
+                      key: const ValueKey('track-dodo'),
+                      label: context.l.homeButtonDodo,
+                      color: AppTheme.dodo,
+                      icon: TrackingType.dodo.icon,
+                      reminders: statusMap[TrackingType.dodo],
+                      onTap: () => _onTapDodo(context, ref),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppTheme.spacingXl),
+                // Boutons de croissance (item 1 de v1.2) : widget autonome, la
+                // grille 2×2 ci-dessus est inchangée.
+                const MeasurementButtonRow(),
+                // Liste des rappels dus (D1) : remplace la lecture du « +N »
+                // des pastilles, sans toucher à la grille ni aux boutons.
+                const HomeRemindersSection(),
+              ],
             ),
-            TrackButton(
-              key: const ValueKey('track-caca'),
-              label: context.l.homeButtonCaca,
-              color: AppTheme.caca,
-              icon: TrackingType.caca.icon,
-              reminders: statusMap[TrackingType.caca],
-              onTap: () => _onTrack(context, ref, TrackingType.caca.name),
-            ),
-            TrackButton(
-              key: const ValueKey('track-dodo'),
-              label: context.l.homeButtonDodo,
-              color: AppTheme.dodo,
-              icon: TrackingType.dodo.icon,
-              reminders: statusMap[TrackingType.dodo],
-              onTap: () => _onTapDodo(context, ref),
-            ),
-          ],
+          ),
         ),
       ),
     );

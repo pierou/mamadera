@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
@@ -24,7 +26,14 @@ class DurationPickerDialog extends StatefulWidget {
 }
 
 class _DurationPickerDialogState extends State<DurationPickerDialog> {
+  /// Pas du stepper +/- : identique au pas du slider (96 crans sur 480 min).
+  static const double _stepMinutes = 5;
+
   late double _selectedMinutes;
+
+  /// Répétition du stepper au long-appui : annulée en [dispose], sinon un feu
+  /// post-démontage appellerait `setState` sur un State mort.
+  Timer? _repeatTimer;
 
   /// Start pinned by the user, or null while the start stays derived from the
   /// duration: a sleep log is usually written *after* the nap, so the event is
@@ -36,6 +45,69 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
   /// rebuild is deliberate — it keeps the row honest with the slider.
   DateTime get _effectiveStart => _pinnedStart ??
       DateTime.now().subtract(Duration(minutes: _selectedMinutes.round()));
+
+  /// Un cran de stepper : clamped aux bornes du slider, et no-op si on est
+  /// déjà dessus (garde-fou pour la répétition au long-appui).
+  void _nudgeMinutes(int direction) {
+    final atBound = direction > 0
+        ? _selectedMinutes >= 480
+        : _selectedMinutes <= 0;
+    if (atBound) return;
+    setState(() {
+      _selectedMinutes = (_selectedMinutes + direction * _stepMinutes).clamp(0.0, 480.0);
+    });
+  }
+
+  /// Long-appui : un cran immédiat, puis un cran toutes les 120 ms.
+  void _startRepeat(int direction) {
+    _stopRepeat();
+    _nudgeMinutes(direction);
+    _repeatTimer =
+        Timer.periodic(const Duration(milliseconds: 120), (_) => _nudgeMinutes(direction));
+  }
+
+  void _stopRepeat() {
+    _repeatTimer?.cancel();
+    _repeatTimer = null;
+  }
+
+  @override
+  void dispose() {
+    _stopRepeat();
+    super.dispose();
+  }
+
+  /// Bouton d'un cran : tooltip et label sémantique localisés, désactivé
+  /// (jamais masqué — un contrôle qui disparaît fait sauter la mise en page)
+  /// quand on est déjà sur la borne correspondante.
+  ///
+  /// [InkResponse] plutôt qu'un [GestureDetector] maison : `IconButton`
+  /// n'expose pas `onLongPressStart`, mais `InkResponse` donne `onLongPress`
+  /// (où l'on arme la répétition) et `onLongPressUp` (où on la coupe), avec le
+  /// ripple, le focus et le tap simulé du lecteur d'écran.
+  Widget _buildStepButton(int direction) {
+    final label = direction > 0 ? context.l.increment : context.l.decrement;
+    final atBound =
+        direction > 0 ? _selectedMinutes >= 480 : _selectedMinutes <= 0;
+    return Tooltip(
+      message: label,
+      child: InkResponse(
+        borderRadius: BorderRadius.circular(24),
+        onTap: atBound ? null : () => _nudgeMinutes(direction),
+        onLongPress: atBound ? null : () => _startRepeat(direction),
+        onLongPressUp: _stopRepeat,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(
+            direction > 0 ? Icons.add_circle_outline : Icons.remove_circle_outline,
+            color: atBound
+                ? Theme.of(context).disabledColor
+                : Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -74,12 +146,26 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
             ),
             const SizedBox(height: 32),
             Center(
-              child: Text(
-                _formatDuration(_selectedMinutes),
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontSize: 56,
-                      color: AppTheme.dodo,
+              // `scaleDown` : identité visuelle quand la ligne tient, et
+              // réduction au lieu d'un overflow quand la feuille est étroite.
+              // (Le titre fait 56 px : plus large que certaines largeurs de
+              // sheet, même sans les boutons.)
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildStepButton(-1),
+                    Text(
+                      _formatDuration(_selectedMinutes),
+                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                            fontSize: 56,
+                            color: AppTheme.dodo,
+                          ),
                     ),
+                    _buildStepButton(1),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 32),

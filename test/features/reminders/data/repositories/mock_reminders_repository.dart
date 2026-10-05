@@ -7,6 +7,13 @@ class MockRemindersRepository implements RemindersRepository {
   /// Maps item ID → last completed DateTime (simulates tracking event).
   final Map<String, DateTime?> lastCompletedByItem = {};
 
+  /// Maps item ID → last manual completion DateTime (simulates the
+  /// `reminder_completions` log).
+  final Map<String, DateTime?> manualCompletedByItem = {};
+
+  /// Maps item ID → last « ignorer » DateTime (simulates `reminder_dismissals`).
+  final Map<String, DateTime?> dismissedById = {};
+
   /// Maps item ID → persisted enabled flag (absent = jamais touché = activé).
   final Map<String, bool> enabledById = {};
 
@@ -23,12 +30,34 @@ class MockRemindersRepository implements RemindersRepository {
   /// Baby the most recent [getLastCompleted] call was scoped to (null = unscoped).
   String? lastCompletedBabyId;
 
+  /// Baby the most recent [getLastManualCompletion] call was scoped to.
+  String? lastManualCompletedBabyId;
+
+  /// Baby the most recent [getLastDismissal] call was scoped to.
+  String? lastDismissalBabyId;
+
+  /// Baby the most recent [getEnabledByItemId] call was scoped to.
+  String? lastGetEnabledBabyId;
+
+  /// Baby the most recent [setEnabled] call was scoped to.
+  String? lastEnabledBabyId;
+
   /// Rappels personnalisés en mémoire, indexés par leur identifiant auto-incrémenté.
   final Map<int, CustomReminder> customRemindersById = {};
 
   /// Nombre d'appels reçus pour chaque écriture — pas de succès : prouver qu'une
   /// écriture a été tentée, et une seule.
   int insertCustomCallCount = 0;
+
+  /// Nombre d'écritures manuelles reçues ([recordCompletion]) et bébé auquel
+  /// la dernière a été scopée (`null` = non scopé).
+  int recordCompletionCallCount = 0;
+  String? lastRecordCompletionBabyId;
+
+  /// Nombre d'ignorés reçus ([dismissReminder]) et bébé auquel la dernière
+  /// écriture a été scopée (`null` = non scopé).
+  int dismissCallCount = 0;
+  String? lastDismissBabyId;
   int editCustomCallCount = 0;
   int deleteCustomCallCount = 0;
 
@@ -47,26 +76,60 @@ class MockRemindersRepository implements RemindersRepository {
     lastCompletedBabyId = babyId;
     completedLookupCount++;
     lookedUpItemIds.add(reminder.id);
+    // Fidèle à l'implémentation (invariant D2) : un item sans subtype n'est
+    // réglé par aucun événement.
+    if (reminder.subtypeValue == null) return null;
     return lastCompletedByItem[reminder.id];
   }
 
   @override
-  Future<Map<String, bool>> getEnabledByItemId() async => Map.of(enabledById);
+  Future<DateTime?> getLastManualCompletion(String itemId, {String? babyId}) async {
+    lastManualCompletedBabyId = babyId;
+    lookedUpItemIds.add(itemId);
+    return manualCompletedByItem[itemId];
+  }
 
   @override
-  Future<void> setEnabled(String itemId, {required bool enabled}) async {
+  Future<DateTime?> getLastDismissal(String itemId, {String? babyId}) async {
+    lastDismissalBabyId = babyId;
+    return dismissedById[itemId];
+  }
+
+  @override
+  Future<void> recordCompletion(String itemId, {String? babyId, DateTime? at}) async {
+    recordCompletionCallCount++;
+    lastRecordCompletionBabyId = babyId;
+    manualCompletedByItem[itemId] = at ?? DateTime.now();
+  }
+
+  @override
+  Future<void> dismissReminder(String itemId, {String? babyId, DateTime? at}) async {
+    dismissCallCount++;
+    lastDismissBabyId = babyId;
+    dismissedById[itemId] = at ?? DateTime.now();
+  }
+
+  @override
+  Future<Map<String, bool>> getEnabledByItemId({String? babyId}) async {
+    lastGetEnabledBabyId = babyId;
+    return Map.of(enabledById);
+  }
+
+  @override
+  Future<void> setEnabled(String itemId, {required bool enabled, String? babyId}) async {
     setEnabledCallCount++;
+    lastEnabledBabyId = babyId;
     enabledById[itemId] = enabled;
   }
 
   @override
-  Future<List<CustomReminder>> getCustomReminders() async {
+  Future<List<CustomReminder>> getCustomReminders({String? babyId}) async {
     // Ordre d'insertion = ordre des identifiants, comme `ORDER BY id` en base.
     return customRemindersById.values.toList(growable: false);
   }
 
   @override
-  Future<int> insertCustomReminder(CustomReminder reminder) async {
+  Future<int> insertCustomReminder(CustomReminder reminder, {String? babyId}) async {
     insertCustomCallCount++;
     if (failCustomWrites) throw StateError('stockage refusé');
     final id = _nextCustomId++;
@@ -75,7 +138,7 @@ class MockRemindersRepository implements RemindersRepository {
   }
 
   @override
-  Future<void> updateCustomReminder(CustomReminder reminder) async {
+  Future<void> updateCustomReminder(CustomReminder reminder, {String? babyId}) async {
     editCustomCallCount++;
     if (failCustomWrites) throw StateError('stockage refusé');
     final id = reminder.id;
@@ -86,7 +149,7 @@ class MockRemindersRepository implements RemindersRepository {
   }
 
   @override
-  Future<void> deleteCustomReminder(int id) async {
+  Future<void> deleteCustomReminder(int id, {String? babyId}) async {
     // Le compteur compte les demandes reçues, pas les succès : un test qui
     // refuse l'écriture doit pouvoir prouver que l'app a bien essayé.
     deleteCustomCallCount++;
@@ -97,5 +160,30 @@ class MockRemindersRepository implements RemindersRepository {
     // à chaque export.
     final key = '${CustomReminderPresets.customIdPrefix}$id';
     enabledById.remove(key);
+  }
+}
+
+/// [MockRemindersRepository] dont les « ignorer » sont scopés par bébé,
+/// comme en base (une ligne `reminder_dismissals` porte le `baby_id`) :
+/// une suppression pour le bébé A ne masque jamais le rappel au bébé B.
+class ScopedDismissalRemindersRepository extends MockRemindersRepository {
+  final Map<String, DateTime?> _dismissedByKey = {};
+
+  /// Seme une suppression datée (tests de la fenêtre de 24 h).
+  void seedDismissal(String itemId, {String? babyId, required DateTime at}) {
+    _dismissedByKey['$itemId@${babyId ?? 'all'}'] = at;
+  }
+
+  @override
+  Future<DateTime?> getLastDismissal(String itemId, {String? babyId}) async {
+    lastDismissalBabyId = babyId;
+    return _dismissedByKey['$itemId@${babyId ?? 'all'}'];
+  }
+
+  @override
+  Future<void> dismissReminder(String itemId, {String? babyId, DateTime? at}) async {
+    dismissCallCount++;
+    lastDismissBabyId = babyId;
+    _dismissedByKey['$itemId@${babyId ?? 'all'}'] = at ?? DateTime.now();
   }
 }

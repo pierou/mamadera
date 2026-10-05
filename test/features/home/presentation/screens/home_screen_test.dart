@@ -6,20 +6,40 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
 
 import 'package:mamadera/core/theme.dart';
+import 'package:mamadera/core/config/app_config.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
 import 'package:mamadera/core/providers/any_baby_exists_provider.dart';
+import 'package:mamadera/core/providers/app_preferences_provider.dart';
+import 'package:mamadera/core/providers/locale_provider.dart';
+import 'package:mamadera/core/providers/theme_provider.dart';
+import 'package:mamadera/core/router.dart';
+import 'package:mamadera/core/services/app_preferences_service.dart';
+import 'package:mamadera/core/services/locale_service.dart';
+import 'package:mamadera/core/services/theme_service.dart';
 import 'package:mamadera/core/widgets/event_date_time_field.dart';
+import 'package:mamadera/features/growth/domain/entities/growth_measurement.dart';
+import 'package:mamadera/features/growth/presentation/providers/measurement_providers.dart';
+import 'package:mamadera/features/growth/presentation/widgets/measurement_button.dart';
+import 'package:mamadera/features/history/domain/repositories/history_repository.dart';
+import 'package:mamadera/features/history/presentation/providers/history_repository_provider.dart';
+import 'package:mamadera/features/history/presentation/screens/history_screen.dart';
 import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart';
 import 'package:mamadera/features/home/presentation/providers/repository_provider.dart';
 import 'package:mamadera/features/home/presentation/screens/home_screen.dart';
 import 'package:mamadera/features/home/presentation/widgets/onboarding_dialog.dart';
 import 'package:mamadera/features/home/presentation/widgets/track_button.dart';
+import 'package:mamadera/features/menu/presentation/screens/menu_screen.dart';
+import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
+import 'package:mamadera/features/reminders/presentation/widgets/reminder_row.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
+import '../../../reminders/data/repositories/mock_reminders_repository.dart';
+import '../../../reminders/presentation/providers/no_poll_reminders_notifier.dart';
 import 'home_screen_test.mocks.dart';
 
 /// Helper : trouve un TrackButton par son label.
@@ -57,9 +77,16 @@ void main() {
       ProviderScope(
         overrides: [
           trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
+          // La rangée de croissance ne doit pas ouvrir la vraie base en test.
+          measurementNotifierProvider
+              .overrideWith(() => TestMeasurementNotifier(const [])),
           // Override with a test notifier that resolves synchronously via Future.microtask.
           activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
           anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
+          // La section de rappels (D1) évalue le notifier ; la version de
+          // test ne laisse pas le timer de sondage de cinq minutes en attente.
+          reminderNotifierProvider
+              .overrideWith(NoPollRemindersNotifier.new),
         ],
         child: MaterialApp(
           locale: const Locale('fr'),
@@ -80,6 +107,30 @@ void main() {
   // ──────────────────────────────────────────────
   // Affichage des TrackButtons
   // ──────────────────────────────────────────────
+  // ──────────────────────────────────────────────
+  // Boutons de mesure (croissance, item 1 de v1.2.0)
+  // ──────────────────────────────────────────────
+  group('Boutons de mesure (croissance)', () {
+    testWidgets('les 3 boutons de mesure s affichent sans toucher la grille',
+        (tester) async {
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TrackButton), findsNWidgets(4));
+      expect(find.byType(MeasurementButton), findsNWidgets(3));
+      expect(find.text('Poids'), findsOneWidget);
+      expect(find.text('Taille'), findsOneWidget);
+      expect(find.text('Température'), findsOneWidget);
+    });
+
+    testWidgets('sans mesure, chaque bouton affiche un tiret', (tester) async {
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('—'), findsNWidgets(3));
+    });
+  });
+
   group('Affichage des 4 TrackButtons', () {
     testWidgets('Nourriture, Sante, Couche, Dodo sont affiches', (tester) async {
       await pumpHome(tester);
@@ -117,23 +168,188 @@ void main() {
   });
 
   // ──────────────────────────────────────────────
+  // Rappels dus sous les boutons (D1, M6)
+  // ──────────────────────────────────────────────
+  group('Rappels dus sous les boutons (D1)', () {
+    /// Même harnais que [pumpHome], mais avec un dépôt de rappels en
+    /// mémoire : la chaîne réelle produit les 4 préréglages dus du bébé
+    /// actif, la liste sous les boutons est stable et les 4 lignes lisibles.
+    Future<void> pumpHomeWithDueReminders(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(600, 900);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            trackingRepositoryProvider
+                .overrideWith((ref) async => mockRepo),
+            measurementNotifierProvider
+                .overrideWith(() => TestMeasurementNotifier(const [])),
+            activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
+            anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
+            remindersRepositoryProvider
+                .overrideWith((ref) async => MockRemindersRepository()),
+            reminderNotifierProvider
+                .overrideWith(NoPollRemindersNotifier.new),
+          ],
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            theme: AppTheme.theme,
+            home: Scaffold(body: const HomeScreen()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('les 4 rappels dus sont lisibles, grille et boutons de '
+        'croissance inchangés', (tester) async {
+      await pumpHomeWithDueReminders(tester);
+
+      // Les 4 TrackButtons et les 3 boutons de croissance existent toujours.
+      expect(find.byType(TrackButton), findsNWidgets(4));
+      expect(find.byType(MeasurementButton), findsNWidgets(3));
+
+      // Les 4 rappels dus sont listés, pas agrégés en « +2 ».
+      // Le titre porte le prénom du bébé actif (v1.2, message l10n avec
+      // placeholder) : l'ancienne attente exacte « Rappels à faire »
+      // décrivait l'état sans prénom, remplacé par celui de la chaîne.
+      expect(find.text('Rappels de Test Baby à faire'), findsOneWidget);
+      expect(find.byType(ReminderRow), findsNWidgets(4));
+      expect(find.text('Vitamine D'), findsOneWidget);
+      expect(find.text('Vitamine K'), findsOneWidget);
+      expect(find.text('Nettoyage des yeux'), findsOneWidget);
+      expect(find.text('Nettoyage du visage'), findsOneWidget);
+    });
+
+    testWidgets('la grille reste utilisable : Nourriture ouvre sa feuille',
+        (tester) async {
+      when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
+      // Trois puces de sous-type : la feuille déborde du harnais 200×300.
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await pumpHomeWithDueReminders(tester);
+
+      await tester.tap(findTrackButton('Nourriture'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomSheet), findsOneWidget);
+    });
+
+    testWidgets('les boutons de croissance restent utilisables : Poids '
+        'ouvre sa feuille', (tester) async {
+      await pumpHomeWithDueReminders(tester);
+
+      // La feuille de mesure est plus haute que l'écran du harnais 600x900 :
+      // on passe sur un écran de la hauteur d'une feuille, comme le harnais
+      // onboarding ci-dessous.
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1200, 3200);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpAndSettle();
+
+      final poids = find.text('Poids');
+      expect(poids, findsOneWidget);
+      await tester.tap(poids);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomSheet), findsOneWidget);
+    });
+  });
+
+  // ──────────────────────────────────────────────
   // Navigation via bottom nav
+  //
+  // Repris en main (M6) : ces tests pompaient HomeScreen seul, sans le
+  // routeur — la barre de navigation n'existait pas et le tap ne pouvait
+  // qu'exploser, d'où les anciens skips. Ils pompent maintenant le vrai
+  // routeur de l'app, avec des providers déterministes (même recette que
+  // test/core/router_test.dart) : le dépôt d'historique, la locale et le
+  // thème sont remplacés, parce que les canaux qu'ils attendent (base de
+  // données, path_provider) ne répondent jamais dans l'environnement de
+  // test et laisseraient les écrans en spinner indéfiniment.
   // ──────────────────────────────────────────────
   group('Navigation via bottom nav', () {
+    /// Pompe le vrai routeur de l'app : splash → accueil, avec des providers
+    /// déterministes (préférences acceptées, bébés en mémoire, mesures
+    /// vides, rappels dus stables, profils résolus à vide).
+    Future<void> pumpApp(WidgetTester tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appPreferencesProvider
+                .overrideWith(_AcceptedPrefsNotifier.new),
+            trackingRepositoryProvider
+                .overrideWith((ref) async => mockRepo),
+            measurementNotifierProvider
+                .overrideWith(() => TestMeasurementNotifier(const [])),
+            activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
+            anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
+            babyProfileListProvider
+                .overrideWith((ref) async => const <BabyProfile>[]),
+            remindersRepositoryProvider
+                .overrideWith((ref) async => MockRemindersRepository()),
+            reminderNotifierProvider
+                .overrideWith(NoPollRemindersNotifier.new),
+            historyRepositoryProvider
+                .overrideWith((ref) async => _EmptyHistoryRepository()),
+            localeProvider.overrideWith(_LocalePrefsNotifier.new),
+            themeProvider.overrideWith(_ThemePrefsNotifier.new),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            theme: AppTheme.theme,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(AppShell), findsOneWidget);
+    }
+
     testWidgets('tap Historique -> affiche HistoryScreen', (tester) async {
-      // Skipped: causes pumpAndSettle timeout due to async operations in HistoryScreen
-      expect(true, isTrue);
-    }, skip: true);
+      await pumpApp(tester);
+
+      await tester.tap(find.byKey(const ValueKey('history-tab')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HistoryScreen), findsOneWidget);
+    });
 
     testWidgets('tap Menu -> affiche MenuScreen', (tester) async {
-      // Skipped: causes pumpAndSettle timeout due to async operations in MenuScreen
-      expect(true, isTrue);
-    }, skip: true);
+      await pumpApp(tester);
+
+      await tester.tap(find.byKey(const ValueKey('menu-tab')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MenuScreen), findsOneWidget);
+    });
 
     testWidgets('tap Accueil -> retour a la grille', (tester) async {
-      // Skipped: causes pumpAndSettle timeout due to async operations
-      expect(true, isTrue);
-    }, skip: true);
+      await pumpApp(tester);
+
+      await tester.tap(find.byKey(const ValueKey('history-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byType(HistoryScreen), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('home-tab')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HistoryScreen), findsNothing);
+      expect(find.byType(TrackButton), findsNWidgets(4));
+    });
   });
 
   // ──────────────────────────────────────────────
@@ -141,6 +357,9 @@ void main() {
   // ──────────────────────────────────────────────
   group('Interactions Nourriture/Sante/Couche/Dodo', () {
     testWidgets('tap Nourriture -> ouvre FeedingTrackingDialog', (tester) async {
+      // Trois puces de sous-type : la feuille déborde du harnais 200×300.
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
@@ -352,6 +571,11 @@ void main() {
     }
 
     testWidgets('Nourriture : la date par défaut est le moment de la saisie', (tester) async {
+      // Trois puces de sous-type : la feuille d'alimentation déborde du
+      // harnais 200×300 par défaut (comme les autres feuilles hautes).
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final before = DateTime.now();
       await openSheetAndConfirm(tester, 'Nourriture');
 
@@ -504,6 +728,8 @@ void main() {
         ProviderScope(
           overrides: [
             trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
+            measurementNotifierProvider
+                .overrideWith(() => TestMeasurementNotifier(const [])),
             activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
             anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
           ],
@@ -547,6 +773,16 @@ void main() {
   });
 }
 
+/// Notifier de test pour la croissance : liste fixe, sans dépendance à la base.
+class TestMeasurementNotifier extends MeasurementNotifier {
+  TestMeasurementNotifier(this.measurements);
+
+  final List<GrowthMeasurement> measurements;
+
+  @override
+  Future<List<GrowthMeasurement>> build() async => measurements;
+}
+
 /// Test notifier that resolves the active baby profile synchronously.
 /// Sets state directly in build() so .value is available immediately during initState.
 class TestActiveBabyNotifier extends ActiveBabyNotifier {
@@ -581,4 +817,54 @@ class TestAnyBabyExistsNotifier extends AnyBabyExistsNotifier {
     state = AsyncValue.data(anyExists);
     return Future.value(anyExists);
   }
+}
+
+/// Préférences acceptées pour les tests du vrai routeur : le notifier réel
+/// ouvrirait le store de l'appareil, absent en test — c'est ce qui
+/// bloquait l'ancienne version de ces tests sur la redirection splash.
+class _AcceptedPrefsNotifier extends AppPreferencesNotifier {
+  @override
+  Future<AppPreferences> build() async => const AppPreferences(
+        appVersion: AppConfig.version,
+        termsAccepted: true,
+        patchNotesOptOut: true,
+      );
+}
+
+/// Locale déterministe : le vrai notifier attend le canal path_provider,
+/// qui ne répond jamais dans l'environnement de test, et MenuScreen resterait
+/// en spinner.
+class _LocalePrefsNotifier extends LocaleNotifier {
+  @override
+  Future<LocalePreference> build() async =>
+      const LocalePreference(languageCode: 'en', isManualOverride: false);
+}
+
+/// Thème déterministe, même raison que [_LocalePrefsNotifier].
+class _ThemePrefsNotifier extends ThemeNotifier {
+  @override
+  Future<ThemePreference> build() async => const ThemePreference(mode: 'system');
+}
+
+/// Historique vide : le vrai dépôt attend la base de données, dont le canal
+/// de création ne répond jamais dans l'environnement de test — HistoryScreen
+/// resterait en spinner.
+class _EmptyHistoryRepository implements HistoryRepository {
+  @override
+  Future<List<TrackingEvent>> getAllEventsOrdered({String? babyId}) async =>
+      const [];
+
+  @override
+  Future<List<TrackingEvent>> getEventsByType(
+    TrackingType type, {
+    String? babyId,
+  }) async =>
+      const [];
+
+  @override
+  Future<bool> updateEvent({required int id, required TrackingEvent event}) async =>
+      false;
+
+  @override
+  Future<bool> deleteEvent(int id) async => false;
 }

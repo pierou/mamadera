@@ -5,7 +5,13 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mamadera/core/config/app_config.dart';
+import 'package:mamadera/core/providers/app_preferences_provider.dart';
 import 'package:mamadera/core/router.dart';
+import 'package:mamadera/core/services/app_preferences_service.dart';
+import 'package:mamadera/features/growth/domain/entities/growth_measurement.dart';
+import 'package:mamadera/features/growth/presentation/providers/measurement_providers.dart';
+import 'package:mamadera/features/growth/presentation/screens/growth_screen.dart';
 
 import 'package:mamadera/l10n/app_localizations.dart';
 
@@ -47,6 +53,44 @@ void main() {
 
     test('has 3 routes', () {
       expect(AppRoute.values.length, 3);
+    });
+
+    testWidgets(
+        'navigating to /growth renders the growth screen outside the shell',
+        (tester) async {
+      // La route croissance est en plein écran (comme /reminder-settings),
+      // pas une tab de la barre de navigation : elle n'entre pas dans AppRoute.
+      // On teste le vrai routeur de l'app, avec des préférences acceptées et
+      // un notifier de mesures factice pour éviter la base de données.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
+            measurementNotifierProvider
+                .overrideWith(() => _TestMeasurementNotifier(const [])),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+      // Splash → redirection → /home (shell avec la barre de navigation).
+      await tester.pumpAndSettle();
+      expect(find.byType(AppShell), findsOneWidget);
+
+      router.go('/growth');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GrowthScreen), findsOneWidget);
+      // En plein écran : la shell de la barre de navigation n'est plus là.
+      expect(find.byType(AppShell), findsNothing);
     });
 
     test('all routes have non-empty paths starting with /', () {
@@ -869,4 +913,25 @@ class _StubWithBottomSheet extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Notifier de test qui retourne des préférences acceptées de façon synchrone,
+/// pour que la redirection splash du routeur de production atterrisse sur /home.
+class _TestAppPreferencesNotifier extends AppPreferencesNotifier {
+  @override
+  Future<AppPreferences> build() async => const AppPreferences(
+        appVersion: AppConfig.version,
+        termsAccepted: true,
+        patchNotesOptOut: true,
+      );
+}
+
+/// Notifier de test qui retourne des mesures fixes sans base de données.
+class _TestMeasurementNotifier extends MeasurementNotifier {
+  _TestMeasurementNotifier(this.measurements);
+
+  final List<GrowthMeasurement> measurements;
+
+  @override
+  Future<List<GrowthMeasurement>> build() async => measurements;
 }

@@ -12,8 +12,8 @@ import 'quantity_picker_inline.dart';
 /// A dialog for tracking feeding events with subtype selection and quantity.
 ///
 /// Contains:
-/// - Feeding subtype chip selector (natural/artificial) at the top
-/// - Quantity picker (ml) below
+/// - Feeding subtype chip selector (natural/artificial/solid) at the top
+/// - Quantity picker whose unit follows the selected subtype (min/ml/g) below
 /// - Date and time of the feed (defaults to now)
 /// - Confirm button that returns (feedingSubtype, quantity, timestamp)
 class FeedingTrackingDialog extends ConsumerStatefulWidget {
@@ -43,6 +43,22 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
       _selectedQuantity = quantity;
     });
   }
+
+  bool get _isSolid => _selectedSubtype == FeedingSubtype.solid;
+
+  /// L'unité du picker suit le sous-type sélectionné : minutes au sein,
+  /// millilitres (sein et biberon), grammes pour les solides. Afficher « 40 ml »
+  /// alors que « Solide » est sélectionné, ce serait un chiffre de santé
+  /// faux — exactement ce que l'app ne doit jamais afficher.
+  String _feedingUnit(BuildContext context) => switch (_selectedSubtype) {
+        // Le sein se saisit en ml comme le biberon — c'est ce que la colonne
+        // `quantity` a toujours stocké pour `miam` (`FeedingEvent` n'a pas de
+        // champ durée). Inventer des minutes ici re-étiquetterait des
+        // enregistrements existants de lait tiré en durée de tétée.
+        FeedingSubtype.natural => 'ml',
+        FeedingSubtype.artificial => 'ml',
+        FeedingSubtype.solid => context.l.gramSuffix,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +123,26 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                     selectedColor: AppTheme.miam.withValues(alpha: 0.2),
                   ),
                 ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilterChip(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(FeedingSubtype.solid.icon, size: 18),
+                        Flexible(
+                          child: Text(
+                            context.l.feedingSolid,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    selected: _selectedSubtype == FeedingSubtype.solid,
+                    onSelected: (_) => setState(() => _selectedSubtype = FeedingSubtype.solid),
+                    selectedColor: AppTheme.miam.withValues(alpha: 0.2),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -118,10 +154,14 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
             ),
             const SizedBox(height: 8),
             QuantityPickerInline(
-              unit: 'ml',
+              unit: _feedingUnit(context),
               min: 0,
-              max: 300,
-              divisions: 30,
+              // Les solides se pèsent en grammes sur une plus large plage.
+              max: _isSolid ? 1000 : 300,
+              divisions: _isSolid ? 200 : 30,
+              // Stepper aligné sur le pas du slider : 200 crans sur 1000 g,
+              // 30 crans sur 300 (min ou ml).
+              step: _isSolid ? 5 : 10,
               value: _selectedQuantity,
               onValueChanged: _onQuantityChanged,
             ),

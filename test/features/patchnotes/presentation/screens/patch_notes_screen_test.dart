@@ -213,24 +213,40 @@ void main() {
         },
       });
 
+  /// Titres de section réellement présents dans l'asset publié.
+  ///
+  /// Dérivés du fichier, pas recopiés dans le test : un test qui épingle les
+  /// titres d'une version donnée échoue à la version suivante, ce qui n'est pas
+  /// une régression mais un piège — et un piège qui sonne faux chaque release
+  /// finit par être ignoré. Ce qui doit être verrouillé est le **comportement**
+  /// (tout titre de l'asset rendu sans son marqueur), pas le vocabulaire de 1.1.0.
+  List<String> shippedHeadings(String languageCode) => shippedItems(languageCode)
+      .map((item) => item.trim())
+      .where((item) => item.startsWith('#'))
+      .map((item) => item.replaceFirst(RegExp(r'^#+\s*'), '').trim())
+      .toList();
+
   group('PatchNotesScreen — shipped assets (regression lock)', () {
-    testWidgets('fr notes contain no raw markdown', (tester) async {
-      await pump(tester, repository: shippedAsset('fr'), locale: const Locale('fr'));
-      expectNoMarkup(tester);
-      expect(find.text('Corrections de bugs'), findsOneWidget);
-    });
+    for (final languageCode in ['fr', 'en', 'es']) {
+      testWidgets(
+          '$languageCode notes contain no raw markdown and every shipped '
+          'heading renders stripped', (tester) async {
+        await pump(tester,
+            repository: shippedAsset(languageCode),
+            locale: Locale(languageCode));
+        expectNoMarkup(tester);
 
-    testWidgets('en notes contain no raw markdown', (tester) async {
-      await pump(tester, repository: shippedAsset('en'), locale: const Locale('en'));
-      expectNoMarkup(tester);
-      expect(find.text('Bug Fixes'), findsOneWidget);
-    });
-
-    testWidgets('es notes contain no raw markdown', (tester) async {
-      await pump(tester, repository: shippedAsset('es'), locale: const Locale('es'));
-      expectNoMarkup(tester);
-      expect(find.text('Correcciones de errores'), findsOneWidget);
-    });
+        final headings = shippedHeadings(languageCode);
+        // Un asset sans titre ne prouverait rien : le verrou exige d'avoir
+        // quelque chose à rendre.
+        expect(headings, isNotEmpty,
+            reason: '$languageCode : aucun titre d\'asset à vérifier');
+        for (final heading in headings) {
+          expect(find.text(heading), findsWidgets,
+              reason: '$languageCode : titre « $heading » non rendu');
+        }
+      });
+    }
 
     testWidgets('fr notes check one row per bullet', (tester) async {
       await pump(tester, repository: shippedAsset('fr'), locale: const Locale('fr'));

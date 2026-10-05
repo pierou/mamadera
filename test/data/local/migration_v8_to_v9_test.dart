@@ -61,6 +61,13 @@ void main() {
         item_id TEXT PRIMARY KEY NOT NULL,
         enabled BOOLEAN NOT NULL
       )''');
+    // Créée dès la v3, absente de ce seed minimaliste mais présente sur
+    // toute base v8 réelle : la reconstruction v11 la lit, il faut qu'elle existe.
+    await raw.customStatement('''
+      CREATE TABLE reminder_dismissals (
+        item_id     TEXT PRIMARY KEY NOT NULL,
+        dismissed_at TIMESTAMP            NOT NULL
+      )''');
     // Une couche enregistrée avant l'option, avec une couleur.
     await raw.customStatement(
       "INSERT INTO tracking_events (type, timestamp, waste_type, color) "
@@ -83,7 +90,7 @@ void main() {
     expect(events.first.color, equals('jaune_moutarde'));
     expect(events.first.texture, equals(null));
     // Le fichier est monté jusqu'à la version courante, pas seulement jusqu'à 9.
-    expect(db.schemaVersion, equals(10));
+    expect(db.schemaVersion, equals(11));
   });
 
   test('a diaper saved after the upgrade can store a texture', () async {

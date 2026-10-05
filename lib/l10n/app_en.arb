@@ -15,6 +15,36 @@
   "homeButtonSante": "Health",
   "homeButtonCaca": "Diaper",
   "homeButtonDodo": "Sleep",
+  "homeButtonPoids": "Weight",
+  "homeButtonTaille": "Height",
+  "homeButtonTemperature": "Temperature",
+  "@growthValueOutOfRange": {
+    "placeholders": {
+      "min": {},
+      "max": {},
+      "unit": {}
+    }
+  },
+  "growthValueOutOfRange": "Out of range: between {min} and {max} {unit}.",
+  "@growthFeedbackSaved": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "growthFeedbackSaved": "Measurement saved · {value}",
+  "growthMenuTile": "Growth",
+  "growthScreenTitle": "Growth",
+  "growthSectionTitle": "Growth measurements",
+  "growthEmptyState": "No measurements yet.",
+  "growthLatestWeight": "Latest weight",
+  "growthLatestHeight": "Latest height",
+  "growthLatestTemperature": "Latest temperature",
+  "growthSheetTitleWeight": "New weight",
+  "growthSheetTitleHeight": "New height",
+  "growthSheetTitleTemperature": "New temperature",
+  "growthSheetNoteField": "Note (optional)",
+  "growthSheetSave": "Save",
+  "growthValueUndecryptable": "Value unreadable",
 
   "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
   "@feedbackFeedingWithQuantity": {
@@ -68,6 +98,8 @@
   "durationPickerTitle": "Sleep Duration",
   "cancelButton": "Cancel",
   "confirmButton": "Confirm",
+  "increment": "Increase",
+  "decrement": "Decrease",
   "saveButton": "Save",
   "@durationFormatHoursMinutes": {
     "placeholders": {
@@ -125,6 +157,8 @@
   "reminderCustomLabelField": "Reminder name",
   "reminderCustomLabelRequired": "Give the reminder a name",
   "reminderCustomCareField": "Linked care",
+  "reminderCustomCareNone": "No care",
+  "reminderCustomCareNoneHint": "Clears once you mark it done.",
   "reminderCustomFrequencyField": "Frequency",
   "reminderCustomIntervalField": "Interval in days",
   "reminderCustomIntervalRequired": "Enter a number of days, from 1 to 365",
@@ -133,6 +167,23 @@
   "reminderCustomDeleteWarning": "The reminder leaves Home. Events you already logged are kept.",
   "reminderCustomSaveError": "Could not save the reminder. Please try again.",
   "reminderCustomDeleteError": "Could not delete the reminder. Please try again.",
+  "reminderListTitle": "Reminders to do",
+  "reminderListTitleFor": "{name}'s reminders",
+  "@reminderListTitleFor": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "reminderListEmpty": "Nothing to do for now.",
+  "reminderMarkDone": "Mark as done",
+  "reminderDismiss": "Dismiss reminder",
+  "reminderLastDone": "Last done: {date}",
+  "@reminderLastDone": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderNeverDone": "Never done",
 
   "yesterday": "Yesterday",
   "daysAgo": " days ago",
@@ -198,6 +249,7 @@
   "feedingSubtypeLabel": "Feeding Type",
   "feedingSubtypeNatural": "Breast milk",
   "feedingSubtypeArtificial": "Formula",
+  "feedingSolid": "Solid",
 
   "editDialogTitle": "Edit Event",
   "eventDateSectionTitle": "Date and Time",
@@ -209,6 +261,7 @@
   "editNotesHint": "Add a note...",
   "minutesHintText": "Minutes",
   "minuteSuffix": "min",
+  "gramSuffix": "g",
 
   "deleteDialogTitle": "Delete Event",
   "deleteDialogContent": "Are you sure you want to delete this event? This action cannot be undone.",

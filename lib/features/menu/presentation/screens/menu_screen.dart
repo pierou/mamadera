@@ -11,6 +11,7 @@ import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
 import '../../../../features/export/presentation/widgets/export_data_dialog.dart';
+import '../../../../features/growth/presentation/providers/measurement_providers.dart';
 import '../../../../features/history/presentation/providers/history_notifier.dart';
 import '../../../../features/history/presentation/providers/history_repository_provider.dart';
 import '../../../../features/home/presentation/providers/repository_provider.dart';
@@ -92,6 +93,22 @@ class MenuScreen extends ConsumerWidget {
                 title: Text(context.l.reminderSettingsTile),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/reminder-settings'),
+              ),
+
+              // Growth Section
+              const SizedBox(height: AppTheme.spacingXxl),
+              Text(
+                context.l.growthMenuTile,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              ListTile(
+                leading: const Icon(Icons.straighten),
+                title: Text(context.l.growthMenuTile),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/growth'),
               ),
 
               // Terms Section
@@ -334,6 +351,8 @@ class MenuScreen extends ConsumerWidget {
         ..invalidate(remindersRepositoryProvider)
         ..invalidate(babyProfileProvider)
         ..invalidate(menuRepositoryProvider)
+        ..invalidate(measurementRepositoryProvider)
+        ..invalidate(measurementNotifierProvider)
         ..invalidate(activeBabyProvider)
         ..invalidate(babyProfileListProvider)
         ..invalidate(anyBabyExistsProvider)

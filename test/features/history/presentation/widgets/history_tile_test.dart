@@ -170,6 +170,26 @@ void main() {
     });
   });
 
+  group('HistoryTile — Unité de quantité (FeedingEvent)', () {
+    // Le suffixe suit le sous-type : un purée s'affiche en grammes, un
+    // biberon en millilitres — jamais l'inverse.
+    testWidgets('aliment solide → quantité en grammes', (tester) async {
+      await pumpTile(
+        tester,
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.solid, quantity: 40),
+      );
+      expect(find.text('Quantité : 40 g'), findsOneWidget);
+    });
+
+    testWidgets('biberon → quantité en ml', (tester) async {
+      await pumpTile(
+        tester,
+        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.artificial, quantity: 120),
+      );
+      expect(find.text('Quantité : 120 ml'), findsOneWidget);
+    });
+  });
+
   group('HistoryTile — Notes affichées', () {
     testWidgets('FeedingEvent avec notes → notes visibles (sauf HealthEvent)', (tester) async {
       await pumpTile(

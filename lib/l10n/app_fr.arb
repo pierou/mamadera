@@ -15,6 +15,36 @@
   "homeButtonSante": "Santé",
   "homeButtonCaca": "Couche",
   "homeButtonDodo": "Dodo",
+  "homeButtonPoids": "Poids",
+  "homeButtonTaille": "Taille",
+  "homeButtonTemperature": "Température",
+  "@growthValueOutOfRange": {
+    "placeholders": {
+      "min": {},
+      "max": {},
+      "unit": {}
+    }
+  },
+  "growthValueOutOfRange": "Valeur hors plage : entre {min} et {max} {unit}.",
+  "@growthFeedbackSaved": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "growthFeedbackSaved": "Mesure enregistrée · {value}",
+  "growthMenuTile": "Croissance",
+  "growthScreenTitle": "Croissance",
+  "growthSectionTitle": "Mesures de croissance",
+  "growthEmptyState": "Aucune mesure pour l'instant.",
+  "growthLatestWeight": "Dernier poids",
+  "growthLatestHeight": "Dernière taille",
+  "growthLatestTemperature": "Dernière température",
+  "growthSheetTitleWeight": "Nouveau poids",
+  "growthSheetTitleHeight": "Nouvelle taille",
+  "growthSheetTitleTemperature": "Nouvelle température",
+  "growthSheetNoteField": "Note (facultatif)",
+  "growthSheetSave": "Enregistrer",
+  "growthValueUndecryptable": "Valeur illisible",
 
   "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
   "@feedbackFeedingWithQuantity": {
@@ -68,6 +98,8 @@
   "durationPickerTitle": "Durée du sommeil",
   "cancelButton": "Annuler",
   "confirmButton": "Confirmer",
+  "increment": "Incrémenter",
+  "decrement": "Décrémenter",
   "saveButton": "Enregistrer",
   "@durationFormatHoursMinutes": {
     "placeholders": {
@@ -125,6 +157,8 @@
   "reminderCustomLabelField": "Nom du rappel",
   "reminderCustomLabelRequired": "Donnez un nom au rappel",
   "reminderCustomCareField": "Soin associé",
+  "reminderCustomCareNone": "Aucun soin",
+  "reminderCustomCareNoneHint": "S'efface quand vous le marquez fait.",
   "reminderCustomFrequencyField": "Fréquence",
   "reminderCustomIntervalField": "Intervalle en jours",
   "reminderCustomIntervalRequired": "Indiquez un nombre de jours, de 1 à 365",
@@ -133,6 +167,23 @@
   "reminderCustomDeleteWarning": "Le rappel disparaît de l'accueil. Les événements déjà enregistrés sont conservés.",
   "reminderCustomSaveError": "Le rappel n'a pas pu être enregistré. Réessayez.",
   "reminderCustomDeleteError": "Le rappel n'a pas pu être supprimé. Réessayez.",
+  "reminderListTitle": "Rappels à faire",
+  "reminderListTitleFor": "Rappels de {name} à faire",
+  "@reminderListTitleFor": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "reminderListEmpty": "Rien à faire pour l'instant.",
+  "reminderMarkDone": "Marquer comme fait",
+  "reminderDismiss": "Ignorer ce rappel",
+  "reminderLastDone": "Dernière fois: {date}",
+  "@reminderLastDone": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderNeverDone": "Jamais fait",
 
   "yesterday": "Hier",
   "daysAgo": " jours",
@@ -198,6 +249,7 @@
   "feedingSubtypeLabel": "Type d'Alimentation",
   "feedingSubtypeNatural": "Lait Maternel",
   "feedingSubtypeArtificial": "Lait Artificiel",
+  "feedingSolid": "Solide",
 
   "editDialogTitle": "Modifier l'événement",
   "eventDateSectionTitle": "Date et heure",
@@ -209,6 +261,7 @@
   "editNotesHint": "Ajouter une note...",
   "minutesHintText": "Minutes",
   "minuteSuffix": "min",
+  "gramSuffix": "g",
 
   "deleteDialogTitle": "Supprimer l'événement",
   "deleteDialogContent": "Voulez-vous vraiment supprimer cet événement ? Cette action est irréversible.",

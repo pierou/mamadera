@@ -66,5 +66,26 @@
       "- Correction d'un rappel désactivé dans les réglages qui restait affiché sur l'accueil",
       ""
     ]
+  },
+  "1.2.0": {
+    "releaseDate": "2026-10-03",
+    "title": "Nouveautés de Mamadera 1.2.0",
+    "items": [
+      "### Nouvelles fonctionnalités",
+      "- Suivi du poids, de la taille et de la température depuis trois nouveaux boutons de l'écran d'accueil",
+      "- Ajout du type d'alimentation « Solide » avec saisie de la quantité en grammes",
+      "- Ajout de l'écran Croissance : dernière valeur de chaque mesure et historique complet",
+      "- Affichage de la liste des rappels à faire sous les boutons de suivi, là où le « +2 » ne se lisait pas",
+      "- Création de rappels personnalisés sans soin lié, que l'on marque faits d'un simple tap",
+      "- Inclusion des mesures et des achèvements de rappels dans la sauvegarde manuelle",
+      "### Améliorations",
+      "- Chiffrement au repos des valeurs de croissance (poids, taille, température), comme les notes",
+      "- Réglage du poids par pas de 10 grammes, de la taille au centimètre et de la température au dixième de degré",
+      "- Réévaluation immédiate de la liste des rappels après un « fait » ou un « ignorer »",
+      "### Corrections",
+      "- Indépendance des rappels par bébé : éteindre, ignorer ou marquer fait pour un bébé ne s'applique plus à ses frères et sœurs",
+      "- Effacement complet des données d'un bébé supprimé : rappels, extinctions, achèvements et mesures retirés de l'appareil",
+      ""
+    ]
   }
 }

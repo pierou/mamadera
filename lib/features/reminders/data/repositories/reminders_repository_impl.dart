@@ -18,20 +18,48 @@ class RemindersRepositoryImpl implements RemindersRepository {
   final db_app.AppDatabase database;
   static final Logger _logger = appLogger();
 
+  /// Portage effectif des écritures : le bébé demandé, sinon la sentinelle de
+  /// l'état sans profil — c'est ici, à la frontière, que `null` devient `''` ;
+  /// les requêtes d'en-dessous ne voient plus que des bébés concrets.
+  String _scope(String? babyId) => babyId ?? db_const.sharedBabyId;
+
+  /// Portage visible pour une lecture : **la ligne du bébé, rien d'autre**.
+  ///
+  /// La sentinelle `''` est le portage de l'installation **sans profil** et ne
+  /// s'applique à aucun bébé réel : l'appliquer à tous (héritage v10) faisait
+  /// fuiter l'extinction, l'ignoré et le réglage manuel d'un bébé sur le
+  /// suivant, y compris un bébé créé après coup, qui héritait d'un état écrit
+  /// avant son existence. Un bébé nouveau part des défauts.
+  List<String> _visibleScopes(String? babyId) =>
+      babyId == null ? const [db_const.sharedBabyId] : [babyId];
+
   @override
   Future<DateTime?> getLastCompleted(ReminderItem item, {String? babyId}) async {
     try {
-      // Query tracking_events for events matching this reminder's type (+ subtype for health).
-      final type = item.trackingType.name;
+      // Invariant D2 : un item sans [ReminderItem.subtypeValue] est détaché
+      // d'un soin — aucun événement ne peut le régler, même un `sante` du bon
+      // type. Sa complétion n'arrive que par [getLastManualCompletion].
+      // (Le vieil `Constant(true)` de repli matcherait n'importe quel
+      // événement de santé et réglerait ce rappel à la première prise de
+      // poids venue.)
       final subtypeValue = item.subtypeValue;
-      
+      if (subtypeValue == null) return null;
+
+      // Query tracking_events for events matching this reminder's type (+ subtype for health).
+      final scope = _scope(babyId);
+
       // Get most recent event — no date restriction, returns last completed ever.
       // Scoped to the active baby when one is known (see interface dartdoc).
+      // L'état sans profil ne lit que les événements posés **sans** profil
+      // (`baby_id IS NULL`) : un événement d'un bébé ne règle plus le rappel
+      // de l'autre.
       final q = (database.select(database.trackingEvents)
         ..where((t) {
-          final exp = t.type.equals(type)
-              & (subtypeValue == null ? const Constant(true) : t.subtype.equals(subtypeValue))
-              & (babyId == null ? const Constant(true) : t.babyId.equals(babyId));
+          final exp = t.type.equals(item.trackingType.name) &
+              t.subtype.equals(subtypeValue) &
+              (scope == db_const.sharedBabyId
+                  ? t.babyId.isNull()
+                  : t.babyId.equals(scope));
           return exp;
         })
         ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
@@ -53,11 +81,117 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<Map<String, bool>> getEnabledByItemId() async {
+  Future<DateTime?> getLastManualCompletion(String itemId, {String? babyId}) async {
     try {
-      final rows = await database.select(database.reminderSettings).get();
+      // Journal append-only : la lecture est la plus récente ligne du portage
+      // du bébé — rien d'autre, la ligne `''` étant celle de l'état sans
+      // profil (même forme que [getLastCompleted] côté événements).
+      final scopes = _visibleScopes(babyId);
+      final q = database.select(database.reminderCompletions)
+        ..where((t) => t.itemId.equals(itemId) & t.babyId.isIn(scopes))
+        ..orderBy([(t) => OrderingTerm.desc(t.completedAt)])
+        ..limit(1);
+      final row = await q.getSingleOrNull();
+      if (row == null) return null;
+      _logger.d('getLastManualCompletion($itemId) — found: ${row.completedAt}');
+      return row.completedAt;
+    } catch (e, stack) {
+      _logger.e(
+        'getLastManualCompletion error',
+        error: e,
+        stackTrace: stack,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DateTime?> getLastDismissal(String itemId, {String? babyId}) async {
+    try {
+      // Une seule ligne par portage : la plus récente du portage du bébé.
+      final scopes = _visibleScopes(babyId);
+      final q = database.select(database.reminderDismissals)
+        ..where((t) => t.itemId.equals(itemId) & t.babyId.isIn(scopes))
+        ..orderBy([(t) => OrderingTerm.desc(t.dismissedAt)])
+        ..limit(1);
+      final row = await q.getSingleOrNull();
+      return row?.dismissedAt;
+    } catch (e, stack) {
+      _logger.e(
+        'getLastDismissal error',
+        error: e,
+        stackTrace: stack,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> recordCompletion(String itemId, {String? babyId, DateTime? at}) async {
+    try {
+      final scope = _scope(babyId);
+      final completedAt = at ?? DateTime.now();
+      await database.into(database.reminderCompletions).insert(
+        db_app.ReminderCompletionsCompanion.insert(
+          babyId: Value(scope),
+          itemId: itemId,
+          completedAt: completedAt,
+        ),
+      );
+      _logger.d('recordCompletion($itemId, $scope)');
+    } catch (e, stack) {
+      _logger.e(
+        'recordCompletion error',
+        error: e,
+        stackTrace: stack,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> dismissReminder(String itemId, {String? babyId, DateTime? at}) async {
+    try {
+      final scope = _scope(babyId);
+      final dismissedAt = at ?? DateTime.now();
+
+      // Upsert (baby_id, item_id) dans une transaction : une coupure entre la
+      // suppression et l'insertion laisserait le rappel « jamais ignoré »
+      // pendant un instant, et l'index composite exigerait un aller-retour de
+      // plus pour le constater.
+      await database.transaction(() async {
+        await (database.delete(database.reminderDismissals)
+              ..where((t) => t.babyId.equals(scope) & t.itemId.equals(itemId)))
+            .go();
+        await database.into(database.reminderDismissals).insert(
+          db_app.ReminderDismissalsCompanion.insert(
+            babyId: Value(scope),
+            itemId: itemId,
+            dismissedAt: dismissedAt,
+          ),
+        );
+      });
+      _logger.d('dismissReminder($itemId, $scope)');
+    } catch (e, stack) {
+      _logger.e(
+        'dismissReminder error',
+        error: e,
+        stackTrace: stack,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Map<String, bool>> getEnabledByItemId({String? babyId}) async {
+    try {
+      final scopes = _visibleScopes(babyId);
+      final rows = await (database.select(database.reminderSettings)
+            ..where((t) => t.babyId.isIn(scopes)))
+          .get();
       // Une table vide est le cas normal (personne n'a encore rien décoché) :
       // ce n'est pas une erreur, et l'appelant interprète l'absence comme « activé ».
+      // Une seule ligne par portage, plus aucun écrasement à fusionner.
       return {for (final row in rows) row.itemId: row.enabled};
     } catch (e, stack) {
       _logger.e(
@@ -70,24 +204,27 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<void> setEnabled(String itemId, {required bool enabled}) async {
+  Future<void> setEnabled(String itemId, {required bool enabled, String? babyId}) async {
     try {
-      _logger.d('setEnabled($itemId, $enabled)');
+      final scope = _scope(babyId);
+      _logger.d('setEnabled($itemId, $enabled, $scope)');
 
-      // Même upsert manuel que saveDismissalTime : `item_id` est UNIQUE, et un
-      // delete + insert garde la table à une ligne par rappel. Pas de
-      // transaction : une coupure entre les deux requêtes ne perd qu'un choix
-      // (le rappel redevient activé par défaut), jamais de données de suivi.
-      await database.customStatement(
-        'DELETE FROM reminder_settings WHERE item_id = ?',
-        [itemId],
-      );
-      await database.into(database.reminderSettings).insert(
-        db_app.ReminderSettingsCompanion.insert(
-          itemId: itemId,
-          enabled: enabled,
-        ),
-      );
+      // Transaction : le upsert (baby_id, item_id) doit être atomique, sinon
+      // une coupure entre la suppression et l'insertion laisserait le rappel
+      // « activé par défaut » — et le choix du parent se perdrait à chaque
+      // basculement de bébé.
+      await database.transaction(() async {
+        await (database.delete(database.reminderSettings)
+              ..where((t) => t.babyId.equals(scope) & t.itemId.equals(itemId)))
+            .go();
+        await database.into(database.reminderSettings).insert(
+          db_app.ReminderSettingsCompanion.insert(
+            babyId: Value(scope),
+            itemId: itemId,
+            enabled: enabled,
+          ),
+        );
+      });
     } catch (e, stack) {
       _logger.e(
         'setEnabled error',
@@ -166,6 +303,9 @@ class RemindersRepositoryImpl implements RemindersRepository {
         id: row.id,
         label: row.label,
         subtypeValue: row.subtypeValue,
+        // Lu en retour tel quel : la colonne est la source de vérité de qui
+        // règle le rappel, jamais un défaut recalculé ici.
+        completionSource: row.completionSource,
         frequency: _decodeFrequency(row.frequency, row.intervalDays),
       );
 
@@ -189,9 +329,16 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<List<CustomReminder>> getCustomReminders() async {
+  Future<List<CustomReminder>> getCustomReminders({String? babyId}) async {
     try {
-      final rows = await database.getAllCustomReminders();
+      // Le rappel est porté par la ligne : créé pour un bébé, il ne sonne que
+      // pour lui. Le portage `''` (installation sans profil) ne sonne plus
+      // que sans profil.
+      final scopes = _visibleScopes(babyId);
+      final rows = await (database.select(database.customReminders)
+            ..where((t) => t.babyId.isIn(scopes))
+            ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+          .get();
       return [for (final row in rows) _toDomain(row)];
     } catch (e, stack) {
       _logger.e(
@@ -204,20 +351,30 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<int> insertCustomReminder(CustomReminder reminder) async {
+  Future<int> insertCustomReminder(CustomReminder reminder, {String? babyId}) async {
     try {
+      final scope = _scope(babyId);
       final (code: code, intervalDays: intervalDays) =
           _encodeFrequency(reminder.frequency);
 
       final id = await database.into(database.customReminders).insert(
         db_app.CustomRemindersCompanion.insert(
           label: _validatedLabel(reminder.label),
-          subtypeValue: reminder.subtypeValue,
+          subtypeValue: Value(reminder.subtypeValue),
+          // L'invariant est posé ici, à la frontière d'écriture : un rappel sans
+          // soin ne peut pas rester déduit des événements, il serait dû sur le
+          // premier événement de santé venu.
+          completionSource: Value(
+            reminder.subtypeValue == null
+                ? db_const.completionManual
+                : db_const.completionFromEvents,
+          ),
+          babyId: Value(scope),
           frequency: code,
           intervalDays: Value(intervalDays),
         ),
       );
-      _logger.d('insertCustomReminder(id: $id)');
+      _logger.d('insertCustomReminder(id: $id, $scope)');
       return id;
     } catch (e, stack) {
       _logger.e(
@@ -230,7 +387,7 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<void> updateCustomReminder(CustomReminder reminder) async {
+  Future<void> updateCustomReminder(CustomReminder reminder, {String? babyId}) async {
     try {
       final id = reminder.id;
       if (id == null) {
@@ -242,6 +399,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
       }
       final (code: code, intervalDays: intervalDays) =
           _encodeFrequency(reminder.frequency);
+      // Le portage n'est pas réécrit : renommer ou changer le rythme d'un
+      // rappel ne change pas le bébé auquel il appartient.
 
       final updated = await (database.update(database.customReminders)
             ..where((t) => t.id.equals(id)))
@@ -249,11 +408,18 @@ class RemindersRepositoryImpl implements RemindersRepository {
         db_app.CustomRemindersCompanion(
           label: Value(_validatedLabel(reminder.label)),
           subtypeValue: Value(reminder.subtypeValue),
+          // Même invariant qu'à l'insertion : passer un rappel du détaché au lié
+          // (ou l'inverse) change qui décide qu'il est fait.
+          completionSource: Value(
+            reminder.subtypeValue == null
+                ? db_const.completionManual
+                : db_const.completionFromEvents,
+          ),
           frequency: Value(code),
           intervalDays: Value(intervalDays),
         ),
       );
-      _logger.d('updateCustomReminder($id) — rows: $updated');
+      _logger.d('updateCustomReminder($id, ${_scope(babyId)}) — rows: $updated');
     } catch (e, stack) {
       _logger.e(
         'updateCustomReminder error',
@@ -265,18 +431,21 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<void> deleteCustomReminder(int id) async {
+  Future<void> deleteCustomReminder(int id, {String? babyId}) async {
     try {
       final itemKey =
           '${CustomReminderPresets.customIdPrefix}$id';
 
-      // Transaction : trois tables sont touchées. Un rappel coupé en deux
+      // Transaction : quatre tables sont touchées. Un rappel coupé en deux
       // laisserait un réglage orphelin dans chaque sauvegarde, et c'est
       // précisément ce que cette méthode doit empêcher.
       await database.transaction(() async {
         await (database.delete(database.customReminders)
               ..where((t) => t.id.equals(id)))
             .go();
+        // Le réglage, l'ignorer et les achèvements sont purgés **tous bébés** :
+        // la clé `custom_<id>` est unique avec la ligne, elle meurt avec elle, et
+        // une ligne orpheline sous un autre portage survivrait aux exports.
         await database.customStatement(
           'DELETE FROM reminder_settings WHERE item_id = ?',
           [itemKey],
@@ -285,8 +454,15 @@ class RemindersRepositoryImpl implements RemindersRepository {
           'DELETE FROM reminder_dismissals WHERE item_id = ?',
           [itemKey],
         );
+        // Un achèvement survivant serait exporté (la table part entière dans la
+        // sauvegarde, sans filtre), restauré, et pourrait régler un futur rappel
+        // reprenant cet id après une restauration.
+        await database.customStatement(
+          'DELETE FROM reminder_completions WHERE item_id = ?',
+          [itemKey],
+        );
       });
-      _logger.d('deleteCustomReminder($id)');
+      _logger.d('deleteCustomReminder($id, ${_scope(babyId)})');
     } catch (e, stack) {
       _logger.e(
         'deleteCustomReminder error',

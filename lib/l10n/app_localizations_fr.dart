@@ -42,6 +42,64 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeButtonDodo => 'Dodo';
 
   @override
+  String get homeButtonPoids => 'Poids';
+
+  @override
+  String get homeButtonTaille => 'Taille';
+
+  @override
+  String get homeButtonTemperature => 'Température';
+
+  @override
+  String growthValueOutOfRange(Object min, Object max, Object unit) {
+    return 'Valeur hors plage : entre $min et $max $unit.';
+  }
+
+  @override
+  String growthFeedbackSaved(Object value) {
+    return 'Mesure enregistrée · $value';
+  }
+
+  @override
+  String get growthMenuTile => 'Croissance';
+
+  @override
+  String get growthScreenTitle => 'Croissance';
+
+  @override
+  String get growthSectionTitle => 'Mesures de croissance';
+
+  @override
+  String get growthEmptyState => 'Aucune mesure pour l\'instant.';
+
+  @override
+  String get growthLatestWeight => 'Dernier poids';
+
+  @override
+  String get growthLatestHeight => 'Dernière taille';
+
+  @override
+  String get growthLatestTemperature => 'Dernière température';
+
+  @override
+  String get growthSheetTitleWeight => 'Nouveau poids';
+
+  @override
+  String get growthSheetTitleHeight => 'Nouvelle taille';
+
+  @override
+  String get growthSheetTitleTemperature => 'Nouvelle température';
+
+  @override
+  String get growthSheetNoteField => 'Note (facultatif)';
+
+  @override
+  String get growthSheetSave => 'Enregistrer';
+
+  @override
+  String get growthValueUndecryptable => 'Valeur illisible';
+
+  @override
   String feedbackFeedingWithQuantity(Object subtype, Object quantity) {
     return '$subtype · $quantity';
   }
@@ -93,6 +151,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get confirmButton => 'Confirmer';
+
+  @override
+  String get increment => 'Incrémenter';
+
+  @override
+  String get decrement => 'Décrémenter';
 
   @override
   String get saveButton => 'Enregistrer';
@@ -203,6 +267,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reminderCustomCareField => 'Soin associé';
 
   @override
+  String get reminderCustomCareNone => 'Aucun soin';
+
+  @override
+  String get reminderCustomCareNoneHint =>
+      'S\'efface quand vous le marquez fait.';
+
+  @override
   String get reminderCustomFrequencyField => 'Fréquence';
 
   @override
@@ -230,6 +301,31 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get reminderCustomDeleteError =>
       'Le rappel n\'a pas pu être supprimé. Réessayez.';
+
+  @override
+  String get reminderListTitle => 'Rappels à faire';
+
+  @override
+  String reminderListTitleFor(Object name) {
+    return 'Rappels de $name à faire';
+  }
+
+  @override
+  String get reminderListEmpty => 'Rien à faire pour l\'instant.';
+
+  @override
+  String get reminderMarkDone => 'Marquer comme fait';
+
+  @override
+  String get reminderDismiss => 'Ignorer ce rappel';
+
+  @override
+  String reminderLastDone(Object date) {
+    return 'Dernière fois: $date';
+  }
+
+  @override
+  String get reminderNeverDone => 'Jamais fait';
 
   @override
   String get yesterday => 'Hier';
@@ -376,6 +472,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get feedingSubtypeArtificial => 'Lait Artificiel';
 
   @override
+  String get feedingSolid => 'Solide';
+
+  @override
   String get editDialogTitle => 'Modifier l\'événement';
 
   @override
@@ -404,6 +503,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get minuteSuffix => 'min';
+
+  @override
+  String get gramSuffix => 'g';
 
   @override
   String get deleteDialogTitle => 'Supprimer l\'événement';
