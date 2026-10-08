@@ -180,6 +180,16 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Pin Kotlin compile toolchain to JDK 17 (init script)
+        run: |
+          # KGP auto-detects a JetBrains-vendor JDK 25 for Kotlin compilation
+          # (app module AND the FGP's included ":gradle" build) and the foojay
+          # redirect for that toolchain id 400s on a fresh runner (v1.2.0 tag
+          # runs 37853522123/37856121017/37859593120). The whole build is
+          # Java 17 — see android/toolchain-pin.init.gradle.
+          mkdir -p "${HOME}/.gradle/init.d"
+          cp android/toolchain-pin.init.gradle "${HOME}/.gradle/init.d/pin-kotlin-toolchain-17.gradle"
+
       - name: Decode Keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/keystore.jks
@@ -321,6 +331,13 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Pin Kotlin compile toolchain to JDK 17 (init script)
+        run: |
+          # Same toolchain trap as build-android — see
+          # android/toolchain-pin.init.gradle.
+          mkdir -p "${HOME}/.gradle/init.d"
+          cp android/toolchain-pin.init.gradle "${HOME}/.gradle/init.d/pin-kotlin-toolchain-17.gradle"
+
       - name: Run integration tests on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -402,6 +419,13 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Pin Kotlin compile toolchain to JDK 17 (init script)
+        run: |
+          # Same toolchain trap as build-android — see
+          # android/toolchain-pin.init.gradle.
+          mkdir -p "${HOME}/.gradle/init.d"
+          cp android/toolchain-pin.init.gradle "${HOME}/.gradle/init.d/pin-kotlin-toolchain-17.gradle"
+
       - name: Run integration tests on Android emulator (retry, fresh boot)
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -480,6 +504,15 @@ jobs:
 
       - name: Get dependencies
         run: $FLUTTER pub get
+
+      - name: Pin Kotlin compile toolchain to JDK 17 (init script)
+        run: |
+          # The runner has Homebrew openjdk@17 registered via
+          # ~/.gradle/gradle.properties (installations.paths); this pin makes
+          # the job self-contained if the runner is re-imaged. See
+          # android/toolchain-pin.init.gradle.
+          mkdir -p "${HOME}/.gradle/init.d"
+          cp android/toolchain-pin.init.gradle "${HOME}/.gradle/init.d/pin-kotlin-toolchain-17.gradle"
 
       - name: Integration smoke suite (one launch, 10 tests)
         run: $FLUTTER test integration_test/ci_smoke_suite.dart -d emulator-5554
