@@ -453,10 +453,15 @@ jobs:
 
       - name: Free emulator port (kill stale instance)
         run: |
-          if $ANDROID_HOME/platform-tools/adb devices | grep -q '^emulator-5554'; then
-            $ANDROID_HOME/platform-tools/adb -s emulator-5554 emu kill || true
-            sleep 5
-          fi
+          # The AVD is single-instance: a stale Pixel_10_Pro occupies the AVD
+          # regardless of which console port it got (5554, 5556, ...), and the
+          # fresh boot dies with "Running multiple emulators with the same AVD
+          # is an experimental feature". Killing by device serial therefore had
+          # to cover every emulator-XXXX serial, and in practice every qemu on
+          # this dedicated runner (2026-10-08: a leftover from a local release-
+          # gate pass on emulator-5556 red the v1.2.0 PR, run 37847815004).
+          pkill -f 'qemu-system-aarch64-headless' 2>/dev/null || true
+          sleep 5
 
       - name: Boot Pixel_10_Pro (headless, native arm64)
         run: |

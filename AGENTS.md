@@ -179,6 +179,25 @@ Available targets: `flutter emulators` (Android: `Pixel_10_Pro`, `Small_Phone`, 
 `xcrun simctl list devices available` (iOS). Record in the PR description which pass was run, on
 which simulator, and what was seen — an unrecorded pass is a pass that didn't happen.
 
+## 📊 Research archive — read before touching mission, locales, APK size, or clinical content
+
+[`docs/research/`](docs/research/) holds the 2026-10-05 evidence base for the "take mamadera where
+neonatal mortality is highest" question, and [`docs/PLAN-francophone-neonatal.md`](docs/PLAN-francophone-neonatal.md)
+is the decision document derived from it. It cost shared-box GPU time and search quota — **do not
+re-derive it.** Load-bearing findings:
+
+- **French covers 368 485 neonatal deaths/yr = 16.2% of the global total** (14.8% on the conservative
+  core). `app_fr.arb` is a strategic asset, not one of three symmetric translation files.
+- **OWID's neonatal column is a PERCENT — multiply by 10** for NMR per 1 000. The World Bank API and
+  WHO GHO Athena both return HTML error shells from this Mac; use OWID's flat CSV.
+- **The app ships a daily Vitamin D reminder; WHO 2022 Rec 36 says vitamin D is research-only.**
+  Open clinical discrepancy in a default reminder list.
+- **No digital intervention has ever demonstrated a neonatal mortality effect** (ImTeCHO flat, CLIP
+  negative, PROMPTS null on danger-sign care-seeking, Cochrane uncertain) ⇒ **never market this app as
+  mortality-reducing.**
+- `NOT FOUND` markers in those files are results, not blanks. Do not launder second-hand GSMA
+  numbers into primary citations, and do not reconstruct the IMNCI triage colours — they were never read.
+
 ## 🤖 AI Interaction Guidelines
 
 1. Propose local/offline solutions first; flag privacy implications for any cloud suggestion

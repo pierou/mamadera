@@ -1,0 +1,171 @@
+{
+  "exportFormatVersion": 2,
+  "generator": "mamadera",
+  "appVersion": "1.2.0",
+  "databaseSchemaVersion": 11,
+  "exportedAt": "2026-10-07T21:28:06.931843Z",
+  "counts": {
+    "babyProfiles": 1,
+    "trackingEvents": 6,
+    "customReminders": 2,
+    "reminderSettings": 2,
+    "reminderDismissals": 1,
+    "measurements": 1,
+    "reminderCompletions": 1
+  },
+  "babyProfiles": [
+    {
+      "id": "1791324497315",
+      "name": "Luna",
+      "birthDateEpochMs": 1791324414849,
+      "birthDateUtc": "2026-10-06T22:06:54.849Z",
+      "isActive": true
+    }
+  ],
+  "trackingEvents": [
+    {
+      "id": 1,
+      "type": "miam",
+      "timestampEpochSeconds": 1791325298,
+      "timestampUtc": "2026-10-06T22:21:38.000Z",
+      "durationMinutes": null,
+      "subtype": "natural",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "1791324497315",
+      "quantity": 130.0
+    },
+    {
+      "id": 2,
+      "type": "dodo",
+      "timestampEpochSeconds": 1791323823,
+      "timestampUtc": "2026-10-06T21:57:03.000Z",
+      "durationMinutes": 30.0,
+      "subtype": null,
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "1791324497315",
+      "quantity": 30.0
+    },
+    {
+      "id": 3,
+      "type": "caca",
+      "timestampEpochSeconds": 1791325641,
+      "timestampUtc": "2026-10-06T22:27:21.000Z",
+      "durationMinutes": null,
+      "subtype": null,
+      "notes": null,
+      "wasteType": "caca",
+      "color": null,
+      "texture": null,
+      "babyId": "1791324497315",
+      "quantity": null
+    },
+    {
+      "id": 4,
+      "type": "sante",
+      "timestampEpochSeconds": 1791326580,
+      "timestampUtc": "2026-10-06T22:43:00.000Z",
+      "durationMinutes": null,
+      "subtype": "nettoyage_yeux",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "1791324497315",
+      "quantity": null
+    },
+    {
+      "id": 5,
+      "type": "miam",
+      "timestampEpochSeconds": 1791407403,
+      "timestampUtc": "2026-10-07T21:10:03.000Z",
+      "durationMinutes": null,
+      "subtype": "natural",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "1791324497315",
+      "quantity": 120.0
+    },
+    {
+      "id": 6,
+      "type": "dodo",
+      "timestampEpochSeconds": 1791405421,
+      "timestampUtc": "2026-10-07T20:37:01.000Z",
+      "durationMinutes": 35.0,
+      "subtype": null,
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "1791324497315",
+      "quantity": 35.0
+    }
+  ],
+  "customReminders": [
+    {
+      "id": 1,
+      "label": "NailCare",
+      "subtypeValue": "nettoyage_nez",
+      "frequency": "daily",
+      "intervalDays": null,
+      "babyId": "",
+      "completionSource": "from_events"
+    },
+    {
+      "id": 2,
+      "label": "Bath",
+      "subtypeValue": null,
+      "frequency": "daily",
+      "intervalDays": null,
+      "babyId": "1791324497315",
+      "completionSource": "manual"
+    }
+  ],
+  "reminderSettings": [
+    {
+      "babyId": "",
+      "itemId": "vitamine_d",
+      "enabled": false
+    },
+    {
+      "babyId": "",
+      "itemId": "vitamine_k",
+      "enabled": false
+    }
+  ],
+  "reminderDismissals": [
+    {
+      "babyId": "",
+      "itemId": "nettoyage_yeux",
+      "dismissedAtEpochSeconds": 1791326580,
+      "dismissedAtUtc": "2026-10-06T22:43:00.000Z"
+    }
+  ],
+  "measurements": [
+    {
+      "id": 1,
+      "babyId": "1791324497315",
+      "kind": "poids",
+      "value": "3510.0",
+      "unit": "g",
+      "recordedAtEpochSeconds": 1791407337,
+      "recordedAtUtc": "2026-10-07T21:08:57.000Z",
+      "notes": null
+    }
+  ],
+  "reminderCompletions": [
+    {
+      "babyId": "1791324497315",
+      "itemId": "custom_2",
+      "completedAtEpochSeconds": 1791408345,
+      "completedAtUtc": "2026-10-07T21:25:45.000Z"
+    }
+  ]
+}
