@@ -191,6 +191,7 @@ jobs:
           # is loaded by EVERY build in the composite, so the project property
           # kotlin.jvm.toolchain reaches :gradle too. Idempotent: append only
           # if the key is absent.
+          mkdir -p "${HOME}/.gradle"
           touch "${HOME}/.gradle/gradle.properties"
           grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
 
@@ -338,6 +339,7 @@ jobs:
       - name: Pin Kotlin compile toolchain to JDK 17 (global gradle.properties)
         run: |
           # Same toolchain trap as build-android — see that job's step.
+          mkdir -p "${HOME}/.gradle"
           touch "${HOME}/.gradle/gradle.properties"
           grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
 
@@ -425,6 +427,7 @@ jobs:
       - name: Pin Kotlin compile toolchain to JDK 17 (global gradle.properties)
         run: |
           # Same toolchain trap as build-android — see that job's step.
+          mkdir -p "${HOME}/.gradle"
           touch "${HOME}/.gradle/gradle.properties"
           grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
 
@@ -512,6 +515,7 @@ jobs:
           # The runner has Homebrew openjdk@17 registered via
           # ~/.gradle/gradle.properties (installations.paths); this key makes
           # the pin self-contained if the runner is re-imaged.
+          mkdir -p "${HOME}/.gradle"
           touch "${HOME}/.gradle/gradle.properties"
           grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
 
