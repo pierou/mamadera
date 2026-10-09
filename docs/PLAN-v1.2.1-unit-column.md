@@ -179,3 +179,74 @@ Règle proposée : la dernière mesure s'affiche comme **indice** (`hintText`, t
 désactivé tant que rien n'a été saisi**. Le parent garde la référence sous les yeux sans pouvoir la
 valider par inadvertance. Si le pré-remplissage en valeur active est malgré tout voulu, alors la
 sauvegarde sans modification doit être refusée avec un message — pas silencieusement acceptée.
+
+## Deux bugs à corriger en v1.2.1 (trouvés à la campagne de captures v1.2.0, 2026-10-10)
+
+Preuve complète, images comprises : [`BUG-en-date-format-and-growth-unit.md`](BUG-en-date-format-and-growth-unit.md).
+Les deux sont **visibles dans les captures déjà générées** et dans le binaire `v1.2.0` taggué ; ils n'ont
+pas été corrigés pendant la campagne, parce que la campagne doit photographier ce qui est livré — toucher
+`lib/` après le tag rendrait les assets faux sur le binaire. Témoignage à l'œil, pas devinette : aucun
+test unitaire ne les attrape.
+
+### 1. `formatDate` perd les minutes en anglais — tout l'app
+
+`lib/core/l10n/date_localization.dart:21`
+
+```dart
+case 'en':
+  return DateFormat('MM/dd/yyyy hh:aa', 'en_US').format(date);   // ← `aa` n'est pas une minute
+```
+
+En ICU la minute est `mm`, et `a` le marqueur AM/PM. `aa` rend donc le marqueur, les minutes
+disparaissent, et le deux-points qui les introduisait reste suspendu.
+
+| Écran | Renderu | Devrait être |
+|---|---|---|
+| Accueil → rappels | `Last done: 10/08/2026 07:PM` | `Last done: 10/08/2026 07:43 PM` |
+| Croissance (historique) | `10/09/2026 01:AM` | `10/09/2026 01:43 AM` |
+
+`fr` et `es` utilisent `HH:mm` et sont corrects — c'est exactement pourquoi ça a survécu : toutes les
+captures et tous les fixtures écrits en français n'ont jamais touché la branche anglaise. Le commentaire
+de doc en L11 **retranscrit le bug** (`MM/dd/yyyy hh:aa`) : le corriger sans corriger le commentaire
+laisserait la même erreur écrite noir sur blanc pour le prochain relecteur.
+
+**Sites touchés** (`formatDate` partagé, 4 appelants) : `event_date_time_field.dart`, `growth_screen.dart`,
+`history_screen.dart`, `reminder_row.dart`. Le `_formatDate` de `onboarding_dialog.dart:231` est un
+calendrier ISO sans heure — hors sujet, vérifié.
+
+**Fix** : `DateFormat('MM/dd/yyyy hh:mm a', 'en_US')` + le commentaire L11 avec. **Test requis** :
+les trois locales épinglées sur un `DateTime` fixe, pour que le motif ne pourrisse plus.
+
+**Pourquoi ce n'est pas cosmétique** : dans un suivi de fièvre, `09:PM` ne distingue pas 21:04 de
+21:59. L'horodatage est le seul intérêt de la ligne.
+
+### 2. L'unité de traîne de l'historique de croissance contredit la valeur affichée
+
+`lib/features/growth/presentation/screens/growth_screen.dart:95` — `trailing: Text(measurement.kind.displayUnit)`
+
+`MeasureKind.displayUnit` (`measure_kind.dart:78`) renvoie l'unité **de stockage** (`unitG` = `g`),
+alors que `MeasureKind.format()` promeut les poids > 1 000 g en kilogrammes. Le tuile affiche les deux,
+et ils se contredisent :
+
+```
+6.18 kg      ← titre, formaté (kg)
+      g      ← traîne, unité de stockage
+4.6 kg
+      g
+```
+
+Seul le poids est **faux** : la traîne affirme une unité que la valeur n'utilise pas, ce qu'un parent
+pressé lit « 6,18 grammes ». Taille et température sont des doublons inoffensifs.
+
+**Fix** : supprimer la traîne quand `format()` a déjà rendu l'unité, ou en faire un indice
+d'unité de stockage explicitement assumé. **Ne pas** « corriger » en faisant renvoyer `kg` par
+`displayUnit` : le getter sert aussi au champ du sheet (`measurement_sheet.dart:108` et `:132`),
+où l'unité de stockage (`g`, pas de 10 g) est la bonne invite — on troquerait un défaut contre un autre.
+
+### Conséquence sur la gate
+
+Ces deux correctifs touchent le rendu → **nouvelle campagne de captures après le fix** (les 50 PNG
+actuels montrent les deux défauts). Le passage `Small_Phone` de la gate doit regarder `history_screen`
+et `growth_screen` **en anglais**, puisque c'est la locale où le bug vit — un passage émulateur en
+français ne prouverait rien sur ce ticket.
+

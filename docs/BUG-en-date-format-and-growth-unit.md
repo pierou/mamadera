@@ -1,5 +1,8 @@
 # BUG — English dates drop their minutes; growth history contradicts its own unit
 
+**Scheduled: v1.2.1** — see `docs/PLAN-v1.2.1-unit-column.md`, section "Deux bugs à
+corriger en v1.2.1" (2026-10-10). That section is the scope; this file is the evidence.
+
 Found 2026-10-10 during the v1.2.0 screenshot campaign, **by looking at the
 captured PNGs** — neither is caught by any unit test, and both are visible in
 the store assets. Neither was fixed by the campaign: the campaign must photograph
