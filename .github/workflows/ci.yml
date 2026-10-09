@@ -20,8 +20,9 @@ on:
     # they must clear the same gates as develop → main.
     branches: [ main, develop ]
   schedule:
-    # Daily smoke run on `main` (schedule only fires on the default
-    # branch) — keeps a real-Android signal flowing without holding PRs.
+    # Daily run on `main` (schedule only fires on the default branch) —
+    # executes on the self-hosted Mac runner (integration-tests-local);
+    # keeps a real-Android signal flowing without holding PRs.
     - cron: '0 4 * * *'
   workflow_dispatch: {}
 
@@ -179,6 +180,21 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Pin Kotlin compile toolchain to JDK 17 (global gradle.properties)
+        run: |
+          # KGP with no toolchain set auto-detects a JetBrains-vendor JDK 25
+          # (app module AND the FGP's included ":gradle" build, whose
+          # gradle.properties live in the Flutter SDK and cannot be controlled
+          # from this repo); on a fresh runner the foojay redirect for that
+          # toolchain id 400s (v1.2.0 tag runs 37853522123/37856121017/
+          # 37859593120/37862856334). The Gradle user home gradle.properties
+          # is loaded by EVERY build in the composite, so the project property
+          # kotlin.jvm.toolchain reaches :gradle too. Idempotent: append only
+          # if the key is absent.
+          mkdir -p "${HOME}/.gradle"
+          touch "${HOME}/.gradle/gradle.properties"
+          grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
+
       - name: Decode Keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/keystore.jks
@@ -280,14 +296,16 @@ jobs:
   # action kills the emulator as soon as the script exits (a post-step
   # would talk to a dead device).
   #
-  # Blocking policy (runs 33142073657 + 33147275021 + 33211194939):
-  # public-repo 2-core no-KVM runners are deterministically slow - even
-  # on a good boot (VM service up, verified in run 33211194939) the
-  # 10-test smoke suite needs ~55 min of phase time, so running it on
-  # every PR just paints a reliable red cross that cannot gate anything
-  # useful. It therefore does NOT run on pull_request or v* tags; it
-  # feeds the daily cron and manual dispatches as an informational
-  # fallback signal (still useful when the Mac is unavailable). It is
+  # Blocking policy (runs 33142073657 + 33147275021 + 33211194939 +
+  # 36993590980): public-repo 2-core no-KVM runners are deterministically
+  # slow — even on a good boot (VM service up, verified in
+  # 33211194939) the 10-test smoke suite needs ~55 min of phase time — and
+  # since Sep 2026 the headless engine also stalls AFTER the VM service
+  # comes up (7 of 8 scheduled runs: zero test progress for 83 min), so
+  # this job can neither gate nor reliably signal. It therefore runs on
+  # MANUAL DISPATCH ONLY (a fallback for when the Mac is unavailable);
+  # the daily cron moved to integration-tests-local below (self-hosted
+  # Mac, full smoke + driver suite in ~3 min). It is
   # SMOKE-ONLY: the Flutter Driver suite's cold start alone took 29 min
   # on this runner (run 35427216241: 19:07 → 19:36) — more than its
   # 30-min budget — so it can never be a signal here; it runs on the
@@ -301,9 +319,9 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     needs: lint-test
-    if: >-
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch'
+    # Manual only — the daily cron runs on the Mac runner (see
+    # integration-tests-local below).
+    if: github.event_name == 'workflow_dispatch'
     timeout-minutes: 120
     steps:
       - name: Checkout
@@ -318,33 +336,68 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Pin Kotlin compile toolchain to JDK 17 (global gradle.properties)
+        run: |
+          # Same toolchain trap as build-android — see that job's step.
+          mkdir -p "${HOME}/.gradle"
+          touch "${HOME}/.gradle/gradle.properties"
+          grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
+
       - name: Run integration tests on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
           arch: x86_64
           profile: pixel_6
+          # Pre-install the CMake AGP's default build requests. The Flutter
+          # Gradle plugin forces a no-op CMake configure on EVERY Android
+          # build (forceNdkDownload: an empty CMakeLists.txt that only
+          # exists to make AGP fetch its SDK components); when cmake;3.22.1
+          # is missing, AGP auto-downloads it INSIDE the gradle build — and
+          # that download flaked with a transient "Premature EOF" from
+          # dl.google.com (run 37056936839), surfacing 33 min later as a
+          # misleading "flutter test failed" instead of a fast SDK-install
+          # error. The action installs it via sdkmanager during its own
+          # "Install Android SDK" phase, before the emulator boots.
+          # Keep in sync with AGP's request: if a Flutter/AGP bump ever
+          # fails with "Failed to install the following SDK components:
+          # cmake;X", update this value to X. (NDK deliberately not pinned:
+          # the ubuntu-latest image ships it — no NDK install line in any
+          # historical run.)
+          cmake: '3.22.1'
           # NOTE: android-emulator-runner splits `script` into one `sh -c`
           # per non-comment line — backslash line-continuations are NOT
           # supported. Each command must be a single self-contained line.
           # Smoke suite ONLY, in ONE app launch, with a background
-          # live-logcat + a 25-min watchdog: if "Dart VM service is
-          # listening" never appears (surface flake → engine never boots),
-          # kill the test process instead of burning the 90-min bound.
+          # live-logcat + a TWO-STAGE watchdog (the flutter tool has no
+          # timeout on its silent VM-service wait, so each stall mode gets
+          # its own killer):
+          #   t=25min: kill if "Dart VM service is listening" never
+          #            appeared (surface flake → engine never boots).
+          #   t=50min: kill if the VM service IS up but no test has
+          #            completed (no "✅" in the tool's stdout) — the
+          #            headless-rendering stall observed in run
+          #            36993590980: engine boots, zero test progress for
+          #            83 min, only the 90-min bound caught it.
+          # The tool's stdout is captured to ft_out.txt (so the watchdog
+          # can grep it) and streamed to the runner log via `tail -f` so
+          # progress stays visible.
           # The Flutter Driver suite was REMOVED from this job (run
           # 35427216241): on this no-KVM runner its cold start alone took
           # 29 min (19:07 → 19:36) — more than its 30-min budget — so it
           # could never be a signal here. It runs on the self-hosted Mac
           # runner (integration-tests-local) in ~2 min.
           script: |
-            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 5400 flutter test integration_test/ci_smoke_suite.dart & T=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — VM service may never have come up (surface flake) — smoke-only signal; the driver suite runs on the Mac runner"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
+            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 5400 flutter test integration_test/ci_smoke_suite.dart > ft_out.txt 2>&1 & T=$!; tail -n +1 -f ft_out.txt & TF=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null; sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt && ! grep -q "✅" ft_out.txt && kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG $TF 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — see the log above for the actual cause: Gradle build failure (e.g. SDK download flake), VM service never came up (surface flake), or tests stalled after it (headless-rendering stall) — smoke-only signal; the driver suite runs on the Mac runner"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
 
       - name: Upload emulator logcat (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: emulator-logcat
-          path: emulator_logcat.txt
+          path: |
+            emulator_logcat.txt
+            live_logcat.txt
           if-no-files-found: ignore
 
   # 5b. 📱 One retry on a FRESH emulator boot. The surface flake is a
@@ -371,37 +424,54 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Pin Kotlin compile toolchain to JDK 17 (global gradle.properties)
+        run: |
+          # Same toolchain trap as build-android — see that job's step.
+          mkdir -p "${HOME}/.gradle"
+          touch "${HOME}/.gradle/gradle.properties"
+          grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
+
       - name: Run integration tests on Android emulator (retry, fresh boot)
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
           arch: x86_64
           profile: pixel_6
+          cmake: '3.22.1'   # CMake pre-install — same rationale as the first attempt above
           # Smoke-only, same as the first attempt (driver suite removed —
           # see the integration-tests job notes above).
           script: |
-            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 5400 flutter test integration_test/ci_smoke_suite.dart & T=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — VM service may never have come up (surface flake) — smoke-only signal; the driver suite runs on the Mac runner"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
+            /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -v time -T 1 > live_logcat.txt 2>/dev/null & LG=$!; timeout -k 60 5400 flutter test integration_test/ci_smoke_suite.dart > ft_out.txt 2>&1 & T=$!; tail -n +1 -f ft_out.txt & TF=$!; ( sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt || kill -TERM $T 2>/dev/null; sleep 1500; grep -q "Dart VM service is listening" live_logcat.txt && ! grep -q "✅" ft_out.txt && kill -TERM $T 2>/dev/null ) & W=$!; wait $T; S=$?; kill $W $LG $TF 2>/dev/null; if [ $S -ne 0 ]; then echo "flutter test failed (exit $S) — see the log above for the actual cause: Gradle build failure (e.g. SDK download flake), VM service never came up (surface flake), or tests stalled after it (headless-rendering stall) — smoke-only signal; the driver suite runs on the Mac runner"; timeout 60 /usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 logcat -d -v time > emulator_logcat.txt; exit 1; fi
 
       - name: Upload emulator logcat (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: emulator-logcat-retry
-          path: emulator_logcat.txt
+          path: |
+            emulator_logcat.txt
+            live_logcat.txt
           if-no-files-found: ignore
 
   # 5c. Self-hosted runner (macbook-pro, Apple Silicon): native arm64
   #     emulator via Hypervisor.framework - boot ~1 min, smoke suite ~1
   #     min, driver suite ~2 min, on REAL Android runtime. This job is
-  #     the integration gate for PRs and v* tags. Toolchain paths are
+  #     the integration gate for PRs and v* tags AND the daily cron
+  #     (moved here 2026-10-02: the no-KVM ubuntu runner stalled 7 of 8
+  #     scheduled runs — see the notes above — while this box runs the
+  #     full smoke + driver suite in ~3 min). Toolchain paths are
   #     absolute: the runner environment is not a login shell. If the
   #     Mac happens to be offline the job waits (nothing merges on
-  #     required checks anyway - there are none); the GitHub-hosted
-  #     cron/dispatch job above is the fallback signal.
+  #     required checks anyway - there are none); a missed cron signal
+  #     can be re-run manually via workflow_dispatch, which targets the
+  #     ubuntu fallback instead.
   integration-tests-local:
     runs-on: [self-hosted, mamadera-ci]
     needs: lint-test
-    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      github.event_name == 'pull_request' ||
+      startsWith(github.ref, 'refs/tags/v') ||
+      github.event_name == 'schedule'
     timeout-minutes: 30
     env:
       ANDROID_HOME: /Users/pvjacquier/Library/Android/sdk
@@ -439,6 +509,15 @@ jobs:
 
       - name: Get dependencies
         run: $FLUTTER pub get
+
+      - name: Pin Kotlin compile toolchain to JDK 17 (global gradle.properties)
+        run: |
+          # The runner has Homebrew openjdk@17 registered via
+          # ~/.gradle/gradle.properties (installations.paths); this key makes
+          # the pin self-contained if the runner is re-imaged.
+          mkdir -p "${HOME}/.gradle"
+          touch "${HOME}/.gradle/gradle.properties"
+          grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
 
       - name: Integration smoke suite (one launch, 10 tests)
         run: $FLUTTER test integration_test/ci_smoke_suite.dart -d emulator-5554

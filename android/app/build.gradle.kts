@@ -4,6 +4,18 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Pin the compile toolchain explicitly. Without this, KGP 2.3's JDK
+// auto-detection requests the newest JetBrains-vendor JDK it knows (25 at
+// the time — see the JBR 25 in ~/.gradle/jdks on the Mac runner) and lets
+// Gradle provision it: fine on macOS, but on the ubuntu runner the foojay
+// redirect for that toolchain id answers 400 and the v1.2.0 tag run died in
+// build-android (run 37853522123 / 37856121017). An explicit toolchain
+// disables auto-detection; 17 matches compileOptions/jvmTarget below and is
+// the only JDK CI installs.
+kotlin {
+    jvmToolchain(17)
+}
+
 // Release signing configuration
 // Reads keystore details from environment variables (set in CI or local env):
 //   KEYSTORE_PATH  — path to the .jks/.keystore file (absolute path recommended)
