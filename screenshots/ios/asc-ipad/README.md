@@ -1,6 +1,6 @@
 # ASC screenshots pipeline (iPad)
 
-Captures the six store screens on the **iPad Pro 11" and 13" (M5)
+Captures the seven store screens on the **iPad Pro 11" and 13" (M5)
 simulators** and produces the ribbon-free, ASC-exact-size PNGs ready to
 upload to App Store Connect.
 
@@ -15,8 +15,10 @@ screenshots/ios/asc-ipad/
 └── postprocess_ipad.py   resize + alpha strip + verification
 ```
 
-Six screens per size: `home`, `feeding`, `sleep`, `diaper` (bottom sheets),
-`history`, `menu`.
+Seven screens per size: `home`, `feeding`, `sleep`, `diaper` (bottom sheets),
+`history`, `menu`, `growth` (`/growth`, v1.2.0) — captured last, because
+`/growth` is a pushed route with no bottom nav and closing it needs the AppBar
+back button.
 
 **Portrait only.** iPadOS ignores
 `SystemChrome.setPreferredOrientations`, and this host has no
@@ -60,6 +62,8 @@ ASC_RAW_DIR=screenshots/ios/asc-ipad/raw-13 ASC_LANDSCAPE=0 \
 ```bash
 /usr/bin/python3 screenshots/ios/asc-ipad/postprocess_ipad.py
 ```
+
+Produces and verifies **14** files (7 screens × 2 sizes).
 
 For each raw capture: converts to 24-bit RGB (ASC rejects PNGs carrying an
 alpha channel, even fully opaque ones), resizes with LANCZOS to the exact
