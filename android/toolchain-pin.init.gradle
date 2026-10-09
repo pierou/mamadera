@@ -1,0 +1,30 @@
+// Init script: pin every Kotlin-Gradle-Plugin project in this build — the
+// app module AND the Flutter Gradle Plugin's included build (project
+// ":gradle", whose build files live in the Flutter SDK and are not
+// controllable from this repo) — to JDK 17.
+//
+// Why: KGP 2.2/2.3, when no toolchain is set, auto-detects the "best" JDK
+// with a JetBrains-vendor preference and requests 25. Where a JBR 25 exists
+// (auto-provisioned into ~/.gradle/jdks on the Mac runner) the build works;
+// on a fresh ubuntu runner the foojay redirect for that toolchain id answers
+// 400 and the build dies before compiling anything (v1.2.0 tag runs
+// 37853522123 / 37856121017 / 37859593120). The whole build is Java 17
+// (compileOptions, jvmTarget, setup-java temurin 17), so 17 is the only JDK
+// any of these projects ever needs.
+//
+// afterEvaluate is required: the 'kotlin' extension only exists once KGP has
+// been applied (plugins.withId fires mid-apply, before the extension exists,
+// and calling jvmToolchain() then fails with "Could not find method
+// jvmToolchain() ... on project").
+//
+// The workflow copies this file into $HOME/.gradle/init.d/ before invoking
+// flutter build/test; Gradle then applies it to every project of every build
+// in the composite.
+allprojects { p ->
+    p.afterEvaluate {
+        def ext = p.extensions.findByName('kotlin')
+        if (ext != null && ext.class.name.startsWith('org.jetbrains.kotlin.gradle')) {
+            ext.jvmToolchain(17)
+        }
+    }
+}
