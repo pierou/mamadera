@@ -27,10 +27,14 @@ import 'core/config/app_config.dart';
 import 'core/providers/any_baby_exists_provider.dart';
 import 'core/providers/app_preferences_provider.dart';
 import 'core/providers/database_provider.dart';
+import 'core/providers/encryption_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/services/app_preferences_service.dart';
+import 'core/services/encryption_service.dart';
 import 'core/services/locale_service.dart';
 import 'data/local/app_db.dart';
+import 'features/growth/data/repositories/measurement_repository_impl.dart';
+import 'features/growth/domain/entities/measure_kind.dart';
 import 'main.dart' as app;
 
 const _babyId = 'baby-asc';
@@ -161,6 +165,54 @@ Future<AppDatabase> _seededDb() async {
   return db;
 }
 
+/// Seed de croissance (v1.2.0) — une trajectoire plausible sur 87 jours.
+///
+/// Sans lignes dans `measurements`, les trois boutons « Poids / Taille /
+/// Température » de l'accueil affichent leur état vide `—` et l'écran
+/// Croissance son `growthEmptyState` : la vitrine de la 1.2.0 photographierait
+/// sa propre fonctionnalité vide. Les valeurs sont dans les bornes de
+/// [MeasureKind] et sur la grille de `step`.
+///
+/// Le chiffrement passe par le MÊME [EncryptionService] que l'application (voir
+/// `encryptionServiceProvider.overrideWith` ci-dessous) : `initialize()` retombe
+/// sur une clé volatile en mémoire quand le stockage sécurisé est indisponible,
+/// donc deux instances distinctes chiffrent et déchiffrent avec deux clés
+/// différentes et toute valeur graine rendrait « valeur illisible ».
+Future<void> _seedMeasurements(
+  AppDatabase db,
+  EncryptionService encryption,
+) async {
+  final repo = MeasurementRepositoryImpl(database: db, encryption: encryption);
+  final now = DateTime.now();
+
+  Future<void> mes(
+    MeasureKind kind,
+    double value,
+    Duration ago,
+  ) =>
+      repo.add(
+        babyId: _babyId,
+        kind: kind,
+        value: value,
+        recordedAt: now.subtract(ago),
+      );
+
+  // Poids (grammes) — naissance ~3,4 kg, +~700 g/mois.
+  await mes(MeasureKind.poids, 3900, const Duration(days: 80));
+  await mes(MeasureKind.poids, 4600, const Duration(days: 55));
+  await mes(MeasureKind.poids, 5300, const Duration(days: 30));
+  await mes(MeasureKind.poids, 5750, const Duration(days: 14));
+  await mes(MeasureKind.poids, 6120, const Duration(days: 3));
+  await mes(MeasureKind.poids, 6180, const Duration(hours: 20));
+  // Taille (cm).
+  await mes(MeasureKind.taille, 51, const Duration(days: 80));
+  await mes(MeasureKind.taille, 56, const Duration(days: 45));
+  await mes(MeasureKind.taille, 60.5, const Duration(days: 10));
+  // Température (°C).
+  await mes(MeasureKind.temperature, 36.8, const Duration(days: 20));
+  await mes(MeasureKind.temperature, 37.2, const Duration(days: 2));
+}
+
 void main() async {
   // NOTE: do not call WidgetsFlutterBinding.ensureInitialized() here —
   // enableFlutterDriverExtension must install its own binding first.
@@ -173,6 +225,10 @@ void main() async {
   }
 
   final db = await _seededDb();
+  // Instance unique partagée entre le seed et l'app (voir _seedMeasurements).
+  final encryption = EncryptionService();
+  await encryption.initialize();
+  await _seedMeasurements(db, encryption);
 
   enableFlutterDriverExtension(
     handler: (message) async {
@@ -200,6 +256,7 @@ void main() async {
         appPreferencesProvider.overrideWith(_AcceptedTermsNotifier.new),
         anyBabyExistsProvider.overrideWith(_BabyExistsNotifier.new),
         databaseProvider.overrideWith((ref) async => db),
+        encryptionServiceProvider.overrideWith((ref) async => encryption),
       ],
       child: const app.MyApp(),
     ),

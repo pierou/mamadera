@@ -1,6 +1,6 @@
 # ASC screenshots pipeline (iPhone)
 
-Captures the six store screens on the **iPhone 17 simulator** and produces the
+Captures the seven store screens on the **iPhone 17 simulator** and produces the
 ribbon-free, ASC-exact-size PNGs ready to upload to App Store Connect.
 
 ## Layout
@@ -18,7 +18,9 @@ screenshots/ios/asc/
 ```
 
 Six screens per orientation: `home`, `feeding`, `sleep`, `diaper` (bottom
-sheets), `history`, `menu`.
+sheets), `history`, `menu`. Seven since v1.2.0: `growth` (`/growth`) joins the
+set — it is the release's headline feature, and a set that omits it advertises
+the app without it.
 
 The same driver target is also used for the iPad pipeline — see
 [`../asc-ipad/README.md`](../asc-ipad/README.md).
@@ -61,9 +63,16 @@ dimensions, verified at the end of the script).
 
 ## Verification
 
-`postprocess.sh` validates every one of the 24 output files at the end:
+`postprocess.sh` validates every one of the 28 output files at the end:
 exact dimensions **and** no alpha channel — `sips -g hasAlpha` must be
-`no` for all of them. App Store Connect rejects PNGs carrying an alpha
+`no` for all of them, and the count must be 28. **This check only began
+working in this campaign**: the validation loop iterated the DIM array, which
+the script never defined, so it examined zero files and printed its OK line
+unconditionally. DIM is now populated and the count asserted, and the expected
+size is compared against the folder *name* (`${d##*/}`) — comparing
+`1242x2688` to the full path `screenshots/ios/asc/1242x2688` never matches,
+so even a populated DIM would have failed every file.
+App Store Connect rejects PNGs carrying an alpha
 channel, even when fully opaque, so `Patch.swift` writes 24-bit RGB
 (`samplesPerPixel: 3, hasAlpha: false`) rather than RGBA.
 
@@ -88,6 +97,20 @@ use all defaults):
 
 ## Dependencies & gotchas
 
+- **No associative arrays.** The resize loop switches on the folder name
+  (`1242x2688|1284x2778`), not on a declared map: `/bin/bash` on macOS is
+  **3.2.57**, which has no `declare -A` (`value too great for base`), while a
+  brew bash on `PATH` is 5.x — so `./postprocess.sh` and `bash postprocess.sh`
+  would not behave alike. Keep it portable.
+- **The script resolves its own root** from its own location instead of a
+  hardcoded `/Users/pvjacquier/DEV/mamadera`, so a campaign run from a git
+  worktree writes into that worktree and not into the other checkout.
+- **`/growth` is captured last in each orientation set**: a pushed route with
+  no bottom nav, opened from the menu and closed with the AppBar back button
+  (`find.byTooltip('Retour')`, localized by `GlobalMaterialLocalizations`). Its
+  menu tile label doubles as the section header, so the tap finder is scoped
+  with `find.descendant(of: find.byType('ListTile'), ...)` — an ambiguous
+  finder makes `scrollIntoView` throw `Bad state: Too many elements`.
 - **Reference strip**: `screenshots/ios/home.png` must stay ribbon-free — it
   is the status-bar donor for every portrait capture.
 - Raw captures need the simulator's *native* resolution (no Retina scaling

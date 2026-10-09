@@ -183,9 +183,10 @@ Mamadera es de código abierto bajo licencia MIT. Los datos de tu bebé nunca sa
 
 ### Capturing Screenshots
 
-Seven store screens (home, history, menu, and the four tracking bottom
-sheets) are captured automatically on the Pixel_10_Pro emulator (1280×2856,
-English, no DEBUG banner) and committed under
+Eight store screens (home, history, menu, the four tracking bottom sheets,
+and the growth screen — `/growth`, added in v1.2.0) are captured automatically
+on the Pixel_10_Pro emulator (1280×2856, English, no DEBUG banner) against a
+**seeded** fixture, and committed under
 [`screenshots/android/`](../screenshots/android/README.md):
 
 ```bash
@@ -193,6 +194,7 @@ flutter drive \
   --target=integration_test/screenshot_capture.dart \
   --driver=test_driver/screenshot_capture.driver.dart \
   -d emulator-5554
+/usr/bin/python3 screenshots/android/verify_android.py       # sizes + DEBUG-ribbon scan
 ```
 
 Since Flutter 3.44 `takeScreenshot()` returns the PNG bytes in-band in the
