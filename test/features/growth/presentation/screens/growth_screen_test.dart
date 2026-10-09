@@ -123,5 +123,69 @@ void main() {
       expect(find.text('—'), findsNWidgets(2));
       expect(find.text("Aucune mesure pour l'instant."), findsNothing);
     });
+
+    testWidgets('a promoted kilogram value is never contradicted by a bare gram label',
+        (tester) async {
+      await pumpScreen(
+        tester,
+        [
+          GrowthMeasurement(
+            id: 1,
+            kind: MeasureKind.poids,
+            unit: 'g',
+            value: 6180,
+            recordedAt: DateTime.utc(2025, 6, 2),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('6,18 kg'), findsNWidgets(2));
+      // La traîne affichait `displayUnit`, l'unité de stockage : « 6,18 kg »
+      // au-dessus d'un « g » se lisait « 6,18 grammes ». Le titre porte
+      // l'unité, la traîne n'y revient pas.
+      expect(find.text('g'), findsNothing);
+    });
+
+    testWidgets('english locale renders a full timestamp, minutes included',
+        (tester) async {
+      // Le bug des captures v1.2.0 vivait en `en` uniquement — un passage en
+      // français ne prouverait rien sur ce ticket.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            measurementNotifierProvider.overrideWith(
+              () => _TestMeasurementNotifier([
+                GrowthMeasurement(
+                  id: 1,
+                  kind: MeasureKind.temperature,
+                  unit: 'degC',
+                  value: 37.4,
+                  // DateTime **local** : le formatage affiche l'heure locale,
+                  // donc un instant UTC rendrait une heure dépendante du fuseau
+                  // de la machine de test.
+                  recordedAt: DateTime(2026, 10, 8, 19, 43),
+                ),
+              ]),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            supportedLocales: const [Locale('en')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            theme: AppTheme.theme,
+            home: const Scaffold(body: SafeArea(child: GrowthScreen())),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('10/08/2026 07:43 PM'), findsOneWidget);
+    });
   });
 }
