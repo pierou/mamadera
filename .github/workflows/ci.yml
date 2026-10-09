@@ -180,15 +180,19 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Pin Kotlin compile toolchain to JDK 17 (init script)
+      - name: Pin Kotlin compile toolchain to JDK 17 (global gradle.properties)
         run: |
-          # KGP auto-detects a JetBrains-vendor JDK 25 for Kotlin compilation
-          # (app module AND the FGP's included ":gradle" build) and the foojay
-          # redirect for that toolchain id 400s on a fresh runner (v1.2.0 tag
-          # runs 37853522123/37856121017/37859593120). The whole build is
-          # Java 17 — see android/toolchain-pin.init.gradle.
-          mkdir -p "${HOME}/.gradle/init.d"
-          cp android/toolchain-pin.init.gradle "${HOME}/.gradle/init.d/pin-kotlin-toolchain-17.gradle"
+          # KGP with no toolchain set auto-detects a JetBrains-vendor JDK 25
+          # (app module AND the FGP's included ":gradle" build, whose
+          # gradle.properties live in the Flutter SDK and cannot be controlled
+          # from this repo); on a fresh runner the foojay redirect for that
+          # toolchain id 400s (v1.2.0 tag runs 37853522123/37856121017/
+          # 37859593120/37862856334). The Gradle user home gradle.properties
+          # is loaded by EVERY build in the composite, so the project property
+          # kotlin.jvm.toolchain reaches :gradle too. Idempotent: append only
+          # if the key is absent.
+          touch "${HOME}/.gradle/gradle.properties"
+          grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
 
       - name: Decode Keystore
         run: |
@@ -331,12 +335,11 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Pin Kotlin compile toolchain to JDK 17 (init script)
+      - name: Pin Kotlin compile toolchain to JDK 17 (global gradle.properties)
         run: |
-          # Same toolchain trap as build-android — see
-          # android/toolchain-pin.init.gradle.
-          mkdir -p "${HOME}/.gradle/init.d"
-          cp android/toolchain-pin.init.gradle "${HOME}/.gradle/init.d/pin-kotlin-toolchain-17.gradle"
+          # Same toolchain trap as build-android — see that job's step.
+          touch "${HOME}/.gradle/gradle.properties"
+          grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
 
       - name: Run integration tests on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
@@ -419,12 +422,11 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Pin Kotlin compile toolchain to JDK 17 (init script)
+      - name: Pin Kotlin compile toolchain to JDK 17 (global gradle.properties)
         run: |
-          # Same toolchain trap as build-android — see
-          # android/toolchain-pin.init.gradle.
-          mkdir -p "${HOME}/.gradle/init.d"
-          cp android/toolchain-pin.init.gradle "${HOME}/.gradle/init.d/pin-kotlin-toolchain-17.gradle"
+          # Same toolchain trap as build-android — see that job's step.
+          touch "${HOME}/.gradle/gradle.properties"
+          grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
 
       - name: Run integration tests on Android emulator (retry, fresh boot)
         uses: reactivecircus/android-emulator-runner@v2
@@ -505,14 +507,13 @@ jobs:
       - name: Get dependencies
         run: $FLUTTER pub get
 
-      - name: Pin Kotlin compile toolchain to JDK 17 (init script)
+      - name: Pin Kotlin compile toolchain to JDK 17 (global gradle.properties)
         run: |
           # The runner has Homebrew openjdk@17 registered via
-          # ~/.gradle/gradle.properties (installations.paths); this pin makes
-          # the job self-contained if the runner is re-imaged. See
-          # android/toolchain-pin.init.gradle.
-          mkdir -p "${HOME}/.gradle/init.d"
-          cp android/toolchain-pin.init.gradle "${HOME}/.gradle/init.d/pin-kotlin-toolchain-17.gradle"
+          # ~/.gradle/gradle.properties (installations.paths); this key makes
+          # the pin self-contained if the runner is re-imaged.
+          touch "${HOME}/.gradle/gradle.properties"
+          grep -q '^kotlin\.jvm\.toolchain=' "${HOME}/.gradle/gradle.properties" || echo 'kotlin.jvm.toolchain=17' >> "${HOME}/.gradle/gradle.properties"
 
       - name: Integration smoke suite (one launch, 10 tests)
         run: $FLUTTER test integration_test/ci_smoke_suite.dart -d emulator-5554
