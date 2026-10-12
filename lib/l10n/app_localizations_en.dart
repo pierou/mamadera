@@ -91,10 +91,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get growthSheetTitleTemperature => 'New temperature';
 
   @override
+  String get growthSheetEditTitleWeight => 'Edit weight';
+
+  @override
+  String get growthSheetEditTitleHeight => 'Edit height';
+
+  @override
+  String get growthSheetEditTitleTemperature => 'Edit temperature';
+
+  @override
+  String growthSheetLastValueHint(Object value) {
+    return 'Last: $value';
+  }
+
+  @override
   String get growthSheetNoteField => 'Note (optional)';
 
   @override
   String get growthSheetSave => 'Save';
+
+  @override
+  String get growthMeasurementUpdated => 'Measurement updated';
+
+  @override
+  String get growthMeasurementDeleted => 'Measurement deleted';
+
+  @override
+  String growthMeasurementUpdateError(Object error) {
+    return 'Failed to update the measurement: $error';
+  }
+
+  @override
+  String growthMeasurementDeleteError(Object error) {
+    return 'Failed to delete the measurement: $error';
+  }
 
   @override
   String get growthValueUndecryptable => 'Value unreadable';
@@ -471,6 +501,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedingSolid => 'Solid';
 
   @override
+  String feedingValueOutOfRange(Object min, Object max, Object unit) {
+    return 'Out of range: between $min and $max $unit.';
+  }
+
+  @override
+  String get feedingUnitLabel => 'Unit';
+
+  @override
+  String get feedingUnitMl => 'Millilitres';
+
+  @override
+  String get feedingUnitMin => 'Minutes';
+
+  @override
+  String get feedingUnitReset =>
+      'Unit changed: the amount has been reset to 0.';
+
+  @override
   String get editDialogTitle => 'Edit Event';
 
   @override
@@ -504,6 +552,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gramSuffix => 'g';
 
   @override
+  String get millilitreSuffix => 'ml';
+
+  @override
   String get deleteDialogTitle => 'Delete Event';
 
   @override
@@ -518,6 +569,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsBodyText => 'Settings';
+
+  @override
+  String get sliderCoarse => 'Coarse';
+
+  @override
+  String get sliderFine => 'Fine';
 
   @override
   String get languageSectionTitle => 'Language';

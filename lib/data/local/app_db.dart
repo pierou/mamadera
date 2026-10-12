@@ -19,13 +19,29 @@ class TrackingEvents extends Table {
   TextColumn get type => text()(); // miam, caca, dodo, sante
   DateTimeColumn get timestamp => dateTime()();
   RealColumn get duration => real().nullable()(); // en minutes (dodo, feeding)
-  TextColumn get subtype => text().nullable()();  // typed event subtype: 'natural'|'artificial' for feeding, health subtype values
-  TextColumn get notes => text().nullable()();    // encrypted user text only
-  TextColumn get wasteType => text().nullable()(); // pipi, caca, les_deux (diaper events only)
-  TextColumn get color => text().nullable()();     // couleur de la selle ou pipe-délimitée (pipi|caca)
-  TextColumn get texture => text().nullable()();   // consistance de la selle (diaper events only)
-  TextColumn get babyId => text().nullable()();    // nullable FK to baby_profiles(id), backward compatible
-  RealColumn get quantity => real().nullable()();   // volume in ml (feeding) or minutes (sleep)
+  TextColumn get subtype => text()
+      .nullable()(); // typed event subtype: 'natural'|'artificial' for feeding, health subtype values
+  TextColumn get notes => text().nullable()(); // encrypted user text only
+  TextColumn get wasteType =>
+      text().nullable()(); // pipi, caca, les_deux (diaper events only)
+  TextColumn get color =>
+      text().nullable()(); // couleur de la selle ou pipe-délimitée (pipi|caca)
+  TextColumn get texture =>
+      text().nullable()(); // consistance de la selle (diaper events only)
+  TextColumn get babyId => text()
+      .nullable()(); // nullable FK to baby_profiles(id), backward compatible
+  RealColumn get quantity =>
+      real().nullable()(); // volume in ml (feeding) or minutes (sleep)
+
+  /// Unit of [quantity] — `ml` | `min` | `g`. Schema v12.
+  ///
+  /// NOT NULL **sans DEFAULT côté Drift**, délibérément : avec un défaut, un
+  /// `TrackingEventsCompanion.insert` distrait écrirait « ml » à côté d'une
+  /// sieste en minutes, et c'est exactement le chiffre de santé faux que cette
+  /// colonne existe pour empêcher. Sans défaut, l'insertion ne compile que si
+  /// l'appelant nomme l'unité. Le `DEFAULT 'ml'` de l'`ALTER TABLE` de la
+  /// migration reste, lui : il sert à peupler les lignes déjà écrites.
+  TextColumn get unit => text()();
 }
 
 class ReminderDismissals extends Table {
@@ -98,11 +114,12 @@ class Measurements extends Table {
 
   /// Nullable, comme `tracking_events.baby_id` : un suivi sans profil reste lisible.
   TextColumn get babyId => text().nullable()();
-  TextColumn get kind => text()();          // 'poids' | 'taille' | 'temperature'
-  TextColumn get value => text()();        // chiffré
-  TextColumn get unit => text()();         // 'g' | 'cm' | 'degC'
+  TextColumn get kind => text()(); // 'poids' | 'taille' | 'temperature'
+  TextColumn get value => text()(); // chiffré
+  TextColumn get unit => text()(); // 'g' | 'cm' | 'degC'
   DateTimeColumn get recordedAt => dateTime()();
-  TextColumn get notes => text().nullable()(); // chiffré, même pipeline que events
+  TextColumn get notes =>
+      text().nullable()(); // chiffré, même pipeline que events
 }
 
 /// Achèvement **manuel** d'un rappel (`completion_source = 'manual'`, D2).
@@ -118,21 +135,20 @@ class ReminderCompletions extends Table {
   DateTimeColumn get completedAt => dateTime()();
 }
 
-@DriftDatabase(
-    tables: [
-      BabyProfiles,
-      TrackingEvents,
-      ReminderDismissals,
-      ReminderSettings,
-      CustomReminders,
-      Measurements,
-      ReminderCompletions,
-    ])
+@DriftDatabase(tables: [
+  BabyProfiles,
+  TrackingEvents,
+  ReminderDismissals,
+  ReminderSettings,
+  CustomReminders,
+  Measurements,
+  ReminderCompletions,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   /// Index SQL créés automatiquement à l'initialisation de la DB.
   @override
@@ -165,11 +181,13 @@ class AppDatabase extends _$AppDatabase {
           // v3 → v4 : ajout de baby_profiles + baby_id nullable sur tracking_events (backward compatible)
           if (from < 4) {
             await m.createTable(babyProfiles);
-            await m.database.customStatement('ALTER TABLE tracking_events ADD COLUMN baby_id TEXT');
+            await m.database.customStatement(
+                'ALTER TABLE tracking_events ADD COLUMN baby_id TEXT');
           }
           // v4 → v5 : ajout de subtype column + migration des données legacy (health subtypes dans wasteType)
           if (from < 5) {
-            await m.database.customStatement('ALTER TABLE tracking_events ADD COLUMN subtype TEXT');
+            await m.database.customStatement(
+                'ALTER TABLE tracking_events ADD COLUMN subtype TEXT');
             // Migrer les événements health: copier wasteType → subtype et effacer wasteType
             await m.database.customStatement(
                 "UPDATE tracking_events SET subtype = waste_type, waste_type = NULL WHERE type = 'sante'");
@@ -179,7 +197,8 @@ class AppDatabase extends _$AppDatabase {
           }
           // v5 → v6 : ajout de la colonne quantity (volume ml feeding / minutes sleep)
           if (from < 6) {
-            await m.database.customStatement('ALTER TABLE tracking_events ADD COLUMN quantity REAL');
+            await m.database.customStatement(
+                'ALTER TABLE tracking_events ADD COLUMN quantity REAL');
           }
           // v6 → v7 : migration des valeurs de subtype feeding (sein/bib → natural/artificial)
           if (from < 7) {
@@ -241,11 +260,11 @@ class AppDatabase extends _$AppDatabase {
                 PRIMARY KEY (baby_id, item_id)
               )''');
             await m.database.customStatement(
-              'INSERT INTO reminder_settings_new (baby_id, item_id, enabled) '
-              "SELECT '', item_id, enabled FROM reminder_settings");
+                'INSERT INTO reminder_settings_new (baby_id, item_id, enabled) '
+                "SELECT '', item_id, enabled FROM reminder_settings");
             await m.database.customStatement('DROP TABLE reminder_settings');
             await m.database.customStatement(
-              'ALTER TABLE reminder_settings_new RENAME TO reminder_settings');
+                'ALTER TABLE reminder_settings_new RENAME TO reminder_settings');
 
             // (a) dismissals
             await m.database.customStatement('''
@@ -256,11 +275,11 @@ class AppDatabase extends _$AppDatabase {
                 PRIMARY KEY (baby_id, item_id)
               )''');
             await m.database.customStatement(
-              'INSERT INTO reminder_dismissals_new (baby_id, item_id, dismissed_at) '
-              "SELECT '', item_id, dismissed_at FROM reminder_dismissals");
+                'INSERT INTO reminder_dismissals_new (baby_id, item_id, dismissed_at) '
+                "SELECT '', item_id, dismissed_at FROM reminder_dismissals");
             await m.database.customStatement('DROP TABLE reminder_dismissals');
             await m.database.customStatement(
-              'ALTER TABLE reminder_dismissals_new RENAME TO reminder_dismissals');
+                'ALTER TABLE reminder_dismissals_new RENAME TO reminder_dismissals');
 
             // (b) custom reminders — rebuilt for the nullable subtype_value
             await m.database.customStatement('''
@@ -274,27 +293,87 @@ class AppDatabase extends _$AppDatabase {
                 completion_source TEXT   NOT NULL DEFAULT 'from_events'
               )''');
             await m.database.customStatement(
-              'INSERT INTO custom_reminders_new (id, baby_id, label, subtype_value, frequency, interval_days) '
-              "SELECT id, '', label, subtype_value, frequency, interval_days FROM custom_reminders");
+                'INSERT INTO custom_reminders_new (id, baby_id, label, subtype_value, frequency, interval_days) '
+                "SELECT id, '', label, subtype_value, frequency, interval_days FROM custom_reminders");
             await m.database.customStatement('DROP TABLE custom_reminders');
             await m.database.customStatement(
-              'ALTER TABLE custom_reminders_new RENAME TO custom_reminders');
+                'ALTER TABLE custom_reminders_new RENAME TO custom_reminders');
             // Safety net : un AUTOINCREMENT renommé peut repartir de 1 et entrer en collision
             // avec un id recopié. Le test de migration l'attrape ; la ligne l'empêche.
             await m.database.customStatement(
-              'UPDATE sqlite_sequence SET seq = (SELECT COALESCE(MAX(id), 0) FROM custom_reminders) '
-              "WHERE name = 'custom_reminders'");
+                'UPDATE sqlite_sequence SET seq = (SELECT COALESCE(MAX(id), 0) FROM custom_reminders) '
+                "WHERE name = 'custom_reminders'");
 
             // (c) new tables (drift emits the DDL from the classes above)
             await m.createTable(measurements);
             await m.createTable(reminderCompletions);
 
             await m.database.customStatement(
-              'CREATE INDEX IF NOT EXISTS idx_measurements_baby_kind_recorded '
-              'ON measurements(baby_id, kind, recorded_at DESC)');
+                'CREATE INDEX IF NOT EXISTS idx_measurements_baby_kind_recorded '
+                'ON measurements(baby_id, kind, recorded_at DESC)');
             await m.database.customStatement(
-              'CREATE INDEX IF NOT EXISTS idx_reminder_completions_baby_item '
-              'ON reminder_completions(baby_id, item_id, completed_at DESC)');
+                'CREATE INDEX IF NOT EXISTS idx_reminder_completions_baby_item '
+                'ON reminder_completions(baby_id, item_id, completed_at DESC)');
+          }
+
+          // v11 → v12 : `unit` sur chaque quantité suivie (BACKLOG B1).
+          //
+          // Le sens de `quantity` était **inféré** du type et du sous-type ; le
+          // jour où `natural` porte légitimement des millilitres (lait tiré) ou
+          // des minutes (tétée chronométrée), l'inférence ne suffit plus : une
+          // ligne, deux unités, rien pour les distinguer. L'unité devient une
+          // donnée de la ligne.
+          //
+          // Le backfill nomme **l'unité que le parent a vue à l'écran**, jamais
+          // une intention devinée : un parent qui a saisi 20 au sein a lu
+          // « 20 ml », donc la ligne veut dire 20 ml. Convertir une ligne
+          // `natural` en minutes inventerait une mesure qui n'a jamais été
+          // prise. Aucune arithmétique dans ce bloc — c'est la règle, pas un
+          // oubli.
+          //
+          // `ALTER TABLE … ADD COLUMN … NOT NULL DEFAULT` est additif et légal
+          // sur SQLite même sur une table peuplée. Reste une migration que le
+          // downgrade ne sait pas défaire : d'où le passage émulateur sur un
+          // appareil portant déjà des données v11 (AGENTS.md).
+          if (from < 12) {
+            await m.database.customStatement(
+                "ALTER TABLE tracking_events ADD COLUMN unit TEXT NOT NULL DEFAULT 'ml'");
+            // Le défaut couvre déjà `miam`+`natural`, `miam`+`artificial`,
+            // `sante` et `caca` (quantity y est NULL) : deux UPDATE suffisent.
+            await m.database.customStatement(
+                "UPDATE tracking_events SET unit = 'min' WHERE type = 'dodo'");
+            await m.database
+                .customStatement("UPDATE tracking_events SET unit = 'g' "
+                    "WHERE type = 'miam' AND subtype = 'solid'");
+
+            // Ré-attribution des lignes `''` : la sentinelle « installation
+            // sans profil » (fix fuite v1.2.0) ne s'applique à aucun bébé réel.
+            // Sur une installation à **un seul** bébé, l'état écrit avant
+            // l'isolation est inambiguement le sien — le ré-attribuer, c'est
+            // sauver le contenu (les rappels personnalisés y compris). Zéro ou
+            // plusieurs bébés : on ne devine pas, les lignes restent sans
+            // profil et invisibles (décision 2026-10-04).
+            final babies = await m.database
+                .customSelect('SELECT COUNT(*) AS n FROM baby_profiles')
+                .getSingle();
+            final babyCount = babies.read<int>('n');
+            if (babyCount == 1) {
+              final baby = await m.database
+                  .customSelect('SELECT id FROM baby_profiles')
+                  .getSingle();
+              final babyId = baby.read<String>('id');
+              for (final table in [
+                'reminder_settings',
+                'reminder_dismissals',
+                'reminder_completions',
+                'custom_reminders',
+              ]) {
+                await m.database.customStatement(
+                  'UPDATE $table SET baby_id = ? WHERE baby_id = ?',
+                  [babyId, db_const.sharedBabyId],
+                );
+              }
+            }
           }
         },
       );
@@ -327,17 +406,20 @@ class AppDatabase extends _$AppDatabase {
 
   /// Met à jour un événement existant par son ID.
   Future<int> updateEvent(int id, TrackingEventsCompanion companion) {
-    return (update(trackingEvents)..where((t) => t.id.equals(id))).write(companion);
+    return (update(trackingEvents)..where((t) => t.id.equals(id)))
+        .write(companion);
   }
 
   /// Supprime un événement par son ID. Retourne true si une ligne a été supprimée.
   Future<bool> deleteEvent(int id) async {
-    final deleted = await (delete(trackingEvents)..where((t) => t.id.equals(id))).go();
+    final deleted =
+        await (delete(trackingEvents)..where((t) => t.id.equals(id))).go();
     return deleted > 0;
   }
 
   /// Retourne tous les événements sans tri spécifique.
-  Future<List<TrackingEvent>> getAllTrackingEvents() => select(trackingEvents).get();
+  Future<List<TrackingEvent>> getAllTrackingEvents() =>
+      select(trackingEvents).get();
 
   /// Met à jour uniquement le champ notes d'un événement par son ID.
   Future<int> updateNotesForEvent(int id, String? newNotes) {
@@ -348,8 +430,7 @@ class AppDatabase extends _$AppDatabase {
   /// ── Baby Profiles Queries ────────────────────────────────────────
 
   Future<List<BabyProfile>> getAllBabyProfiles() {
-    return (select(babyProfiles)
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+    return (select(babyProfiles)..orderBy([(t) => OrderingTerm.asc(t.name)]))
         .get();
   }
 
@@ -362,7 +443,10 @@ class AppDatabase extends _$AppDatabase {
   Future<BabyProfile?> getActiveBabyProfile() async {
     final profiles = await (select(babyProfiles)
           ..where((t) => t.isActive.equals(true))
-          ..orderBy([(t) => OrderingTerm.asc(t.birthDate), (t) => OrderingTerm.asc(t.id)]))
+          ..orderBy([
+            (t) => OrderingTerm.asc(t.birthDate),
+            (t) => OrderingTerm.asc(t.id)
+          ]))
         .get();
     return profiles.isEmpty ? null : profiles.first;
   }
@@ -371,11 +455,13 @@ class AppDatabase extends _$AppDatabase {
       into(babyProfiles).insert(profile);
 
   Future<int> updateBabyProfile(String id, BabyProfilesCompanion companion) {
-    return (update(babyProfiles)..where((t) => t.id.equals(id))).write(companion);
+    return (update(babyProfiles)..where((t) => t.id.equals(id)))
+        .write(companion);
   }
 
   Future<bool> deleteBabyProfile(String id) async {
-    final deleted = await (delete(babyProfiles)..where((t) => t.id.equals(id))).go();
+    final deleted =
+        await (delete(babyProfiles)..where((t) => t.id.equals(id))).go();
     return deleted > 0;
   }
 
@@ -402,9 +488,7 @@ class AppDatabase extends _$AppDatabase {
   /// Les lignes portées par la sentinelle `''` appartiennent à l'installation
   /// sans profil et survivent à la suppression d'un profil.
   Future<int> deleteReminderCompletionsByBabyId(String babyId) =>
-      (delete(reminderCompletions)
-            ..where((t) => t.babyId.equals(babyId)))
-          .go();
+      (delete(reminderCompletions)..where((t) => t.babyId.equals(babyId))).go();
 
   /// Supprime tous les réglages de rappels rattachés à [babyId] (toutes les
   /// clés d'item). Retourne le nombre de lignes supprimées.
@@ -441,9 +525,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Retourne tous les rappels personnalisés, dans l'ordre de création.
   Future<List<CustomReminder>> getAllCustomReminders() =>
-      (select(customReminders)
-            ..orderBy([(t) => OrderingTerm.asc(t.id)]))
-          .get();
+      (select(customReminders)..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
 
   /// Retourne toutes les lignes de `measurements` (sans filtre, export M4).
   Future<List<Measurement>> getAllMeasurements() => select(measurements).get();
@@ -471,5 +553,3 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteReminderCompletionsByItemIds(List<String> itemIds) =>
       (delete(reminderCompletions)..where((t) => t.itemId.isIn(itemIds))).go();
 }
-
-

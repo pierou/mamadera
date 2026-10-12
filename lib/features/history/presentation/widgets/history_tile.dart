@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/l10n/unit_localization.dart';
 import '../../../../core/theme.dart';
+import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
@@ -83,7 +85,8 @@ class HistoryTile extends StatelessWidget {
         leading: HistoryTileLeading(event: event, context: context),
         title: Text(_typeLabel(context)),
         subtitle: HistoryTileSubtitle(event: event, context: context),
-        trailing: HistoryTileTrailing(time: time, onTap: onTap, context: context),
+        trailing:
+            HistoryTileTrailing(time: time, onTap: onTap, context: context),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         onTap: onTap,
       ),
@@ -93,7 +96,8 @@ class HistoryTile extends StatelessWidget {
 
 /// Leading icon widget for HistoryTile.
 class HistoryTileLeading extends StatelessWidget {
-  const HistoryTileLeading({required this.event, required this.context, super.key});
+  const HistoryTileLeading(
+      {required this.event, required this.context, super.key});
 
   final TrackingEvent event;
   final BuildContext context;
@@ -117,7 +121,8 @@ class HistoryTileLeading extends StatelessWidget {
 
 /// Subtitle widget showing duration, color indicators, and notes.
 class HistoryTileSubtitle extends StatelessWidget {
-  const HistoryTileSubtitle({required this.event, required this.context, super.key});
+  const HistoryTileSubtitle(
+      {required this.event, required this.context, super.key});
 
   final TrackingEvent event;
   final BuildContext context;
@@ -128,27 +133,39 @@ class HistoryTileSubtitle extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (event is FeedingEvent) ..._buildFeedingSubtypeRow(),
-        if (_getQuantity(event) != null)
-          Text(context.l.quantityPrefix(_getQuantity(event)!.toInt(), event.map(
-            (_) => '',
-            // L'unité suit le sous-type : un purée s'affiche en grammes, un
-            // biberon en millilitres — jamais l'inverse.
-            feeding: (e) =>
-                e.subtype == FeedingSubtype.solid ? context.l.gramSuffix : 'ml',
-            sleep: (_) => context.l.minuteSuffix,
-            diaper: (_) => '',
-            health: (_) => '',
-          ))),
+        if (_quantityRowData() != null)
+          Text(context.l.quantityPrefix(
+            _quantityRowData()!.$1.toInt(),
+            quantityUnitLabel(context, _quantityRowData()!.$2),
+          )),
         if (_getDuration(event) != null)
           Text(context.l.durationPrefix(_getDuration(event)!.toInt())),
         if (_hasWasteDetails) ...[
           _buildColors(context),
         ],
         _buildTexture(context),
-        if (event is! HealthEvent && _getNotes(event) != null && _getNotes(event)!.isNotEmpty)
+        if (event is! HealthEvent &&
+            _getNotes(event) != null &&
+            _getNotes(event)!.isNotEmpty)
           Text(_getNotes(event)!),
       ],
     );
+  }
+
+  /// Nombre et unité de la ligne, tous deux lus **de la ligne**.
+  ///
+  /// `null` = pas de quantité (couche, soin). L'unité vient de `event.unit`
+  /// (v12) et non d'un littéral du widget : c'est le defaut que cette
+  /// version supprime — afficher « ml » à côté d'une tétée de 20 minutes.
+  (double, QuantityUnit)? _quantityRowData() {
+    final event = this.event;
+    if (event is FeedingEvent && event.quantity != null) {
+      return (event.quantity!, event.unit);
+    }
+    if (event is SleepEvent && event.quantity != null) {
+      return (event.quantity!, event.unit);
+    }
+    return null;
   }
 
   double? _getDuration(TrackingEvent event) {
@@ -156,16 +173,6 @@ class HistoryTileSubtitle extends StatelessWidget {
       (_) => null,
       feeding: (_) => null,
       sleep: (e) => e.duration,
-      diaper: (_) => null,
-      health: (_) => null,
-    );
-  }
-
-  double? _getQuantity(TrackingEvent event) {
-    return event.map(
-      (_) => null,
-      feeding: (e) => e.quantity,
-      sleep: (e) => e.quantity,
       diaper: (_) => null,
       health: (_) => null,
     );
@@ -181,7 +188,8 @@ class HistoryTileSubtitle extends StatelessWidget {
     );
   }
 
-  bool get _hasWasteDetails => event is DiaperEvent && (event as DiaperEvent).wasteType != null;
+  bool get _hasWasteDetails =>
+      event is DiaperEvent && (event as DiaperEvent).wasteType != null;
 
   List<Widget> _buildFeedingSubtypeRow() {
     if (event is! FeedingEvent) return const [];
@@ -190,7 +198,8 @@ class HistoryTileSubtitle extends StatelessWidget {
       Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(feeding.subtype.icon, size: 16, color: _getSubtypeColor(feeding.subtype)),
+          Icon(feeding.subtype.icon,
+              size: 16, color: _getSubtypeColor(feeding.subtype)),
           const SizedBox(width: 4),
           Text(
             switch (feeding.subtype) {
@@ -206,7 +215,9 @@ class HistoryTileSubtitle extends StatelessWidget {
   }
 
   Color _getSubtypeColor(FeedingSubtype subtype) {
-    return subtype == FeedingSubtype.natural ? AppTheme.miam : Theme.of(context).colorScheme.secondary;
+    return subtype == FeedingSubtype.natural
+        ? AppTheme.miam
+        : Theme.of(context).colorScheme.secondary;
   }
 
   String _resolveLabelKey(BuildContext context, String labelKey) {
@@ -272,7 +283,9 @@ class HistoryTileSubtitle extends StatelessWidget {
 
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: colors.map((entry) => _ColorChip(label: entry.key, color: entry.value)).toList(),
+      children: colors
+          .map((entry) => _ColorChip(label: entry.key, color: entry.value))
+          .toList(),
     );
   }
 }
@@ -296,7 +309,8 @@ class _ColorChip extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: color,
-            border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+            border:
+                Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           ),
         ),
       ),
@@ -306,7 +320,11 @@ class _ColorChip extends StatelessWidget {
 
 /// Trailing widget showing time and edit indicator.
 class HistoryTileTrailing extends StatelessWidget {
-  const HistoryTileTrailing({required this.time, required this.onTap, required this.context, super.key});
+  const HistoryTileTrailing(
+      {required this.time,
+      required this.onTap,
+      required this.context,
+      super.key});
 
   final String time;
   final VoidCallback? onTap;
@@ -320,7 +338,8 @@ class HistoryTileTrailing extends StatelessWidget {
         Text(time),
         if (onTap != null) ...[
           const SizedBox(width: 8),
-          Icon(Icons.edit_outlined, size: 16, color: Theme.of(context).colorScheme.secondary),
+          Icon(Icons.edit_outlined,
+              size: 16, color: Theme.of(context).colorScheme.secondary),
         ],
       ],
     );

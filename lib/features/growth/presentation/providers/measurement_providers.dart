@@ -11,7 +11,8 @@ import '../../domain/repositories/measurement_repository.dart';
 ///
 /// Exposé sous l'interface domain [MeasurementRepository] pour que la
 /// présentation dépende de l'abstraction (et que les tests surchargent un fake).
-final measurementRepositoryProvider = FutureProvider<MeasurementRepository>((ref) async {
+final measurementRepositoryProvider =
+    FutureProvider<MeasurementRepository>((ref) async {
   final encryption = await ref.read(encryptionServiceProvider.future);
   final database = await ref.watch(databaseProvider.future);
   return MeasurementRepositoryImpl(database: database, encryption: encryption);
@@ -39,8 +40,9 @@ class MeasurementNotifier extends AsyncNotifier<List<GrowthMeasurement>> {
   Future<List<GrowthMeasurement>> _load() async {
     final repository = await ref.read(measurementRepositoryProvider.future);
     if (!ref.mounted) return const [];
-    // `null` = lignes sans profil (suivi avant création du profil) : elles
-    // restent lisibles, jamais mélangées à celles d'un autre bébé.
+    // `null` (aucun bébé sélectionné) = toutes les lignes, comme les
+    // événements : avant la création du profil, elles sont toutes à profil
+    // vide de toute façon.
     final babyId = ref.read(activeBabyProvider).value?.id;
     return repository.allForBaby(babyId);
   }

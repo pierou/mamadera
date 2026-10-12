@@ -6,13 +6,15 @@
 library;
 
 import '../../../../core/services/encryption_service.dart';
+import '../../shared/domain/entities/quantity_unit.dart';
 import '../../shared/domain/entities/tracking_enums.dart';
 import '../../shared/domain/entities/tracking_event.dart';
 import 'app_db.dart' as db_app;
 import 'db_constants.dart' as db_const;
 
 /// Mappe un row Drift vers le sous-type [TrackingEvent] approprié.
-TrackingEvent mapToEntity(db_app.TrackingEvent row, EncryptionService encryption) {
+TrackingEvent mapToEntity(
+    db_app.TrackingEvent row, EncryptionService encryption) {
   switch (row.type) {
     case db_const.typeMiam:
       return _createFeedingEvent(row, encryption);
@@ -27,29 +29,47 @@ TrackingEvent mapToEntity(db_app.TrackingEvent row, EncryptionService encryption
   }
 }
 
-TrackingEvent _createFeedingEvent(db_app.TrackingEvent row, EncryptionService encryption) {
+TrackingEvent _createFeedingEvent(
+    db_app.TrackingEvent row, EncryptionService encryption) {
   return TrackingEvent.feeding(
     id: row.id,
     timestamp: row.timestamp,
     babyId: row.babyId,
     subtype: _feedingSubtypeFromRow(row),
+    unit: _unitFromRow(row),
     quantity: row.quantity,
     notes: encryption.decrypt(row.notes),
   );
 }
 
-TrackingEvent _createSleepEvent(db_app.TrackingEvent row, EncryptionService encryption) {
+TrackingEvent _createSleepEvent(
+    db_app.TrackingEvent row, EncryptionService encryption) {
   return TrackingEvent.sleep(
     id: row.id,
     timestamp: row.timestamp,
     babyId: row.babyId,
     duration: row.duration ?? 0.0,
+    unit: _unitFromRow(row),
     quantity: row.quantity,
     notes: encryption.decrypt(row.notes),
   );
 }
 
-TrackingEvent _createDiaperEvent(db_app.TrackingEvent row, EncryptionService encryption, {required bool isFallback}) {
+/// Unit de la ligne, telle qu'elle est **stockée** (v12).
+///
+/// La colonne est NOT NULL depuis v12 : une ligne neuve la porte toujours.
+/// Le fallback ne couvre qu'un cas anormal — une colonne antérieure à la
+/// migration, ou une valeur que cette version ne connaît pas — et nomme alors
+/// l'unité que le parent voyait à l'écran ([defaultUnitFor]) au lieu d'en
+/// inventer une. Le rendu part d'ici : plus aucun `'ml'` codé en dur dans
+/// un widget.
+QuantityUnit _unitFromRow(db_app.TrackingEvent row) =>
+    QuantityUnit.fromDbValue(row.unit) ??
+    defaultUnitFor(typeValue: row.type, subtypeValue: row.subtype);
+
+TrackingEvent _createDiaperEvent(
+    db_app.TrackingEvent row, EncryptionService encryption,
+    {required bool isFallback}) {
   final colors = _parseColors(row);
   final wasteType = isFallback ? null : WasteType.fromDbValue(row.wasteType);
 
@@ -71,10 +91,12 @@ TrackingEvent _createDiaperEvent(db_app.TrackingEvent row, EncryptionService enc
 /// anciennes) est rapporté avec le sous-type par défaut
 /// [HealthSubtype.nettoyageYeux] — l'entité domain ne représente pas
 /// explicitement un sous-type inconnu.
-TrackingEvent _createHealthEvent(db_app.TrackingEvent row, EncryptionService encryption) {
+TrackingEvent _createHealthEvent(
+    db_app.TrackingEvent row, EncryptionService encryption) {
   // Lire le subtype depuis la colonne dédiée (ou fallback pour anciennes données)
   final subtypeValue = row.subtype ?? '';
-  final subtype = HealthSubtype.byValue(subtypeValue) ?? HealthSubtype.nettoyageYeux;
+  final subtype =
+      HealthSubtype.byValue(subtypeValue) ?? HealthSubtype.nettoyageYeux;
   return TrackingEvent.health(
     id: row.id,
     timestamp: row.timestamp,

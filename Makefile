@@ -17,8 +17,10 @@ lint: pub-get
 	# Aligned with GA: analyze entire project, no format check in CI
 	flutter analyze --fatal-infos --fatal-warnings
 test: pub-get
-	# Domain & Data (unit) + Presentation (widget) as per architecture rules
-	flutter test test/shared/ test/data/ test/presentation/ test/features/ test/core/ --coverage
+	# Domain & Data (unit) + Presentation (widget) as per architecture rules.
+	# The whole test/ directory (not a list of subfolders): root-level suites
+	# (main_test, widget_test) were silently skipped by the old list.
+	flutter test --coverage
 
 # Build targets for store submission
 # APK — F-Droid / sideloading (requires release signing env vars in CI)

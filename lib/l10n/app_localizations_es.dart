@@ -91,10 +91,40 @@ class AppLocalizationsEs extends AppLocalizations {
   String get growthSheetTitleTemperature => 'Nueva temperatura';
 
   @override
+  String get growthSheetEditTitleWeight => 'Editar el peso';
+
+  @override
+  String get growthSheetEditTitleHeight => 'Editar la altura';
+
+  @override
+  String get growthSheetEditTitleTemperature => 'Editar la temperatura';
+
+  @override
+  String growthSheetLastValueHint(Object value) {
+    return 'Última: $value';
+  }
+
+  @override
   String get growthSheetNoteField => 'Nota (opcional)';
 
   @override
   String get growthSheetSave => 'Guardar';
+
+  @override
+  String get growthMeasurementUpdated => 'Medición actualizada';
+
+  @override
+  String get growthMeasurementDeleted => 'Medición eliminada';
+
+  @override
+  String growthMeasurementUpdateError(Object error) {
+    return 'No se pudo actualizar la medición: $error';
+  }
+
+  @override
+  String growthMeasurementDeleteError(Object error) {
+    return 'No se pudo eliminar la medición: $error';
+  }
 
   @override
   String get growthValueUndecryptable => 'Valor ilegible';
@@ -471,6 +501,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get feedingSolid => 'Sólido';
 
   @override
+  String feedingValueOutOfRange(Object min, Object max, Object unit) {
+    return 'Fuera de rango: entre $min y $max $unit.';
+  }
+
+  @override
+  String get feedingUnitLabel => 'Unidad';
+
+  @override
+  String get feedingUnitMl => 'Mililitros';
+
+  @override
+  String get feedingUnitMin => 'Minutos';
+
+  @override
+  String get feedingUnitReset =>
+      'Unidad cambiada: la cantidad se ha restablecido a 0.';
+
+  @override
   String get editDialogTitle => 'Editar evento';
 
   @override
@@ -504,6 +552,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gramSuffix => 'g';
 
   @override
+  String get millilitreSuffix => 'ml';
+
+  @override
   String get deleteDialogTitle => 'Eliminar evento';
 
   @override
@@ -518,6 +569,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsBodyText => 'Ajustes';
+
+  @override
+  String get sliderCoarse => 'Grueso';
+
+  @override
+  String get sliderFine => 'Fino';
 
   @override
   String get languageSectionTitle => 'Idioma';

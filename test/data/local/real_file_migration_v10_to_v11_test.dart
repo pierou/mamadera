@@ -17,7 +17,7 @@ import 'package:mamadera/data/local/database.dart';
 /// puisqu'il construit le schéma d'emblée sans rien déplacer. Ici le code de
 /// migration tourne pour de vrai sur un fichier qui contient déjà des données.
 void main() {
-  group('Migration v10 → v11 sur fichier réel', () {
+  group('Migration v10 → v12 sur fichier réel', () {
     late Directory tmp;
     late String fixturePath;
 
@@ -44,55 +44,74 @@ void main() {
       );
     });
 
-    test('onUpgrade monte en v11 et conserve les données du parent', () async {
+    test('onUpgrade monte en v12 et conserve les données du parent', () async {
       final db = await createAppDatabase(directoryPath: tmp.path);
 
       final babies = await db.select(db.babyProfiles).get();
       expect(babies.length, 1);
       expect(babies.first.name, 'Léa');
+      // Installation à un seul bébé : la montée v12 ré-attribue les lignes
+      // « sans profil » (sentinelle `''`, fuite v1.2.0) au seul enfant —
+      // décision 2026-10-04, jamais de deviner à plusieurs bébés.
+      final babyId = babies.first.id;
 
       final events = await db.select(db.trackingEvents).get();
       expect(events.length, 4,
-          reason: 'les quatre événements existants doivent survivre à la montée');
+          reason:
+              'les quatre événements existants doivent survivre à la montée');
 
       // Les ids des rappels personnalisés sont gravés dans le fichier de
       // l'utilisateur et `reminder_settings` les reference par `custom_<id>`.
       // Une remontée qui les renumérote détache le réglage en silence :
       // l'utilisateur a « désactivé ce rappel » avant, et il revient activé.
-      final customs = await db.customSelect(
-        'SELECT id, baby_id, subtype_value, completion_source '
-        'FROM custom_reminders ORDER BY id',
-      ).get();
+      final customs = await db
+          .customSelect(
+            'SELECT id, baby_id, subtype_value, completion_source '
+            'FROM custom_reminders ORDER BY id',
+          )
+          .get();
       expect(customs.map((r) => r.read<int>('id')).toList(), [3, 7]);
       for (final row in customs) {
-        expect(row.read<String>('baby_id'), '',
-            reason: 'sentinelle vide = valable pour tous les bébés');
+        expect(row.read<String>('baby_id'), babyId,
+            reason:
+                'un seul bébé : la sentinelle vide est ré-attribuée à ce bébé, '
+                'jamais laissée orpheline');
         expect(row.read<String>('completion_source'), 'from_events');
       }
 
       // Ré-implantation sous la clé composée : aucune clé ne doit être NULL,
       // SQLite autorisant les doublons dès qu'une colonne de la clé l'est.
-      final settings = await db.customSelect(
-        'SELECT baby_id, item_id, enabled FROM reminder_settings ORDER BY item_id',
-      ).get();
+      final settings = await db
+          .customSelect(
+            'SELECT baby_id, item_id, enabled FROM reminder_settings ORDER BY item_id',
+          )
+          .get();
       expect(settings.length, 2);
-      expect(settings.map((r) => r.read<String>('baby_id')).toSet(), {''});
+      expect(
+        settings.map((r) => r.read<String>('baby_id')).toSet(),
+        {babyId},
+        reason: 'les réglages reprennent le profil unique, pas la sentinelle',
+      );
 
-      final dismissals = await db.customSelect(
-        'SELECT baby_id, item_id FROM reminder_dismissals',
-      ).get();
+      final dismissals = await db
+          .customSelect(
+            'SELECT baby_id, item_id FROM reminder_dismissals',
+          )
+          .get();
       expect(dismissals.length, 1);
-      expect(dismissals.first.read<String>('baby_id'), '');
+      expect(dismissals.first.read<String>('baby_id'), babyId);
 
       final userVersion = await db.customSelect('PRAGMA user_version').get();
-      expect(userVersion.first.read<int>('user_version'), 11);
+      expect(userVersion.first.read<int>('user_version'), 12);
 
       // Un index absent après migration est invisible à l'œil et coûte une
       // table scan sur chaque sondage de rappel, pour toujours.
-      final indexes = await db.customSelect(
-        "SELECT name FROM sqlite_master WHERE type = 'index' "
-        "AND tbl_name IN ('measurements','reminder_completions') ORDER BY name",
-      ).get();
+      final indexes = await db
+          .customSelect(
+            "SELECT name FROM sqlite_master WHERE type = 'index' "
+            "AND tbl_name IN ('measurements','reminder_completions') ORDER BY name",
+          )
+          .get();
       expect(indexes, isNotEmpty,
           reason: 'les tables neuves doivent être indexées après migration, '
               'pas seulement après onCreate');
@@ -110,7 +129,7 @@ void main() {
       expect(events.length, 4,
           reason: 'ouvrir deux fois ne doit ni dupliquer ni perdre de lignes');
       final version = await second.customSelect('PRAGMA user_version').get();
-      expect(version.first.read<int>('user_version'), 11);
+      expect(version.first.read<int>('user_version'), 12);
       await second.close();
     });
   });

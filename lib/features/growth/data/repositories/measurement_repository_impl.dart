@@ -37,19 +37,20 @@ class MeasurementRepositoryImpl implements MeasurementRepository {
     // Garde-fous de borne : la feuille refuse déjà, mais une ligne hors
     // plage ne doit jamais exister dans la table.
     if (!kind.contains(value)) {
-      throw ArgumentError.value(value, 'value', 'Valeur hors bornes pour ${kind.dbValue}');
+      throw ArgumentError.value(
+          value, 'value', 'Valeur hors bornes pour ${kind.dbValue}');
     }
     // Chiffrement avant insertion : la colonne ne contient jamais l'en-clair.
     await _database.into(_database.measurements).insert(
-      db_app.MeasurementsCompanion.insert(
-        babyId: Value(babyId),
-        kind: kind.dbValue,
-        value: _encryption.encrypt(value.toString()),
-        unit: kind.unit,
-        recordedAt: recordedAt,
-        notes: Value(notes == null ? null : _encryption.encrypt(notes)),
-      ),
-    );
+          db_app.MeasurementsCompanion.insert(
+            babyId: Value(babyId),
+            kind: kind.dbValue,
+            value: _encryption.encrypt(value.toString()),
+            unit: kind.unit,
+            recordedAt: recordedAt,
+            notes: Value(notes == null ? null : _encryption.encrypt(notes)),
+          ),
+        );
     // Kind et compteur uniquement — jamais la valeur (donnée de santé).
     _logger.d('mesure ajoutée kind=${kind.dbValue}');
   }
@@ -59,11 +60,16 @@ class MeasurementRepositoryImpl implements MeasurementRepository {
   ///
   /// Lecture non filtrée puis borne en Dart : `app_db.dart` est la source de
   /// vérité du schéma et n'est pas touchée par v1.2.
-  Future<List<db_app.Measurement>> _rows(String? babyId, MeasureKind? kind) async {
+  Future<List<db_app.Measurement>> _rows(
+      String? babyId, MeasureKind? kind) async {
     final rows = await _database.getAllMeasurements();
+    // `babyId == null` = « tous les bébés » — même sémantique que le
+    // repository d'événements : un filtre strict équivaut à ne rien voir.
     final scoped = [
       for (final row in rows)
-        if (row.babyId == babyId && (kind == null || row.kind == kind.dbValue)) row,
+        if ((babyId == null || row.babyId == babyId) &&
+            (kind == null || row.kind == kind.dbValue))
+          row,
     ]..sort((a, b) {
         final byDate = b.recordedAt.compareTo(a.recordedAt);
         return byDate != 0 ? byDate : b.id.compareTo(a.id);
@@ -94,14 +100,16 @@ class MeasurementRepositoryImpl implements MeasurementRepository {
   }
 
   @override
-  Future<GrowthMeasurement?> latestOfKind(String? babyId, MeasureKind kind) async {
+  Future<GrowthMeasurement?> latestOfKind(
+      String? babyId, MeasureKind kind) async {
     final rows = await _rows(babyId, kind);
     if (rows.isEmpty) return null;
     return _toEntity(rows.first);
   }
 
   @override
-  Future<List<GrowthMeasurement>> allForBaby(String? babyId, {MeasureKind? kind}) async {
+  Future<List<GrowthMeasurement>> allForBaby(String? babyId,
+      {MeasureKind? kind}) async {
     final rows = await _rows(babyId, kind);
     final entities = <GrowthMeasurement>[];
     for (final row in rows) {
@@ -109,5 +117,41 @@ class MeasurementRepositoryImpl implements MeasurementRepository {
       if (entity != null) entities.add(entity);
     }
     return entities;
+  }
+
+  @override
+  Future<void> update(GrowthMeasurement measurement) async {
+    final id = measurement.id;
+    final value = measurement.value;
+    if (value == null) {
+      throw ArgumentError.value(
+          value, 'value', 'Impossible de mettre à jour une mesure sans valeur');
+    }
+    // Même garde-fou de borne qu'à l'insertion : une ligne hors plage ne
+    // doit jamais exister dans la table.
+    if (!measurement.kind.contains(value)) {
+      throw ArgumentError.value(value, 'value',
+          'Valeur hors bornes pour ${measurement.kind.dbValue}');
+    }
+    await (_database.update(_database.measurements)
+          ..where((t) => t.id.equals(id)))
+        .write(db_app.MeasurementsCompanion(
+      value: Value(_encryption.encrypt(value.toString())),
+      recordedAt: Value(measurement.recordedAt),
+      notes: Value(measurement.notes == null
+          ? null
+          : _encryption.encrypt(measurement.notes!)),
+    ));
+    // Kind et id uniquement — jamais la valeur (donnée de santé).
+    _logger.d('mesure mise à jour id=$id kind=${measurement.kind.dbValue}');
+  }
+
+  @override
+  Future<bool> deleteById(int id) async {
+    final deleted = await (_database.delete(_database.measurements)
+          ..where((t) => t.id.equals(id)))
+        .go();
+    if (deleted > 0) _logger.d('mesure supprimée id=$id');
+    return deleted > 0;
   }
 }

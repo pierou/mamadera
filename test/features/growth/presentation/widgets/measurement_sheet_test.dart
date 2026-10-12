@@ -43,7 +43,8 @@ class _FakeMeasurementRepository implements MeasurementRepository {
   }
 
   @override
-  Future<GrowthMeasurement?> latestOfKind(String? babyId, MeasureKind kind) async {
+  Future<GrowthMeasurement?> latestOfKind(
+      String? babyId, MeasureKind kind) async {
     for (final m in stored) {
       if (m.kind == kind && m.babyId == babyId) return m;
     }
@@ -51,10 +52,30 @@ class _FakeMeasurementRepository implements MeasurementRepository {
   }
 
   @override
-  Future<List<GrowthMeasurement>> allForBaby(String? babyId, {MeasureKind? kind}) async {
+  Future<List<GrowthMeasurement>> allForBaby(String? babyId,
+      {MeasureKind? kind}) async {
     return stored
         .where((m) => m.babyId == babyId && (kind == null || m.kind == kind))
         .toList();
+  }
+
+  @override
+  Future<void> update(GrowthMeasurement measurement) async {
+    final value = measurement.value;
+    if (value == null || !measurement.kind.contains(value)) {
+      throw ArgumentError.value(value, 'value');
+    }
+    final index = stored.indexWhere((m) => m.id == measurement.id);
+    if (index == -1) return;
+    stored[index] = measurement;
+  }
+
+  @override
+  Future<bool> deleteById(int id) async {
+    final index = stored.indexWhere((m) => m.id == id);
+    if (index == -1) return false;
+    stored.removeAt(index);
+    return true;
   }
 }
 
@@ -90,11 +111,17 @@ void main() {
       MeasureKind kind, {
       String locale = 'fr',
     }) async {
+      // La feuille se déploie en bottom sheet sur un téléphone : la vue de
+      // test est mise aux dimensions d'un téléphone moderne (412×915 dp),
+      // pas aux 800×600 par défaut qui n'ont jamais été sa surface cible.
+      tester.view.physicalSize = const Size(412, 915);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            measurementRepositoryProvider
-                .overrideWith((ref) async => fakeRepo),
+            measurementRepositoryProvider.overrideWith((ref) async => fakeRepo),
             measurementNotifierProvider.overrideWith(
               () => _TestMeasurementNotifier(const []),
             ),
@@ -123,34 +150,41 @@ void main() {
 
     Finder saveButton() => find.widgetWithText(ElevatedButton, 'Enregistrer');
 
-    testWidgets('temperature opens at 37,0 °C with no out-of-range error',
-        (tester) async {
+    testWidgets(
+        'temperature opens with an empty field, the default as hint, and a '
+        'disabled save', (tester) async {
       await pumpSheet(tester, MeasureKind.temperature);
       await tester.pumpAndSettle();
 
+      // Le champ part vide : une valeur pré-remplie serait une mesure
+      // inventée. L'appoint affiche la référence du type.
+      expect(tester.widget<TextField>(valueField()).controller!.text, isEmpty);
       expect(find.text('37,0 °C'), findsOneWidget);
       expect(
         find.text('Valeur hors plage : entre 33 et 42 °C.'),
         findsNothing,
       );
-      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNotNull);
+      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNull);
     });
 
-    testWidgets('weight opens at 3500 g with no out-of-range error',
-        (tester) async {
+    testWidgets(
+        'weight opens with an empty field, the default as hint, and a '
+        'disabled save', (tester) async {
       await pumpSheet(tester, MeasureKind.poids);
       await tester.pumpAndSettle();
 
-      expect(find.text('3500 g'), findsOneWidget);
+      // Au-delà de 1000 g, l'affichage est en kg : l'appoint est « 3,5 kg ».
+      expect(find.text('3,5 kg'), findsOneWidget);
       expect(
         find.text('Valeur hors plage : entre 200 et 20000 g.'),
         findsNothing,
       );
-      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNotNull);
+      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNull);
     });
 
-    testWidgets('height opens at 50,0 cm with no out-of-range error',
-        (tester) async {
+    testWidgets(
+        'height opens with an empty field, the default as hint, and a '
+        'disabled save', (tester) async {
       await pumpSheet(tester, MeasureKind.taille);
       await tester.pumpAndSettle();
 
@@ -159,10 +193,11 @@ void main() {
         find.text('Valeur hors plage : entre 30 et 110 cm.'),
         findsNothing,
       );
-      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNotNull);
+      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNull);
     });
 
-    testWidgets('cancelling a freshly opened sheet stores nothing', (tester) async {
+    testWidgets('cancelling a freshly opened sheet stores nothing',
+        (tester) async {
       await pumpSheet(tester, MeasureKind.temperature);
       await tester.pumpAndSettle();
 
@@ -181,7 +216,8 @@ void main() {
       await tester.enterText(valueField(), '3500');
       await tester.pumpAndSettle();
 
-      expect(find.text('Valeur hors plage : entre 200 et 20000 g.'), findsNothing);
+      expect(
+          find.text('Valeur hors plage : entre 200 et 20000 g.'), findsNothing);
       expect(find.text('3500 g'), findsOneWidget);
       expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNotNull);
     });
@@ -300,10 +336,12 @@ void main() {
       await tester.enterText(valueField(), '36.5');
       await tester.pumpAndSettle();
 
-      final noteField = find.descendant(
-        of: find.byType(MeasurementSheet),
-        matching: find.byType(TextField),
-      ).last;
+      final noteField = find
+          .descendant(
+            of: find.byType(MeasurementSheet),
+            matching: find.byType(TextField),
+          )
+          .last;
       await tester.enterText(noteField, 'sous le bras');
       await tester.pumpAndSettle();
 
@@ -324,7 +362,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(fakeRepo.stored, isEmpty);
-      expect(find.byType(MeasurementSheet), findsNothing);
     });
 
     testWidgets(
@@ -333,10 +370,13 @@ void main() {
       await pumpSheet(tester, MeasureKind.temperature);
       await tester.pumpAndSettle();
 
-      // Le slider offre un cran par dixième : 90 crans sur la plage.
-      final slider = tester.widget<Slider>(find.byType(Slider));
-      expect(slider.divisions, 90);
-      expect(slider.max - slider.min, 9);
+      // Paire B2 : le grossier couvre 33–42 °C au pas de 1, le fin une
+      // fenêtre de ±1 °C au pas de 0,1 (20 divisions).
+      final fine = find
+          .byWidgetPredicate((w) => w is Slider && (w.divisions ?? 0) == 20);
+      expect(fine, findsOneWidget);
+      final slider = tester.widget<Slider>(fine);
+      expect(slider.max - slider.min, 2);
 
       await tester.enterText(valueField(), '37,4');
       await tester.pumpAndSettle();

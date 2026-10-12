@@ -35,7 +35,9 @@ void main() {
         expect(result, isNull);
       });
 
-      test('a solid food event does not complete milk feeding reminders (exact subtype match)', () async {
+      test(
+          'a solid food event does not complete milk feeding reminders (exact subtype match)',
+          () async {
         // Un purée ne réhydrate pas un nouveau-né : les rappels miam matchent
         // le sous-type EXACTEMENT (choix assumé, pas une omission — BACKLOG
         // B1). Un match approximatif marquerait « nourri » et éteindrait les
@@ -63,13 +65,14 @@ void main() {
         );
 
         await database.into(database.trackingEvents).insert(
-          TrackingEventsCompanion.insert(
-            type: 'miam',
-            subtype: const Value('solid'),
-            quantity: const Value(40.0),
-            timestamp: DateTime.now(),
-          ),
-        );
+              TrackingEventsCompanion.insert(
+                unit: 'g',
+                type: 'miam',
+                subtype: const Value('solid'),
+                quantity: const Value(40.0),
+                timestamp: DateTime.now(),
+              ),
+            );
 
         // Le purée règle uniquement le rappel « solide » — pas les laits.
         expect(await repository.getLastCompleted(miamSolid), isNotNull);
@@ -82,12 +85,13 @@ void main() {
         // to show as due even when tracked 1 day ago. Now returns last completed ever.
         final yesterday = DateTime.now().subtract(const Duration(days: 1));
         await database.into(database.trackingEvents).insert(
-          TrackingEventsCompanion.insert(
-            type: vitaminDItem.trackingType.name,
-            subtype: Value(vitaminDItem.subtypeValue),
-            timestamp: yesterday,
-          ),
-        );
+              TrackingEventsCompanion.insert(
+                unit: 'ml',
+                type: vitaminDItem.trackingType.name,
+                subtype: Value(vitaminDItem.subtypeValue),
+                timestamp: yesterday,
+              ),
+            );
 
         final result = await repository.getLastCompleted(vitaminDItem);
         expect(result, isNotNull);
@@ -97,12 +101,13 @@ void main() {
       test('returns event timestamp from today', () async {
         final now = DateTime.now();
         await database.into(database.trackingEvents).insert(
-          TrackingEventsCompanion.insert(
-            type: vitaminDItem.trackingType.name,
-            subtype: Value(vitaminDItem.subtypeValue),
-            timestamp: now,
-          ),
-        );
+              TrackingEventsCompanion.insert(
+                unit: 'ml',
+                type: vitaminDItem.trackingType.name,
+                subtype: Value(vitaminDItem.subtypeValue),
+                timestamp: now,
+              ),
+            );
 
         final result = await repository.getLastCompleted(vitaminDItem);
         expect(result, isNotNull);
@@ -115,21 +120,23 @@ void main() {
         // Ensures query returns the latest event, not an older one.
         final weekAgo = DateTime.now().subtract(const Duration(days: 7));
         final yesterday = DateTime.now().subtract(const Duration(days: 1));
-        
+
         await database.into(database.trackingEvents).insert(
-          TrackingEventsCompanion.insert(
-            type: vitaminDItem.trackingType.name,
-            subtype: Value(vitaminDItem.subtypeValue),
-            timestamp: weekAgo,
-          ),
-        );
+              TrackingEventsCompanion.insert(
+                unit: 'ml',
+                type: vitaminDItem.trackingType.name,
+                subtype: Value(vitaminDItem.subtypeValue),
+                timestamp: weekAgo,
+              ),
+            );
         await database.into(database.trackingEvents).insert(
-          TrackingEventsCompanion.insert(
-            type: vitaminDItem.trackingType.name,
-            subtype: Value(vitaminDItem.subtypeValue),
-            timestamp: yesterday,
-          ),
-        );
+              TrackingEventsCompanion.insert(
+                unit: 'ml',
+                type: vitaminDItem.trackingType.name,
+                subtype: Value(vitaminDItem.subtypeValue),
+                timestamp: yesterday,
+              ),
+            );
 
         final result = await repository.getLastCompleted(vitaminDItem);
         expect(result, isNotNull);
@@ -140,12 +147,13 @@ void main() {
       test('returns null for different tracking type', () async {
         final vitaminK = ReminderItemPresets.vitaminK;
         await database.into(database.trackingEvents).insert(
-          TrackingEventsCompanion.insert(
-            type: vitaminDItem.trackingType.name,
-            wasteType: Value(vitaminDItem.subtypeValue),
-            timestamp: DateTime.now(),
-          ),
-        );
+              TrackingEventsCompanion.insert(
+                unit: 'ml',
+                type: vitaminDItem.trackingType.name,
+                wasteType: Value(vitaminDItem.subtypeValue),
+                timestamp: DateTime.now(),
+              ),
+            );
 
         final result = await repository.getLastCompleted(vitaminK);
         expect(result, isNull);
@@ -156,24 +164,28 @@ void main() {
         final babyAEvent = DateTime.now().subtract(const Duration(days: 5));
         final babyBEvent = DateTime.now().subtract(const Duration(days: 1));
         await database.into(database.trackingEvents).insert(
-          TrackingEventsCompanion.insert(
-            type: vitaminDItem.trackingType.name,
-            subtype: Value(vitaminDItem.subtypeValue),
-            timestamp: babyAEvent,
-            babyId: const Value('baby_a'),
-          ),
-        );
+              TrackingEventsCompanion.insert(
+                unit: 'ml',
+                type: vitaminDItem.trackingType.name,
+                subtype: Value(vitaminDItem.subtypeValue),
+                timestamp: babyAEvent,
+                babyId: const Value('baby_a'),
+              ),
+            );
         await database.into(database.trackingEvents).insert(
-          TrackingEventsCompanion.insert(
-            type: vitaminDItem.trackingType.name,
-            subtype: Value(vitaminDItem.subtypeValue),
-            timestamp: babyBEvent,
-            babyId: const Value('baby_b'),
-          ),
-        );
+              TrackingEventsCompanion.insert(
+                unit: 'ml',
+                type: vitaminDItem.trackingType.name,
+                subtype: Value(vitaminDItem.subtypeValue),
+                timestamp: babyBEvent,
+                babyId: const Value('baby_b'),
+              ),
+            );
 
-        final forA = await repository.getLastCompleted(vitaminDItem, babyId: 'baby_a');
-        final forB = await repository.getLastCompleted(vitaminDItem, babyId: 'baby_b');
+        final forA =
+            await repository.getLastCompleted(vitaminDItem, babyId: 'baby_a');
+        final forB =
+            await repository.getLastCompleted(vitaminDItem, babyId: 'baby_b');
 
         // Each baby sees only its own last event, not the sibling's newer one.
         expect(forA!.day, equals(babyAEvent.day));
@@ -188,20 +200,22 @@ void main() {
         final older = DateTime.now().subtract(const Duration(days: 5));
         final recent = DateTime.now().subtract(const Duration(days: 1));
         await database.into(database.trackingEvents).insert(
-          TrackingEventsCompanion.insert(
-            type: vitaminDItem.trackingType.name,
-            subtype: Value(vitaminDItem.subtypeValue),
-            timestamp: older,
-            babyId: const Value('baby_a'),
-          ),
-        );
+              TrackingEventsCompanion.insert(
+                unit: 'ml',
+                type: vitaminDItem.trackingType.name,
+                subtype: Value(vitaminDItem.subtypeValue),
+                timestamp: older,
+                babyId: const Value('baby_a'),
+              ),
+            );
         await database.into(database.trackingEvents).insert(
-          TrackingEventsCompanion.insert(
-            type: vitaminDItem.trackingType.name,
-            subtype: Value(vitaminDItem.subtypeValue),
-            timestamp: recent,
-          ),
-        );
+              TrackingEventsCompanion.insert(
+                unit: 'ml',
+                type: vitaminDItem.trackingType.name,
+                subtype: Value(vitaminDItem.subtypeValue),
+                timestamp: recent,
+              ),
+            );
 
         final result = await repository.getLastCompleted(vitaminDItem);
 
@@ -236,7 +250,8 @@ void main() {
 
       test('keeps one row per reminder item', () async {
         await repository.setEnabled(vitaminDItem.id, enabled: false);
-        await repository.setEnabled(ReminderItemPresets.eyeCleaning.id, enabled: false);
+        await repository.setEnabled(ReminderItemPresets.eyeCleaning.id,
+            enabled: false);
 
         expect(
           await repository.getEnabledByItemId(),
@@ -324,13 +339,15 @@ void main() {
 
       // Le jour d'un rythme mensuel n'appartient pas au rappel : il suit la
       // date de naissance du bébé actif. La base ne peut pas le détenir.
-      test('a monthly reminder is stored without a day and read on the fallback day',
+      test(
+          'a monthly reminder is stored without a day and read on the fallback day',
           () async {
         await repository.insertCustomReminder(
           reminder(frequency: const ReminderFrequency.monthly(dayOfMonth: 27)),
         );
 
-        final stored = await database.select(database.customReminders).getSingle();
+        final stored =
+            await database.select(database.customReminders).getSingle();
         expect(stored.frequency, 'monthly');
         expect(stored.intervalDays, isNull);
 
@@ -346,7 +363,8 @@ void main() {
       // Un code inconnu vient d'un JSON édité à la main ou d'une version future
       // de l'app. Le jeter priverait le parent d'un rappel qu'il peut encore
       // corriger : on redescend sur quotidien, le plus prudent.
-      test('an unknown frequency code degrades to daily instead of dropping the row',
+      test(
+          'an unknown frequency code degrades to daily instead of dropping the row',
           () async {
         await insertRaw(frequency: 'every_fortnight');
 
@@ -382,13 +400,16 @@ void main() {
         );
         // Aucune ligne parasites derrière les refus : le nom est validé avant
         // l'écriture, pas après.
-        expect(await database.select(database.customReminders).get(), hasLength(1));
+        expect(await database.select(database.customReminders).get(),
+            hasLength(1));
       });
 
       // Le refus du libellé ne doit pas non plus être l'occasion de fuiter le
       // texte saisi : c'est du texte de parent, pas une clé technique.
-      test('a rejected label does not reach the error message verbatim', () async {
-        const secret = 'Vaulto — problème de reflux très douloureux après chaque prise du soir';
+      test('a rejected label does not reach the error message verbatim',
+          () async {
+        const secret =
+            'Vaulto — problème de reflux très douloureux après chaque prise du soir';
         try {
           await repository.insertCustomReminder(reminder(label: secret));
           fail('un libellé de 60+ caractères aurait dû être refusé');
@@ -437,11 +458,11 @@ void main() {
         // Ligne d'extinction insérée à la main : les sauvegardes importées en
         // contiennent, et la suppression doit les emporter.
         await database.into(database.reminderDismissals).insert(
-          ReminderDismissalsCompanion.insert(
-            itemId: key,
-            dismissedAt: DateTime.now(),
-          ),
-        );
+              ReminderDismissalsCompanion.insert(
+                itemId: key,
+                dismissedAt: DateTime.now(),
+              ),
+            );
         expect(await repository.getEnabledByItemId(), contains(key));
         expect(await database.getAllReminderDismissals(), hasLength(1));
 
@@ -493,7 +514,8 @@ void main() {
     });
 
     group('complétions manuelles (reminder_completions)', () {
-      test('recordCompletion appends a row readable by getLastManualCompletion', () async {
+      test('recordCompletion appends a row readable by getLastManualCompletion',
+          () async {
         final at = DateTime(2026, 3, 12, 9, 30);
         await repository.recordCompletion('vitamine_d', at: at);
 
@@ -501,8 +523,10 @@ void main() {
       });
 
       test('the most recent completion wins', () async {
-        await repository.recordCompletion('vitamine_d', at: DateTime(2026, 3, 1));
-        await repository.recordCompletion('vitamine_d', at: DateTime(2026, 3, 2));
+        await repository.recordCompletion('vitamine_d',
+            at: DateTime(2026, 3, 1));
+        await repository.recordCompletion('vitamine_d',
+            at: DateTime(2026, 3, 2));
 
         expect(
           await repository.getLastManualCompletion('vitamine_d'),
@@ -518,18 +542,21 @@ void main() {
         );
 
         expect(
-          await repository.getLastManualCompletion('vitamine_d', babyId: 'baby_a'),
+          await repository.getLastManualCompletion('vitamine_d',
+              babyId: 'baby_a'),
           isNotNull,
         );
         expect(
-          await repository.getLastManualCompletion('vitamine_d', babyId: 'baby_b'),
+          await repository.getLastManualCompletion('vitamine_d',
+              babyId: 'baby_b'),
           isNull,
         );
       });
     });
 
     group('invariant D2 (item détaché)', () {
-      test('an item without subtype is never settled by an event, even of its own type',
+      test(
+          'an item without subtype is never settled by an event, even of its own type',
           () async {
         // Le piège : un événement `sante` existe, du bon domaine, même du bon
         // sous-type — mais l'item est détaché, il ne se règle qu'à la main.
@@ -540,23 +567,27 @@ void main() {
           trackingType: TrackingType.sante,
         );
         await database.into(database.trackingEvents).insert(
-          TrackingEventsCompanion.insert(
-            type: 'sante',
-            subtype: const Value('vitamine_d'),
-            timestamp: DateTime.now(),
-          ),
-        );
+              TrackingEventsCompanion.insert(
+                unit: 'ml',
+                type: 'sante',
+                subtype: const Value('vitamine_d'),
+                timestamp: DateTime.now(),
+              ),
+            );
 
         expect(await repository.getLastCompleted(detached), isNull);
-        expect(await repository.getLastCompleted(detached, babyId: 'baby_a'), isNull);
+        expect(await repository.getLastCompleted(detached, babyId: 'baby_a'),
+            isNull);
       });
     });
 
     group('ignorer (reminder_dismissals)', () {
       test('dismissReminder keeps one row per (baby, item) and refreshes it',
           () async {
-        await repository.dismissReminder('vitamine_d', at: DateTime(2026, 3, 1));
-        await repository.dismissReminder('vitamine_d', at: DateTime(2026, 3, 2));
+        await repository.dismissReminder('vitamine_d',
+            at: DateTime(2026, 3, 1));
+        await repository.dismissReminder('vitamine_d',
+            at: DateTime(2026, 3, 2));
 
         final rows = await database.select(database.reminderDismissals).get();
         expect(rows, hasLength(1));
@@ -578,12 +609,15 @@ void main() {
     });
 
     group('deux bébés partageant un préréglage (item M)', () {
-      test('enabled, dismissed et completed sont indépendants par bébé', () async {
+      test('enabled, dismissed et completed sont indépendants par bébé',
+          () async {
         const presetId = 'vitamine_d';
 
         // Éteint pour A, intact pour B.
         await repository.setEnabled(presetId, enabled: false, babyId: 'baby_a');
-        expect((await repository.getEnabledByItemId(babyId: 'baby_a'))[presetId], isFalse);
+        expect(
+            (await repository.getEnabledByItemId(babyId: 'baby_a'))[presetId],
+            isFalse);
         expect(
           await repository.getEnabledByItemId(babyId: 'baby_b'),
           isNot(contains(presetId)),
@@ -591,8 +625,10 @@ void main() {
 
         // Ignoré pour A, le frère B n'est pas touché.
         await repository.dismissReminder(presetId, babyId: 'baby_a');
-        expect(await repository.getLastDismissal(presetId, babyId: 'baby_a'), isNotNull);
-        expect(await repository.getLastDismissal(presetId, babyId: 'baby_b'), isNull);
+        expect(await repository.getLastDismissal(presetId, babyId: 'baby_a'),
+            isNotNull);
+        expect(await repository.getLastDismissal(presetId, babyId: 'baby_b'),
+            isNull);
 
         // Fait pour A, rien pour B.
         await repository.recordCompletion(presetId, babyId: 'baby_a');
@@ -609,7 +645,8 @@ void main() {
         // passage.
         expect(await database.getAllReminderSettings(), hasLength(1));
         expect(await database.getAllReminderDismissals(), hasLength(1));
-        expect(await database.select(database.reminderCompletions).get(), hasLength(1));
+        expect(await database.select(database.reminderCompletions).get(),
+            hasLength(1));
       });
     });
 
@@ -631,11 +668,16 @@ void main() {
         );
       });
 
-      test('la ligne propre au bébé est la seule ligne lue, pour lui seul', () async {
+      test('la ligne propre au bébé est la seule ligne lue, pour lui seul',
+          () async {
         await repository.setEnabled('vitamine_d', enabled: false);
-        await repository.setEnabled('vitamine_d', enabled: true, babyId: 'nouveau');
+        await repository.setEnabled('vitamine_d',
+            enabled: true, babyId: 'nouveau');
 
-        expect((await repository.getEnabledByItemId(babyId: 'nouveau'))['vitamine_d'], isTrue);
+        expect(
+            (await repository.getEnabledByItemId(
+                babyId: 'nouveau'))['vitamine_d'],
+            isTrue);
         // Le bébé « autre » ne lit ni sa propre ligne (absente) ni la ligne
         // sans profil : défaut, donc activé.
         expect(
@@ -660,13 +702,16 @@ void main() {
         await repository.recordCompletion('vitamine_d');
 
         expect(
-          await repository.getLastManualCompletion('vitamine_d', babyId: 'bébé_tard'),
+          await repository.getLastManualCompletion('vitamine_d',
+              babyId: 'bébé_tard'),
           isNull,
         );
-        expect(await repository.getLastManualCompletion('vitamine_d'), isNotNull);
+        expect(
+            await repository.getLastManualCompletion('vitamine_d'), isNotNull);
       });
 
-      test('a baby created later sees defaults, not another baby state', () async {
+      test('a baby created later sees defaults, not another baby state',
+          () async {
         // Le premier a éteint Vit. D, l'a ignorée et l'a marquée faite.
         await repository.setEnabled('vitamine_d', enabled: false, babyId: 'a');
         await repository.dismissReminder('vitamine_d', babyId: 'a');
@@ -675,8 +720,11 @@ void main() {
         // Le bébé b, créé après coup, n'hérite de rien : pas de réglage, pas
         // d'ignoré, pas de réglage manuel.
         expect(await repository.getEnabledByItemId(babyId: 'b'), isEmpty);
-        expect(await repository.getLastDismissal('vitamine_d', babyId: 'b'), isNull);
-        expect(await repository.getLastManualCompletion('vitamine_d', babyId: 'b'), isNull);
+        expect(await repository.getLastDismissal('vitamine_d', babyId: 'b'),
+            isNull);
+        expect(
+            await repository.getLastManualCompletion('vitamine_d', babyId: 'b'),
+            isNull);
       });
     });
 
@@ -690,11 +738,13 @@ void main() {
       test("un rappel créé pour A n'est pas visible par B", () async {
         await repository.insertCustomReminder(custom(), babyId: 'baby_a');
 
-        expect(await repository.getCustomReminders(babyId: 'baby_a'), hasLength(1));
+        expect(await repository.getCustomReminders(babyId: 'baby_a'),
+            hasLength(1));
         expect(await repository.getCustomReminders(babyId: 'baby_b'), isEmpty);
       });
 
-      test("un rappel créé sans profil n'est visible que sans profil", () async {
+      test("un rappel créé sans profil n'est visible que sans profil",
+          () async {
         await repository.insertCustomReminder(custom());
         final row = await database.select(database.customReminders).getSingle();
         expect(row.babyId, '');

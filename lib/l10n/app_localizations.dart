@@ -256,6 +256,30 @@ abstract class AppLocalizations {
   /// **'Nouvelle température'**
   String get growthSheetTitleTemperature;
 
+  /// No description provided for @growthSheetEditTitleWeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le poids'**
+  String get growthSheetEditTitleWeight;
+
+  /// No description provided for @growthSheetEditTitleHeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la taille'**
+  String get growthSheetEditTitleHeight;
+
+  /// No description provided for @growthSheetEditTitleTemperature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la température'**
+  String get growthSheetEditTitleTemperature;
+
+  /// No description provided for @growthSheetLastValueHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière : {value}'**
+  String growthSheetLastValueHint(Object value);
+
   /// No description provided for @growthSheetNoteField.
   ///
   /// In fr, this message translates to:
@@ -267,6 +291,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Enregistrer'**
   String get growthSheetSave;
+
+  /// No description provided for @growthMeasurementUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mesure mise à jour'**
+  String get growthMeasurementUpdated;
+
+  /// No description provided for @growthMeasurementDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mesure supprimée'**
+  String get growthMeasurementDeleted;
+
+  /// No description provided for @growthMeasurementUpdateError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la mise à jour de la mesure : {error}'**
+  String growthMeasurementUpdateError(Object error);
+
+  /// No description provided for @growthMeasurementDeleteError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la suppression de la mesure : {error}'**
+  String growthMeasurementDeleteError(Object error);
 
   /// No description provided for @growthValueUndecryptable.
   ///
@@ -940,6 +988,36 @@ abstract class AppLocalizations {
   /// **'Solide'**
   String get feedingSolid;
 
+  /// No description provided for @feedingValueOutOfRange.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valeur hors plage : entre {min} et {max} {unit}.'**
+  String feedingValueOutOfRange(Object min, Object max, Object unit);
+
+  /// No description provided for @feedingUnitLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Unité'**
+  String get feedingUnitLabel;
+
+  /// No description provided for @feedingUnitMl.
+  ///
+  /// In fr, this message translates to:
+  /// **'Millilitres'**
+  String get feedingUnitMl;
+
+  /// No description provided for @feedingUnitMin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Minutes'**
+  String get feedingUnitMin;
+
+  /// No description provided for @feedingUnitReset.
+  ///
+  /// In fr, this message translates to:
+  /// **'Unité modifiée : la quantité a été remise à 0.'**
+  String get feedingUnitReset;
+
   /// No description provided for @editDialogTitle.
   ///
   /// In fr, this message translates to:
@@ -1006,6 +1084,12 @@ abstract class AppLocalizations {
   /// **'g'**
   String get gramSuffix;
 
+  /// No description provided for @millilitreSuffix.
+  ///
+  /// In fr, this message translates to:
+  /// **'ml'**
+  String get millilitreSuffix;
+
   /// No description provided for @deleteDialogTitle.
   ///
   /// In fr, this message translates to:
@@ -1035,6 +1119,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Paramètres'**
   String get settingsBodyText;
+
+  /// No description provided for @sliderCoarse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Grossier'**
+  String get sliderCoarse;
+
+  /// No description provided for @sliderFine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Précis'**
+  String get sliderFine;
 
   /// No description provided for @languageSectionTitle.
   ///

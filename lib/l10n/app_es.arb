@@ -42,8 +42,31 @@
   "growthSheetTitleWeight": "Nuevo peso",
   "growthSheetTitleHeight": "Nueva altura",
   "growthSheetTitleTemperature": "Nueva temperatura",
+  "growthSheetEditTitleWeight": "Editar el peso",
+  "growthSheetEditTitleHeight": "Editar la altura",
+  "growthSheetEditTitleTemperature": "Editar la temperatura",
+  "@growthSheetLastValueHint": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "growthSheetLastValueHint": "Última: {value}",
   "growthSheetNoteField": "Nota (opcional)",
   "growthSheetSave": "Guardar",
+  "growthMeasurementUpdated": "Medición actualizada",
+  "growthMeasurementDeleted": "Medición eliminada",
+  "growthMeasurementUpdateError": "No se pudo actualizar la medición: {error}",
+  "@growthMeasurementUpdateError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "growthMeasurementDeleteError": "No se pudo eliminar la medición: {error}",
+  "@growthMeasurementDeleteError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "growthValueUndecryptable": "Valor ilegible",
 
   "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
@@ -250,6 +273,18 @@
   "feedingSubtypeNatural": "Leche Materna",
   "feedingSubtypeArtificial": "Fórmula Infantil",
   "feedingSolid": "Sólido",
+  "@feedingValueOutOfRange": {
+    "placeholders": {
+      "min": {},
+      "max": {},
+      "unit": {}
+    }
+  },
+  "feedingValueOutOfRange": "Fuera de rango: entre {min} y {max} {unit}.",
+  "feedingUnitLabel": "Unidad",
+  "feedingUnitMl": "Mililitros",
+  "feedingUnitMin": "Minutos",
+  "feedingUnitReset": "Unidad cambiada: la cantidad se ha restablecido a 0.",
 
   "editDialogTitle": "Editar evento",
   "eventDateSectionTitle": "Fecha y hora",
@@ -262,6 +297,7 @@
   "minutesHintText": "Minutos",
   "minuteSuffix": "min",
   "gramSuffix": "g",
+  "millilitreSuffix": "ml",
 
   "deleteDialogTitle": "Eliminar evento",
   "deleteDialogContent": "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
@@ -269,6 +305,8 @@
 
   "menuTitle": "Menú",
   "settingsBodyText": "Ajustes",
+  "sliderCoarse": "Grueso",
+  "sliderFine": "Fino",
   "languageSectionTitle": "Idioma",
   "languageEnglish": "English",
   "languageFrench": "Français",

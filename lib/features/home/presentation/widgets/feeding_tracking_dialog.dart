@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/l10n/unit_localization.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../core/widgets/event_date_time_field.dart';
+import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
 import 'quantity_picker_inline.dart';
@@ -13,19 +15,33 @@ import 'quantity_picker_inline.dart';
 ///
 /// Contains:
 /// - Feeding subtype chip selector (natural/artificial/solid) at the top
-/// - Quantity picker whose unit follows the selected subtype (min/ml/g) below
+/// - Unit toggle, **only** for `natural`: a feed at the breast is timed
+///   (minutes), expressed milk is measured (millilitres), and the same parent
+///   does both the same day
+/// - Quantity picker whose unit and range follow the selected unit
 /// - Date and time of the feed (defaults to now)
-/// - Confirm button that returns (feedingSubtype, quantity, timestamp)
+/// - Confirm button that returns (feedingSubtype, unit, quantity, timestamp)
 class FeedingTrackingDialog extends ConsumerStatefulWidget {
   const FeedingTrackingDialog({super.key});
 
   @override
-  ConsumerState<FeedingTrackingDialog> createState() => _FeedingTrackingDialogState();
+  ConsumerState<FeedingTrackingDialog> createState() =>
+      _FeedingTrackingDialogState();
 }
 
 class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
   late FeedingSubtype _selectedSubtype;
+
+  /// Unit of the quantity being entered. `min` at the open: a breastfeed is
+  /// timed, a bottle is measured.
+  late QuantityUnit _unit;
   double _selectedQuantity = 0;
+
+  /// La quantité est remise à 0 quand l'unité change, et le dialog le dit.
+  bool _unitResetNotice = false;
+
+  /// Nombre saisi hors des bornes ; `null` = dans la plage (ou rien saisi).
+  double? _outOfRange;
 
   /// Date and time of the feed. Defaulted once at open time: the dialog is
   /// rebuilt on every slider tick, so a plain field initialiser keeps the
@@ -36,29 +52,96 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
   void initState() {
     super.initState();
     _selectedSubtype = FeedingSubtype.natural; // Default to breast milk
+    _unit = QuantityUnit.min;
   }
 
   void _onQuantityChanged(double quantity) {
     setState(() {
       _selectedQuantity = quantity;
+      _outOfRange = null;
     });
   }
 
-  bool get _isSolid => _selectedSubtype == FeedingSubtype.solid;
-
-  /// L'unité du picker suit le sous-type sélectionné : minutes au sein,
-  /// millilitres (sein et biberon), grammes pour les solides. Afficher « 40 ml »
-  /// alors que « Solide » est sélectionné, ce serait un chiffre de santé
-  /// faux — exactement ce que l'app ne doit jamais afficher.
-  String _feedingUnit(BuildContext context) => switch (_selectedSubtype) {
-        // Le sein se saisit en ml comme le biberon — c'est ce que la colonne
-        // `quantity` a toujours stocké pour `miam` (`FeedingEvent` n'a pas de
-        // champ durée). Inventer des minutes ici re-étiquetterait des
-        // enregistrements existants de lait tiré en durée de tétée.
-        FeedingSubtype.natural => 'ml',
-        FeedingSubtype.artificial => 'ml',
-        FeedingSubtype.solid => context.l.gramSuffix,
+  /// Unit carried by a subtype: grams for solids, minutes at the breast,
+  /// millilitres for a bottle. Fixed for every subtype except `natural`,
+  /// where the parent chooses.
+  static QuantityUnit _unitFor(FeedingSubtype subtype) => switch (subtype) {
+        FeedingSubtype.natural => QuantityUnit.min,
+        FeedingSubtype.artificial => QuantityUnit.ml,
+        FeedingSubtype.solid => QuantityUnit.g,
       };
+
+  bool get _inRange => _outOfRange == null;
+
+  /// Sélection d'un sous-type : l'unité suit, et **le nombre ne survit pas à
+  /// un changement d'unité**.
+  ///
+  /// 20 ml n'est pas 20 minutes, et 20 min n'est pas 20 g. Conserver le
+  /// nombre en changeant l'étiquette, c'est exactement le défaut que cette
+  /// version supprime : le champ repart à 0 et le dialog le dit en inline.
+  void _selectSubtype(FeedingSubtype subtype) {
+    setState(() {
+      _selectedSubtype = subtype;
+      final nextUnit = _unitFor(subtype);
+      if (nextUnit != _unit) {
+        _unit = nextUnit;
+        _selectedQuantity = 0;
+        _unitResetNotice = true;
+      }
+      _outOfRange = null;
+    });
+  }
+
+  /// Choix du parent au sein (ml ↔ min) : même règle, aucun nombre ne change
+  /// d'unité en douceur.
+  void _selectUnit(QuantityUnit unit) {
+    if (unit == _unit) return;
+    setState(() {
+      _unit = unit;
+      _selectedQuantity = 0;
+      _unitResetNotice = true;
+      _outOfRange = null;
+    });
+  }
+
+  /// Bornes et pas du picker, **en fonction de l'unité choisie** (plan
+  /// v1.2.1) : `ml` 0–300 par 10, `min` 0–120 par 1, `g` 0–1000 par 5.
+  /// Une tétée de 40 minutes ne se saisit pas sur une plage de biberon, et
+  /// un volume de 5 ml se rate à un cran de 10.
+  ///
+  /// La paire [SliderPair] (B2) accompagne chaque unité : le slider grossier
+  /// amène au voisinage, le fin règle le dernier cran, le stepper ± reste le
+  /// nudge d'un quantum.
+  ({double min, double max, int divisions, double step, SliderPair sliderPair})
+      get _pickerSpec =>
+          switch (_unit) {
+            QuantityUnit.ml => (
+                  min: 0,
+                  max: 300,
+                  divisions: 30,
+                  step: 10,
+                  sliderPair: const (coarseStep: 50, fineSpan: 50, fineStep: 10)
+                ),
+            QuantityUnit.min => (
+                  min: 0,
+                  max: 120,
+                  divisions: 120,
+                  step: 1,
+                  sliderPair: const (coarseStep: 30, fineSpan: 30, fineStep: 5)
+                ),
+            QuantityUnit.g => (
+                  min: 0,
+                  max: 1000,
+                  divisions: 200,
+                  step: 5,
+                  sliderPair: const (coarseStep: 50, fineSpan: 50, fineStep: 10)
+                ),
+          };
+
+  /// L'unité affichée : celle de la ligne en cours de saisie, résolue depuis
+  /// la locale — jamais un `'ml'` écrit dans le widget.
+  String _feedingUnit(BuildContext context) =>
+      quantityUnitLabel(context, _unit);
 
   @override
   Widget build(BuildContext context) {
@@ -72,14 +155,20 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
             // Title
             Text(
               context.l.feedingDialogTitle,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
 
             // Feeding subtype selector
             Text(
               context.l.feedingSubtypeLabel,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Row(
@@ -99,7 +188,7 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                       ],
                     ),
                     selected: _selectedSubtype == FeedingSubtype.natural,
-                    onSelected: (_) => setState(() => _selectedSubtype = FeedingSubtype.natural),
+                    onSelected: (_) => _selectSubtype(FeedingSubtype.natural),
                     selectedColor: AppTheme.miam.withValues(alpha: 0.2),
                   ),
                 ),
@@ -119,7 +208,8 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                       ],
                     ),
                     selected: _selectedSubtype == FeedingSubtype.artificial,
-                    onSelected: (_) => setState(() => _selectedSubtype = FeedingSubtype.artificial),
+                    onSelected: (_) =>
+                        _selectSubtype(FeedingSubtype.artificial),
                     selectedColor: AppTheme.miam.withValues(alpha: 0.2),
                   ),
                 ),
@@ -139,7 +229,7 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                       ],
                     ),
                     selected: _selectedSubtype == FeedingSubtype.solid,
-                    onSelected: (_) => setState(() => _selectedSubtype = FeedingSubtype.solid),
+                    onSelected: (_) => _selectSubtype(FeedingSubtype.solid),
                     selectedColor: AppTheme.miam.withValues(alpha: 0.2),
                   ),
                 ),
@@ -147,24 +237,93 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
             ),
             const SizedBox(height: 24),
 
+            // Unité — le sein seul a deux unités légitimes : téter se compte
+            // en minutes, tirer se compte en millilitres, et la même mère fait
+            // les deux le même jour. Les autres sous-types restent figés.
+            if (_selectedSubtype == FeedingSubtype.natural) ...[
+              Text(
+                context.l.feedingUnitLabel,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<QuantityUnit>(
+                segments: [
+                  ButtonSegment(
+                    value: QuantityUnit.ml,
+                    label: Text(context.l.feedingUnitMl),
+                  ),
+                  ButtonSegment(
+                    value: QuantityUnit.min,
+                    label: Text(context.l.feedingUnitMin),
+                  ),
+                ],
+                selected: {_unit},
+                showSelectedIcon: false,
+                onSelectionChanged: (selection) => _selectUnit(selection.first),
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            // Le message de remise à 0 sort du bloc `natural` : passer de
+            // « Lait Maternel » (min) à « Solide » (g) remet aussi la quantité
+            // à 0, et une remise à 0 silencieuse est le défaut que v1.2.1
+            // existe à supprimer.
+            if (_unitResetNotice) ...[
+              const SizedBox(height: 8),
+              Text(
+                context.l.feedingUnitReset,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
             // Quantity section
             Text(
               context.l.feedingQuantityLabel,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             QuantityPickerInline(
               unit: _feedingUnit(context),
-              min: 0,
-              // Les solides se pèsent en grammes sur une plus large plage.
-              max: _isSolid ? 1000 : 300,
-              divisions: _isSolid ? 200 : 30,
-              // Stepper aligné sur le pas du slider : 200 crans sur 1000 g,
-              // 30 crans sur 300 (min ou ml).
-              step: _isSolid ? 5 : 10,
+              min: _pickerSpec.min,
+              max: _pickerSpec.max,
+              divisions: _pickerSpec.divisions,
+              // Stepper aligné sur le pas du slider pour l'unité courante.
+              step: _pickerSpec.step,
+              sliderPair: _pickerSpec.sliderPair,
               value: _selectedQuantity,
               onValueChanged: _onQuantityChanged,
+              // Une saisie hors plage ne se tait plus (BACKLOG B5) : le nombre
+              // du parent reste à l'écran, l'erreur s'affiche, et Enregistrer
+              // reste désactivé. Jamais de `clamp` : corriger un nombre de
+              // parent sans le lui dire est ce que cette app refuse.
+              onValueOutOfRange: (value) => setState(() {
+                _selectedQuantity = value;
+                _outOfRange = value;
+              }),
             ),
+
+            if (!_inRange) ...[
+              const SizedBox(height: 8),
+              Text(
+                context.l.feedingValueOutOfRange(
+                  _pickerSpec.min.toInt().toString(),
+                  _pickerSpec.max.toInt().toString(),
+                  _feedingUnit(context),
+                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+              ),
+            ],
 
             const SizedBox(height: 24),
 
@@ -177,15 +336,20 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
 
             DialogActionButtons(
               onCancelPressed: () => Navigator.pop(context),
-              onConfirmPressed: () {
-                if (context.mounted) {
-                  Navigator.pop(context, {
-                    'subtype': _selectedSubtype,
-                    'quantity': _selectedQuantity,
-                    'timestamp': _selectedDate,
-                  });
-                }
-              },
+              onConfirmPressed: _inRange
+                  ? () {
+                      if (context.mounted) {
+                        Navigator.pop(context, {
+                          'subtype': _selectedSubtype,
+                          // L'unité part avec le nombre : c'est elle qui dit ce
+                          // que le chiffre veut dire.
+                          'unit': _unit,
+                          'quantity': _selectedQuantity,
+                          'timestamp': _selectedDate,
+                        });
+                      }
+                    }
+                  : null,
               cancelLabel: context.l.cancelButton,
               confirmLabel: context.l.confirmButton,
             ),

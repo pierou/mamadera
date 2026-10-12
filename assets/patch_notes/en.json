@@ -87,5 +87,24 @@
       "- Remove a deleted baby's reminders, switches, completions and measurements from the device",
       ""
     ]
+  },
+  "1.2.1": {
+    "releaseDate": "2026-10-12",
+    "title": "What's New in Mamadera 1.2.1",
+    "items": [
+      "### New features",
+      "- Unified history timeline: growth measurements appear alongside events, sorted by time",
+      "- Edit or delete a measurement directly from history",
+      "- Coarse/fine dual slider for wide ranges (feedings in minutes, weight in grams)",
+      "### Improvements",
+      "- Breastfeeding entry defaults to minutes, with an ml/min toggle",
+      "- Quantity resets to zero on every unit change, with a visible message",
+      "- Out-of-range growth values refuse to save, showing the expected range",
+      "### Fixes",
+      "- Missing minutes in English dates (\"07:PM\") now display",
+      "- Dropped the doubled unit on the growth trajectory (\"6.18 kg g\")",
+      "- Decimal separator in quantity fields now follows the chosen language",
+      ""
+    ]
   }
 }

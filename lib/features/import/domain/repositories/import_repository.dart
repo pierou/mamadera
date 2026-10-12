@@ -7,6 +7,8 @@
 /// backup that restores half is worse than no restore at all.
 library;
 
+import '../../../../shared/domain/entities/quantity_unit.dart';
+
 /// Number of rows of each table held by a parsed backup file.
 ///
 /// Used for the confirmation summary (the user must see what they are about to
@@ -88,6 +90,12 @@ class ImportedTrackingEvent {
     required this.texture,
     required this.babyId,
     required this.quantity,
+
+    /// Unit of [quantity]. Never absent in the parsed model: a format-1 or
+    /// format-2 document carries no `unit`, and the parser backfills it with
+    /// the unit the parent saw on screen, so the restore below never has to
+    /// guess.
+    required this.unit,
   });
 
   /// Event identifier, preserved from the file (explicit rowid on insert).
@@ -102,6 +110,10 @@ class ImportedTrackingEvent {
 
   /// Duration in minutes, when present.
   final double? duration;
+
+  /// Unit of [quantity], as validated (format 3) or backfilled (formats 1-2)
+  /// by the parser.
+  final QuantityUnit unit;
 
   /// Typed subtype, passed through un-interpreted (see the parser dartdoc).
   final String? subtype;

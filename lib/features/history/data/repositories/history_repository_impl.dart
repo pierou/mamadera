@@ -5,6 +5,7 @@ import '../../../../core/services/encryption_service.dart';
 import '../../../../data/local/app_db.dart' as db_app;
 import '../../../../data/local/db_constants.dart' as db_const;
 import '../../../../data/local/tracking_event_mapper.dart' as mapper;
+import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../domain/repositories/history_repository.dart';
@@ -27,26 +28,34 @@ class HistoryRepositoryImpl implements HistoryRepository {
   }
 
   @override
-  Future<List<TrackingEvent>> getEventsByType(TrackingType type, {String? babyId}) async {
+  Future<List<TrackingEvent>> getEventsByType(TrackingType type,
+      {String? babyId}) async {
     final rows = babyId != null
-        ? await _database.getEventsByBabyId(babyId)
-            .then((events) => events.where((row) => row.type == type.name).toList())
+        ? await _database.getEventsByBabyId(babyId).then(
+            (events) => events.where((row) => row.type == type.name).toList())
         : await _database.getEventsByType(type.name);
     return rows.map((row) => mapper.mapToEntity(row, encryption)).toList();
   }
 
   /// Met à jour un événement existant avec les champs du nouveau subtype.
   @override
-  Future<bool> updateEvent({required int id, required TrackingEvent event}) async {
+  Future<bool> updateEvent(
+      {required int id, required TrackingEvent event}) async {
     db_app.TrackingEventsCompanion companion;
     companion = event.map(
       (e) => throw StateError('Cannot update base TrackingEvent'),
       feeding: (e) {
-        final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+        final encryptedNotes =
+            e.notes != null ? encryption.encrypt(e.notes!) : null;
         return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeMiam),
           timestamp: Value(e.timestamp),
           subtype: Value(e.subtype.name),
+          // Écrit à chaque update : changer de sous-type change l'unité
+          // (`natural`+`min` → `solid`+`g`), et une unité qui resterait celle
+          // de l'ancienne ligne re-étiquetterait un nombre qu'on vient de
+          // remplacer.
+          unit: Value(e.unit.dbValue),
           notes: Value(encryptedNotes),
           babyId: Value(e.babyId),
           quantity: Value(e.quantity),
@@ -55,11 +64,17 @@ class HistoryRepositoryImpl implements HistoryRepository {
         );
       },
       sleep: (e) {
-        final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+        final encryptedNotes =
+            e.notes != null ? encryption.encrypt(e.notes!) : null;
         return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeDodo),
           timestamp: Value(e.timestamp),
           duration: Value(e.duration),
+          unit: Value(e.unit.dbValue),
+          // `quantity` mirror de `duration` à la saisie ; sans lui ici, éditer
+          // une sieste laissait l'ancien nombre sous la nouvelle unité — deux
+          // minutes affichées côte à côte, dont une fausse.
+          quantity: Value(e.quantity ?? e.duration),
           notes: Value(encryptedNotes),
           babyId: Value(e.babyId),
           wasteType: const Value.absent(),
@@ -67,11 +82,13 @@ class HistoryRepositoryImpl implements HistoryRepository {
         );
       },
       diaper: (e) {
-        final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+        final encryptedNotes =
+            e.notes != null ? encryption.encrypt(e.notes!) : null;
         return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeCaca),
           timestamp: Value(e.timestamp),
           duration: const Value.absent(),
+          unit: Value(defaultUnitFor(typeValue: db_const.typeCaca).dbValue),
           notes: Value(encryptedNotes),
           babyId: Value(e.babyId),
           wasteType: Value(e.wasteType?.dbValue),
@@ -80,12 +97,14 @@ class HistoryRepositoryImpl implements HistoryRepository {
         );
       },
       health: (e) {
-        final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+        final encryptedNotes =
+            e.notes != null ? encryption.encrypt(e.notes!) : null;
         return db_app.TrackingEventsCompanion(
           type: const Value(db_const.typeSante),
           timestamp: Value(e.timestamp),
           duration: const Value.absent(),
           subtype: Value(e.subtype.value),
+          unit: Value(defaultUnitFor(typeValue: db_const.typeSante).dbValue),
           notes: Value(encryptedNotes),
           babyId: Value(e.babyId),
           wasteType: const Value.absent(),
@@ -104,4 +123,3 @@ class HistoryRepositoryImpl implements HistoryRepository {
     return _database.deleteEvent(id);
   }
 }
-

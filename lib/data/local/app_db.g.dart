@@ -342,6 +342,11 @@ class $TrackingEventsTable extends TrackingEvents
   late final GeneratedColumn<double> quantity = GeneratedColumn<double>(
       'quantity', aliasedName, true,
       type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+      'unit', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -354,7 +359,8 @@ class $TrackingEventsTable extends TrackingEvents
         color,
         texture,
         babyId,
-        quantity
+        quantity,
+        unit
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -413,6 +419,12 @@ class $TrackingEventsTable extends TrackingEvents
       context.handle(_quantityMeta,
           quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta));
     }
+    if (data.containsKey('unit')) {
+      context.handle(
+          _unitMeta, unit.isAcceptableOrUnknown(data['unit']!, _unitMeta));
+    } else if (isInserting) {
+      context.missing(_unitMeta);
+    }
     return context;
   }
 
@@ -444,6 +456,8 @@ class $TrackingEventsTable extends TrackingEvents
           .read(DriftSqlType.string, data['${effectivePrefix}baby_id']),
       quantity: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}quantity']),
+      unit: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unit'])!,
     );
   }
 
@@ -465,6 +479,16 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
   final String? texture;
   final String? babyId;
   final double? quantity;
+
+  /// Unit of [quantity] — `ml` | `min` | `g`. Schema v12.
+  ///
+  /// NOT NULL **sans DEFAULT côté Drift**, délibérément : avec un défaut, un
+  /// `TrackingEventsCompanion.insert` distrait écrirait « ml » à côté d'une
+  /// sieste en minutes, et c'est exactement le chiffre de santé faux que cette
+  /// colonne existe pour empêcher. Sans défaut, l'insertion ne compile que si
+  /// l'appelant nomme l'unité. Le `DEFAULT 'ml'` de l'`ALTER TABLE` de la
+  /// migration reste, lui : il sert à peupler les lignes déjà écrites.
+  final String unit;
   const TrackingEvent(
       {required this.id,
       required this.type,
@@ -476,7 +500,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       this.color,
       this.texture,
       this.babyId,
-      this.quantity});
+      this.quantity,
+      required this.unit});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -507,6 +532,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
     if (!nullToAbsent || quantity != null) {
       map['quantity'] = Variable<double>(quantity);
     }
+    map['unit'] = Variable<String>(unit);
     return map;
   }
 
@@ -536,6 +562,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       quantity: quantity == null && nullToAbsent
           ? const Value.absent()
           : Value(quantity),
+      unit: Value(unit),
     );
   }
 
@@ -554,6 +581,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       texture: serializer.fromJson<String?>(json['texture']),
       babyId: serializer.fromJson<String?>(json['babyId']),
       quantity: serializer.fromJson<double?>(json['quantity']),
+      unit: serializer.fromJson<String>(json['unit']),
     );
   }
   @override
@@ -571,6 +599,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       'texture': serializer.toJson<String?>(texture),
       'babyId': serializer.toJson<String?>(babyId),
       'quantity': serializer.toJson<double?>(quantity),
+      'unit': serializer.toJson<String>(unit),
     };
   }
 
@@ -585,7 +614,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           Value<String?> color = const Value.absent(),
           Value<String?> texture = const Value.absent(),
           Value<String?> babyId = const Value.absent(),
-          Value<double?> quantity = const Value.absent()}) =>
+          Value<double?> quantity = const Value.absent(),
+          String? unit}) =>
       TrackingEvent(
         id: id ?? this.id,
         type: type ?? this.type,
@@ -598,6 +628,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
         texture: texture.present ? texture.value : this.texture,
         babyId: babyId.present ? babyId.value : this.babyId,
         quantity: quantity.present ? quantity.value : this.quantity,
+        unit: unit ?? this.unit,
       );
   TrackingEvent copyWithCompanion(TrackingEventsCompanion data) {
     return TrackingEvent(
@@ -612,6 +643,7 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
       texture: data.texture.present ? data.texture.value : this.texture,
       babyId: data.babyId.present ? data.babyId.value : this.babyId,
       quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      unit: data.unit.present ? data.unit.value : this.unit,
     );
   }
 
@@ -628,14 +660,15 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           ..write('color: $color, ')
           ..write('texture: $texture, ')
           ..write('babyId: $babyId, ')
-          ..write('quantity: $quantity')
+          ..write('quantity: $quantity, ')
+          ..write('unit: $unit')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, type, timestamp, duration, subtype, notes,
-      wasteType, color, texture, babyId, quantity);
+      wasteType, color, texture, babyId, quantity, unit);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -650,7 +683,8 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
           other.color == this.color &&
           other.texture == this.texture &&
           other.babyId == this.babyId &&
-          other.quantity == this.quantity);
+          other.quantity == this.quantity &&
+          other.unit == this.unit);
 }
 
 class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
@@ -665,6 +699,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
   final Value<String?> texture;
   final Value<String?> babyId;
   final Value<double?> quantity;
+  final Value<String> unit;
   const TrackingEventsCompanion({
     this.id = const Value.absent(),
     this.type = const Value.absent(),
@@ -677,6 +712,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     this.texture = const Value.absent(),
     this.babyId = const Value.absent(),
     this.quantity = const Value.absent(),
+    this.unit = const Value.absent(),
   });
   TrackingEventsCompanion.insert({
     this.id = const Value.absent(),
@@ -690,8 +726,10 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     this.texture = const Value.absent(),
     this.babyId = const Value.absent(),
     this.quantity = const Value.absent(),
+    required String unit,
   })  : type = Value(type),
-        timestamp = Value(timestamp);
+        timestamp = Value(timestamp),
+        unit = Value(unit);
   static Insertable<TrackingEvent> custom({
     Expression<int>? id,
     Expression<String>? type,
@@ -704,6 +742,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     Expression<String>? texture,
     Expression<String>? babyId,
     Expression<double>? quantity,
+    Expression<String>? unit,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -717,6 +756,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       if (texture != null) 'texture': texture,
       if (babyId != null) 'baby_id': babyId,
       if (quantity != null) 'quantity': quantity,
+      if (unit != null) 'unit': unit,
     });
   }
 
@@ -731,7 +771,8 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       Value<String?>? color,
       Value<String?>? texture,
       Value<String?>? babyId,
-      Value<double?>? quantity}) {
+      Value<double?>? quantity,
+      Value<String>? unit}) {
     return TrackingEventsCompanion(
       id: id ?? this.id,
       type: type ?? this.type,
@@ -744,6 +785,7 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
       texture: texture ?? this.texture,
       babyId: babyId ?? this.babyId,
       quantity: quantity ?? this.quantity,
+      unit: unit ?? this.unit,
     );
   }
 
@@ -783,6 +825,9 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
     if (quantity.present) {
       map['quantity'] = Variable<double>(quantity.value);
     }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
     return map;
   }
 
@@ -799,7 +844,8 @@ class TrackingEventsCompanion extends UpdateCompanion<TrackingEvent> {
           ..write('color: $color, ')
           ..write('texture: $texture, ')
           ..write('babyId: $babyId, ')
-          ..write('quantity: $quantity')
+          ..write('quantity: $quantity, ')
+          ..write('unit: $unit')
           ..write(')'))
         .toString();
   }
@@ -885,7 +931,7 @@ class $ReminderDismissalsTable extends ReminderDismissals
 
 class ReminderDismissal extends DataClass
     implements Insertable<ReminderDismissal> {
-  /// NOT NULL, `''` = partagé entre tous les bébés (sentinelle [db_const.sharedBabyId]).
+  /// NOT NULL, `''` = installation sans profil (sentinelle [db_const.sharedBabyId]).
   final String babyId;
   final String itemId;
   final DateTime dismissedAt;
@@ -1119,7 +1165,7 @@ class $ReminderSettingsTable extends ReminderSettings
 }
 
 class ReminderSetting extends DataClass implements Insertable<ReminderSetting> {
-  /// NOT NULL, `''` = partagé entre tous les bébés (sentinelle [db_const.sharedBabyId]).
+  /// NOT NULL, `''` = installation sans profil (sentinelle [db_const.sharedBabyId]).
   final String babyId;
   final String itemId;
   final bool enabled;
@@ -1419,8 +1465,9 @@ class $CustomRemindersTable extends CustomReminders
 class CustomReminder extends DataClass implements Insertable<CustomReminder> {
   final int id;
 
-  /// NOT NULL, `''` = rappel valable pour tous les bébés (lecture honnête des
-  /// lignes héritées de v10, où la table n'était pas scopée).
+  /// NOT NULL, `''` = rappel créé sans profil, visible sans profil seulement
+  /// (les lignes héritées de v10, où la table n'était pas scopée, restent
+  /// restaurables : l'import s'appuie sur la colonne, pas sur ce portage).
   final String babyId;
   final String label;
 
@@ -2513,6 +2560,7 @@ typedef $$TrackingEventsTableCreateCompanionBuilder = TrackingEventsCompanion
   Value<String?> texture,
   Value<String?> babyId,
   Value<double?> quantity,
+  required String unit,
 });
 typedef $$TrackingEventsTableUpdateCompanionBuilder = TrackingEventsCompanion
     Function({
@@ -2527,6 +2575,7 @@ typedef $$TrackingEventsTableUpdateCompanionBuilder = TrackingEventsCompanion
   Value<String?> texture,
   Value<String?> babyId,
   Value<double?> quantity,
+  Value<String> unit,
 });
 
 class $$TrackingEventsTableFilterComposer
@@ -2570,6 +2619,9 @@ class $$TrackingEventsTableFilterComposer
 
   ColumnFilters<double> get quantity => $composableBuilder(
       column: $table.quantity, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnFilters(column));
 }
 
 class $$TrackingEventsTableOrderingComposer
@@ -2613,6 +2665,9 @@ class $$TrackingEventsTableOrderingComposer
 
   ColumnOrderings<double> get quantity => $composableBuilder(
       column: $table.quantity, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnOrderings(column));
 }
 
 class $$TrackingEventsTableAnnotationComposer
@@ -2656,6 +2711,9 @@ class $$TrackingEventsTableAnnotationComposer
 
   GeneratedColumn<double> get quantity =>
       $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
 }
 
 class $$TrackingEventsTableTableManager extends RootTableManager<
@@ -2696,6 +2754,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             Value<String?> texture = const Value.absent(),
             Value<String?> babyId = const Value.absent(),
             Value<double?> quantity = const Value.absent(),
+            Value<String> unit = const Value.absent(),
           }) =>
               TrackingEventsCompanion(
             id: id,
@@ -2709,6 +2768,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             texture: texture,
             babyId: babyId,
             quantity: quantity,
+            unit: unit,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2722,6 +2782,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             Value<String?> texture = const Value.absent(),
             Value<String?> babyId = const Value.absent(),
             Value<double?> quantity = const Value.absent(),
+            required String unit,
           }) =>
               TrackingEventsCompanion.insert(
             id: id,
@@ -2735,6 +2796,7 @@ class $$TrackingEventsTableTableManager extends RootTableManager<
             texture: texture,
             babyId: babyId,
             quantity: quantity,
+            unit: unit,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

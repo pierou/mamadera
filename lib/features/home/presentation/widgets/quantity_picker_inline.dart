@@ -7,6 +7,12 @@ import 'package:intl/intl.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 
+/// Spécification de la paire de sliders gros/petit (BACKLOG B2) :
+/// `coarseStep` = pas du slider qui couvre toute la plage, `fineSpan` =
+/// demi-largeur de la fenêtre fine centrée sur la valeur courante, `fineStep`
+/// = pas de cette fenêtre.
+typedef SliderPair = ({double coarseStep, double fineSpan, double fineStep});
+
 /// Inline quantity picker widget for use inside other dialogs/forms.
 ///
 /// Unlike the modal `QuantityPickerDialog`, this does NOT wrap itself in a
@@ -23,6 +29,8 @@ class QuantityPickerInline extends StatefulWidget {
     this.decimals = 0,
     this.step,
     this.onValueOutOfRange,
+    this.sliderPair,
+    this.hintLabel,
     super.key,
   });
 
@@ -59,27 +67,79 @@ class QuantityPickerInline extends StatefulWidget {
   /// pas un arrondi, c'est une réponse fausse.
   final int decimals;
 
+  /// Paire de sliders (BACKLOG B2). Quand la plage compte plus d'une vingtaine
+  /// de crans au pas fin, un seul slider rend le dernier cran injoignable :
+  /// le slider **grossier** couvre toute la plage et amène au voisinage, le
+  /// slider **fin** (fenêtre de ±`fineSpan` centrée sur la valeur courante,
+  /// re-centrée à chaque crantissement du grossier) règle le dernier cran, et
+  /// le stepper ± reste le nudge d'un quantum.
+  ///
+  /// `null` (défaut) : le slider unique de [divisions], rendu inchangé.
+  /// [divisions] n'a plus de rôle quand la paire s'affiche.
+  final SliderPair? sliderPair;
+
+  /// Libellé d'appoint affiché **à la place de la valeur** tant que le parent
+  /// n'a rien saisi (feuille de mesure : « dernière : 36,8 °C »).
+  ///
+  /// Fourni, le champ texte démarre **vide** : la valeur de l'hôte n'est pas
+  /// une saisie du parent, et l'afficher comme telle, c'est la présenter
+  /// comme une mesure prise. L'hôte apprend que la saisie a eu lieu par le
+  /// premier appel à [onValueChanged] (slider, stepper ou champ) — c'est lui
+  /// qui décide d'activer sa sauvegarde.
+  final String? hintLabel;
+
   @override
   State<QuantityPickerInline> createState() => _QuantityPickerInlineState();
 }
 
 class _QuantityPickerInlineState extends State<QuantityPickerInline> {
+  /// Au-delà de ce nombre de crans au pas fin, un seul slider ne sert plus à
+  /// rien (un cran par demi-pixel) : c'est le seuil qui allume la paire B2.
+  static const int _kMaxSingleSliderStops = 20;
+
   late TextEditingController _textController;
+
+  /// `false` tant que le parent n'a rien saisi en mode `hintLabel` : le champ
+  /// reste vide et l'en-tête affiche l'appoint, pas la valeur de l'hôte.
+  bool _hasUserInput = false;
 
   /// Répétition du stepper au long-appui : annulée en [dispose], sinon un feu
   /// post-démontage appellerait `setState` sur un State mort.
   Timer? _repeatTimer;
 
+  /// Texte initial déjà calculé : `didChangeDependencies` repasse à chaque
+  /// changement de dépendance, le texte n'est écrit qu'une seule fois.
+  bool _textInitialized = false;
+
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: _textFor(widget.value));
+    _hasUserInput = widget.hintLabel == null;
+    _textController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Le texte initial dépend de la locale (séparateur décimal), un widget
+    // hérité : illisible dans `initState`, on l'écrit au premier passage de
+    // `didChangeDependencies`.
+    if (!_textInitialized) {
+      _textInitialized = true;
+      _textController.text =
+          widget.hintLabel == null ? _textFor(widget.value) : '';
+    }
   }
 
   @override
   void didUpdateWidget(covariant QuantityPickerInline oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value == widget.value) return;
+    // En mode appoint, une valeur qui bouge avant la première saisie est la
+    // valeur de l'hôte qui se déplace, pas un écho d'une saisie : le champ
+    // reste vide, sinon on pré-remplit ce que la feuille s'interdit de
+    // pré-remplir.
+    if (!_hasUserInput) return;
     // Ne pas réécrire ce que le parent est en train de taper : si le champ
     // représente déjà la valeur qu'on vient de recevoir, le texte est déjà bon
     // (« 37,5 » saisi, 37.5 reçu) et une réécriture placerait un point et
@@ -90,9 +150,20 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
   }
 
   /// Texte du champ : troncature historique quand il n'y a pas de décimale,
-  /// sinon la valeur telle qu'elle a été saisie.
-  String _textFor(double value) =>
-      widget.decimals == 0 ? value.toInt().toString() : value.toStringAsFixed(widget.decimals);
+  /// sinon la valeur locale-formée — « 37,4 » en français, pas « 37.4 » : un
+  /// point tapé par le clavier français devient une seconde décimale au
+  /// prochain cran, et la valeur affichée n'est plus celle qui sera stockée.
+  String _textFor(double value) {
+    if (widget.decimals == 0) return value.toInt().toString();
+    final symbol = _decimalSymbol();
+    return value.toStringAsFixed(widget.decimals).replaceAll('.', symbol);
+  }
+
+  /// Séparateur décimal de la locale courante (virgule en fr, point en en).
+  String _decimalSymbol() =>
+      NumberFormat('#,##0', Localizations.localeOf(context).toLanguageTag())
+          .symbols
+          .DECIMAL_SEP;
 
   @override
   void dispose() {
@@ -104,7 +175,8 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
   /// Valeur de référence du stepper : ce qui est affiché dans le champ, pas la
   /// position du slider. Si le parent a tapé `37,4`, `+` doit donner `37,5`.
   double _valueOnScreen() =>
-      double.tryParse(_textController.text.replaceAll(',', '.')) ?? widget.value;
+      double.tryParse(_textController.text.replaceAll(',', '.')) ??
+      widget.value;
 
   /// Un cran dans la direction donnée : l'arithmétique se fait en `double`,
   /// arrondie à [QuantityPickerInline.decimals] pour que `0.1 + 0.1 + 0.1`
@@ -115,13 +187,16 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
     final current = _valueOnScreen();
     // Garde-fou pour la répétition au long-appui : si la borne est atteinte
     // en cours de série, le timer n'ajoute plus rien.
-    final atBound = direction > 0 ? current >= widget.max : current <= widget.min;
+    final atBound =
+        direction > 0 ? current >= widget.max : current <= widget.min;
     if (atBound) return;
     final raw = current + direction * step;
-    final factor = widget.decimals == 0 ? 1.0 : math.pow(10, widget.decimals).toDouble();
+    final factor =
+        widget.decimals == 0 ? 1.0 : math.pow(10, widget.decimals).toDouble();
     final next = (raw * factor).round() / factor;
     final clamped = next.clamp(widget.min, widget.max);
     _textController.text = _textFor(clamped);
+    _hasUserInput = true;
     widget.onValueChanged(clamped);
   }
 
@@ -129,8 +204,8 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
   void _startRepeat(int direction) {
     _stopRepeat();
     _nudge(direction);
-    _repeatTimer =
-        Timer.periodic(const Duration(milliseconds: 120), (_) => _nudge(direction));
+    _repeatTimer = Timer.periodic(
+        const Duration(milliseconds: 120), (_) => _nudge(direction));
   }
 
   void _stopRepeat() {
@@ -150,7 +225,8 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
   Widget _buildStepButton(int direction) {
     final label = direction > 0 ? context.l.increment : context.l.decrement;
     final current = _valueOnScreen();
-    final atBound = direction > 0 ? current >= widget.max : current <= widget.min;
+    final atBound =
+        direction > 0 ? current >= widget.max : current <= widget.min;
     return Tooltip(
       message: label,
       child: InkResponse(
@@ -162,8 +238,11 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: Icon(
-            direction > 0 ? Icons.add_circle_outline : Icons.remove_circle_outline,
-            color: atBound ? Theme.of(context).disabledColor : widget.accentColor,
+            direction > 0
+                ? Icons.add_circle_outline
+                : Icons.remove_circle_outline,
+            color:
+                atBound ? Theme.of(context).disabledColor : widget.accentColor,
           ),
         ),
       ),
@@ -171,6 +250,7 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
   }
 
   void _onSliderChanged(double value) {
+    _hasUserInput = true;
     widget.onValueChanged(value);
   }
 
@@ -183,12 +263,14 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
     final parsed = double.tryParse(text.replaceAll(',', '.'));
     if (parsed == null) return;
     if (parsed >= widget.min && parsed <= widget.max) {
+      _hasUserInput = true;
       widget.onValueChanged(parsed);
     } else {
       // Hors plage : ne plus se taire. L'hôte reçoit la valeur saisie et
       // décide de l'affichage (son label d'erreur, sa sauvegarde désactivée).
       // L'erreur se lève et se lève seule : re-saisir dans la plage repasse
       // par `onValueChanged`.
+      _hasUserInput = true;
       widget.onValueOutOfRange?.call(parsed);
     }
   }
@@ -200,20 +282,133 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
     }
     // Locale-aware : une température s'affiche « 37,5 °C » en français, pas
     // « 37.5 ». C'est une donnée de santé, sa lisibilité compte.
-    final decimalSymbol = NumberFormat(
-      '#,##0',
-      Localizations.localeOf(context).toLanguageTag(),
-    ).symbols.DECIMAL_SEP;
-    return '${value.toStringAsFixed(widget.decimals).replaceAll('.', decimalSymbol)} ${widget.unit}';
+    return '${_textFor(value)} ${widget.unit}';
+  }
+
+  /// La paire s'allume quand la plage compte plus de [_kMaxSingleSliderStops]
+  /// crans au pas fin : en deçà, un seul slider suffit (règle du plan B2 —
+  /// ne jamais empiler deux sliders quand un seul fait le travail).
+  bool get _useSliderPair {
+    final pair = widget.sliderPair;
+    if (pair == null) return false;
+    return ((widget.max - widget.min) / pair.fineStep).round() >
+        _kMaxSingleSliderStops;
+  }
+
+  /// Fenêtre fine `(lo, hi)` : ±`fineSpan` autour de la valeur courante,
+  /// bornée à `[min, max]`, les bords alignés sur la grille de pas fin
+  /// (ancrée sur `min`) pour que le nombre de divisions soit entier et que la
+  /// valeur courante reste un cran atteignable.
+  (double lo, double hi) _fineWindow(SliderPair pair) {
+    final lo0 =
+        (widget.value - pair.fineSpan).clamp(widget.min, widget.max).toDouble();
+    final hi0 =
+        (widget.value + pair.fineSpan).clamp(widget.min, widget.max).toDouble();
+    final lo =
+        math.max(widget.min, (lo0 / pair.fineStep).floor() * pair.fineStep);
+    final hi =
+        math.min(widget.max, (hi0 / pair.fineStep).ceil() * pair.fineStep);
+    // Dégen (plage plus courte qu'un pas fin) : on dégénère en slider unique.
+    if (hi - lo < pair.fineStep) return (widget.min, widget.max);
+    return (lo, hi);
+  }
+
+  /// Slider thémé : un par rôle dans la paire, le seul en mode classique.
+  Widget _buildSlider({
+    required double min,
+    required double max,
+    required int divisions,
+    required double value,
+    required double clampedValue,
+  }) {
+    return SliderTheme(
+      data: SliderTheme.of(context).copyWith(
+        activeTrackColor: widget.accentColor,
+        inactiveTrackColor: Theme.of(context).colorScheme.outline,
+        thumbColor: widget.accentColor,
+        overlayColor: widget.accentColor.withValues(alpha: 0.2),
+        trackHeight: 4,
+      ),
+      child: Slider(
+        value: clampedValue,
+        min: min,
+        max: max,
+        divisions: math.max(1, divisions),
+        label: _formatValue(value),
+        onChanged: _onSliderChanged,
+      ),
+    );
+  }
+
+  /// Légende d'un slider de la paire : le parent doit savoir lequel des deux
+  /// cherche le voisinage et lequel règle le dernier cran.
+  Widget _pairCaption(String text) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildSliderRegion() {
+    final pair = widget.sliderPair;
+    if (pair == null || !_useSliderPair) {
+      return _buildSlider(
+        min: widget.min,
+        max: widget.max,
+        divisions: widget.divisions,
+        value: widget.value,
+        // `clamp` : une saisie hors plage (B5) garde le nombre affiché dans le
+        // champ ; le pouce reste à la borne, il ne doit pas faire lever
+        // l'assertion du Slider.
+        clampedValue: widget.value.clamp(widget.min, widget.max),
+      );
+    }
+    // La valeur hors plage clamped au grossier ; le fin ne voit que des
+    // valeurs dans sa fenêtre, elle-même dans `[min, max]`.
+    final coarseClamped = widget.value.clamp(widget.min, widget.max);
+    final (lo, hi) = _fineWindow(pair);
+    return Column(
+      children: [
+        _pairCaption(context.l.sliderCoarse),
+        _buildSlider(
+          min: widget.min,
+          max: widget.max,
+          divisions: ((widget.max - widget.min) / pair.coarseStep).round(),
+          value: widget.value,
+          clampedValue: coarseClamped,
+        ),
+        const SizedBox(height: 12),
+        _pairCaption(context.l.sliderFine),
+        _buildSlider(
+          min: lo,
+          max: hi,
+          divisions: ((hi - lo) / pair.fineStep).round(),
+          value: widget.value,
+          clampedValue: coarseClamped.clamp(lo, hi),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     // `step == null` : exactement le rendu d'aujourd'hui, sans stepper.
-    final valueText = Text(
-      _formatValue(widget.value),
+    final showingHint = widget.hintLabel != null;
+    final headerText = Text(
+      _hasUserInput || !showingHint
+          ? _formatValue(widget.value)
+          : widget.hintLabel!,
       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: widget.accentColor,
+            // L'appoint n'est pas une mesure : ton doux, pas la couleur
+            // d'accent réservée aux nombres.
+            color: _hasUserInput || !showingHint
+                ? widget.accentColor
+                : Theme.of(context).colorScheme.primary,
           ),
     );
     return Column(
@@ -221,39 +416,23 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
       children: [
         Center(
           child: widget.step == null
-              ? valueText
+              ? headerText
               : // `scaleDown` : identité visuelle quand la ligne tient, et
-                // réduction au lieu d'un overflow quand la feuille est étroite.
-                FittedBox(
+              // réduction au lieu d'un overflow quand la feuille est étroite.
+              FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _buildStepButton(-1),
-                      valueText,
+                      headerText,
                       _buildStepButton(1),
                     ],
                   ),
                 ),
         ),
         const SizedBox(height: 16),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: widget.accentColor,
-            inactiveTrackColor: Theme.of(context).colorScheme.outline,
-            thumbColor: widget.accentColor,
-            overlayColor: widget.accentColor.withValues(alpha: 0.2),
-            trackHeight: 4,
-          ),
-          child: Slider(
-            value: widget.value.clamp(widget.min, widget.max),
-            min: widget.min,
-            max: widget.max,
-            divisions: widget.divisions,
-            label: _formatValue(widget.value),
-            onChanged: _onSliderChanged,
-          ),
-        ),
+        _buildSliderRegion(),
         const SizedBox(height: 8),
         TextField(
           controller: _textController,
@@ -263,7 +442,8 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
           textAlign: TextAlign.center,
           decoration: InputDecoration(
             hintText: widget.unit,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             suffixText: widget.unit,
           ),

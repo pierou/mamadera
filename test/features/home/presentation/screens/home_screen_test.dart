@@ -7,6 +7,8 @@ import 'package:mamadera/l10n/app_localizations.dart';
 
 import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/core/config/app_config.dart';
+import 'package:mamadera/features/growth/domain/entities/measure_kind.dart';
+import 'package:mamadera/features/growth/domain/repositories/measurement_repository.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
 import 'package:mamadera/core/providers/any_baby_exists_provider.dart';
 import 'package:mamadera/core/providers/app_preferences_provider.dart';
@@ -76,6 +78,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          measurementRepositoryProvider
+              .overrideWith((ref) async => _FakeMeasurementRepository()),
           trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
           // La rangée de croissance ne doit pas ouvrir la vraie base en test.
           measurementNotifierProvider
@@ -85,8 +89,7 @@ void main() {
           anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
           // La section de rappels (D1) évalue le notifier ; la version de
           // test ne laisse pas le timer de sondage de cinq minutes en attente.
-          reminderNotifierProvider
-              .overrideWith(NoPollRemindersNotifier.new),
+          reminderNotifierProvider.overrideWith(NoPollRemindersNotifier.new),
         ],
         child: MaterialApp(
           locale: const Locale('fr'),
@@ -132,7 +135,8 @@ void main() {
   });
 
   group('Affichage des 4 TrackButtons', () {
-    testWidgets('Nourriture, Sante, Couche, Dodo sont affiches', (tester) async {
+    testWidgets('Nourriture, Sante, Couche, Dodo sont affiches',
+        (tester) async {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
@@ -142,12 +146,14 @@ void main() {
       expect(find.text('Dodo'), findsOneWidget);
     });
 
-    testWidgets('chaque TrackButton a la couleur AppTheme attendue', (tester) async {
+    testWidgets('chaque TrackButton a la couleur AppTheme attendue',
+        (tester) async {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
       // TrackButtons now use outlined cards with accent-colored borders and text
-      final trackButtons = tester.widgetList<TrackButton>(find.byType(TrackButton)).toList();
+      final trackButtons =
+          tester.widgetList<TrackButton>(find.byType(TrackButton)).toList();
       expect(trackButtons.length, 4);
 
       final colors = trackButtons.map((b) => b.color).toSet();
@@ -157,7 +163,8 @@ void main() {
       expect(colors.contains(AppTheme.dodo), isTrue, reason: 'Dodo');
     });
 
-    testWidgets('no BottomNavigationBar in HomeScreen (provided by AppShell)', (tester) async {
+    testWidgets('no BottomNavigationBar in HomeScreen (provided by AppShell)',
+        (tester) async {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
@@ -180,16 +187,16 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            trackingRepositoryProvider
-                .overrideWith((ref) async => mockRepo),
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
+            trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
             measurementNotifierProvider
                 .overrideWith(() => TestMeasurementNotifier(const [])),
             activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
             anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
             remindersRepositoryProvider
                 .overrideWith((ref) async => MockRemindersRepository()),
-            reminderNotifierProvider
-                .overrideWith(NoPollRemindersNotifier.new),
+            reminderNotifierProvider.overrideWith(NoPollRemindersNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -208,7 +215,8 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('les 4 rappels dus sont lisibles, grille et boutons de '
+    testWidgets(
+        'les 4 rappels dus sont lisibles, grille et boutons de '
         'croissance inchangés', (tester) async {
       await pumpHomeWithDueReminders(tester);
 
@@ -242,7 +250,8 @@ void main() {
       expect(find.byType(BottomSheet), findsOneWidget);
     });
 
-    testWidgets('les boutons de croissance restent utilisables : Poids '
+    testWidgets(
+        'les boutons de croissance restent utilisables : Poids '
         'ouvre sa feuille', (tester) async {
       await pumpHomeWithDueReminders(tester);
 
@@ -284,10 +293,10 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider
-                .overrideWith(_AcceptedPrefsNotifier.new),
-            trackingRepositoryProvider
-                .overrideWith((ref) async => mockRepo),
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
+            appPreferencesProvider.overrideWith(_AcceptedPrefsNotifier.new),
+            trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
             measurementNotifierProvider
                 .overrideWith(() => TestMeasurementNotifier(const [])),
             activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
@@ -296,8 +305,7 @@ void main() {
                 .overrideWith((ref) async => const <BabyProfile>[]),
             remindersRepositoryProvider
                 .overrideWith((ref) async => MockRemindersRepository()),
-            reminderNotifierProvider
-                .overrideWith(NoPollRemindersNotifier.new),
+            reminderNotifierProvider.overrideWith(NoPollRemindersNotifier.new),
             historyRepositoryProvider
                 .overrideWith((ref) async => _EmptyHistoryRepository()),
             localeProvider.overrideWith(_LocalePrefsNotifier.new),
@@ -356,7 +364,8 @@ void main() {
   // Interactions TrackButtons -> dialogs ouverts
   // ──────────────────────────────────────────────
   group('Interactions Nourriture/Sante/Couche/Dodo', () {
-    testWidgets('tap Nourriture -> ouvre FeedingTrackingDialog', (tester) async {
+    testWidgets('tap Nourriture -> ouvre FeedingTrackingDialog',
+        (tester) async {
       // Trois puces de sous-type : la feuille déborde du harnais 200×300.
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -401,7 +410,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // FilterChips avec emojis.
-        expect(find.text('🟡 Pipi'), findsOneWidget);
+      expect(find.text('🟡 Pipi'), findsOneWidget);
     });
 
     testWidgets('tap Dodo -> ouverture DurationPickerDialog', (tester) async {
@@ -424,7 +433,8 @@ void main() {
   // Confirmation des dialogues -> insertEvent appele
   // ──────────────────────────────────────────────
   group('Confirmation des dialogues', () {
-    testWidgets('Dodo: Confirmer envoie SleepEvent via insertEvent', (tester) async {
+    testWidgets('Dodo: Confirmer envoie SleepEvent via insertEvent',
+        (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
       await pumpHome(tester);
@@ -435,7 +445,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Durée par défaut (30 min).
-  expect(find.text('30 min'), findsOneWidget);
+      expect(find.text('30 min'), findsOneWidget);
 
       // Confirmer.
       final confirmBtn = find.descendant(
@@ -466,7 +476,8 @@ void main() {
       verifyNever(mockRepo.insertEvent(any));
     });
 
-    testWidgets('Sante: Confirmer sans selection -> SnackBar d\'erreur', (tester) async {
+    testWidgets('Sante: Confirmer sans selection -> SnackBar d\'erreur',
+        (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
       await pumpHome(tester);
@@ -489,7 +500,8 @@ void main() {
       expect(find.textContaining('électionner'), findsOneWidget);
     });
 
-    testWidgets('Sante: Selection + Confirmer -> HealthEvent via insertEvent', (tester) async {
+    testWidgets('Sante: Selection + Confirmer -> HealthEvent via insertEvent',
+        (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
       await pumpHome(tester);
@@ -518,7 +530,8 @@ void main() {
       expect(captured.first, isA<HealthEvent>());
     });
 
-    testWidgets('Couche: Confirmer -> DiaperEvent via insertEvent', (tester) async {
+    testWidgets('Couche: Confirmer -> DiaperEvent via insertEvent',
+        (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
       await pumpHome(tester);
@@ -528,8 +541,8 @@ void main() {
       await tester.tap(cacaBtn);
       await tester.pumpAndSettle();
 
-        expect(find.text('🟡 Pipi'), findsOneWidget);
-        expect(find.text('🟤 Caca'), findsOneWidget);
+      expect(find.text('🟡 Pipi'), findsOneWidget);
+      expect(find.text('🟤 Caca'), findsOneWidget);
 
       final confirmBtn = find.descendant(
         of: find.byType(BottomSheet),
@@ -548,7 +561,8 @@ void main() {
   // Date de l'événement à la création
   // ──────────────────────────────────────────────
   group('Date de saisie', () {
-    Future<void> openSheetAndConfirm(WidgetTester tester, String buttonLabel) async {
+    Future<void> openSheetAndConfirm(
+        WidgetTester tester, String buttonLabel) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
       await pumpHome(tester);
@@ -570,7 +584,8 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('Nourriture : la date par défaut est le moment de la saisie', (tester) async {
+    testWidgets('Nourriture : la date par défaut est le moment de la saisie',
+        (tester) async {
       // Trois puces de sous-type : la feuille d'alimentation déborde du
       // harnais 200×300 par défaut (comme les autres feuilles hautes).
       tester.view.devicePixelRatio = 1;
@@ -579,17 +594,20 @@ void main() {
       final before = DateTime.now();
       await openSheetAndConfirm(tester, 'Nourriture');
 
-      final event =
-          verify(mockRepo.insertEvent(captureAny)).captured.single as TrackingEvent;
-      expect(event.timestamp.isBefore(before.subtract(const Duration(minutes: 1))), isFalse);
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single
+          as TrackingEvent;
+      expect(
+          event.timestamp.isBefore(before.subtract(const Duration(minutes: 1))),
+          isFalse);
       expect(event.timestamp.isAfter(DateTime.now()), isFalse);
     });
 
-    testWidgets('Dodo : la date par défaut recule de la durée saisie', (tester) async {
+    testWidgets('Dodo : la date par défaut recule de la durée saisie',
+        (tester) async {
       await openSheetAndConfirm(tester, 'Dodo');
 
-      final event =
-          verify(mockRepo.insertEvent(captureAny)).captured.single as SleepEvent;
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single
+          as SleepEvent;
       // Durée par défaut du slider : 30 min → une sieste commencée à 20:30 est
       // enregistrée à 20:30, pas à l'heure du tic.
       final expected = DateTime.now().subtract(const Duration(minutes: 30));
@@ -597,17 +615,21 @@ void main() {
           reason: 'timestamp=${event.timestamp}, attendu≈$expected');
     });
 
-    testWidgets('Couche : la date par défaut est le moment de la saisie', (tester) async {
+    testWidgets('Couche : la date par défaut est le moment de la saisie',
+        (tester) async {
       final before = DateTime.now();
       await openSheetAndConfirm(tester, 'Couche');
 
-      final event =
-          verify(mockRepo.insertEvent(captureAny)).captured.single as TrackingEvent;
-      expect(event.timestamp.isBefore(before.subtract(const Duration(minutes: 1))), isFalse);
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single
+          as TrackingEvent;
+      expect(
+          event.timestamp.isBefore(before.subtract(const Duration(minutes: 1))),
+          isFalse);
       expect(event.timestamp.isAfter(DateTime.now()), isFalse);
     });
 
-    testWidgets('Santé : la date par défaut est le moment de la saisie', (tester) async {
+    testWidgets('Santé : la date par défaut est le moment de la saisie',
+        (tester) async {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
@@ -628,9 +650,12 @@ void main() {
       await tester.tap(confirmBtn, warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      final event =
-          verify(mockRepo.insertEvent(captureAny)).captured.single as TrackingEvent;
-      expect(event.timestamp.isAfter(DateTime.now().add(const Duration(minutes: 1))), isFalse);
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single
+          as TrackingEvent;
+      expect(
+          event.timestamp
+              .isAfter(DateTime.now().add(const Duration(minutes: 1))),
+          isFalse);
     });
   });
 
@@ -638,7 +663,8 @@ void main() {
   // Consistance des selles
   // ──────────────────────────────────────────────
   group('Consistance du caca', () {
-    testWidgets('une texture choisie est enregistrée sur l\'événement', (tester) async {
+    testWidgets('une texture choisie est enregistrée sur l\'événement',
+        (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
       await pumpHome(tester);
@@ -660,13 +686,15 @@ void main() {
       await tester.tap(confirmBtn, warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      final event = verify(mockRepo.insertEvent(captureAny)).captured.single as DiaperEvent;
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single
+          as DiaperEvent;
       expect(event.stoolTexture, equals(stoolTexturePateuse));
     });
 
     // Régression : la consistance reste optionnelle. Un parent qui ne saisit
     // rien ne doit pas voir son historique rempli d'un cran deviné.
-    testWidgets('aucune texture saisie → événement sans texture', (tester) async {
+    testWidgets('aucune texture saisie → événement sans texture',
+        (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
 
       await pumpHome(tester);
@@ -683,7 +711,8 @@ void main() {
       await tester.tap(confirmBtn, warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      final event = verify(mockRepo.insertEvent(captureAny)).captured.single as DiaperEvent;
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single
+          as DiaperEvent;
       expect(event.stoolTexture, equals(null));
     });
   });
@@ -692,7 +721,8 @@ void main() {
   // Onboarding dialog shown only when no profiles exist
   // ──────────────────────────────────────────────
   group('Onboarding dialog', () {
-    testWidgets('onboarding NOT shown when baby profiles exist', (tester) async {
+    testWidgets('onboarding NOT shown when baby profiles exist',
+        (tester) async {
       TestAnyBabyExistsNotifier.anyExists = true;
       await pumpHome(tester);
       await tester.pumpAndSettle();
@@ -727,6 +757,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
             measurementNotifierProvider
                 .overrideWith(() => TestMeasurementNotifier(const [])),
@@ -843,7 +875,8 @@ class _LocalePrefsNotifier extends LocaleNotifier {
 /// Thème déterministe, même raison que [_LocalePrefsNotifier].
 class _ThemePrefsNotifier extends ThemeNotifier {
   @override
-  Future<ThemePreference> build() async => const ThemePreference(mode: 'system');
+  Future<ThemePreference> build() async =>
+      const ThemePreference(mode: 'system');
 }
 
 /// Historique vide : le vrai dépôt attend la base de données, dont le canal
@@ -862,9 +895,41 @@ class _EmptyHistoryRepository implements HistoryRepository {
       const [];
 
   @override
-  Future<bool> updateEvent({required int id, required TrackingEvent event}) async =>
+  Future<bool> updateEvent(
+          {required int id, required TrackingEvent event}) async =>
       false;
 
   @override
   Future<bool> deleteEvent(int id) async => false;
+}
+
+/// Fake sans base : le notifieur d'historique lit le repository de mesures
+/// même sous le filtre « tout » ; en test, la vraie usine attendrait des
+/// canaux (base, path_provider) qui ne répondent jamais et l'écran resterait
+/// en spinner indéfiniment.
+class _FakeMeasurementRepository implements MeasurementRepository {
+  @override
+  Future<void> add({
+    required String? babyId,
+    required MeasureKind kind,
+    required double value,
+    required DateTime recordedAt,
+    String? notes,
+  }) async {}
+
+  @override
+  Future<GrowthMeasurement?> latestOfKind(
+          String? babyId, MeasureKind kind) async =>
+      null;
+
+  @override
+  Future<List<GrowthMeasurement>> allForBaby(String? babyId,
+          {MeasureKind? kind}) async =>
+      const [];
+
+  @override
+  Future<void> update(GrowthMeasurement measurement) async {}
+
+  @override
+  Future<bool> deleteById(int id) async => false;
 }

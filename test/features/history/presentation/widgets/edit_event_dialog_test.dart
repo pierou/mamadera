@@ -9,6 +9,7 @@ import 'package:mamadera/features/home/presentation/widgets/quantity_picker_inli
 import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 
 /// Helper : pompe EditEventDialog dans un contexte MaterialApp + ProviderScope.
 Future<void> pumpDialog(WidgetTester tester, TrackingEvent event) async {
@@ -31,12 +32,13 @@ Future<void> pumpDialog(WidgetTester tester, TrackingEvent event) async {
 
 void main() {
   group('EditEventDialog — Affichage initial', () {
-    testWidgets('pipi (DiaperEvent) → section PipiColor visible, CacaColor absente', (tester) async {
+    testWidgets(
+        'pipi (DiaperEvent) → section PipiColor visible, CacaColor absente',
+        (tester) async {
       final event = DiaperEvent(
         timestamp: DateTime.utc(2024, 6, 15, 10, 30),
         wasteType: WasteType.pipi,
-        pipiColor:
-        pipiColorJauneClair,
+        pipiColor: pipiColorJauneClair,
       );
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
@@ -45,12 +47,13 @@ void main() {
       expect(find.text('Couleur du caca'), findsNothing);
     });
 
-    testWidgets('caca (DiaperEvent) → WasteType FilterChips + CacaColor visible', (tester) async {
+    testWidgets(
+        'caca (DiaperEvent) → WasteType FilterChips + CacaColor visible',
+        (tester) async {
       final event = DiaperEvent(
         timestamp: DateTime.utc(2024, 6, 15),
         wasteType: WasteType.caca,
-        cacaColor:
-        cacaColorJauneMoutarde,
+        cacaColor: cacaColorJauneMoutarde,
       );
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
@@ -60,14 +63,13 @@ void main() {
       expect(find.text('🟡🟤 Les deux'), findsOneWidget);
     });
 
-    testWidgets('lesDeux (DiaperEvent) → PipiColor ET CacaColor visibles', (tester) async {
+    testWidgets('lesDeux (DiaperEvent) → PipiColor ET CacaColor visibles',
+        (tester) async {
       final event = DiaperEvent(
         timestamp: DateTime.utc(2024, 6, 15),
         wasteType: WasteType.lesDeux,
-        pipiColor:
-        pipiColorIncolore,
-        cacaColor:
-        cacaColorVertOlive,
+        pipiColor: pipiColorIncolore,
+        cacaColor: cacaColorVertOlive,
       );
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
@@ -78,6 +80,7 @@ void main() {
 
     testWidgets('dodo (SleepEvent) → champ durée visible', (tester) async {
       final event = SleepEvent(
+        unit: QuantityUnit.min,
         timestamp: DateTime.utc(2024, 6, 15),
         duration: 90,
       );
@@ -88,7 +91,8 @@ void main() {
       expect(find.text('min'), findsWidgets);
     });
 
-    testWidgets('sante (HealthEvent) → HealthSubtype ListTiles visibles', (tester) async {
+    testWidgets('sante (HealthEvent) → HealthSubtype ListTiles visibles',
+        (tester) async {
       final event = HealthEvent(
         timestamp: DateTime.utc(2024, 6, 15),
         subtype: HealthSubtype.nettoyageYeux,
@@ -101,6 +105,7 @@ void main() {
 
     testWidgets('miam (FeedingEvent) → notes visibles', (tester) async {
       final event = FeedingEvent(
+        unit: QuantityUnit.ml,
         timestamp: DateTime.utc(2024, 6, 15),
         subtype: FeedingSubtype.natural,
       );
@@ -112,12 +117,12 @@ void main() {
   });
 
   group('EditEventDialog — Sélection WasteType via FilterChip', () {
-    testWidgets('tap pipi → section PipiColor apparaît, CacaColor disparaît', (tester) async {
+    testWidgets('tap pipi → section PipiColor apparaît, CacaColor disparaît',
+        (tester) async {
       final event = DiaperEvent(
         timestamp: DateTime.utc(2024, 6, 15),
         wasteType: WasteType.caca,
-        cacaColor:
-        cacaColorJauneMoutarde,
+        cacaColor: cacaColorJauneMoutarde,
       );
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
@@ -129,7 +134,8 @@ void main() {
       expect(find.text('Couleur du pipi'), findsOneWidget);
     });
 
-    testWidgets('tap lesDeux → sections PipiColor ET CacaColor apparaissent', (tester) async {
+    testWidgets('tap lesDeux → sections PipiColor ET CacaColor apparaissent',
+        (tester) async {
       final event = DiaperEvent(
         timestamp: DateTime.utc(2024, 6, 15),
         wasteType: WasteType.caca,
@@ -146,7 +152,8 @@ void main() {
   });
 
   group('EditEventDialog — Sélection couleurs', () {
-    testWidgets('PipiColor toggle : tap → selected, retap → deselected', (tester) async {
+    testWidgets('PipiColor toggle : tap → selected, retap → deselected',
+        (tester) async {
       final event = DiaperEvent(
         timestamp: DateTime.utc(2024, 6, 15),
         wasteType: WasteType.caca,
@@ -204,6 +211,7 @@ void main() {
   group('EditEventDialog — Champ durée (dodo uniquement)', () {
     testWidgets('durée saisie → valeur parsable', (tester) async {
       final event = SleepEvent(
+        unit: QuantityUnit.min,
         timestamp: DateTime.utc(2024, 6, 15),
         duration: 30,
       );
@@ -216,6 +224,7 @@ void main() {
 
     testWidgets('durée initiale pré-remplie', (tester) async {
       final event = SleepEvent(
+        unit: QuantityUnit.min,
         timestamp: DateTime.utc(2024, 6, 15),
         duration: 90,
       );
@@ -228,7 +237,8 @@ void main() {
   });
 
   group('EditEventDialog — Sous-types santé (sante uniquement)', () {
-    testWidgets('tap sur un HealthSubtype → tile sélectionné avec check_circle', (tester) async {
+    testWidgets('tap sur un HealthSubtype → tile sélectionné avec check_circle',
+        (tester) async {
       final event = HealthEvent(
         timestamp: DateTime.utc(2024, 6, 15),
         subtype: HealthSubtype.vitamineD,
@@ -263,7 +273,8 @@ void main() {
   });
 
   group('EditEventDialog — Submit → UpdateResult retourné', () {
-    testWidgets('tap Enregistrer → Navigator.pop avec UpdateResult', (tester) async {
+    testWidgets('tap Enregistrer → Navigator.pop avec UpdateResult',
+        (tester) async {
       // Increase viewport to accommodate taller edit dialog with subtype selector
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(800, 900);
@@ -284,6 +295,7 @@ void main() {
             ],
             home: _DialogLauncher(
               event: FeedingEvent(
+                unit: QuantityUnit.ml,
                 timestamp: DateTime.utc(2024, 1, 1),
                 subtype: FeedingSubtype.natural,
               ),
@@ -308,7 +320,8 @@ void main() {
       expect(result, isA<UpdateResult>());
     });
 
-    testWidgets('submit avec notes → UpdateResult.notes contient la valeur', (tester) async {
+    testWidgets('submit avec notes → UpdateResult.notes contient la valeur',
+        (tester) async {
       // Increase viewport to accommodate taller edit dialog with subtype selector
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(800, 900);
@@ -329,6 +342,7 @@ void main() {
             ],
             home: _DialogLauncher(
               event: FeedingEvent(
+                unit: QuantityUnit.ml,
                 timestamp: DateTime.utc(2024, 1, 1),
                 subtype: FeedingSubtype.natural,
               ),
@@ -359,7 +373,8 @@ void main() {
     // Régression : éditer un HealthEvent (ex. changer l'horodatage) et
     // soumettre ne doit ni écraser les notes avec la string du sous-type
     // ('vitamine_d'), ni perdre les notes existantes.
-    testWidgets('sante: notes préservées au submit, sous-type inchangé', (tester) async {
+    testWidgets('sante: notes préservées au submit, sous-type inchangé',
+        (tester) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(800, 900);
       await tester.pump();
@@ -404,11 +419,13 @@ void main() {
       final result = (await completer.future) as UpdateResult?;
       // Assertion de régression : les notes ne sont PAS la string du sous-type
       expect(result?.notes, originalNotes,
-          reason: 'les notes originales doivent être préservées, ' 'jamais la value du sous-type');
+          reason: 'les notes originales doivent être préservées, '
+              'jamais la value du sous-type');
       expect(result?.healthSubtype, HealthSubtype.vitamineD);
     });
 
-    testWidgets('sante: changer le sous-type préserve les notes', (tester) async {
+    testWidgets('sante: changer le sous-type préserve les notes',
+        (tester) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(800, 900);
       await tester.pump();
@@ -457,7 +474,9 @@ void main() {
   });
 
   group('EditEventDialog — Delete confirmation flow', () {
-    testWidgets('tap Supprimer → AlertDialog ouvert avec message de confirmation', (tester) async {
+    testWidgets(
+        'tap Supprimer → AlertDialog ouvert avec message de confirmation',
+        (tester) async {
       // Increase viewport to accommodate taller edit dialog with subtype selector
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(800, 900);
@@ -478,6 +497,7 @@ void main() {
             ],
             home: _DialogLauncher(
               event: FeedingEvent(
+                unit: QuantityUnit.ml,
                 timestamp: DateTime.utc(2024, 6, 15),
                 subtype: FeedingSubtype.natural,
               ),
@@ -507,7 +527,8 @@ void main() {
       // AlertDialog doit être présent avec son titre et contenu
       expect(find.text('Supprimer l\'\u00e9v\u00e9nement'), findsOneWidget);
       expect(
-        find.textContaining('Voulez-vous vraiment supprimer cet \u00e9v\u00e9nement ?'),
+        find.textContaining(
+            'Voulez-vous vraiment supprimer cet \u00e9v\u00e9nement ?'),
         findsOneWidget,
       );
     });
@@ -533,6 +554,7 @@ void main() {
             ],
             home: _DialogLauncher(
               event: FeedingEvent(
+                unit: QuantityUnit.ml,
                 timestamp: DateTime.utc(2024, 6, 15),
                 subtype: FeedingSubtype.natural,
               ),
@@ -587,6 +609,7 @@ void main() {
             ],
             home: _DialogLauncher(
               event: SleepEvent(
+                unit: QuantityUnit.min,
                 timestamp: DateTime.utc(2024, 1, 1),
                 duration: 60,
               ),
@@ -671,12 +694,15 @@ void main() {
       final selected = find.widgetWithText(FilterChip, 'Moulée');
       expect(tester.widget<FilterChip>(selected).selected, isTrue);
       expect(
-        tester.widget<FilterChip>(find.widgetWithText(FilterChip, 'Dure')).selected,
+        tester
+            .widget<FilterChip>(find.widgetWithText(FilterChip, 'Dure'))
+            .selected,
         isFalse,
       );
     });
 
-    testWidgets('changer la texture la renvoie dans UpdateResult', (tester) async {
+    testWidgets('changer la texture la renvoie dans UpdateResult',
+        (tester) async {
       final completer = Completer<EditResult?>();
       await openFor(
         tester,
@@ -699,7 +725,8 @@ void main() {
 
     // Régression : la consistance ne décrit qu'une selle. Tourner un change en
     // pipi ne doit pas laisser une texture orpheline repartir vers la base.
-    testWidgets('aucune section texture pour un événement pipi', (tester) async {
+    testWidgets('aucune section texture pour un événement pipi',
+        (tester) async {
       final completer = Completer<EditResult?>();
       await openFor(
         tester,
@@ -718,13 +745,15 @@ void main() {
   group('EditEventDialog — Re-typage en solide', () {
     // Le re-typage biberon → purée doit repasser le picker en grammes, et
     // l'horodatage original doit survivre au submit (pas un « now » neuf).
-    testWidgets('re-typing biberon → solide : unité g, horodatage préservé', (tester) async {
+    testWidgets('re-typing biberon → solide : unité g, horodatage préservé',
+        (tester) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(800, 1600);
       addTearDown(tester.view.reset);
 
       final completer = Completer<EditResult?>();
       final original = FeedingEvent(
+        unit: QuantityUnit.ml,
         timestamp: DateTime.utc(2024, 1, 1, 9, 30),
         subtype: FeedingSubtype.artificial,
         quantity: 120,
@@ -752,12 +781,17 @@ void main() {
       await tester.tap(find.text('Ouvrir'));
       await tester.pumpAndSettle();
 
-      // Retape en solide : le picker passe en grammes.
+      // Retape en solide : le picker passe en grammes, et **le nombre ne
+      // survit pas au changement d'unité** (v1.2.1) : 120 ml n'est pas 120 g,
+      // la quantité est remise à 0 et le dialog l'annonce.
       await tester.tap(find.text('Solide'));
       await tester.pumpAndSettle();
-      expect(find.text('120 g'), findsOneWidget);
+      expect(find.text('0 g'), findsOneWidget);
+      expect(find.text('Unité modifiée : la quantité a été remise à 0.'),
+          findsOneWidget);
 
-      final picker = tester.widget<QuantityPickerInline>(find.byType(QuantityPickerInline));
+      final picker = tester
+          .widget<QuantityPickerInline>(find.byType(QuantityPickerInline));
       expect(picker.unit, equals('g'));
       expect(picker.max, equals(1000));
       expect(picker.step, equals(5));
@@ -767,7 +801,7 @@ void main() {
 
       final result = (await completer.future) as UpdateResult?;
       expect(result?.subtype, FeedingSubtype.solid);
-      expect(result?.quantity, 120);
+      expect(result?.quantity, 0);
       expect(result?.timestamp, original.timestamp);
     });
   });

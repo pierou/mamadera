@@ -6,12 +6,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/locale_provider.dart';
 import 'package:mamadera/features/history/domain/repositories/history_repository.dart';
+import 'package:mamadera/features/history/presentation/providers/history_notifier.dart';
 import 'package:mamadera/features/history/presentation/providers/history_repository_provider.dart';
 import 'package:mamadera/features/history/presentation/screens/history_screen.dart';
+import 'package:mamadera/features/history/presentation/widgets/measurement_history_tile.dart';
+import 'package:mamadera/features/growth/domain/entities/growth_measurement.dart';
+import 'package:mamadera/features/growth/domain/entities/measure_kind.dart';
+import 'package:mamadera/features/growth/domain/repositories/measurement_repository.dart';
+import 'package:mamadera/features/growth/presentation/providers/measurement_providers.dart';
 import 'package:mamadera/features/history/presentation/widgets/history_tile.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -20,7 +27,8 @@ import 'history_screen_test.mocks.dart';
 
 // Test locale notifier that returns French locale for consistent string assertions
 class _TestLocaleNotifier extends LocaleNotifier {
-  Locale? get current => const Locale('fr'); // not overriding, just a test helper property
+  Locale? get current =>
+      const Locale('fr'); // not overriding, just a test helper property
 }
 
 @GenerateNiceMocks([MockSpec<HistoryRepository>()])
@@ -31,11 +39,13 @@ void main() {
   // Utilisation de dates récentes pour éviter les erreurs de date picker (firstDate = now - 2 ans)
   final testEvents = [
     FeedingEvent(
+      unit: QuantityUnit.ml,
       id: 1,
       timestamp: DateTime.utc(2025, 6, 15, 8, 0),
       subtype: FeedingSubtype.natural,
     ),
     SleepEvent(
+      unit: QuantityUnit.min,
       id: 2,
       timestamp: DateTime.utc(2025, 6, 15, 9, 30),
       duration: 60,
@@ -57,7 +67,8 @@ void main() {
         .thenAnswer((_) async => [testEvents.last]);
 
     // Stubs for _showEditDialog mutation calls (unstubbed NiceMocks return null/0)
-    when(mockRepository.updateEvent(id: anyNamed('id'), event: anyNamed('event')))
+    when(mockRepository.updateEvent(
+            id: anyNamed('id'), event: anyNamed('event')))
         .thenAnswer((_) async => true);
     when(mockRepository.deleteEvent(any)).thenAnswer((_) async => true);
   });
@@ -67,6 +78,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
@@ -93,10 +106,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
-             localeProvider.overrideWith(_TestLocaleNotifier.new),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -121,10 +136,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
-             localeProvider.overrideWith(_TestLocaleNotifier.new),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -146,16 +163,17 @@ void main() {
     });
 
     testWidgets('displays empty state when no events', (tester) async {
-      when(mockRepository.getAllEventsOrdered())
-          .thenAnswer((_) async => []);
+      when(mockRepository.getAllEventsOrdered()).thenAnswer((_) async => []);
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
-             localeProvider.overrideWith(_TestLocaleNotifier.new),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -175,7 +193,8 @@ void main() {
       expect(find.text('Aucun événement'), findsOneWidget);
     });
 
-    testWidgets('displays loading indicator while data is loading', (tester) async {
+    testWidgets('displays loading indicator while data is loading',
+        (tester) async {
       // Override to return a Future that never completes initially
       late Completer<List<TrackingEvent>> completer;
       when(mockRepository.getAllEventsOrdered()).thenAnswer((_) {
@@ -186,10 +205,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
-             localeProvider.overrideWith(_TestLocaleNotifier.new),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -224,10 +245,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
-             localeProvider.overrideWith(_TestLocaleNotifier.new),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -251,10 +274,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
-             localeProvider.overrideWith(_TestLocaleNotifier.new),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -283,10 +308,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
-             localeProvider.overrideWith(_TestLocaleNotifier.new),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -316,14 +343,17 @@ void main() {
       expect(firstChip.selected, isFalse);
     });
 
-    testWidgets('tapping HistoryTile opens edit dialog bottom sheet', (tester) async {
+    testWidgets('tapping HistoryTile opens edit dialog bottom sheet',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
-             localeProvider.overrideWith(_TestLocaleNotifier.new),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -350,7 +380,8 @@ void main() {
       expect(find.text('Modifier l\'événement'), findsOneWidget);
     });
 
-    testWidgets('_showEditDialog handles UpdateResult from dialog', (tester) async {
+    testWidgets('_showEditDialog handles UpdateResult from dialog',
+        (tester) async {
       // Increase viewport to accommodate taller edit dialog with subtype selector
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(800, 900);
@@ -359,10 +390,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
-             localeProvider.overrideWith(_TestLocaleNotifier.new),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -397,7 +430,8 @@ void main() {
       )).called(1);
     });
 
-    testWidgets('_showEditDialog handles DeleteResult from dialog', (tester) async {
+    testWidgets('_showEditDialog handles DeleteResult from dialog',
+        (tester) async {
       // Increase viewport to accommodate taller edit dialog with subtype selector
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(800, 900);
@@ -406,10 +440,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
-             localeProvider.overrideWith(_TestLocaleNotifier.new),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -436,8 +472,9 @@ void main() {
       var deleteButton = find.widgetWithText(TextButton, 'Supprimer');
       await tester.ensureVisible(deleteButton);
       await tester.pumpAndSettle();
-      
-      expect(deleteButton, findsOneWidget); // only the edit form's button initially
+
+      expect(deleteButton,
+          findsOneWidget); // only the edit form's button initially
       await tester.tapAt(tester.getTopLeft(deleteButton));
       await tester.pumpAndSettle();
 
@@ -451,7 +488,8 @@ void main() {
       verify(mockRepository.deleteEvent(1)).called(1);
     });
 
-    testWidgets('_showEditDialog handles null result (dismiss without action)', (tester) async {
+    testWidgets('_showEditDialog handles null result (dismiss without action)',
+        (tester) async {
       // Increase viewport to accommodate taller edit dialog with subtype selector
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(800, 900);
@@ -460,10 +498,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
             historyRepositoryProvider.overrideWith(
               (_) async => mockRepository,
             ),
-             localeProvider.overrideWith(_TestLocaleNotifier.new),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
           ],
           child: MaterialApp(
             locale: const Locale('fr'),
@@ -498,5 +538,138 @@ void main() {
       ));
       verifyNever(mockRepository.deleteEvent(any));
     });
+
+    group('Frise unifiée — mesures', () {
+      /// Poids de 6180 g enregistré à 08:30 — entre le repas de 08:00
+      /// (testEvents[0]) et le sommeil de 09:30 (testEvents[1]).
+      final weight = GrowthMeasurement(
+        id: 42,
+        kind: MeasureKind.poids,
+        unit: 'g',
+        recordedAt: DateTime.utc(2025, 6, 15, 8, 30),
+        value: 6180,
+      );
+
+      testWidgets(
+          'une mesure apparaît sous « Tout », triée par horodatage, formatée',
+          (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              measurementRepositoryProvider.overrideWith(
+                (ref) async => _FakeMeasurementRepository(rows: [weight]),
+              ),
+              historyRepositoryProvider.overrideWith(
+                (_) async => mockRepository,
+              ),
+            ],
+            child: MaterialApp(
+              locale: const Locale('fr'),
+              supportedLocales: const [Locale('fr')],
+              home: const HistoryScreen(),
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // La mesure est rendue par sa propre tuile, avec l'unité formatée
+        // (6180 g > 1000 → kg, séparateur décimal fr).
+        expect(find.byType(MeasurementHistoryTile), findsOneWidget);
+        expect(find.text('Poids'), findsOneWidget);
+        expect(find.text('6,18 kg'), findsOneWidget);
+
+        // Tri desc. : sommeil (09:30) > poids (08:30) > repas (08:00).
+        expect(find.byType(HistoryTile), findsNWidgets(2));
+        final weightY =
+            tester.getCenter(find.byType(MeasurementHistoryTile)).dy;
+        expect(
+          tester.getCenter(find.byType(HistoryTile).first).dy,
+          lessThan(weightY),
+        );
+        expect(
+          tester.getCenter(find.byType(HistoryTile).last).dy,
+          greaterThan(weightY),
+        );
+      });
+
+      testWidgets('aucune mesure sous un filtre de type', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              measurementRepositoryProvider.overrideWith(
+                (ref) async => _FakeMeasurementRepository(rows: [weight]),
+              ),
+              historyRepositoryProvider.overrideWith(
+                (_) async => mockRepository,
+              ),
+              selectedFilterProvider.overrideWith(() => _MiamFilterNotifier()),
+            ],
+            child: MaterialApp(
+              locale: const Locale('fr'),
+              supportedLocales: const [Locale('fr')],
+              home: const HistoryScreen(),
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(MeasurementHistoryTile), findsNothing);
+        expect(find.byType(HistoryTile), findsOneWidget);
+      });
+    });
   });
+}
+
+/// Notifier de filtre présélectionné sur « miam » — évite d'émuler le tap
+/// sur la puce pour tester l'exclusion des mesures.
+class _MiamFilterNotifier extends SelectedFilterNotifier {
+  @override
+  HistoryFilter build() => HistoryFilter.miam;
+}
+
+/// Fake sans base : le notifieur d'historique lit le repository de mesures
+/// même sous le filtre « tout » ; en test, la vraie usine attendrait des
+/// canaux (base, path_provider) qui ne répondent jamais et l'écran resterait
+/// en spinner indéfiniment.
+class _FakeMeasurementRepository implements MeasurementRepository {
+  _FakeMeasurementRepository({this.rows = const []});
+
+  final List<GrowthMeasurement> rows;
+
+  @override
+  Future<void> add({
+    required String? babyId,
+    required MeasureKind kind,
+    required double value,
+    required DateTime recordedAt,
+    String? notes,
+  }) async {}
+
+  @override
+  Future<GrowthMeasurement?> latestOfKind(
+          String? babyId, MeasureKind kind) async =>
+      null;
+
+  @override
+  Future<List<GrowthMeasurement>> allForBaby(String? babyId,
+          {MeasureKind? kind}) async =>
+      (kind == null ? rows : rows.where((m) => m.kind == kind).toList());
+
+  @override
+  Future<void> update(GrowthMeasurement measurement) async {}
+
+  @override
+  Future<bool> deleteById(int id) async => false;
 }

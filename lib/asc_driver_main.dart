@@ -92,9 +92,9 @@ Future<AppDatabase> _seededDb() async {
     ),
   );
 
-  Future<void> dodo(DateTime start, double minutes) =>
-      db.insertEvent(
+  Future<void> dodo(DateTime start, double minutes) => db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'min',
           type: 'dodo',
           timestamp: start,
           duration: Value(minutes),
@@ -106,6 +106,7 @@ Future<AppDatabase> _seededDb() async {
   Future<void> miam(DateTime at, {bool artificial = false, double? ml}) =>
       db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'ml',
           type: 'miam',
           timestamp: at,
           subtype: Value(artificial ? 'artificial' : 'natural'),
@@ -122,6 +123,7 @@ Future<AppDatabase> _seededDb() async {
   }) =>
       db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'ml',
           type: 'caca',
           timestamp: at,
           wasteType: Value(wasteType),
@@ -131,9 +133,9 @@ Future<AppDatabase> _seededDb() async {
         ),
       );
 
-  Future<void> sante(DateTime at, String subtype) =>
-      db.insertEvent(
+  Future<void> sante(DateTime at, String subtype) => db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'ml',
           type: 'sante',
           timestamp: at,
           subtype: Value(subtype),
@@ -144,7 +146,8 @@ Future<AppDatabase> _seededDb() async {
   // Night + naps
   await dodo(now.subtract(const Duration(hours: 16)), 460); // last night
   await dodo(now.subtract(const Duration(hours: 25)), 90); // yesterday nap
-  await dodo(now.subtract(const Duration(hours: 2, minutes: 30)), 80); // today nap
+  await dodo(
+      now.subtract(const Duration(hours: 2, minutes: 30)), 80); // today nap
   // Feedings
   await miam(now.subtract(const Duration(hours: 11)));
   await miam(now.subtract(const Duration(hours: 8)), artificial: true, ml: 110);
@@ -157,9 +160,12 @@ Future<AppDatabase> _seededDb() async {
   await caca(now.subtract(const Duration(hours: 5)),
       wasteType: 'pipi', color: 'jaune_clair');
   await caca(now.subtract(const Duration(hours: 1)),
-      wasteType: 'les_deux', color: 'incolore|jaune_moutarde', texture: 'grumeleuse');
+      wasteType: 'les_deux',
+      color: 'incolore|jaune_moutarde',
+      texture: 'grumeleuse');
   // Health
-  await sante(now.subtract(const Duration(hours: 4, minutes: 30)), 'nettoyage_nez');
+  await sante(
+      now.subtract(const Duration(hours: 4, minutes: 30)), 'nettoyage_nez');
   await sante(now.subtract(const Duration(hours: 26)), 'vitamine_d');
 
   return db;

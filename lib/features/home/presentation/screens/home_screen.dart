@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/l10n/unit_localization.dart';
 import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/show_feedback.dart';
+import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
@@ -152,17 +154,26 @@ class _HomeContent extends ConsumerWidget {
 
     if (feedingResult != null && context.mounted) {
       final subtype = feedingResult['subtype'] as FeedingSubtype;
+      // L'unité vient du dialog : c'est le parent qui l'a choisie au sein.
+      // Le fallback ne couvre qu'un résultat incomplet, et nomme l'unité du
+      // sous-type, jamais une devinette.
+      final unit = feedingResult['unit'] as QuantityUnit? ??
+          defaultUnitFor(
+            typeValue: TrackingType.miam.name,
+            subtypeValue: subtype.dbValue,
+          );
       final quantity = feedingResult['quantity'] as double? ??
           0.0; // fallback to 0 if dialog returns null
       await ref.read(trackNotifierProvider.notifier).track(
             type: TrackingType.miam,
             feedingSubtype: subtype,
+            unit: unit,
             quantity: quantity,
             timestamp: feedingResult['timestamp'] as DateTime?,
           );
       if (context.mounted) {
         unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
-        _showFeedingFeedback(context, subtype, quantity);
+        _showFeedingFeedback(context, subtype, quantity, unit);
       }
     }
   }
@@ -193,12 +204,14 @@ class _HomeContent extends ConsumerWidget {
       await ref.read(trackNotifierProvider.notifier).track(
             type: TrackingType.dodo,
             duration: selection.minutes,
+            unit: QuantityUnit.min,
             quantity: selection.minutes,
             timestamp: selection.start,
           );
       if (context.mounted) {
         unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
-        showFeedback(context, context.l.feedbackSleep(selection.minutes.round()));
+        showFeedback(
+            context, context.l.feedbackSleep(selection.minutes.round()));
       }
     }
   }
@@ -260,26 +273,17 @@ class _HomeContent extends ConsumerWidget {
   }
 
   /// Formats and shows a feeding tracking confirmation with quantity details.
-  void _showFeedingFeedback(
-      BuildContext context, FeedingSubtype subtype, double? quantity) {
-    // Le label ET l'unité suivent le sous-type : un « 40 ml » dans le
-    // feedback d'un purée serait un chiffre de santé faux.
+  void _showFeedingFeedback(BuildContext context, FeedingSubtype subtype,
+      double? quantity, QuantityUnit unit) {
+    // Le label suit le sous-type, l'unité suit la ligne : un « 40 ml » dans le
+    // feedback d'une tétée de 20 minutes serait un chiffre de santé faux.
     final subtypeLabel = switch (subtype) {
       FeedingSubtype.natural => context.l.feedingSubtypeNatural,
       FeedingSubtype.artificial => context.l.feedingSubtypeArtificial,
       FeedingSubtype.solid => context.l.feedingSolid,
     };
     if (quantity != null && quantity > 0) {
-      final unit = switch (subtype) {
-        // Le sein se saisit en ml comme le biberon — c'est ce que la colonne
-        // `quantity` a toujours stocké pour `miam` (`FeedingEvent` n'a pas de
-        // champ durée). Inventer des minutes ici re-étiquetterait des
-        // enregistrements existants de lait tiré en durée de tétée.
-        FeedingSubtype.natural => 'ml',
-        FeedingSubtype.artificial => 'ml',
-        FeedingSubtype.solid => context.l.gramSuffix,
-      };
-      final qtyStr = '${quantity.round()}$unit';
+      final qtyStr = '${quantity.round()}${quantityUnitLabel(context, unit)}';
       showFeedback(
         context,
         context.l.feedbackFeedingWithQuantity(subtypeLabel, qtyStr),
@@ -319,9 +323,8 @@ class _HomeContent extends ConsumerWidget {
     // bande de statut du système sur Android, là où un nom posé en tête de
     // la grille se retrouvait masqué. Sans bébé actif, pas de barre d'app —
     // le parcours de premier lancement gère la création du profil.
-    final name = (babyName != null && babyName.trim().isNotEmpty)
-        ? babyName
-        : null;
+    final name =
+        (babyName != null && babyName.trim().isNotEmpty) ? babyName : null;
     return Scaffold(
       appBar: name == null
           ? null
@@ -358,7 +361,8 @@ class _HomeContent extends ConsumerWidget {
                       color: AppTheme.miam,
                       icon: TrackingType.miam.icon,
                       reminders: statusMap[TrackingType.miam],
-                      onTap: () => _onTrack(context, ref, TrackingType.miam.name),
+                      onTap: () =>
+                          _onTrack(context, ref, TrackingType.miam.name),
                     ),
                     TrackButton(
                       key: const ValueKey('track-sante'),
@@ -366,7 +370,8 @@ class _HomeContent extends ConsumerWidget {
                       color: AppTheme.sante,
                       icon: TrackingType.sante.icon,
                       reminders: statusMap[TrackingType.sante],
-                      onTap: () => _onTrack(context, ref, TrackingType.sante.name),
+                      onTap: () =>
+                          _onTrack(context, ref, TrackingType.sante.name),
                     ),
                     TrackButton(
                       key: const ValueKey('track-caca'),
@@ -374,7 +379,8 @@ class _HomeContent extends ConsumerWidget {
                       color: AppTheme.caca,
                       icon: TrackingType.caca.icon,
                       reminders: statusMap[TrackingType.caca],
-                      onTap: () => _onTrack(context, ref, TrackingType.caca.name),
+                      onTap: () =>
+                          _onTrack(context, ref, TrackingType.caca.name),
                     ),
                     TrackButton(
                       key: const ValueKey('track-dodo'),
