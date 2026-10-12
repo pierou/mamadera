@@ -27,10 +27,14 @@ import 'core/config/app_config.dart';
 import 'core/providers/any_baby_exists_provider.dart';
 import 'core/providers/app_preferences_provider.dart';
 import 'core/providers/database_provider.dart';
+import 'core/providers/encryption_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/services/app_preferences_service.dart';
+import 'core/services/encryption_service.dart';
 import 'core/services/locale_service.dart';
 import 'data/local/app_db.dart';
+import 'features/growth/data/repositories/measurement_repository_impl.dart';
+import 'features/growth/domain/entities/measure_kind.dart';
 import 'main.dart' as app;
 
 const _babyId = 'baby-asc';
@@ -88,9 +92,9 @@ Future<AppDatabase> _seededDb() async {
     ),
   );
 
-  Future<void> dodo(DateTime start, double minutes) =>
-      db.insertEvent(
+  Future<void> dodo(DateTime start, double minutes) => db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'min',
           type: 'dodo',
           timestamp: start,
           duration: Value(minutes),
@@ -102,6 +106,7 @@ Future<AppDatabase> _seededDb() async {
   Future<void> miam(DateTime at, {bool artificial = false, double? ml}) =>
       db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'ml',
           type: 'miam',
           timestamp: at,
           subtype: Value(artificial ? 'artificial' : 'natural'),
@@ -118,6 +123,7 @@ Future<AppDatabase> _seededDb() async {
   }) =>
       db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'ml',
           type: 'caca',
           timestamp: at,
           wasteType: Value(wasteType),
@@ -127,9 +133,9 @@ Future<AppDatabase> _seededDb() async {
         ),
       );
 
-  Future<void> sante(DateTime at, String subtype) =>
-      db.insertEvent(
+  Future<void> sante(DateTime at, String subtype) => db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'ml',
           type: 'sante',
           timestamp: at,
           subtype: Value(subtype),
@@ -140,7 +146,8 @@ Future<AppDatabase> _seededDb() async {
   // Night + naps
   await dodo(now.subtract(const Duration(hours: 16)), 460); // last night
   await dodo(now.subtract(const Duration(hours: 25)), 90); // yesterday nap
-  await dodo(now.subtract(const Duration(hours: 2, minutes: 30)), 80); // today nap
+  await dodo(
+      now.subtract(const Duration(hours: 2, minutes: 30)), 80); // today nap
   // Feedings
   await miam(now.subtract(const Duration(hours: 11)));
   await miam(now.subtract(const Duration(hours: 8)), artificial: true, ml: 110);
@@ -153,12 +160,63 @@ Future<AppDatabase> _seededDb() async {
   await caca(now.subtract(const Duration(hours: 5)),
       wasteType: 'pipi', color: 'jaune_clair');
   await caca(now.subtract(const Duration(hours: 1)),
-      wasteType: 'les_deux', color: 'incolore|jaune_moutarde', texture: 'grumeleuse');
+      wasteType: 'les_deux',
+      color: 'incolore|jaune_moutarde',
+      texture: 'grumeleuse');
   // Health
-  await sante(now.subtract(const Duration(hours: 4, minutes: 30)), 'nettoyage_nez');
+  await sante(
+      now.subtract(const Duration(hours: 4, minutes: 30)), 'nettoyage_nez');
   await sante(now.subtract(const Duration(hours: 26)), 'vitamine_d');
 
   return db;
+}
+
+/// Seed de croissance (v1.2.0) — une trajectoire plausible sur 87 jours.
+///
+/// Sans lignes dans `measurements`, les trois boutons « Poids / Taille /
+/// Température » de l'accueil affichent leur état vide `—` et l'écran
+/// Croissance son `growthEmptyState` : la vitrine de la 1.2.0 photographierait
+/// sa propre fonctionnalité vide. Les valeurs sont dans les bornes de
+/// [MeasureKind] et sur la grille de `step`.
+///
+/// Le chiffrement passe par le MÊME [EncryptionService] que l'application (voir
+/// `encryptionServiceProvider.overrideWith` ci-dessous) : `initialize()` retombe
+/// sur une clé volatile en mémoire quand le stockage sécurisé est indisponible,
+/// donc deux instances distinctes chiffrent et déchiffrent avec deux clés
+/// différentes et toute valeur graine rendrait « valeur illisible ».
+Future<void> _seedMeasurements(
+  AppDatabase db,
+  EncryptionService encryption,
+) async {
+  final repo = MeasurementRepositoryImpl(database: db, encryption: encryption);
+  final now = DateTime.now();
+
+  Future<void> mes(
+    MeasureKind kind,
+    double value,
+    Duration ago,
+  ) =>
+      repo.add(
+        babyId: _babyId,
+        kind: kind,
+        value: value,
+        recordedAt: now.subtract(ago),
+      );
+
+  // Poids (grammes) — naissance ~3,4 kg, +~700 g/mois.
+  await mes(MeasureKind.poids, 3900, const Duration(days: 80));
+  await mes(MeasureKind.poids, 4600, const Duration(days: 55));
+  await mes(MeasureKind.poids, 5300, const Duration(days: 30));
+  await mes(MeasureKind.poids, 5750, const Duration(days: 14));
+  await mes(MeasureKind.poids, 6120, const Duration(days: 3));
+  await mes(MeasureKind.poids, 6180, const Duration(hours: 20));
+  // Taille (cm).
+  await mes(MeasureKind.taille, 51, const Duration(days: 80));
+  await mes(MeasureKind.taille, 56, const Duration(days: 45));
+  await mes(MeasureKind.taille, 60.5, const Duration(days: 10));
+  // Température (°C).
+  await mes(MeasureKind.temperature, 36.8, const Duration(days: 20));
+  await mes(MeasureKind.temperature, 37.2, const Duration(days: 2));
 }
 
 void main() async {
@@ -173,6 +231,10 @@ void main() async {
   }
 
   final db = await _seededDb();
+  // Instance unique partagée entre le seed et l'app (voir _seedMeasurements).
+  final encryption = EncryptionService();
+  await encryption.initialize();
+  await _seedMeasurements(db, encryption);
 
   enableFlutterDriverExtension(
     handler: (message) async {
@@ -200,6 +262,7 @@ void main() async {
         appPreferencesProvider.overrideWith(_AcceptedTermsNotifier.new),
         anyBabyExistsProvider.overrideWith(_BabyExistsNotifier.new),
         databaseProvider.overrideWith((ref) async => db),
+        encryptionServiceProvider.overrideWith((ref) async => encryption),
       ],
       child: const app.MyApp(),
     ),

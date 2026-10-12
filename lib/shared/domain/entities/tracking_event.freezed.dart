@@ -217,11 +217,17 @@ extension TrackingEventPatterns on TrackingEvent {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(DateTime timestamp, int? id, String? babyId)? $default, {
-    TResult Function(FeedingSubtype subtype, DateTime timestamp,
-            double? quantity, int? id, String? babyId, String? notes)?
+    TResult Function(
+            FeedingSubtype subtype,
+            DateTime timestamp,
+            QuantityUnit unit,
+            double? quantity,
+            int? id,
+            String? babyId,
+            String? notes)?
         feeding,
-    TResult Function(double duration, DateTime timestamp, double? quantity,
-            int? id, String? babyId, String? notes)?
+    TResult Function(double duration, DateTime timestamp, QuantityUnit unit,
+            double? quantity, int? id, String? babyId, String? notes)?
         sleep,
     TResult Function(
             DateTime timestamp,
@@ -243,11 +249,11 @@ extension TrackingEventPatterns on TrackingEvent {
       case _TrackingEvent() when $default != null:
         return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent() when feeding != null:
-        return feeding(_that.subtype, _that.timestamp, _that.quantity, _that.id,
-            _that.babyId, _that.notes);
+        return feeding(_that.subtype, _that.timestamp, _that.unit,
+            _that.quantity, _that.id, _that.babyId, _that.notes);
       case SleepEvent() when sleep != null:
-        return sleep(_that.duration, _that.timestamp, _that.quantity, _that.id,
-            _that.babyId, _that.notes);
+        return sleep(_that.duration, _that.timestamp, _that.unit,
+            _that.quantity, _that.id, _that.babyId, _that.notes);
       case DiaperEvent() when diaper != null:
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.stoolTexture, _that.notes);
@@ -275,11 +281,23 @@ extension TrackingEventPatterns on TrackingEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(DateTime timestamp, int? id, String? babyId) $default, {
-    required TResult Function(FeedingSubtype subtype, DateTime timestamp,
-            double? quantity, int? id, String? babyId, String? notes)
+    required TResult Function(
+            FeedingSubtype subtype,
+            DateTime timestamp,
+            QuantityUnit unit,
+            double? quantity,
+            int? id,
+            String? babyId,
+            String? notes)
         feeding,
-    required TResult Function(double duration, DateTime timestamp,
-            double? quantity, int? id, String? babyId, String? notes)
+    required TResult Function(
+            double duration,
+            DateTime timestamp,
+            QuantityUnit unit,
+            double? quantity,
+            int? id,
+            String? babyId,
+            String? notes)
         sleep,
     required TResult Function(
             DateTime timestamp,
@@ -300,11 +318,11 @@ extension TrackingEventPatterns on TrackingEvent {
       case _TrackingEvent():
         return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent():
-        return feeding(_that.subtype, _that.timestamp, _that.quantity, _that.id,
-            _that.babyId, _that.notes);
+        return feeding(_that.subtype, _that.timestamp, _that.unit,
+            _that.quantity, _that.id, _that.babyId, _that.notes);
       case SleepEvent():
-        return sleep(_that.duration, _that.timestamp, _that.quantity, _that.id,
-            _that.babyId, _that.notes);
+        return sleep(_that.duration, _that.timestamp, _that.unit,
+            _that.quantity, _that.id, _that.babyId, _that.notes);
       case DiaperEvent():
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.stoolTexture, _that.notes);
@@ -329,11 +347,17 @@ extension TrackingEventPatterns on TrackingEvent {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(DateTime timestamp, int? id, String? babyId)? $default, {
-    TResult? Function(FeedingSubtype subtype, DateTime timestamp,
-            double? quantity, int? id, String? babyId, String? notes)?
+    TResult? Function(
+            FeedingSubtype subtype,
+            DateTime timestamp,
+            QuantityUnit unit,
+            double? quantity,
+            int? id,
+            String? babyId,
+            String? notes)?
         feeding,
-    TResult? Function(double duration, DateTime timestamp, double? quantity,
-            int? id, String? babyId, String? notes)?
+    TResult? Function(double duration, DateTime timestamp, QuantityUnit unit,
+            double? quantity, int? id, String? babyId, String? notes)?
         sleep,
     TResult? Function(
             DateTime timestamp,
@@ -354,11 +378,11 @@ extension TrackingEventPatterns on TrackingEvent {
       case _TrackingEvent() when $default != null:
         return $default(_that.timestamp, _that.id, _that.babyId);
       case FeedingEvent() when feeding != null:
-        return feeding(_that.subtype, _that.timestamp, _that.quantity, _that.id,
-            _that.babyId, _that.notes);
+        return feeding(_that.subtype, _that.timestamp, _that.unit,
+            _that.quantity, _that.id, _that.babyId, _that.notes);
       case SleepEvent() when sleep != null:
-        return sleep(_that.duration, _that.timestamp, _that.quantity, _that.id,
-            _that.babyId, _that.notes);
+        return sleep(_that.duration, _that.timestamp, _that.unit,
+            _that.quantity, _that.id, _that.babyId, _that.notes);
       case DiaperEvent() when diaper != null:
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.stoolTexture, _that.notes);
@@ -462,6 +486,7 @@ class FeedingEvent implements TrackingEvent {
   const FeedingEvent(
       {required this.subtype,
       required this.timestamp,
+      required this.unit,
       this.quantity,
       this.id,
       this.babyId,
@@ -470,6 +495,11 @@ class FeedingEvent implements TrackingEvent {
   final FeedingSubtype subtype;
   @override
   final DateTime timestamp;
+
+  /// Unit of the quantity being carried; chosen by the parent for `natural` (ml or min),
+  /// fixed for the other subtypes. Required so no insert path can write a
+  /// quantity whose unit is nobody's decision.
+  final QuantityUnit unit;
   final double? quantity;
   @override
   final int? id;
@@ -493,6 +523,7 @@ class FeedingEvent implements TrackingEvent {
             (identical(other.subtype, subtype) || other.subtype == subtype) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
+            (identical(other.unit, unit) || other.unit == unit) &&
             (identical(other.quantity, quantity) ||
                 other.quantity == quantity) &&
             (identical(other.id, id) || other.id == id) &&
@@ -501,12 +532,12 @@ class FeedingEvent implements TrackingEvent {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, subtype, timestamp, quantity, id, babyId, notes);
+  int get hashCode => Object.hash(
+      runtimeType, subtype, timestamp, unit, quantity, id, babyId, notes);
 
   @override
   String toString() {
-    return 'TrackingEvent.feeding(subtype: $subtype, timestamp: $timestamp, quantity: $quantity, id: $id, babyId: $babyId, notes: $notes)';
+    return 'TrackingEvent.feeding(subtype: $subtype, timestamp: $timestamp, unit: $unit, quantity: $quantity, id: $id, babyId: $babyId, notes: $notes)';
   }
 }
 
@@ -521,6 +552,7 @@ abstract mixin class $FeedingEventCopyWith<$Res>
   $Res call(
       {FeedingSubtype subtype,
       DateTime timestamp,
+      QuantityUnit unit,
       double? quantity,
       int? id,
       String? babyId,
@@ -541,6 +573,7 @@ class _$FeedingEventCopyWithImpl<$Res> implements $FeedingEventCopyWith<$Res> {
   $Res call({
     Object? subtype = null,
     Object? timestamp = null,
+    Object? unit = null,
     Object? quantity = freezed,
     Object? id = freezed,
     Object? babyId = freezed,
@@ -555,6 +588,10 @@ class _$FeedingEventCopyWithImpl<$Res> implements $FeedingEventCopyWith<$Res> {
           ? _self.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      unit: null == unit
+          ? _self.unit
+          : unit // ignore: cast_nullable_to_non_nullable
+              as QuantityUnit,
       quantity: freezed == quantity
           ? _self.quantity
           : quantity // ignore: cast_nullable_to_non_nullable
@@ -581,6 +618,7 @@ class SleepEvent implements TrackingEvent {
   const SleepEvent(
       {required this.duration,
       required this.timestamp,
+      required this.unit,
       this.quantity,
       this.id,
       this.babyId,
@@ -589,6 +627,10 @@ class SleepEvent implements TrackingEvent {
   final double duration;
   @override
   final DateTime timestamp;
+
+  /// Always [QuantityUnit.min]; carried on the row rather than inferred at
+  /// read time, so the history tile renders from data like every other row.
+  final QuantityUnit unit;
   final double? quantity;
   @override
   final int? id;
@@ -613,6 +655,7 @@ class SleepEvent implements TrackingEvent {
                 other.duration == duration) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
+            (identical(other.unit, unit) || other.unit == unit) &&
             (identical(other.quantity, quantity) ||
                 other.quantity == quantity) &&
             (identical(other.id, id) || other.id == id) &&
@@ -622,11 +665,11 @@ class SleepEvent implements TrackingEvent {
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, duration, timestamp, quantity, id, babyId, notes);
+      runtimeType, duration, timestamp, unit, quantity, id, babyId, notes);
 
   @override
   String toString() {
-    return 'TrackingEvent.sleep(duration: $duration, timestamp: $timestamp, quantity: $quantity, id: $id, babyId: $babyId, notes: $notes)';
+    return 'TrackingEvent.sleep(duration: $duration, timestamp: $timestamp, unit: $unit, quantity: $quantity, id: $id, babyId: $babyId, notes: $notes)';
   }
 }
 
@@ -641,6 +684,7 @@ abstract mixin class $SleepEventCopyWith<$Res>
   $Res call(
       {double duration,
       DateTime timestamp,
+      QuantityUnit unit,
       double? quantity,
       int? id,
       String? babyId,
@@ -661,6 +705,7 @@ class _$SleepEventCopyWithImpl<$Res> implements $SleepEventCopyWith<$Res> {
   $Res call({
     Object? duration = null,
     Object? timestamp = null,
+    Object? unit = null,
     Object? quantity = freezed,
     Object? id = freezed,
     Object? babyId = freezed,
@@ -675,6 +720,10 @@ class _$SleepEventCopyWithImpl<$Res> implements $SleepEventCopyWith<$Res> {
           ? _self.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      unit: null == unit
+          ? _self.unit
+          : unit // ignore: cast_nullable_to_non_nullable
+              as QuantityUnit,
       quantity: freezed == quantity
           ? _self.quantity
           : quantity // ignore: cast_nullable_to_non_nullable

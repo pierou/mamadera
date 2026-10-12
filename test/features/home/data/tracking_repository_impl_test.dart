@@ -8,6 +8,7 @@ import 'package:mamadera/data/local/app_db.dart' as db_app;
 import 'package:mamadera/features/home/data/repositories/tracking_repository_impl.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 void main() {
@@ -36,6 +37,7 @@ void main() {
     group('insertEvent', () {
       test('encrypts notes before DB insert for FeedingEvent', () async {
         final event = FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime.utc(2024, 1, 1, 10, 0),
           subtype: FeedingSubtype.natural,
           notes: 'sensitive feeding note',
@@ -49,10 +51,14 @@ void main() {
         expect(rows.first.notes, isNot(contains('sensitive feeding note')));
       });
 
-      test('persists a solid feeding event with subtype solid and quantity in grams', () async {
-        // Un aliment solide s'enregistre en grammes dans la même colonne
-        // quantity REAL — pas de migration : le sous-type porte le sens.
+      test(
+          'persists a solid feeding event with subtype solid and quantity in grams',
+          () async {
+        // Un aliment solide se stocke en grammes dans la même colonne
+        // quantity REAL — mais depuis v12 c'est la colonne `unit` qui porte
+        // le sens, pas le seul sous-type : la ligne doit le dire elle-même.
         final event = FeedingEvent(
+          unit: QuantityUnit.g,
           timestamp: DateTime.utc(2024, 6, 1, 12, 0),
           subtype: FeedingSubtype.solid,
           quantity: 40,
@@ -74,6 +80,7 @@ void main() {
 
       test('does not encrypt when notes are null', () async {
         final event = FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime.utc(2024, 1, 1, 10, 0),
           subtype: FeedingSubtype.artificial,
         );
@@ -85,6 +92,7 @@ void main() {
 
       test('encrypts notes for SleepEvent', () async {
         final event = SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime.utc(2024, 1, 1, 14, 0),
           duration: 90,
           notes: 'sleeping in crib',
@@ -125,10 +133,12 @@ void main() {
 
       test('stores correct type for each event subtype', () async {
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime.utc(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
         await repository.insertEvent(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime.utc(2024, 1, 1, 10),
           duration: 60,
         ));
@@ -158,14 +168,17 @@ void main() {
 
       test('returns events sorted by timestamp descending', () async {
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
         await repository.insertEvent(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime(2024, 1, 1, 14),
           duration: 60,
         ));
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 10),
           subtype: FeedingSubtype.artificial,
         ));
@@ -180,6 +193,7 @@ void main() {
 
       test('decrypts notes on read', () async {
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime.utc(2024, 1, 1, 10),
           subtype: FeedingSubtype.natural,
           notes: 'encrypted note content',
@@ -193,6 +207,7 @@ void main() {
 
       test('handles null notes correctly after read', () async {
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime.utc(2024, 1, 1, 10),
           subtype: FeedingSubtype.artificial,
           notes: null,
@@ -206,10 +221,12 @@ void main() {
 
       test('returns correct domain types for each event', () async {
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime.utc(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
         await repository.insertEvent(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime.utc(2024, 1, 1, 10),
           duration: 60,
         ));
@@ -231,7 +248,8 @@ void main() {
         expect(result.last, isA<FeedingEvent>());
       });
 
-      test('preserves DiaperEvent wasteType and colors through round-trip', () async {
+      test('preserves DiaperEvent wasteType and colors through round-trip',
+          () async {
         await repository.insertEvent(DiaperEvent(
           timestamp: DateTime.utc(2024, 1, 1, 8),
           wasteType: WasteType.lesDeux,
@@ -285,14 +303,17 @@ void main() {
     group('getEventsByType', () {
       test('filters events by TrackingType.miam', () async {
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime.utc(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
         await repository.insertEvent(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime.utc(2024, 1, 1, 10),
           duration: 60,
         ));
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime.utc(2024, 1, 1, 14),
           subtype: FeedingSubtype.artificial,
         ));
@@ -304,10 +325,12 @@ void main() {
 
       test('filters events by TrackingType.dodo', () async {
         await repository.insertEvent(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime.utc(2024, 1, 1, 10),
           duration: 90,
         ));
         await repository.insertEvent(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime.utc(2024, 1, 1, 20),
           duration: 120,
         ));
@@ -350,6 +373,7 @@ void main() {
 
       test('returns empty list for type with no events', () async {
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime.utc(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
@@ -361,21 +385,25 @@ void main() {
 
     group('getLastEventByTypeAndSubtype', () {
       test('returns null when no events exist', () async {
-        final result = await repository.getLastEventByTypeAndSubtype(TrackingType.miam);
+        final result =
+            await repository.getLastEventByTypeAndSubtype(TrackingType.miam);
         expect(result, isNull);
       });
 
       test('returns last feeding event by type', () async {
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 14),
           subtype: FeedingSubtype.natural,
         ));
 
-        final result = await repository.getLastEventByTypeAndSubtype(TrackingType.miam);
+        final result =
+            await repository.getLastEventByTypeAndSubtype(TrackingType.miam);
         expect(result, DateTime(2024, 1, 1, 14));
       });
 
@@ -411,14 +439,17 @@ void main() {
     });
 
     group('integration: mixed events round-trip', () {
-      test('inserts and reads back all event types with data integrity', () async {
+      test('inserts and reads back all event types with data integrity',
+          () async {
         // Insert a mix of events
         await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime.utc(2024, 3, 15, 7, 30),
           subtype: FeedingSubtype.natural,
           notes: 'morning feeding',
         ));
         await repository.insertEvent(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime.utc(2024, 3, 15, 9, 0),
           duration: 120,
           notes: 'nap time',

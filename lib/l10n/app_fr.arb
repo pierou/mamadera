@@ -42,8 +42,31 @@
   "growthSheetTitleWeight": "Nouveau poids",
   "growthSheetTitleHeight": "Nouvelle taille",
   "growthSheetTitleTemperature": "Nouvelle température",
+  "growthSheetEditTitleWeight": "Modifier le poids",
+  "growthSheetEditTitleHeight": "Modifier la taille",
+  "growthSheetEditTitleTemperature": "Modifier la température",
+  "@growthSheetLastValueHint": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "growthSheetLastValueHint": "Dernière : {value}",
   "growthSheetNoteField": "Note (facultatif)",
   "growthSheetSave": "Enregistrer",
+  "growthMeasurementUpdated": "Mesure mise à jour",
+  "growthMeasurementDeleted": "Mesure supprimée",
+  "growthMeasurementUpdateError": "Échec de la mise à jour de la mesure : {error}",
+  "@growthMeasurementUpdateError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "growthMeasurementDeleteError": "Échec de la suppression de la mesure : {error}",
+  "@growthMeasurementDeleteError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "growthValueUndecryptable": "Valeur illisible",
 
   "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
@@ -250,6 +273,18 @@
   "feedingSubtypeNatural": "Lait Maternel",
   "feedingSubtypeArtificial": "Lait Artificiel",
   "feedingSolid": "Solide",
+  "@feedingValueOutOfRange": {
+    "placeholders": {
+      "min": {},
+      "max": {},
+      "unit": {}
+    }
+  },
+  "feedingValueOutOfRange": "Valeur hors plage : entre {min} et {max} {unit}.",
+  "feedingUnitLabel": "Unité",
+  "feedingUnitMl": "Millilitres",
+  "feedingUnitMin": "Minutes",
+  "feedingUnitReset": "Unité modifiée : la quantité a été remise à 0.",
 
   "editDialogTitle": "Modifier l'événement",
   "eventDateSectionTitle": "Date et heure",
@@ -262,6 +297,7 @@
   "minutesHintText": "Minutes",
   "minuteSuffix": "min",
   "gramSuffix": "g",
+  "millilitreSuffix": "ml",
 
   "deleteDialogTitle": "Supprimer l'événement",
   "deleteDialogContent": "Voulez-vous vraiment supprimer cet événement ? Cette action est irréversible.",
@@ -269,6 +305,8 @@
 
   "menuTitle": "Menu",
   "settingsBodyText": "Paramètres",
+  "sliderCoarse": "Grossier",
+  "sliderFine": "Précis",
   "languageSectionTitle": "Langue",
   "languageEnglish": "English",
   "languageFrench": "Français",

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 void main() {
@@ -10,6 +11,7 @@ void main() {
     group('FeedingEvent construction', () {
       test('doit être instanciable avec les paramètres requis', () {
         final event = FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: baseTimestamp,
           subtype: FeedingSubtype.natural,
         );
@@ -23,6 +25,7 @@ void main() {
 
       test('doit accepter les paramètres optionnels', () {
         final event = FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: baseTimestamp,
           subtype: FeedingSubtype.artificial,
           id: 1,
@@ -37,6 +40,7 @@ void main() {
     group('SleepEvent construction', () {
       test('doit être instanciable avec les paramètres requis', () {
         final event = SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: baseTimestamp,
           duration: 90,
         );
@@ -48,6 +52,7 @@ void main() {
 
       test('doit accepter les paramètres optionnels', () {
         final event = SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: baseTimestamp,
           duration: 60,
           id: 2,
@@ -64,14 +69,12 @@ void main() {
         final event = DiaperEvent(
           timestamp: baseTimestamp,
           wasteType: WasteType.pipi,
-          pipiColor:
-        pipiColorJauneClair,
+          pipiColor: pipiColorJauneClair,
         );
 
         expect(event.trackingType, TrackingType.caca);
         expect(event.wasteType, WasteType.pipi);
-        expect(event.pipiColor,
-        pipiColorJauneClair);
+        expect(event.pipiColor, pipiColorJauneClair);
       });
     });
 
@@ -89,6 +92,7 @@ void main() {
 
     group('Equality & hashCode', () {
       final baseEvent = FeedingEvent(
+        unit: QuantityUnit.ml,
         timestamp: baseTimestamp,
         subtype: FeedingSubtype.natural,
         id: 2,
@@ -102,6 +106,7 @@ void main() {
           'doit retourner vrai pour deux instances différentes mais aux valeurs identiques',
           () {
         final duplicate = FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: baseTimestamp,
           subtype: FeedingSubtype.natural,
           id: 2,
@@ -111,6 +116,7 @@ void main() {
 
       test('doit retourner faux si une valeur diffère', () {
         final differentEvent = SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: baseTimestamp,
           duration: 30,
           id: 2,
@@ -128,6 +134,7 @@ void main() {
 
       test('hashCode doit être identique pour des instances égales', () {
         final duplicate = FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: baseTimestamp,
           subtype: FeedingSubtype.natural,
           id: 2,
@@ -137,9 +144,11 @@ void main() {
     });
 
     group('toString', () {
-      // Freezed generates "TrackingEvent.feeding(...)" for union subtypes.
-      test('FeedingEvent doit retourner une représentation lisible de l\'objet', () {
+      // Freezed generates "TrackingEvent.feeding(unit: QuantityUnit.ml, ...)" for union subtypes.
+      test('FeedingEvent doit retourner une représentation lisible de l\'objet',
+          () {
         final event = FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: baseTimestamp,
           subtype: FeedingSubtype.natural,
           id: 5,
@@ -152,8 +161,10 @@ void main() {
         expect(stringRepresentation, contains('id: 5'));
       });
 
-      test('SleepEvent doit retourner une représentation lisible de l\'objet', () {
+      test('SleepEvent doit retourner une représentation lisible de l\'objet',
+          () {
         final event = SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: baseTimestamp,
           duration: 60,
           id: 10,
@@ -162,7 +173,8 @@ void main() {
         expect(event.toString(), contains('TrackingEvent.sleep'));
       });
 
-      test('DiaperEvent doit retourner une représentation lisible de l\'objet', () {
+      test('DiaperEvent doit retourner une représentation lisible de l\'objet',
+          () {
         final event = DiaperEvent(
           timestamp: baseTimestamp,
           wasteType: WasteType.caca,
@@ -172,7 +184,8 @@ void main() {
         expect(event.toString(), contains('TrackingEvent.diaper'));
       });
 
-      test('HealthEvent doit retourner une représentation lisible de l\'objet', () {
+      test('HealthEvent doit retourner une représentation lisible de l\'objet',
+          () {
         final event = HealthEvent(
           timestamp: baseTimestamp,
           subtype: HealthSubtype.vitamineD,

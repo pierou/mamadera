@@ -10,12 +10,12 @@ Input (written by test_driver/asc_screenshots.dart via ASC_RAW_DIR):
   screenshots/ios/asc-ipad/raw-11/  11" Pro (M5) native 1668x2388
   screenshots/ios/asc-ipad/raw-13/  13" Pro (M5) native 2064x2752
 
-Output (12 files, verified exact dimensions + 24-bit RGB + 0 red banner
+Output (14 files, verified exact dimensions + 24-bit RGB + 0 red banner
 pixels in the top zone):
   1668x2388/  (ASC 11" iPad slot, portrait — the canonical slot size)
   2048x2732/  (ASC 13" iPad slot, portrait)
 
-Six screens: home, feeding, sleep, diaper, history, menu.
+Seven screens: home, feeding, sleep, diaper, history, menu, growth (v1.2.0).
 
 Portrait only: iPadOS ignores SystemChrome.setPreferredOrientations and
 this host has no Simulator.app GUI to drive the I/O > Rotate menu,
@@ -36,7 +36,7 @@ SETS = [
     ("raw-13", "2048x2732", (2048, 2732)),
 ]
 
-SCREENS = ["home", "feeding", "sleep", "diaper", "history", "menu"]
+SCREENS = ["home", "feeding", "sleep", "diaper", "history", "menu", "growth"]
 
 
 def red_scan(im: Image.Image) -> int:
@@ -93,7 +93,7 @@ def main() -> None:
 
     if failures:
         sys.exit(f"{failures} file(s) failed verification")
-    print("\nAll 12 iPad screenshots verified (exact size, RGB24, no ribbon).")
+    print("\nAll 14 iPad screenshots verified (exact size, RGB24, no ribbon).")
 
 
 if __name__ == "__main__":

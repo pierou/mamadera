@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers/active_baby_provider.dart';
+import '../../../../data/local/db_constants.dart' as db_const;
+import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
@@ -16,7 +18,10 @@ class TrackNotifier extends AsyncNotifier<void> {
 
   /// Enregistre un événement de suivi (tétée, sommeil, couche, santé).
   /// [duration] est en minutes pour dodo/sommeil.
-  /// [quantity] est le volume en ml ou g (feeding, selon le sous-type) ou minutes (sleep).
+  /// [unit] est l'unité de [quantity] — portée par la ligne, jamais inférée à
+  /// la lecture (v12). Fournie par le dialogue de feeding (`ml`, `min` ou
+  /// `g`) ; `null` retombe sur l'unité que le sous-type portait avant v12,
+  /// c'est-à-dire ce que le parent voyait à l'écran ([defaultUnitFor]).
   /// [wasteType], [pipiColor] et [cacaColor] sont utilisés uniquement pour les selles.
   /// [feedingSubtype] est requis pour FeedingEvent (natural/artificial).
   /// [healthSubtype] est requis pour HealthEvent (nettoyageYeux, etc.).
@@ -29,6 +34,7 @@ class TrackNotifier extends AsyncNotifier<void> {
     String? notes,
     double? duration,
     double? quantity,
+    QuantityUnit? unit,
     WasteType? wasteType,
     PipiColor? pipiColor,
     CacaColor? cacaColor,
@@ -45,11 +51,19 @@ class TrackNotifier extends AsyncNotifier<void> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final repository = await ref.read(trackingRepositoryProvider.future);
+      final feedingSubtypeOrNull = feedingSubtype ?? FeedingSubtype.natural;
       final event = switch (type) {
         TrackingType.miam => TrackingEvent.feeding(
             timestamp: eventDate,
             babyId: babyId,
-            subtype: feedingSubtype ?? FeedingSubtype.natural,
+            subtype: feedingSubtypeOrNull,
+            // Le parent choisit ml ou min au sein ; le dialogue le passe.
+            // Sinon : l'unité du sous-type, pas une devinette.
+            unit: unit ??
+                defaultUnitFor(
+                  typeValue: db_const.typeMiam,
+                  subtypeValue: feedingSubtypeOrNull.dbValue,
+                ),
             quantity: quantity,
             notes: notes,
           ),
@@ -57,6 +71,7 @@ class TrackNotifier extends AsyncNotifier<void> {
             timestamp: eventDate,
             babyId: babyId,
             duration: duration?.toDouble() ?? 0.0,
+            unit: unit ?? QuantityUnit.min,
             quantity: quantity,
             notes: notes,
           ),
@@ -80,5 +95,3 @@ class TrackNotifier extends AsyncNotifier<void> {
     });
   }
 }
-
-

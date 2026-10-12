@@ -91,10 +91,40 @@ class AppLocalizationsFr extends AppLocalizations {
   String get growthSheetTitleTemperature => 'Nouvelle température';
 
   @override
+  String get growthSheetEditTitleWeight => 'Modifier le poids';
+
+  @override
+  String get growthSheetEditTitleHeight => 'Modifier la taille';
+
+  @override
+  String get growthSheetEditTitleTemperature => 'Modifier la température';
+
+  @override
+  String growthSheetLastValueHint(Object value) {
+    return 'Dernière : $value';
+  }
+
+  @override
   String get growthSheetNoteField => 'Note (facultatif)';
 
   @override
   String get growthSheetSave => 'Enregistrer';
+
+  @override
+  String get growthMeasurementUpdated => 'Mesure mise à jour';
+
+  @override
+  String get growthMeasurementDeleted => 'Mesure supprimée';
+
+  @override
+  String growthMeasurementUpdateError(Object error) {
+    return 'Échec de la mise à jour de la mesure : $error';
+  }
+
+  @override
+  String growthMeasurementDeleteError(Object error) {
+    return 'Échec de la suppression de la mesure : $error';
+  }
 
   @override
   String get growthValueUndecryptable => 'Valeur illisible';
@@ -475,6 +505,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get feedingSolid => 'Solide';
 
   @override
+  String feedingValueOutOfRange(Object min, Object max, Object unit) {
+    return 'Valeur hors plage : entre $min et $max $unit.';
+  }
+
+  @override
+  String get feedingUnitLabel => 'Unité';
+
+  @override
+  String get feedingUnitMl => 'Millilitres';
+
+  @override
+  String get feedingUnitMin => 'Minutes';
+
+  @override
+  String get feedingUnitReset =>
+      'Unité modifiée : la quantité a été remise à 0.';
+
+  @override
   String get editDialogTitle => 'Modifier l\'événement';
 
   @override
@@ -508,6 +556,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gramSuffix => 'g';
 
   @override
+  String get millilitreSuffix => 'ml';
+
+  @override
   String get deleteDialogTitle => 'Supprimer l\'événement';
 
   @override
@@ -522,6 +573,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsBodyText => 'Paramètres';
+
+  @override
+  String get sliderCoarse => 'Grossier';
+
+  @override
+  String get sliderFine => 'Précis';
 
   @override
   String get languageSectionTitle => 'Langue';

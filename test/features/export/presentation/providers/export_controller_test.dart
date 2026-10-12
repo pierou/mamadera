@@ -53,8 +53,10 @@ void main() {
       await database.close();
     });
 
-    test('renvoie ExportNothingToExport sans ouvrir la feuille de partage', () async {
-      final outcome = await container.read(exportControllerProvider.notifier).shareExport();
+    test('renvoie ExportNothingToExport sans ouvrir la feuille de partage',
+        () async {
+      final outcome =
+          await container.read(exportControllerProvider.notifier).shareExport();
 
       expect(outcome, isA<ExportNothingToExport>());
       expect(
@@ -109,6 +111,7 @@ void main() {
       );
       await database.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'min',
           type: 'dodo',
           timestamp: DateTime.fromMillisecondsSinceEpoch(
             1700000000000,
@@ -150,7 +153,8 @@ void main() {
       // Le fichier doit être lisible QUAND la feuille de partage le prend :
       // le test inverse prouverait un export vide sur iOS/Android.
       expect(sharePlatform.fileExistedDuringShare, isTrue);
-      expect(sharePlatform.contentDuringShare, contains('"exportFormatVersion"'));
+      expect(
+          sharePlatform.contentDuringShare, contains('"exportFormatVersion"'));
       expect(sharePlatform.contentDuringShare, contains('dodo'));
       // Invariant de confidentialité : aucune copie en clair ne survit.
       expect(tempDir.listSync(), isEmpty);
@@ -175,7 +179,8 @@ void main() {
       expect(content, isNot(contains(tempDir.path)));
     });
 
-    test('le fichier temporaire est supprimé même si le partage échoue', () async {
+    test('le fichier temporaire est supprimé même si le partage échoue',
+        () async {
       sharePlatform.errorToThrow = StateError('share sheet unavailable');
 
       final outcome = await controller.shareExport();

@@ -44,7 +44,9 @@ class ExportRepositoryImpl implements ExportRepository {
   /// `babyId` sur les réglages/rejets de rappels, `babyId` +
   /// `completionSource` sur les rappels personnalisés (et `subtypeValue`
   /// nullable sur ces derniers).
-  static const int _exportFormatVersion = 2;
+  /// 3 (v12) : `unit` sur chaque événement — le nombre exporté porte
+  /// désormais son unité, au lieu de la laisser inférer à qui le relit.
+  static const int _exportFormatVersion = 3;
 
   @override
   Future<String> buildExportJson() async {
@@ -119,8 +121,7 @@ class ExportRepositoryImpl implements ExportRepository {
             'itemId': dismissal.itemId,
             'dismissedAtEpochSeconds':
                 dismissal.dismissedAt.millisecondsSinceEpoch ~/ 1000,
-            'dismissedAtUtc':
-                dismissal.dismissedAt.toUtc().toIso8601String(),
+            'dismissedAtUtc': dismissal.dismissedAt.toUtc().toIso8601String(),
           },
       ],
       'measurements': [for (final row in measurements) _mapMeasurement(row)],
@@ -133,8 +134,7 @@ class ExportRepositoryImpl implements ExportRepository {
             // restauration ne doit pas pouvoir recoller un id déjà pris.
             'completedAtEpochSeconds':
                 completion.completedAt.millisecondsSinceEpoch ~/ 1000,
-            'completedAtUtc':
-                completion.completedAt.toUtc().toIso8601String(),
+            'completedAtUtc': completion.completedAt.toUtc().toIso8601String(),
           },
       ],
     };
@@ -165,7 +165,8 @@ class ExportRepositoryImpl implements ExportRepository {
   /// Maps baby profile rows. `birth_date` is stored as epoch MILLISECONDS,
   /// so it is emitted both as the lossless integer and as an ISO8601 UTC
   /// string for humans — deliberately two fields.
-  List<Map<String, Object?>> _mapProfiles(List<db_app.BabyProfile> profiles) => [
+  List<Map<String, Object?>> _mapProfiles(List<db_app.BabyProfile> profiles) =>
+      [
         for (final profile in profiles)
           <String, Object?>{
             'id': profile.id,
@@ -210,6 +211,10 @@ class ExportRepositoryImpl implements ExportRepository {
       'texture': row.texture,
       'babyId': row.babyId,
       'quantity': row.quantity,
+      // Unité du nombre, telle qu'en base (v12). Une sauvegarde qui porte le
+      // chiffre sans son unité laisse l'importateur deviner — c'est exactement
+      // le défaut que cette version supprime.
+      'unit': row.unit,
     };
     if (notesUndecryptable) {
       event['notesUndecryptable'] = true;
@@ -220,11 +225,15 @@ class ExportRepositoryImpl implements ExportRepository {
   /// Récupère le champ `notes` (déchiffré par le mapper) quel que soit le
   /// sous-type : la classe de base sealed ne l'expose pas directement.
   String? _decryptedNotes(TrackingEvent entity) => entity.when(
-        (id0, ts0, baby0) => null,
-        feeding: (id, ts, baby, sub, qty, notes) => notes,
-        sleep: (id, ts, baby, dur, qty, notes) => notes,
-        diaper: (id, ts, baby, wt, pc, cc, st, notes) => notes,
-        health: (id, ts, baby, sub, notes) => notes,
+        (timestamp, id, babyId) => null,
+        feeding: (subtype, timestamp, unit, quantity, id, babyId, notes) =>
+            notes,
+        sleep: (duration, timestamp, unit, quantity, id, babyId, notes) =>
+            notes,
+        diaper: (timestamp, id, babyId, wasteType, pipiColor, cacaColor,
+                stoolTexture, notes) =>
+            notes,
+        health: (subtype, timestamp, id, babyId, notes) => notes,
       );
 
   /// Mappe une ligne de `measurements`. `recorded_at` est stocké en

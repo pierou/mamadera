@@ -42,8 +42,31 @@
   "growthSheetTitleWeight": "New weight",
   "growthSheetTitleHeight": "New height",
   "growthSheetTitleTemperature": "New temperature",
+  "growthSheetEditTitleWeight": "Edit weight",
+  "growthSheetEditTitleHeight": "Edit height",
+  "growthSheetEditTitleTemperature": "Edit temperature",
+  "@growthSheetLastValueHint": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "growthSheetLastValueHint": "Last: {value}",
   "growthSheetNoteField": "Note (optional)",
   "growthSheetSave": "Save",
+  "growthMeasurementUpdated": "Measurement updated",
+  "growthMeasurementDeleted": "Measurement deleted",
+  "growthMeasurementUpdateError": "Failed to update the measurement: {error}",
+  "@growthMeasurementUpdateError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "growthMeasurementDeleteError": "Failed to delete the measurement: {error}",
+  "@growthMeasurementDeleteError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "growthValueUndecryptable": "Value unreadable",
 
   "feedbackFeedingWithQuantity": "{subtype} · {quantity}",
@@ -250,6 +273,18 @@
   "feedingSubtypeNatural": "Breast milk",
   "feedingSubtypeArtificial": "Formula",
   "feedingSolid": "Solid",
+  "@feedingValueOutOfRange": {
+    "placeholders": {
+      "min": {},
+      "max": {},
+      "unit": {}
+    }
+  },
+  "feedingValueOutOfRange": "Out of range: between {min} and {max} {unit}.",
+  "feedingUnitLabel": "Unit",
+  "feedingUnitMl": "Millilitres",
+  "feedingUnitMin": "Minutes",
+  "feedingUnitReset": "Unit changed: the amount has been reset to 0.",
 
   "editDialogTitle": "Edit Event",
   "eventDateSectionTitle": "Date and Time",
@@ -262,6 +297,7 @@
   "minutesHintText": "Minutes",
   "minuteSuffix": "min",
   "gramSuffix": "g",
+  "millilitreSuffix": "ml",
 
   "deleteDialogTitle": "Delete Event",
   "deleteDialogContent": "Are you sure you want to delete this event? This action cannot be undone.",
@@ -269,6 +305,8 @@
 
   "menuTitle": "Menu",
   "settingsBodyText": "Settings",
+  "sliderCoarse": "Coarse",
+  "sliderFine": "Fine",
   "languageSectionTitle": "Language",
   "languageEnglish": "English",
   "languageFrench": "Français",

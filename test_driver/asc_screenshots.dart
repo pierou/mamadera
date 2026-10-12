@@ -33,6 +33,22 @@ const _trackMiam = 'track-miam';
 const _trackDodo = 'track-dodo';
 const _trackCaca = 'track-caca';
 
+/// Tile that opens `/growth` — the menu tile carries no ValueKey
+/// (`menu_screen.dart` navigates by `context.push('/growth')`), so the driver
+/// targets it by its French label (locale is pinned to `fr` by the target).
+///
+/// The label appears TWICE on the menu (section header at `menu_screen.dart:101`
+/// and tile title at `:109`), and `scrollIntoView` throws `Bad state: Too many
+/// elements` on an ambiguous finder — so the match is scoped to the ListTile.
+final _growthTile = find.descendant(
+  of: find.byType('ListTile'),
+  matching: find.text('Croissance'),
+);
+
+/// Tooltip of the AppBar back button — localized by GlobalMaterialLocalizations
+/// (`main.dart` registers the delegate, `fr` is supported).
+const _backTooltip = 'Retour';
+
 Future<void> sleep(int ms) => Future<void>.delayed(Duration(milliseconds: ms));
 
 Future<void> main() async {
@@ -56,6 +72,10 @@ Future<void> main() async {
         dismissAnchor: 'Type de selle');
     await tabShot(driver, _historyTab, 'history');
     await tabShot(driver, _menuTab, 'menu');
+    // v1.2.0 — last of the portrait set: `/growth` is a pushed route with no
+    // bottom nav, so it is opened from the menu we are already on and closed
+    // with the AppBar back button before anything else is tapped.
+    await growthShot(driver, 'growth');
 
     // ---- Landscape set ----
     // Skipped when ASC_LANDSCAPE=0: iPadOS ignores
@@ -79,6 +99,7 @@ Future<void> main() async {
           dismissAnchor: 'Type de selle');
       await tabShot(driver, _historyTab, 'history_landscape');
       await tabShot(driver, _menuTab, 'menu_landscape');
+      await growthShot(driver, 'growth_landscape');
 
       // Restore portrait for the next run.
       print('[ROTATE] -> portrait');
@@ -164,6 +185,36 @@ Future<void> tabShot(FlutterDriver driver, String tabKey, String name) async {
   await driver.tap(find.byValueKey(tabKey), timeout: const Duration(seconds: 10));
   await sleep(900);
   await capture(driver, name);
+}
+
+/// Ouvre `/growth` depuis le menu (on y est déjà), capture, puis revient à la
+/// coque. La tuile peut être sous le pli du menu : `scrollIntoView` la ramène
+/// avant le tap, comme pour les feuilles en paysage.
+Future<void> growthShot(FlutterDriver driver, String name) async {
+  final tile = _growthTile;
+  await driver.tap(find.byValueKey(_menuTab), timeout: const Duration(seconds: 10));
+  await sleep(900);
+  try {
+    await driver.waitForTappable(tile, timeout: const Duration(seconds: 3));
+  } on Object {
+    await driver.scrollIntoView(tile, timeout: const Duration(seconds: 10));
+    await driver.waitForTappable(tile, timeout: const Duration(seconds: 5));
+    await sleep(400);
+  }
+  await driver.tap(tile, timeout: const Duration(seconds: 10));
+  // Les valeurs chiffrées arrivent par le notifier async (repo + déchiffrement).
+  await sleep(1800);
+  await capture(driver, name);
+  await backFromGrowth(driver);
+}
+
+/// Ferme `/growth` (route poussée, sans navigation basse) via le bouton de
+/// retour de l'AppBar, et vérifie que la coque est revenue.
+Future<void> backFromGrowth(FlutterDriver driver) async {
+  await driver.tap(find.byTooltip(_backTooltip), timeout: const Duration(seconds: 10));
+  await sleep(900);
+  await driver.waitFor(find.byValueKey(_menuTab),
+      timeout: const Duration(seconds: 10));
 }
 
 /// Rotates and polls screenshots until the requested orientation is active.

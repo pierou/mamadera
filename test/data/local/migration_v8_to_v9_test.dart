@@ -90,7 +90,7 @@ void main() {
     expect(events.first.color, equals('jaune_moutarde'));
     expect(events.first.texture, equals(null));
     // Le fichier est monté jusqu'à la version courante, pas seulement jusqu'à 9.
-    expect(db.schemaVersion, equals(11));
+    expect(db.schemaVersion, equals(12));
   });
 
   test('a diaper saved after the upgrade can store a texture', () async {
@@ -98,6 +98,7 @@ void main() {
     addTearDown(db.close);
 
     await db.into(db.trackingEvents).insert(TrackingEventsCompanion.insert(
+          unit: 'ml',
           type: 'caca',
           timestamp: DateTime.utc(2026, 9, 1),
           wasteType: const Value('caca'),
@@ -110,6 +111,6 @@ void main() {
     expect(fresh.texture, equals('pateuse'));
     // Et l'ancienne ligne n'a pas été touchée par l'écriture.
     expect(rows.firstWhere((r) => r.color == 'jaune_moutarde').texture,
-      equals(null));
+        equals(null));
   });
 }

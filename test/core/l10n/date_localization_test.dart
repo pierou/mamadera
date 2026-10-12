@@ -57,28 +57,62 @@ void main() {
   });
 
   group('formatDate — EN locale', () {
-    testWidgets('renvoie format MM/dd/yyyy hh:aa (12h)', (tester) async {
+    // Les attentes de ce groupe ont épinglé le bug pendant un cycle
+    // (`hh:aa` rendait le marqueur AM/PM à la place des minutes) : elles ne
+    // doivent pas être « corrigées » en arrière.
+    testWidgets('renvoie format MM/dd/yyyy hh:mm a (12h)', (tester) async {
       final context = await pumpWithContext(tester, const Locale('en'));
       final date = DateTime(2024, 6, 15, 10, 30);
-      expect(formatDate(context, date), '06/15/2024 10:AM');
+      expect(formatDate(context, date), '06/15/2024 10:30 AM');
     });
 
-    testWidgets('après-midi affiche PM', (tester) async {
+    testWidgets('après-midi affiche PM avec les minutes', (tester) async {
       final context = await pumpWithContext(tester, const Locale('en'));
       final date = DateTime(2024, 6, 15, 14, 30);
-      expect(formatDate(context, date), '06/15/2024 02:PM');
+      expect(formatDate(context, date), '06/15/2024 02:30 PM');
     });
 
     testWidgets('minuit affiche AM', (tester) async {
       final context = await pumpWithContext(tester, const Locale('en'));
       final date = DateTime(2024, 1, 1, 0, 0);
-      expect(formatDate(context, date), '01/01/2024 12:AM');
+      expect(formatDate(context, date), '01/01/2024 12:00 AM');
     });
 
     testWidgets('midi affiche PM', (tester) async {
       final context = await pumpWithContext(tester, const Locale('en'));
       final date = DateTime(2024, 7, 4, 12, 0);
-      expect(formatDate(context, date), '07/04/2024 12:PM');
+      expect(formatDate(context, date), '07/04/2024 12:00 PM');
+    });
+
+    testWidgets('les minutes ne disparaissent jamais', (tester) async {
+      final context = await pumpWithContext(tester, const Locale('en'));
+      // 21:04 et 21:59 doivent se distinguer à l'écran : c'est le seul
+      // intérêt de la ligne d'un suivi de fièvre.
+      expect(formatDate(context, DateTime(2026, 10, 8, 21, 4)),
+          '10/08/2026 09:04 PM');
+      expect(formatDate(context, DateTime(2026, 10, 8, 21, 59)),
+          '10/08/2026 09:59 PM');
+    });
+  });
+
+  group('formatDate — les trois locales sur une date fixe', () {
+    // Un seul horodatage, trois locales, trois sorties épinglées : le motif
+    // ne peut plus pourrir dans une seule branche sans casser ce test.
+    final date = DateTime(2026, 10, 8, 19, 43);
+
+    testWidgets('fr', (tester) async {
+      final context = await pumpWithContext(tester, const Locale('fr'));
+      expect(formatDate(context, date), '08/10/2026 19:43');
+    });
+
+    testWidgets('en', (tester) async {
+      final context = await pumpWithContext(tester, const Locale('en'));
+      expect(formatDate(context, date), '10/08/2026 07:43 PM');
+    });
+
+    testWidgets('es', (tester) async {
+      final context = await pumpWithContext(tester, const Locale('es'));
+      expect(formatDate(context, date), '08/10/2026 19:43');
     });
   });
 

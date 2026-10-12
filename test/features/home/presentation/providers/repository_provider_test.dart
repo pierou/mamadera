@@ -6,6 +6,7 @@ import 'package:mamadera/features/home/domain/repositories/tracking_repository.d
 import 'package:mamadera/features/home/presentation/providers/repository_provider.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 import 'package:mockito/mockito.dart';
 
 import '../../../../data/repositories/tracking_repository_impl_test.mocks.dart';
@@ -27,7 +28,8 @@ void main() {
         databaseProvider.overrideWith((ref) async => Future.value(mockDb)),
       ]);
 
-      final repository = await container.read(trackingRepositoryProvider.future);
+      final repository =
+          await container.read(trackingRepositoryProvider.future);
 
       expect(repository, isA<TrackingRepository>());
 
@@ -70,7 +72,8 @@ void main() {
     test('propage une erreur de databaseProvider', () async {
       final container = ProviderContainer(overrides: [
         encryptionServiceProvider.overrideWith((ref) async => mockEncryption),
-        databaseProvider.overrideWith((ref) async => throw Exception('DB error')),
+        databaseProvider
+            .overrideWith((ref) async => throw Exception('DB error')),
       ]);
 
       expect(
@@ -112,6 +115,7 @@ void main() {
 
       // Mais les opérations sur le repo propagent l'erreur de la DB
       final testEvent = FeedingEvent(
+        unit: QuantityUnit.ml,
         timestamp: DateTime.now(),
         subtype: FeedingSubtype.natural,
       );

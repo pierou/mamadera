@@ -188,8 +188,9 @@ produced, ribbon-free, in [`screenshots/ios/asc/`](../screenshots/ios/asc/):
 | `1284x2778/` | 1284 × 2778 | iPhone 6.7" (3D Touch) |
 | `2778x1284/` | 2778 × 1284 | iPhone 6.7" landscape |
 
-Six screens per orientation: home, feeding sheet, sleep sheet, diaper
-sheet, history, menu.
+Seven screens per orientation: home, feeding sheet, sleep sheet, diaper
+sheet, history, menu, growth (`/growth`, added in v1.2.0 — the release's
+headline feature, so it must not be dropped from the set).
 
 **Pipeline** (capture on the iPhone 17 simulator → remove the simulator
 DEBUG ribbon → resize): fully documented in
@@ -200,6 +201,7 @@ Short version:
 flutter drive --target=lib/asc_driver_main.dart \
   --driver=test_driver/asc_screenshots.dart -d "iPhone 17"   # → raw/
 bash screenshots/ios/asc/postprocess.sh                      # → clean/ + 4 size folders
+                                                   # → 28 PNGs, verified in-script
 ```
 
 > Note: do **not** use ⌘⇧5 / manual captures — the simulator's DEBUG ribbon
@@ -212,7 +214,7 @@ feeding).
 
 ### iPad screenshots
 
-The iPad slots are also produced — 12 portrait PNGs (6 screens × 2 sizes),
+The iPad slots are also produced — 14 portrait PNGs (7 screens × 2 sizes),
 ribbon-free, in [`screenshots/ios/asc-ipad/`](../screenshots/ios/asc-ipad/README.md):
 
 | Folder | Size | ASC slot |

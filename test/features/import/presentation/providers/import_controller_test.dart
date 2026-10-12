@@ -13,12 +13,15 @@ import 'package:mamadera/core/providers/database_provider.dart';
 import 'package:mamadera/core/providers/encryption_provider.dart';
 import 'package:mamadera/core/services/encryption_service.dart';
 import 'package:mamadera/data/local/app_db.dart';
+import 'package:mamadera/features/history/domain/history_row.dart';
 import 'package:mamadera/features/history/presentation/providers/history_notifier.dart';
+import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/features/import/data/repositories/import_repository_impl.dart';
 import 'package:mamadera/features/import/domain/repositories/import_repository.dart';
 import 'package:mamadera/features/import/presentation/providers/import_providers.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
-import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
+
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 /// Fake de chiffrement identité : le contrôleur n'observe pas le chiffrement,
@@ -66,6 +69,9 @@ ParsedExport _sampleParsed() => ParsedExport(
           texture: null,
           babyId: 'baby_1',
           quantity: 100,
+          // Le fichier d'origine ne portait pas d'unité : le parseur nomme
+          // celle que le parent voyait (`natural` → ml), jamais il ne devine.
+          unit: QuantityUnit.ml,
         ),
       ],
       customReminders: [
@@ -240,7 +246,8 @@ void main() {
 
     tearDown(() => container.dispose);
 
-    test('un fichier refusé laisse rien en attente : ImportRejected puis applyRestore renvoie ImportIdle',
+    test(
+        'un fichier refusé laisse rien en attente : ImportRejected puis applyRestore renvoie ImportIdle',
         () async {
       repository = _ScriptedImportRepository(
         parseError: const ImportFormatException(
@@ -280,16 +287,19 @@ void main() {
           reason: 'l\'inspection ne doit rien écrire');
     });
 
-    test('applyRestore sans rien en attente renvoie ImportIdle, jamais un succès fantôme',
+    test(
+        'applyRestore sans rien en attente renvoie ImportIdle, jamais un succès fantôme',
         () async {
       final outcome = await controller.applyRestore();
 
       expect(outcome, const ImportIdle());
       expect(repository.restoreCalls, 0);
-      expect(container.read(importControllerProvider).value, const ImportIdle());
+      expect(
+          container.read(importControllerProvider).value, const ImportIdle());
     });
 
-    test('inspect puis apply : le restauré est IDENTIQUE à l\'inspecté', () async {
+    test('inspect puis apply : le restauré est IDENTIQUE à l\'inspecté',
+        () async {
       final parsed = _sampleParsed();
       repository = _ScriptedImportRepository(parseResult: parsed);
 
@@ -300,7 +310,8 @@ void main() {
       final counts = (outcome as ImportSuccess).counts;
       expect(counts, repository.restoreResult,
           reason: 'les compteurs affichés sont ceux réellement écrits');
-      expect(container.read(importControllerProvider).value, isA<ImportSuccess>());
+      expect(
+          container.read(importControllerProvider).value, isA<ImportSuccess>());
 
       expect(repository.restoreCalls, 1);
       expect(identical(repository.restoredDocuments.single, parsed), isTrue,
@@ -331,10 +342,12 @@ void main() {
       final outcome = await controller.applyRestore();
 
       expect(outcome, const ImportFailed());
-      expect(container.read(importControllerProvider).value, const ImportFailed());
+      expect(
+          container.read(importControllerProvider).value, const ImportFailed());
     });
 
-    test('cancel après un inspect valide : le suivant applyRestore renvoie ImportIdle',
+    test(
+        'cancel après un inspect valide : le suivant applyRestore renvoie ImportIdle',
         () async {
       await controller.inspectFile('{}');
       expect(controller.state.value, isA<ImportSummaryReady>());
@@ -369,6 +382,7 @@ void main() {
 
       // Une ligne ancienne qui doit disparaître au restore.
       await database.insertEvent(TrackingEventsCompanion.insert(
+        unit: 'min',
         type: 'dodo',
         timestamp: DateTime.utc(2024, 1, 1),
       ));
@@ -394,8 +408,12 @@ void main() {
       // restauré, pas la ligne ancienne.
       final history = await container
           .read(historyNotifierProvider(HistoryFilter.all).future);
-      expect(history, hasLength(1));
-      expect(history.single.trackingType, TrackingType.miam);
+      // Frise unifiée : l'événement importé + la mesure importée (v12 :
+      // les mesures apparaissent dans le filtre « tout »).
+      expect(history, hasLength(2));
+      expect((history.first as EventHistoryRow).event.trackingType,
+          TrackingType.miam);
+      expect(history.last, isA<MeasurementHistoryRow>());
       final active = await container.read(activeBabyProvider.future);
       expect(active?.id, 'baby_1');
 

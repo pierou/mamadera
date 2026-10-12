@@ -32,7 +32,8 @@ void main() {
       // Déclenche la migration pour créer les tables avant toute lecture.
       await database.select(database.reminderDismissals).get();
       encryption = _FakeEncryption();
-      repository = MeasurementRepositoryImpl(database: database, encryption: encryption);
+      repository =
+          MeasurementRepositoryImpl(database: database, encryption: encryption);
     });
 
     tearDown(() async {
@@ -87,7 +88,8 @@ void main() {
         final rows = await database.getAllMeasurements();
         expect(rows.single.notes, isNot('sous le bras'));
 
-        final entity = await repository.latestOfKind('baby_1', MeasureKind.temperature);
+        final entity =
+            await repository.latestOfKind('baby_1', MeasureKind.temperature);
         expect(entity, isNotNull);
         expect(entity!.notes, 'sous le bras');
         expect(entity.value, 36.5);
@@ -161,20 +163,26 @@ void main() {
         expect(rows.single.value, 3500);
       });
 
-      test('allForBaby(null) returns orphan rows only', () async {
+      test('allForBaby(null) is unfiltered, like the events repository',
+          () async {
+        // « Aucun bébé sélectionné » (chargement en cours, installation
+        // sans profil) ne doit pas masquer les mesures : même sémantique
+        // que `getAllEventsOrdered(babyId: null)`.
         await seedRow(babyId: 'baby_1', value: 'enc:3500.0');
         await seedRow(babyId: null, value: 'enc:4200.0');
 
         final rows = await repository.allForBaby(null);
-        expect(rows, hasLength(1));
-        expect(rows.single.babyId, isNull);
+        expect(rows, hasLength(2));
       });
 
       test('kind filter narrows within the baby', () async {
-        await seedRow(babyId: 'baby_1', kind: 'poids', value: 'enc:3500.0', unit: 'g');
-        await seedRow(babyId: 'baby_1', kind: 'taille', value: 'enc:50.3', unit: 'cm');
+        await seedRow(
+            babyId: 'baby_1', kind: 'poids', value: 'enc:3500.0', unit: 'g');
+        await seedRow(
+            babyId: 'baby_1', kind: 'taille', value: 'enc:50.3', unit: 'cm');
 
-        final rows = await repository.allForBaby('baby_1', kind: MeasureKind.taille);
+        final rows =
+            await repository.allForBaby('baby_1', kind: MeasureKind.taille);
         expect(rows, hasLength(1));
         expect(rows.single.kind, MeasureKind.taille);
       });
@@ -193,17 +201,25 @@ void main() {
       });
 
       test('latestOfKind is the most recent row of that kind', () async {
-        await seedRow(value: 'enc:3000.0', recordedAt: DateTime.utc(2025, 6, 3));
-        await seedRow(value: 'enc:3200.0', recordedAt: DateTime.utc(2025, 6, 1));
-        await seedRow(kind: 'taille', value: 'enc:50.3', unit: 'cm', recordedAt: DateTime.utc(2025, 6, 4));
+        await seedRow(
+            value: 'enc:3000.0', recordedAt: DateTime.utc(2025, 6, 3));
+        await seedRow(
+            value: 'enc:3200.0', recordedAt: DateTime.utc(2025, 6, 1));
+        await seedRow(
+            kind: 'taille',
+            value: 'enc:50.3',
+            unit: 'cm',
+            recordedAt: DateTime.utc(2025, 6, 4));
 
-        final latest = await repository.latestOfKind('baby_1', MeasureKind.poids);
+        final latest =
+            await repository.latestOfKind('baby_1', MeasureKind.poids);
         expect(latest, isNotNull);
         expect(latest!.value, 3000);
       });
 
       test('latestOfKind is null when the baby has none', () async {
-        expect(await repository.latestOfKind('baby_1', MeasureKind.poids), isNull);
+        expect(
+            await repository.latestOfKind('baby_1', MeasureKind.poids), isNull);
       });
 
       test('an undecryptable value surfaces as null, never as zero', () async {

@@ -11,42 +11,82 @@ import '../../domain/entities/measure_kind.dart';
 import '../providers/measurement_providers.dart';
 import 'measure_kind_accent.dart';
 
-/// Feuille de saisie d'une mesure de croissance (poids, taille, température).
-///
-/// La valeur de départ est le [MeasureKind.defaultValue] du type — une valeur
-/// plausible de nouveau-né, toujours dans les bornes — pour que la feuille
-/// s'ouvre sans erreur : le parent ajuste depuis là, et l'état « hors plage »
-/// (erreur inline + enregistrement désactivé) n'apparaît que s'il saisit un
-/// nombre hors des bornes.
-///
-/// Sauvegarde en [double] : `null` = annulée, sinon la valeur enregistrée
-/// (l'appelant affiche la confirmation, comme les feuilles d'accueil).
+/// Sheet for entering a growth measurement (weight, height, temperature).
 class MeasurementSheet extends ConsumerStatefulWidget {
-  const MeasurementSheet({required this.kind, super.key});
+  const MeasurementSheet({
+    required this.kind,
+    super.key,
+  });
 
   final MeasureKind kind;
+
+  /// Opens the sheet and returns the entered value (null if cancelled).
+  static Future<double?> show(
+    BuildContext context, {
+    required MeasureKind kind,
+  }) {
+    return showModalBottomSheet<double>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => MeasurementSheet(kind: kind),
+    );
+  }
 
   @override
   ConsumerState<MeasurementSheet> createState() => _MeasurementSheetState();
 }
 
 class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
-  /// Valeur courante, en unité de base (g, cm, °C).
   late double _value;
+  bool _inRange = true;
+  DateTime _selectedDate = DateTime.now();
+  late TextEditingController _noteController;
 
-  /// Date de la mesure, modifiable comme sur les autres fiches.
-  late final DateTime _selectedDate;
+  /// Libellé d'appoint « dernière : 36,8 °C », résolu en asynchrone — `null`
+  /// tant que le chargement n'est pas arrivé, auquel cas le rendu retombe sur
+  /// la référence du type. Résolu **hors de `initState`** : `context.l` n'y
+  /// est pas encore sûr, et l'asynchrone ne laisse jamais un rendu
+  /// intermédiaire pré-remplir le champ.
+  String? _lastHint;
 
-  late final TextEditingController _noteController;
-
-  bool get _inRange => widget.kind.contains(_value);
+  /// Le parent a-t-il saisi un chiffre ? Le bouton de sauvegarde n'ouvre pas
+  /// avant : en afficher la valeur de départ comme une mesure prise, ce
+  /// serait l'inventer.
+  bool _hasInput = false;
 
   @override
   void initState() {
     super.initState();
     _value = widget.kind.defaultValue;
-    _selectedDate = DateTime.now();
     _noteController = TextEditingController();
+    _loadLastValue();
+  }
+
+  /// Libellé d'appoint : la dernière mesure du même type si elle existe,
+  /// sinon la valeur de référence du type (« 37 °C »).
+  String get _hintLabel =>
+      _lastHint ??
+      widget.kind
+          .format(widget.kind.defaultValue, localeName: context.l.localeName);
+
+  /// Dernière mesure du même type, si elle existe : « dernière : 36,8 °C ».
+  /// En erreur ou sans valeur (chiffre illisible), on garde la référence du
+  /// type — l'appoint est un confort, jamais un bloqueur.
+  Future<void> _loadLastValue() async {
+    try {
+      final repository = await ref.read(measurementRepositoryProvider.future);
+      final babyId = ref.read(activeBabyProvider).value?.id;
+      final last = await repository.latestOfKind(babyId, widget.kind);
+      if (!mounted || last?.value == null) return;
+      setState(() {
+        _lastHint = context.l.growthSheetLastValueHint(
+          widget.kind.format(last!.value!, localeName: context.l.localeName),
+        );
+      });
+    } catch (_) {
+      // La feuille reste utilisable sans l'appoint.
+    }
   }
 
   @override
@@ -56,108 +96,158 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
   }
 
   Future<void> _save() async {
+    if (!_inRange) return;
     final repository = await ref.read(measurementRepositoryProvider.future);
-    if (!mounted) return;
-    // `null` = lignes sans profil (suivi avant création du profil).
     final babyId = ref.read(activeBabyProvider).value?.id;
-    final note = _noteController.text.trim();
     await repository.add(
       babyId: babyId,
       kind: widget.kind,
       value: _value,
       recordedAt: _selectedDate,
-      notes: note.isEmpty ? null : note,
+      notes: _noteController.text.trim().isEmpty
+          ? null
+          : _noteController.text.trim(),
     );
-    if (!mounted) return;
-    await ref.read(measurementNotifierProvider.notifier).refresh();
     if (!mounted) return;
     Navigator.of(context).pop(_value);
   }
 
-  /// Titre de la feuille, par grande (pas de clé dérivée : switch explicite).
-  String _titleFor(BuildContext context) {
-    return switch (widget.kind) {
-      MeasureKind.poids => context.l.growthSheetTitleWeight,
-      MeasureKind.taille => context.l.growthSheetTitleHeight,
-      MeasureKind.temperature => context.l.growthSheetTitleTemperature,
-    };
-  }
+  /// Paire B2 par type : le gros amène au voisinage, le fin règle le dernier
+  /// cran (10 g, 1 cm, 0,1 °C). Le stepper ± reste le nudge d'un quantum.
+  SliderPair get _sliderPair => switch (widget.kind) {
+        MeasureKind.poids => const (
+            coarseStep: 200,
+            fineSpan: 100,
+            fineStep: 10
+          ),
+        MeasureKind.taille => const (coarseStep: 5, fineSpan: 5, fineStep: 1),
+        MeasureKind.temperature => const (
+            coarseStep: 1,
+            fineSpan: 1,
+            fineStep: 0.1
+          ),
+      };
 
   @override
   Widget build(BuildContext context) {
     final l = context.l;
-    final theme = Theme.of(context);
-    final kind = widget.kind;
+    // Les bornes de l'en-tête affichent les unités, pas des chiffres bruts :
+    // « 200–20000 g » se lit « entre deux centaines et vingt kilos ».
+    final rangeLabel =
+        '${widget.kind.min.round()}–${widget.kind.max.round()} ${widget.kind.displayUnit}';
+    final title = switch (widget.kind) {
+      MeasureKind.poids => l.growthSheetTitleWeight,
+      MeasureKind.taille => l.growthSheetTitleHeight,
+      MeasureKind.temperature => l.growthSheetTitleTemperature,
+    };
+
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        AppTheme.spacingXl,
-        AppTheme.spacingXl,
-        AppTheme.spacingXl,
-        MediaQuery.viewInsetsOf(context).bottom + AppTheme.spacingXl,
+      padding: EdgeInsets.only(
+        left: AppTheme.spacingMd,
+        right: AppTheme.spacingMd,
+        top: AppTheme.spacingMd,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppTheme.spacingMd,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _titleFor(context),
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: AppTheme.spacingLg),
-          QuantityPickerInline(
-            unit: kind.displayUnit,
-            min: kind.min,
-            max: kind.max,
-            divisions: kind.divisions,
-            decimals: kind.decimals,
-            // Stepper +/- d'un pas du slider : c'est le seul instrument de
-            // précision qui reste quand la plage compte des milliers de crans.
-            step: kind.step,
-            value: _value,
-            onValueChanged: (value) => setState(() => _value = value),
-            // Une saisie hors plage ne se tait plus : la valeur saisie remplace
-            // la courante, `_inRange` passe à false, et la feuille révèle son
-            // label d'erreur existant en désactivant la sauvegarde. Re-saisir
-            // dans la plage repasse par `onValueChanged` et lève l'erreur.
-            onValueOutOfRange: (value) => setState(() => _value = value),
-            accentColor: kind.accent,
-          ),
-          if (!_inRange)
-            Padding(
-              padding: const EdgeInsets.only(top: AppTheme.spacingMd),
-              child: Text(
+      child: SingleChildScrollView(
+        // Si la feuille dépasse l'écran (petit téléphone, clavier ouvert),
+        // elle défile au lieu de couper : le bouton d'enregistrement doit
+        // rester atteignable à toute taille.
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingMd),
+            Text(title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(
+              rangeLabel,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
+            ),
+            const SizedBox(height: AppTheme.spacingMd),
+            QuantityPickerInline(
+              unit: widget.kind.displayUnit,
+              min: widget.kind.min,
+              max: widget.kind.max,
+              divisions: widget.kind.divisions,
+              step: widget.kind.step,
+              decimals: widget.kind.decimals,
+              value: _value,
+              accentColor: widget.kind.accent,
+              hintLabel: _hintLabel,
+              onValueChanged: (double value) {
+                setState(() {
+                  _value = value;
+                  _inRange = true;
+                  _hasInput = true;
+                });
+              },
+              onValueOutOfRange: (double value) {
+                setState(() {
+                  _value = value;
+                  _inRange = false;
+                  _hasInput = true;
+                });
+              },
+              sliderPair: _sliderPair,
+            ),
+            if (!_inRange) ...[
+              const SizedBox(height: 8),
+              Text(
                 l.growthValueOutOfRange(
-                  kind.formatBound(kind.min),
-                  kind.formatBound(kind.max),
-                  kind.displayUnit,
+                  widget.kind.formatBound(widget.kind.min),
+                  widget.kind.formatBound(widget.kind.max),
+                  widget.kind.displayUnit,
                 ),
-                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+            const SizedBox(height: AppTheme.spacingMd),
+            EventDateTimeField(
+              value: _selectedDate,
+              onChanged: (date) => setState(() => _selectedDate = date),
+            ),
+            const SizedBox(height: AppTheme.spacingMd),
+            TextField(
+              controller: _noteController,
+              decoration: InputDecoration(
+                labelText: l.growthSheetNoteField,
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusMedium),
+                ),
               ),
             ),
-          const SizedBox(height: AppTheme.spacingLg),
-          EventDateTimeField(
-            value: _selectedDate,
-            onChanged: (value) => setState(() => _selectedDate = value),
-          ),
-          const SizedBox(height: AppTheme.spacingLg),
-          TextField(
-            controller: _noteController,
-            decoration: InputDecoration(
-              hintText: l.growthSheetNoteField,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-              ),
+            const SizedBox(height: AppTheme.spacingLg),
+            DialogCancelButton(
+              label: l.cancel,
+              onPressed: () => Navigator.of(context).pop(),
             ),
-            maxLines: null,
-          ),
-          const SizedBox(height: AppTheme.spacingXl),
-          DialogActionButtons(
-            onCancelPressed: () => Navigator.of(context).pop(),
-            onConfirmPressed: _inRange ? _save : null,
-            cancelLabel: l.cancel,
-            confirmLabel: l.growthSheetSave,
-          ),
-        ],
+            const SizedBox(height: AppTheme.spacingMd),
+            DialogConfirmButton(
+              label: l.growthSheetSave,
+              onPressed: (_inRange && _hasInput) ? _save : null,
+              showIcon: true,
+            ),
+          ],
+        ),
       ),
     );
   }

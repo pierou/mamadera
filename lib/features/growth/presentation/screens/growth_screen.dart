@@ -91,10 +91,12 @@ class GrowthScreen extends ConsumerWidget {
         formatDate(context, measurement.recordedAt) +
             (measurement.notes == null ? '' : ' — ${measurement.notes}'),
       ),
-      trailing: Text(
-        measurement.kind.displayUnit,
-        style: theme.textTheme.bodySmall,
-      ),
+      // Aucune unité en traîne : `kind.format()` rend déjà l'unité dans le
+      // titre, et `displayUnit` est l'unité de **stockage** (`g`). Les
+      // afficher ensemble faisait voisiner « 6.18 kg » et « g », qu'un parent
+      // pressé lit « 6,18 grammes ». Trouvé dans les captures v1.2.0
+      // (docs/BUG-en-date-format-and-growth-unit.md). `displayUnit` reste
+      // l'invite du champ de saisie — là le gramme est la bonne unité.
     );
   }
 

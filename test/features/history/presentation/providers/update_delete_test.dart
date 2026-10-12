@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mamadera/features/history/domain/history_row.dart';
 import 'package:mamadera/features/history/domain/repositories/history_repository.dart';
 import 'package:mamadera/features/history/presentation/providers/history_notifier.dart';
 import 'package:mamadera/features/history/presentation/providers/history_repository_provider.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 // @GenerateNiceMocks permet aux appels non-stubbés de retourner des valeurs par défaut
 // au lieu de lever MissingStubError — utile car updateEvent() passe tous les params nommés.
@@ -21,11 +23,13 @@ void main() {
 
   // Fixtures synthétiques : id ronds, timestamps simples — using typed subtypes
   final event1 = FeedingEvent(
+    unit: QuantityUnit.ml,
     id: 10,
     timestamp: DateTime.utc(2024, 1, 1),
     subtype: FeedingSubtype.natural,
   );
   final event2 = SleepEvent(
+    unit: QuantityUnit.min,
     id: 20,
     timestamp: DateTime.utc(2024, 1, 2),
     duration: 60,
@@ -53,9 +57,11 @@ void main() {
 
   group('updateEvent()', () {
     test('succès → transition loading→data (filtre all)', () async {
-      when(mockRepository.updateEvent(id: anyNamed('id'), event: anyNamed('event')))
+      when(mockRepository.updateEvent(
+              id: anyNamed('id'), event: anyNamed('event')))
           .thenAnswer((_) async => true);
       final updated = FeedingEvent(
+        unit: QuantityUnit.ml,
         id: 10,
         timestamp: DateTime.utc(2024, 6, 1), // Timestamp modifié
         subtype: FeedingSubtype.natural,
@@ -80,7 +86,7 @@ void main() {
       // Immédiatement après appel : état loading (le premier `state = const AsyncLoading()` est synchrone)
       expect(
         container.read(historyNotifierProvider(HistoryFilter.all)),
-        isA<AsyncLoading<List<TrackingEvent>>>(),
+        isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
       await updateFuture; // Attendre la fin de l'opération
@@ -88,15 +94,17 @@ void main() {
 
       // Post-attente : état data avec liste refreshée contenant l'événement modifié
       final state = container.read(historyNotifierProvider(HistoryFilter.all));
-      expect(state, isA<AsyncData<List<TrackingEvent>>>());
+      expect(state, isA<AsyncData<List<HistoryRow>>>());
       expect((state as AsyncData).value, hasLength(1));
       expect(state.value![0].timestamp, updated.timestamp);
     });
 
     test('succès → transition loading→data (filtre type miam)', () async {
-      when(mockRepository.updateEvent(id: anyNamed('id'), event: anyNamed('event')))
+      when(mockRepository.updateEvent(
+              id: anyNamed('id'), event: anyNamed('event')))
           .thenAnswer((_) async => true);
       final updated = FeedingEvent(
+        unit: QuantityUnit.ml,
         id: 10,
         timestamp: DateTime.utc(2024, 3, 1),
         subtype: FeedingSubtype.natural,
@@ -104,7 +112,8 @@ void main() {
       );
 
       var callCount = 0;
-      when(mockRepository.getEventsByType(TrackingType.miam)).thenAnswer((_) async {
+      when(mockRepository.getEventsByType(TrackingType.miam))
+          .thenAnswer((_) async {
         callCount++;
         if (callCount == 1) return [event1]; // Initial build filtré miam
         return [updated]; // Post-update refresh filtré
@@ -120,19 +129,21 @@ void main() {
 
       expect(
         container.read(historyNotifierProvider(HistoryFilter.miam)),
-        isA<AsyncLoading<List<TrackingEvent>>>(),
+        isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
       await updateFuture; // Attendre la fin de l'opération
       pendingFutures.remove(updateFuture);
 
       // Refresh post-update a utilisé getEventsByType (filtre respecté)
-      verify(mockRepository.getEventsByType(TrackingType.miam)).called(greaterThan(1));
+      verify(mockRepository.getEventsByType(TrackingType.miam))
+          .called(greaterThan(1));
     });
 
     test('erreur repo → AsyncError avec message préservé', () async {
       // Le notifier passe event complet à updateEvent.
-      when(mockRepository.updateEvent(id: anyNamed('id'), event: anyNamed('event')))
+      when(mockRepository.updateEvent(
+              id: anyNamed('id'), event: anyNamed('event')))
           .thenThrow(Exception('Erreur réseau'));
 
       final santeEvent = HealthEvent(
@@ -155,13 +166,14 @@ void main() {
 
       expect(
         container.read(historyNotifierProvider(HistoryFilter.sante)),
-        isA<AsyncLoading<List<TrackingEvent>>>(),
+        isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
       await updateFuture; // AsyncValue.guard capture l'exception → AsyncError
 
-      final state = container.read(historyNotifierProvider(HistoryFilter.sante));
-      expect(state, isA<AsyncError<List<TrackingEvent>>>());
+      final state =
+          container.read(historyNotifierProvider(HistoryFilter.sante));
+      expect(state, isA<AsyncError<List<HistoryRow>>>());
       expect(
         (state as AsyncError).error.toString(),
         contains('Erreur réseau'),
@@ -177,7 +189,9 @@ void main() {
       when(mockRepository.getAllEventsOrdered()).thenAnswer((_) async {
         callCount++;
         if (callCount == 1) return [event1, event2]; // Initial build : 2 events
-        return [event1]; // Post-delete refresh : seul l'évent non supprimé reste
+        return [
+          event1
+        ]; // Post-delete refresh : seul l'évent non supprimé reste
       });
 
       final notifier = container.read(
@@ -190,16 +204,16 @@ void main() {
 
       expect(
         container.read(historyNotifierProvider(HistoryFilter.all)),
-        isA<AsyncLoading<List<TrackingEvent>>>(),
+        isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
       await deleteFuture; // Attendre la fin de l'opération
 
       final state = container.read(historyNotifierProvider(HistoryFilter.all));
-      expect(state, isA<AsyncData<List<TrackingEvent>>>());
+      expect(state, isA<AsyncData<List<HistoryRow>>>());
       // L'événement supprimé n'est plus dans la liste refreshée
       expect((state as AsyncData).value, hasLength(1));
-      expect(state.value!.first.id, event1.id);
+      expect((state.value!.first as EventHistoryRow).event.id, event1.id);
 
       verify(mockRepository.deleteEvent(event2.id!)).called(1);
     });
@@ -207,13 +221,15 @@ void main() {
     test('succès → transition loading→data (filtre type dodo)', () async {
       when(mockRepository.deleteEvent(any)).thenAnswer((_) async => true);
       final remaining = SleepEvent(
+        unit: QuantityUnit.min,
         id: 30,
         timestamp: DateTime.utc(2024, 1, 3),
         duration: 45,
       );
 
       var callCount = 0;
-      when(mockRepository.getEventsByType(TrackingType.dodo)).thenAnswer((_) async {
+      when(mockRepository.getEventsByType(TrackingType.dodo))
+          .thenAnswer((_) async {
         callCount++;
         if (callCount == 1) return [event2, remaining]; // Initial : 2 dodos
         return [remaining]; // Post-delete : seul l'autre dodo reste
@@ -229,20 +245,20 @@ void main() {
 
       expect(
         container.read(historyNotifierProvider(HistoryFilter.dodo)),
-        isA<AsyncLoading<List<TrackingEvent>>>(),
+        isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
       await deleteFuture; // Attendre la fin de l'opération
 
       final state = container.read(historyNotifierProvider(HistoryFilter.dodo));
-      expect(state, isA<AsyncData<List<TrackingEvent>>>());
+      expect(state, isA<AsyncData<List<HistoryRow>>>());
       // Le refresh post-delete a bien utilisé le filtre dodo (getEventsByType)
-      verify(mockRepository.getEventsByType(TrackingType.dodo)).called(greaterThan(1));
+      verify(mockRepository.getEventsByType(TrackingType.dodo))
+          .called(greaterThan(1));
     });
 
     test('erreur repo → AsyncError avec message préservé', () async {
-      when(mockRepository.deleteEvent(any))
-          .thenThrow(Exception('DB locked'));
+      when(mockRepository.deleteEvent(any)).thenThrow(Exception('DB locked'));
 
       // Build initial stable avant erreur de suppression
       when(mockRepository.getAllEventsOrdered())
@@ -258,13 +274,13 @@ void main() {
 
       expect(
         container.read(historyNotifierProvider(HistoryFilter.all)),
-        isA<AsyncLoading<List<TrackingEvent>>>(),
+        isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
       await deleteFuture; // AsyncValue.guard capture l'exception → AsyncError
 
       final state = container.read(historyNotifierProvider(HistoryFilter.all));
-      expect(state, isA<AsyncError<List<TrackingEvent>>>());
+      expect(state, isA<AsyncError<List<HistoryRow>>>());
       expect(
         (state as AsyncError).error.toString(),
         contains('DB locked'),

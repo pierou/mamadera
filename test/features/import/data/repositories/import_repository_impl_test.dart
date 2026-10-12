@@ -8,6 +8,7 @@ import 'package:mamadera/data/local/app_db.dart';
 import 'package:mamadera/features/export/data/repositories/export_repository_impl.dart';
 import 'package:mamadera/features/import/data/repositories/import_repository_impl.dart';
 import 'package:mamadera/features/import/domain/repositories/import_repository.dart';
+import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 
 /// Deterministic fake: `enc:<texte>` → `<texte>`, same as the export tests, so a
 /// round trip proves the two features agree rather than that AES works.
@@ -202,8 +203,8 @@ Future<void> expectRejected({
       ImportRepositoryImpl(database: database, encryption: encryption);
 
   // A file must fail *before* touching anything, so seed a known state first.
-  final seeded =
-      await repository.restore(await repository.parseExport(_jsonOf(validDocument())));
+  final seeded = await repository
+      .restore(await repository.parseExport(_jsonOf(validDocument())));
   final before = await _allCounts(database);
 
   ImportFormatException? captured;
@@ -297,16 +298,83 @@ void main() {
     });
 
     test('rejects a format version it does not know', () async {
+      // 3 (v12) est le format de ce build ; seul 4 et au-delà relèvent d'un
+      // futur application, dont on ne devinera pas le schéma.
       await expectRejected(
-        document: validDocument(formatVersion: 3),
+        document: validDocument(formatVersion: 4),
         reason: ImportRejectionReason.newerFormatVersion,
+      );
+    });
+
+    test('accepts a format-3 document and reads its unit', () async {
+      final doc = validDocument(formatVersion: 3);
+      (doc['trackingEvents'] as List<dynamic>).first['unit'] = 'min';
+
+      final parsed = await repository.parseExport(_jsonOf(doc));
+
+      expect(parsed.trackingEvents.single.unit, QuantityUnit.min);
+    });
+
+    test('a format-2 natural row imports as ml, never min', () async {
+      // Une sauvegarde d'avant v12 ne porte aucune unité : le parent a vu
+      // « ml » à la saisie, donc la ligne veut dire ml. Marquer ces lignes
+      // `min` inventerait des minutes de tétée jamais chronométrées.
+      final parsed = await repository
+          .parseExport(_jsonOf(validDocument(formatVersion: 2)));
+
+      expect(parsed.trackingEvents.single.unit, QuantityUnit.ml);
+    });
+
+    test('a format-1 document backfills its unit the same way', () async {
+      final parsed = await repository
+          .parseExport(_jsonOf(validDocument(formatVersion: 1)));
+
+      expect(parsed.trackingEvents.single.unit, QuantityUnit.ml);
+    });
+
+    test('a solid row claiming ml is rejected, not coerced', () async {
+      // Un « 40 ml » de purée est un chiffre de santé faux : la ligne ment
+      // sur son propre nombre, on refuse le fichier.
+      final doc = validDocument(formatVersion: 3);
+      final row = (doc['trackingEvents'] as List<dynamic>).first
+          as Map<String, dynamic>;
+      row['subtype'] = 'solid';
+      row['unit'] = 'ml';
+
+      await expectRejected(
+        document: doc,
+        reason: ImportRejectionReason.invalidRow,
+      );
+    });
+
+    test('a sleep row claiming ml is rejected, not coerced', () async {
+      final doc = validDocument(formatVersion: 3);
+      final row = (doc['trackingEvents'] as List<dynamic>).first
+          as Map<String, dynamic>;
+      row['type'] = 'dodo';
+      row['unit'] = 'ml';
+
+      await expectRejected(
+        document: doc,
+        reason: ImportRejectionReason.invalidRow,
+      );
+    });
+
+    test('an unknown unit string is rejected', () async {
+      // Une unité qu'aucune version de l'app n'a écrite ne se lit pas
+      // « probablement ml ».
+      final doc = validDocument(formatVersion: 3);
+      (doc['trackingEvents'] as List<dynamic>).first['unit'] = 'oz';
+
+      await expectRejected(
+        document: doc,
+        reason: ImportRejectionReason.invalidRow,
       );
     });
 
     test('still accepts a format-1 document: new sections absent read as empty',
         () async {
-      final parsed =
-          await repository.parseExport(_jsonOf(formatOneDocument()));
+      final parsed = await repository.parseExport(_jsonOf(formatOneDocument()));
 
       expect(parsed.babyProfiles, hasLength(1));
       expect(parsed.trackingEvents, hasLength(1));
@@ -317,11 +385,11 @@ void main() {
       expect(parsed.reminderSettings.single.babyId, '');
       expect(parsed.reminderDismissals.single.babyId, '');
       expect(parsed.customReminders.single.babyId, '');
-      expect(parsed.customReminders.single.completionSource,
-          'from_events');
+      expect(parsed.customReminders.single.completionSource, 'from_events');
     });
 
-    test('rejects a format-1 file that grew a measurement row it does not declare in counts',
+    test(
+        'rejects a format-1 file that grew a measurement row it does not declare in counts',
         () async {
       final document = formatOneDocument()
         ..['measurements'] = [
@@ -372,7 +440,8 @@ void main() {
       );
     });
 
-    test('rejects an undecryptable measurement value: there is no number to restore',
+    test(
+        'rejects an undecryptable measurement value: there is no number to restore',
         () async {
       await expectRejected(
         document: validDocument(measurements: [
@@ -413,7 +482,8 @@ void main() {
       );
     });
 
-    test('rejects a duplicated setting for the same baby while the other baby may keep the same item',
+    test(
+        'rejects a duplicated setting for the same baby while the other baby may keep the same item',
         () async {
       await expectRejected(
         document: validDocument(reminderSettings: [
@@ -656,13 +726,14 @@ void main() {
         () {
       expect(
         () => enforceBackupSizeLimit(knownLength: maxBackupBytes + 1),
-        throwsA(isA<ImportFormatException>().having(
-            (error) => error.reason, 'reason', ImportRejectionReason.fileTooLarge)),
+        throwsA(isA<ImportFormatException>().having((error) => error.reason,
+            'reason', ImportRejectionReason.fileTooLarge)),
       );
       // Unknown length is only judged once the bytes are in memory.
       enforceBackupSizeLimit(knownLength: null, actualBytes: 12);
       expect(
-        () => enforceBackupSizeLimit(knownLength: null, actualBytes: maxBackupBytes + 1),
+        () => enforceBackupSizeLimit(
+            knownLength: null, actualBytes: maxBackupBytes + 1),
         throwsA(isA<ImportFormatException>()),
       );
     });
@@ -737,22 +808,21 @@ void main() {
 
       // Mesures : ids préservés, chiffres re-chiffrés, notes comprises.
       final restoredMeasurements = await database.getAllMeasurements();
-      final weight =
-          restoredMeasurements.firstWhere((row) => row.id == 101);
+      final weight = restoredMeasurements.firstWhere((row) => row.id == 101);
       expect(weight.babyId, 'baby_1');
       expect(weight.kind, 'poids');
       expect(weight.unit, 'g');
       expect(weight.value, startsWith('enc:'));
       expect(encryption.decrypt(weight.value), '3400');
       expect(encryption.decrypt(weight.notes), 'Première pesée');
-      final height =
-          restoredMeasurements.firstWhere((row) => row.id == 102);
+      final height = restoredMeasurements.firstWhere((row) => row.id == 102);
       expect(height.babyId, 'baby_2');
       expect(height.notes, isNull);
 
       // Achèvements : la portée par bébé et la sentinelle partagée survivent.
       final restoredCompletions = await database.getAllReminderCompletions();
-      expect(restoredCompletions.map((row) => (row.babyId, row.itemId)),
+      expect(
+          restoredCompletions.map((row) => (row.babyId, row.itemId)),
           containsAll(<(String, String)>[
             ('', 'custom_4'),
             ('baby_1', 'custom_5'),
@@ -785,19 +855,23 @@ void main() {
       expect(
         _withoutVolatileFields(second),
         equals(_withoutVolatileFields(first)),
-        reason: 'un champ écrit par l''exporteur ne survit pas au passage '
+        reason: 'un champ écrit par l'
+            'exporteur ne survit pas au passage '
             'restauration puis réexport : le format des sauvegardes vient de '
             'diverger en silence',
       );
     });
 
-    test('a solid food event survives export → restore → export with its subtype and quantity intact', () async {
+    test(
+        'a solid food event survives export → restore → export with its subtype and quantity intact',
+        () async {
       // Le sous-type 'solid' n'a pas de whitelist de validation dans l'import :
       // il doit donc survivre intact, comme n'importe quelle valeur
       // d'alimentation (pas de conversion silencieuse ni de rejet).
       final source = _openDatabase();
       addTearDown(source.close);
       await source.insertEvent(TrackingEventsCompanion.insert(
+        unit: 'g',
         type: 'miam',
         subtype: const Value('solid'),
         quantity: const Value(40.0),
@@ -819,13 +893,14 @@ void main() {
         database: database,
         encryption: encryption,
       ).buildExportJson();
-      expect(_withoutVolatileFields(second), equals(_withoutVolatileFields(first)));
+      expect(_withoutVolatileFields(second),
+          equals(_withoutVolatileFields(first)));
     });
 
-    test('format 1: a pre-M4 backup restores into shared rows, empty new tables',
+    test(
+        'format 1: a pre-M4 backup restores into shared rows, empty new tables',
         () async {
-      final counts =
-          await repository.restore(await repository.parseExport(
+      final counts = await repository.restore(await repository.parseExport(
         _jsonOf(formatOneDocument()),
       ));
 
@@ -876,6 +951,7 @@ void main() {
               .buildExportJson();
       // Then add a row that no file mentions.
       await database.insertEvent(TrackingEventsCompanion.insert(
+        unit: 'min',
         type: 'dodo',
         timestamp: DateTime.utc(2024, 1, 1),
       ));
@@ -917,6 +993,7 @@ void main() {
 
       await repository.restore(parsed);
       final nextId = await database.insertEvent(TrackingEventsCompanion.insert(
+        unit: 'ml',
         type: 'caca',
         timestamp: DateTime.utc(2024, 2, 2),
       ));
@@ -928,6 +1005,7 @@ void main() {
         'a database that already used a higher id never reuses or collides: '
         'sqlite_sequence is monotonic, not restored', () async {
       await database.insertEvent(TrackingEventsCompanion.insert(
+        unit: 'ml',
         id: const Value(900),
         type: 'miam',
         timestamp: DateTime.utc(2024, 1, 1),
@@ -944,6 +1022,7 @@ void main() {
 
       await repository.restore(parsed);
       final nextId = await database.insertEvent(TrackingEventsCompanion.insert(
+        unit: 'ml',
         type: 'caca',
         timestamp: DateTime.utc(2024, 2, 2),
       ));
@@ -1040,11 +1119,10 @@ void main() {
           'baby_of_deleted_child');
     });
 
-    test(
-        'a write the database itself rejects rolls the whole restore back',
+    test('a write the database itself rejects rolls the whole restore back',
         () async {
-      await repository.restore(await repository.parseExport(
-          _jsonOf(validDocument())));
+      await repository
+          .restore(await repository.parseExport(_jsonOf(validDocument())));
       final before = await _allCounts(database);
       expect(before['trackingEvents'], 1);
 
@@ -1072,6 +1150,7 @@ void main() {
             texture: null,
             babyId: 'newborn',
             quantity: null,
+            unit: QuantityUnit.ml,
           ),
         ],
         customReminders: [
@@ -1119,8 +1198,8 @@ List<TrackingEvent> _sortedById(List<TrackingEvent> rows) =>
 
 /// Two profiles, three events (one with a note, one orphan, one diaper with
 /// every column set), a custom reminder, its setting and a dismissal.
-Future<void> _seedRichDatabase(AppDatabase database,
-    EncryptionService encryption) async {
+Future<void> _seedRichDatabase(
+    AppDatabase database, EncryptionService encryption) async {
   final birth = 1700000000000;
   final timestamp = DateTime.fromMillisecondsSinceEpoch(birth, isUtc: true);
   await database.insertBabyProfile(BabyProfilesCompanion.insert(
@@ -1136,6 +1215,7 @@ Future<void> _seedRichDatabase(AppDatabase database,
     isActive: const Value(false),
   ));
   await database.insertEvent(TrackingEventsCompanion.insert(
+    unit: 'ml',
     id: const Value(11),
     type: 'miam',
     timestamp: timestamp,
@@ -1145,6 +1225,7 @@ Future<void> _seedRichDatabase(AppDatabase database,
     quantity: const Value(100),
   ));
   await database.insertEvent(TrackingEventsCompanion.insert(
+    unit: 'ml',
     id: const Value(12),
     type: 'caca',
     timestamp: timestamp,
@@ -1154,6 +1235,7 @@ Future<void> _seedRichDatabase(AppDatabase database,
     babyId: const Value('baby_2'),
   ));
   await database.insertEvent(TrackingEventsCompanion.insert(
+    unit: 'min',
     id: const Value(13),
     type: 'dodo',
     timestamp: timestamp,

@@ -1,6 +1,6 @@
 # Google Play screenshots pipeline (Android)
 
-Captures seven store screens on the **Pixel_10_Pro emulator** (1280×2856)
+Captures eight store screens on the **Pixel_10_Pro emulator** (1280×2856)
 and saves ribbon-free PNGs ready to upload to Play Console.
 
 ## Files
@@ -13,11 +13,13 @@ screenshots/android/
 ├── feeding_dialog.png  feeding bottom sheet open
 ├── sleep_diagram.png   sleep bottom sheet open
 ├── diaper_dialog.png   diaper bottom sheet open
-└── health_diagram.png  health bottom sheet open
+├── health_diagram.png  health bottom sheet open
+├── growth.png          growth screen (`/growth`, v1.2.0)
+└── verify_android.py   size + DEBUG-ribbon check, run after every capture
 ```
 
-All seven are captured in English (the app is pinned to `en` for these
-shots) and carry no DEBUG banner.
+All eight are captured in English (the app is pinned to `en` for these
+shots) and must carry no DEBUG banner — `verify_android.py` proves it.
 
 ## Run
 
@@ -27,6 +29,7 @@ flutter drive \
   --target=integration_test/screenshot_capture.dart \
   --driver=test_driver/screenshot_capture.driver.dart \
   -d emulator-5554
+/usr/bin/python3 screenshots/android/verify_android.py   # never skip this
 ```
 
 The driver saves the PNGs directly into this directory.
@@ -44,6 +47,31 @@ The driver saves the PNGs directly into this directory.
   decodes `Response.fromJson(...)` —
   `data.screenshots[]` holds `{screenshotName, bytes}` — writing each PNG
   to `screenshots/android/` on the host. No `adb pull` needed.
+- **The DEBUG ribbon IS present unless suppressed.** This file previously
+  claimed the ribbon "does not appear in these Android captures (verified:
+  0 reddish pixels across the whole top zone of every file) — no patching step
+  is needed". That was false: `flutter drive` builds a **debug** APK, and every
+  capture carried the ribbon (6 260 reddish pixels in the top-right zone).
+  `integration_test/screenshot_capture.dart` now sets
+  `WidgetsApp.debugAllowBannerOverride = false` in the test, and
+  `verify_android.py` scans the zone so the regression cannot recur silently.
+  The accepted uploads in git are ribbon-free — that, not the README, was the
+  real guarantee.
+- **The fixture is seeded, not empty.** `createInMemoryDb()` in
+  `test_utils.dart` returns an **empty** database, so the app would render its
+  empty states (no pills, no reminders, `growthEmptyState`) and the store would
+  advertise empty screens. `screenshot_capture.dart` therefore seeds its own
+  fixture (baby "Léa", 87 days, a full day of events + a growth trajectory) and
+  pumps its own `ProviderScope`. `test_utils.dart` is deliberately untouched —
+  the other integration tests assume the empty DB.
+- **Growth is captured LAST.** `/growth` is a pushed top-level route with **no
+  bottom nav** (`router.dart`, outside the `ShellRoute`), and tab/route state
+  survives `pumpWidget` re-pumps. A test running after it finds no `home-tab`
+  to tap and fails.
+- **One live `AppDatabase` at a time**: the pump closes the previous database
+  before opening the next, otherwise drift warns
+  ("created the database class AppDatabase multiple times … might corrupt the
+  database").
 - The red DEBUG ribbon that the iOS simulator draws in debug builds does
   not appear in these Android captures (verified: 0 reddish pixels across
   the whole top zone of every file) — no patching step is needed.

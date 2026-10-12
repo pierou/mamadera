@@ -88,15 +88,18 @@ void main() {
       });
 
       test('returns null when active profile has been deactivated', () async {
-        await repository.insertProfile(babyProfileUpdated(baby2, isActive: false));
+        await repository
+            .insertProfile(babyProfileUpdated(baby2, isActive: false));
 
         final result = await repository.getActiveProfile();
         expect(result, isNull);
       });
 
       test('returns correct one when multiple profiles exist', () async {
-        await repository.insertProfile(babyProfileUpdated(baby1, name: 'Léo (inactive)', isActive: false));
-        await repository.insertProfile(babyProfileUpdated(baby2, isActive: true));
+        await repository.insertProfile(
+            babyProfileUpdated(baby1, name: 'Léo (inactive)', isActive: false));
+        await repository
+            .insertProfile(babyProfileUpdated(baby2, isActive: true));
 
         final result = await repository.getActiveProfile();
         expect(result, isNotNull);
@@ -131,7 +134,8 @@ void main() {
       test('updates the name field', () async {
         await repository.insertProfile(baby1);
 
-        final updated = await repository.updateProfile('baby-001', name: 'Léonard');
+        final updated =
+            await repository.updateProfile('baby-001', name: 'Léonard');
         expect(updated, isNotNull);
         expect(updated!.name, equals('Léonard'));
       });
@@ -140,7 +144,8 @@ void main() {
         await repository.insertProfile(baby1);
 
         final newBirth = DateTime(2026, 5, 20);
-        final updated = await repository.updateProfile('baby-001', birthDate: newBirth);
+        final updated =
+            await repository.updateProfile('baby-001', birthDate: newBirth);
         expect(updated, isNotNull);
         expect(updated!.birthDate.day, equals(20));
         expect(updated.birthDate.month, equals(5));
@@ -161,7 +166,8 @@ void main() {
       test('leaves unchanged fields intact when updating only one', () async {
         await repository.insertProfile(baby1);
 
-        final updated = await repository.updateProfile('baby-001', name: 'Léonard');
+        final updated =
+            await repository.updateProfile('baby-001', name: 'Léonard');
         expect(updated!.name, equals('Léonard'));
         expect(updated.birthDate.day, equals(15)); // unchanged
       });
@@ -203,27 +209,31 @@ void main() {
         expect(all.first.id, equals('baby-002'));
       });
 
-      test('deletes the baby tracking events together with the profile row', () async {
+      test('deletes the baby tracking events together with the profile row',
+          () async {
         await repository.insertProfile(baby1);
         await repository.insertProfile(baby2);
 
         // Two events for baby-001, one for baby-002.
         await database.insertEvent(
-          db_app.TrackingEventsCompanion(
+          db_app.TrackingEventsCompanion(unit: const Value('ml'),
+            
             type: const Value('miam'),
             timestamp: Value(DateTime(2026, 9, 1)),
             babyId: const Value('baby-001'),
           ),
         );
         await database.insertEvent(
-          db_app.TrackingEventsCompanion(
+          db_app.TrackingEventsCompanion(unit: const Value('min'),
+            
             type: const Value('dodo'),
             timestamp: Value(DateTime(2026, 9, 2)),
             babyId: const Value('baby-001'),
           ),
         );
         await database.insertEvent(
-          db_app.TrackingEventsCompanion(
+          db_app.TrackingEventsCompanion(unit: const Value('ml'),
+            
             type: const Value('miam'),
             timestamp: Value(DateTime(2026, 9, 1, 12)),
             babyId: const Value('baby-002'),
@@ -242,7 +252,8 @@ void main() {
         expect(await database.getEventsByBabyId('baby-002'), hasLength(1));
       });
 
-      test('deletes the baby-scoped growth and reminder rows, keeps shared rows and the other baby',
+      test(
+          'deletes the baby-scoped growth and reminder rows, keeps shared rows and the other baby',
           () async {
         await repository.insertProfile(baby1);
         await repository.insertProfile(baby2);
@@ -250,144 +261,144 @@ void main() {
         // Rappels personnalisés : deux pour baby-001 (dont un détaché),
         // un pour baby-002.
         await database.into(database.customReminders).insert(
-          db_app.CustomRemindersCompanion.insert(
-            id: const Value(1),
-            babyId: const Value('baby-001'),
-            label: 'Vitamine D',
-            subtypeValue: const Value('vitamine_d'),
-            frequency: 'daily',
-          ),
-        );
+              db_app.CustomRemindersCompanion.insert(
+                id: const Value(1),
+                babyId: const Value('baby-001'),
+                label: 'Vitamine D',
+                subtypeValue: const Value('vitamine_d'),
+                frequency: 'daily',
+              ),
+            );
         await database.into(database.customReminders).insert(
-          db_app.CustomRemindersCompanion.insert(
-            id: const Value(2),
-            babyId: const Value('baby-002'),
-            label: 'Crème du soir',
-            subtypeValue: const Value('nettoyage_nez'),
-            frequency: 'weekly',
-          ),
-        );
+              db_app.CustomRemindersCompanion.insert(
+                id: const Value(2),
+                babyId: const Value('baby-002'),
+                label: 'Crème du soir',
+                subtypeValue: const Value('nettoyage_nez'),
+                frequency: 'weekly',
+              ),
+            );
         await database.into(database.customReminders).insert(
-          db_app.CustomRemindersCompanion.insert(
-            id: const Value(3),
-            babyId: const Value('baby-001'),
-            label: 'Bain',
-            subtypeValue: const Value(null),
-            completionSource: const Value('manual'),
-            frequency: 'weekly',
-          ),
-        );
+              db_app.CustomRemindersCompanion.insert(
+                id: const Value(3),
+                babyId: const Value('baby-001'),
+                label: 'Bain',
+                subtypeValue: const Value(null),
+                completionSource: const Value('manual'),
+                frequency: 'weekly',
+              ),
+            );
 
         await database.into(database.reminderSettings).insert(
-          db_app.ReminderSettingsCompanion.insert(
-            babyId: const Value('baby-001'),
-            itemId: 'custom_1',
-            enabled: true,
-          ),
-        );
+              db_app.ReminderSettingsCompanion.insert(
+                babyId: const Value('baby-001'),
+                itemId: 'custom_1',
+                enabled: true,
+              ),
+            );
         // Le même rappel allumé pour l'autre bébé : la purge par clé touche
         // TOUTES les portées, pas seulement celle du bébé supprimé.
         await database.into(database.reminderSettings).insert(
-          db_app.ReminderSettingsCompanion.insert(
-            babyId: const Value('baby-002'),
-            itemId: 'custom_1',
-            enabled: true,
-          ),
-        );
+              db_app.ReminderSettingsCompanion.insert(
+                babyId: const Value('baby-002'),
+                itemId: 'custom_1',
+                enabled: true,
+              ),
+            );
         await database.into(database.reminderSettings).insert(
-          db_app.ReminderSettingsCompanion.insert(
-            babyId: const Value('baby-001'),
-            itemId: 'miam',
-            enabled: false,
-          ),
-        );
+              db_app.ReminderSettingsCompanion.insert(
+                babyId: const Value('baby-001'),
+                itemId: 'miam',
+                enabled: false,
+              ),
+            );
         await database.into(database.reminderSettings).insert(
-          db_app.ReminderSettingsCompanion.insert(
-            babyId: const Value('baby-002'),
-            itemId: 'miam',
-            enabled: true,
-          ),
-        );
+              db_app.ReminderSettingsCompanion.insert(
+                babyId: const Value('baby-002'),
+                itemId: 'miam',
+                enabled: true,
+              ),
+            );
         // Sentinelle partagée : elle ne doit jamais mourir avec un bébé.
         await database.into(database.reminderSettings).insert(
-          db_app.ReminderSettingsCompanion.insert(
-            itemId: 'vitamine_k',
-            enabled: true,
-          ),
-        );
+              db_app.ReminderSettingsCompanion.insert(
+                itemId: 'vitamine_k',
+                enabled: true,
+              ),
+            );
 
         await database.into(database.reminderDismissals).insert(
-          db_app.ReminderDismissalsCompanion.insert(
-            babyId: const Value('baby-001'),
-            itemId: 'custom_3',
-            dismissedAt: DateTime(2026, 9, 1),
-          ),
-        );
+              db_app.ReminderDismissalsCompanion.insert(
+                babyId: const Value('baby-001'),
+                itemId: 'custom_3',
+                dismissedAt: DateTime(2026, 9, 1),
+              ),
+            );
         await database.into(database.reminderDismissals).insert(
-          db_app.ReminderDismissalsCompanion.insert(
-            itemId: 'custom_3',
-            dismissedAt: DateTime(2026, 9, 2),
-          ),
-        );
+              db_app.ReminderDismissalsCompanion.insert(
+                itemId: 'custom_3',
+                dismissedAt: DateTime(2026, 9, 2),
+              ),
+            );
         await database.into(database.reminderDismissals).insert(
-          db_app.ReminderDismissalsCompanion.insert(
-            babyId: const Value('baby-002'),
-            itemId: 'vitamine_d',
-            dismissedAt: DateTime(2026, 9, 3),
-          ),
-        );
+              db_app.ReminderDismissalsCompanion.insert(
+                babyId: const Value('baby-002'),
+                itemId: 'vitamine_d',
+                dismissedAt: DateTime(2026, 9, 3),
+              ),
+            );
 
         await database.into(database.reminderCompletions).insert(
-          db_app.ReminderCompletionsCompanion.insert(
-            babyId: const Value('baby-001'),
-            itemId: 'custom_3',
-            completedAt: DateTime(2026, 9, 1, 12),
-          ),
-        );
+              db_app.ReminderCompletionsCompanion.insert(
+                babyId: const Value('baby-001'),
+                itemId: 'custom_3',
+                completedAt: DateTime(2026, 9, 1, 12),
+              ),
+            );
         await database.into(database.reminderCompletions).insert(
-          db_app.ReminderCompletionsCompanion.insert(
-            itemId: 'custom_1',
-            completedAt: DateTime(2026, 9, 2, 12),
-          ),
-        );
+              db_app.ReminderCompletionsCompanion.insert(
+                itemId: 'custom_1',
+                completedAt: DateTime(2026, 9, 2, 12),
+              ),
+            );
         await database.into(database.reminderCompletions).insert(
-          db_app.ReminderCompletionsCompanion.insert(
-            babyId: const Value('baby-002'),
-            itemId: 'custom_2',
-            completedAt: DateTime(2026, 9, 3, 12),
-          ),
-        );
+              db_app.ReminderCompletionsCompanion.insert(
+                babyId: const Value('baby-002'),
+                itemId: 'custom_2',
+                completedAt: DateTime(2026, 9, 3, 12),
+              ),
+            );
 
         await database.into(database.measurements).insert(
-          db_app.MeasurementsCompanion.insert(
-            id: const Value(1),
-            babyId: const Value('baby-001'),
-            kind: 'poids',
-            value: '3400',
-            unit: 'g',
-            recordedAt: DateTime(2026, 9, 1),
-          ),
-        );
+              db_app.MeasurementsCompanion.insert(
+                id: const Value(1),
+                babyId: const Value('baby-001'),
+                kind: 'poids',
+                value: '3400',
+                unit: 'g',
+                recordedAt: DateTime(2026, 9, 1),
+              ),
+            );
         await database.into(database.measurements).insert(
-          db_app.MeasurementsCompanion.insert(
-            id: const Value(2),
-            babyId: const Value('baby-002'),
-            kind: 'taille',
-            value: '48',
-            unit: 'cm',
-            recordedAt: DateTime(2026, 9, 1),
-          ),
-        );
+              db_app.MeasurementsCompanion.insert(
+                id: const Value(2),
+                babyId: const Value('baby-002'),
+                kind: 'taille',
+                value: '48',
+                unit: 'cm',
+                recordedAt: DateTime(2026, 9, 1),
+              ),
+            );
         // Mesure orpheline (babyId null) : ne se rattache à aucun profil.
         await database.into(database.measurements).insert(
-          db_app.MeasurementsCompanion.insert(
-            id: const Value(3),
-            kind: 'temperature',
-            value: '37.1',
-            unit: 'degC',
-            recordedAt: DateTime(2026, 9, 1),
-          ),
-        );
+              db_app.MeasurementsCompanion.insert(
+                id: const Value(3),
+                kind: 'temperature',
+                value: '37.1',
+                unit: 'degC',
+                recordedAt: DateTime(2026, 9, 1),
+              ),
+            );
 
         final deleted = await repository.deleteProfile('baby-001');
         expect(deleted, isTrue);
@@ -400,8 +411,7 @@ void main() {
         expect(reminders.map((r) => r.id), isNot(contains(3)));
 
         final settings = await database.getAllReminderSettings();
-        final settingKeys =
-            settings.map((s) => (s.babyId, s.itemId)).toSet();
+        final settingKeys = settings.map((s) => (s.babyId, s.itemId)).toSet();
         expect(settingKeys, isNot(contains(('baby-001', 'miam'))));
         expect(settingKeys, isNot(contains(('baby-001', 'custom_1'))));
         expect(settingKeys, isNot(contains(('baby-002', 'custom_1'))),
@@ -439,8 +449,10 @@ void main() {
 
     group('setActiveProfile', () {
       test('activates a profile and deactivates others', () async {
-        await repository.insertProfile(babyProfileUpdated(baby1, isActive: false));
-        await repository.insertProfile(babyProfileUpdated(baby2, isActive: true));
+        await repository
+            .insertProfile(babyProfileUpdated(baby1, isActive: false));
+        await repository
+            .insertProfile(babyProfileUpdated(baby2, isActive: true));
 
         // Emma is active, switch to Léo.
         await repository.setActiveProfile('baby-001');
@@ -451,8 +463,10 @@ void main() {
       });
 
       test('activates profile when no active one exists', () async {
-        await repository.insertProfile(babyProfileUpdated(baby1, isActive: false));
-        await repository.insertProfile(babyProfileUpdated(baby2, isActive: false));
+        await repository
+            .insertProfile(babyProfileUpdated(baby1, isActive: false));
+        await repository
+            .insertProfile(babyProfileUpdated(baby2, isActive: false));
 
         await repository.setActiveProfile('baby-002');
 
@@ -462,7 +476,8 @@ void main() {
       });
 
       test('switching active to same profile is idempotent', () async {
-        await repository.insertProfile(babyProfileUpdated(baby1, isActive: true));
+        await repository
+            .insertProfile(babyProfileUpdated(baby1, isActive: true));
 
         // Call setActive twice on the same ID.
         await repository.setActiveProfile('baby-001');
