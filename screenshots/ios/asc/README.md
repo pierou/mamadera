@@ -132,8 +132,18 @@ store/appstore_promo_portrait_1242x2688[_lang].png    1242×2688  ASC portrait s
 store/appstore_promo_portrait_1284x2778[_lang].png    1284×2778  ASC portrait slot
 store/appstore_promo_portrait_1668x2388[_lang].png    1668×2388  ASC iPad promo (11")
 store/appstore_promo_portrait_2048x2732[_lang].png    2048×2732  ASC iPad promo (13")
+store/asc_header_5244x2950[_lang].png                 5244×2950  ASC product-page header (16:9)
+store/asc_header_3840x1646[_lang].png                 3840×1646  ASC product-page header (21:9)
+store/asc_search_result_1200x628[_lang].png           1200×628   ASC search-result image
 store/play_feature_graphic[_lang].png                 1024×500   Google Play
 ```
+
+The header/search-result pair serves the ASC « En-tête et résultats de
+recherche » tab (the two header sizes are the tab's compatible sizes). The
+header scales every element from the canvas *height* and centers each row as
+one unit, so one composition fits both the 16:9 and 21:9 canvases; the
+search-result image keeps icon + name + tagline only, since chip labels are
+unreadable at that display size.
 
 `[_lang]` = unsuffixed fr, `_en`, `_es`. Regenerate with
 `/usr/bin/python3 mamadera_banner_final.py`.
