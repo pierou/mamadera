@@ -7,6 +7,7 @@ import '../../../../core/services/encryption_service.dart';
 import '../../../../data/local/app_db.dart' as db_app;
 import '../../../../data/local/db_constants.dart' as db_const;
 import '../../../../data/local/tracking_event_mapper.dart' as mapper;
+import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 
@@ -28,8 +29,8 @@ class TrackingRepositoryImpl implements TrackingRepository {
     try {
       _logger.d('getAllEventsOrdered - Starting...');
       final events = await _database.getAllEventsOrdered();
-      _logger.d(
-          'getAllEventsOrdered - Query completed, ${events.length} events');
+      _logger
+          .d('getAllEventsOrdered - Query completed, ${events.length} events');
 
       return events.map((row) => mapper.mapToEntity(row, encryption)).toList();
     } catch (e, stack) {
@@ -48,7 +49,8 @@ class TrackingRepositoryImpl implements TrackingRepository {
 
       return events.map((row) => mapper.mapToEntity(row, encryption)).toList();
     } catch (e, stack) {
-      _logger.e('getEventsByType(${type.name}) - Error: $e', error: e, stackTrace: stack);
+      _logger.e('getEventsByType(${type.name}) - Error: $e',
+          error: e, stackTrace: stack);
       rethrow;
     }
   }
@@ -60,11 +62,16 @@ class TrackingRepositoryImpl implements TrackingRepository {
       companion = event.map(
         (e) => throw StateError('Cannot insert base TrackingEvent'),
         feeding: (e) {
-          final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+          final encryptedNotes =
+              e.notes != null ? encryption.encrypt(e.notes!) : null;
           return db_app.TrackingEventsCompanion(
             type: const Value(db_const.typeMiam),
             timestamp: Value(e.timestamp),
             subtype: Value(e.subtype.dbValue),
+            // Écrit explicitement, jamais par le DEFAULT de la colonne : une
+            // unité qui viendrait d'un défaut est une unité que personne n'a
+            // décidée.
+            unit: Value(e.unit.dbValue),
             notes: Value(encryptedNotes),
             babyId: Value(e.babyId),
             quantity: Value(e.quantity),
@@ -73,11 +80,13 @@ class TrackingRepositoryImpl implements TrackingRepository {
           );
         },
         sleep: (e) {
-          final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+          final encryptedNotes =
+              e.notes != null ? encryption.encrypt(e.notes!) : null;
           return db_app.TrackingEventsCompanion(
             type: const Value(db_const.typeDodo),
             timestamp: Value(e.timestamp),
             duration: Value(e.duration),
+            unit: Value(e.unit.dbValue),
             notes: Value(encryptedNotes),
             babyId: Value(e.babyId),
             quantity: Value(e.quantity),
@@ -86,11 +95,16 @@ class TrackingRepositoryImpl implements TrackingRepository {
           );
         },
         diaper: (e) {
-          final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+          final encryptedNotes =
+              e.notes != null ? encryption.encrypt(e.notes!) : null;
           return db_app.TrackingEventsCompanion(
             type: const Value(db_const.typeCaca),
             timestamp: Value(e.timestamp),
             duration: const Value.absent(),
+            // Pas de quantity ici : l'unité n'a rien à décrire. Elle est
+            // écrite quand même, par le même chemin que partout ailleurs, pour
+            // qu'une future colonne quantity ne puisse atterrir sans unité.
+            unit: Value(defaultUnitFor(typeValue: db_const.typeCaca).dbValue),
             notes: Value(encryptedNotes),
             babyId: Value(e.babyId),
             wasteType: Value(e.wasteType?.dbValue),
@@ -99,12 +113,14 @@ class TrackingRepositoryImpl implements TrackingRepository {
           );
         },
         health: (e) {
-          final encryptedNotes = e.notes != null ? encryption.encrypt(e.notes!) : null;
+          final encryptedNotes =
+              e.notes != null ? encryption.encrypt(e.notes!) : null;
           return db_app.TrackingEventsCompanion(
             type: const Value(db_const.typeSante),
             timestamp: Value(e.timestamp),
             duration: const Value.absent(),
             subtype: Value(e.subtype.value),
+            unit: Value(defaultUnitFor(typeValue: db_const.typeSante).dbValue),
             notes: Value(encryptedNotes),
             babyId: Value(e.babyId),
             wasteType: const Value.absent(),
@@ -114,7 +130,8 @@ class TrackingRepositoryImpl implements TrackingRepository {
       );
 
       final result = await _database.insertEvent(companion);
-      _logger.d('insertEvent(${event.trackingType.name}) - Success, id: $result');
+      _logger
+          .d('insertEvent(${event.trackingType.name}) - Success, id: $result');
       return result;
     } catch (e, stack) {
       _logger.e('insertError: $e', error: e, stackTrace: stack);
@@ -123,7 +140,8 @@ class TrackingRepositoryImpl implements TrackingRepository {
   }
 
   @override
-  Future<DateTime?> getLastEventByTypeAndSubtype(TrackingType type, {String? subtypeValue}) async {
+  Future<DateTime?> getLastEventByTypeAndSubtype(TrackingType type,
+      {String? subtypeValue}) async {
     try {
       final events = await getEventsByType(type);
       if (events.isEmpty) return null;
@@ -141,10 +159,9 @@ class TrackingRepositoryImpl implements TrackingRepository {
       // Events are already ordered by timestamp DESC from the DB query.
       return filtered.first.timestamp;
     } catch (e, stack) {
-      _logger.e('getLastEventByTypeAndSubtype(${type.name}) - Error: $e', error: e, stackTrace: stack);
+      _logger.e('getLastEventByTypeAndSubtype(${type.name}) - Error: $e',
+          error: e, stackTrace: stack);
       rethrow;
     }
   }
 }
-
-

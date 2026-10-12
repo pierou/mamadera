@@ -75,7 +75,6 @@ class _EchoPickerState extends State<_EchoPicker> {
 }
 
 void main() {
-
   group('QuantityPickerInline — décimales', () {
     testWidgets('une température saisie à la virgule est enregistrée',
         (tester) async {
@@ -339,8 +338,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Long-appui : démarre après le timeout (~500 ms), répète toutes les 120 ms.
-      final gesture =
-          await tester.startGesture(tester.getCenter(addButton()));
+      final gesture = await tester.startGesture(tester.getCenter(addButton()));
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pump(const Duration(milliseconds: 50));
       await tester.pump(const Duration(seconds: 1));
@@ -359,4 +357,134 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  group('QuantityPickerInline — paire de sliders (B2)', () {
+    /// Paire typique « poids » : 100 crans au pas fin (un seul slider ne
+    /// servirait plus à rien), pas grossier de 10, fenêtre fine de ±10.
+    const pair = (coarseStep: 10.0, fineSpan: 10.0, fineStep: 1.0);
+
+    /// 20 crans exactement au pas fin : le seuil est strictement supérieur
+    /// (règle du plan : un seul slider tant qu'il fait le travail).
+    const pairAtThreshold = (coarseStep: 2.0, fineSpan: 5.0, fineStep: 1.0);
+
+    List<Slider> sliders(WidgetTester tester) =>
+        tester.widgetList<Slider>(find.byType(Slider)).toList();
+
+    testWidgets('à 20 crans au pas fin, la paire reste éteinte',
+        (tester) async {
+      await tester.pumpWidget(_host(const _PairPicker(
+          initial: 10, min: 0, max: 20, pair: pairAtThreshold)));
+      await tester.pumpAndSettle();
+
+      expect(sliders(tester), hasLength(1));
+      expect(find.text('Grossier'), findsNothing);
+      expect(find.text('Précis'), findsNothing);
+    });
+
+    testWidgets('au-delà du seuil, deux sliders légendés', (tester) async {
+      await tester
+          .pumpWidget(_host(const _PairPicker(initial: 50, pair: pair)));
+      await tester.pumpAndSettle();
+
+      expect(sliders(tester), hasLength(2));
+      expect(find.text('Grossier'), findsOneWidget);
+      expect(find.text('Précis'), findsOneWidget);
+    });
+
+    testWidgets('le grossier couvre toute la plage', (tester) async {
+      await tester
+          .pumpWidget(_host(const _PairPicker(initial: 50, pair: pair)));
+      await tester.pumpAndSettle();
+
+      final coarse = sliders(tester).first;
+      expect(coarse.min, 0);
+      expect(coarse.max, 100);
+      expect(coarse.value, 50);
+    });
+
+    testWidgets('le fin est la fenêtre ±fineSpan centrée sur la valeur',
+        (tester) async {
+      await tester
+          .pumpWidget(_host(const _PairPicker(initial: 50, pair: pair)));
+      await tester.pumpAndSettle();
+      expect(sliders(tester)[1].min, 40);
+      expect(sliders(tester)[1].max, 60);
+
+      // La fenêtre suit la valeur : re-centrée à chaque changement d'hôte.
+      await tester
+          .pumpWidget(_host(const _PairPicker(initial: 95, pair: pair)));
+      await tester.pumpAndSettle();
+      expect(sliders(tester)[1].min, 85);
+      expect(sliders(tester)[1].max, 100, reason: 'borne haute clamped');
+
+      await tester.pumpWidget(_host(const _PairPicker(initial: 5, pair: pair)));
+      await tester.pumpAndSettle();
+      expect(sliders(tester)[1].min, 0, reason: 'borne basse clamped');
+      expect(sliders(tester)[1].max, 15);
+    });
+
+    testWidgets('le stepper ± reste disponible dans la paire', (tester) async {
+      await tester.pumpWidget(
+          _host(const _PairPicker(initial: 50, pair: pair, step: 1)));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
+      expect(find.byIcon(Icons.remove_circle_outline), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.add_circle_outline));
+      await tester.pumpAndSettle();
+      expect(find.text('51 g'), findsWidgets);
+    });
+  });
+}
+
+/// Parent étatful pour la paire : valeur écho comme les vrais écrans, plage
+/// et pas paramétrables.
+class _PairPicker extends StatefulWidget {
+  const _PairPicker({
+    required this.initial,
+    this.pair,
+    this.min = 0,
+    this.max = 100,
+    this.step,
+  });
+
+  final double initial;
+  final ({double coarseStep, double fineSpan, double fineStep})? pair;
+  final double min;
+  final double max;
+  final double? step;
+
+  @override
+  State<_PairPicker> createState() => _PairPickerState();
+}
+
+class _PairPickerState extends State<_PairPicker> {
+  late double _value;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.initial;
+  }
+
+  @override
+  void didUpdateWidget(covariant _PairPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initial != widget.initial) _value = widget.initial;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return QuantityPickerInline(
+      unit: 'g',
+      min: widget.min,
+      max: widget.max,
+      divisions: (widget.max - widget.min).round(),
+      value: _value,
+      step: widget.step,
+      sliderPair: widget.pair,
+      onValueChanged: (value) => setState(() => _value = value),
+    );
+  }
 }

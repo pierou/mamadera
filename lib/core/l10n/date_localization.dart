@@ -8,7 +8,7 @@ import '../../l10n/app_localizations.dart';
 /// Formats a [DateTime] using locale-appropriate date/time patterns.
 ///
 /// - FR → `dd/MM/yyyy HH:mm` (24-hour, day-first)
-/// - EN → `MM/dd/yyyy hh:aa` (12-hour with AM/PM, month-first)
+/// - EN → `MM/dd/yyyy hh:mm a` (12-hour with AM/PM, month-first)
 /// - ES → `dd/MM/yyyy HH:mm` (24-hour, day-first, Spanish symbols)
 ///
 /// Falls back to the French format for unsupported locales.
@@ -18,7 +18,12 @@ String formatDate(BuildContext context, DateTime date) {
 
   switch (languageCode) {
     case 'en':
-      return DateFormat('MM/dd/yyyy hh:aa', 'en_US').format(date);
+      // `mm` is the minute, `a` the AM/PM marker. `aa` rendered the marker
+      // twice and dropped the minutes — « 10/08/2026 07:PM », which in a
+      // fever log cannot tell 21:04 from 21:59. Found in the v1.2.0 store
+      // captures; fr/es use HH:mm, which is why no French fixture ever
+      // reached this branch.
+      return DateFormat('MM/dd/yyyy hh:mm a', 'en_US').format(date);
     case 'es':
       return DateFormat('dd/MM/yyyy HH:mm', 'es').format(date);
     case 'fr':

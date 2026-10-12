@@ -49,17 +49,40 @@ const Set<String> allFrequencyValues = {
 const String kindPoids = 'poids';
 const String kindTaille = 'taille';
 const String kindTemperature = 'temperature';
-const Set<String> allMeasureKindValues = {kindPoids, kindTaille, kindTemperature};
+const Set<String> allMeasureKindValues = {
+  kindPoids,
+  kindTaille,
+  kindTemperature
+};
 
 // Units — metric only in v1.2.0, no °F.
 const String unitG = 'g';
 const String unitCm = 'cm';
 const String unitDegC = 'degC';
 
+// Units of `tracking_events.unit` — v12. `g` is shared with measurements:
+// one vocabulary for both tables, so a backup never carries two spellings of
+// the same unit.
+const String unitMl = 'ml';
+const String unitMin = 'min';
+
+/// Every unit an event row may carry. The importer validates against this set.
+const Set<String> allEventUnitValues = {unitMl, unitMin, unitG};
+
+/// Feeding subtypes (`tracking_events.subtype` where `type = 'miam'`).
+const String subtypeNatural = 'natural';
+const String subtypeArtificial = 'artificial';
+const String subtypeSolid = 'solid';
+
 // ── Reminder completion source (`custom_reminders.completion_source`) ──
-const String completionFromEvents = 'from_events'; // a `sante` event of subtype settles it
-const String completionManual = 'manual';          // a tap on reminder_completions settles it
-const Set<String> allCompletionSourceValues = {completionFromEvents, completionManual};
+const String completionFromEvents =
+    'from_events'; // a `sante` event of subtype settles it
+const String completionManual =
+    'manual'; // a tap on reminder_completions settles it
+const Set<String> allCompletionSourceValues = {
+  completionFromEvents,
+  completionManual
+};
 
 /// Sentinelle « installation sans profil » des clés composites (baby_id, item_id).
 /// NULL n'est **pas** utilisé : SQLite l'autorise dans une PRIMARY KEY composite,

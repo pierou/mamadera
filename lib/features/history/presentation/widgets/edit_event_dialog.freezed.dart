@@ -138,6 +138,7 @@ extension EditResultPatterns on EditResult {
             DateTime? timestamp,
             double? duration,
             double? quantity,
+            QuantityUnit? unit,
             String? notes,
             FeedingSubtype? subtype,
             WasteType? wasteType,
@@ -156,6 +157,7 @@ extension EditResultPatterns on EditResult {
             _that.timestamp,
             _that.duration,
             _that.quantity,
+            _that.unit,
             _that.notes,
             _that.subtype,
             _that.wasteType,
@@ -189,6 +191,7 @@ extension EditResultPatterns on EditResult {
             DateTime? timestamp,
             double? duration,
             double? quantity,
+            QuantityUnit? unit,
             String? notes,
             FeedingSubtype? subtype,
             WasteType? wasteType,
@@ -206,6 +209,7 @@ extension EditResultPatterns on EditResult {
             _that.timestamp,
             _that.duration,
             _that.quantity,
+            _that.unit,
             _that.notes,
             _that.subtype,
             _that.wasteType,
@@ -236,6 +240,7 @@ extension EditResultPatterns on EditResult {
             DateTime? timestamp,
             double? duration,
             double? quantity,
+            QuantityUnit? unit,
             String? notes,
             FeedingSubtype? subtype,
             WasteType? wasteType,
@@ -253,6 +258,7 @@ extension EditResultPatterns on EditResult {
             _that.timestamp,
             _that.duration,
             _that.quantity,
+            _that.unit,
             _that.notes,
             _that.subtype,
             _that.wasteType,
@@ -275,6 +281,7 @@ class UpdateResult implements EditResult {
       {this.timestamp,
       this.duration,
       this.quantity,
+      this.unit,
       this.notes,
       this.subtype,
       this.wasteType,
@@ -286,6 +293,10 @@ class UpdateResult implements EditResult {
   final DateTime? timestamp;
   final double? duration;
   final double? quantity;
+
+  /// Unité du nombre porté, telle qu'éditée (toggle ml/min au sein, ou
+  /// changement de sous-type passant la ligne en grammes).
+  final QuantityUnit? unit;
   final String? notes;
   final FeedingSubtype? subtype;
   final WasteType? wasteType;
@@ -312,6 +323,7 @@ class UpdateResult implements EditResult {
                 other.duration == duration) &&
             (identical(other.quantity, quantity) ||
                 other.quantity == quantity) &&
+            (identical(other.unit, unit) || other.unit == unit) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.subtype, subtype) || other.subtype == subtype) &&
             (identical(other.wasteType, wasteType) ||
@@ -332,6 +344,7 @@ class UpdateResult implements EditResult {
       timestamp,
       duration,
       quantity,
+      unit,
       notes,
       subtype,
       wasteType,
@@ -342,7 +355,7 @@ class UpdateResult implements EditResult {
 
   @override
   String toString() {
-    return 'EditResult.update(timestamp: $timestamp, duration: $duration, quantity: $quantity, notes: $notes, subtype: $subtype, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor, stoolTexture: $stoolTexture, healthSubtype: $healthSubtype)';
+    return 'EditResult.update(timestamp: $timestamp, duration: $duration, quantity: $quantity, unit: $unit, notes: $notes, subtype: $subtype, wasteType: $wasteType, pipiColor: $pipiColor, cacaColor: $cacaColor, stoolTexture: $stoolTexture, healthSubtype: $healthSubtype)';
   }
 }
 
@@ -357,6 +370,7 @@ abstract mixin class $UpdateResultCopyWith<$Res>
       {DateTime? timestamp,
       double? duration,
       double? quantity,
+      QuantityUnit? unit,
       String? notes,
       FeedingSubtype? subtype,
       WasteType? wasteType,
@@ -385,6 +399,7 @@ class _$UpdateResultCopyWithImpl<$Res> implements $UpdateResultCopyWith<$Res> {
     Object? timestamp = freezed,
     Object? duration = freezed,
     Object? quantity = freezed,
+    Object? unit = freezed,
     Object? notes = freezed,
     Object? subtype = freezed,
     Object? wasteType = freezed,
@@ -406,6 +421,10 @@ class _$UpdateResultCopyWithImpl<$Res> implements $UpdateResultCopyWith<$Res> {
           ? _self.quantity
           : quantity // ignore: cast_nullable_to_non_nullable
               as double?,
+      unit: freezed == unit
+          ? _self.unit
+          : unit // ignore: cast_nullable_to_non_nullable
+              as QuantityUnit?,
       notes: freezed == notes
           ? _self.notes
           : notes // ignore: cast_nullable_to_non_nullable

@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 11 (re-keys reminders per baby, adds measurements)', () {
-      expect(db.schemaVersion, equals(11));
+    test('schemaVersion is 12 (v12 puts a unit on every tracked quantity)', () {
+      expect(db.schemaVersion, equals(12));
     });
   });
 
@@ -27,7 +27,8 @@ void main() {
     test('can insert an event and retrieve it', () async {
       final now = DateTime.now();
       final id = await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('ml'),
+          
           type: const Value('miam'),
           timestamp: Value(now),
           duration: const Value(null),
@@ -48,7 +49,8 @@ void main() {
       // Insert 3 events
       for (var i = 0; i < 3; i++) {
         await db.insertEvent(
-          TrackingEventsCompanion(
+          TrackingEventsCompanion(unit: const Value('ml'),
+            
             type: Value(['miam', 'dodo', 'caca'][i]),
             timestamp: Value(DateTime.now().add(Duration(minutes: i))),
             duration: const Value(null),
@@ -68,7 +70,8 @@ void main() {
     test('returns all events without ordering guarantees', () async {
       for (var i = 0; i < 5; i++) {
         await db.insertEvent(
-          TrackingEventsCompanion(
+          TrackingEventsCompanion(unit: const Value('ml'),
+            
             type: const Value('miam'),
             timestamp: Value(DateTime.now().add(Duration(minutes: i))),
             duration: const Value(null),
@@ -88,7 +91,8 @@ void main() {
     test('returns events ordered by timestamp DESC', () async {
       // Insert oldest first
       await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('ml'),
+          
           type: const Value('miam'),
           timestamp: Value(DateTime.now().subtract(const Duration(hours: 2))),
           duration: const Value(null),
@@ -99,7 +103,8 @@ void main() {
       );
 
       await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('min'),
+          
           type: const Value('dodo'),
           timestamp: Value(DateTime.now().subtract(const Duration(hours: 1))),
           duration: const Value(null),
@@ -110,7 +115,8 @@ void main() {
       );
 
       await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('ml'),
+          
           type: const Value('caca'),
           timestamp: Value(DateTime.now()),
           duration: const Value(null),
@@ -132,7 +138,8 @@ void main() {
       // Insert feeding events with subtype natural/artificial
       for (final subtype in FeedingSubtype.values) {
         await db.insertEvent(
-          TrackingEventsCompanion(
+          TrackingEventsCompanion(unit: const Value('ml'),
+            
             type: const Value('miam'),
             subtype: Value(subtype.dbValue),
             timestamp: Value(DateTime.now()),
@@ -146,7 +153,8 @@ void main() {
 
       // Insert non-feeding event
       await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('min'),
+          
           type: const Value('dodo'),
           timestamp: Value(DateTime.now()),
           duration: const Value(null),
@@ -165,7 +173,8 @@ void main() {
   group('getEventsByType', () {
     test('returns events filtered by type string', () async {
       await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('ml'),
+          
           type: const Value('miam'),
           timestamp: Value(DateTime.now()),
           duration: const Value(null),
@@ -176,7 +185,8 @@ void main() {
       );
 
       await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('min'),
+          
           type: const Value('dodo'),
           timestamp: Value(DateTime.now()),
           duration: const Value(null),
@@ -196,7 +206,8 @@ void main() {
     test('updates an existing event by id', () async {
       final now = DateTime.now();
       final id = await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('ml'),
+          
           type: const Value('miam'),
           timestamp: Value(now),
           duration: const Value(null),
@@ -208,7 +219,7 @@ void main() {
 
       final updated = await db.updateEvent(
         id,
-        const TrackingEventsCompanion(notes: Value('updated note')),
+        const TrackingEventsCompanion(unit: const Value('ml'), notes: Value('updated note')),
       );
       expect(updated, equals(1)); // 1 row affected
 
@@ -221,7 +232,8 @@ void main() {
     test('updates only notes field for an event by id', () async {
       final now = DateTime.now();
       final id = await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('min'),
+          
           type: const Value('dodo'),
           timestamp: Value(now),
           duration: const Value(30),
@@ -245,7 +257,8 @@ void main() {
     test('deletes an event by id and returns true', () async {
       final now = DateTime.now();
       final id = await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('ml'),
+          
           type: const Value('caca'),
           timestamp: Value(now),
           duration: const Value(null),
@@ -337,7 +350,8 @@ void main() {
       expect(active!.name, equals('Active Baby'));
     });
 
-    test('getActiveBabyProfile is deterministic with multiple active rows', () async {
+    test('getActiveBabyProfile is deterministic with multiple active rows',
+        () async {
       await db.insertBabyProfile(
         BabyProfilesCompanion(
           id: Value('later-baby'),
@@ -395,7 +409,8 @@ void main() {
       );
 
       await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('ml'),
+          
           type: Value('miam'),
           timestamp: Value(DateTime.now()),
           duration: const Value(null),

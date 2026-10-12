@@ -43,7 +43,8 @@ class _FakeEncryption extends EncryptionService {
 /// Vrai repository instrumenté : compte les appels pour prouver que la
 /// phase d'avertissement ne déclenche AUCUN accès.
 class _RecordingImportRepository extends ImportRepositoryImpl {
-  _RecordingImportRepository({required super.database, required super.encryption});
+  _RecordingImportRepository(
+      {required super.database, required super.encryption});
 
   int parseCalls = 0;
   int restoreCalls = 0;
@@ -63,7 +64,8 @@ class _RecordingImportRepository extends ImportRepositoryImpl {
 
 /// Vrai repository dont la restauration échoue, pour le message d'échec.
 class _ThrowingRestoreRepository extends ImportRepositoryImpl {
-  _ThrowingRestoreRepository({required super.database, required super.encryption});
+  _ThrowingRestoreRepository(
+      {required super.database, required super.encryption});
 
   @override
   Future<ImportCounts> restore(ParsedExport parsed) async {
@@ -245,7 +247,8 @@ Finder _warningFinder() => find.textContaining(
 
 void main() {
   group("ImportDataDialog — phase d'alerte", () {
-    testWidgets("l'avertissement et les deux boutons s'affichent ; annuler ferme sans rien appeler",
+    testWidgets(
+        "l'avertissement et les deux boutons s'affichent ; annuler ferme sans rien appeler",
         (tester) async {
       late _RecordingImportRepository recorder;
       await _pumpDialog(
@@ -275,7 +278,8 @@ void main() {
       expect(recorder.restoreCalls, 0);
     });
 
-    testWidgets("annulation du choix de fichier : retour à l'alerte, base intacte",
+    testWidgets(
+        "annulation du choix de fichier : retour à l'alerte, base intacte",
         (tester) async {
       final database = await _pumpDialog(tester, readBackup: () async => null);
 
@@ -316,7 +320,8 @@ void main() {
       expect(find.text(_cancel), findsOneWidget);
     });
 
-    testWidgets('résumé puis Restaurer : succès avec les compteurs et lignes écrites',
+    testWidgets(
+        'résumé puis Restaurer : succès avec les compteurs et lignes écrites',
         (tester) async {
       final database = await _pumpDialog(
         tester,
@@ -331,7 +336,8 @@ void main() {
       await tester.tap(find.text(_proceed));
       await _pumpUntil(
         tester,
-        find.textContaining('Restauration terminée : 1 profil(s) et 1 événement(s)'),
+        find.textContaining(
+            'Restauration terminée : 1 profil(s) et 1 événement(s)'),
       );
 
       expect(find.text(_close), findsOneWidget);
@@ -347,7 +353,8 @@ void main() {
       expect(await database.getAllReminderCompletions(), hasLength(1));
     });
 
-    testWidgets("événements sans profil : le résumé porte l'avertissement supplémentaire",
+    testWidgets(
+        "événements sans profil : le résumé porte l'avertissement supplémentaire",
         (tester) async {
       await _pumpDialog(
         tester,
@@ -361,10 +368,12 @@ void main() {
         find.textContaining('0 profil(s) bébé, 1 événement(s) et 1 rappel(s)'),
       );
 
-      expect(find.textContaining('ne contient aucun profil bébé'), findsOneWidget);
+      expect(
+          find.textContaining('ne contient aucun profil bébé'), findsOneWidget);
     });
 
-    testWidgets('annuler au résumé : le dialogue ferme, plus rien ne peut être restauré',
+    testWidgets(
+        'annuler au résumé : le dialogue ferme, plus rien ne peut être restauré',
         (tester) async {
       final database = await _pumpDialog(
         tester,
@@ -403,7 +412,8 @@ void main() {
       expect(find.text(_close), findsOneWidget);
     }
 
-    testWidgets('JSON invalide : message générique, base intacte', (tester) async {
+    testWidgets('JSON invalide : message générique, base intacte',
+        (tester) async {
       final database =
           await _pumpDialog(tester, readBackup: () async => 'not json at all');
 
@@ -412,28 +422,30 @@ void main() {
       expect(await database.getAllTrackingEvents(), isEmpty);
     });
 
-    testWidgets("fichier d'un autre générateur : message dédié", (tester) async {
+    testWidgets("fichier d'un autre générateur : message dédié",
+        (tester) async {
       await _pumpDialog(
         tester,
-        readBackup: () async =>
-            _jsonOf(validDocument(generator: 'other-app')),
+        readBackup: () async => _jsonOf(validDocument(generator: 'other-app')),
       );
 
       await expectResult(tester, find.textContaining('créé par Mamadera'));
     });
 
-    testWidgets('exportFormatVersion plus récente : message dédié', (tester) async {
-      // Le format 2 est le format courant de ce build : c'est le 3 qui est
-      // l'inconnu du futur.
+    testWidgets('exportFormatVersion plus récente : message dédié',
+        (tester) async {
+      // Le format 3 (v12, `unit` sur chaque événement) est celui de ce build :
+      // c'est le 4 qui est l'inconnu du futur.
       await _pumpDialog(
         tester,
-        readBackup: () async => _jsonOf(validDocument(formatVersion: 3)),
+        readBackup: () async => _jsonOf(validDocument(formatVersion: 4)),
       );
 
       await expectResult(tester, find.textContaining('version plus récente'));
     });
 
-    testWidgets("un fichier de format 1 (avant M4) se résume et restaure", (tester) async {
+    testWidgets("un fichier de format 1 (avant M4) se résume et restaure",
+        (tester) async {
       // Document 2 tronqué au format 1 : sections et clés de counts M4
       // enlevées, c'est ce qu'écrivait réellement l'app précédente.
       final doc = validDocument(formatVersion: 1);
@@ -456,7 +468,8 @@ void main() {
       await tester.tap(find.text(_proceed));
       await _pumpUntil(
         tester,
-        find.textContaining('Restauration terminée : 1 profil(s) et 1 événement(s)'),
+        find.textContaining(
+            'Restauration terminée : 1 profil(s) et 1 événement(s)'),
       );
 
       // Sections nouvelles absentes = vides ; les lignes existantes atterrissent
@@ -467,7 +480,8 @@ void main() {
       expect((await database.getAllReminderSettings()).single.babyId, '');
     });
 
-    testWidgets('databaseSchemaVersion plus récente : message dédié', (tester) async {
+    testWidgets('databaseSchemaVersion plus récente : message dédié',
+        (tester) async {
       await _pumpDialog(
         tester,
         readBackup: () async => _jsonOf(validDocument(schemaVersion: 999)),
@@ -479,18 +493,20 @@ void main() {
       );
     });
 
-    testWidgets("fichier trop lourd : même ligne générique qu'un fichier invalide",
+    testWidgets(
+        "fichier trop lourd : même ligne générique qu'un fichier invalide",
         (tester) async {
       await _pumpDialog(
         tester,
-        readBackup: () async =>
-            throw const ImportFormatException(ImportRejectionReason.fileTooLarge),
+        readBackup: () async => throw const ImportFormatException(
+            ImportRejectionReason.fileTooLarge),
       );
 
       await expectResult(tester, find.textContaining('Fichier non reconnu'));
     });
 
-    testWidgets('restauration en échec : on dit que les données actuelles sont intactes',
+    testWidgets(
+        'restauration en échec : on dit que les données actuelles sont intactes',
         (tester) async {
       final database = await _pumpDialog(
         tester,
@@ -502,6 +518,7 @@ void main() {
       );
       // Une ligne préexistante : elle doit survivre à l'échec.
       await database.insertEvent(TrackingEventsCompanion.insert(
+        unit: 'min',
         type: 'dodo',
         timestamp: DateTime.utc(2024, 1, 1),
       ));
@@ -523,7 +540,8 @@ void main() {
       expect(events.single.type, 'dodo');
     });
 
-    testWidgets("aucun texte d'exception, chemin de fichier ou note ne fuit à l'écran",
+    testWidgets(
+        "aucun texte d'exception, chemin de fichier ou note ne fuit à l'écran",
         (tester) async {
       const marker = 'MARKER_NOTE_NE_JAMAIS_VISIBLE_17';
       final document = validDocument(

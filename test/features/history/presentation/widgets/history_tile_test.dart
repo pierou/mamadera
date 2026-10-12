@@ -6,6 +6,7 @@ import 'package:mamadera/features/history/presentation/widgets/history_tile.dart
 import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 
 void main() {
   /// Helper: pump HistoryTile inside a minimal MaterialApp + ProviderScope with FR locale.
@@ -38,7 +39,10 @@ void main() {
     testWidgets('FeedingEvent → lunch_dining icon', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.natural),
       );
       expect(find.byIcon(Icons.lunch_dining), findsOneWidget);
     });
@@ -46,7 +50,10 @@ void main() {
     testWidgets('SleepEvent → nightlight icon', (tester) async {
       await pumpTile(
         tester,
-        SleepEvent(timestamp: DateTime.utc(2024), duration: 30.0),
+        SleepEvent(
+            unit: QuantityUnit.min,
+            timestamp: DateTime.utc(2024),
+            duration: 30.0),
       );
       expect(find.byIcon(Icons.nightlight), findsOneWidget);
     });
@@ -62,7 +69,8 @@ void main() {
     testWidgets('DiaperEvent lesDeux → wb_sunny icon', (tester) async {
       await pumpTile(
         tester,
-        DiaperEvent(timestamp: DateTime.utc(2024), wasteType: WasteType.lesDeux),
+        DiaperEvent(
+            timestamp: DateTime.utc(2024), wasteType: WasteType.lesDeux),
       );
       expect(find.byIcon(Icons.wb_sunny), findsOneWidget);
     });
@@ -78,7 +86,9 @@ void main() {
     testWidgets('HealthEvent → favorite icon', (tester) async {
       await pumpTile(
         tester,
-        HealthEvent(timestamp: DateTime.utc(2024), subtype: HealthSubtype.nettoyageYeux),
+        HealthEvent(
+            timestamp: DateTime.utc(2024),
+            subtype: HealthSubtype.nettoyageYeux),
       );
       expect(find.byIcon(Icons.favorite), findsOneWidget);
     });
@@ -88,7 +98,10 @@ void main() {
     testWidgets('FeedingEvent → "Nourriture"', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.natural),
       );
       expect(find.text('Nourriture'), findsOneWidget);
     });
@@ -96,7 +109,10 @@ void main() {
     testWidgets('SleepEvent → "Sommeil"', (tester) async {
       await pumpTile(
         tester,
-        SleepEvent(timestamp: DateTime.utc(2024), duration: 30.0),
+        SleepEvent(
+            unit: QuantityUnit.min,
+            timestamp: DateTime.utc(2024),
+            duration: 30.0),
       );
       expect(find.text('Sommeil'), findsOneWidget);
     });
@@ -112,7 +128,8 @@ void main() {
     testWidgets('DiaperEvent lesDeux → "Pipi & Caca"', (tester) async {
       await pumpTile(
         tester,
-        DiaperEvent(timestamp: DateTime.utc(2024), wasteType: WasteType.lesDeux),
+        DiaperEvent(
+            timestamp: DateTime.utc(2024), wasteType: WasteType.lesDeux),
       );
       expect(find.text('Pipi & Caca'), findsOneWidget);
     });
@@ -128,7 +145,9 @@ void main() {
     testWidgets('HealthEvent → subtype label', (tester) async {
       await pumpTile(
         tester,
-        HealthEvent(timestamp: DateTime.utc(2024), subtype: HealthSubtype.nettoyageYeux),
+        HealthEvent(
+            timestamp: DateTime.utc(2024),
+            subtype: HealthSubtype.nettoyageYeux),
       );
       // context.l resolves to FR locale which returns "Nettoyage des yeux" for healthSubtypeNameetyageYeux
       expect(find.text('Nettoyage des yeux'), findsOneWidget);
@@ -136,10 +155,14 @@ void main() {
   });
 
   group('HistoryTile — Durée affichée', () {
-    testWidgets('FeedingEvent sans durée → pas de "Durée" text', (tester) async {
+    testWidgets('FeedingEvent sans durée → pas de "Durée" text',
+        (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.artificial),
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.artificial),
       );
       // Feeding events no longer display duration on history tiles
       expect(find.textContaining('Durée'), findsNothing);
@@ -148,7 +171,10 @@ void main() {
     testWidgets('SleepEvent avec durée → "Durée: X min"', (tester) async {
       await pumpTile(
         tester,
-        SleepEvent(timestamp: DateTime.utc(2024), duration: 180.0),
+        SleepEvent(
+            unit: QuantityUnit.min,
+            timestamp: DateTime.utc(2024),
+            duration: 180.0),
       );
       expect(find.text('Durée: 180 min'), findsOneWidget);
     });
@@ -164,7 +190,8 @@ void main() {
     testWidgets('HealthEvent sans durée → pas de "Durée" text', (tester) async {
       await pumpTile(
         tester,
-        HealthEvent(timestamp: DateTime.utc(2024), subtype: HealthSubtype.vitamineD),
+        HealthEvent(
+            timestamp: DateTime.utc(2024), subtype: HealthSubtype.vitamineD),
       );
       expect(find.textContaining('Durée'), findsNothing);
     });
@@ -176,7 +203,11 @@ void main() {
     testWidgets('aliment solide → quantité en grammes', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.solid, quantity: 40),
+        FeedingEvent(
+            unit: QuantityUnit.g,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.solid,
+            quantity: 40),
       );
       expect(find.text('Quantité : 40 g'), findsOneWidget);
     });
@@ -184,17 +215,26 @@ void main() {
     testWidgets('biberon → quantité en ml', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.artificial, quantity: 120),
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.artificial,
+            quantity: 120),
       );
       expect(find.text('Quantité : 120 ml'), findsOneWidget);
     });
   });
 
   group('HistoryTile — Notes affichées', () {
-    testWidgets('FeedingEvent avec notes → notes visibles (sauf HealthEvent)', (tester) async {
+    testWidgets('FeedingEvent avec notes → notes visibles (sauf HealthEvent)',
+        (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural, notes: 'Notes de test'),
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.natural,
+            notes: 'Notes de test'),
       );
       expect(find.text('Notes de test'), findsOneWidget);
     });
@@ -202,7 +242,11 @@ void main() {
     testWidgets('SleepEvent avec notes → notes visibles', (tester) async {
       await pumpTile(
         tester,
-        SleepEvent(timestamp: DateTime.utc(2024), duration: 30.0, notes: 'Dodo paisible'),
+        SleepEvent(
+            unit: QuantityUnit.min,
+            timestamp: DateTime.utc(2024),
+            duration: 30.0,
+            notes: 'Dodo paisible'),
       );
       expect(find.text('Dodo paisible'), findsOneWidget);
     });
@@ -210,7 +254,10 @@ void main() {
     testWidgets('DiaperEvent avec notes → notes visibles', (tester) async {
       await pumpTile(
         tester,
-        DiaperEvent(timestamp: DateTime.utc(2024), wasteType: WasteType.pipi, notes: 'Bon pipi'),
+        DiaperEvent(
+            timestamp: DateTime.utc(2024),
+            wasteType: WasteType.pipi,
+            notes: 'Bon pipi'),
       );
       expect(find.text('Bon pipi'), findsOneWidget);
     });
@@ -218,7 +265,10 @@ void main() {
     testWidgets('Événement sans notes → pas de texte vide', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.natural),
       );
       expect(find.text(''), findsNothing);
     });
@@ -231,14 +281,14 @@ void main() {
         DiaperEvent(
           timestamp: DateTime.utc(2024),
           wasteType: WasteType.pipi,
-          pipiColor:
-        pipiColorJauneClair,
+          pipiColor: pipiColorJauneClair,
         ),
       );
 
       // Color indicator containers (16x16 circles) — also matches CircleAvatar, so expect 2 total
       final colorContainers = find.byWidgetPredicate(
-        (w) => w is Container &&
+        (w) =>
+            w is Container &&
             w.decoration is BoxDecoration &&
             (w.decoration as BoxDecoration).shape == BoxShape.circle,
       );
@@ -252,15 +302,14 @@ void main() {
         DiaperEvent(
           timestamp: DateTime.utc(2024),
           wasteType: WasteType.lesDeux,
-          pipiColor:
-        pipiColorJauneClair,
-          cacaColor:
-        cacaColorJauneMoutarde,
+          pipiColor: pipiColorJauneClair,
+          cacaColor: cacaColorJauneMoutarde,
         ),
       );
 
       final colorContainers = find.byWidgetPredicate(
-        (w) => w is Container &&
+        (w) =>
+            w is Container &&
             w.decoration is BoxDecoration &&
             (w.decoration as BoxDecoration).shape == BoxShape.circle,
       );
@@ -268,7 +317,8 @@ void main() {
       expect(colorContainers.evaluate().length, greaterThanOrEqualTo(3));
     });
 
-    testWidgets('DiaperEvent sans couleurs → pas d\'indicateurs', (tester) async {
+    testWidgets('DiaperEvent sans couleurs → pas d\'indicateurs',
+        (tester) async {
       await pumpTile(
         tester,
         DiaperEvent(timestamp: DateTime.utc(2024), wasteType: WasteType.caca),
@@ -279,7 +329,10 @@ void main() {
     testWidgets('FeedingEvent → pas d\'indicateurs de couleur', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.artificial),
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.artificial),
       );
       expect(find.byType(Wrap), findsNothing);
     });
@@ -290,7 +343,10 @@ void main() {
       bool tapped = false;
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.natural),
         onTap: () => tapped = true,
       );
       expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
@@ -303,7 +359,10 @@ void main() {
     testWidgets('sans onTap → pas d\'icône edit', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.artificial),
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.artificial),
       );
       expect(find.byIcon(Icons.edit_outlined), findsNothing);
     });
@@ -313,7 +372,10 @@ void main() {
     testWidgets('time parameter est affiché dans la tile', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.natural),
       );
       expect(find.text('15/06/2024 10:30'), findsOneWidget);
     });
@@ -326,8 +388,7 @@ void main() {
         DiaperEvent(
           timestamp: DateTime.utc(2024),
           wasteType: WasteType.pipi,
-          pipiColor:
-        pipiColorJauneClair,
+          pipiColor: pipiColorJauneClair,
         ),
       );
 
@@ -350,7 +411,10 @@ void main() {
             ],
             home: Scaffold(
               body: HistoryTile(
-                event: FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
+                event: FeedingEvent(
+                    unit: QuantityUnit.ml,
+                    timestamp: DateTime.utc(2024),
+                    subtype: FeedingSubtype.natural),
                 time: '15/06/2024 10:30',
               ),
             ),
@@ -375,7 +439,10 @@ void main() {
             ],
             home: Scaffold(
               body: HistoryTile(
-                event: FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
+                event: FeedingEvent(
+                    unit: QuantityUnit.ml,
+                    timestamp: DateTime.utc(2024),
+                    subtype: FeedingSubtype.natural),
                 time: '15/06/2024 10:30',
               ),
             ),
@@ -388,14 +455,18 @@ void main() {
     testWidgets('has Semantics widgets for accessibility', (tester) async {
       await pumpTile(
         tester,
-        FeedingEvent(timestamp: DateTime.utc(2024), subtype: FeedingSubtype.natural),
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.natural),
       );
       expect(find.byType(Semantics), findsWidgets);
     });
   });
 
   group('HistoryTile — Consistance de la selle', () {
-    testWidgets('la texture enregistrée est affichée sur la ligne', (tester) async {
+    testWidgets('la texture enregistrée est affichée sur la ligne',
+        (tester) async {
       await pumpTile(
         tester,
         DiaperEvent(
@@ -410,7 +481,8 @@ void main() {
 
     // Les changes notées avant la v9 n'ont pas de texture : la ligne ne doit
     // pas inventer un cran ni afficher une ligne vide.
-    testWidgets('aucune ligne de texture pour une couche sans texture', (tester) async {
+    testWidgets('aucune ligne de texture pour une couche sans texture',
+        (tester) async {
       await pumpTile(
         tester,
         DiaperEvent(
@@ -427,10 +499,14 @@ void main() {
       expect(find.byType(Tooltip), findsOneWidget);
     });
 
-    testWidgets('un événement non-couche n\'affiche aucune texture', (tester) async {
+    testWidgets('un événement non-couche n\'affiche aucune texture',
+        (tester) async {
       await pumpTile(
         tester,
-        SleepEvent(timestamp: DateTime.utc(2024), duration: 45),
+        SleepEvent(
+            unit: QuantityUnit.min,
+            timestamp: DateTime.utc(2024),
+            duration: 45),
       );
 
       expect(find.text('Moulée'), findsNothing);

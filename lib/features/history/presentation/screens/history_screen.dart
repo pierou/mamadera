@@ -7,9 +7,13 @@ import '../../../../core/theme.dart';
 import '../../../../core/widgets/show_feedback.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
+import '../../../growth/domain/entities/growth_measurement.dart';
+import '../../../growth/presentation/widgets/edit_measurement_sheet.dart';
+import '../../domain/history_row.dart';
 import '../providers/history_notifier.dart';
 import '../widgets/edit_event_dialog.dart';
 import '../widgets/history_tile.dart';
+import '../widgets/measurement_history_tile.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -91,6 +95,52 @@ class HistoryScreen extends ConsumerWidget {
     }
   }
 
+  /// Ouvre la feuille d'édition d'une mesure de croissance (frise unifiée
+  /// v1.2.1) : la ligne est corrigée sur place, ou supprimée.
+  Future<void> _showEditMeasurementSheet(
+    BuildContext context,
+    WidgetRef ref,
+    GrowthMeasurement measurement,
+    HistoryFilter selectedFilter,
+  ) async {
+    final result = await EditMeasurementSheet.show(context, measurement: measurement);
+
+    if (!context.mounted) {
+      return;
+    }
+
+    switch (result) {
+      case final MeasurementUpdated updated:
+        try {
+          await ref
+              .read(historyNotifierProvider(selectedFilter).notifier)
+              .updateMeasurement(updated.measurement);
+          if (context.mounted) {
+            showFeedback(context, context.l.growthMeasurementUpdated);
+          }
+        } catch (e) {
+          if (context.mounted) {
+            showError(context, context.l.growthMeasurementUpdateError('$e'));
+          }
+        }
+      case final MeasurementDeleted deleted:
+        try {
+          await ref
+              .read(historyNotifierProvider(selectedFilter).notifier)
+              .deleteMeasurement(deleted.id);
+          if (context.mounted) {
+            showFeedback(context, context.l.growthMeasurementDeleted);
+          }
+        } catch (e) {
+          if (context.mounted) {
+            showError(context, context.l.growthMeasurementDeleteError('$e'));
+          }
+        }
+      case null:
+        break;
+    }
+  }
+
   /// Applique les modifications retournées par le dialog sur l'événement original.
   TrackingEvent _applyUpdate(UpdateResult result, TrackingEvent event) {
     final ts = result.timestamp ?? event.timestamp;
@@ -100,6 +150,10 @@ class HistoryScreen extends ConsumerWidget {
         id: e.id,
         timestamp: ts,
         subtype: result.subtype ?? e.subtype,
+        // L'unité suit la ligne éditée, et le sous-type édité : passer de
+        // `natural` à `solid` rend `g`, rester au sein garde le choix du
+        // parent (`ml` ou `min`). Jamais un défaut muet.
+        unit: result.unit ?? e.unit,
         quantity: result.quantity ?? e.quantity,
         notes: result.notes ?? e.notes,
         babyId: e.babyId,
@@ -108,6 +162,8 @@ class HistoryScreen extends ConsumerWidget {
         id: e.id,
         timestamp: ts,
         duration: result.duration ?? e.duration,
+        unit: e.unit,
+        quantity: result.quantity ?? e.quantity,
         notes: result.notes ?? e.notes,
         babyId: e.babyId,
       ),
@@ -169,22 +225,34 @@ class HistoryScreen extends ConsumerWidget {
           const Divider(height: 1),
           Expanded(
             child: eventsAsync.when(
-              data: (events) {
-                if (events.isEmpty) {
+              data: (rows) {
+                if (rows.isEmpty) {
                   return Center(child: Text(context.l.noEvents));
                 }
+                // Frise unifiée : une ligne est soit un événement de suivi,
+                // soit une mesure de croissance (fichier de vérité chiffré,
+                // jamais dupliqué ici).
                 return ListView.builder(
-                  itemCount: events.length,
+                  itemCount: rows.length,
                   itemBuilder: (context, index) {
-                    final event = events[index];
-                    final timeFormatted = formatDate(context, event.timestamp);
-                    // Skip if no id (shouldn't happen in DB-fetched data, but safe guard)
-                    return HistoryTile(
-                      event: event,
-                      time: timeFormatted,
-                      onTap: () =>
-                          _showEditDialog(context, ref, event, selectedFilter),
-                    );
+                    final row = rows[index];
+                    final timeFormatted = formatDate(context, row.timestamp);
+                    return switch (row) {
+                      EventHistoryRow(:final event) => HistoryTile(
+                          event: event,
+                          time: timeFormatted,
+                          onTap: () =>
+                              _showEditDialog(context, ref, event,
+                                  selectedFilter),
+                        ),
+                      MeasurementHistoryRow(:final measurement) =>
+                        MeasurementHistoryTile(
+                          measurement: measurement,
+                          time: timeFormatted,
+                          onTap: () => _showEditMeasurementSheet(
+                              context, ref, measurement, selectedFilter),
+                        ),
+                    };
                   },
                 );
               },

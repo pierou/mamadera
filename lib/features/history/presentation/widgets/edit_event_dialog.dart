@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/l10n/unit_localization.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/event_date_time_field.dart';
+import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
@@ -21,6 +23,10 @@ sealed class EditResult with _$EditResult {
     DateTime? timestamp,
     double? duration,
     double? quantity,
+
+    /// Unité du nombre porté, telle qu'éditée (toggle ml/min au sein, ou
+    /// changement de sous-type passant la ligne en grammes).
+    QuantityUnit? unit,
     String? notes,
     FeedingSubtype? subtype,
     WasteType? wasteType,
@@ -52,6 +58,15 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
 
   // Sous-type d'alimentation (natural/artificial/solid) pour feedings
   FeedingSubtype _subtype = FeedingSubtype.natural;
+
+  /// Unité de la quantité en cours d'édition, lue de la ligne à l'ouverture.
+  QuantityUnit _unit = QuantityUnit.ml;
+
+  /// La quantité est remise à 0 quand l'unité change, et le dialog le dit.
+  bool _unitResetNotice = false;
+
+  /// Nombre saisi hors des bornes ; `null` = dans la plage.
+  double? _outOfRange;
 
   // Pour les événements caca : type de selle et couleurs (typed via enums)
   WasteType? _wasteType;
@@ -98,6 +113,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       (e) {},
       feeding: (e) {
         _subtype = e.subtype;
+        _unit = e.unit;
         _quantity = e.quantity;
         _notesController.text = e.notes ?? '';
       },
@@ -130,7 +146,12 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       timestamp: _selectedDate,
       duration: _duration,
       quantity: _quantity,
-      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      // L'unité courante part avec le nombre : passer de `natural`+`min` à
+      // `solid` rend `g`, rester au sein garde le choix du parent.
+      unit: _unit,
+      notes: _notesController.text.trim().isEmpty
+          ? null
+          : _notesController.text.trim(),
       subtype: (_normalizedType == 'miam') ? _subtype : null,
       wasteType: _wasteType,
       pipiColor: _pipiColor,
@@ -190,8 +211,10 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             if (_normalizedType == 'dodo') ..._buildDurationSection(),
             if (_normalizedType == 'miam') ..._buildQuantitySection(),
             if (_normalizedType == 'miam') ..._buildSubtypeSelectorSection(),
-            if (_normalizedType == 'caca' || _normalizedType == 'pipi') ..._buildWasteSections(),
-            if (_normalizedType != 'sante' && _normalizedType != 'dodo') ..._buildNotesSection(),
+            if (_normalizedType == 'caca' || _normalizedType == 'pipi')
+              ..._buildWasteSections(),
+            if (_normalizedType != 'sante' && _normalizedType != 'dodo')
+              ..._buildNotesSection(),
             if (_normalizedType == 'sante') ..._buildHealthSubtypeSection(),
             ..._buildActionButtons(),
           ],
@@ -203,7 +226,10 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   Widget _buildTitle() {
     return Text(
       context.l.editDialogTitle,
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+      style: Theme.of(context)
+          .textTheme
+          .titleLarge
+          ?.copyWith(fontWeight: FontWeight.bold),
     );
   }
 
@@ -224,6 +250,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         divisions: 96,
         // Stepper aligné sur le pas du slider : 96 crans sur 480 min.
         step: 5,
+        // Paire B2 : 96 crans au pas de 5 — un seul slider ne suffit plus.
+        sliderPair: const (coarseStep: 30, fineSpan: 30, fineStep: 5),
         value: _quantity ?? 0.0,
         onValueChanged: (double value) {
           setState(() {
@@ -236,39 +264,144 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   }
 
   List<Widget> _buildQuantitySection() {
-    final isSolid = _subtype == FeedingSubtype.solid;
     return [
       const SizedBox(height: 20),
       _buildSectionTitle(context.l.editQuantitySectionTitle),
+      // Le sein est le seul sous-type à deux unités : téter se compte en
+      // minutes, tirer se compte en millilitres, et la même mère fait les
+      // deux le même jour. Les autres sous-types restent figés.
+      if (_subtype == FeedingSubtype.natural) ...[
+        SegmentedButton<QuantityUnit>(
+          segments: [
+            ButtonSegment(
+              value: QuantityUnit.ml,
+              label: Text(context.l.feedingUnitMl),
+            ),
+            ButtonSegment(
+              value: QuantityUnit.min,
+              label: Text(context.l.feedingUnitMin),
+            ),
+          ],
+          selected: {_unit},
+          showSelectedIcon: false,
+          onSelectionChanged: (selection) => _selectUnit(selection.first),
+        ),
+        const SizedBox(height: 12),
+      ],
+      // Le message de remise à 0 sort du bloc `natural` : un re-typage
+      // biberon → solide remet aussi la quantité à 0 (le nombre ne survit pas
+      // au changement d'unité), et une remise à 0 silencieuse est le défaut
+      // que v1.2.1 existe à supprimer.
+      if (_unitResetNotice) ...[
+        const SizedBox(height: 8),
+        Text(
+          context.l.feedingUnitReset,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+        ),
+        const SizedBox(height: 12),
+      ],
       QuantityPickerInline(
-        unit: _feedingUnit(context),
-        min: 0,
-        // Les solides se pèsent en grammes sur une plus large plage.
-        max: isSolid ? 1000 : 300,
-        divisions: isSolid ? 200 : 30,
-        // Stepper aligné sur le pas du slider : 200 crans sur 1000 g,
-        // 30 crans sur 300 (min ou ml).
-        step: isSolid ? 5 : 10,
+        unit: quantityUnitLabel(context, _unit),
+        min: _pickerSpec.min,
+        max: _pickerSpec.max,
+        divisions: _pickerSpec.divisions,
+        // Stepper aligné sur le pas du slider pour l'unité courante.
+        step: _pickerSpec.step,
+        sliderPair: _pickerSpec.sliderPair,
         value: _quantity ?? 0.0,
         onValueChanged: (double value) {
-          setState(() => _quantity = value);
+          setState(() {
+            _quantity = value;
+            _outOfRange = null;
+          });
         },
+        // Hors plage : le nombre du parent reste affiché, l'erreur apparaît,
+        // Enregistrer se désactive. Jamais de `clamp` (BACKLOG B5).
+        onValueOutOfRange: (value) => setState(() {
+          _quantity = value;
+          _outOfRange = value;
+        }),
       ),
+      if (_outOfRange != null) ...[
+        const SizedBox(height: 8),
+        Text(
+          context.l.feedingValueOutOfRange(
+            _pickerSpec.min.toInt().toString(),
+            _pickerSpec.max.toInt().toString(),
+            quantityUnitLabel(context, _unit),
+          ),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+        ),
+      ],
     ];
   }
 
-  /// L'unité du picker suit le sous-type d'alimentation : millilitres au sein et au
-  /// millilitres (sein et biberon), grammes pour les solides. Un « 40 ml » affiché
-  /// pour un purée serait un chiffre de santé faux.
-  String _feedingUnit(BuildContext context) => switch (_subtype) {
-        // Le sein se saisit en ml comme le biberon — c'est ce que la colonne
-        // `quantity` a toujours stocké pour `miam` (`FeedingEvent` n'a pas de
-        // champ durée). Inventer des minutes ici re-étiquetterait des
-        // enregistrements existants de lait tiré en durée de tétée.
-        FeedingSubtype.natural => 'ml',
-        FeedingSubtype.artificial => 'ml',
-        FeedingSubtype.solid => context.l.gramSuffix,
+  /// Bornes et pas du picker, selon l'unité — les mêmes que la saisie
+  /// d'un nouvel événement (ml 0–300 par 10, min 0–120 par 1, g 0–1000
+  /// par 5) : éditer une valeur ne doit pas ouvrir une plage différente.
+  ({double min, double max, int divisions, double step, SliderPair sliderPair})
+      get _pickerSpec =>
+          switch (_unit) {
+            QuantityUnit.ml => (
+                  min: 0,
+                  max: 300,
+                  divisions: 30,
+                  step: 10,
+                  sliderPair: const (coarseStep: 50, fineSpan: 50, fineStep: 10)
+                ),
+            QuantityUnit.min => (
+                  min: 0,
+                  max: 120,
+                  divisions: 120,
+                  step: 1,
+                  sliderPair: const (coarseStep: 30, fineSpan: 30, fineStep: 5)
+                ),
+            QuantityUnit.g => (
+                  min: 0,
+                  max: 1000,
+                  divisions: 200,
+                  step: 5,
+                  sliderPair: const (coarseStep: 50, fineSpan: 50, fineStep: 10)
+                ),
+          };
+
+  /// Unité d'un sous-type, figée hors `natural`.
+  static QuantityUnit _unitFor(FeedingSubtype subtype) => switch (subtype) {
+        FeedingSubtype.natural => QuantityUnit.min,
+        FeedingSubtype.artificial => QuantityUnit.ml,
+        FeedingSubtype.solid => QuantityUnit.g,
       };
+
+  /// Choix du sous-type : l'unité suit, et le nombre ne survit pas à un
+  /// changement d'unité — 20 ml n'est pas 20 minutes.
+  void _selectSubtype(FeedingSubtype subtype) {
+    setState(() {
+      _subtype = subtype;
+      final nextUnit = _unitFor(subtype);
+      if (nextUnit != _unit) {
+        _unit = nextUnit;
+        _quantity = 0;
+        _unitResetNotice = true;
+      }
+      _outOfRange = null;
+    });
+  }
+
+  /// Choix ml/min au sein : même règle, aucun nombre ne change d'unité en
+  /// douceur.
+  void _selectUnit(QuantityUnit unit) {
+    if (unit == _unit) return;
+    setState(() {
+      _unit = unit;
+      _quantity = 0;
+      _unitResetNotice = true;
+      _outOfRange = null;
+    });
+  }
 
   List<Widget> _buildSubtypeSelectorSection() {
     return [
@@ -295,7 +428,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
                   ],
                 ),
                 selected: isSelected,
-                onSelected: (_) => setState(() => _subtype = subtype),
+                onSelected: (_) => _selectSubtype(subtype),
               ),
             ),
           );
@@ -362,11 +495,14 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       Wrap(
         spacing: 8,
         runSpacing: 4,
-        children: stoolTextures.map((t) => FilterChip(
-          label: Text(resolveStoolTextureLabel(context, t)),
-          selected: _stoolTexture == t,
-          onSelected: (_) => setState(() => _stoolTexture = _stoolTexture == t ? null : t),
-        )).toList(),
+        children: stoolTextures
+            .map((t) => FilterChip(
+                  label: Text(resolveStoolTextureLabel(context, t)),
+                  selected: _stoolTexture == t,
+                  onSelected: (_) => setState(
+                      () => _stoolTexture = _stoolTexture == t ? null : t),
+                ))
+            .toList(),
       ),
       const SizedBox(height: 12),
     ];
@@ -378,11 +514,14 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       Wrap(
         spacing: 8,
         runSpacing: 4,
-        children: pipiColors.map((c) => FilterChip(
-          label: Text(_resolvePipiLabel(context, c)),
-          selected: _pipiColor == c,
-          onSelected: (_) => setState(() => _pipiColor = _pipiColor == c ? null : c),
-        )).toList(),
+        children: pipiColors
+            .map((c) => FilterChip(
+                  label: Text(_resolvePipiLabel(context, c)),
+                  selected: _pipiColor == c,
+                  onSelected: (_) =>
+                      setState(() => _pipiColor = _pipiColor == c ? null : c),
+                ))
+            .toList(),
       ),
       const SizedBox(height: 12),
     ];
@@ -394,11 +533,14 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       Wrap(
         spacing: 8,
         runSpacing: 4,
-        children: cacaColors.map((c) => FilterChip(
-          label: Text(_resolveCacaLabel(context, c)),
-          selected: _cacaColor == c,
-          onSelected: (_) => setState(() => _cacaColor = _cacaColor == c ? null : c),
-        )).toList(),
+        children: cacaColors
+            .map((c) => FilterChip(
+                  label: Text(_resolveCacaLabel(context, c)),
+                  selected: _cacaColor == c,
+                  onSelected: (_) =>
+                      setState(() => _cacaColor = _cacaColor == c ? null : c),
+                ))
+            .toList(),
       ),
     ];
   }
@@ -413,7 +555,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         decoration: InputDecoration(
           hintText: context.l.editNotesHint,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
       ),
     ];
@@ -435,7 +578,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             color: isSelected ? AppTheme.sante : null),
         title: Text(resolveHealthLabel(context, subtype)),
         trailing: isSelected
-            ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+            ? Icon(Icons.check_circle,
+                color: Theme.of(context).colorScheme.primary)
             : null,
         tileColor: isSelected ? AppTheme.sante.withValues(alpha: 0.15) : null,
         onTap: () => setState(() => _healthSubtype = subtype),
@@ -449,7 +593,9 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: _submit,
+          // Hors plage : on ne sauvegarde pas, on n'efface pas non plus —
+          // le nombre reste à l'écran avec son message d'erreur.
+          onPressed: _outOfRange == null ? _submit : null,
           style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14)),
           child: Text(context.l.saveButton),

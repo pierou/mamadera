@@ -119,23 +119,24 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    expect(db.schemaVersion, equals(11));
+    // v12 s'ajoute au passage : le fichier monte jusqu'à la version courante.
+    expect(db.schemaVersion, equals(12));
 
     await db.into(db.measurements).insert(
-      MeasurementsCompanion.insert(
-        kind: db_const.kindPoids,
-        value: 'iv:ciphertext',
-        unit: db_const.unitG,
-        recordedAt: DateTime.utc(2026, 1, 1),
-      ),
-    );
+          MeasurementsCompanion.insert(
+            kind: db_const.kindPoids,
+            value: 'iv:ciphertext',
+            unit: db_const.unitG,
+            recordedAt: DateTime.utc(2026, 1, 1),
+          ),
+        );
     await db.into(db.reminderCompletions).insert(
-      ReminderCompletionsCompanion.insert(
-        babyId: const Value(db_const.sharedBabyId),
-        itemId: 'vitamine_k',
-        completedAt: DateTime.utc(2026, 1, 1),
-      ),
-    );
+          ReminderCompletionsCompanion.insert(
+            babyId: const Value(db_const.sharedBabyId),
+            itemId: 'vitamine_k',
+            completedAt: DateTime.utc(2026, 1, 1),
+          ),
+        );
 
     expect(await db.select(db.measurements).get(), hasLength(1));
     expect(await db.select(db.reminderCompletions).get(), hasLength(1));
@@ -155,8 +156,7 @@ void main() {
     expect(vitamineK.enabled, isFalse);
   });
 
-  test(
-      'custom reminder ids survive the rebuild and new inserts do not collide',
+  test('custom reminder ids survive the rebuild and new inserts do not collide',
       () async {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
@@ -177,13 +177,13 @@ void main() {
     // Le piège AUTOINCREMENT : si la table reconstruite était repartie de 1,
     // cette insertion collerait avec l'id 7 recopié.
     final newId = await db.into(db.customReminders).insert(
-      CustomRemindersCompanion.insert(
-        babyId: const Value(db_const.sharedBabyId),
-        label: 'Gouttes pour le nez',
-        frequency: db_const.freqDaily,
-        completionSource: const Value(db_const.completionManual),
-      ),
-    );
+          CustomRemindersCompanion.insert(
+            babyId: const Value(db_const.sharedBabyId),
+            label: 'Gouttes pour le nez',
+            frequency: db_const.freqDaily,
+            completionSource: const Value(db_const.completionManual),
+          ),
+        );
     expect(newId, greaterThan(7));
   });
 
@@ -203,24 +203,24 @@ void main() {
     // rappel…
     await expectLater(
       db.into(db.reminderSettings).insert(
-        ReminderSettingsCompanion.insert(
-          babyId: const Value(db_const.sharedBabyId),
-          itemId: 'vitamine_k',
-          enabled: true,
-        ),
-      ),
+            ReminderSettingsCompanion.insert(
+              babyId: const Value(db_const.sharedBabyId),
+              itemId: 'vitamine_k',
+              enabled: true,
+            ),
+          ),
       throwsA(anything),
     );
 
     // …et accepte une ligne par bébé pour le même item : le point entier
     // de l'item M.
     await db.into(db.reminderSettings).insert(
-      ReminderSettingsCompanion.insert(
-        babyId: const Value('baby_2'),
-        itemId: 'vitamine_k',
-        enabled: true,
-      ),
-    );
+          ReminderSettingsCompanion.insert(
+            babyId: const Value('baby_2'),
+            itemId: 'vitamine_k',
+            enabled: true,
+          ),
+        );
     expect(await db.getAllReminderSettings(), hasLength(4));
   });
 
@@ -230,22 +230,23 @@ void main() {
     addTearDown(db.close);
 
     await db.into(db.reminderSettings).insert(
-      ReminderSettingsCompanion.insert(
-        babyId: const Value('baby_1'),
-        itemId: 'vitamine_k',
-        enabled: true,
-      ),
-    );
+          ReminderSettingsCompanion.insert(
+            babyId: const Value('baby_1'),
+            itemId: 'vitamine_k',
+            enabled: true,
+          ),
+        );
     await db.into(db.reminderSettings).insert(
-      ReminderSettingsCompanion.insert(
-        babyId: const Value('baby_2'),
-        itemId: 'vitamine_k',
-        enabled: true,
-      ),
-    );
+          ReminderSettingsCompanion.insert(
+            babyId: const Value('baby_2'),
+            itemId: 'vitamine_k',
+            enabled: true,
+          ),
+        );
 
     final updated = await (db.update(db.reminderSettings)
-          ..where((t) => t.babyId.equals('baby_1') & t.itemId.equals('vitamine_k')))
+          ..where(
+              (t) => t.babyId.equals('baby_1') & t.itemId.equals('vitamine_k')))
         .write(const ReminderSettingsCompanion(enabled: Value(false)));
     expect(updated, equals(1));
 
@@ -329,41 +330,41 @@ void main() {
       for (final rawRow in decoded['customReminders'] as List) {
         final row = rawRow as Map<String, dynamic>;
         await db.into(db.customReminders).insert(
-          CustomRemindersCompanion.insert(
-            id: Value(row['id'] as int),
-            babyId: const Value(db_const.sharedBabyId),
-            label: row['label'] as String,
-            subtypeValue: Value(row['subtypeValue'] as String),
-            frequency: row['frequency'] as String,
-            intervalDays: Value(row['intervalDays'] as int?),
-            completionSource: const Value(db_const.completionFromEvents),
-          ),
-        );
+              CustomRemindersCompanion.insert(
+                id: Value(row['id'] as int),
+                babyId: const Value(db_const.sharedBabyId),
+                label: row['label'] as String,
+                subtypeValue: Value(row['subtypeValue'] as String),
+                frequency: row['frequency'] as String,
+                intervalDays: Value(row['intervalDays'] as int?),
+                completionSource: const Value(db_const.completionFromEvents),
+              ),
+            );
       }
 
       for (final rawRow in decoded['reminderSettings'] as List) {
         final row = rawRow as Map<String, dynamic>;
         await db.into(db.reminderSettings).insert(
-          ReminderSettingsCompanion.insert(
-            babyId: const Value(db_const.sharedBabyId),
-            itemId: row['itemId'] as String,
-            enabled: row['enabled'] as bool,
-          ),
-        );
+              ReminderSettingsCompanion.insert(
+                babyId: const Value(db_const.sharedBabyId),
+                itemId: row['itemId'] as String,
+                enabled: row['enabled'] as bool,
+              ),
+            );
       }
 
       for (final rawRow in decoded['reminderDismissals'] as List) {
         final row = rawRow as Map<String, dynamic>;
         await db.into(db.reminderDismissals).insert(
-          ReminderDismissalsCompanion.insert(
-            babyId: const Value(db_const.sharedBabyId),
-            itemId: row['itemId'] as String,
-            dismissedAt: DateTime.fromMillisecondsSinceEpoch(
-              (row['dismissedAtEpochSeconds'] as int) * 1000,
-              isUtc: true,
-            ),
-          ),
-        );
+              ReminderDismissalsCompanion.insert(
+                babyId: const Value(db_const.sharedBabyId),
+                itemId: row['itemId'] as String,
+                dismissedAt: DateTime.fromMillisecondsSinceEpoch(
+                  (row['dismissedAtEpochSeconds'] as int) * 1000,
+                  isUtc: true,
+                ),
+              ),
+            );
       }
     });
 

@@ -79,6 +79,7 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
 
   Future<void> sleep(DateTime start, double minutes) => db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'min',
           type: 'dodo',
           timestamp: start,
           duration: Value(minutes),
@@ -90,6 +91,7 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
   Future<void> feed(DateTime at, {bool artificial = false, double? ml}) =>
       db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'ml',
           type: 'miam',
           timestamp: at,
           subtype: Value(artificial ? 'artificial' : 'natural'),
@@ -106,6 +108,7 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
   }) =>
       db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'ml',
           type: 'caca',
           timestamp: at,
           wasteType: Value(wasteType),
@@ -117,6 +120,7 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
 
   Future<void> care(DateTime at, String subtype) => db.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'ml',
           type: 'sante',
           timestamp: at,
           subtype: Value(subtype),
@@ -144,7 +148,8 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
       color: 'incolore|jaune_moutarde',
       texture: 'grumeleuse');
   // Health
-  await care(now.subtract(const Duration(hours: 4, minutes: 30)), 'nettoyage_nez');
+  await care(
+      now.subtract(const Duration(hours: 4, minutes: 30)), 'nettoyage_nez');
   await care(now.subtract(const Duration(hours: 26)), 'vitamine_d');
 
   // Growth (v1.2.0) — encrypted through the repository, in base units.

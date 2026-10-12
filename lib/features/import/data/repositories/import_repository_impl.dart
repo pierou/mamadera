@@ -8,14 +8,15 @@ import '../../../../core/services/app_logger.dart';
 import '../../../../core/services/encryption_service.dart';
 import '../../../../data/local/app_db.dart' as db_app;
 import '../../../../data/local/db_constants.dart' as db_const;
+import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../domain/repositories/import_repository.dart';
 
 /// Newest format version this build can restore.
 ///
 /// The exporter owns this number; anything above it belongs to a future app and
-/// must not be guessed at.
-const int _supportedFormatVersion = 2;
+/// must not be guessed at. 3 (v12) adds `unit` to every event row.
+const int _supportedFormatVersion = 3;
 
 /// Oldest document format this build can still restore.
 ///
@@ -79,23 +80,21 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
   final measurementIds = <int>{};
   final completionKeys = <Object>{};
 
-  final babyProfiles = _section<ImportedBabyProfile>(document, 'babyProfiles',
-      (row) => _parseProfile(row, profileIds));
+  final babyProfiles = _section<ImportedBabyProfile>(
+      document, 'babyProfiles', (row) => _parseProfile(row, profileIds));
   final trackingEvents = _section<ImportedTrackingEvent>(
       document, 'trackingEvents', (row) => _parseEvent(row, eventIds));
-  final customReminders = _section<ImportedCustomReminder>(
-      document, 'customReminders', (row) => _parseCustomReminder(row, reminderIds));
+  final customReminders = _section<ImportedCustomReminder>(document,
+      'customReminders', (row) => _parseCustomReminder(row, reminderIds));
   final reminderSettings = _section<ImportedReminderSetting>(
       document, 'reminderSettings', (row) => _parseSetting(row, settingKeys));
-  final reminderDismissals = _section<ImportedReminderDismissal>(
-      document, 'reminderDismissals',
-      (row) => _parseDismissal(row, dismissalKeys));
+  final reminderDismissals = _section<ImportedReminderDismissal>(document,
+      'reminderDismissals', (row) => _parseDismissal(row, dismissalKeys));
   final measurements = _section<ImportedMeasurement>(
       document, 'measurements', (row) => _parseMeasurement(row, measurementIds),
       optional: true);
-  final reminderCompletions = _section<ImportedReminderCompletion>(
-      document, 'reminderCompletions',
-      (row) => _parseCompletion(row, completionKeys),
+  final reminderCompletions = _section<ImportedReminderCompletion>(document,
+      'reminderCompletions', (row) => _parseCompletion(row, completionKeys),
       optional: true);
 
   _validateCounts(document, {
@@ -169,12 +168,14 @@ List<T> _section<T>(
   final raw = document[key];
   if (raw == null && optional) return const [];
   if (raw is! List) {
-    throw ImportFormatException(ImportRejectionReason.missingTable, section: key);
+    throw ImportFormatException(ImportRejectionReason.missingTable,
+        section: key);
   }
   final rows = <T>[];
   for (final entry in raw) {
     if (entry is! Map<String, dynamic>) {
-      throw ImportFormatException(ImportRejectionReason.invalidRow, section: key);
+      throw ImportFormatException(ImportRejectionReason.invalidRow,
+          section: key);
     }
     rows.add(parseRow(entry));
   }
@@ -214,7 +215,8 @@ void _validateCounts(Map<String, dynamic> document, Map<String, int> actual) {
 
 // ── Row level ────────────────────────────────────────────────────────────
 
-ImportedBabyProfile _parseProfile(Map<String, dynamic> row, Set<String> seenIds) {
+ImportedBabyProfile _parseProfile(
+    Map<String, dynamic> row, Set<String> seenIds) {
   const section = 'babyProfiles';
   final id = _requiredString(row, 'id', section);
   _requireUnique(id, seenIds, section);
@@ -223,7 +225,8 @@ ImportedBabyProfile _parseProfile(Map<String, dynamic> row, Set<String> seenIds)
     name: _requiredString(row, 'name', section),
     // Stored as epoch MILLISECONDS in a plain integer column — not a Drift
     // dateTime() column, so no conversion happens on either side.
-    birthDateEpochMs: _milliseconds(row, 'birthDateEpochMs', 'birthDateUtc', section),
+    birthDateEpochMs:
+        _milliseconds(row, 'birthDateEpochMs', 'birthDateUtc', section),
     // Absent means "true" — the same default as the table column.
     isActive: _boolWithTrueDefault(row, 'isActive', section),
   );
@@ -248,12 +251,27 @@ ImportedTrackingEvent _parseEvent(Map<String, dynamic> row, Set<int> seenIds) {
   // `notesUndecryptable: true` is tolerated and ignored: it means `notes` is
   // null because the source device had lost the key. There is nothing to
   // restore, and refusing the file would punish the parent for it.
+  //
+  // `unit` — absent in formats 1 and 2, and those documents must keep
+  // restoring: the row gets the unit the parent saw on screen
+  // (`natural` → ml, never min). Present (format 3), it is validated against
+  // the closed unit set AND against the row's own type/subtype, because a
+  // `solid` row claiming `ml` is a wrong health number waiting to be shown:
+  // rejected, never coerced.
+  final rawUnit = _optionalString(row, 'unit', section);
+  final unit = _resolveEventUnit(
+    rawUnit: rawUnit,
+    type: type,
+    subtype: _optionalString(row, 'subtype', section),
+    section: section,
+  );
   return ImportedTrackingEvent(
     id: id,
     type: type,
     timestamp: _seconds(row, 'timestampEpochSeconds', 'timestampUtc', section),
     duration: _optionalFiniteDouble(row, 'durationMinutes', section),
     subtype: _optionalString(row, 'subtype', section),
+    unit: unit,
     notes: notes,
     wasteType: _optionalString(row, 'wasteType', section),
     color: _optionalString(row, 'color', section),
@@ -292,8 +310,7 @@ ImportedCustomReminder _parseCustomReminder(
         section: section);
   }
   // Absent (format 1) : `from_events`, la seule valeur qui existait alors.
-  final completionSource =
-      _optionalString(row, 'completionSource', section) ??
+  final completionSource = _optionalString(row, 'completionSource', section) ??
       db_const.completionFromEvents;
   if (!db_const.allCompletionSourceValues.contains(completionSource)) {
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
@@ -311,10 +328,12 @@ ImportedCustomReminder _parseCustomReminder(
   );
 }
 
-ImportedReminderSetting _parseSetting(Map<String, dynamic> row, Set<Object> seenKeys) {
+ImportedReminderSetting _parseSetting(
+    Map<String, dynamic> row, Set<Object> seenKeys) {
   const section = 'reminderSettings';
   // Absent (format 1) : réglage partagé entre tous les bébés.
-  final babyId = _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
+  final babyId =
+      _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
   final itemId = _requiredString(row, 'itemId', section);
   _requireUnique((babyId, itemId), seenKeys, section);
   final enabled = row['enabled'];
@@ -333,13 +352,15 @@ ImportedReminderDismissal _parseDismissal(
     Map<String, dynamic> row, Set<Object> seenKeys) {
   const section = 'reminderDismissals';
   // Absent (format 1) : rejet partagé entre tous les bébés.
-  final babyId = _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
+  final babyId =
+      _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
   final itemId = _requiredString(row, 'itemId', section);
   _requireUnique((babyId, itemId), seenKeys, section);
   return ImportedReminderDismissal(
     babyId: babyId,
     itemId: itemId,
-    dismissedAt: _seconds(row, 'dismissedAtEpochSeconds', 'dismissedAtUtc', section),
+    dismissedAt:
+        _seconds(row, 'dismissedAtEpochSeconds', 'dismissedAtUtc', section),
   );
 }
 
@@ -387,7 +408,8 @@ ImportedMeasurement _parseMeasurement(
 ImportedReminderCompletion _parseCompletion(
     Map<String, dynamic> row, Set<Object> seenKeys) {
   const section = 'reminderCompletions';
-  final babyId = _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
+  final babyId =
+      _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
   final itemId = _requiredString(row, 'itemId', section);
   _requireUnique((babyId, itemId), seenKeys, section);
   return ImportedReminderCompletion(
@@ -396,6 +418,40 @@ ImportedReminderCompletion _parseCompletion(
     completedAt:
         _seconds(row, 'completedAtEpochSeconds', 'completedAtUtc', section),
   );
+}
+
+/// Unit of an event row in the restore document.
+///
+/// Absent means a format-1/2 file: the row takes the unit the parent saw on
+/// screen (`natural` → ml, never min), so an old backup restores unchanged
+/// instead of being re-interpreted. Present means format 3: it is checked
+/// against the closed unit set, and against the row's own type and subtype —
+/// a `solid` row claiming `ml` is a wrong health number waiting to be shown,
+/// so it rejects the file rather than being coerced into something plausible.
+QuantityUnit _resolveEventUnit({
+  required String? rawUnit,
+  required String type,
+  required String? subtype,
+  required String section,
+}) {
+  final expected = defaultUnitFor(typeValue: type, subtypeValue: subtype);
+  if (rawUnit == null) return expected;
+  final unit = QuantityUnit.fromDbValue(rawUnit);
+  if (unit == null) {
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
+  // Le sein porte deux unités légitimes ; tout le reste n'en a qu'une, et
+  // une ligne qui en prétend une autre ment sur son propre nombre.
+  final allowed =
+      type == db_const.typeMiam && subtype == db_const.subtypeNatural
+          ? const {QuantityUnit.ml, QuantityUnit.min}
+          : {expected};
+  if (!allowed.contains(unit)) {
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
+  return unit;
 }
 
 // ── Field extraction ─────────────────────────────────────────────────────
@@ -407,7 +463,8 @@ ImportedReminderCompletion _parseCompletion(
 String _requiredString(Map<String, dynamic> row, String key, String section) {
   final value = row[key];
   if (value is! String || value.isEmpty) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow, section: section);
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
   }
   return value;
 }
@@ -416,7 +473,8 @@ String? _optionalString(Map<String, dynamic> row, String key, String section) {
   final value = row[key];
   if (value == null) return null;
   if (value is! String) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow, section: section);
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
   }
   return value;
 }
@@ -424,38 +482,46 @@ String? _optionalString(Map<String, dynamic> row, String key, String section) {
 int _requiredInt(Map<String, dynamic> row, String key, String section) {
   final value = row[key];
   if (value is! int) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow, section: section);
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
   }
   return value;
 }
 
-int? _optionalPositiveInt(Map<String, dynamic> row, String key, String section) {
+int? _optionalPositiveInt(
+    Map<String, dynamic> row, String key, String section) {
   final value = row[key];
   if (value == null) return null;
   if (value is! int || value < 1) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow, section: section);
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
   }
   return value;
 }
 
-double? _optionalFiniteDouble(Map<String, dynamic> row, String key, String section) {
+double? _optionalFiniteDouble(
+    Map<String, dynamic> row, String key, String section) {
   final value = row[key];
   if (value == null) return null;
   if (value is! num) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow, section: section);
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
   }
   final converted = value.toDouble();
   if (!converted.isFinite) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow, section: section);
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
   }
   return converted;
 }
 
-bool _boolWithTrueDefault(Map<String, dynamic> row, String key, String section) {
+bool _boolWithTrueDefault(
+    Map<String, dynamic> row, String key, String section) {
   final value = row[key];
   if (value == null) return true;
   if (value is! bool) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow, section: section);
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
   }
   return value;
 }
@@ -465,7 +531,9 @@ DateTime _seconds(
     Map<String, dynamic> row, String epochKey, String isoKey, String section) {
   final epoch = row[epochKey];
   if (epoch is int) {
-    return _checkRange(DateTime.fromMillisecondsSinceEpoch(epoch * 1000, isUtc: true), section);
+    return _checkRange(
+        DateTime.fromMillisecondsSinceEpoch(epoch * 1000, isUtc: true),
+        section);
   }
   if (epoch == null) {
     final iso = row[isoKey];
@@ -474,7 +542,8 @@ DateTime _seconds(
       if (parsed != null) return _checkRange(parsed, section);
     }
   }
-  throw ImportFormatException(ImportRejectionReason.invalidRow, section: section);
+  throw ImportFormatException(ImportRejectionReason.invalidRow,
+      section: section);
 }
 
 /// Instant stored as epoch MILLISECONDS (`baby_profiles.birth_date`), with the
@@ -483,7 +552,8 @@ int _milliseconds(
     Map<String, dynamic> row, String epochKey, String isoKey, String section) {
   final epoch = row[epochKey];
   if (epoch is int) {
-    _checkRange(DateTime.fromMillisecondsSinceEpoch(epoch, isUtc: true), section);
+    _checkRange(
+        DateTime.fromMillisecondsSinceEpoch(epoch, isUtc: true), section);
     return epoch;
   }
   if (epoch == null) {
@@ -496,7 +566,8 @@ int _milliseconds(
       }
     }
   }
-  throw ImportFormatException(ImportRejectionReason.invalidRow, section: section);
+  throw ImportFormatException(ImportRejectionReason.invalidRow,
+      section: section);
 }
 
 /// Rejects instants outside 1990-2100: a wrong unit (milliseconds where seconds
@@ -505,20 +576,23 @@ int _milliseconds(
 DateTime _checkRange(DateTime moment, String section) {
   final utc = moment.toUtc();
   if (utc.isBefore(_plausibleMin) || !utc.isBefore(_plausibleMax)) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow, section: section);
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
   }
   return moment;
 }
 
 void _requireUnique(Object id, Set<Object> seen, String section) {
   if (!seen.add(id)) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow, section: section);
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
   }
 }
 
 /// Deterministic `(birthDate, id)` ordering, the same one
 /// `AppDatabase.getActiveBabyProfile` uses to pick the active profile.
-ImportedBabyProfile _firstByBirthDateThenId(List<ImportedBabyProfile> profiles) {
+ImportedBabyProfile _firstByBirthDateThenId(
+    List<ImportedBabyProfile> profiles) {
   var first = profiles.first;
   for (final candidate in profiles) {
     final earlier = candidate.birthDateEpochMs < first.birthDateEpochMs ||
@@ -591,12 +665,17 @@ class ImportRepositoryImpl implements ImportRepository {
           // service with a fresh IV. An empty note encrypts to '' and reads
           // back as no note — that is the encryption service's behaviour, not
           // something this restore invents.
-          notes: Value(event.notes == null ? null : encryption.encrypt(event.notes!)),
+          notes: Value(
+              event.notes == null ? null : encryption.encrypt(event.notes!)),
           wasteType: Value(event.wasteType),
           color: Value(event.color),
           texture: Value(event.texture),
           babyId: Value(event.babyId),
           quantity: Value(event.quantity),
+          // Écrit depuis l'entité parsée : présente dans le fichier (format 3)
+          // ou backfillée par le parseur (formats 1-2). Jamais le DEFAULT de
+          // la colonne, qui ne sait rien du sous-type de la ligne.
+          unit: event.unit.dbValue,
         ));
       }
 

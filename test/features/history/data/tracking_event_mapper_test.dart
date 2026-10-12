@@ -23,8 +23,10 @@ void main() {
   final encryption = _IdentityEncryption();
 
   group('mapToEntity — legacy les_deux à une seule couleur', () {
-    test('couleur caca-only (meconium) → cacaColor résolu, pas d\'exception', () {
+    test('couleur caca-only (meconium) → cacaColor résolu, pas d\'exception',
+        () {
       final row = drift.TrackingEvent(
+        unit: 'ml',
         id: 1,
         type: db_const.typeCaca,
         timestamp: DateTime(2023, 6, 15),
@@ -44,6 +46,7 @@ void main() {
 
     test('couleur pipi-only (rose_urates) → pipiColor résolu', () {
       final row = drift.TrackingEvent(
+        unit: 'ml',
         id: 2,
         type: db_const.typeCaca,
         timestamp: DateTime(2023, 6, 15),
@@ -64,6 +67,7 @@ void main() {
   group('mapToEntity — consistance de la selle', () {
     test('une texture connue est lue sur l\'événement couche', () {
       final row = drift.TrackingEvent(
+        unit: 'ml',
         id: 10,
         type: db_const.typeCaca,
         timestamp: DateTime(2026, 9, 1),
@@ -83,6 +87,7 @@ void main() {
     // texture » plutôt que d\'être convertie au hasard vers un cran voisin.
     test('texture inconnue → null, jamais une texture par défaut', () {
       final row = drift.TrackingEvent(
+        unit: 'ml',
         id: 11,
         type: db_const.typeCaca,
         timestamp: DateTime(2026, 9, 1),
@@ -100,6 +105,7 @@ void main() {
     // rien inventer à leur sujet.
     test('column texture absente (lignes héritées) → null', () {
       final row = drift.TrackingEvent(
+        unit: 'ml',
         id: 12,
         type: db_const.typeCaca,
         timestamp: DateTime(2026, 8, 30),

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/features/history/domain/repositories/history_repository.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 /// Mock de [HistoryRepository] pour tester le contrat d'interface.
@@ -18,13 +19,15 @@ class MockHistoryRepository implements HistoryRepository {
   }
 
   @override
-  Future<List<TrackingEvent>> getEventsByType(TrackingType type, {String? babyId}) async {
+  Future<List<TrackingEvent>> getEventsByType(TrackingType type,
+      {String? babyId}) async {
     return _events.values.where((e) => e.trackingType == type).toList()
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   @override
-  Future<bool> updateEvent({required int id, required TrackingEvent event}) async {
+  Future<bool> updateEvent(
+      {required int id, required TrackingEvent event}) async {
     if (!_events.containsKey(id)) return false;
     _events[id] = event;
     return true;
@@ -57,16 +60,20 @@ void main() {
         expect(result, isEmpty);
       });
 
-      test('retourne tous les événements triés par timestamp décroissant', () async {
+      test('retourne tous les événements triés par timestamp décroissant',
+          () async {
         repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
         repository.insert(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime(2024, 1, 1, 14),
           duration: 60,
         ));
         repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 10),
           subtype: FeedingSubtype.artificial,
         ));
@@ -80,11 +87,13 @@ void main() {
 
       test('filtre par babyId quand fourni', () async {
         repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
           babyId: 'baby-1',
         ));
         repository.insert(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime(2024, 1, 1, 10),
           duration: 60,
           babyId: 'baby-2',
@@ -100,14 +109,17 @@ void main() {
     group('getEventsByType', () {
       test('retourne les événements d\'un type spécifique', () async {
         repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
         repository.insert(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime(2024, 1, 1, 10),
           duration: 90,
         ));
         repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 14),
           subtype: FeedingSubtype.artificial,
         ));
@@ -119,10 +131,12 @@ void main() {
 
       test('retourne les événements dodo', () async {
         repository.insert(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime(2024, 1, 1, 10),
           duration: 60,
         ));
         repository.insert(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime(2024, 1, 1, 20),
           duration: 120,
         ));
@@ -165,6 +179,7 @@ void main() {
 
       test('retourne une liste vide pour un type sans événements', () async {
         repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
@@ -175,17 +190,20 @@ void main() {
 
       test('filtre par type et babyId', () async {
         repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
           babyId: 'baby-1',
         ));
         repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 10),
           subtype: FeedingSubtype.artificial,
           babyId: 'baby-2',
         ));
 
-        final result = await repository.getEventsByType(TrackingType.miam, babyId: 'baby-1');
+        final result = await repository.getEventsByType(TrackingType.miam,
+            babyId: 'baby-1');
         expect(result, hasLength(2));
       });
     });
@@ -193,6 +211,7 @@ void main() {
     group('updateEvent', () {
       test('met à jour un événement existant et retourne true', () async {
         final id = repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
@@ -200,6 +219,7 @@ void main() {
         final updated = await repository.updateEvent(
           id: id,
           event: FeedingEvent(
+            unit: QuantityUnit.ml,
             timestamp: DateTime(2024, 1, 1, 8),
             subtype: FeedingSubtype.artificial,
           ),
@@ -211,10 +231,12 @@ void main() {
         expect((all.first as FeedingEvent).subtype, FeedingSubtype.artificial);
       });
 
-      test('ne met pas à jour un événement inexistant et retourne false', () async {
+      test('ne met pas à jour un événement inexistant et retourne false',
+          () async {
         final updated = await repository.updateEvent(
           id: 999,
           event: FeedingEvent(
+            unit: QuantityUnit.ml,
             timestamp: DateTime(2024, 1, 1, 8),
             subtype: FeedingSubtype.natural,
           ),
@@ -225,10 +247,12 @@ void main() {
 
       test('préserve les autres événements lors de la mise à jour', () async {
         final id1 = repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
         repository.insert(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime(2024, 1, 1, 10),
           duration: 60,
         ));
@@ -236,6 +260,7 @@ void main() {
         await repository.updateEvent(
           id: id1,
           event: FeedingEvent(
+            unit: QuantityUnit.ml,
             timestamp: DateTime(2024, 1, 1, 8),
             subtype: FeedingSubtype.artificial,
           ),
@@ -247,6 +272,7 @@ void main() {
 
       test('met à jour un SleepEvent', () async {
         final id = repository.insert(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime(2024, 1, 1, 10),
           duration: 60,
           notes: 'original note',
@@ -255,6 +281,7 @@ void main() {
         final updated = await repository.updateEvent(
           id: id,
           event: SleepEvent(
+            unit: QuantityUnit.min,
             timestamp: DateTime(2024, 1, 1, 10),
             duration: 90,
             notes: 'updated note',
@@ -313,6 +340,7 @@ void main() {
     group('deleteEvent', () {
       test('supprime un événement existant et retourne true', () async {
         final id = repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
@@ -331,10 +359,12 @@ void main() {
 
       test('ne supprime pas les autres événements', () async {
         final id1 = repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
         repository.insert(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime(2024, 1, 1, 10),
           duration: 60,
         ));
@@ -348,6 +378,7 @@ void main() {
 
       test('supprime un SleepEvent', () async {
         final id = repository.insert(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime(2024, 1, 1, 10),
           duration: 60,
         ));
@@ -378,9 +409,11 @@ void main() {
     });
 
     group('contrat complet', () {
-      test('cycle complet: insert → read → update → read → delete → read empty', () async {
+      test('cycle complet: insert → read → update → read → delete → read empty',
+          () async {
         // Insert
         final id = repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
           notes: 'morning feeding',
@@ -399,6 +432,7 @@ void main() {
         final updated = await repository.updateEvent(
           id: id,
           event: FeedingEvent(
+            unit: QuantityUnit.ml,
             timestamp: DateTime(2024, 1, 1, 8),
             subtype: FeedingSubtype.artificial,
             notes: 'updated feeding',
@@ -424,6 +458,7 @@ void main() {
         final updateAfterDelete = await repository.updateEvent(
           id: id,
           event: FeedingEvent(
+            unit: QuantityUnit.ml,
             timestamp: DateTime(2024, 1, 1, 8),
             subtype: FeedingSubtype.natural,
           ),
@@ -435,12 +470,16 @@ void main() {
         expect(deleteAgain, isFalse);
       });
 
-      test('multi-event lifecycle: insert 3, filter, update one, delete one, verify counts', () async {
+      test(
+          'multi-event lifecycle: insert 3, filter, update one, delete one, verify counts',
+          () async {
         final id1 = repository.insert(FeedingEvent(
+          unit: QuantityUnit.ml,
           timestamp: DateTime(2024, 1, 1, 8),
           subtype: FeedingSubtype.natural,
         ));
         final id2 = repository.insert(SleepEvent(
+          unit: QuantityUnit.min,
           timestamp: DateTime(2024, 1, 1, 10),
           duration: 60,
         ));
@@ -451,14 +490,18 @@ void main() {
 
         // Verify all present
         expect((await repository.getAllEventsOrdered()), hasLength(3));
-        expect((await repository.getEventsByType(TrackingType.miam)), hasLength(1));
-        expect((await repository.getEventsByType(TrackingType.dodo)), hasLength(1));
-        expect((await repository.getEventsByType(TrackingType.sante)), hasLength(1));
+        expect((await repository.getEventsByType(TrackingType.miam)),
+            hasLength(1));
+        expect((await repository.getEventsByType(TrackingType.dodo)),
+            hasLength(1));
+        expect((await repository.getEventsByType(TrackingType.sante)),
+            hasLength(1));
 
         // Update middle event
         final updated = await repository.updateEvent(
           id: id2,
           event: SleepEvent(
+            unit: QuantityUnit.min,
             timestamp: DateTime(2024, 1, 1, 10),
             duration: 90,
           ),
@@ -471,8 +514,10 @@ void main() {
         // Verify counts after mutations
         expect((await repository.getAllEventsOrdered()), hasLength(2));
         expect((await repository.getEventsByType(TrackingType.miam)), isEmpty);
-        expect((await repository.getEventsByType(TrackingType.dodo)), hasLength(1));
-        expect((await repository.getEventsByType(TrackingType.sante)), hasLength(1));
+        expect((await repository.getEventsByType(TrackingType.dodo)),
+            hasLength(1));
+        expect((await repository.getEventsByType(TrackingType.sante)),
+            hasLength(1));
 
         // Verify updated duration
         final dodos = await repository.getEventsByType(TrackingType.dodo);

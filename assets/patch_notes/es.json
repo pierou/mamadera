@@ -87,5 +87,24 @@
       "- Eliminación completa de los datos de un bebé borrado: recordatorios, ajustes, registros y medidas se retiran del dispositivo",
       ""
     ]
+  },
+  "1.2.1": {
+    "releaseDate": "2026-10-12",
+    "title": "Novedades de Mamadera 1.2.1",
+    "items": [
+      "### Nuevas funciones",
+      "- Unificación de la línea de tiempo del historial: las medidas de crecimiento aparecen junto a los eventos, ordenadas por fecha",
+      "- Adición de la edición y supresión de una medida directamente desde el historial",
+      "- Adición de un doble deslizador « grueso / fino » para los amplios rangos (alimentación en minutos, peso en gramos)",
+      "### Mejoras",
+      "- Actualización de la toma de pecho: cantidad en minutos por defecto, con conmutador ml / min",
+      "- Reinicio de la cantidad a cero en cada cambio de unidad, anunciado con un mensaje visible",
+      "- Bloqueo del registro de una medida fuera de rango, mostrando el rango esperado",
+      "### Correcciones",
+      "- Corrección de los minutos ausentes en las fechas en inglés (« 07:PM »)",
+      "- Corrección de la unidad duplicada en la trayectoria de crecimiento (« 6,18 kg g »)",
+      "- Corrección del separador decimal de las cantidades según el idioma elegido",
+      ""
+    ]
   }
 }

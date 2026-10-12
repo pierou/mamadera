@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'quantity_unit.dart';
 import 'tracking_enums.dart';
 import 'tracking_type.dart';
 
@@ -12,11 +13,17 @@ part 'tracking_event.freezed.dart';
 /// filtering/aggregation without requiring pattern matching.
 @freezed
 sealed class TrackingEvent with _$TrackingEvent {
-  const factory TrackingEvent({required DateTime timestamp, int? id, String? babyId}) = _TrackingEvent;
+  const factory TrackingEvent(
+      {required DateTime timestamp, int? id, String? babyId}) = _TrackingEvent;
 
   const factory TrackingEvent.feeding({
     required FeedingSubtype subtype,
     required DateTime timestamp,
+
+    /// Unit of the quantity being carried; chosen by the parent for `natural` (ml or min),
+    /// fixed for the other subtypes. Required so no insert path can write a
+    /// quantity whose unit is nobody's decision.
+    required QuantityUnit unit,
     double? quantity,
     int? id,
     String? babyId,
@@ -26,6 +33,10 @@ sealed class TrackingEvent with _$TrackingEvent {
   const factory TrackingEvent.sleep({
     required double duration,
     required DateTime timestamp,
+
+    /// Always [QuantityUnit.min]; carried on the row rather than inferred at
+    /// read time, so the history tile renders from data like every other row.
+    required QuantityUnit unit,
     double? quantity,
     int? id,
     String? babyId,
@@ -33,7 +44,8 @@ sealed class TrackingEvent with _$TrackingEvent {
   }) = SleepEvent;
 
   const factory TrackingEvent.diaper({
-    required DateTime timestamp, int? id,
+    required DateTime timestamp,
+    int? id,
     String? babyId,
     WasteType? wasteType,
     PipiColor? pipiColor,
@@ -43,7 +55,9 @@ sealed class TrackingEvent with _$TrackingEvent {
   }) = DiaperEvent;
 
   const factory TrackingEvent.health({
-    required HealthSubtype subtype, required DateTime timestamp, int? id,
+    required HealthSubtype subtype,
+    required DateTime timestamp,
+    int? id,
     String? babyId,
     String? notes,
   }) = HealthEvent;
@@ -54,11 +68,16 @@ extension TrackingEventTrackingType on TrackingEvent {
   /// Discriminator tag returned by each subtype for filtering/aggregation.
   TrackingType get trackingType {
     return when(
-      (id0, ts0, baby0) => throw StateError('Cannot get trackingType from base TrackingEvent'),
-      feeding: (id1, ts1, baby1, sub1, qty1, notes1) => TrackingType.miam,
-      sleep: (id2, ts2, baby2, dur2, qty2, notes2) => TrackingType.dodo,
-      diaper: (id3, ts3, baby3, wt3, pc3, cc3, st3, notes3) => TrackingType.caca,
-      health: (id4, ts4, baby4, sub4, notes4) => TrackingType.sante,
+      (timestamp, id, babyId) =>
+          throw StateError('Cannot get trackingType from base TrackingEvent'),
+      feeding: (subtype, timestamp, unit, quantity, id, babyId, notes) =>
+          TrackingType.miam,
+      sleep: (duration, timestamp, unit, quantity, id, babyId, notes) =>
+          TrackingType.dodo,
+      diaper: (timestamp, id, babyId, wasteType, pipiColor, cacaColor,
+              stoolTexture, notes) =>
+          TrackingType.caca,
+      health: (subtype, timestamp, id, babyId, notes) => TrackingType.sante,
     );
   }
 }
@@ -101,5 +120,3 @@ extension DiaperEventStoolTextureDbValue on DiaperEvent {
     return stoolTexture?.value;
   }
 }
-
-

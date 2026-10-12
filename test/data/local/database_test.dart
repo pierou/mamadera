@@ -21,7 +21,8 @@ void main() {
 
       // Verify we can perform operations (database is functional)
       await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('ml'),
+          
           type: const Value('miam'),
           timestamp: Value(DateTime.now()),
           duration: const Value(null),
@@ -43,7 +44,7 @@ void main() {
       final connection = LazyDatabase(NativeDatabase.memory);
       final db = AppDatabase(connection);
 
-      expect(db.schemaVersion, equals(11));
+      expect(db.schemaVersion, equals(12));
 
       await db.close();
     });
@@ -54,7 +55,8 @@ void main() {
 
       // Insert
       final id = await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('min'),
+          
           type: const Value('dodo'),
           timestamp: Value(DateTime.now()),
           duration: const Value(60),
@@ -65,7 +67,7 @@ void main() {
       );
 
       // Update
-      await db.updateEvent(id, const TrackingEventsCompanion(notes: Value('nap')));
+      await db.updateEvent(id, const TrackingEventsCompanion(unit: const Value('ml'), notes: Value('nap')));
 
       // Read
       final events = await db.getEvents();
@@ -105,7 +107,8 @@ void main() {
 
       // Verify we can perform operations (database is functional)
       await db.insertEvent(
-        TrackingEventsCompanion(
+        TrackingEventsCompanion(unit: const Value('ml'),
+          
           type: const Value('miam'),
           timestamp: Value(DateTime.now()),
           duration: const Value(null),
@@ -147,7 +150,8 @@ void main() {
         // Create a database file
         final db = await createAppDatabase(directoryPath: tempDir.path);
         await db.insertEvent(
-          TrackingEventsCompanion(
+          TrackingEventsCompanion(unit: const Value('ml'),
+            
             type: const Value('miam'),
             timestamp: Value(DateTime.now()),
           ),

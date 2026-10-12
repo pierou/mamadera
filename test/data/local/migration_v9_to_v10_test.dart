@@ -88,7 +88,7 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    expect(db.schemaVersion, equals(11));
+    expect(db.schemaVersion, equals(12));
     expect(await db.getAllCustomReminders(), isEmpty);
 
     // Le rappel éteint avant la mise à jour l'est toujours : la migration n'a

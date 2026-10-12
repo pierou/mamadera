@@ -5,6 +5,7 @@ import 'package:mamadera/data/local/app_db.dart' as db_app;
 import 'package:mamadera/features/history/data/repositories/history_repository_impl.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -21,7 +22,8 @@ void main() {
     mockEncryption = MockEncryptionService();
     when(mockEncryption.encrypt(any)).thenReturn('encrypted_data');
 
-    repository = HistoryRepositoryImpl(database: mockDb, encryption: mockEncryption);
+    repository =
+        HistoryRepositoryImpl(database: mockDb, encryption: mockEncryption);
   });
 
   tearDown(() {
@@ -30,10 +32,12 @@ void main() {
   });
 
   group('updateEvent()', () {
-    test('tous les champs fournis (FeedingEvent) → true + encrypt appelé', () async {
+    test('tous les champs fournis (FeedingEvent) → true + encrypt appelé',
+        () async {
       when(mockDb.updateEvent(any, any)).thenAnswer((_) async => 1);
 
       final event = FeedingEvent(
+        unit: QuantityUnit.ml,
         id: 42,
         timestamp: DateTime(2025, 1, 1),
         subtype: FeedingSubtype.natural,
@@ -45,10 +49,12 @@ void main() {
       verify(mockEncryption.encrypt('une note')).called(1);
     });
 
-    test("partiel : SleepEvent avec timestamp seulement → pas d'encryptage", () async {
+    test("partiel : SleepEvent avec timestamp seulement → pas d'encryptage",
+        () async {
       when(mockDb.updateEvent(any, any)).thenAnswer((_) async => 1);
 
       final event = SleepEvent(
+        unit: QuantityUnit.min,
         id: 10,
         timestamp: DateTime(2025, 6, 15),
         duration: 45.0,
@@ -60,10 +66,12 @@ void main() {
       verifyNever(mockEncryption.encrypt(any));
     });
 
-    test('FeedingEvent avec seule note fournie → encrypt + absent sur autres', () async {
+    test('FeedingEvent avec seule note fournie → encrypt + absent sur autres',
+        () async {
       when(mockDb.updateEvent(any, any)).thenAnswer((_) async => 1);
 
       final event = FeedingEvent(
+        unit: QuantityUnit.ml,
         id: 5,
         timestamp: DateTime.now(),
         subtype: FeedingSubtype.natural,
@@ -82,10 +90,8 @@ void main() {
         id: 7,
         timestamp: DateTime.now(),
         wasteType: WasteType.lesDeux,
-        pipiColor:
-        pipiColorJauneFonce,
-        cacaColor:
-        cacaColorVertOlive,
+        pipiColor: pipiColorJauneFonce,
+        cacaColor: cacaColorVertOlive,
       );
       final result = await repository.updateEvent(id: 7, event: event);
 
@@ -96,6 +102,7 @@ void main() {
       when(mockDb.updateEvent(any, any)).thenAnswer((_) async => 0);
 
       final event = FeedingEvent(
+        unit: QuantityUnit.ml,
         id: -1,
         timestamp: DateTime.now(),
         subtype: FeedingSubtype.natural,
@@ -105,7 +112,8 @@ void main() {
       expect(result, isFalse);
     });
 
-    test('HealthEvent sans notes explicite → pas d\'encryptage (privacy-first)', () async {
+    test('HealthEvent sans notes explicite → pas d\'encryptage (privacy-first)',
+        () async {
       when(mockDb.updateEvent(any, any)).thenAnswer((_) async => 1);
 
       final event = HealthEvent(
@@ -140,4 +148,3 @@ void main() {
     });
   });
 }
-

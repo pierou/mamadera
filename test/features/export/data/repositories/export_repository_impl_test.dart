@@ -34,7 +34,8 @@ void main() {
       // Déclenche la migration pour créer les tables avant toute lecture.
       await database.select(database.reminderDismissals).get();
       encryption = _FakeEncryption();
-      repository = ExportRepositoryImpl(database: database, encryption: encryption);
+      repository =
+          ExportRepositoryImpl(database: database, encryption: encryption);
     });
 
     tearDown(() async {
@@ -50,9 +51,11 @@ void main() {
         ),
       );
       // timestamp stocké en secondes → 1700000000000 ms = 1700000000 s
-      final timestamp = DateTime.fromMillisecondsSinceEpoch(1700000000000, isUtc: true);
+      final timestamp =
+          DateTime.fromMillisecondsSinceEpoch(1700000000000, isUtc: true);
       await database.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'ml',
           type: 'miam',
           timestamp: timestamp,
           subtype: const Value('natural'),
@@ -63,6 +66,8 @@ void main() {
       );
       await database.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'ml',
+
           type: 'caca',
           timestamp: timestamp,
           wasteType: const Value('caca'),
@@ -73,6 +78,7 @@ void main() {
       );
       await database.insertEvent(
         TrackingEventsCompanion.insert(
+          unit: 'min',
           type: 'dodo',
           timestamp: timestamp,
           duration: const Value(60),
@@ -85,24 +91,24 @@ void main() {
         ['vitaminD', 1],
       );
       await database.into(database.customReminders).insert(
-        CustomRemindersCompanion.insert(
-          id: const Value(1),
-          label: 'Crème du change',
-          subtypeValue: const Value('nettoyage_nez'),
-          frequency: 'every_n_days',
-          intervalDays: const Value(3),
-        ),
-      );
+            CustomRemindersCompanion.insert(
+              id: const Value(1),
+              label: 'Crème du change',
+              subtypeValue: const Value('nettoyage_nez'),
+              frequency: 'every_n_days',
+              intervalDays: const Value(3),
+            ),
+          );
       // Rappel détaché (M4) : aucun soin lié, achèvement manuel.
       await database.into(database.customReminders).insert(
-        CustomRemindersCompanion.insert(
-          id: const Value(2),
-          label: 'Vitamine du soir',
-          subtypeValue: const Value(null),
-          completionSource: const Value('manual'),
-          frequency: 'weekly',
-        ),
-      );
+            CustomRemindersCompanion.insert(
+              id: const Value(2),
+              label: 'Vitamine du soir',
+              subtypeValue: const Value(null),
+              completionSource: const Value('manual'),
+              frequency: 'weekly',
+            ),
+          );
       // Le rappel éteint porte la clé de ce rappel personnalisé : c'est le
       // couple qui doit se retrouver à la lecture, pas deux listes séparées.
       await database.customStatement(
@@ -116,70 +122,72 @@ void main() {
         ['baby_1', 'vitamine_d', 1],
       );
       await database.into(database.reminderDismissals).insert(
-        ReminderDismissalsCompanion.insert(
-          itemId: 'vitaminK',
-          dismissedAt: timestamp,
-        ),
-      );
+            ReminderDismissalsCompanion.insert(
+              itemId: 'vitaminK',
+              dismissedAt: timestamp,
+            ),
+          );
       await database.into(database.reminderDismissals).insert(
-        ReminderDismissalsCompanion.insert(
-          babyId: const Value('baby_1'),
-          itemId: 'vitamine_d',
-          dismissedAt: timestamp,
-        ),
-      );
+            ReminderDismissalsCompanion.insert(
+              babyId: const Value('baby_1'),
+              itemId: 'vitamine_d',
+              dismissedAt: timestamp,
+            ),
+          );
       await database.into(database.measurements).insert(
-        MeasurementsCompanion.insert(
-          id: const Value(101),
-          babyId: const Value('baby_1'),
-          kind: 'poids',
-          value: encryption.encrypt('3400'),
-          unit: 'g',
-          recordedAt: timestamp,
-          notes: Value(encryption.encrypt('Première pesée')), // nombre rond de l'audit
-        ),
-      );
+            MeasurementsCompanion.insert(
+              id: const Value(101),
+              babyId: const Value('baby_1'),
+              kind: 'poids',
+              value: encryption.encrypt('3400'),
+              unit: 'g',
+              recordedAt: timestamp,
+              notes: Value(encryption
+                  .encrypt('Première pesée')), // nombre rond de l'audit
+            ),
+          );
       // Mesure orpheline : l'export ne filtre jamais.
       await database.into(database.measurements).insert(
-        MeasurementsCompanion.insert(
-          id: const Value(102),
-          kind: 'taille',
-          value: encryption.encrypt('48'),
-          unit: 'cm',
-          recordedAt: timestamp,
-        ),
-      );
+            MeasurementsCompanion.insert(
+              id: const Value(102),
+              kind: 'taille',
+              value: encryption.encrypt('48'),
+              unit: 'cm',
+              recordedAt: timestamp,
+            ),
+          );
       // Clé tournée : le chiffre part null, le flag le dit.
       await database.into(database.measurements).insert(
-        MeasurementsCompanion.insert(
-          id: const Value(103),
-          babyId: const Value('baby_1'),
-          kind: 'temperature',
-          value: 'BAD:rotated-key-ciphertext',
-          unit: 'degC',
-          recordedAt: timestamp,
-        ),
-      );
+            MeasurementsCompanion.insert(
+              id: const Value(103),
+              babyId: const Value('baby_1'),
+              kind: 'temperature',
+              value: 'BAD:rotated-key-ciphertext',
+              unit: 'degC',
+              recordedAt: timestamp,
+            ),
+          );
       await database.into(database.reminderCompletions).insert(
-        ReminderCompletionsCompanion.insert(
-          itemId: 'custom_1',
-          completedAt: timestamp,
-        ),
-      );
+            ReminderCompletionsCompanion.insert(
+              itemId: 'custom_1',
+              completedAt: timestamp,
+            ),
+          );
       await database.into(database.reminderCompletions).insert(
-        ReminderCompletionsCompanion.insert(
-          babyId: const Value('baby_1'),
-          itemId: 'custom_2',
-          completedAt: timestamp,
-        ),
-      );
+            ReminderCompletionsCompanion.insert(
+              babyId: const Value('baby_1'),
+              itemId: 'custom_2',
+              completedAt: timestamp,
+            ),
+          );
     }
 
     group('buildExportJson — base complète', () {
       test('contient les sept tables avec les bons counts', () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
 
         final counts = doc['counts'] as Map<String, dynamic>;
         expect(counts['babyProfiles'], 1);
@@ -209,11 +217,13 @@ void main() {
       test('métadonnées de document correctes', () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
 
-        // Format 2 (M4) : les deux nouvelles sections et les champs babyId
-        // y sont ; un lecteur de ce build refuse au-dessus, pas en dessous.
-        expect(doc['exportFormatVersion'], 2);
+        // Format 3 (v12) : chaque événement porte son `unit`. Format 2 (M4)
+        // avait ajouté les deux nouvelles sections et les champs babyId ; un
+        // lecteur de ce build refuse au-dessus de 3, pas en dessous.
+        expect(doc['exportFormatVersion'], 3);
         expect(doc['generator'], 'mamadera');
         // Informationnel : suivi de la version réelle du schéma, pas un
         // contrat de l'export (un bump de schéma ne doit pas casser ce test).
@@ -228,11 +238,14 @@ void main() {
         expect(raw.contains('/private/'), isFalse);
       });
 
-      test('chaque ligne d\'événement est présente, babyId null inclus', () async {
+      test('chaque ligne d\'événement est présente, babyId null inclus',
+          () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
-        final events = (doc['trackingEvents'] as List).cast<Map<String, dynamic>>();
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final events =
+            (doc['trackingEvents'] as List).cast<Map<String, dynamic>>();
 
         final orphan = events.where((e) => e['babyId'] == null).toList();
         expect(orphan, hasLength(1));
@@ -243,11 +256,14 @@ void main() {
 
       // Une sauvegarde qui omet silencieusement une colonne n'en est pas une :
       // toute ligne exportée porte la clé texture, null compris.
-      test('la clé texture est présente sur toutes les lignes exportées', () async {
+      test('la clé texture est présente sur toutes les lignes exportées',
+          () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
-        final events = (doc['trackingEvents'] as List).cast<Map<String, dynamic>>();
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final events =
+            (doc['trackingEvents'] as List).cast<Map<String, dynamic>>();
 
         expect(events, isNotEmpty);
         for (final event in events) {
@@ -262,19 +278,25 @@ void main() {
       test('notes déchiffrées en texte lisible', () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
-        final events = (doc['trackingEvents'] as List).cast<Map<String, dynamic>>();
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final events =
+            (doc['trackingEvents'] as List).cast<Map<String, dynamic>>();
 
         final feeding = events.firstWhere((e) => e['type'] == 'miam');
         expect(feeding['notes'], '100 ml vers 8h');
         expect(feeding.containsKey('notesUndecryptable'), isFalse);
       });
 
-      test('ciphertext indisponible → notes null + notesUndecryptable, ligne sans note → pas de flag', () async {
+      test(
+          'ciphertext indisponible → notes null + notesUndecryptable, ligne sans note → pas de flag',
+          () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
-        final events = (doc['trackingEvents'] as List).cast<Map<String, dynamic>>();
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final events =
+            (doc['trackingEvents'] as List).cast<Map<String, dynamic>>();
 
         final sleep = events.firstWhere((e) => e['type'] == 'dodo');
         expect(sleep['notes'], isNull);
@@ -289,9 +311,12 @@ void main() {
       test('timestamp en secondes, birthDate en millisecondes', () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
-        final events = (doc['trackingEvents'] as List).cast<Map<String, dynamic>>();
-        final profiles = (doc['babyProfiles'] as List).cast<Map<String, dynamic>>();
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final events =
+            (doc['trackingEvents'] as List).cast<Map<String, dynamic>>();
+        final profiles =
+            (doc['babyProfiles'] as List).cast<Map<String, dynamic>>();
 
         expect(events.first['timestampEpochSeconds'], 1700000000);
         expect(events.first['timestampUtc'], '2023-11-14T22:13:20.000Z');
@@ -299,12 +324,16 @@ void main() {
         expect(profiles.first['birthDateUtc'], '2023-11-14T22:13:20.000Z');
       });
 
-      test('les rangs de rappels sont exportés avec secondes + ISO et babyId', () async {
+      test('les rangs de rappels sont exportés avec secondes + ISO et babyId',
+          () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
-        final settings = (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
-        final dismissals = (doc['reminderDismissals'] as List).cast<Map<String, dynamic>>();
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final settings =
+            (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
+        final dismissals =
+            (doc['reminderDismissals'] as List).cast<Map<String, dynamic>>();
 
         // Trois lignes de réglages depuis que le rappel personnalisé seedé est
         // éteint : on vise la préréglée par sa clé, pas par sa position.
@@ -328,7 +357,8 @@ void main() {
         );
       });
 
-      test('un rappel éteint sort de la sauvegarde en false, pas effacé', () async {
+      test('un rappel éteint sort de la sauvegarde en false, pas effacé',
+          () async {
         // Depuis l'écran Réglages → Rappels, une ligne `enabled = 0` est le cas
         // courant : SQLite la stocke en 0, une restauration doit retrouver false.
         await database.customStatement(
@@ -336,8 +366,10 @@ void main() {
           ['vitamine_d', 0],
         );
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
-        final settings = (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final settings =
+            (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
 
         expect(settings.single['itemId'], 'vitamine_d');
         expect(settings.single['enabled'], isFalse);
@@ -347,12 +379,17 @@ void main() {
       // Un rappel personnalisé éteint est stocké sous la clé `custom_<id>` : si
       // la ligne de définition n'est pas exportée, la clé ne pointe plus rien à
       // la restauration et le rappel revient hanté.
-      test('l\'extinction d\'un rappel personnalisé reste rattachée à sa définition', () async {
+      test(
+          'l\'extinction d\'un rappel personnalisé reste rattachée à sa définition',
+          () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
-        final settings = (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
-        final reminders = (doc['customReminders'] as List).cast<Map<String, dynamic>>();
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final settings =
+            (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
+        final reminders =
+            (doc['customReminders'] as List).cast<Map<String, dynamic>>();
 
         expect(
           reminders.firstWhere((r) => r['id'] == 1)['id'],
@@ -366,11 +403,15 @@ void main() {
 
       // Le rythme s'exporte en code brut, pas en libellé traduit : un fichier
       // créé en français doit se relire à l'identique sur un téléphone espagnol.
-      test('le rythme d\'un rappel personnalisé s\'exporte en code brut, babyId et completionSource compris', () async {
+      test(
+          'le rythme d\'un rappel personnalisé s\'exporte en code brut, babyId et completionSource compris',
+          () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
-        final reminders = (doc['customReminders'] as List).cast<Map<String, dynamic>>();
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final reminders =
+            (doc['customReminders'] as List).cast<Map<String, dynamic>>();
 
         expect(reminders.firstWhere((r) => r['id'] == 1), {
           'id': 1,
@@ -396,17 +437,21 @@ void main() {
 
       // Un rythme mensuel n'a pas d'intervalle : la clé doit quand même être
       // présente, pour qu'un lecteur de sauvegarde n'ait pas à deviner.
-      test('un rappel mensuel exporte intervalDays null plutôt que d\'omettre la clé', () async {
+      test(
+          'un rappel mensuel exporte intervalDays null plutôt que d\'omettre la clé',
+          () async {
         await database.into(database.customReminders).insert(
-          CustomRemindersCompanion.insert(
-            label: 'Crème des pieds',
-            subtypeValue: const Value('autre'),
-            frequency: 'monthly',
-          ),
-        );
+              CustomRemindersCompanion.insert(
+                label: 'Crème des pieds',
+                subtypeValue: const Value('autre'),
+                frequency: 'monthly',
+              ),
+            );
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
-        final reminders = (doc['customReminders'] as List).cast<Map<String, dynamic>>();
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final reminders =
+            (doc['customReminders'] as List).cast<Map<String, dynamic>>();
 
         expect(reminders.single.containsKey('intervalDays'), isTrue);
         expect(reminders.single['intervalDays'], isNull);
@@ -415,10 +460,12 @@ void main() {
     });
 
     group('mesures (M4)', () {
-      test('value et notes partent déchiffrées, orphelines comprises', () async {
+      test('value et notes partent déchiffrées, orphelines comprises',
+          () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
         final rows = (doc['measurements'] as List).cast<Map<String, dynamic>>();
 
         final weight = rows.firstWhere((m) => m['id'] == 101);
@@ -437,10 +484,13 @@ void main() {
         expect(height.containsKey('notesUndecryptable'), isFalse);
       });
 
-      test('ciphertext indisponible → value null + valueUndecryptable, ligne saine → pas de flag', () async {
+      test(
+          'ciphertext indisponible → value null + valueUndecryptable, ligne saine → pas de flag',
+          () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
         final rows = (doc['measurements'] as List).cast<Map<String, dynamic>>();
 
         final bad = rows.firstWhere((m) => m['id'] == 103);
@@ -454,8 +504,10 @@ void main() {
       test('achèvements manuels exportés sans id, babyId compris', () async {
         await seedFullDatabase();
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
-        final rows = (doc['reminderCompletions'] as List).cast<Map<String, dynamic>>();
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final rows =
+            (doc['reminderCompletions'] as List).cast<Map<String, dynamic>>();
 
         expect(rows, hasLength(2));
         final shared = rows.firstWhere((c) => c['babyId'] == '');
@@ -482,7 +534,8 @@ void main() {
         expect(counts.reminderCompletions, 0);
         expect(counts.isEmpty, isTrue);
 
-        final doc = jsonDecode(await repository.buildExportJson()) as Map<String, dynamic>;
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
         final jsonCounts = doc['counts'] as Map<String, dynamic>;
         expect(jsonCounts['babyProfiles'], 0);
         expect(jsonCounts['trackingEvents'], 0);
