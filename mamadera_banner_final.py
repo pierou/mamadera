@@ -10,6 +10,9 @@ Produces per-language marketing images matching the app icon's brand palette
   store/appstore_promo_portrait_1284x2778[_lang].png   1284x2778  ASC portrait (iPhone 6.7")
   store/appstore_promo_portrait_1668x2388[_lang].png   1668x2388  ASC iPad promo (11")
   store/appstore_promo_portrait_2048x2732[_lang].png   2048x2732  ASC iPad promo (13")
+  store/asc_header_5244x2950[_lang].png                 5244x2950  ASC product-page header (16:9)
+  store/asc_header_3840x1646[_lang].png                 3840x1646  ASC product-page header (21:9)
+  store/asc_search_result_1200x628[_lang].png           1200x628   ASC search-result image
 
 Languages (LANGS below): fr (unsuffixed, legacy names kept), en, es.
 
@@ -443,6 +446,86 @@ def build_appstore_promo_portrait(lang, w, h):
     return img
 
 
+# ── 4. App Store product-page header (5244x2950 & 3840x1646) ───────────
+# The ASC "En-tête et résultats de recherche" tab accepts two header ratios
+# (16:9 and 21:9). Every display element is sized from the height (u = h) and
+# each row is centered as one unit, so the same composition fits both canvases
+# — the 21:9 variant just gains symmetric side margins.
+def build_asc_header(lang, w, h):
+    t = LANGS[lang]
+    u = h
+    img = paint_background(w, h, glows=[
+        (0.80 * w, 0.10 * h, 0.34 * u, GOLD, 40),
+        (0.08 * w, 0.90 * h, 0.32 * u, TEAL, 36),
+        (0.90 * w, 0.85 * h, 0.34 * u, LAVENDER, 34),
+    ])
+    d = ImageDraw.Draw(img)
+
+    # Row 1 — icon + title/subtitle, centered as one unit.
+    icon_size = int(round(0.30 * u))
+    title_font = sf_rounded(int(round(0.185 * u)), 900)
+    sub_font = sf_pro(int(round(0.062 * u)), 600)
+    tw = d.textlength("Mamadera", font=title_font)
+    sw = d.textlength(t["subtitle"], font=sub_font)
+    text_w = max(tw, sw)
+    gap = int(round(0.055 * u))
+    row1_w = icon_size + gap + text_w
+    x1 = (w - row1_w) / 2
+    cy1 = 0.27 * h
+    tile = icon_tile(icon_size)
+    img.paste(tile, (int(round(x1)), int(round(cy1 - icon_size / 2))), tile)
+    tx = x1 + icon_size + gap + text_w / 2
+    d.text((tx, cy1 - int(round(0.075 * u))), "Mamadera", font=title_font,
+           fill=INK, anchor="mm")
+    d.text((tx, cy1 + int(round(0.085 * u))), t["subtitle"], font=sub_font,
+           fill=BODY, anchor="mm")
+
+    # Row 2 — 3x2 feature grid, labels under chips, centered as one unit.
+    chip = int(round(0.080 * u))
+    col_gap = int(round(0.240 * u))   # keeps adjacent labels from colliding
+    row_gap = int(round(0.050 * u))
+    label_font = sf_pro(int(round(0.038 * u)), 550)
+    grid_w = 3 * chip + 2 * col_gap
+    gx = (w - grid_w) / 2
+    gy = 0.48 * h
+    for i, ((glyph, color), label) in enumerate(zip(FEATURE_CHIPS, t["labels"])):
+        cx = gx + (i % 3) * (chip + col_gap)
+        cy = gy + (i // 3) * (chip + row_gap + int(round(0.050 * u)))
+        feature_item(img, cx, cy, chip, color, glyph, label, label_font, BODY,
+                     label_below=True)
+
+    # Row 3 — footer, centered.
+    d.text((w / 2, 0.93 * h), t["footer"],
+           font=sf_pro(int(round(0.042 * u)), 550), fill=MUTED, anchor="mm")
+
+    return img
+
+
+# ── 5. App Store search-result image (1200x628) ─────────────────────────
+# Tiny in context: icon, name, tagline only — no feature chips (labels would
+# be unreadable at this size). Vertically stacked and centered.
+def build_asc_search_result(lang, w, h):
+    t = LANGS[lang]
+    u = h
+    img = paint_background(w, h, glows=[
+        (0.85 * w, 0.05 * h, 0.42 * u, GOLD, 40),
+        (0.10 * w, 0.95 * h, 0.40 * u, TEAL, 36),
+        (0.95 * w, 0.90 * h, 0.40 * u, LAVENDER, 32),
+    ])
+    d = ImageDraw.Draw(img)
+
+    icon_size = int(round(0.40 * u))
+    tile = icon_tile(icon_size)
+    img.paste(tile, ((w - icon_size) // 2, int(round(0.06 * u))), tile)
+
+    d.text((w / 2, 0.63 * u), "Mamadera",
+           font=sf_rounded(int(round(0.24 * u)), 900), fill=INK, anchor="mm")
+    d.text((w / 2, 0.82 * u), t["subtitle"],
+           font=sf_pro(int(round(0.075 * u)), 600), fill=BODY, anchor="mm")
+
+    return img
+
+
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     outputs = []
@@ -465,6 +548,15 @@ def main():
             (build_appstore_promo_portrait(lang, 2048, 2732),
              os.path.join(OUT_DIR, f"appstore_promo_portrait_2048x2732{s}.png"),
              (2048, 2732)),
+            (build_asc_header(lang, 5244, 2950),
+             os.path.join(OUT_DIR, f"asc_header_5244x2950{s}.png"),
+             (5244, 2950)),
+            (build_asc_header(lang, 3840, 1646),
+             os.path.join(OUT_DIR, f"asc_header_3840x1646{s}.png"),
+             (3840, 1646)),
+            (build_asc_search_result(lang, 1200, 628),
+             os.path.join(OUT_DIR, f"asc_search_result_1200x628{s}.png"),
+             (1200, 628)),
         ]
     for img, path, expected in outputs:
         if img.size != expected:
