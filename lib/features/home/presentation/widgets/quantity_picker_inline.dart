@@ -7,12 +7,6 @@ import 'package:intl/intl.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 
-/// Spécification de la paire de sliders gros/petit (BACKLOG B2) :
-/// `coarseStep` = pas du slider qui couvre toute la plage, `fineSpan` =
-/// demi-largeur de la fenêtre fine centrée sur la valeur courante, `fineStep`
-/// = pas de cette fenêtre.
-typedef SliderPair = ({double coarseStep, double fineSpan, double fineStep});
-
 /// Inline quantity picker widget for use inside other dialogs/forms.
 ///
 /// Unlike the modal `QuantityPickerDialog`, this does NOT wrap itself in a
@@ -29,7 +23,6 @@ class QuantityPickerInline extends StatefulWidget {
     this.decimals = 0,
     this.step,
     this.onValueOutOfRange,
-    this.sliderPair,
     this.hintLabel,
     super.key,
   });
@@ -67,17 +60,6 @@ class QuantityPickerInline extends StatefulWidget {
   /// pas un arrondi, c'est une réponse fausse.
   final int decimals;
 
-  /// Paire de sliders (BACKLOG B2). Quand la plage compte plus d'une vingtaine
-  /// de crans au pas fin, un seul slider rend le dernier cran injoignable :
-  /// le slider **grossier** couvre toute la plage et amène au voisinage, le
-  /// slider **fin** (fenêtre de ±`fineSpan` centrée sur la valeur courante,
-  /// re-centrée à chaque crantissement du grossier) règle le dernier cran, et
-  /// le stepper ± reste le nudge d'un quantum.
-  ///
-  /// `null` (défaut) : le slider unique de [divisions], rendu inchangé.
-  /// [divisions] n'a plus de rôle quand la paire s'affiche.
-  final SliderPair? sliderPair;
-
   /// Libellé d'appoint affiché **à la place de la valeur** tant que le parent
   /// n'a rien saisi (feuille de mesure : « dernière : 36,8 °C »).
   ///
@@ -93,10 +75,6 @@ class QuantityPickerInline extends StatefulWidget {
 }
 
 class _QuantityPickerInlineState extends State<QuantityPickerInline> {
-  /// Au-delà de ce nombre de crans au pas fin, un seul slider ne sert plus à
-  /// rien (un cran par demi-pixel) : c'est le seuil qui allume la paire B2.
-  static const int _kMaxSingleSliderStops = 20;
-
   late TextEditingController _textController;
 
   /// `false` tant que le parent n'a rien saisi en mode `hintLabel` : le champ
@@ -285,35 +263,13 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
     return '${_textFor(value)} ${widget.unit}';
   }
 
-  /// La paire s'allume quand la plage compte plus de [_kMaxSingleSliderStops]
-  /// crans au pas fin : en deçà, un seul slider suffit (règle du plan B2 —
-  /// ne jamais empiler deux sliders quand un seul fait le travail).
-  bool get _useSliderPair {
-    final pair = widget.sliderPair;
-    if (pair == null) return false;
-    return ((widget.max - widget.min) / pair.fineStep).round() >
-        _kMaxSingleSliderStops;
-  }
-
-  /// Fenêtre fine `(lo, hi)` : ±`fineSpan` autour de la valeur courante,
-  /// bornée à `[min, max]`, les bords alignés sur la grille de pas fin
-  /// (ancrée sur `min`) pour que le nombre de divisions soit entier et que la
-  /// valeur courante reste un cran atteignable.
-  (double lo, double hi) _fineWindow(SliderPair pair) {
-    final lo0 =
-        (widget.value - pair.fineSpan).clamp(widget.min, widget.max).toDouble();
-    final hi0 =
-        (widget.value + pair.fineSpan).clamp(widget.min, widget.max).toDouble();
-    final lo =
-        math.max(widget.min, (lo0 / pair.fineStep).floor() * pair.fineStep);
-    final hi =
-        math.min(widget.max, (hi0 / pair.fineStep).ceil() * pair.fineStep);
-    // Dégen (plage plus courte qu'un pas fin) : on dégénère en slider unique.
-    if (hi - lo < pair.fineStep) return (widget.min, widget.max);
-    return (lo, hi);
-  }
-
-  /// Slider thémé : un par rôle dans la paire, le seul en mode classique.
+  /// Slider thémé — **un seul par picker**.
+  ///
+  /// C'est un dispositif de visée, pas un instrument de précision : sur une
+  /// plage de 20 kg au pas de 10 g il y a un cran par dixième de pixel, et le
+  /// pouce s'arrête où le doigt s'arrête. Le champ de saisie et les boutons
+  /// +/- fixent la valeur exacte — c'est pourquoi il n'y a pas de second
+  /// curseur « fin » (retiré le 2026-10-13, voir docs/BACKLOG.md B2).
   Widget _buildSlider({
     required double min,
     required double max,
@@ -337,61 +293,6 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
         label: _formatValue(value),
         onChanged: _onSliderChanged,
       ),
-    );
-  }
-
-  /// Légende d'un slider de la paire : le parent doit savoir lequel des deux
-  /// cherche le voisinage et lequel règle le dernier cran.
-  Widget _pairCaption(String text) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
-      ),
-    );
-  }
-
-  Widget _buildSliderRegion() {
-    final pair = widget.sliderPair;
-    if (pair == null || !_useSliderPair) {
-      return _buildSlider(
-        min: widget.min,
-        max: widget.max,
-        divisions: widget.divisions,
-        value: widget.value,
-        // `clamp` : une saisie hors plage (B5) garde le nombre affiché dans le
-        // champ ; le pouce reste à la borne, il ne doit pas faire lever
-        // l'assertion du Slider.
-        clampedValue: widget.value.clamp(widget.min, widget.max),
-      );
-    }
-    // La valeur hors plage clamped au grossier ; le fin ne voit que des
-    // valeurs dans sa fenêtre, elle-même dans `[min, max]`.
-    final coarseClamped = widget.value.clamp(widget.min, widget.max);
-    final (lo, hi) = _fineWindow(pair);
-    return Column(
-      children: [
-        _pairCaption(context.l.sliderCoarse),
-        _buildSlider(
-          min: widget.min,
-          max: widget.max,
-          divisions: ((widget.max - widget.min) / pair.coarseStep).round(),
-          value: widget.value,
-          clampedValue: coarseClamped,
-        ),
-        const SizedBox(height: 12),
-        _pairCaption(context.l.sliderFine),
-        _buildSlider(
-          min: lo,
-          max: hi,
-          divisions: ((hi - lo) / pair.fineStep).round(),
-          value: widget.value,
-          clampedValue: coarseClamped.clamp(lo, hi),
-        ),
-      ],
     );
   }
 
@@ -432,7 +333,16 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
                 ),
         ),
         const SizedBox(height: 16),
-        _buildSliderRegion(),
+        _buildSlider(
+          min: widget.min,
+          max: widget.max,
+          divisions: widget.divisions,
+          value: widget.value,
+          // `clamp` : une saisie hors plage (B5) garde le nombre affiché dans
+          // le champ ; le pouce reste à la borne, il ne doit pas faire lever
+          // l'assertion du Slider.
+          clampedValue: widget.value.clamp(widget.min, widget.max),
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: _textController,

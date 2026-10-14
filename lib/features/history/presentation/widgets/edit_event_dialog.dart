@@ -250,8 +250,6 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         divisions: 96,
         // Stepper aligné sur le pas du slider : 96 crans sur 480 min.
         step: 5,
-        // Paire B2 : 96 crans au pas de 5 — un seul slider ne suffit plus.
-        sliderPair: const (coarseStep: 30, fineSpan: 30, fineStep: 5),
         value: _quantity ?? 0.0,
         onValueChanged: (double value) {
           setState(() {
@@ -309,7 +307,6 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         divisions: _pickerSpec.divisions,
         // Stepper aligné sur le pas du slider pour l'unité courante.
         step: _pickerSpec.step,
-        sliderPair: _pickerSpec.sliderPair,
         value: _quantity ?? 0.0,
         onValueChanged: (double value) {
           setState(() {
@@ -343,30 +340,11 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   /// Bornes et pas du picker, selon l'unité — les mêmes que la saisie
   /// d'un nouvel événement (ml 0–300 par 10, min 0–120 par 1, g 0–1000
   /// par 5) : éditer une valeur ne doit pas ouvrir une plage différente.
-  ({double min, double max, int divisions, double step, SliderPair sliderPair})
-      get _pickerSpec =>
+  ({double min, double max, int divisions, double step}) get _pickerSpec =>
           switch (_unit) {
-            QuantityUnit.ml => (
-                  min: 0,
-                  max: 300,
-                  divisions: 30,
-                  step: 10,
-                  sliderPair: const (coarseStep: 50, fineSpan: 50, fineStep: 10)
-                ),
-            QuantityUnit.min => (
-                  min: 0,
-                  max: 120,
-                  divisions: 120,
-                  step: 1,
-                  sliderPair: const (coarseStep: 30, fineSpan: 30, fineStep: 5)
-                ),
-            QuantityUnit.g => (
-                  min: 0,
-                  max: 1000,
-                  divisions: 200,
-                  step: 5,
-                  sliderPair: const (coarseStep: 50, fineSpan: 50, fineStep: 10)
-                ),
+            QuantityUnit.ml => (min: 0, max: 300, divisions: 30, step: 10),
+            QuantityUnit.min => (min: 0, max: 120, divisions: 120, step: 1),
+            QuantityUnit.g => (min: 0, max: 1000, divisions: 200, step: 5),
           };
 
   /// Unité d'un sous-type, figée hors `natural`.

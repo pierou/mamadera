@@ -1,0 +1,138 @@
+{
+  "exportFormatVersion": 3,
+  "generator": "mamadera",
+  "appVersion": "1.2.1",
+  "databaseSchemaVersion": 12,
+  "exportedAt": "2026-10-14T07:15:43.551913Z",
+  "counts": {
+    "babyProfiles": 1,
+    "trackingEvents": 5,
+    "customReminders": 0,
+    "reminderSettings": 0,
+    "reminderDismissals": 0,
+    "measurements": 3,
+    "reminderCompletions": 0
+  },
+  "babyProfiles": [
+    {
+      "id": "baby-gate",
+      "name": "Léa",
+      "birthDateEpochMs": 1784445326807,
+      "birthDateUtc": "2026-07-19T07:15:26.807Z",
+      "isActive": true
+    }
+  ],
+  "trackingEvents": [
+    {
+      "id": 1,
+      "type": "dodo",
+      "timestampEpochSeconds": 1791951326,
+      "timestampUtc": "2026-10-14T04:15:26.000Z",
+      "durationMinutes": 95.0,
+      "subtype": null,
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "baby-gate",
+      "quantity": 95.0,
+      "unit": "min"
+    },
+    {
+      "id": 2,
+      "type": "miam",
+      "timestampEpochSeconds": 1791947726,
+      "timestampUtc": "2026-10-14T03:15:26.000Z",
+      "durationMinutes": null,
+      "subtype": "artificial",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "baby-gate",
+      "quantity": 110.0,
+      "unit": "ml"
+    },
+    {
+      "id": 3,
+      "type": "caca",
+      "timestampEpochSeconds": 1791944126,
+      "timestampUtc": "2026-10-14T02:15:26.000Z",
+      "durationMinutes": null,
+      "subtype": null,
+      "notes": null,
+      "wasteType": "pipi",
+      "color": "jaune_clair",
+      "texture": null,
+      "babyId": "baby-gate",
+      "quantity": null,
+      "unit": "ml"
+    },
+    {
+      "id": 4,
+      "type": "sante",
+      "timestampEpochSeconds": 1791940526,
+      "timestampUtc": "2026-10-14T01:15:26.000Z",
+      "durationMinutes": null,
+      "subtype": "nettoyage_nez",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "baby-gate",
+      "quantity": null,
+      "unit": "ml"
+    },
+    {
+      "id": 5,
+      "type": "miam",
+      "timestampEpochSeconds": 1791962128,
+      "timestampUtc": "2026-10-14T07:15:28.000Z",
+      "durationMinutes": null,
+      "subtype": "natural",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "baby-gate",
+      "quantity": 22.0,
+      "unit": "min"
+    }
+  ],
+  "customReminders": [],
+  "reminderSettings": [],
+  "reminderDismissals": [],
+  "measurements": [
+    {
+      "id": 1,
+      "babyId": "baby-gate",
+      "kind": "poids",
+      "value": "6120.0",
+      "unit": "g",
+      "recordedAtEpochSeconds": 1791702926,
+      "recordedAtUtc": "2026-10-11T07:15:26.000Z",
+      "notes": null
+    },
+    {
+      "id": 2,
+      "babyId": "baby-gate",
+      "kind": "taille",
+      "value": "60.5",
+      "unit": "cm",
+      "recordedAtEpochSeconds": 1791098126,
+      "recordedAtUtc": "2026-10-04T07:15:26.000Z",
+      "notes": null
+    },
+    {
+      "id": 3,
+      "babyId": "baby-gate",
+      "kind": "temperature",
+      "value": "37.2",
+      "unit": "degC",
+      "recordedAtEpochSeconds": 1791890126,
+      "recordedAtUtc": "2026-10-13T11:15:26.000Z",
+      "notes": null
+    }
+  ],
+  "reminderCompletions": []
+}

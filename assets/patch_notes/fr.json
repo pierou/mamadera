@@ -95,14 +95,16 @@
       "### Nouvelles fonctionnalités",
       "- Unification de la frise d'historique : les mesures de croissance s'y lisent à côté des événements, triées par horodatage",
       "- Modification et suppression d'une mesure directement depuis l'historique",
-      "- Double curseur « grossier / précis » pour les grandes plages (repas en minutes, poids en grammes)",
       "### Améliorations",
       "- Saisie de l'allaitement au sein : quantité réglée en minutes par défaut, bascule ml / min",
       "- Remise à zéro de la quantité à chaque changement d'unité, annoncée par un message visible",
       "- Refus d'enregistrer une mesure hors plage, avec la plage attendue affichée",
+      "- Curseur de réglage unique sur toutes les fiches de saisie, les boutons +/- et le champ clavier gardant la valeur exacte",
       "### Corrections",
       "- Minutes manquantes dans les dates anglaises (« 07:PM ») : elles s'affichent à nouveau",
       "- Unité en double sur la trajectoire de croissance (« 6,18 kg g ») supprimée",
+      "- Correction du débordement de la date anglaise dans l'historique sur les petits écrans (date et heure sur deux lignes)",
+      "- Suppression du doublon Quantité/Durée sur la tuile sommeil de l'historique",
       "- Séparateur décimal des quantités conforme à la langue choisie",
       ""
     ]

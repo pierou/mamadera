@@ -575,12 +575,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsBodyText => 'Paramètres';
 
   @override
-  String get sliderCoarse => 'Grossier';
-
-  @override
-  String get sliderFine => 'Précis';
-
-  @override
   String get languageSectionTitle => 'Langue';
 
   @override

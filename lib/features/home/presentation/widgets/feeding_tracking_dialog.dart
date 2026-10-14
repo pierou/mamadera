@@ -109,33 +109,14 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
   /// Une tétée de 40 minutes ne se saisit pas sur une plage de biberon, et
   /// un volume de 5 ml se rate à un cran de 10.
   ///
-  /// La paire [SliderPair] (B2) accompagne chaque unité : le slider grossier
-  /// amène au voisinage, le fin règle le dernier cran, le stepper ± reste le
-  /// nudge d'un quantum.
-  ({double min, double max, int divisions, double step, SliderPair sliderPair})
-      get _pickerSpec =>
+  /// La paire de sliders (B2) accompagnait chaque unité : retirée — un
+  /// curseur amène à proximité, le stepper ± et le champ de saisie fixent le
+  /// dernier cran (docs/BACKLOG.md B2).
+  ({double min, double max, int divisions, double step}) get _pickerSpec =>
           switch (_unit) {
-            QuantityUnit.ml => (
-                  min: 0,
-                  max: 300,
-                  divisions: 30,
-                  step: 10,
-                  sliderPair: const (coarseStep: 50, fineSpan: 50, fineStep: 10)
-                ),
-            QuantityUnit.min => (
-                  min: 0,
-                  max: 120,
-                  divisions: 120,
-                  step: 1,
-                  sliderPair: const (coarseStep: 30, fineSpan: 30, fineStep: 5)
-                ),
-            QuantityUnit.g => (
-                  min: 0,
-                  max: 1000,
-                  divisions: 200,
-                  step: 5,
-                  sliderPair: const (coarseStep: 50, fineSpan: 50, fineStep: 10)
-                ),
+            QuantityUnit.ml => (min: 0, max: 300, divisions: 30, step: 10),
+            QuantityUnit.min => (min: 0, max: 120, divisions: 120, step: 1),
+            QuantityUnit.g => (min: 0, max: 1000, divisions: 200, step: 5),
           };
 
   /// L'unité affichée : celle de la ligne en cours de saisie, résolue depuis
@@ -298,7 +279,6 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
               divisions: _pickerSpec.divisions,
               // Stepper aligné sur le pas du slider pour l'unité courante.
               step: _pickerSpec.step,
-              sliderPair: _pickerSpec.sliderPair,
               value: _selectedQuantity,
               onValueChanged: _onQuantityChanged,
               // Une saisie hors plage ne se tait plus (BACKLOG B5) : le nombre
