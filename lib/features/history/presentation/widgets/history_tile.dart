@@ -154,15 +154,18 @@ class HistoryTileSubtitle extends StatelessWidget {
 
   /// Nombre et unité de la ligne, tous deux lus **de la ligne**.
   ///
-  /// `null` = pas de quantité (couche, soin). L'unité vient de `event.unit`
-  /// (v12) et non d'un littéral du widget : c'est le defaut que cette
-  /// version supprime — afficher « ml » à côté d'une tétée de 20 minutes.
+  /// `null` = pas de quantité (couche, soin, **sommeil**). L'unité vient de
+  /// `event.unit` (v12) et non d'un littéral du widget : c'est le défaut que
+  /// cette version supprime — afficher « ml » à côté d'une tétée de 20 minutes.
+  ///
+  /// Le sommeil ne produit pas de ligne ici : l'app enregistre les minutes de
+  /// la sieste dans **`quantity` ET `duration`** (même valeur, cf. home_screen),
+  /// et la ligne « Durée » les rend déjà. Afficher aussi « Quantité : 45 min »
+  /// répétait le même nombre sous deux libellés ; « Durée » est le libellé
+  /// naturel d'une sieste.
   (double, QuantityUnit)? _quantityRowData() {
     final event = this.event;
     if (event is FeedingEvent && event.quantity != null) {
-      return (event.quantity!, event.unit);
-    }
-    if (event is SleepEvent && event.quantity != null) {
       return (event.quantity!, event.unit);
     }
     return null;
@@ -332,10 +335,32 @@ class HistoryTileTrailing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Date sur deux lignes : `formatDate` sépare toujours la date et l'heure
+    // par une **seule** espace (en `MM/dd/yyyy hh:mm a`, fr/es
+    // `dd/MM/yyyy HH:mm`), et le jeton de date ne contient jamais d'espace.
+    // Le premier jeton est donc la date, le reste l'heure.
+    //
+    // La v1.2.1 a remis les minutes dans les dates anglaises (« 09:32 PM » au
+    // lieu de « 09:PM ») : sur la plus petite cible (Small_Phone, 360 dp) en
+    // anglais, la date sur une seule ligne tenait plus large que la place
+    // restante et la ligne du titre débordait de 12 px (« Feedin… »). Deux
+    // lignes ramènent la largeur du bloc à celle de la date seule.
+    final parts = time.split(' ');
+    final datePart = parts.first;
+    final timePart = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+    final small = Theme.of(context).textTheme.bodySmall;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(time),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(datePart, style: small),
+            if (timePart.isNotEmpty) Text(timePart, style: small),
+          ],
+        ),
         if (onTap != null) ...[
           const SizedBox(width: 8),
           Icon(Icons.edit_outlined,

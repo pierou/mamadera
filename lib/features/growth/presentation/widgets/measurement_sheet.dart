@@ -112,22 +112,6 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
     Navigator.of(context).pop(_value);
   }
 
-  /// Paire B2 par type : le gros amène au voisinage, le fin règle le dernier
-  /// cran (10 g, 1 cm, 0,1 °C). Le stepper ± reste le nudge d'un quantum.
-  SliderPair get _sliderPair => switch (widget.kind) {
-        MeasureKind.poids => const (
-            coarseStep: 200,
-            fineSpan: 100,
-            fineStep: 10
-          ),
-        MeasureKind.taille => const (coarseStep: 5, fineSpan: 5, fineStep: 1),
-        MeasureKind.temperature => const (
-            coarseStep: 1,
-            fineSpan: 1,
-            fineStep: 0.1
-          ),
-      };
-
   @override
   Widget build(BuildContext context) {
     final l = context.l;
@@ -203,7 +187,6 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
                   _hasInput = true;
                 });
               },
-              sliderPair: _sliderPair,
             ),
             if (!_inRange) ...[
               const SizedBox(height: 8),

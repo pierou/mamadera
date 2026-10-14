@@ -296,9 +296,14 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 2 events → at least the formatted time text should be present
-      expect(find.text('15/06/2025 08:00'), findsOneWidget);
-      expect(find.text('15/06/2025 09:30'), findsOneWidget);
+      // 2 events → the date (ligne 1, partagée) et chaque heure (ligne 2)
+      // doivent être présents. La date et l'heure sont maintenant sur deux
+      // lignes (v1.2.1 : la date anglaise avec minutes débordait sur une
+      // seule ligne sur la plus petite cible).
+      expect(find.text('15/06/2025'), findsNWidgets(2));
+      expect(find.text('08:00'), findsOneWidget);
+      expect(find.text('09:30'), findsOneWidget);
+      expect(find.text('15/06/2025 08:00'), findsNothing);
     });
 
     testWidgets('tapping filter chip changes selected filter', (tester) async {

@@ -571,12 +571,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsBodyText => 'Ajustes';
 
   @override
-  String get sliderCoarse => 'Grueso';
-
-  @override
-  String get sliderFine => 'Fino';
-
-  @override
   String get languageSectionTitle => 'Idioma';
 
   @override

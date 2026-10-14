@@ -370,13 +370,13 @@ void main() {
       await pumpSheet(tester, MeasureKind.temperature);
       await tester.pumpAndSettle();
 
-      // Paire B2 : le grossier couvre 33–42 °C au pas de 1, le fin une
-      // fenêtre de ±1 °C au pas de 0,1 (20 divisions).
-      final fine = find
-          .byWidgetPredicate((w) => w is Slider && (w.divisions ?? 0) == 20);
-      expect(fine, findsOneWidget);
-      final slider = tester.widget<Slider>(fine);
-      expect(slider.max - slider.min, 2);
+      // Un seul curseur, sur toute la plage 33–42 °C au pas de 0,1 : la
+      // précision du dixième vient du champ de saisie et du stepper ±, pas
+      // d'un second curseur (retiré — docs/BACKLOG.md B2).
+      final slider = tester.widget<Slider>(find.byType(Slider));
+      expect(slider.min, 33);
+      expect(slider.max, 42);
+      expect(slider.divisions, 90);
 
       await tester.enterText(valueField(), '37,4');
       await tester.pumpAndSettle();

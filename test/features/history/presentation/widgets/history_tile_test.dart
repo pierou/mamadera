@@ -1,12 +1,38 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/features/history/presentation/widgets/history_tile.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
+
+/// Charge Roboto (la police Android de l'app) dans le processus de test.
+///
+/// Sans cela, Flutter rend le texte en Ahem, dont chaque glyphe est un
+/// carré de la taille de la police — environ 2× plus large que Roboto. Les
+/// tests géométriques (débordement) doivent s'appuyer sur des métriques
+/// réelles. Les polices proviennent du cache du SDK Flutter
+/// (`bin/cache/artifacts/material_fonts`), le même que l'émulateur Android.
+Future<void> _loadRobotoFont() async {
+  final flutterRoot = Platform.environment['FLUTTER_ROOT'];
+  if (flutterRoot == null) return;
+  const dir = 'bin/cache/artifacts/material_fonts';
+  final loader = FontLoader('Roboto');
+  for (final name in const ['Roboto-Regular.ttf', 'Roboto-Medium.ttf']) {
+    final file = File('$flutterRoot/$dir/$name');
+    if (file.existsSync()) {
+      final bytes = file.readAsBytesSync();
+      loader.addFont(Future.value(ByteData.view(bytes.buffer)));
+    }
+  }
+  await loader.load();
+}
 
 void main() {
   /// Helper: pump HistoryTile inside a minimal MaterialApp + ProviderScope with FR locale.
@@ -369,7 +395,8 @@ void main() {
   });
 
   group('HistoryTile — Timestamp affiché', () {
-    testWidgets('time parameter est affiché dans la tile', (tester) async {
+    testWidgets('time est affiché sur **deux** lignes (date / heure)',
+        (tester) async {
       await pumpTile(
         tester,
         FeedingEvent(
@@ -377,7 +404,111 @@ void main() {
             timestamp: DateTime.utc(2024),
             subtype: FeedingSubtype.natural),
       );
-      expect(find.text('15/06/2024 10:30'), findsOneWidget);
+      // Depuis la v1.2.1, la date anglaise reprend les minutes (« 09:32 PM »)
+      // : sur la plus petite cible elle tenait plus large que le titre et la
+      // ligne débordait de 12 px. On la coupe donc en date (ligne 1) et heure
+      // (ligne 2). Le libellé d'une seule ligne n'existe plus.
+      expect(find.text('15/06/2024'), findsOneWidget);
+      expect(find.text('10:30'), findsOneWidget);
+      expect(find.text('15/06/2024 10:30'), findsNothing);
+    });
+  });
+
+  group('HistoryTile — Sommeil : une seule ligne de valeur', () {
+    // L'app enregistre les minutes de la sieste dans `quantity` ET `duration`
+    // (même valeur). La tuile ne doit pas les rendre deux fois (« Quantité : 45 min »
+    // + « Durée : 45 min ») : « Durée » est le libellé naturel d'une sieste.
+    testWidgets('SleepEvent avec quantité → « Durée » sans « Quantité »',
+        (tester) async {
+      await pumpTile(
+        tester,
+        SleepEvent(
+            unit: QuantityUnit.min,
+            timestamp: DateTime.utc(2024),
+            duration: 45.0,
+            quantity: 45.0),
+      );
+      expect(find.text('Durée: 45 min'), findsOneWidget);
+      expect(find.textContaining('Quantité'), findsNothing);
+    });
+
+    testWidgets('FeedingEvent conserve sa ligne « Quantité »', (tester) async {
+      await pumpTile(
+        tester,
+        FeedingEvent(
+            unit: QuantityUnit.ml,
+            timestamp: DateTime.utc(2024),
+            subtype: FeedingSubtype.natural,
+            quantity: 120),
+      );
+      expect(find.text('Quantité : 120 ml'), findsOneWidget);
+      expect(find.textContaining('Durée'), findsNothing);
+    });
+  });
+
+  group('HistoryTile — Pas de débordement (plus petite cible)', () {
+    // Small_Phone : 720x1280 px @ 320 dpi = 360x640 dp. C'est sur cette
+    // largeur, avec le format anglais le plus large, que la date sur une
+    // seule ligne faisait déborder le titre.
+    testWidgets('date anglaise avec minutes à 360 dp → aucun overflow',
+        (tester) async {
+      // Roboto (la police Android de l'app) et non Ahem : Ahem rend chaque
+      // glyphe carré (largeur = taille), environ 2× plus large que Roboto,
+      // et ferait déborder à 360 dp ce qui tient sur un vrai Small_Phone.
+      // Avec la police réelle, ce test reproduit la géométrie de
+      // l'appareil : la date sur une seule ligne (v1.2.1) y débordait de
+      // ~12 px, les deux lignes non.
+      await _loadRobotoFont();
+      tester.view.physicalSize = const Size(720, 1280);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            locale: const Locale('en'),
+            supportedLocales: const [Locale('en')],
+            // Le thème de l'app, en police Roboto (celle de l'appareil).
+            // `textTheme`/`primaryTextTheme` sont les thèmes entièrement
+            // résolus (styles par défaut compris), donc `.apply` couvre
+            // toutes les tailles.
+            theme: AppTheme.lightTheme.copyWith(
+              textTheme: AppTheme.lightTheme.textTheme
+                  .apply(fontFamily: 'Roboto'),
+              primaryTextTheme: AppTheme.lightTheme.primaryTextTheme
+                  .apply(fontFamily: 'Roboto'),
+            ),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: Scaffold(
+              body: HistoryTile(
+                event: FeedingEvent(
+                    unit: QuantityUnit.ml,
+                    timestamp: DateTime.utc(2026, 10, 13),
+                    subtype: FeedingSubtype.natural,
+                    quantity: 120),
+                // onTap non nul : sur l'écran d'historique réel, la tuile
+                // ouvre la dialog d'édition, donc le bloc de fin porte
+                // l'icône (et son espacement) comme sur l'appareil.
+                time: '10/13/2026 09:32 PM',
+                onTap: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // En mode debug, un débordement de `RenderFlex` est signalé via
+      // `FlutterError.reportError`, que le binding de test capture : il est
+      // renvoyé par `takeException()` (et fait échouer le test sinon). C'est
+      // la garde contre le « RIGHT OVERFLOWED BY 12 PIXELS » vu sur Small_Phone.
+      expect(tester.takeException(), isNull,
+          reason: 'la tuile déborde sur la plus petite cible (Small_Phone)');
     });
   });
 

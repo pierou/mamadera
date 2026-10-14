@@ -95,14 +95,16 @@
       "### Nuevas funciones",
       "- Unificación de la línea de tiempo del historial: las medidas de crecimiento aparecen junto a los eventos, ordenadas por fecha",
       "- Adición de la edición y supresión de una medida directamente desde el historial",
-      "- Adición de un doble deslizador « grueso / fino » para los amplios rangos (alimentación en minutos, peso en gramos)",
       "### Mejoras",
       "- Actualización de la toma de pecho: cantidad en minutos por defecto, con conmutador ml / min",
       "- Reinicio de la cantidad a cero en cada cambio de unidad, anunciado con un mensaje visible",
       "- Bloqueo del registro de una medida fuera de rango, mostrando el rango esperado",
+      "- Deslizador único en todas las fichas de registro, con botones +/- y campo de texto para fijar el valor exacto",
       "### Correcciones",
       "- Corrección de los minutos ausentes en las fechas en inglés (« 07:PM »)",
       "- Corrección de la unidad duplicada en la trayectoria de crecimiento (« 6,18 kg g »)",
+      "- Corrección del desbordamiento de las fechas en inglés en el historial en pantallas pequeñas (fecha y hora en dos líneas)",
+      "- Supresión del duplicado Cantidad/Duración en la tarjeta de sueño del historial",
       "- Corrección del separador decimal de las cantidades según el idioma elegido",
       ""
     ]

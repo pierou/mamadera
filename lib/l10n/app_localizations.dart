@@ -1120,18 +1120,6 @@ abstract class AppLocalizations {
   /// **'Paramètres'**
   String get settingsBodyText;
 
-  /// No description provided for @sliderCoarse.
-  ///
-  /// In fr, this message translates to:
-  /// **'Grossier'**
-  String get sliderCoarse;
-
-  /// No description provided for @sliderFine.
-  ///
-  /// In fr, this message translates to:
-  /// **'Précis'**
-  String get sliderFine;
-
   /// No description provided for @languageSectionTitle.
   ///
   /// In fr, this message translates to:

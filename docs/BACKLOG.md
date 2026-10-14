@@ -119,7 +119,8 @@ reminder. That exactness is behaviour, not oversight.
 
 ## B2 — Weight slider has 1980 stops → coarse + fine slider pair
 
-**Status:** **approved for v1.2.1** (owner, 2026-10-03) · **Severity:** low · **Cost:** UI, ~2 h
+**Status:** ~~approved for v1.2.1~~ **shipped in v1.2.1, reverted 2026-10-13** (owner) ·
+**Severity:** low · **Cost:** UI, ~2 h
 **Found:** 2026-10-03, when the step moved from 200 g to 10 g
 
 Half a pixel per stop on a phone. The slider is an aiming device, not an input device; the text
@@ -133,6 +134,29 @@ resolves temperature (coarse 33–42 by 0,5, fine ±1 °C by 0,1) and height. Th
 are the fastest way to nudge one quantum, and the fine slider is the fastest way to see the neighbours.
 Reused across all measurement kinds and the feeding picker, so this is one widget change, not four.
 Reverting the step to 200 g is **not** an option: coarse selection and fine value are both required.
+
+### Reverted (owner, 2026-10-13)
+Shipped in v1.2.1, taken out the same week: the owner opened an edit sheet, saw two sliders, and could
+not tell which one to move or what the second was for. That is the whole verdict — a control whose
+purpose has to be explained is not a control. And the diagnosis it was written for had already been
+solved twice over: `MeasureKind.step` was documented as *« le slider amène à proximité ; le champ de
+saisie et les boutons +/- fixent la valeur exacte »*, and the ±steppers were kept in the decision above.
+The fine slider therefore added no reach the ± and the keyboard did not already give (volume: coarse 50 /
+fine 10 / stepper 10 — the fine slider was the stepper, drawn 300 px wide), while costing a legend per
+slider and ~60 px of a bottom sheet that was already scrolling.
+
+**Kept:** the 10 g / 1 cm / 0,1 °C steps (that half of the decision stands — `divisions` still spans the
+full range at the fine step, the thumb just stops where the finger stops), the ±steppers, the text field.
+**Removed:** the `SliderPair` typedef, the `sliderPair` parameter of `QuantityPickerInline`, the two
+`Grossier`/`Précis` captions (`sliderCoarse`/`sliderFine` deleted from all three ARBs). One slider per
+picker, everywhere — `QuantityPickerInline`, `measurement_sheet`, `edit_measurement_sheet`,
+`edit_event_dialog`, `feeding_tracking_dialog`.
+
+**What would re-open this:** a parent who cannot land a value with ± plus keyboard. Not a dense slider —
+Flutter skips painting tick marks once they fall below ~12 px apart (`adjustedTrackWidth / divisions >=
+3 * tickMarkWidth`, `material/slider.dart`), and at `trackHeight: 4` every range in this app is under
+that threshold: the 1980 stops are not painted, they only snap. If the thumb lands on the wrong 10 g,
+the fix is a narrower *range* per kind, not a second thumb.
 
 ---
 
@@ -598,3 +622,69 @@ tandis que le doigt est en haut — le regard fait un aller-retour inutile.
   `Small_Phone` : le saut de mise en page au premier rappel réglé du jour (la liste disparaît, la
   grille remonte) est exactement le genre de chose invisible en test unitaire et agaçante en usage
   réel — à valider à l'œil, pas à deviner.
+
+---
+
+## B13 — Sommeil : la même minute est écrite dans `quantity` ET `duration`
+
+**Statut:** ouvert, **post-v1.2.1** (la partie *affichage* est déjà payée dans rc.2 ; la partie
+*modèle* est reportée) · **Coût:** petit (chemin d'écriture + entité + tests) ; **zéro migration**
+si on ne nettoie pas les lignes existantes
+**Trouvé:** 2026-10-13, au passage émulateur rc.2 — le propriétaire a vu « Quantité: 45 min » et
+« Durée: 0 min » côte à côte sur une sieste.
+**Fichiers:** `lib/features/home/presentation/screens/home_screen.dart:204-208` (le track `dodo`
+passe `duration: selection.minutes` **et** `quantity: selection.minutes`),
+`lib/features/home/presentation/providers/track_notifier.dart:70-76` (`TrackingEvent.sleep`),
+`lib/shared/domain/entities/tracking_event.dart:33` (`SleepEvent` : `duration` requis + `quantity`
+optionnel), `lib/data/local/app_db.dart` (colonnes `duration` et `quantity`, toutes deux `REAL NULL`),
+`lib/features/history/presentation/widgets/history_tile.dart`.
+
+### Le fait
+Pour une sieste, l'app enregistre **le même nombre de minutes dans deux colonnes** : `duration`
+(le champ naturel du sommeil, présent depuis le début) et `quantity` (le champ générique de la
+quantité, que la v1.2.1 a commencé à remplir pour le sommeil afin que « la frise rende depuis la
+donnée comme toute autre ligne » — B1). Les deux colonnes existent pour d'autres raisons :
+`quantity` sert au volume des prises (ml/g), `duration` au sommeil. Mais pour `dodo`, les deux
+contiennent la même valeur.
+
+La tuile d'historique rendait **les deux** : `Quantité: 45 min` (depuis `quantity` + `unit`) et
+`Durée: 45 min` (depuis `duration`). Le même nombre, deux libellés. Le propriétaire a d'abord vu
+`45` et `0` parce que la base du test de migration avait `quantity=45` et `duration` absent (→ 0) —
+mais même avec les deux à 45, la tuile répétait la valeur.
+
+### Ce que rc.2 a payé (affichage seulement, pas le modèle)
+`history_tile.dart` ne rend plus la ligne `Quantité` pour un `SleepEvent` : une sieste affiche
+**`Durée: X min`** seulement, le libellé naturel d'un dodo. Le défaut visible est réglé et testé
+(`history_tile_test.dart`, groupe « Sommeil : une seule ligne de valeur »). Le modèle de données,
+lui, écrit toujours les deux colonnes.
+
+### Le fix futur — choisir **une** colonne canonique pour le sommeil
+Objectif : une sieste porte sa valeur **une fois**, dans le champ qui a du sens.
+
+- **Option A (recommandée) : le sommeil garde `duration`, on cesse d'écrire `quantity`.**
+  `home_screen.dart` passe `quantity: null` pour le `dodo`. `duration` est le champ sémantique du
+  sommeil ; `quantity` reste la propriété des prises (ml/g). **Aucune migration** : les nouvelles
+  lignes ont `quantity=NULL`, les anciennes gardent leurs deux colonnes (identiques, inoffensives)
+  et se lisent via `duration`. Vérifier avant de toucher : qu'aucun chemin de **lecture** ne dépende
+  de `sleep.quantity` (l'export l'exporte déjà, nullable ; agrégats — B1 dit que rien ne somme,
+  à confirmer pour la durée du sommeil).
+- **Option B : le sommeil garde `quantity` + `unit`, on cesse d'écrire `duration`.**
+  Plus lourd : requalifier le libellé de la tuile (aujourd'hui « Durée ») ou accepter « Quantité »
+  pour un dodo, et `duration` reste en colonnes pour les lignes existantes. Moins sémantique.
+
+### Pourquoi ce n'est pas dans rc.2
+rc.2 est le retrait des curseurs + la date sur deux lignes ; y ajouter le point modèle n'ajouterait
+rien au produit (le défaut visible est déjà réglé) mais ouvrirait une **décision de modèle** (entité
++ chemin d'écriture + éventuel nettoyage des lignes existantes + export) au pire moment — la semaine
+d'un ship, sur une base dont on vient de valider la migration v11→v12. C'est une dette de modèle,
+pas un bug d'affichage : elle attend un changement à part, avec sa propre revue.
+
+### Ne pas
+- Ne pas **supprimer la colonne** `quantity` ou `duration` du schéma : `quantity` est portée par les
+  prises (ml/g), `duration` existe depuis v1. Une suppression de colonne est une migration
+  irréversible sans gain (B7 dit la même chose pour `measurements`).
+- Ne pas **convertir** de valeur : les deux colonnes sont égales, il n'y a rien à arithmeticiser —
+  la même règle que le backfill de B1 (« nommer, pas déduire »).
+- Ne pas faire ce changement **en silence** dans un PR de balayage : c'est une décision de
+  sémantique de données, elle mérite sa propre fiche (celle-ci) et sa propre revue, même si le diff
+  est petit.

@@ -80,6 +80,11 @@ One widget change in `QuantityPickerInline`, reused everywhere — not four per-
   doing nothing).
 - Reverting the v1.2.0 steps is **not** an option: coarse selection and fine value are both required.
 
+> **Reverted 2026-10-13** (owner, after one week on a device): two sliders on one form answer no question
+> the ±steppers and the text field did not already answer. One slider per picker now, at the same fine
+> steps; the `SliderPair` parameter is gone from `QuantityPickerInline`. Full reasoning and what would
+> re-open it: [`BACKLOG.md`](BACKLOG.md) B2.
+
 ## Out of scope
 Sync (BACKLOG B3 — blocked on a written privacy-mandate change from the owner), no network, no
 analytics, no new dependencies, no `HistoryFilter` value for growth, `TrackButton` untouched.
@@ -96,6 +101,9 @@ analytics, no new dependencies, no `HistoryFilter` value for growth, `TrackButto
    rejected.
 6. Export stability with mixed units present.
 7. Coarse/fine: fine slider window re-centres; both sliders clamp to the kind's absolute bounds.
+   *(moot since 2026-10-13 — replaced by "one `Slider` per picker, spanning `min`–`max`", asserted in
+   `test/features/home/presentation/widgets/quantity_picker_inline_test.dart` and the temperature case of
+   `measurement_sheet_test.dart`.)*
 
 ## Gates
 1. `flutter analyze --fatal-infos --fatal-warnings` → clean
