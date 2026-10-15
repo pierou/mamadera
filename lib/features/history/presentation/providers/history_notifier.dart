@@ -156,6 +156,7 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
       await repository.update(measurement);
       return _fetchRows();
     });
+    _notifyMeasurementsChanged();
   }
 
   /// Supprime une mesure puis re-charge la frise.
@@ -166,5 +167,18 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
       await repository.deleteById(id);
       return _fetchRows();
     });
+    _notifyMeasurementsChanged();
+  }
+
+  /// Avertit la rangée d'accueil et l'écran Croissance que la table
+  /// `measurements` a bougé : ils affichent la **dernière** valeur par grande,
+  /// et une ligne corrigée ou supprimée ici ne le leur disait pas — « dernier
+  /// poids » restait l'ancienne valeur jusqu'à changer de bébé.
+  ///
+  /// `invalidate` et non `refresh` : marquer sale suffit, le fournisseur se relit
+  /// à la prochaine lecture. Forcer un build ici réveillerait le vrai fournisseur
+  /// — donc la base — dans un conteneur de test qui ne le regarde pas.
+  void _notifyMeasurementsChanged() {
+    ref.invalidate(measurementNotifierProvider);
   }
 }
