@@ -106,6 +106,10 @@
       "- Correction du débordement de la date anglaise dans l'historique sur les petits écrans (date et heure sur deux lignes)",
       "- Suppression du doublon Quantité/Durée sur la tuile sommeil de l'historique",
       "- Séparateur décimal des quantités conforme à la langue choisie",
+      "- Correction du point de départ du curseur et des boutons +/- d'une mesure : ils partent de la dernière mesure du type, non de sa valeur par défaut",
+      "- Actualisation immédiate de la dernière valeur sur l'accueil après enregistrement d'une mesure, et après correction ou suppression depuis l'historique",
+      "- Correction du débordement des boutons Enregistrer / Supprimer de la fiche de modification d'une mesure sur petit écran",
+      "- Uniformisation du message de valeur hors plage dans la fiche de modification (« entre 200 et 20000 g », et non « 200.0 »)",
       ""
     ]
   }

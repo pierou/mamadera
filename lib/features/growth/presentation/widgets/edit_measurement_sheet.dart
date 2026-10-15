@@ -117,93 +117,116 @@ class _EditMeasurementSheetState extends State<EditMeasurementSheet> {
         top: AppTheme.spacingMd,
         bottom: MediaQuery.of(context).viewInsets.bottom + AppTheme.spacingMd,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.outlineVariant,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: AppTheme.spacingMd),
-          Text(title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: AppTheme.spacingMd),
-          QuantityPickerInline(
-            unit: kind.displayUnit,
-            min: kind.min,
-            max: kind.max,
-            divisions: kind.divisions,
-            step: kind.step,
-            decimals: kind.decimals,
-            value: _value,
-            accentColor: kind.accent,
-            onValueChanged: (double value) {
-              setState(() {
-                _value = value;
-                _inRange = true;
-              });
-            },
-            onValueOutOfRange: (double value) {
-              setState(() {
-                _value = value;
-                _inRange = false;
-              });
-            },
-          ),
-          if (!_inRange) ...[
-            const SizedBox(height: 8),
-            Text(
-              l.growthValueOutOfRange(kind.min, kind.max, kind.displayUnit),
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
-          const SizedBox(height: AppTheme.spacingMd),
-          EventDateTimeField(
-            value: _selectedDate,
-            onChanged: (date) => setState(() => _selectedDate = date),
-          ),
-          const SizedBox(height: AppTheme.spacingMd),
-          TextField(
-            controller: _noteController,
-            decoration: InputDecoration(
-              labelText: l.growthSheetNoteField,
-              border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(AppTheme.borderRadiusMedium),
+      child: SingleChildScrollView(
+        // Comme la feuille de saisie : si la feuille dépasse l'écran (petit
+        // téléphone, clavier ouvert), elle défile au lieu de couper — le bouton
+        // d'enregistrement et celui de suppression doivent rester atteignables.
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-          ),
-          const SizedBox(height: AppTheme.spacingLg),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton.icon(
-                onPressed: _delete,
-                icon: const Icon(Icons.delete_outline),
-                label: Text(l.deleteButton),
-                style: TextButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.error,
+            const SizedBox(height: AppTheme.spacingMd),
+            Text(title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: AppTheme.spacingMd),
+            QuantityPickerInline(
+              unit: kind.displayUnit,
+              min: kind.min,
+              max: kind.max,
+              divisions: kind.divisions,
+              step: kind.step,
+              decimals: kind.decimals,
+              value: _value,
+              accentColor: kind.accent,
+              onValueChanged: (double value) {
+                setState(() {
+                  _value = value;
+                  _inRange = true;
+                });
+              },
+              onValueOutOfRange: (double value) {
+                setState(() {
+                  _value = value;
+                  _inRange = false;
+                });
+              },
+            ),
+            if (!_inRange) ...[
+              const SizedBox(height: 8),
+              // `formatBound` : les bornes sont des entiers par construction, et la
+              // feuille de saisie dit déjà « entre 200 et 20000 g ». Passer les
+              // `double` bruts faisait « entre 200.0 et 20000.0 g » — deux phrases
+              // pour la même erreur, avec des chiffres formatés différemment.
+              Text(
+                l.growthValueOutOfRange(
+                  kind.formatBound(kind.min),
+                  kind.formatBound(kind.max),
+                  kind.displayUnit,
                 ),
-              ),
-              FilledButton.icon(
-                onPressed: _inRange ? _save : null,
-                icon: const Icon(Icons.save_outlined),
-                label: Text(l.growthSheetSave),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.error),
               ),
             ],
-          ),
-        ],
+            const SizedBox(height: AppTheme.spacingMd),
+            EventDateTimeField(
+              value: _selectedDate,
+              onChanged: (date) => setState(() => _selectedDate = date),
+            ),
+            const SizedBox(height: AppTheme.spacingMd),
+            TextField(
+              controller: _noteController,
+              decoration: InputDecoration(
+                labelText: l.growthSheetNoteField,
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusMedium),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingLg),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton.icon(
+                  onPressed: _delete,
+                  icon: const Icon(Icons.delete_outline),
+                  label: Text(l.deleteButton,
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+                // `Expanded` + ellipse : sur un écran de 412 dp, les deux
+                // libellés à leur taille naturelle débordaient de 6 px — un
+                // bouton à moitié hors de l'écran n'est pas un bouton. L'action
+                // principale prend le reste de la place, le libellé s'éclipse
+                // avant qu'elle disparaisse.
+                const SizedBox(width: AppTheme.spacingSm),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: _inRange ? _save : null,
+                    icon: const Icon(Icons.save_outlined),
+                    label: Text(l.growthSheetSave,
+                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
