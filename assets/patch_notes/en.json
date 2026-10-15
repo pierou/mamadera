@@ -106,6 +106,10 @@
       "- English dates in history no longer overflow on small screens (date and time on two lines)",
       "- Sleep entries in history show the duration once, without the duplicated quantity",
       "- Decimal separator in quantity fields now follows the chosen language",
+      "- The measurement slider and the +/- buttons now start from your last measurement, not from the type's default value",
+      "- The home screen now shows a measurement as soon as it is saved, and follows a correction or deletion made in history",
+      "- Fixed the Save / Delete buttons overflowing the measurement edit sheet on small screens",
+      "- Consistent out-of-range message in the measurement edit sheet (\"between 200 and 20000 g\", not \"200.0\")",
       ""
     ]
   }
