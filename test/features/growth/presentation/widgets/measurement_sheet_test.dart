@@ -410,6 +410,123 @@ void main() {
       expect(find.text('3500 g'), findsOneWidget);
     });
 
+    // ---- Réglages v1.2.1 — défauts signalés sur l'appareil (2026-10-13) ----
+    //
+    // L'en-tête affiche « Dernière : 4,2 kg » dès l'ouverture, mais le curseur
+    // et les boutons ± démarraient sur la référence du type (3,5 kg / 37 °C) :
+    // le premier contact faisait donc sauter la valeur à un nombre que personne
+    // n'a mesuré. Ce qui est visé doit être à l'endroit visé — sans jamais
+    // pré-remplir le champ : une position de curseur n'est pas une saisie.
+
+    testWidgets(
+        'weight: with a prior measurement, the slider and the steppers start on '
+        'that measurement, not on the 3,5 kg type default', (tester) async {
+      fakeRepo.stored.add(
+        GrowthMeasurement(
+          id: 1,
+          kind: MeasureKind.poids,
+          unit: 'g',
+          value: 4200,
+          recordedAt: DateTime(2026, 10, 1),
+        ),
+      );
+      await pumpSheet(tester, MeasureKind.poids);
+      await tester.pumpAndSettle();
+
+      // L'appoint montre bien la dernière mesure...
+      expect(find.text('Dernière : 4,2 kg'), findsOneWidget);
+      // ...et c'est bien elle que le curseur vise.
+      expect(tester.widget<Slider>(find.byType(Slider)).value, 4200);
+
+      // Le contrat « jamais de valeur inventée » tient : champ vide et
+      // sauvegarde désactivée tant que le parent n'a rien saisi.
+      expect(tester.widget<TextField>(valueField()).controller!.text, isEmpty);
+      expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNull);
+
+      await tester.tap(find.byIcon(Icons.add_circle_outline));
+      await tester.pumpAndSettle();
+
+      expect(find.text('4210 g'), findsOneWidget);
+      expect(find.text('3510 g'), findsNothing);
+    });
+
+    testWidgets(
+        'temperature: + from the last measurement gives 36,9 °C — the tenth '
+        'above it — and never 37,1 °C off the type default', (tester) async {
+      fakeRepo.stored.add(
+        GrowthMeasurement(
+          id: 1,
+          kind: MeasureKind.temperature,
+          unit: 'degC',
+          value: 36.8,
+          recordedAt: DateTime(2026, 10, 1),
+        ),
+      );
+      await pumpSheet(tester, MeasureKind.temperature);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dernière : 36,8 °C'), findsOneWidget);
+      expect(tester.widget<Slider>(find.byType(Slider)).value, 36.8);
+
+      await tester.tap(find.byIcon(Icons.add_circle_outline));
+      await tester.pumpAndSettle();
+      expect(find.text('36,9 °C'), findsOneWidget);
+      expect(find.text('37,1 °C'), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.remove_circle_outline));
+      await tester.pumpAndSettle();
+      expect(find.text('36,8 °C'), findsOneWidget);
+
+      await tester.tap(saveButton());
+      await tester.pumpAndSettle();
+      expect(fakeRepo.lastAdded!.value, 36.8);
+    });
+
+    testWidgets('a prior measurement of another kind never moves the cursor',
+        (tester) async {
+      fakeRepo.stored.add(
+        GrowthMeasurement(
+          id: 1,
+          kind: MeasureKind.temperature,
+          unit: 'degC',
+          value: 36.8,
+          recordedAt: DateTime(2026, 10, 1),
+        ),
+      );
+      await pumpSheet(tester, MeasureKind.poids);
+      await tester.pumpAndSettle();
+
+      // Aucune mesure de poids : la référence du type reste le point de départ.
+      expect(tester.widget<Slider>(find.byType(Slider)).value, 3500);
+      expect(find.text('3,5 kg'), findsOneWidget);
+    });
+
+    testWidgets(
+        'saving reloads measurementNotifierProvider so home shows the new value '
+        'without leaving the screen', (tester) async {
+      await pumpSheet(tester, MeasureKind.poids);
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(MeasurementSheet)),
+        listen: false,
+      );
+      await container.read(measurementNotifierProvider.future);
+      expect(container.read(measurementNotifierProvider).value, isEmpty);
+
+      await tester.enterText(valueField(), '4300');
+      await tester.pumpAndSettle();
+      await tester.tap(saveButton());
+      await tester.pumpAndSettle();
+
+      // La rangée d'accueil watche ce notifier : sans relecture à la sauvegarde,
+      // elle restait affichée sur l'ancienne valeur jusqu'à un changement de bébé.
+      final values = container.read(measurementNotifierProvider).value;
+      expect(values, hasLength(1));
+      expect(values!.single.value, 4300);
+      expect(fakeRepo.lastAdded!.value, 4300);
+    });
+
     testWidgets('titles follow the kind', (tester) async {
       await pumpSheet(tester, MeasureKind.poids);
       await tester.pumpAndSettle();

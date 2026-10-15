@@ -73,16 +73,29 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
   /// Dernière mesure du même type, si elle existe : « dernière : 36,8 °C ».
   /// En erreur ou sans valeur (chiffre illisible), on garde la référence du
   /// type — l'appoint est un confort, jamais un bloqueur.
+  ///
+  /// Elle sert aussi de **point de départ du curseur et des boutons ±** (défaut
+  /// v1.2.1 signalé sur l'appareil) : l'en-tête affiche « dernière : 36,8 °C »
+  /// dès l'ouverture, et le premier contact avec le curseur ou un ± renvoyait
+  /// 37,0 — la référence du type, c'est-à-dire un nombre que personne n'a mesuré.
+  /// Ce qui est visé doit être à l'endroit visé. Le champ texte reste vide et la
+  /// sauvegarde désactivée : une **position** de curseur n'est pas une saisie.
   Future<void> _loadLastValue() async {
     try {
       final repository = await ref.read(measurementRepositoryProvider.future);
       final babyId = ref.read(activeBabyProvider).value?.id;
       final last = await repository.latestOfKind(babyId, widget.kind);
-      if (!mounted || last?.value == null) return;
+      final lastValue = last?.value;
+      if (!mounted || lastValue == null) return;
       setState(() {
         _lastHint = context.l.growthSheetLastValueHint(
-          widget.kind.format(last!.value!, localeName: context.l.localeName),
+          widget.kind.format(lastValue, localeName: context.l.localeName),
         );
+        // Jamais après une saisie du parent : la lecture arrive en asynchrone et
+        // écraserait le chiffre qu'il est en train de taper.
+        if (!_hasInput && widget.kind.contains(lastValue)) {
+          _value = lastValue;
+        }
       });
     } catch (_) {
       // La feuille reste utilisable sans l'appoint.
@@ -108,6 +121,11 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
           ? null
           : _noteController.text.trim(),
     );
+    // Relecture ici, avant de fermer : la rangée d'accueil et l'écran Croissance
+    // watchent `measurementNotifierProvider`, qui ne se relit ni tout seul ni au
+    // retour d'une autre page (défaut v1.2.1 : le parent qui enregistre 4,2 kg
+    // restait affiché sur 3,9 kg jusqu'à changer de bébé).
+    await ref.read(measurementNotifierProvider.notifier).refresh();
     if (!mounted) return;
     Navigator.of(context).pop(_value);
   }

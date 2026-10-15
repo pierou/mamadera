@@ -106,6 +106,10 @@
       "- Corrección del desbordamiento de las fechas en inglés en el historial en pantallas pequeñas (fecha y hora en dos líneas)",
       "- Supresión del duplicado Cantidad/Duración en la tarjeta de sueño del historial",
       "- Corrección del separador decimal de las cantidades según el idioma elegido",
+      "- Corrección del punto de partida del deslizador y los botones +/- de una medida: parten de la última medida del tipo, no del valor por defecto",
+      "- Actualización inmediata del último valor en la pantalla de inicio tras registrar una medida, y tras corregirla o suprimirla desde el historial",
+      "- Corrección del desbordamiento de los botones Guardar / Suprimir en la ficha de edición de una medida en pantallas pequeñas",
+      "- Uniformización del mensaje de valor fuera de rango en la ficha de edición (« entre 200 y 20000 g », y no « 200.0 »)",
       ""
     ]
   }
