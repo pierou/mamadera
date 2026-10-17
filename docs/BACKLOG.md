@@ -322,13 +322,15 @@ Note de patch expliquant le changement (sans le marketer comme « l'app suit l'O
 
 ## B7 — L'onglet Historique n'a pas *tous* les types d'événements : les mesures en sont absentes
 
-**Statut :** la frise unifiée est **déjà décidée pour v1.2.1** (PLAN-v1.2.1-unit-column.md, « Décision —
-   les mesures doivent apparaître comme événements », owner 2026-10-04) ; reste dans ce ticket : le chip
-   `HistoryFilter.measurements` dédié, explicitement **hors périmètre v1.2.1** (section « Out of scope »
-   du plan : « no `HistoryFilter` value for growth ») → candidat v1.3.0 si le propriétaire veut encore le
-   chip après l'arrivée de la frise. · **Coût de la partie restante:** petit
+**Statut :** la partie frise est **livrée en v1.2.1** (vérifié dans le code, 2026-10-17 :
+   `measurement_history_tile` dans `history_screen`, fusion `tracking_events` + `measurements` dans
+   `history_notifier`) ; reste dans ce ticket, redemandé par le propriétaire le 2026-10-17 (« filtrer
+   les événements de l'historique par mesures ») : le chip `HistoryFilter.measurements` dédié,
+   explicitement **hors périmètre v1.2.1** (section « Out of scope » du plan : « no `HistoryFilter`
+   value for growth ») → candidat v1.3.0. · **Coût de la partie restante:** petit
 **Trouvé:** demande du propriétaire, 2026-10-06 (« l'onglet historique devrait avoir tous les types
-   d'événements »), vérifié dans le code — et recoupé avec le plan v1.2.1 le 2026-10-06.
+   d'événements »), vérifié dans le code — et recoupé avec le plan v1.2.1 le 2026-10-06 ; la demande
+   du chip de filtre est re-ouverte le 2026-10-17, périmètre exact ci-dessous.
 **Fichiers:** `lib/features/history/presentation/screens/history_screen.dart:20` (`_filters` :
 all/miam/dodo/caca/sante), `lib/features/history/presentation/providers/history_notifier.dart:28-50` (ne
 consulte que `tracking_events`), `lib/features/history/data/repositories/history_repository.dart`
@@ -345,7 +347,7 @@ d'événements : les mesures n'apparaissent que sur l'écran Croissance (lui-mê
 Un parent qui veut « tout ce qui s'est passé aujourd'hui » ne voit pas le poids pris ce matin.
 
 ### À faire
-**Partie v1.2.1 (ne pas redéfinir, c'est le contrat du plan)** : frise unifiée en **lecture seule** —
+**Partie v1.2.1 — LIVRÉE (ne pas redéfinir, c'est le contrat du plan)** : frise unifiée en **lecture seule** —
 `history_notifier` fusionne `tracking_events` et `measurements` triés par horodatage, chaque ligne
 rendant son unité depuis sa propre colonne `unit` ; modification/suppression adressées à la table
 d'origine (jamais aux deux) ; **pas de duplication** dans `tracking_events` — le plan la refuse
