@@ -231,8 +231,8 @@ void main() {
 
   group('champs M2 (babyId / completionSource)', () {
     test('les quatre préréglages sont réglés par événements et sans bébé', () {
-      // Le portage vit dans les lignes de base, pas dans l'item : les
-      // préréglages partagent leur id entre tous les bébés.
+      // The core functionality resides within the base code, not within individual items.
+      // The presets share the same ID among all the babies.
       for (final item in [
         ReminderItemPresets.vitaminD,
         ReminderItemPresets.vitaminK,

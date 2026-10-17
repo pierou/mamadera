@@ -5,8 +5,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/data/local/app_db.dart';
 
-/// Coquille [GeneratedDatabase] vide servant uniquement à exécuter du SQL brut
-/// sur un fichier, sans aucune table définie par drift.
+/// Empty [GeneratedDatabase] shell used solely for executing raw SQL queries.
+/// on a file, without any tables defined by Drift.
 class _RawSqlDatabase extends GeneratedDatabase {
   _RawSqlDatabase(super.e);
 
@@ -17,14 +17,14 @@ class _RawSqlDatabase extends GeneratedDatabase {
   int get schemaVersion => 7;
 }
 
-/// Régression de la migration v8 : une base créée avant l'existence de
-/// `reminder_settings` (v3..v7) montait en v8 sans que la table soit jamais
-/// créée par onUpgrade, et toute lecture/écriture de réglage de rappel
-/// échouait avec « no such table: reminder_settings ».
+/// Regression of migration v8: a database created before the existence of...
+/// `reminder_settings` (versions 3 through 7) was upgraded to version 8, but the table was never... (The sentence is incomplete).
+/// created by onUpgrade, and all read/write operations related to reminder settings.
+/// It failed with the error "no such table: reminder_settings".
 ///
-/// Ce test reconstruit physiquement une base v7 (schéma v7 de
-/// lib/data/local/schema.sql, sans reminder_settings), ouvre AppDatabase sur
-/// le même fichier et prouve que la table existe ensuite et est writable.
+/// This test physically recreates a v7 base (v7 schema of...).
+/// lib/data/local/schema.sql (without the reminder_settings section), opens the AppDatabase.
+/// It uses the same file and then proves that the table exists and is writable.
 void main() {
   test('opening a v7 database (no reminder_settings) upgrades it to a writable v8', () async {
     final tempDir = await Directory.systemTemp.createTemp('mamadera_migration_v7');
@@ -33,8 +33,8 @@ void main() {
     });
     final dbFile = File('${tempDir.path}/mamadera_v7.db');
 
-    // 1. Base v7 physique : tables existantes à la v7, user_version 7,
-    //    SANS reminder_settings (le bug : elle n'existait pas alors).
+    // 1. Physical v7 database: Existing tables from v7, user version 7.
+    // SANS reminder_settings (the bug: it didn't exist at that time).
     final raw = _RawSqlDatabase(NativeDatabase(dbFile));
     await raw.customStatement('''
       CREATE TABLE baby_profiles (
@@ -66,19 +66,19 @@ void main() {
       )''');
     await raw.close();
 
-    // Prémisse : la table n'existe vraiment pas à ce stade.
+    // Premise: At this stage, the table does not actually exist.
     final premise = _RawSqlDatabase(NativeDatabase(dbFile));
     await expectLater(
       premise.customStatement('SELECT * FROM reminder_settings'),
-      throwsA(anything), // « no such table: reminder_settings »
+      throwsA(anything),       // "Table 'reminder_settings' does not exist."
     );
     await premise.close();
 
-    // 2. AppDatabase sur le même fichier : onUpgrade v7 → v8 doit s'exécuter.
+    // 2. For the `AppDatabase` on the same file: the `onUpgrade` function (from version 7 to version 8) must be executed.
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     await db.select(db.babyProfiles).get(); // force ouverture + migrations.
 
-    // La table existe maintenant et est writable.
+    // The table now exists and can be modified.
     await db.into(db.reminderSettings).insert(
       const ReminderSettingsCompanion(
         babyId: Value(''),

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/encryption_service.dart';
 
-/// Provider singleton pour le service de chiffrement.
+/// Singleton provider for the encryption service.
 ///
 /// Uses [FutureProvider] to ensure [EncryptionService.initialize()] is called
 /// before the service is accessed, avoiding uninitialized state crashes.

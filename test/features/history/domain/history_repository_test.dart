@@ -7,7 +7,7 @@ import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
-/// Mock de [HistoryRepository] pour tester le contrat d'interface.
+/// Mock object for [HistoryRepository] to test the interface contract.
 class MockHistoryRepository implements HistoryRepository {
   final Map<int, TrackingEvent> _events = {};
   int _nextId = 1;
@@ -38,7 +38,7 @@ class MockHistoryRepository implements HistoryRepository {
     return _events.remove(id) != null;
   }
 
-  /// Helper pour simuler l'insertion (comme le ferait la DB).
+  /// Helper to simulate the insertion (as the database would).
   int insert(TrackingEvent event) {
     final id = _nextId++;
     _events[id] = event;
@@ -99,8 +99,8 @@ void main() {
           babyId: 'baby-2',
         ));
 
-        // Dans un vrai repo, le filtre serait appliqué ici.
-        // Le mock retourne tous les événements — c'est le comportement par défaut.
+        // In a real repository, the filter would be applied here.
+        // The mock replays all events – this is its default behavior.
         final result = await repository.getAllEventsOrdered(babyId: 'baby-1');
         expect(result, hasLength(2));
       });

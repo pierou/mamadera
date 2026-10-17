@@ -37,10 +37,10 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
   late QuantityUnit _unit;
   double _selectedQuantity = 0;
 
-  /// La quantité est remise à 0 quand l'unité change, et le dialog le dit.
+  /// The quantity is reset to zero when the unit changes, and the dialog indicates this.
   bool _unitResetNotice = false;
 
-  /// Nombre saisi hors des bornes ; `null` = dans la plage (ou rien saisi).
+  /// Number entered is outside the valid range; `null` indicates that the value is within the range (or that nothing has been entered).
   double? _outOfRange;
 
   /// Date and time of the feed. Defaulted once at open time: the dialog is
@@ -73,12 +73,12 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
 
   bool get _inRange => _outOfRange == null;
 
-  /// Sélection d'un sous-type : l'unité suit, et **le nombre ne survit pas à
-  /// un changement d'unité**.
+  /// Selection of a subtype: the unit remains, but **the number does not survive.**
+  /// a change of unit.
   ///
-  /// 20 ml n'est pas 20 minutes, et 20 min n'est pas 20 g. Conserver le
-  /// nombre en changeant l'étiquette, c'est exactement le défaut que cette
-  /// version supprime : le champ repart à 0 et le dialog le dit en inline.
+  /// 20 ml is not 20 minutes, and 20 minutes is not 20 grams. Please keep this in mind.
+  /// The number changes by simply altering the label, which is precisely the flaw that this [thing/system/process] exhibits.
+  /// deleted version: the field resets to 0, and the dialog box indicates this directly within the field.
   void _selectSubtype(FeedingSubtype subtype) {
     setState(() {
       _selectedSubtype = subtype;
@@ -92,8 +92,8 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
     });
   }
 
-  /// Choix du parent au sein (ml ↔ min) : même règle, aucun nombre ne change
-  /// d'unité en douceur.
+  /// Parent selection within a range (ml ↔ min): The same rule applies, and no number changes.
+  /// with gentle unity.
   void _selectUnit(QuantityUnit unit) {
     if (unit == _unit) return;
     setState(() {
@@ -104,13 +104,13 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
     });
   }
 
-  /// Bornes et pas du picker, **en fonction de l'unité choisie** (plan
+  /// Picker bounds and step, **depending on the chosen unit** (plan
   /// v1.2.1) : `ml` 0–300 par 10, `min` 0–120 par 1, `g` 0–1000 par 5.
-  /// Une tétée de 40 minutes ne se saisit pas sur une plage de biberon, et
-  /// un volume de 5 ml se rate à un cran de 10.
+  /// A 40-minute feeding session doesn't necessarily translate to a 40-minute bottle feeding, and...
+  /// A volume of 5 ml is off by one increment of 10.
   ///
-  /// La paire de sliders (B2) accompagnait chaque unité : retirée — un
-  /// curseur amène à proximité, le stepper ± et le champ de saisie fixent le
+  /// The pair of sliders (B2) was included with each unit: removed - one.
+  /// The slider brings it closer, the stepper adjusts it precisely, and the input field sets the value.
   /// dernier cran (docs/BACKLOG.md B2).
   ({double min, double max, int divisions, double step}) get _pickerSpec =>
           switch (_unit) {
@@ -119,8 +119,8 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
             QuantityUnit.g => (min: 0, max: 1000, divisions: 200, step: 5),
           };
 
-  /// L'unité affichée : celle de la ligne en cours de saisie, résolue depuis
-  /// la locale — jamais un `'ml'` écrit dans le widget.
+  /// The displayed unit: the unit of the line currently being entered, resolved since...
+  /// the locale — an `'ml'` character will never be written in the widget.
   String _feedingUnit(BuildContext context) =>
       quantityUnitLabel(context, _unit);
 
@@ -218,9 +218,9 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
             ),
             const SizedBox(height: 24),
 
-            // Unité — le sein seul a deux unités légitimes : téter se compte
-            // en minutes, tirer se compte en millilitres, et la même mère fait
-            // les deux le même jour. Les autres sous-types restent figés.
+            // Unit — the breast has only two legitimate units: breastfeeding is counted.
+            // In minutes, the amount of milk expressed is measured in milliliters, and the same mother can...
+            // Both occurred on the same day. The other subtypes remain unchanged.
             if (_selectedSubtype == FeedingSubtype.natural) ...[
               Text(
                 context.l.feedingUnitLabel,
@@ -248,10 +248,10 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
               const SizedBox(height: 24),
             ],
 
-            // Le message de remise à 0 sort du bloc `natural` : passer de
-            // « Lait Maternel » (min) à « Solide » (g) remet aussi la quantité
-            // à 0, et une remise à 0 silencieuse est le défaut que v1.2.1
-            // existe à supprimer.
+            // The reset message originates from the `natural` block: transitioning from...
+            // "From 'Liquid' (min) to 'Solid' (g), this also adjusts the quantity."
+            // at 0, and a silent reset to 0 is the bug that v1.2.1 fixes.
+            // There are items to be deleted.
             if (_unitResetNotice) ...[
               const SizedBox(height: 8),
               Text(
@@ -277,14 +277,14 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
               min: _pickerSpec.min,
               max: _pickerSpec.max,
               divisions: _pickerSpec.divisions,
-              // Stepper aligné sur le pas du slider pour l'unité courante.
+              // The stepper motor is aligned with the slider's step for the current unit.
               step: _pickerSpec.step,
               value: _selectedQuantity,
               onValueChanged: _onQuantityChanged,
-              // Une saisie hors plage ne se tait plus (BACKLOG B5) : le nombre
-              // du parent reste à l'écran, l'erreur s'affiche, et Enregistrer
-              // reste désactivé. Jamais de `clamp` : corriger un nombre de
-              // parent sans le lui dire est ce que cette app refuse.
+              // An out-of-range input was no longer being suppressed (BACKLOG B5): the number.
+              // The parent element remains on the screen, the error message is displayed, and then "Save" is clicked.
+              // remains disabled. Never use `clamp`: correct a number of...
+              // This app refuses to allow users to track a child's location without their knowledge.
               onValueOutOfRange: (value) => setState(() {
                 _selectedQuantity = value;
                 _outOfRange = value;
@@ -321,8 +321,8 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                       if (context.mounted) {
                         Navigator.pop(context, {
                           'subtype': _selectedSubtype,
-                          // L'unité part avec le nombre : c'est elle qui dit ce
-                          // que le chiffre veut dire.
+                          // The unit travels with the number: it is what states what
+                          // what the number represents.
                           'unit': _unit,
                           'quantity': _selectedQuantity,
                           'timestamp': _selectedDate,

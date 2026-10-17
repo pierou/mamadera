@@ -127,10 +127,10 @@ Map<String, dynamic> validDocument({
   };
 }
 
-/// Un document de **format 1** : ce qu'écrivait l'app avant M4. Pas de
-/// sections `measurements`/`reminderCompletions`, pas de clés correspondantes
-/// dans `counts`, pas de `babyId` sur réglages/rejets/rappels, pas de
-/// `completionSource`. La restauration doit le lire en entier, absences
+/// A document in **format 1**: this is how the app used to format documents before version 4. No [further information].
+/// sections `measurements`/`reminderCompletions`, no corresponding keys.
+/// In the `counts` data, there is no `babyId` associated with settings, rejections, or reminders. There is also no...
+/// `completionSource`. The system must read the entire document, including any sections marked as "absent" or missing.
 /// comprises.
 Map<String, dynamic> formatOneDocument() => <String, dynamic>{
       'exportFormatVersion': 1,
@@ -298,8 +298,8 @@ void main() {
     });
 
     test('rejects a format version it does not know', () async {
-      // 3 (v12) est le format de ce build ; seul 4 et au-delà relèvent d'un
-      // futur application, dont on ne devinera pas le schéma.
+      // Version 3 (v12) is the format of this build; only versions 4 and above fall under a different category.
+      // future application, the design of which will be impossible to predict.
       await expectRejected(
         document: validDocument(formatVersion: 4),
         reason: ImportRejectionReason.newerFormatVersion,
@@ -316,9 +316,9 @@ void main() {
     });
 
     test('a format-2 natural row imports as ml, never min', () async {
-      // Une sauvegarde d'avant v12 ne porte aucune unité : le parent a vu
-      // « ml » à la saisie, donc la ligne veut dire ml. Marquer ces lignes
-      // `min` inventerait des minutes de tétée jamais chronométrées.
+      // A backup from before version 12 contains no units: the parent has seen it.
+      // "ml" is entered, so the line refers to milliliters. Please highlight these lines.
+      // `min` would invent feeding times that were never actually timed.
       final parsed = await repository
           .parseExport(_jsonOf(validDocument(formatVersion: 2)));
 
@@ -333,8 +333,8 @@ void main() {
     });
 
     test('a solid row claiming ml is rejected, not coerced', () async {
-      // Un « 40 ml » de purée est un chiffre de santé faux : la ligne ment
-      // sur son propre nombre, on refuse le fichier.
+      // A "40 ml" serving of puree is a misleading health statistic: the label is lying.
+      // If the file name matches its own name, the file is rejected.
       final doc = validDocument(formatVersion: 3);
       final row = (doc['trackingEvents'] as List<dynamic>).first
           as Map<String, dynamic>;
@@ -361,8 +361,8 @@ void main() {
     });
 
     test('an unknown unit string is rejected', () async {
-      // Une unité qu'aucune version de l'app n'a écrite ne se lit pas
-      // « probablement ml ».
+      // A unit of data that no version of the app has written cannot be read.
+      // "probably ml".
       final doc = validDocument(formatVersion: 3);
       (doc['trackingEvents'] as List<dynamic>).first['unit'] = 'oz';
 
@@ -380,7 +380,7 @@ void main() {
       expect(parsed.trackingEvents, hasLength(1));
       expect(parsed.measurements, isEmpty);
       expect(parsed.reminderCompletions, isEmpty);
-      // Absence de `babyId` = partagé, absence de `completionSource` =
+      // Absence of `babyId` = shared, absence of `completionSource` =  [unspecified/not applicable].
       // `from_events`.
       expect(parsed.reminderSettings.single.babyId, '');
       expect(parsed.reminderDismissals.single.babyId, '');
@@ -789,8 +789,8 @@ void main() {
       final linked = restoredReminders.firstWhere((r) => r.id == 4);
       expect(linked.frequency, 'every_n_days');
       expect(linked.intervalDays, 2);
-      // Détaché (M4) : la restauration re-dérive `manual` de `subtypeValue`
-      // null et installe la portée par bébé.
+      // Detached (M4): The restoration process re-assigns the `manual` value to the `subtypeValue` field.
+      // It's null and installs the support for the baby.
       final detached = restoredReminders.firstWhere((r) => r.id == 5);
       expect(detached.subtypeValue, isNull);
       expect(detached.completionSource, 'manual');
@@ -806,7 +806,7 @@ void main() {
         'baby_1',
       );
 
-      // Mesures : ids préservés, chiffres re-chiffrés, notes comprises.
+      // Measurements: IDs preserved, figures re-calculated, notes included.
       final restoredMeasurements = await database.getAllMeasurements();
       final weight = restoredMeasurements.firstWhere((row) => row.id == 101);
       expect(weight.babyId, 'baby_1');
@@ -819,7 +819,7 @@ void main() {
       expect(height.babyId, 'baby_2');
       expect(height.notes, isNull);
 
-      // Achèvements : la portée par bébé et la sentinelle partagée survivent.
+      // Achievements: Baby's Reach and Shared Sentinel remain active.
       final restoredCompletions = await database.getAllReminderCompletions();
       expect(
           restoredCompletions.map((row) => (row.babyId, row.itemId)),
@@ -841,17 +841,17 @@ void main() {
 
       await repository.restore(await repository.parseExport(first));
 
-      // La cible est une base restaurée, pas la source : on l'exporte avec son
-      // propre repository. Les deux moitiés ne se connaissent que par le JSON.
+      // The target is a restored database, not the source: it is exported along with its...
+      // dedicated repository. The two halves only communicate with each other through JSON.
       final second = await ExportRepositoryImpl(
         database: database,
         encryption: encryption,
       ).buildExportJson();
 
-      // Le document exporte des valeurs **en clair** (conception assumée, see
-      // the file dartdoc) : le renouvellement du IV à la restauration est donc
-      // invisible ici. La seule chose qui bouge légitimement est l'horodatage.
-      // Tout le reste doit être le même document, octet pour octet.
+      // The document exports values in **plain text** (by design, see...).
+      // (in the dartdoc file): therefore, the transition from the IV (presumably a specific system or process) to the restoration phase is...
+      // It's invisible here. The only thing that changes legitimately is the timestamp.
+      // Everything else must be the same document, byte for byte.
       expect(
         _withoutVolatileFields(second),
         equals(_withoutVolatileFields(first)),
@@ -865,8 +865,8 @@ void main() {
     test(
         'a solid food event survives export → restore → export with its subtype and quantity intact',
         () async {
-      // Le sous-type 'solid' n'a pas de whitelist de validation dans l'import :
-      // il doit donc survivre intact, comme n'importe quelle valeur
+      // The 'solid' subtype does not have a validation whitelist during the import process.
+      // Therefore, it must remain intact, just like any other asset.
       // d'alimentation (pas de conversion silencieuse ni de rejet).
       final source = _openDatabase();
       addTearDown(source.close);
@@ -888,7 +888,7 @@ void main() {
       expect(restored.subtype, 'solid');
       expect(restored.quantity, 40.0);
 
-      // Re-export : le document reste stable, sous-type et quantité intacts.
+      // Re-export: The document remains unchanged, with the subtype and quantity remaining the same.
       final second = await ExportRepositoryImpl(
         database: database,
         encryption: encryption,
@@ -1251,8 +1251,8 @@ Future<void> _seedRichDatabase(
           intervalDays: const Value(2),
         ),
       );
-  // Rappel détaché scopé par bébé (M4) : la restauration doit re-dériver
-  // `manual` et garder la portée.
+  // Recall notice for a detached scope (M4): the scope needs to be re-mounted.
+  // `manual` and maintain the scope.
   await database.into(database.customReminders).insert(
         CustomRemindersCompanion.insert(
           id: const Value(5),

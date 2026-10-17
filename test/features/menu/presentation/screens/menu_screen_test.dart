@@ -59,7 +59,7 @@ void main() {
     testWidgets('affiche la section croissance et sa tuile', (tester) async {
       await pumpMenuScreen(tester: tester);
       await tester.pump(const Duration(milliseconds: 100));
-      // Le libellé « Croissance » sert d'en-tête de section et de titre de tuile.
+      // The heading "Growth" serves as both the section header and the title for the tile.
       expect(find.text('Croissance'), findsNWidgets(2));
       expect(find.byIcon(Icons.straighten), findsOneWidget);
     });
@@ -68,8 +68,8 @@ void main() {
       await pumpMenuScreen(tester: tester);
       await tester.pump(const Duration(milliseconds: 100));
 
-      // Le titre de section et le libellé de la tuile sont différents : une
-      // seule occurrence de « Rappels » à l'écran.
+      // The section title and the tile label are different: a...
+      // This is the only instance of the word "Recalls" that appears on the screen.
       expect(find.text('Rappels'), findsOneWidget);
       expect(find.text('Choisir les rappels affichés'), findsOneWidget);
     });
@@ -100,18 +100,18 @@ void main() {
       expect(find.text('Exporter mes données'), findsOneWidget);
       expect(find.text('Sauvegarde JSON de toutes vos données'), findsOneWidget);
 
-      // La zone danger est sous le pli : rendre la tuile visible avant de tap.
+      // The danger zone is located under the fold: make the tile visible before tapping.
       await tester.ensureVisible(find.text('Exporter mes données'));
       await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.text('Exporter mes données'));
-      // Pas de pumpAndSettle : la section profils affiche un indicateur de
-      // chargement en boucle (provider DB non résolu en test), ce qui le ferait
-      // expirer. Le dialogue s'anime en < 500 ms : des pumps fixes suffisent.
+      // No pumpAndSettle: The profiles section displays an indicator of...
+      // (In testing, the provider database was not resolved, which would cause) a continuous loading process.
+      // expire. The dialogue becomes interactive in under 500 milliseconds: fixed pumps are sufficient.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
-      // La boîte de dialogue montre l'avertissement de confidentialité
-      // AVANT toute action, plus les boutons annuler/confirmer.
+      // The dialog box displays the privacy warning.
+      // Before taking any action, please use the "cancel" or "confirm" buttons.
       expect(
         find.text('Ce fichier contiendra toutes vos données, y compris les notes de santé en texte lisible. Vous choisissez où l\'enregistrer : rien n\'est envoyé automatiquement.'),
         findsOneWidget,
@@ -126,21 +126,21 @@ void main() {
       expect(find.text('Restaurer depuis une sauvegarde'), findsOneWidget);
       expect(find.text('Réinitialiser la base de données'), findsOneWidget);
 
-      // Ordre vertical de la zone danger : export, puis restauration, puis reset.
+      // The vertical order of operations for the danger zone is: export, then restore, then reset.
       final exportY = tester.getCenter(find.text('Exporter mes données')).dy;
       final restoreY = tester.getCenter(find.text('Restaurer depuis une sauvegarde')).dy;
       final resetY = tester.getCenter(find.text('Réinitialiser la base de données')).dy;
       expect(restoreY, greaterThan(exportY));
       expect(resetY, greaterThan(restoreY));
 
-      // La zone danger est sous le pli : rendre la tuile visible avant de tap.
+      // The danger zone is located under the fold: make the tile visible before tapping.
       await tester.ensureVisible(find.text('Restaurer depuis une sauvegarde'));
       await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.text('Restaurer depuis une sauvegarde'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
-      // String propre au dialogue : l'avertissement destructif, avant toute action.
+      // A key element of effective communication: the destructive warning, preceding any action.
       expect(
         find.textContaining('supprimera définitivement toutes les données actuellement sur cet appareil'),
         findsOneWidget,

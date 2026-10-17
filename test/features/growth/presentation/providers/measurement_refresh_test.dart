@@ -15,9 +15,9 @@ import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
-/// Faux repository en mémoire : la table `measurements`, sans base ni chiffrement.
-/// `update` et `deleteById` corrigent la liste — c'est ce qui permet de vérifier
-/// qu'une relecture renvoie l'état **après** l'écriture.
+/// In-memory fake repository: the `measurements` table, without a database or encryption.
+/// The `update` and `deleteById` methods modify the list, which is what allows us to verify [its contents/functionality].
+/// a re-reading reveals the state *after* the writing process.
 class _FakeMeasurementRepository implements MeasurementRepository {
   final List<GrowthMeasurement> rows = [];
 
@@ -100,8 +100,8 @@ class _FakeMeasurementRepository implements MeasurementRepository {
   }
 }
 
-/// Frise sans événement : sous le filtre « tout » elle ne porte que les mesures,
-/// et le vrai repository d'historique n'est jamais construit — donc jamais la base.
+/// Timeline without events: filtered to show only measurements.
+/// and the true historical record is never fully constructed – therefore, it's never complete.
 class _EmptyEventHistoryRepository implements HistoryRepository {
   @override
   Future<List<TrackingEvent>> getAllEventsOrdered({String? babyId}) async =>
@@ -121,7 +121,7 @@ class _EmptyEventHistoryRepository implements HistoryRepository {
   Future<bool> deleteEvent(int id) async => true;
 }
 
-/// Bébé actif synchronise à `null` — jamais les préférences ni le stockage sécurisé.
+/// Baby Active is syncing to `null` – preferences and secure storage are never enabled.
 class _QuietActiveBabyNotifier extends ActiveBabyNotifier {
   @override
   Future<BabyProfile?> build() {
@@ -147,8 +147,8 @@ void main() {
     addTearDown(container.dispose);
   });
 
-  /// Épingle la rangée d'accueil et la frise pendant le test : la seconde est
-  /// `autoDispose`, sans auditeur elle se libère entre deux lectures et son état
+  /// Pin the welcome banner and the decorative border in place during the test: the latter is...
+  /// `autoDispose`: Without a listener, it releases its resources between two readings and when its state changes.
   /// lu revient `null`.
   void watchBoth() {
     final home = container.listen(measurementNotifierProvider, (_, __) {});
@@ -166,8 +166,8 @@ void main() {
 
   group('MeasurementNotifier — relecture après écriture', () {
     test('refresh() voit la ligne ajoutée par la feuille de saisie', () async {
-      // Le contrat que `MeasurementSheet._save` appelle après `repository.add` :
-      // sans lui, l'accueil reste sur la valeur précédente jusqu'à changer de bébé.
+      // The contract that `MeasurementSheet._save` calls after `repository.add`:
+      // Without it, the setting remains at the previous value until you switch to a different baby.
       await homeRow();
       expect(container.read(measurementNotifierProvider).value, isEmpty);
 
@@ -199,9 +199,9 @@ void main() {
 
     test('updateMeasurement : « dernier poids » passe à la valeur corrigée',
         () async {
-      // L'accueil et l'écran Croissance watchent `measurementNotifierProvider`,
-      // jamais la frise : sans invalidation à l'édition, « dernier poids » est
-      // resté 3 kg après une correction à 3,5 kg.
+      // The "Welcome" and "Growth" sections both use the `measurementNotifierProvider`.
+      // never the frieze: without invalidation at the edition, "last weight" is...
+      // It remained at 3 kg after a correction to 3.5 kg.
       expect((await homeRow()).single.value, 3000);
 
       await friseNotifier().updateMeasurement(mPoids.copyWith(value: 3500));
@@ -223,7 +223,7 @@ void main() {
     });
 
     test('la frise elle-même reste juste après l\'édition', () async {
-      // Garde-fou : l'invalidation de l'accueil ne doit rien casser côté frise.
+      // Safety net: invalidating the welcome message should not break anything related to the header.
       final notifier = friseNotifier();
       await notifier.updateMeasurement(mPoids.copyWith(value: 3500));
 

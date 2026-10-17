@@ -67,14 +67,14 @@ class MenuRepositoryImpl implements MenuRepository {
 
   @override
   Future<void> resetDatabase() async {
-    // Fermer la base de données si elle est déjà initialisée
+    // Close the database if it has already been initialized.
     try {
       final db = await _databaseFuture;
       await db.close();
     } catch (_) {
       // Database may already be closed or not yet initialized — ignore.
     }
-    // Supprimer le fichier physique SQLite
+    // Delete the physical SQLite file.
     await db_reset.resetDatabase(directoryPath: _directoryPath);
   }
 }

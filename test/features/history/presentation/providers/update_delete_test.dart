@@ -8,8 +8,8 @@ import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
-// @GenerateNiceMocks permet aux appels non-stubbés de retourner des valeurs par défaut
-// au lieu de lever MissingStubError — utile car updateEvent() passe tous les params nommés.
+// @GenerateNiceMocks allows unstubbed calls to return default values.
+// Instead of raising a `MissingStubError`, this is useful because `updateEvent()` passes all named parameters.
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -21,7 +21,7 @@ void main() {
   late ProviderContainer container;
   List<Future<void>> pendingFutures = [];
 
-  // Fixtures synthétiques : id ronds, timestamps simples — using typed subtypes
+  // Synthetic fixtures: simple round IDs, basic timestamps – using typed subtypes.
   final event1 = FeedingEvent(
     unit: QuantityUnit.ml,
     id: 10,
@@ -63,7 +63,7 @@ void main() {
       final updated = FeedingEvent(
         unit: QuantityUnit.ml,
         id: 10,
-        timestamp: DateTime.utc(2024, 6, 1), // Timestamp modifié
+        timestamp: DateTime.utc(2024, 6, 1),         // Timestamp modified.
         subtype: FeedingSubtype.natural,
       );
 
@@ -79,20 +79,20 @@ void main() {
       );
       await notifier.future; // Build initial stable
 
-      // Lancer l'update sans attendre → state synchrone set à AsyncLoading
+      // Initiate the update without waiting → change the state to "AsyncLoading."
       final updateFuture = notifier.updateEvent(updated);
       pendingFutures.add(updateFuture);
 
-      // Immédiatement après appel : état loading (le premier `state = const AsyncLoading()` est synchrone)
+      // Immediately after the request: loading state (the first `state = const AsyncLoading()` is synchronous).
       expect(
         container.read(historyNotifierProvider(HistoryFilter.all)),
         isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
-      await updateFuture; // Attendre la fin de l'opération
+      await updateFuture;       // Wait for the operation to finish.
       pendingFutures.remove(updateFuture);
 
-      // Post-attente : état data avec liste refreshée contenant l'événement modifié
+      // Post-waiting state: data state with a refreshed list containing the modified event.
       final state = container.read(historyNotifierProvider(HistoryFilter.all));
       expect(state, isA<AsyncData<List<HistoryRow>>>());
       expect((state as AsyncData).value, hasLength(1));
@@ -115,8 +115,8 @@ void main() {
       when(mockRepository.getEventsByType(TrackingType.miam))
           .thenAnswer((_) async {
         callCount++;
-        if (callCount == 1) return [event1]; // Initial build filtré miam
-        return [updated]; // Post-update refresh filtré
+        if (callCount == 1) return [event1];         // Initial filtered build, yum!
+        return [updated];         // Filtered refresh after update.
       });
 
       final notifier = container.read(
@@ -132,16 +132,16 @@ void main() {
         isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
-      await updateFuture; // Attendre la fin de l'opération
+      await updateFuture;       // Wait for the operation to finish.
       pendingFutures.remove(updateFuture);
 
-      // Refresh post-update a utilisé getEventsByType (filtre respecté)
+      // The "refresh post-update" feature used the `getEventsByType` function, respecting the specified filter.
       verify(mockRepository.getEventsByType(TrackingType.miam))
           .called(greaterThan(1));
     });
 
     test('erreur repo → AsyncError avec message préservé', () async {
-      // Le notifier passe event complet à updateEvent.
+      // The notifier passes the complete event data to the `updateEvent` function.
       when(mockRepository.updateEvent(
               id: anyNamed('id'), event: anyNamed('event')))
           .thenThrow(Exception('Erreur réseau'));
@@ -153,7 +153,7 @@ void main() {
         notes: 'vaccin',
       );
 
-      // Build initial stable avant erreur de mise à jour
+      // Build an initial, stable version before any update errors occur.
       when(mockRepository.getEventsByType(TrackingType.sante))
           .thenAnswer((_) async => [santeEvent]);
       final notifier = container.read(
@@ -161,7 +161,7 @@ void main() {
       );
       await notifier.future;
 
-      // Lancer l'update qui va échouer → capture la future pour observer transitions
+      // Initiate the update process, knowing it will fail → capture the screen to observe the transitions.
       final updateFuture = notifier.updateEvent(santeEvent);
 
       expect(
@@ -191,7 +191,7 @@ void main() {
         if (callCount == 1) return [event1, event2]; // Initial build : 2 events
         return [
           event1
-        ]; // Post-delete refresh : seul l'évent non supprimé reste
+        ];         // Post-deletion refresh: only the event that was not deleted remains.
       });
 
       final notifier = container.read(
@@ -199,7 +199,7 @@ void main() {
       );
       await notifier.future;
 
-      // Lancer la suppression sans attendre → state synchrone set à AsyncLoading
+      // Initiate the deletion without delay → set the synchronous state to AsyncLoading.
       final deleteFuture = notifier.deleteEvent(event2.id!);
 
       expect(
@@ -207,11 +207,11 @@ void main() {
         isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
-      await deleteFuture; // Attendre la fin de l'opération
+      await deleteFuture;       // Wait for the operation to finish.
 
       final state = container.read(historyNotifierProvider(HistoryFilter.all));
       expect(state, isA<AsyncData<List<HistoryRow>>>());
-      // L'événement supprimé n'est plus dans la liste refreshée
+      // The event that was removed is no longer in the updated list.
       expect((state as AsyncData).value, hasLength(1));
       expect((state.value!.first as EventHistoryRow).event.id, event1.id);
 
@@ -240,7 +240,7 @@ void main() {
       );
       await notifier.future;
 
-      // Lancer la suppression sans attendre → state synchrone set à AsyncLoading
+      // Initiate the deletion without delay → set the synchronous state to AsyncLoading.
       final deleteFuture = notifier.deleteEvent(event2.id!);
 
       expect(
@@ -248,11 +248,11 @@ void main() {
         isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
-      await deleteFuture; // Attendre la fin de l'opération
+      await deleteFuture;       // Wait for the operation to finish.
 
       final state = container.read(historyNotifierProvider(HistoryFilter.dodo));
       expect(state, isA<AsyncData<List<HistoryRow>>>());
-      // Le refresh post-delete a bien utilisé le filtre dodo (getEventsByType)
+      // The post-deletion refresh successfully used the "dodo" filter (getEventsByType).
       verify(mockRepository.getEventsByType(TrackingType.dodo))
           .called(greaterThan(1));
     });
@@ -260,7 +260,7 @@ void main() {
     test('erreur repo → AsyncError avec message préservé', () async {
       when(mockRepository.deleteEvent(any)).thenThrow(Exception('DB locked'));
 
-      // Build initial stable avant erreur de suppression
+      // Build a stable initial version before any potential deletion errors.
       when(mockRepository.getAllEventsOrdered())
           .thenAnswer((_) async => [event1]);
 
@@ -269,7 +269,7 @@ void main() {
       );
       await notifier.future;
 
-      // Lancer la suppression qui va échouer → capture future pour observer transitions
+      // Initiate the deletion process, which will fail → capture the subsequent events to observe the transitions.
       final deleteFuture = notifier.deleteEvent(event1.id!);
 
       expect(

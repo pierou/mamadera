@@ -6,14 +6,14 @@ import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/features/home/presentation/widgets/quantity_picker_inline.dart';
 
-/// Le sélecteur de quantité en ligne.
+/// The online quantity selector.
 ///
-/// Pourquoi ce fichier existait pas et existe maintenant : le widget affichait
-/// `value.round()`, donc une température saisie `37,5` s'affichait `38` — dans
-/// une app de santé ce n'est pas un arrondi, c'est une réponse fausse — et son
-/// champ refusait la virgule, `double.tryParse` ne connaissant que le point.
-/// Un parent francophone qui tape `37,5` ne voit rien se passer, et croit avoir
-/// enregistré une température que l'app n'a jamais reçue.
+/// Why this file didn't exist before but now does: the widget was displaying...
+/// `value.round()`, so a temperature entered as `37.5` would be displayed as `38` – in.
+/// A health app isn't just a rounding error; it's a false answer – and its...
+/// The field was rejecting the comma; `double.tryParse` only recognized the period.
+/// A French-speaking parent who types "37.5" sees nothing happen and believes that...
+/// It recorded a temperature that the app had never received before.
 Widget _host(Widget child) => MaterialApp(
       locale: const Locale('fr'),
       supportedLocales: const [Locale('fr'), Locale('en')],
@@ -26,9 +26,9 @@ Widget _host(Widget child) => MaterialApp(
       home: Scaffold(body: child),
     );
 
-/// Parent étatful minimal : renvoie la valeur au picker comme le feraient
-/// les vrais écrans (setState), indispensable pour tester l'affichage après
-/// un tap et la répétition au long-appui.
+/// Stateful minimal parent: returns the value to the picker, just as a regular parent would.
+/// The actual screens (setState) are essential for testing the display after...
+/// A single tap and a long press for repetition.
 class _EchoPicker extends StatefulWidget {
   const _EchoPicker({required this.initial, this.onChanged});
 
@@ -51,7 +51,7 @@ class _EchoPickerState extends State<_EchoPicker> {
   @override
   void didUpdateWidget(covariant _EchoPicker oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Un re-pump avec un nouvel `initial` repart de zéro, comme un écran
+    // A re-pump with a new `initial` state starts from scratch, like a fresh screen.
     // qui rouvre la feuille.
     if (oldWidget.initial != widget.initial) _value = widget.initial;
   }
@@ -94,8 +94,8 @@ void main() {
       await tester.enterText(find.byType(TextField), '37,5');
       await tester.pump();
 
-      // Sans la normalisation de la virgule, `received` reste null : le parent
-      // a tapé une valeur que l'app a ignorée en silence.
+      // Without the normalization of the comma, the `received` value remains null: the parent.
+      // It entered a value that the app silently ignored.
       expect(received, 37.5);
     });
 
@@ -113,8 +113,8 @@ void main() {
         ),
       ));
 
-      // `37.5` sur l'écran d'un parent français se lit « trente-sept point
-      // cinq » : la virgule n'est pas de la décoration, c'est la lecture.
+      // On the screen of a French parent, the number `37.5` is displayed as "thirty-seven point".
+      // "five": the comma is not just for decoration; it's essential for reading.
       expect(find.text('37,5 °C'), findsWidgets);
       expect(find.text('38 °C'), findsNothing);
     });
@@ -149,8 +149,8 @@ void main() {
       ));
       await tester.pump();
 
-      // La valeur reçue (37.5) est déjà représentée par le texte saisi
-      // (« 37,5 ») : le remplacer par « 37.5 » casserait la saisie en cours.
+      // The value received (37.5) is already represented by the text entered.
+      // (`37,5`): replacing it with `37.5` would break the entry in progress.
       expect(tester.widget<TextField>(field).controller!.text, '37,5');
     });
   });
@@ -251,8 +251,8 @@ void main() {
       expect(find.text('37,2 °C'), findsWidgets);
     });
 
-    /// Le contrôle Material du bouton : [InkResponse], qui porte le tap, le
-    /// long-appui (répétition) et le tap simulé du lecteur d'écran.
+    /// The material of the button is [InkResponse], which handles the tap and the...
+    /// long press (repetition) and the simulated tap from the screen reader.
     InkResponse controlOf(WidgetTester tester, Finder icon) =>
         tester.widget<InkResponse>(
             find.ancestor(of: icon, matching: find.byType(InkResponse)));
@@ -262,9 +262,9 @@ void main() {
       await tester.pumpWidget(_host(const _EchoPicker(initial: 42)));
       await tester.pumpAndSettle();
 
-      // Désactivé à la borne : ni tap, ni répétition armée. Et jamais masqué —
-      // le contrôle doit rester présent dans l'arbre, sinon la mise en page
-      // saute sous le doigt du parent.
+      // Disabled at the terminal: no tap, and no armed repetition. And never masked.
+      // The control mechanism must remain active throughout the process; otherwise, the layout will be compromised.
+      // jumps at the touch of the parent.
       final atMax = controlOf(tester, addButton());
       expect(atMax.onTap, isNull);
       expect(atMax.onLongPress, isNull);
@@ -292,7 +292,7 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      // Le piège du flottant : on assert la chaîne rendue, pas le nombre.
+      // The trap with floating-point numbers: we assert the result of the calculation, not the number itself.
       expect(find.text('37,5 °C'), findsWidgets);
       expect(find.textContaining('00000004'), findsNothing);
     });
@@ -337,7 +337,7 @@ void main() {
       )));
       await tester.pumpAndSettle();
 
-      // Long-appui : démarre après le timeout (~500 ms), répète toutes les 120 ms.
+      // Long press: Activates after a timeout (approximately 500 milliseconds) and repeats every 120 milliseconds.
       final gesture = await tester.startGesture(tester.getCenter(addButton()));
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pump(const Duration(milliseconds: 50));
@@ -345,13 +345,13 @@ void main() {
       await gesture.up();
       await tester.pumpAndSettle();
 
-      // Plusieurs crans minimum (1 immédiat + ~8 répétitions sur 1 s).
+      // Several notches are required (at least 1 immediate notch, plus approximately 8 repeated notches within 1 second).
       expect(lastReceived, isNotNull);
       expect(lastReceived, greaterThanOrEqualTo(37.5),
           reason: 'la répétition au long-appui doit produire plusieurs crans');
 
-      // Démontage : un timer non annulé ferait feu après dispose et cacherait
-      // une exception (ou laisserait un timer pending en fin de test).
+      // Disassembly: An uncancelled timer would trigger an event after being deployed and concealed.
+      // an exception (or would leave a pending timer at the end of the test).
       await tester.pumpWidget(_host(const SizedBox()));
       await tester.pump(const Duration(seconds: 1));
       expect(tester.takeException(), isNull);
@@ -359,11 +359,11 @@ void main() {
   });
 
   group('QuantityPickerInline — un seul curseur', () {
-    // Le double curseur « grossier / précision » (BACKLOG B2) est retiré : sur
-    // une fiche de saisie, deux sliders posent la question « lequel je fais
-    // bouger ? » sans la régler, et le fin n'apprenait rien que le stepper ±
-    // et le champ de saisie ne fissent déjà. Le curseur est un dispositif de
-    // visée sur toute la plage ; la précision vient du ± et du clavier.
+    // The "coarse/fine" dual slider control (BACKLOG B2) has been removed: on...
+    // A data entry form with two sliders presents the question: "Which one should I choose?"
+    // "move?" without adjusting it, and the stepper motor only learned about the stepper motor itself.
+    // and the input field was already active. The cursor is a device that...
+    // It aims to cover the entire range; the precision comes from the ± symbol and the keyboard.
     testWidgets('une grande plage garde un slider unique, sans légende',
         (tester) async {
       await tester.pumpWidget(_host(const _EchoPicker(initial: 37)));

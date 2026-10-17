@@ -9,7 +9,7 @@ import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 
 void main() {
   group('WasteDialog', () {
-    // Helper pour pump le dialog et attendre la fin du rendu
+    // Helper to manage the dialog and wait for the rendering to complete.
     Future<void> pumpDialog(WidgetTester tester) => tester.pumpWidget(
       const ProviderScope(
         child: MaterialApp(
@@ -39,9 +39,9 @@ void main() {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
-      // La section couleur du caca doit être visible par défaut
+      // By default, the color of the stool should be clearly visible.
       expect(find.text('Couleur du caca'), findsOneWidget);
-      // Mais pas celle du pipi
+      // But not the one for peeing.
       expect(find.text('Couleur du pipi'), findsNothing);
     });
 
@@ -61,7 +61,7 @@ void main() {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
-      // Cliquer sur Les deux
+      // Click on "The two."
       await tester.tap(find.text('🟡🟤 Les deux'));
       await tester.pumpAndSettle();
 
@@ -73,7 +73,7 @@ void main() {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
-      // Aller sur pipi pour voir ses couleurs
+      // Go to the bathroom to see its colors.
       await tester.tap(find.text('🟡 Pipi'));
       await tester.pumpAndSettle();
 
@@ -87,7 +87,7 @@ void main() {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
-      // Caca est sélectionné par défaut, ses couleurs sont visibles
+      // "Caca" is selected by default, and its colors are visible.
       expect(find.text('Mécônium'), findsOneWidget);
       expect(find.text('Vert olive'), findsOneWidget);
       expect(find.text('Jaune moutarde'), findsOneWidget);
@@ -108,14 +108,14 @@ void main() {
       await tester.tap(find.text('🟡 Pipi'));
       await tester.pumpAndSettle();
 
-      // Sélectionner Jaune clair
+      // Select Light Yellow.
       final chip = find.widgetWithText(FilterChip, 'Jaune clair');
       expect(chip, findsOneWidget);
 
       await tester.tap(chip);
       await tester.pumpAndSettle();
 
-      // Le chip doit être sélectionné (on vérifie qu'il existe toujours)
+      // The chip must be selected (we need to verify that it still exists).
       expect(find.text('Jaune clair'), findsOneWidget);
     });
 
@@ -123,7 +123,7 @@ void main() {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
-      // Sélectionner Jaune moutarde
+      // Select "Mustard Yellow".
       final chip = find.widgetWithText(FilterChip, 'Jaune moutarde');
       expect(chip, findsOneWidget);
 

@@ -45,12 +45,6 @@
   "growthSheetEditTitleWeight": "Modifier le poids",
   "growthSheetEditTitleHeight": "Modifier la taille",
   "growthSheetEditTitleTemperature": "Modifier la température",
-  "@growthSheetLastValueHint": {
-    "placeholders": {
-      "value": {}
-    }
-  },
-  "growthSheetLastValueHint": "Dernière : {value}",
   "growthSheetNoteField": "Note (facultatif)",
   "growthSheetSave": "Enregistrer",
   "growthMeasurementUpdated": "Mesure mise à jour",

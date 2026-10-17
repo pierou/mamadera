@@ -52,11 +52,11 @@ final dynamicRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async 
   return ReminderItemPresets.buildForBaby(activeProfile);
 });
 
-/// Les rappels inventés par le parent, sous la forme d'un item d'accueil.
+/// The reminders created by the parent, in the form of a welcoming message.
 ///
-/// Le rythme mensuel est arrimé ici, et non en base : `dayOfMonth` est le jour de
-/// naissance du bébé **actif**, relu à chaque fois — le même choix que pour la
-/// vitamine K, donc un changement de bébé décale le rappel avec lui.
+/// The monthly recurrence is set here, not at the base level: `dayOfMonth` specifies the day of the month.
+/// birth of the baby, **active** setting, reviewed each time – the same choice as for the...
+/// Vitamin K, therefore, if a baby's appointment is rescheduled, the reminder for the vitamin K injection will also be adjusted accordingly.
 final customReminderItemsProvider =
     FutureProvider<List<ReminderItem>>((ref) async {
   final reminders = await ref.watch(customRemindersProvider.future);
@@ -70,14 +70,14 @@ final customReminderItemsProvider =
   ];
 });
 
-/// Les rappels qui doivent réellement sonner : préréglages + rappels
-/// personnalisés, moins ceux que le parent a éteints dans Réglages → Rappels.
+/// The notifications that really need to be heard: scheduled reminders + recurring reminders.
+/// personalized, excluding those that the parent has disabled in Settings → Reminders.
 ///
-/// Le filtrage est ici et non dans [RemindersService] : un rappel éteint ne doit
-/// plus coûter une requête `getLastCompleted` à chaque sondage de cinq minutes.
-/// Une clé absente de `reminderSettingsProvider` vaut « activé », et les deux
-/// familles obéissent à la même table — un `custom_7` éteint se range comme un
-/// `vitamine_d` éteint.
+/// The filtering is done here, not in [RemindersService]: a disabled reminder should...
+/// This would add the overhead of a `getLastCompleted` query to every five-minute check.
+/// If a key is missing from the `reminderSettingsProvider`, it defaults to "enabled," and the other two...
+/// families adhere to the same table – a `custom_7` that is turned off is stored just like any other.
+/// `vitamin_d` is disabled.
 final enabledRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async {
   final presets = await ref.watch(dynamicRemindersProvider.future);
   final custom = await ref.watch(customReminderItemsProvider.future);

@@ -15,9 +15,9 @@ class RemindersService {
   final List<ReminderItem> items;
   final RemindersRepository repository;
 
-  /// Fenêtre pendant laquelle un « ignorer » supprime le rappel de la liste
-  /// des dus sans le marquer fait : au bout de [dismissalWindow] le rappel
-  /// reparaît tout seul. D3 : 24 h par défaut, injectable pour les tests.
+  /// The duration during which an "ignore" action removes the reminder from the list.
+  /// of the due list without marking it done: after [dismissalWindow] the reminder
+  /// It reappears automatically. D3: 24 hours by default, can be injected for testing.
   final Duration dismissalWindow;
 
   /// Returns the list of reminders that are currently due.
@@ -26,17 +26,17 @@ class RemindersService {
   /// [RemindersRepository.getLastCompleted]); pass null when no baby profile
   /// exists yet.
   ///
-  /// Le choix de « fait » dépend de [ReminderItem.completionSource] : un
-  /// rappel `manual` ne lit que le journal des complétions manuelles —
-  /// jamais les événements, même du bon type (invariant D2) — et tout le
-  /// reste lit les événements de suivi comme avant.
+  /// The choice of "action" depends on [ReminderItem.completionSource]: a...
+  /// Note: The `manual` command only reads the log file for manual completions.
+  /// nevertheless, even positive events (invariant D2) — and everything else...
+  /// The rest of the text continues to describe the subsequent events as before.
   Future<RemindersState> checkDue({String? babyId}) async {
     final now = DateTime.now();
     final dueItems = <ReminderStatus>[];
 
     for (final item in items) {
-      // Un « ignorer » récent (moins de [dismissalWindow] plus tôt) retire le
-      // rappel de la liste sans le marquer fait.
+      // A recent "dismiss" (less than [dismissalWindow] ago) removes the...
+      // Remind the user of the list without marking any items as complete.
       final lastDismissal = await repository.getLastDismissal(item.id, babyId: babyId);
       if (lastDismissal != null &&
           now.difference(lastDismissal) < dismissalWindow) {

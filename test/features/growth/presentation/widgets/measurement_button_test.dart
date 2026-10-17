@@ -11,7 +11,7 @@ import 'package:mamadera/features/growth/presentation/widgets/measurement_button
 import 'package:mamadera/features/growth/presentation/widgets/measurement_sheet.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
 
-/// Notifier de test : liste fixe, sans dépendance à la base.
+/// Test notification: fixed list, independent of the database.
 class _TestMeasurementNotifier extends MeasurementNotifier {
   _TestMeasurementNotifier(this.measurements);
 
@@ -75,7 +75,7 @@ void main() {
     });
 
     testWidgets('shows the latest value of each kind, formatted', (tester) async {
-      // Contrat du notifier : liste triée du plus récent au plus ancien.
+      // Notification contract: A sorted list, from most recent to oldest.
       await pumpRow(
         tester,
         [
@@ -104,7 +104,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Premier élément du kind : 3200 g, pas 3400.
+      // First element of the set: 3200 grams, not 3400.
       expect(find.text('3,2 kg'), findsOneWidget);
       expect(find.text('36,5 °C'), findsOneWidget);
       expect(find.text('—'), findsOneWidget);
@@ -145,8 +145,8 @@ void main() {
       await pumpRow(tester, const []);
       await tester.pumpAndSettle();
 
-      // L'état de bouton est soit une valeur, soit un tiret — jamais une
-      // chaîne d'erreur colorée.
+      // The button's state can be either a value or a hyphen — never anything else.
+      // Colored error stream.
       final texts = find.descendant(
         of: find.byType(MeasurementButton),
         matching: find.byType(Text),

@@ -54,9 +54,9 @@ void main() {
       test(
           'persists a solid feeding event with subtype solid and quantity in grams',
           () async {
-        // Un aliment solide se stocke en grammes dans la même colonne
-        // quantity REAL — mais depuis v12 c'est la colonne `unit` qui porte
-        // le sens, pas le seul sous-type : la ligne doit le dire elle-même.
+        // A solid food item is stored in grams in the same column.
+        // quantity REAL – but since version 12, the `unit` column is used for this purpose.
+        // The meaning, not just a single subtype: the line itself should convey it.
         final event = FeedingEvent(
           unit: QuantityUnit.g,
           timestamp: DateTime.utc(2024, 6, 1, 12, 0),
@@ -71,7 +71,7 @@ void main() {
         expect(rows.first.subtype, 'solid');
         expect(rows.first.quantity, 40);
 
-        // La lecture repasse par le mapper : le sous-type survit au round-trip.
+        // The reading process goes through the mapper: the subtype survives the round trip.
         final read = await repository.getAllEventsOrdered();
         final feeding = read.single as FeedingEvent;
         expect(feeding.subtype, FeedingSubtype.solid);
@@ -280,10 +280,10 @@ void main() {
         expect(event.stoolTexture, stoolTextureGrumeleuse);
       });
 
-      // Régression : la même feuille « Les deux » passée en « Pipi » gardait sa
-      // consistance en mémoire. Elle ne doit rien écrire dans la colonne : une
-      // texture ne décrit qu'une selle, et l'historique ne doit pas en montrer
-      // une sur un change liquidien.
+      // Regression: The same page, originally titled "The Two," was changed to "Pipi" and retained its...
+      // Maintain consistency in memory. Do not write anything in the column: one.
+      // The "texture" setting only applies to the saddle, and the history panel should not display any information related to it.
+      // a transaction on a liquid exchange.
       test('writes no texture for a pipi event', () async {
         await repository.insertEvent(DiaperEvent(
           timestamp: DateTime.utc(2026, 9, 1, 10),

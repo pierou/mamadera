@@ -6,11 +6,11 @@ import 'package:logger/logger.dart';
 
 import 'app_logger.dart';
 
-/// Service de chiffrement AES-GCM pour les données sensibles.
-/// La clé maître est stockée dans flutter_secure_storage (Keychain iOS / Keystore Android).
-/// Sur desktop sans keyring disponible, fallback sur une clé volatile en mémoire.
+/// AES-GCM encryption service for sensitive data.
+/// The master key is stored in `flutter_secure_storage` (Keychain on iOS / Keystore on Android).
+/// On desktop systems where a keyring is not available, a temporary key stored in memory will be used as a fallback.
 class EncryptionService {
-  /// Constructeur avec injection optionnelle du stockage sécurisé.
+  /// Constructor with optional injection for secure storage.
   EncryptionService([FlutterSecureStorage? secureStorage])
       : _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
@@ -19,7 +19,7 @@ class EncryptionService {
   final FlutterSecureStorage _secureStorage;
   final Logger _logger = appLogger();
   Key? _cachedKey;
-  /// True si on utilise le fallback mémoire (pas de keyring disponible).
+  /// True if the memory fallback mechanism is being used (no keyring is available).
   bool _usingMemoryFallback = false;
 
   Future<Key> _generateAndStoreKey() async {
@@ -40,9 +40,9 @@ class EncryptionService {
     _logger.w('⚠️ CLÉ VOLATILE: les données chiffrées seront perdues au redémarrage.');
   }
 
-  /// Initialise ou récupère la clé maître depuis le stockage sécurisé.
-  /// Si le backend natif n'est pas disponible (ex: Linux sans GNOME Keyring),
-  /// génère une clé volatile en mémoire et log un avertissement.
+  /// Initialize or retrieve the master key from secure storage.
+  /// If the native backend is not available (e.g., on Linux without GNOME Keyring),
+  /// It generates a temporary key in memory and logs a warning.
   Future<void> initialize() async {
     try {
       final existingKeyB64 = await _secureStorage.read(key: _masterKeyName);
@@ -58,7 +58,7 @@ class EncryptionService {
     }
   }
 
-  /// Retourne la clé maître. Lance une erreur si non initialisée.
+  /// Returns the master key. Raises an error if not initialized.
   Key get key {
     if (_cachedKey == null) {
       throw StateError(
@@ -69,10 +69,10 @@ class EncryptionService {
     return _cachedKey!;
   }
 
-  /// Retourne true si on utilise le fallback mémoire (pas de persistance).
+  /// Returns true if the in-memory fallback mechanism is being used (no persistence).
   bool get isUsingMemoryFallback => _usingMemoryFallback;
 
-  /// Chiffre une chaîne en AES-GCM. Retourne `iv_base64:ciphertext_base64`.
+  /// Encrypt a string using AES-GCM. Returns a string in the format `iv_base64:ciphertext_base64`.
   String encrypt(String plainText) {
     if (plainText.isEmpty) {
       return '';
@@ -101,7 +101,7 @@ class EncryptionService {
     }
   }
 
-  /// Déchiffre une chaîne format `iv_base64:ciphertext_base64`.
+  /// Decode a string in the format `iv_base64:ciphertext_base64`.
   String? decrypt(String? cipherText) {
     if (cipherText == null || cipherText.isEmpty) return null;
 
@@ -112,12 +112,12 @@ class EncryptionService {
       final encrypter = Encrypter(AES(key, mode: AESMode.gcm));
       return encrypter.decrypt(parsed.encrypted, iv: parsed.iv);
     } catch (_) {
-      // Échec silencieux pour éviter les fuites d'information (timing attacks)
+      // Silent failure to prevent information leaks (timing attacks).
       return null;
     }
   }
 
-  /// Vérifie si une valeur est chiffrée (format attendu).
+  /// Check if a value is encoded (in the expected format).
   bool isEncrypted(String? value) {
     if (value == null || value.isEmpty) {
       return false;
@@ -140,16 +140,16 @@ class EncryptionService {
     }
   }
 
-  /// Réinitialise la clé maître (pour changement de mot de passe / reset sécurité).
+  /// Reset the master key (for password change / security reset).
   Future<void> rotateKey() async {
     if (!_usingMemoryFallback) {
       await _secureStorage.delete(key: _masterKeyName);
     }
     _cachedKey = null;
-    await initialize(); // Génère une nouvelle clé
+    await initialize();     // Generate a new key.
   }
 
-  /// Supprime complètement la clé maître (logout / désinstallation sécurisée).
+  /// Completely remove the master key (logout / secure uninstallation).
   Future<void> destroyKey() async {
     if (!_usingMemoryFallback) {
       await _secureStorage.delete(key: _masterKeyName);

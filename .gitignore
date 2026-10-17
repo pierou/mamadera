@@ -58,3 +58,4 @@ app.*.map.json
 .agents/agents/beast.agent.md
 .gitignore
 .agents/agents/Plan.agent.md
+.fr2en/

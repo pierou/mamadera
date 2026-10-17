@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../domain/entities/reminder_frequency.dart';
 
-/// Libellé de rythme, pour la liste des préréglages comme pour les tuiles des
-/// rappels personnalisés.
+/// Rhythm label, for both the preset list and the grid tiles.
+/// Personalized reminders.
 ///
-/// Un seul endroit : un préréglage et un rappel personnalisé doivent se décrire
-/// avec les mêmes mots, sinon le même rythme s'affiche « Tous les 30 jours »
-/// d'un côté et « Toutes les 4 semaines » de l'autre.
+/// A single location: a preset and a personalized reminder must be described.
+/// Using the same words, or at least the same phrasing, it displays "Every 30 days."
+/// on one side and "Every 4 weeks" on the other.
 String reminderFrequencyLabel(
   BuildContext context,
   ReminderFrequency frequency,

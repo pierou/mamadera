@@ -5,8 +5,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/data/local/app_db.dart';
 
-/// Coquille [GeneratedDatabase] vide : du SQL brut sur un fichier, sans aucune
-/// table définie par drift. Même forme que `migration_v10_to_v11_test.dart`.
+/// Empty [GeneratedDatabase] shell: raw SQL code written to a file, without any...
+/// Table defined by the drift framework. It has the same structure as `migration_v10_to_v11_test.dart`.
 class _RawSqlDatabase extends GeneratedDatabase {
   _RawSqlDatabase(super.e);
 
@@ -17,33 +17,33 @@ class _RawSqlDatabase extends GeneratedDatabase {
   int get schemaVersion => 10;
 }
 
-/// Structure d'une table, réduite à ce qui doit coïncider entre deux bases :
-/// colonnes (nom, type, NOT NULL, clé primaire) et index.
+/// Structure of a table, reduced to the elements that must be consistent between two databases:
+/// columns (name, type, NOT NULL, primary key) and indexes.
 typedef _TableStructure = ({
   List<String> columns,
   List<String> indexes,
 });
 
-/// Fraîche ou migrée, la base doit avoir **la même structure**.
+/// Whether fresh or frozen, the base must have **the same structure**.
 ///
-/// Pourquoi ce fichier existe : ce dépôt a déjà livré deux écarts du même
-/// genre — `reminder_settings` déclarée puis jamais créée par `onUpgrade`
-/// (corrigée en v8), et les index v11 créés dans la migration mais absents de
-/// `onCreate`, donc introuvables sur une installation neuve. Aucun test de
-/// migration ne peut voir le second : il ne compare qu'une base migrée à elle-
-/// même. Le seul test qui le voit est celui qui compare une base neuve à une
-/// base montée — c'est ce fichier.
+/// Why this file exists: This repository has already delivered two versions that are identical.
+/// type — `reminder_settings` declared but never created by `onUpgrade`.
+/// (corrected in version 8), and the v11 indexes that were created during the migration but are missing from...
+/// `onCreate`, which are therefore unavailable on a fresh installation. No tests were performed.
+/// The migration process can only view the second [database]; it only compares a migrated database to itself.
+/// the same. The only test that detects this is one that compares a new base to a...
+/// The base is built upon this file.
 ///
-/// La comparaison porte sur la structure effective, pas sur le texte SQL :
-/// `BOOLEAN DEFAULT 1 NOT NULL` et `BOOLEAN NOT NULL DEFAULT 1` sont la même
-/// table, et coller au format de drift rendrait le test fragile sans le
+/// The comparison focuses on the actual structure, not the SQL text itself.
+/// `BOOLEAN DEFAULT 1 NOT NULL` and `BOOLEAN NOT NULL DEFAULT 1` are the same.
+/// table, and pasting it in a "drift" format would make the test unreliable without it.
 /// rendre plus vrai.
-/// Tables que v11 crée ou reconstruit — le périmètre où `onCreate` et
-/// `onUpgrade` doivent produire la même chose.
+/// Tables that v11 creates or rebuilds – the scope within which `onCreate` and...
+/// The `onUpgrade` function should produce the same result.
 ///
 /// `baby_profiles` et `tracking_events` en sont volontairement absentes : v11
-/// ne les touche pas, et les comparer ferait remonter des écarts de typage
-/// drift (`INTEGER`) / seed (`TIMESTAMP`) antérieurs à cette release, qui
+/// Do not modify them, and comparing them would reveal discrepancies in their formatting.
+/// `drift` (`INTEGER`) and `seed` (`TIMESTAMP`) values that existed before this release, which...
 /// noieraient le signal.
 const List<String> _v11Tables = [
   'custom_reminders',
@@ -58,10 +58,10 @@ void main() {
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('mamadera_schema_parity');
-    // Deux bases dans un même test, mais sur **deux fichiers distincts** :
-    // l'avertissement de drift vise deux bases sur le même executor, ce qui
-    // n'est pas ce cas. Sans ce drapeau, chaque test noie son résultat sous
-    // une stack trace de dix lignes.
+    // Two datasets within the same test, but located in **two separate files**:
+    // The drift warning applies to two bases running on the same executor, which...
+    // This is not the case. Without this flag, each test buries its result under...
+    // a ten-line stack trace.
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   });
 
@@ -69,8 +69,8 @@ void main() {
     await tempDir.delete(recursive: true);
   });
 
-  /// Index d'une table : nom + colonnes, trié (l'ordre de création n'a pas de
-  /// sens, le contenu en a un).
+  /// Index of a table: name + columns, sorted (the order of creation is not relevant).
+  /// meaning, and the content itself has one).
   Future<List<String>> indexesOf(GeneratedDatabase db, String table) async {
     final rows = await db.customSelect('PRAGMA index_list("$table")').get();
     final indexes = <String>[];
@@ -88,7 +88,7 @@ void main() {
     return indexes..sort();
   }
 
-  /// Structure effective de toutes les tables d'une base ouverte.
+  /// Effective structure for all tables within an open database.
   Future<Map<String, _TableStructure>> structureOf(GeneratedDatabase db) async {
     final names = (await db.customSelect(
       "SELECT name FROM sqlite_master WHERE type = 'table' "
@@ -119,18 +119,18 @@ void main() {
     return result;
   }
 
-  /// Index d'une table : nom + colonnes, trié (l'ordre de création n'a pas de
-  /// sens, le contenu en a un).
+  /// Index of a table: name + columns, sorted (the order of creation is not relevant).
+  /// meaning, and the content itself has one).
 
   Future<AppDatabase> freshDatabase() async {
     final file = File('${tempDir.path}/fresh.db');
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(file)));
-    await db.customSelect('SELECT 1').get(); // déclenche onCreate
+    await db.customSelect('SELECT 1').get();     // triggers onCreate.
     return db;
   }
 
-  /// Base v10 physique (le schéma tel que `schema.sql` le décrivait à v10),
-  /// ouverte par la migration réelle jusqu'à v11.
+  /// Physical base v10 (the schema as described by `schema.sql` in version 10),
+  /// Available through real-time migration up to version 11.
   Future<AppDatabase> migratedDatabase() async {
     final file = File('${tempDir.path}/migrated.db');
     final raw = _RawSqlDatabase(NativeDatabase(file));
@@ -176,7 +176,7 @@ void main() {
     await raw.close();
 
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(file)));
-    await db.customSelect('SELECT 1').get(); // déclenche onUpgrade
+    await db.customSelect('SELECT 1').get();     // triggers the onUpgrade event.
     return db;
   }
 
@@ -233,8 +233,8 @@ void main() {
       );
     }
 
-    // Verrou explicite du défaut corrigé : les deux index v11 doivent être
-    // là des deux côtés, pas seulement documentés dans schema.sql.
+    // Explicit check for the corrected defect: both v11 indexes must be...
+    // On both sides, not just documented in the schema.sql file.
     for (final indexes in [
       freshSchema['measurements']!.indexes,
       migratedSchema['measurements']!.indexes,
@@ -258,18 +258,18 @@ void main() {
   });
 }
 
-/// Affinité de stockage SQLite, et non le nom déclaré : `TIMESTAMP` (le nom
-/// que portaient ces colonnes dans le seed v10) et `INTEGER` (ce que drift
-/// déclare) **sont la même colonne** — SQLite range un entier exact de la même
-/// façon dans les deux, et c'est le comportement qu'on veut identique.
-/// Comparer les noms ferait échouer le test sur un détail de grammaire, ce qui
-/// est exactement le genre d'alarme qui fait cesser de lire les alarmes.
+/// SQLite storage affinity, not the declared name: `TIMESTAMP` (the name).
+/// that these columns in the seed v10) and `INTEGER` (which is what drift.
+/// declares) **are the same column** — SQLite stores an exact integer of the same...
+/// The approach is the same in both cases, and that's the behavior we want to be consistent.
+/// Comparing the names would cause the test to fail on a minor grammatical detail, which...
+/// It's exactly the kind of alarm that makes people stop paying attention to alarms.
 String _affinityOf(String declaredType) {
   final t = declaredType.toUpperCase();
-  // INT et NUMERIC comptent comme la même chose : drift écrit un entier dans
-  // `recorded_at`/`dismissed_at`, et une colonne héritée déclarée `TIMESTAMP`
-  // a l'affinité NUMERIC et range ce même entier. Seul un TEXT coincé entre
-  // les deux serait un vrai défaut.
+  // In this context, "INT" and "NUMERIC" are treated as equivalent: the "drift" function writes an integer value.
+  // `recorded_at`/`dismissed_at`, and a declared `TIMESTAMP` column inherited from another table.
+  // It has a NUMERIC affinity and stores the same integer value. Only a TEXT string can be placed between them.
+  // Having both would be a real flaw.
   if (t.contains('INT') || t == 'NUMERIC') return 'NUMBER';
   if (t.contains('CHAR') || t.contains('CLOB') || t.contains('TEXT')) {
     return 'TEXT';
@@ -281,9 +281,9 @@ String _affinityOf(String declaredType) {
   return 'NUMBER';
 }
 
-/// Default normalisé : `''` et `<absent>` comptent comme la même chose — pas
-/// de default est le default SQL, qui est NULL, et c'est `NOT NULL` qui porte
-/// la contrainte ici. Les guillemets et espaces de syntaxe n'ont pas de sens.
+/// Default normalization: `''` and `<absent>` are treated as the same thing – not.
+/// By default, the default value for SQL is NULL, and it is the `NOT NULL` constraint that enforces this.
+/// The constraint here is that quotation marks and syntax spaces are meaningless.
 String _normaliseDefault(Object? raw) {
   if (raw == null) return '';
   return raw.toString().replaceAll(RegExp(r"[\s']"), '').toUpperCase();

@@ -23,7 +23,7 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
 
   /// Intervalle entre deux sondages de rappels dus.
   ///
-  /// Injectable pour les tests (un intervalle court) ; la production garde
+  /// Injectable for testing purposes (over a short period); the production run continues.
   /// cinq minutes.
   final Duration pollInterval;
 
@@ -42,15 +42,15 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
     // Clean up timer when the provider is disposed (no watchers).
     ref.onDispose(_stopPolling);
 
-    // Dépendance réactive sur le service : quand la chaîne réglages →
-    // rappels activés → service se cale (toggle dans Réglages, création
-    // d'un rappel custom, reset), ce provider se ré-évalue de lui-même
-    // avec le service reconstruit, et l'accueil reçoit le nouvel état sans
-    // attendre le sondage de cinq minutes. Ne plus appuyer sur une
-    // invalidation en une fois du côté des écrans : pendant une
-    // reconstruction concurrente, la lecture transitoire du service
-    // autoDispose pouvait livrer l'ancienne liste et la pastille éteinte
-    // survivait (item 5 du plan).
+    // Reactive dependence on the service: when the settings chain →
+    // activated reminders → service adjusts (toggle in Settings, creation).
+    // Through a custom "recall" or "reset" process, this provider re-evaluates itself.
+    // With the rebuilt service, and the reception area receives the new configuration without...
+    // Wait for the five-minute scan to complete. Do not press any buttons.
+    // simultaneous deactivation on the display side: during a...
+    // concurrent reconstruction, transient service reading.
+    // `autoDispose` could deliver the old list and turn off the indicator.
+    // survived (item 5 of the plan).
     await ref.watch(remindersServiceProvider.future);
 
     return _checkDue();
@@ -82,13 +82,13 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
     if (!ref.mounted) return {};
     final repository = await ref.read(remindersRepositoryProvider.future);
     if (!ref.mounted) return {};
-    // Active baby, null pendant le chargement transitoire ou sur une
-    // installation sans profil. Lecture de `.value` (pas d'attente) : un
-    // basculement met le provider en AsyncLoading, `null` lit alors sous le
-    // portage sans profil — sans fuite possible (les lignes `''` ne
-    // contiennent que de l'état sans profil) — et build() watche le même
-    // provider, donc la résolution relance cette méthode scopée au bébé
-    // entrant. Les écritures ([markDone], [snooze]), elles, attendent.
+    // Active baby, inactive during the transient charging phase or when [something] is active.
+    // Profile-less installation. Reading `.value` (no waiting): one.
+    // The switch triggers an asynchronous loading state for the provider, and `null` is then read from it.
+    // porting without a profile – no possibility of leakage (the characters `''` `''`` are not...).
+    // They only contain the base state (without any specific profile), and the `build()` function monitors the same.
+    // provider, therefore, the resolution is reviving this method specifically designed for babies.
+    // The incoming item is being processed. The actions ([markDone], [snooze]) are pending.
     final babyId = ref.read(activeBabyProvider).value?.id;
     final result = await service.checkDue(babyId: babyId);
 
@@ -101,9 +101,9 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
           babyId: babyId,
         );
         if (!ref.mounted) return {};
-        // Un rappel détaché n'est loggé que dans le journal manuel
-        // (reminder_completions) : sans ce repli, « dernière fois » dirait
-        // « jamais fait » juste après un tap « fait ».
+        // A detached reminder is only logged in the manual log.
+        // (reminder_completions): Without this retreat, it would be like saying "last time."
+        // "Never done" immediately after a tap that says "done."
         if (lastEventAt == null &&
             status.item.completionSource == completionManual) {
           lastEventAt = await repository.getLastManualCompletion(
@@ -140,18 +140,18 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
     if (ref.mounted) state = result;
   }
 
-  /// Fait (D1) : l'action de la ligne pour un rappel détaché — le seul moyen
-  /// de le régler. Écrit le journal manuel scopé au bébé actif, puis
-  /// ré-évalue localement pour que la ligne parte sans attendre le sondage
-  /// de cinq minutes. Pour un rappel lié à un soin, l'événement du soin le
-  /// règle (invariant D2) : le bouton ne fabrique pas de journal manuel —
-  /// il se contente de ré-évaluer.
+  /// Fact (D1): The action of the line for a detached recall – the only way.
+  /// of settling it. Writes the manual journal scoped to the active baby, then
+  /// Re-evaluate locally to ensure the line can be laid without waiting for the survey to be completed.
+  /// of five minutes. For a reminder related to a treatment, the treatment event itself...
+  /// Rule (D2 invariant): The button does not create a manual log.
+  /// It simply involves reassessing the situation.
   Future<void> markDone(ReminderItem item) async {
     if (item.completionSource == completionManual) {
-      // Résolution attendue, pas `.value` : un tap pendant le basculement de
-      // profil écrirait le journal sous `''` au lieu du bébé actif — et avec
-      // le partage v10, cette ligne `''` se lisait ensuite pour **tous** les
-      // bébés.
+      // Expected resolution, not `.value`: a delay during the transition.
+      // The profile would write the journal entry using single quotes (`''`) instead of the active "baby" format, and with...
+      // In version 10, that line `''` would then be visible to **everyone**.
+      // babies.
       final profile = await ref.read(activeBabyProvider.future);
       if (!ref.mounted) return;
       final repository = await ref.read(remindersRepositoryProvider.future);
@@ -160,12 +160,12 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
     await refresh();
   }
 
-  /// Ignorer (D3) : supprime le rappel du champ du parent pour la fenêtre du
-  /// service (24 h par défaut), scopée au bébé actif, puis ré-évalue
-  /// localement. Un ignoré par un autre bébé ne se voit jamais.
+  /// Ignore (D3): This option removes the parent field's reminder from the window.
+  /// (Default service: 24 hours), initially focused on active infants, then reassessed.
+  /// locally. One baby never notices another baby being ignored.
   Future<void> snooze(ReminderItem item) async {
-    // Idem [markDone] : l'ignoré se pose sous le portage du bébé résolu, jamais
-    // sous `''` à cause d'une lecture transitoire.
+    // [markDone]: The unresolved issue remains, overshadowed by the resolved issue of the baby's care; it will never be addressed.
+    // under `''` due to a temporary reading.
     final profile = await ref.read(activeBabyProvider.future);
     if (!ref.mounted) return;
     final repository = await ref.read(remindersRepositoryProvider.future);

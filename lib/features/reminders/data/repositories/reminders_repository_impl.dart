@@ -18,29 +18,29 @@ class RemindersRepositoryImpl implements RemindersRepository {
   final db_app.AppDatabase database;
   static final Logger _logger = appLogger();
 
-  /// Portage effectif des écritures : le bébé demandé, sinon la sentinelle de
-  /// l'état sans profil — c'est ici, à la frontière, que `null` devient `''` ;
-  /// les requêtes d'en-dessous ne voient plus que des bébés concrets.
+  /// Effective transfer of records: the requested baby, or otherwise, the security guard.
+  /// The `null` state – it is here, at the boundary, that "null" becomes an empty string.
+  /// The requests from lower levels only see concrete, tangible results.
   String _scope(String? babyId) => babyId ?? db_const.sharedBabyId;
 
-  /// Portage visible pour une lecture : **la ligne du bébé, rien d'autre**.
+  /// Visible babywearing for easy reading: **just the baby, nothing else.**
   ///
-  /// La sentinelle `''` est le portage de l'installation **sans profil** et ne
-  /// s'applique à aucun bébé réel : l'appliquer à tous (héritage v10) faisait
-  /// fuiter l'extinction, l'ignoré et le réglage manuel d'un bébé sur le
-  /// suivant, y compris un bébé créé après coup, qui héritait d'un état écrit
-  /// avant son existence. Un bébé nouveau part des défauts.
+  /// "Sentinel" refers to the process of installing the software without a profile, and it does not...
+  /// This applies to no real babies; applying it to all (legacy v10) used to.
+  /// leak the extinction, ignore, and manual adjustment of a baby's settings on the...
+  /// following, including a baby born later, who would inherit a predetermined condition.
+  /// Before its existence, there were flaws. A newborn baby starts with imperfections.
   List<String> _visibleScopes(String? babyId) =>
       babyId == null ? const [db_const.sharedBabyId] : [babyId];
 
   @override
   Future<DateTime?> getLastCompleted(ReminderItem item, {String? babyId}) async {
     try {
-      // Invariant D2 : un item sans [ReminderItem.subtypeValue] est détaché
-      // d'un soin — aucun événement ne peut le régler, même un `sante` du bon
-      // type. Sa complétion n'arrive que par [getLastManualCompletion].
-      // (Le vieil `Constant(true)` de repli matcherait n'importe quel
-      // événement de santé et réglerait ce rappel à la première prise de
+      // Invariant D2: An item without a [ReminderItem.subtypeValue] is considered detached.
+      // of a delicate nature — no event can resolve it, not even a perfectly executed `sante`."
+      // type. Its completion is only achieved through [getLastManualCompletion].
+      // (The old `Constant(true)` fallback matcher would match anything.)
+      // health event and would address this recall at the initial consultation.
       // poids venue.)
       final subtypeValue = item.subtypeValue;
       if (subtypeValue == null) return null;
@@ -50,8 +50,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
 
       // Get most recent event — no date restriction, returns last completed ever.
       // Scoped to the active baby when one is known (see interface dartdoc).
-      // L'état sans profil ne lit que les événements posés **sans** profil
-      // (`baby_id IS NULL`) : un événement d'un bébé ne règle plus le rappel
+      // The stateless profile only reads events that are posted **without** a profile.
+      // (`baby_id IS NULL`): An event related to a baby no longer triggers the recall.
       // de l'autre.
       final q = (database.select(database.trackingEvents)
         ..where((t) {
@@ -83,9 +83,9 @@ class RemindersRepositoryImpl implements RemindersRepository {
   @override
   Future<DateTime?> getLastManualCompletion(String itemId, {String? babyId}) async {
     try {
-      // Journal append-only : la lecture est la plus récente ligne du portage
-      // du bébé — rien d'autre, la ligne `''` étant celle de l'état sans
-      // profil (même forme que [getLastCompleted] côté événements).
+      // Append-only journal: reading always displays the most recent entry.
+      // of the baby — nothing else, the `''` character represents the state without...
+      // profile (same format as [getLastCompleted] for events).
       final scopes = _visibleScopes(babyId);
       final q = database.select(database.reminderCompletions)
         ..where((t) => t.itemId.equals(itemId) & t.babyId.isIn(scopes))
@@ -108,7 +108,7 @@ class RemindersRepositoryImpl implements RemindersRepository {
   @override
   Future<DateTime?> getLastDismissal(String itemId, {String? babyId}) async {
     try {
-      // Une seule ligne par portage : la plus récente du portage du bébé.
+      // Only one line per carrier: the most recent baby carrier.
       final scopes = _visibleScopes(babyId);
       final q = database.select(database.reminderDismissals)
         ..where((t) => t.itemId.equals(itemId) & t.babyId.isIn(scopes))
@@ -155,10 +155,10 @@ class RemindersRepositoryImpl implements RemindersRepository {
       final scope = _scope(babyId);
       final dismissedAt = at ?? DateTime.now();
 
-      // Upsert (baby_id, item_id) dans une transaction : une coupure entre la
-      // suppression et l'insertion laisserait le rappel « jamais ignoré »
+      // Upsert (baby_id, item_id) within a transaction: a disconnection between the...
+      // The deletion and insertion would ensure that the recall is "never overlooked."
       // pendant un instant, et l'index composite exigerait un aller-retour de
-      // plus pour le constater.
+      // to be able to observe it.
       await database.transaction(() async {
         await (database.delete(database.reminderDismissals)
               ..where((t) => t.babyId.equals(scope) & t.itemId.equals(itemId)))
@@ -189,9 +189,9 @@ class RemindersRepositoryImpl implements RemindersRepository {
       final rows = await (database.select(database.reminderSettings)
             ..where((t) => t.babyId.isIn(scopes)))
           .get();
-      // Une table vide est le cas normal (personne n'a encore rien décoché) :
-      // ce n'est pas une erreur, et l'appelant interprète l'absence comme « activé ».
-      // Une seule ligne par portage, plus aucun écrasement à fusionner.
+      // An empty table is the normal state (no one has selected anything yet):
+      // It's not a mistake, and the caller interprets the lack of a response as "activated."
+      // Only one line per transfer, eliminating any need for merging or resolving conflicts.
       return {for (final row in rows) row.itemId: row.enabled};
     } catch (e, stack) {
       _logger.e(
@@ -209,10 +209,10 @@ class RemindersRepositoryImpl implements RemindersRepository {
       final scope = _scope(babyId);
       _logger.d('setEnabled($itemId, $enabled, $scope)');
 
-      // Transaction : le upsert (baby_id, item_id) doit être atomique, sinon
-      // une coupure entre la suppression et l'insertion laisserait le rappel
-      // « activé par défaut » — et le choix du parent se perdrait à chaque
-      // basculement de bébé.
+      // Transaction: The upsert operation (baby_id, item_id) must be atomic; otherwise...
+      // A break between the deletion and insertion would leave the recall incomplete.
+      // "Enabled by default" - and the parent's choice would be lost each time.
+      // baby rollover.
       await database.transaction(() async {
         await (database.delete(database.reminderSettings)
               ..where((t) => t.babyId.equals(scope) & t.itemId.equals(itemId)))
@@ -235,32 +235,32 @@ class RemindersRepositoryImpl implements RemindersRepository {
     }
   }
 
-  // ── Rappels personnalisés ──────────────────────────────────────────
+  // ── Personalized Reminders ──────────────────────────────────────────
 
-  /// Codes écrits dans `custom_reminders.frequency`.
+  /// Codes written in the `custom_reminders.frequency` field.
   ///
-  /// Définis dans `db_constants.dart` : les renommer changerait de sens chaque
-  /// installation existante, et l'importateur de sauvegarde doit valider ces
-  /// mêmes codes sans dépendre de cette classe. `every_n_days` est écrit en
-  /// toutes lettres parce que la colonne se relit telle quelle dans un JSON de
+  /// Defined in `db_constants.dart`: renaming them would change their meaning.
+  /// existing installation, and the importer of record must verify these.
+  /// The same codes can be used without relying on that class. The `every_n_days` function is written in...
+  /// all letters because the column is read exactly as is within a JSON structure.
   /// sauvegarde.
   static const String _freqDaily = db_const.freqDaily;
   static const String _freqWeekly = db_const.freqWeekly;
   static const String _freqMonthly = db_const.freqMonthly;
   static const String _freqEveryNDays = db_const.freqEveryNDays;
 
-  /// Longueur maximale du libellé : `withLength(max: 60)` de la table, alignée
-  /// sur le `maxLength` du formulaire.
+  /// Maximum label length: `withLength(max: 60)` for the table, aligned.
+  /// regarding the `maxLength` setting of the form.
   static const int _maxLabelLength = 60;
 
-  /// Jour de semaine écrit pour un rythme hebdomadaire.
+  /// Weekday schedule, designed for a weekly routine.
   ///
-  /// `isDue` ne s'en sert jamais (achever un rappel hebdo le
-  /// fait attendre à la semaine ISO suivante, quel que soit le jour) : on
-  /// enregistre lundi pour que la ligne reste lisible à la main.
+  /// `isDue` is never used (to complete a weekly reminder).
+  /// (postponed to the following ISO week, regardless of the day): we will.
+  /// Record it on Monday so that the line remains legible when written by hand.
   static const int _weeklyStoredDayOfWeek = 1;
 
-  /// Roulement appliqué à une valeur `interval_days` illisible.
+  /// Invalid value for `interval_days`: the value could not be read.
   static const int _defaultIntervalDays = 7;
 
   ({String code, int? intervalDays}) _encodeFrequency(
@@ -268,16 +268,16 @@ class RemindersRepositoryImpl implements RemindersRepository {
       frequency.map(
         daily: (_) => (code: _freqDaily, intervalDays: null),
         weekly: (_) => (code: _freqWeekly, intervalDays: null),
-        // Le jour du mois n'est pas stocké : c'est celui de naissance du bébé
-        // actif, relu à chaque construction de la liste — comme la vitamine K.
+        // The day of the month is not stored; instead, it represents the baby's date of birth.
+        // active, and reviewed each time the list is created – like vitamin K.
         monthly: (_) => (code: _freqMonthly, intervalDays: null),
         customInterval: (f) =>
             (code: _freqEveryNDays, intervalDays: f.days),
       );
 
-  /// Décodage tolérant : un code inconnu — JSON restauré à la main, version
-  /// future du format — devient un rappel **quotidien** plutôt que de
-  /// disparaître. Un rappel qu'on ne voit plus ne peut plus être corrigé.
+  /// Tolerant decoding: an unknown code — manually restored JSON, version.
+  /// the future of the format – it's becoming a **daily** reminder rather than...
+  /// to disappear. A reminder that once something is gone, it can no longer be corrected.
   ReminderFrequency _decodeFrequency(String code, int? intervalDays) {
     if (code == _freqWeekly) {
       return const ReminderFrequency.weekly(
@@ -290,7 +290,7 @@ class RemindersRepositoryImpl implements RemindersRepository {
       );
     }
     if (code == _freqEveryNDays) {
-      // Une valeur négative ou nulle rendrait le rappel dû en permanence.
+      // A negative or zero value would result in a perpetual outstanding balance.
       final days = intervalDays == null || intervalDays < 1
           ? _defaultIntervalDays
           : intervalDays;
@@ -303,22 +303,22 @@ class RemindersRepositoryImpl implements RemindersRepository {
         id: row.id,
         label: row.label,
         subtypeValue: row.subtypeValue,
-        // Lu en retour tel quel : la colonne est la source de vérité de qui
-        // règle le rappel, jamais un défaut recalculé ici.
+        // As it was originally written: "This column is the definitive source of information about who [or what] it concerns."
+        // The recall setting is adjusted, and there are never any recalculated defects here.
         completionSource: row.completionSource,
         frequency: _decodeFrequency(row.frequency, row.intervalDays),
       );
 
-  /// Le libellé est la seule saisie libre de ce chemin : nettoyé, contrôlé, et
-  /// jamais écrit dans un log — c'est du texte de parent, pas une clé.
+  /// The label is the only free-text field on this page: it has been cleaned, verified, and...
+  /// It's never written in a log – it's parent text, not a key.
   String _validatedLabel(String raw) {
     final label = raw.trim();
     if (label.isEmpty) {
       throw ArgumentError.value(raw, 'label', 'Un rappel doit avoir un nom.');
     }
     if (label.length > _maxLabelLength) {
-      // La longueur, jamais le texte : cette exception est remontée puis écrite
-      // par le `catch` du dessus, et un nom de rappel est du texte de parent.
+      // The length, not the text itself: this exception was noted and then recorded.
+      // It uses a `catch` element at the top, and a reminder name is taken from the parent text.
       throw ArgumentError.value(
         label.length,
         'label',
@@ -331,9 +331,9 @@ class RemindersRepositoryImpl implements RemindersRepository {
   @override
   Future<List<CustomReminder>> getCustomReminders({String? babyId}) async {
     try {
-      // Le rappel est porté par la ligne : créé pour un bébé, il ne sonne que
-      // pour lui. Le portage `''` (installation sans profil) ne sonne plus
-      // que sans profil.
+      // The key feature is this: designed for a baby, it only makes a sound when...
+      // for him. The "porting" (installation without a profile) method no longer works.
+      // without a profile.
       final scopes = _visibleScopes(babyId);
       final rows = await (database.select(database.customReminders)
             ..where((t) => t.babyId.isIn(scopes))
@@ -361,9 +361,9 @@ class RemindersRepositoryImpl implements RemindersRepository {
         db_app.CustomRemindersCompanion.insert(
           label: _validatedLabel(reminder.label),
           subtypeValue: Value(reminder.subtypeValue),
-          // L'invariant est posé ici, à la frontière d'écriture : un rappel sans
-          // soin ne peut pas rester déduit des événements, il serait dû sur le
-          // premier événement de santé venu.
+          // The core principle, established here at the very beginning of the writing process, is a reminder without...
+          // The care cannot be excluded from the events; it should be included in the calculation.
+          // The first health event that came to mind.
           completionSource: Value(
             reminder.subtypeValue == null
                 ? db_const.completionManual
@@ -391,16 +391,16 @@ class RemindersRepositoryImpl implements RemindersRepository {
     try {
       final id = reminder.id;
       if (id == null) {
-        // Aucune valeur : `reminder.toString()` contient le libellé du parent, et
-        // cette exception part dans le log du `catch` en dessous.
+        // Value: `reminder.toString()` contains the label of the parent, and...
+        // This exception is logged in the `catch` block below.
         throw ArgumentError(
           'Un rappel à mettre à jour doit avoir un identifiant.',
         );
       }
       final (code: code, intervalDays: intervalDays) =
           _encodeFrequency(reminder.frequency);
-      // Le portage n'est pas réécrit : renommer ou changer le rythme d'un
-      // rappel ne change pas le bébé auquel il appartient.
+      // Carrying (or "slinging") isn't about rewriting the rules: it's about renaming or adjusting the pace of something.
+      // The recall does not change the baby to whom it belongs.
 
       final updated = await (database.update(database.customReminders)
             ..where((t) => t.id.equals(id)))
@@ -408,8 +408,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
         db_app.CustomRemindersCompanion(
           label: Value(_validatedLabel(reminder.label)),
           subtypeValue: Value(reminder.subtypeValue),
-          // Même invariant qu'à l'insertion : passer un rappel du détaché au lié
-          // (ou l'inverse) change qui décide qu'il est fait.
+          // The same principle applies as before: switch from a detached state to a linked state.
+          // (or vice versa) the change that determines when it is complete.
           completionSource: Value(
             reminder.subtypeValue == null
                 ? db_const.completionManual
@@ -436,16 +436,16 @@ class RemindersRepositoryImpl implements RemindersRepository {
       final itemKey =
           '${CustomReminderPresets.customIdPrefix}$id';
 
-      // Transaction : quatre tables sont touchées. Un rappel coupé en deux
-      // laisserait un réglage orphelin dans chaque sauvegarde, et c'est
-      // précisément ce que cette méthode doit empêcher.
+      // Transaction: Four hands are involved. One card has been cut in half.
+      // It would leave an orphaned setting in each backup, and that's...
+      // That is precisely what this method is designed to prevent.
       await database.transaction(() async {
         await (database.delete(database.customReminders)
               ..where((t) => t.id.equals(id)))
             .go();
-        // Le réglage, l'ignorer et les achèvements sont purgés **tous bébés** :
-        // la clé `custom_<id>` est unique avec la ligne, elle meurt avec elle, et
-        // une ligne orpheline sous un autre portage survivrait aux exports.
+        // The settings, ignoring them, and the final touches are all being handled by **all the babies**.
+        // The `custom_<id>` key is unique to each row; it is deleted when the row is deleted, and...
+        // A single, orphaned line of code, imported through a different mechanism, would survive the export process.
         await database.customStatement(
           'DELETE FROM reminder_settings WHERE item_id = ?',
           [itemKey],
@@ -454,9 +454,9 @@ class RemindersRepositoryImpl implements RemindersRepository {
           'DELETE FROM reminder_dismissals WHERE item_id = ?',
           [itemKey],
         );
-        // Un achèvement survivant serait exporté (la table part entière dans la
-        // sauvegarde, sans filtre), restauré, et pourrait régler un futur rappel
-        // reprenant cet id après une restauration.
+        // A surviving component would be exported (the entire table would be included in the...).
+        // backup (without filtering), restored, and may resolve a future recall.
+        // It was taken up again after being restored.
         await database.customStatement(
           'DELETE FROM reminder_completions WHERE item_id = ?',
           [itemKey],

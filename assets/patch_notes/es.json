@@ -100,6 +100,7 @@
       "- Reinicio de la cantidad a cero en cada cambio de unidad, anunciado con un mensaje visible",
       "- Bloqueo del registro de una medida fuera de rango, mostrando el rango esperado",
       "- Deslizador único en todas las fichas de registro, con botones +/- y campo de texto para fijar el valor exacto",
+      "- Supresión de la etiqueta « Última: » delante de la última medida: el valor se muestra directamente en la ficha de registro",
       "### Correcciones",
       "- Corrección de los minutos ausentes en las fechas en inglés (« 07:PM »)",
       "- Corrección de la unidad duplicada en la trayectoria de crecimiento (« 6,18 kg g »)",

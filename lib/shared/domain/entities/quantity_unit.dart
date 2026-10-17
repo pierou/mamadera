@@ -50,7 +50,7 @@ enum QuantityUnit {
 /// unit to backfill a pre-v12 row (or a format-1/2 backup) with.
 ///
 /// One rule for both, because both ask the same question: what did the parent
-/// see on screen? A parent who typed 20 at the breast was shown « 20 ml », so
+/// see on the screen? A parent who typed "20" while breastfeeding was shown "20 ml," so...
 /// the row means 20 ml. Converting a historical `natural` value to minutes
 /// would invent a measurement that was never taken, in an app whose promise is
 /// that the numbers it displays were entered. No arithmetic here, on purpose.

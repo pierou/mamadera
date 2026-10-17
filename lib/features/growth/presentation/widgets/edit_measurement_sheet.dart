@@ -8,39 +8,39 @@ import '../../domain/entities/growth_measurement.dart';
 import '../../domain/entities/measure_kind.dart';
 import 'measure_kind_accent.dart';
 
-/// Résultat de la feuille d'édition d'une mesure, lu par l'historique.
+/// Result displayed from the editing sheet of a measurement, as viewed in the history.
 sealed class MeasurementEditResult {
   const MeasurementEditResult();
 }
 
-/// La mesure a été corrigée (valeur, date, note).
+/// The measurement has been corrected (value, date, and/or note).
 final class MeasurementUpdated extends MeasurementEditResult {
   const MeasurementUpdated(this.measurement);
 
-  /// La mesure corrigée, son id d'origine inclus.
+  /// The corrected measurement, including its original ID.
   final GrowthMeasurement measurement;
 }
 
-/// La mesure a été supprimée.
+/// The measure has been removed.
 final class MeasurementDeleted extends MeasurementEditResult {
   const MeasurementDeleted(this.id);
 
   final int id;
 }
 
-/// Feuille d'édition d'une mesure de croissance : on corrige la valeur, la
-/// date ou la note d'une ligne existante — on n'en crée pas une autre — ou
+/// Growth measure editing sheet: here, you can correct the value and...
+/// either the date or the note of an existing line (we don't create a new one), or...
 /// on la supprime.
 ///
-/// Le kind, l'unité et le bébé ne bougent jamais : c'est la même ligne qui
-/// est corrigée. Une saisie hors plage suit la règle B5 — le nombre reste
-/// affiché, l'erreur apparaît, Enregistrer se désactive, jamais de clamp.
+/// The "kind," "unit," and "baby" never move; they always stay on the same line.
+/// is corrected. An out-of-range input follows rule B5 – the number remains.
+/// Displayed, the error appears, "Save" is disabled, and there is no clamping.
 class EditMeasurementSheet extends StatefulWidget {
   const EditMeasurementSheet({required this.measurement, super.key});
 
   final GrowthMeasurement measurement;
 
-  /// Ouvre la feuille et renvoie le résultat (`null` si annulée).
+  /// Opens the sheet and returns the result (`null` if canceled).
   static Future<MeasurementEditResult?> show(
     BuildContext context, {
     required GrowthMeasurement measurement,
@@ -66,10 +66,10 @@ class _EditMeasurementSheetState extends State<EditMeasurementSheet> {
   @override
   void initState() {
     super.initState();
-    // La valeur affichée : celle de la ligne, ou la référence du type si le
-    // chiffre est illisible (édition de l'en-tête dans ce cas). Le champ est
-    // pré-rempli — c'est **l'édition** d'une mesure prise, pas la saisie d'une
-    // nouvelle : la feuille de saisie, elle, démarre vide.
+    // The displayed value: either the value of the item, or the reference number of the type, if applicable.
+    // The number is illegible (header editing is required in this case). The field is...
+    // pre-filled – this refers to the **version** of a measure that has been taken, not the process of entering data.
+    // News: The data entry form, on the other hand, starts empty.
     _value = widget.measurement.value ?? widget.measurement.kind.defaultValue;
     _inRange = widget.measurement.kind.contains(_value);
     _selectedDate = widget.measurement.recordedAt;
@@ -118,9 +118,9 @@ class _EditMeasurementSheetState extends State<EditMeasurementSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom + AppTheme.spacingMd,
       ),
       child: SingleChildScrollView(
-        // Comme la feuille de saisie : si la feuille dépasse l'écran (petit
-        // téléphone, clavier ouvert), elle défile au lieu de couper — le bouton
-        // d'enregistrement et celui de suppression doivent rester atteignables.
+        // Like the input form: if the form extends beyond the screen (small).
+        // (phone, keyboard open), instead of cutting off, it keeps scrolling — the button.
+        // The recording and deletion processes must remain accessible.
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -164,10 +164,10 @@ class _EditMeasurementSheetState extends State<EditMeasurementSheet> {
             ),
             if (!_inRange) ...[
               const SizedBox(height: 8),
-              // `formatBound` : les bornes sont des entiers par construction, et la
-              // feuille de saisie dit déjà « entre 200 et 20000 g ». Passer les
-              // `double` bruts faisait « entre 200.0 et 20000.0 g » — deux phrases
-              // pour la même erreur, avec des chiffres formatés différemment.
+              // `formatBound`: The boundaries are integers by default, and...
+              // The seizure warrant already states "between 200 and 20,000 grams." Let's proceed.
+              // The "raw" values for `double` ranged from "200.0 to 20000.0 g" – two sentences.
+              // For the same error, but with the numbers formatted differently.
               Text(
                 l.growthValueOutOfRange(
                   kind.formatBound(kind.min),
@@ -209,10 +209,10 @@ class _EditMeasurementSheetState extends State<EditMeasurementSheet> {
                     foregroundColor: Theme.of(context).colorScheme.error,
                   ),
                 ),
-                // `Expanded` + ellipse : sur un écran de 412 dp, les deux
-                // libellés à leur taille naturelle débordaient de 6 px — un
-                // bouton à moitié hors de l'écran n'est pas un bouton. L'action
-                // principale prend le reste de la place, le libellé s'éclipse
+                // `Expanded` + ellipse: on a 412 dp screen, the two...
+                // The labels, at their natural size, extended 6 pixels beyond the edge – a...
+                // A button that is only partially visible on the screen is not a button. The action...
+                // The main text takes up the majority of the space, while the label fades into the background.
                 // avant qu'elle disparaisse.
                 const SizedBox(width: AppTheme.spacingSm),
                 Expanded(

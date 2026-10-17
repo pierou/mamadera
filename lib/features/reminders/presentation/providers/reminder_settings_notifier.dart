@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/active_baby_provider.dart';
 import 'reminder_providers.dart';
 
-/// État activé/désactivé des rappels préréglés, sous la forme `item_id → activé`.
+/// Status (enabled/disabled) of the preset reminders, in the format `item_id → enabled`.
 ///
-/// Une clé absente signifie « jamais touché », donc **activé** : l'extinction est
-/// une option de retrait, pas une adhésion. Un parent qui n'ouvre jamais cet
-/// écran continue de recevoir Vit. D, Vit. K, Yeux et Visage.
+/// A missing key indicates "never touched," therefore it is **enabled**: the shutdown is...
+/// An opt-out option, not a subscription. A parent who never uses this...
+/// The screen continues to display information about Vitamin D, Vitamin K, eye care, and facial care products.
 final reminderSettingsProvider =
     AsyncNotifierProvider<ReminderSettingsNotifier, Map<String, bool>>(
   ReminderSettingsNotifier.new,
@@ -16,23 +16,23 @@ final reminderSettingsProvider =
 class ReminderSettingsNotifier extends AsyncNotifier<Map<String, bool>> {
   @override
   Future<Map<String, bool>> build() async {
-    // ref.watch : après une réinitialisation de la base depuis le menu, ce
-    // provider est reconstruit et relit une table `reminder_settings` vide.
-    // Le réglage est par bébé : la ligne lue est celle du profil actif, et
-    // le partage ('') tant qu'aucun profil n'existe — un basculement de bébé
-    // recharge donc les switches de la page.
+    // ref.watch: After resetting the system from the menu, this...
+    // The provider is being rebuilt and is re-reading an empty `reminder_settings` table.
+    // The adjustment is made for each baby individually: the displayed value corresponds to the settings for the currently active profile, and...
+    // sharing (`''`) until a profile exists — a baby's transition.
+    // Therefore, please reload the switches on the page.
     final profile = await ref.watch(activeBabyProvider.future);
     final repository = await ref.watch(remindersRepositoryProvider.future);
     return repository.getEnabledByItemId(babyId: profile?.id);
   }
 
-  /// Enregistre le choix, puis met à jour l'état local — le switch ne
-  /// clignote pas le temps de relire la base.
+  /// It saves the selected option and then updates the local state – the switch will not...
+  /// Don't blink, you don't have time to re-examine the data.
   ///
-  /// L'accueil, lui, se met à jour tout seul : le notifieur de rappels
-  /// dépend réactivement de la chaîne réglages → rappels activés → service
-  /// (voir [RemindersNotifier.build]), donc l'extinction d'un rappel
-  /// propage jusqu'aux pastilles sans invalidation en une fois.
+  /// The welcome message automatically updates: the reminder notification system.
+  /// It reactively depends on the settings chain: settings → reminders activated → service.
+  /// (see [RemindersNotifier.build]), therefore, the deactivation of a reminder.
+  /// It propagates to all the pills without invalidating them all at once.
   Future<void> setEnabled(String itemId, {required bool enabled}) async {
     final profile = await ref.read(activeBabyProvider.future);
     final repository = await ref.read(remindersRepositoryProvider.future);

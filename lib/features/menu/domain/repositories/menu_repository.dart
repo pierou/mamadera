@@ -1,20 +1,20 @@
-/// Repository interface pour le module menu (paramètres : langue + thème)
+/// Repository interface for the menu module (parameters: language + theme).
 abstract class MenuRepository {
   /// Retourne le code de langue actuel (ex: 'fr', 'en').
   Future<String> getCurrentLanguage();
 
-  /// Définit la langue et persiste le choix sur disque.
+  /// Defines the language and saves the selection to the disk.
   Future<void> setLanguage(String languageCode);
 
-  /// Retourne le mode de thème actuel (ex: 'system', 'light', 'dark').
+  /// Returns the current theme mode (e.g., 'system', 'light', 'dark').
   Future<String> getCurrentThemeMode();
 
-  /// Définit le mode de thème et persiste le choix sur disque.
+  /// Defines the theme mode and saves the selected option to disk.
   Future<void> setThemeMode(String mode);
 
-  /// Retourne la liste des langues supportées.
+  /// Returns a list of supported languages.
   List<String> getSupportedLanguages();
 
-  /// Réinitialise la base de données (supprime le fichier SQLite physique).
+  /// Resets the database (deletes the physical SQLite file).
   Future<void> resetDatabase();
 }

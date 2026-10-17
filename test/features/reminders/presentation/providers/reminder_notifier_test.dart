@@ -10,8 +10,8 @@ import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 
 import '../../data/repositories/mock_reminders_repository.dart';
 
-/// Notifier de bébé commutable en test : sans base, l'état se pilote à la
-/// main et le notifier de rappels le suit par son `ref.watch`.
+/// The baby monitor can be switched to test mode: without a base, the status can be controlled manually.
+/// The main function and the notification system are linked through a `ref.watch` reference.
 class _SwitchableBabyNotifier extends ActiveBabyNotifier {
   _SwitchableBabyNotifier(this.profile);
 
@@ -38,7 +38,7 @@ void main() {
     birthDate: DateTime(2024, 5, 2),
   );
 
-  /// Rappel détaché (D2) : thermomètre, quotidien, réglé par le tap « Fait ».
+  /// Detached reminder (D2): Thermometer, daily, set by tapping "Done."
   CustomReminder thermometer() => CustomReminder(
         id: 1,
         label: 'Thermomètre',
@@ -47,9 +47,9 @@ void main() {
         completionSource: completionManual,
       );
 
-  /// Conteneur des tests de notifier : le dépôt est le seul point d'entrée —
-  /// la chaîne service réelle (préréglages du bébé actif + rappels custom du
-  /// dépôt) se cale toute seule dessus, comme dans les tests de réglages.
+  /// Container for notifier tests: the repository is the only entry point.
+  /// The "Real Service" channel (includes active baby settings + custom reminders).
+  /// (the deposit) automatically adjusts itself, just like in the calibration tests.
   ProviderContainer buildContainer(
     MockRemindersRepository repo,
     _SwitchableBabyNotifier baby,
@@ -61,9 +61,9 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    // Le notifier attend, en `ref.watch`, un service `autoDispose` : l'auditeur
-    // ci-dessous tient le notifier vivant pendant que la lecture s'établit,
-    // comme l'app fait en permanence (pastille, accueil).
+    // The notifier, within the `ref.watch` context, expects an `autoDispose` service: the auditor.
+    // Please be advised that the following message will remain visible while you are reading.
+    // like the app constantly does (e.g., notifications, welcome messages).
     container.listen(reminderNotifierProvider, (_, __) {});
     return container;
   }
@@ -83,8 +83,8 @@ void main() {
     test('un détaché : le journal manuel est scopé au bébé actif, la ligne part',
         () async {
       final repo = ScopedDismissalRemindersRepository();
-      // Le dépôt est semé avant le container : la chaîne de providers le
-      // lit à la première écoute, pas après.
+      // The deposit is applied before the container: this is how the provider chain works.
+      // Read it on the first listen, not after.
       repo.customRemindersById[1] = thermometer();
       final baby = _SwitchableBabyNotifier(babyA);
       final container = buildContainer(repo, baby);
@@ -105,8 +105,8 @@ void main() {
       expect(repo.recordCompletionCallCount, 1);
       expect(repo.lastRecordCompletionBabyId, babyA.id);
       expect(repo.manualCompletedByItem['custom_1'], isNotNull);
-      // Le journal a réglé le rappel pour aujourd'hui : plus dû à nouveau
-      // tant que le jour ne change pas (fréquence quotidienne).
+      // The newspaper has already processed the payment for today's subscription; no further payment is due.
+      // As long as the day doesn't change (daily frequency).
       expect(
         item.frequency.isDue(DateTime.now(), repo.manualCompletedByItem['custom_1']),
         isFalse,
@@ -130,11 +130,11 @@ void main() {
       await container.read(reminderNotifierProvider.notifier).markDone(status.item);
       await settle(container);
 
-      // Aucun écrit dans `reminder_completions` : un rappel de soin ne se
-      // règle que par l'événement du soin — sinon « fait » mentirait.
+      // No entries found in `reminder_completions`: a care reminder was not...
+      // The rule is that care, as an event, reveals the truth; otherwise, "fact" would be misleading.
       expect(repo.recordCompletionCallCount, 0);
       expect(repo.lastRecordCompletionBabyId, isNull);
-      // Et sans événement, il reste dû.
+      // And without any specific event, the amount remains outstanding.
       expect(ids(container), contains('vitamine_d'));
     });
   });
@@ -161,7 +161,7 @@ void main() {
       expect(repo.lastDismissBabyId, babyA.id);
       expect(ids(container), isNot(contains('vitamine_d')));
 
-      // Même dépôt, autre bébé : la suppression n'existe pas pour lui.
+      // Same repository, different baby: deletion is not an option for him.
       baby.switchTo(babyB);
       await settle(container);
       expect(ids(container), contains('vitamine_d'));
@@ -184,7 +184,7 @@ void main() {
       await settle(container);
       expect(ids(container), isNot(contains('vitamine_d')));
 
-      // +1 h : bien à l'intérieur de la fenêtre de 24 h.
+      // +1 hour: Well within the 24-hour window.
       repo.seedDismissal(
         'vitamine_d',
         babyId: babyA.id,
@@ -194,7 +194,7 @@ void main() {
       await settle(container);
       expect(ids(container), isNot(contains('vitamine_d')));
 
-      // +25 h : la fenêtre est dépassée, le rappel revient tout seul.
+      // +25 hours: The timeout period has been exceeded, and the notification is automatically reappearing.
       repo.seedDismissal(
         'vitamine_d',
         babyId: babyA.id,
@@ -209,8 +209,8 @@ void main() {
   group('dernière complétion', () {
     test('un détaché lit « dernière fois » depuis le journal manuel', () async {
       final repo = ScopedDismissalRemindersRepository();
-      // Le dépôt est semé avant le container : la chaîne de providers le
-      // lit à la première écoute, pas après.
+      // The deposit is applied before the container: this is how the provider chain works.
+      // Read it on the first listen, not after.
       final at = DateTime(2026, 8, 1, 9);
       repo.customRemindersById[1] = thermometer();
       repo.manualCompletedByItem['custom_1'] = at;
@@ -224,8 +224,8 @@ void main() {
           .values
           .expand((s) => s)
           .firstWhere((s) => s.item.id == 'custom_1');
-      // Quotidien, réglé il y a deux mois : toujours dû, mais la ligne porte
-      // l'horodatage du journal manuel — pas « jamais fait ».
+      // Daily, set up two months ago: still outstanding, but the service is active.
+      // Manual log timestamping – not "never done before."
       expect(status.lastEventAt, at);
     });
   });

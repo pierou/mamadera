@@ -8,7 +8,7 @@ import 'package:mamadera/features/reminders/presentation/widgets/custom_reminder
 import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 
-/// Ce que la feuille a rendu au Navigator.
+/// What the sheet returned to the Navigator.
 CustomReminder? _popped;
 
 Finder _labelField() => find.widgetWithText(TextFormField, 'Nom du rappel');
@@ -17,14 +17,14 @@ Finder _intervalField() =>
 Finder _frequencyField() =>
     find.byType(DropdownButtonFormField<CustomReminderFrequencyChoice>);
 
-/// Ouvre la feuille et garde en mémoire ce qu'elle rend.
+/// Open the sheet and remember what it displays.
 Future<void> _open(
   WidgetTester tester, {
   CustomReminder? existing,
 }) async {
   _popped = null;
-  // Une feuille ouverte survivrait au `pumpWidget` suivant — le Navigator est
-  // réutilisé tel quel — et son voile empêcherait le prochain tap. On démonte
+  // An open sheet would survive the next `pumpWidget`—the Navigator is...
+  // Reused as is – and its coating would prevent the next layer from adhering. We disassemble it.
   // l'arbre entre deux ouvertures.
   await tester.pumpWidget(const SizedBox.shrink());
   await tester.pumpAndSettle();
@@ -107,7 +107,7 @@ void main() {
       await _confirm(tester);
 
       expect(find.text('Donnez un nom au rappel'), findsOneWidget);
-      // La feuille est toujours ouverte : le parent n'a rien perdu de sa saisie.
+      // The file is still open: the parent has not lost access to it.
       expect(find.text('Nouveau rappel'), findsOneWidget);
       expect(_popped, isNull);
     });
@@ -131,8 +131,8 @@ void main() {
 
       expect(_popped, isNotNull);
       expect(_popped!.label, 'Crème du change');
-      // Le soin par défaut est celui que les parents demandent le plus souvent,
-      // et l'id reste null : c'est l'appelant qui écrit, donc qui numérote.
+      // The default care option is the one that parents most frequently request.
+      // and the ID remains null: it's the caller who is writing, and therefore who is providing the number.
       expect(_popped!.subtypeValue, HealthSubtype.nettoyageNez.value);
       expect(_popped!.frequency, const ReminderFrequency.daily());
       expect(_popped!.id, isNull);
@@ -158,9 +158,9 @@ void main() {
 
       await _pickFrequency(tester, 'Intervalle en jours');
 
-      // Deux champs : le nom, puis l'intervalle apparu avec le rythme choisi.
+      // Two fields: the name, followed by the interval that appears based on the selected rhythm.
       expect(find.byType(TextFormField), findsNWidgets(2));
-      // Une valeur de départ évite un refus de validation sur un champ vide.
+      // A default value prevents validation errors from occurring on empty fields.
       expect(tester.widget<TextFormField>(_intervalField()).controller?.text, '3');
     });
 
@@ -197,14 +197,14 @@ void main() {
       await tester.enterText(_labelField(), 'Bilan du mois');
       await _pickFrequency(tester, 'Le jour de naissance, chaque mois');
 
-      // Un rythme mensuel ne demande pas de jour : il est celui de naissance du
-      // bébé, et un champ pour le choisir serait un piège entre deux bébés.
+      // A monthly cycle doesn't require a specific day; it's the cycle that begins with the onset of menstruation.
+      // a baby, and a field where you could choose one would be a trap between two babies.
       expect(find.byType(TextFormField), findsNWidgets(1));
 
       await _confirm(tester);
 
-      // Le jour rendu est le repli, qui sera remplacé par le jour de naissance
-      // du bébé actif au moment où la liste d'accueil se construit.
+      // The day previously assigned is being replaced with the day of birth.
+      // from the active baby stage to the moment when the gift registry is being created.
       expect(
         _popped!.frequency,
         const ReminderFrequency.monthly(
@@ -238,7 +238,7 @@ void main() {
 
       expect(tester.widget<TextFormField>(_labelField()).controller?.text,
           'Crème du change');
-      // Le rythme enregistré se retrouve sélectionné, intervalle compris.
+      // The recorded rhythm is selected, including the specified interval.
       expect(find.byType(TextFormField), findsNWidgets(2));
       expect(tester.widget<TextFormField>(_intervalField()).controller?.text, '5');
       expect(
@@ -275,14 +275,14 @@ void main() {
       await tester.tap(find.byType(DropdownButtonFormField<String>));
       await tester.pumpAndSettle();
 
-      // Une entrée sans soin existe dans le menu…
+      // There's a carelessly prepared dish on the menu...
       expect(find.text('Aucun soin'), findsOneWidget);
       final menuItems = tester
           .widgetList<DropdownMenuItem<String>>(
               find.byType(DropdownMenuItem<String>))
           .toList();
       expect(menuItems.where((item) => item.value == null), hasLength(1));
-      // …et elle est en tête, au-dessus du premier soin.
+      // ...and she's in the lead, ahead of the first aid station.
       expect(
         tester.getRect(find.text('Aucun soin')).top,
         lessThan(tester.getRect(find.text('Nettoyage des yeux')).top),
@@ -299,7 +299,7 @@ void main() {
       await tester.tap(find.text('Aucun soin'));
       await tester.pumpAndSettle();
 
-      // Le nom et la fréquence restent : rien n'est masqué par le détachement.
+      // The name and frequency remain unchanged; nothing is obscured by the separation.
       expect(_labelField(), findsOneWidget);
       expect(_frequencyField(), findsOneWidget);
 
@@ -327,7 +327,7 @@ void main() {
         ),
       );
 
-      // Le formulaire forçait ici `nettoyage_nez` : verrou sur la valeur nue.
+      // The form was forcing the value of `nettoyage_nez` to be set, overriding any previous value.
       expect(
         tester
             .widget<DropdownButtonFormField<String>>(

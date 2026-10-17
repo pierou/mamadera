@@ -9,8 +9,8 @@ import 'package:mamadera/features/growth/presentation/widgets/edit_measurement_s
 import 'package:mamadera/features/home/presentation/widgets/quantity_picker_inline.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
 
-/// Hôte minimal : `showModalBottomSheet` a besoin d'un Navigator, et le
-/// résultat du pop est capturé ici pour être vérifié tel quel.
+/// Host element: `showModalBottomSheet` requires a Navigator, and...
+/// The output from the POP (presumably a software or system) is captured here for verification in its original form.
 class _Host extends StatelessWidget {
   const _Host({required this.measurement, required this.onResult});
 
@@ -31,9 +31,9 @@ class _Host extends StatelessWidget {
       theme: AppTheme.theme,
       home: Scaffold(
         body: Center(
-          // `Builder` : le contexte de `build` de `_Host` est **au-dessus** du
-          // MaterialApp qu'il crée — `showModalBottomSheet` y échoue sans
-          // MaterialLocalizations. Il faut un contexte descendu sous la route.
+          // `Builder`: The `build` context of `_Host` is **above** the...
+          // The MaterialApp he creates — `showModalBottomSheet` fails to work without...
+          // MaterialLocalizations: A context needs to be established below the road surface.
           child: Builder(
             builder: (context) => TextButton(
               onPressed: () async {
@@ -200,16 +200,16 @@ void main() {
         (tester) async {
       await openSheet(tester, _weight(value: null));
 
-      // Édition d'en-tête : la référence du type est un point de départ
-      // éditable, jamais une mesure affirmée — le champ est pré-rempli pour
-      // que le parent n'ait qu'à corriger.
+      // Header edition: the type reference is a starting point.
+      // editable, but no value is ever explicitly stated – the field is pre-filled for...
+      // so that the parent only has to make minor corrections.
       expect(tester.widget<TextField>(valueField()).controller!.text, '3500');
       expect(find.text('Modifier le poids'), findsOneWidget);
     });
 
-    // Un overflow horizontal est invisible dans un test de widget qui agrandit
-    // son propre viewport ; il ne l'est pas sur un téléphone. Vérifié ici à la
-    // largeur la plus étroite visée par la gate de release.
+    // A horizontal overflow is invisible in a widget test that zooms in.
+    // its own viewport; it doesn't have one on a phone. Verified here: [link]
+    // The narrowest width that the release gate is designed to accommodate.
     testWidgets('the action row and the sheet fit a 320 dp screen',
         (tester) async {
       await openSheet(tester, _weight(), size: const Size(320, 653));

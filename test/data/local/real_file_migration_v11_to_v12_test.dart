@@ -4,18 +4,18 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mamadera/data/local/database.dart';
 
-/// Passe de migration v11 → v12 sur un **vrai fichier v11**.
+/// Perform a migration from version 11 to version 12 on a **real version 11 file**.
 ///
-/// Le fichier v11 est fabriqué honnêtement : la chaîne v10 → v12 tourne sur
-/// le fixture, puis on en retire la seule chose que v12 ajoute (la colonne
-/// `unit`), on rebaisse `user_version` à 11 et on ré-seed la sentinelle `''`
-/// que la v12 a ré-attribuée — le résultat est bit-à-bit ce qu'était une
-/// installation 1.2.0 avant sa mise à jour.
+/// The v11 file is produced honestly: the v10 → v12 process is running.
+/// First, we create the fixture, and then we remove the only thing that v12 adds (the column).
+/// We are lowering the `user_version` to 11 and reseeding the sentinel value to an empty string (`''`).
+/// that the V12 reassigned – the result is a bit-for-bit copy of what it was.
+/// Install version 1.2.0 before updating.
 ///
-/// Pourquoi ne pas s'arrêter à 11 en migration : le garde du bloc v12 est
-/// `from < 12`, pas `to == 12` — un schéma à version 11 ouvrirait le fixture
-/// v10 et déroulerait **aussi** le bloc v12. Fabriquer le v11 en retirant
-/// v12 est le seul chemin qui n'a pas à dupliquer le code de migration.
+/// Why not stop at 11 in the migration process? The guard for the v12 block is...
+/// `from < 12`, not `to == 12` – a version 11 schema would open the fixture.
+/// v10 and would also execute the v12 block. To create v11, remove...
+/// v12 is the only path that doesn't require duplicating the migration code.
 void main() {
   group('Migration v11 → v12 sur fichier réel', () {
     late Directory tmp;
@@ -32,12 +32,12 @@ void main() {
       await tmp.delete(recursive: true);
     });
 
-    /// Monte le fixture v10 en v12, puis le ramène à un v11 authentique :
-    /// colonne `unit` retirée, version 11, sentinelle `''` ré-injectée.
+    /// Upgrade the fixture from version 10 to version 12, then revert it to a genuine version 11.
+    /// The `unit` column has been removed, version 11. The `''` sentinel has been re-injected.
     Future<void> rollBackToV11({bool addSecondBaby = false}) async {
       final db = await createAppDatabase(directoryPath: tmp.path);
-      // Le second profil est inséré **avant** le retour en arrière : la base
-      // est en v12 ouverte, aucun risque que la montée ré-attribue en chemin.
+      // The second profile is inserted **before** the backward movement: the base.
+      // It's currently running in v12 mode, so there's no risk of it being re-assigned during the upgrade process.
       if (addSecondBaby) {
         await db.customStatement(
             "INSERT INTO baby_profiles (id, name, birth_date, is_active) "
@@ -45,8 +45,8 @@ void main() {
       }
       await db.customStatement('ALTER TABLE tracking_events DROP COLUMN unit');
       await db.customStatement('PRAGMA user_version = 11');
-      // La v12 a déjà ré-attribuée la sentinelle au bébé unique : on la
-      // remet en place pour que la montée v12 ait du travail à faire.
+      // Version 12 has already reassigned the "sentinel" role to the single child: we...
+      // It's being adjusted to ensure that the V12 engine has enough work to do.
       await db.customStatement(
           "UPDATE custom_reminders SET baby_id = '' WHERE baby_id != ''");
       await db.customStatement(
@@ -78,8 +78,8 @@ void main() {
       for (final row in events) {
         final type = row.read<String>('type');
         final subtype = row.read<String?>('subtype');
-        // Le backfill nomme l'unité vue à l'écran, jamais une conversion :
-        // dodo = min, purée = g, tout le reste = ml (défaut de colonne).
+        // The "backfill" refers to the unit displayed on the screen, and never to a conversion.
+        // dodo = min, puree = g, everything else = ml (due to a missing column).
         final expected = type == 'dodo'
             ? 'min'
             : (type == 'miam' && subtype == 'solid')
@@ -143,8 +143,8 @@ void main() {
 
     test("plusieurs bébés : on ne devine pas, les lignes restent sans profil",
         () async {
-      // Deux bébés au moment de la montée : l'état écrit sans profil ne
-      // désigne aucun des deux — décision 2026-10-04, jamais de deviner.
+      // Two babies at the beginning of the climb: the written state without a profile.
+      // It refers to neither of the two options — decision made on October 4, 2026; never guess.
       await rollBackToV11(addSecondBaby: true);
 
       final db = await createAppDatabase(directoryPath: tmp.path);
@@ -164,7 +164,7 @@ void main() {
           .get();
       expect(dismissals.map((r) => r.read<String>('baby_id')).toSet(), {''});
 
-      // Le backfill de `unit` est indépendant du nombre de bébés.
+      // The backfill for `unit` is independent of the number of babies.
       final units = await db
           .customSelect('SELECT COUNT(*) AS n FROM tracking_events')
           .getSingle();

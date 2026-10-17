@@ -171,19 +171,19 @@ Future<AppDatabase> _seededDb() async {
   return db;
 }
 
-/// Seed de croissance (v1.2.0) — une trajectoire plausible sur 87 jours.
+/// Growth Seed (v1.2.0) — a plausible trajectory over 87 days.
 ///
-/// Sans lignes dans `measurements`, les trois boutons « Poids / Taille /
-/// Température » de l'accueil affichent leur état vide `—` et l'écran
-/// Croissance son `growthEmptyState` : la vitrine de la 1.2.0 photographierait
-/// sa propre fonctionnalité vide. Les valeurs sont dans les bornes de
-/// [MeasureKind] et sur la grille de `step`.
+/// Without any entries in the `measurements` section, the three buttons labeled "Weight / Height /" will...
+/// The "Temperature" display on the welcome screen shows an empty state (`—`), and the screen itself...
+/// Growth of the `growthEmptyState`: the 1.2.0 version would feature a new display.
+/// its own empty functionality. The values are within the specified range.
+/// [MeasureKind] and on the `step` grid.
 ///
-/// Le chiffrement passe par le MÊME [EncryptionService] que l'application (voir
+/// The encryption process uses the SAME [EncryptionService] as the application (see...).
 /// `encryptionServiceProvider.overrideWith` ci-dessous) : `initialize()` retombe
-/// sur une clé volatile en mémoire quand le stockage sécurisé est indisponible,
-/// donc deux instances distinctes chiffrent et déchiffrent avec deux clés
-/// différentes et toute valeur graine rendrait « valeur illisible ».
+/// on a volatile key stored in memory when secure storage is unavailable.
+/// Therefore, two distinct instances encrypt and decrypt using two separate keys.
+/// different, and any seed value would make the "value" unreadable.
 Future<void> _seedMeasurements(
   AppDatabase db,
   EncryptionService encryption,
@@ -214,7 +214,7 @@ Future<void> _seedMeasurements(
   await mes(MeasureKind.taille, 51, const Duration(days: 80));
   await mes(MeasureKind.taille, 56, const Duration(days: 45));
   await mes(MeasureKind.taille, 60.5, const Duration(days: 10));
-  // Température (°C).
+  // Temperature (°C).
   await mes(MeasureKind.temperature, 36.8, const Duration(days: 20));
   await mes(MeasureKind.temperature, 37.2, const Duration(days: 2));
 }
@@ -231,7 +231,7 @@ void main() async {
   }
 
   final db = await _seededDb();
-  // Instance unique partagée entre le seed et l'app (voir _seedMeasurements).
+  // This unique instance is shared between the seed and the app (see _seedMeasurements).
   final encryption = EncryptionService();
   await encryption.initialize();
   await _seedMeasurements(db, encryption);

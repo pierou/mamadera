@@ -6,15 +6,15 @@ import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_item.dart';
 import 'reminder_frequency_label.dart';
 
-/// Ce que le parent demande sur une tuile de rappel personnalisé.
+/// What the parent requests on a personalized reminder tile.
 enum CustomReminderAction { edit, delete }
 
-/// Une ligne de rappel personnalisé dans Réglages → Rappels.
+/// A personalized reminder option can be found in Settings → Reminders.
 ///
-/// Le switch et le menu sont séparés volontairement : toucher la ligne ouvre la
-/// modification, toucher le switch éteint le rappel. Les deux sur la même zone
-/// feraient choisir au parent entre « je n'y pense plus » et « je veux changer le
-/// jour », sans lui demander lequel il veut.
+/// The switch and the menu are intentionally separated; tapping on a line will open the menu.
+/// modification, touching the switch turns off the reminder. Both are in the same area.
+/// They would force the parent to choose between "I'm not thinking about it anymore" and "I want to change it."
+/// "day," without asking him which one he wants.
 class CustomReminderTile extends StatelessWidget {
   const CustomReminderTile({
     required this.reminder,
@@ -25,28 +25,28 @@ class CustomReminderTile extends StatelessWidget {
     super.key,
   });
 
-  /// Le rappel tel qu'enregistré : c'est son libellé, sa clé et son id.
+  /// The recall, as recorded, includes its label, its key, and its ID.
   final CustomReminder reminder;
 
-  /// Le même rappel en item d'accueil — sa fréquence porte le jour de naissance
-  /// du bébé actif, que le rappel seul ne connaît pas.
+  /// The same reminder appears in the welcome section – its frequency is based on the user's date of birth.
+  /// of the active baby, which is something that a simple reminder cannot convey.
   final ReminderItem display;
 
-  /// `item_id → activé` est un opt-out : une clé absente vaut `true`, c'est
-  /// l'appelant qui résout la valeur.
+  /// `item_id → enabled` is an opt-out mechanism: a missing key is equivalent to `true`.
+  /// The caller resolves the value.
   final bool enabled;
 
-  /// Extinction / rallumage du rappel.
+  /// Deactivation/reactivation of the reminder.
   final ValueChanged<bool> onToggle;
 
   /// Demande de modification ou de suppression.
   final ValueChanged<CustomReminderAction> onAction;
 
-  /// Clé de `reminder_settings` de ce rappel.
+  /// Key for the `reminder_settings` of this reminder.
   ///
-  /// Le format vit à trois endroits — ici, l'écran qui lit l'extinction, le dépôt
-  /// qui range le rappel — et ces trois-là doivent écrire sur la même ligne, sinon
-  /// le switch et le menu se contredisent. Il est donc unique, ici.
+  /// The format exists in three places: here, the screen displaying the shutdown message, and the storage location.
+  /// which organizes the reminder – and these three must be written on the same line, otherwise...
+  /// The switch and the menu contradict each other. Therefore, it is unique in this case.
   static String keyOf(CustomReminder reminder) =>
       '${CustomReminderPresets.customIdPrefix}${reminder.id}';
 
@@ -54,8 +54,8 @@ class CustomReminderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Un rappel détaché n'a pas de soin à citer : on le dit plutôt que de
-    // laisser croire qu'il existe un suivi derrière.
+    // A standalone reminder doesn't need to mention anything specific; it's more about stating something rather than elaborating on it.
+    // to give the impression that there is some kind of oversight or monitoring in place.
     final isDetached = reminder.subtypeValue == null;
 
     return ListTile(

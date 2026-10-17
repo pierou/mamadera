@@ -7,7 +7,7 @@ import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
-/// Mock de [TrackingRepository] pour tester le contrat d'interface.
+/// Mock object for [TrackingRepository] to test the interface contract.
 class MockTrackingRepository implements TrackingRepository {
   final List<TrackingEvent> _events = [];
 
@@ -27,7 +27,7 @@ class MockTrackingRepository implements TrackingRepository {
     final id = _events.isEmpty
         ? 1
         : _events.map((e) => e.id ?? 0).reduce((a, b) => a > b ? a : b) + 1;
-    // Dans un vrai repo, l'ID serait assigné par la DB. Ici on simule.
+    // In a real implementation, the ID would be assigned by the database. Here, we are simulating that process.
     _events.add(event);
     return id;
   }
@@ -38,7 +38,7 @@ class MockTrackingRepository implements TrackingRepository {
     final filtered = _events.where((e) {
       if (e.trackingType != type) return false;
       if (subtypeValue == null) return true;
-      // Vérifier le subtype selon le type d'événement en utilisant map()
+      // Verify the subtype based on the event type using the `map()` function.
       return e.map(
         (base) => false,
         feeding: (e) => e.subtype.name == subtypeValue,
@@ -107,7 +107,7 @@ void main() {
 
         final result = await repository.getAllEventsOrdered();
         expect(result, hasLength(2));
-        // L'événement avec le timestamp le plus récent doit être en premier
+        // The event with the most recent timestamp should be listed first.
         expect(result.first, newerEvent);
         expect(result.last, olderEvent);
       });

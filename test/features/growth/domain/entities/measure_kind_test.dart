@@ -57,17 +57,17 @@ void main() {
       expect(MeasureKind.poids.divisions, 1980);
       expect(MeasureKind.taille.step, 1);
       expect(MeasureKind.taille.divisions, 80);
-      // Le dixième de degré : un cran de 0,5 ferait enregistrer 37,5 là où le
-      // thermomètre affichait 37,4. Dans une app de suivi, une mesure arrondie
-      // n'est pas une mesure — c'est une mesure fausse, dans le sens qui peut
-      // compter (le seuil de fièvre d'un nourrisson).
+      // A tenth of a degree: a resolution of 0.5 would register 37.5 where the...
+      // The thermometer read 37.4. In a tracking app, a rounded measurement was displayed.
+      // It is not a measure; rather, it is a misleading measure, in the sense that it can...
+      // to take (a baby's temperature to check for a fever).
       expect(MeasureKind.temperature.step, 0.1);
       expect(MeasureKind.temperature.divisions, 90);
-      // Le pas ne franchit jamais la précision affichée : sinon le slider
-      // produit des valeurs que l'écran puis la base ne sauraient rendre.
+      // The step never exceeds the displayed precision; otherwise, it's the slider.
+      // It produces values that neither the screen nor the base can replicate.
       for (final kind in MeasureKind.values) {
-        // `decimals` vaut 0 ou 1 dans cette release : le pas minimal est
-        // l'unité ou le dixième, et le slider ne descend jamais sous lui.
+        // In this release, the `decimals` value is either 0 or 1, which determines the minimum increment.
+        // The unit or tenth, and the slider never goes below that value.
         final minStep = kind.decimals == 0 ? 1.0 : 0.1;
         expect(
           kind.step >= minStep,

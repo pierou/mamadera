@@ -5,12 +5,12 @@ import '../../../growth/domain/entities/growth_measurement.dart';
 import '../../../growth/domain/entities/measure_kind.dart';
 import '../../../growth/presentation/widgets/measure_kind_accent.dart';
 
-/// Tuile d'une mesure de croissance dans la frise unifiée de l'historique.
+/// Tile representing a growth measurement within the unified historical timeline.
 ///
-/// Même habillage que `HistoryTile`, une source différente : la valeur vient
-/// de la table `measurements` (toujours chiffrée), jamais d'une copie dans
-/// `tracking_events`. Une valeur illisible s'affiche comme telle — jamais
-/// zéro, jamais masquée.
+/// Same appearance as `HistoryTile`, but with a different data source: the value comes from...
+/// from the `measurements` table (which always contains numerical data), and never from a copy.
+/// `tracking_events`. An unreadable value will be displayed as such – never anything else.
+/// zero, never masked.
 class MeasurementHistoryTile extends StatelessWidget {
   const MeasurementHistoryTile({
     required this.measurement,
@@ -20,7 +20,7 @@ class MeasurementHistoryTile extends StatelessWidget {
   });
 
   final GrowthMeasurement measurement;
-  final String time; // formaté en dd/MM/yyyy HH:mm
+  final String time;   // formatted as dd/MM/yyyy HH:mm.
   final VoidCallback? onTap;
 
   String _kindLabel(BuildContext context) {

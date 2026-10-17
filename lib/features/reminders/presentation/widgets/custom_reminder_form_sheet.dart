@@ -9,22 +9,22 @@ import '../../../../shared/utils/health_label_resolver.dart';
 import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_frequency.dart';
 
-/// Rythmes proposés à la création d'un rappel.
+/// Suggested rhythms for creating a reminder.
 ///
-/// Quatre, pas plus : ce sont les quatre que `isDue` sait évaluer. Un rythme
-/// « chaque mardi à 20 h » demanderait une horloge et une notification système,
-/// deux choses que cette app n'a pas.
+/// Four, and no more: these are the four that `isDue` is able to evaluate. A rhythm...
+/// "Every Tuesday at 8 PM" would require a clock and a system notification.
+/// Here are two things that this app doesn't have.
 enum CustomReminderFrequencyChoice { daily, weekly, monthlyBirth, everyNDays }
 
-/// Formulaire d'un rappel personnalisé, en feuille modale.
+/// Personalized reminder form, on a template sheet.
 ///
-/// Ne fait aucun écrit : il construit un [CustomReminder] et le rend au
-/// Navigator. L'écran qui l'a ouvert décide de créer ou modifier, et passe par
-/// le notifieur — c'est le seul chemin qui invalide les pastilles de l'accueil.
+/// It doesn't involve any writing; it simply creates a [CustomReminder] object and returns it.
+/// Navigator: The screen that opens this application allows the user to create or modify something, and then proceeds to...
+/// The notifier – it's the only way to invalidate the reception prompts.
 class CustomReminderFormSheet extends StatefulWidget {
   const CustomReminderFormSheet({this.existing, super.key});
 
-  /// Rappel à préremplir ; `null` pour une création.
+  /// Pre-filled value; `null` for a new creation.
   final CustomReminder? existing;
 
   @override
@@ -32,21 +32,21 @@ class CustomReminderFormSheet extends StatefulWidget {
 }
 
 class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
-  /// Borne haute de l'intervalle : au-delà d'un an, le parent veut une date,
-  /// pas un rappel.
+  /// Upper limit of the range: after one year, the parent wants a specific date.
+  /// Not a reminder.
   static const int _maxIntervalDays = 365;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final TextEditingController _labelController;
   late final TextEditingController _daysController;
 
-  /// `null` = rappel **détaché** : « Aucun soin » est la première entrée du
-  /// menu et sa valeur, jamais un défaut imposé.
+  /// `null` = detached reminder: "No care needed" is the first entry in the...
+  /// The menu and its value, never a forced default.
   late String? _subtypeValue;
   late CustomReminderFrequencyChoice _choice;
 
-  /// Intervalle par défaut proposé à la création : trois jours, le rythme
-  /// d'une application de crème sur avis médical, le plus courant demandé.
+  /// The default interval suggested when creating a new one: three days, the frequency.
+  /// applying a cream on medical advice, the most commonly requested.
   static const int _defaultIntervalDays = 3;
 
   @override
@@ -54,15 +54,15 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
     super.initState();
     final existing = widget.existing;
     _labelController = TextEditingController(text: existing?.label ?? '');
-    // À la modification, on garde le choix existant, détachement compris : lui
-    // imposer un soin par défaut referait un rappel sans soin au premier
-    // événement de santé venu. Seul un rappel neuf part sur le plus demandé.
+    // Regarding the modification, the existing options will be retained, including the option to disconnect: him.
+    // Applying a default treatment would essentially trigger a reminder without any actual treatment being provided.
+    // Health event coming up. Only a new reminder will be sent for the most requested item.
     _subtypeValue = existing == null
         ? HealthSubtype.nettoyageNez.value
         : existing.subtypeValue;
     _choice = _choiceOf(existing?.frequency);
-    // Seul un roulement porte un nombre de jours à préremplir ; les autres
-    // rythmes partent sur l'intervalle par défaut, invisible tant que le choix
+    // Only one field requires you to enter a number of days; the others do not.
+    // The rhythms start with the default setting, which is invisible until a selection is made.
     // est ailleurs.
     final storedDays = existing?.frequency.map(
       daily: (_) => null,
@@ -75,10 +75,10 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
     );
   }
 
-  /// Intervalle demandé, borné à [1, _maxIntervalDays].
+  /// Requested interval, limited to [1, _maxIntervalDays].
   ///
-  /// Une saisie illisible remonte à l'intervalle par défaut plutôt que de
-  /// bloquer : le validateur du champ a déjà eu sa chance, et un rappel créé
+  /// An unreadable input defaults to the default range instead of...
+  /// block: the field validator has already had its chance, and a reminder has been created.
   /// reste modifiable.
   int get _intervalDays =>
       (int.tryParse(_daysController.text) ?? _defaultIntervalDays)
@@ -105,15 +105,15 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
 
     final frequency = switch (_choice) {
       CustomReminderFrequencyChoice.daily => const ReminderFrequency.daily(),
-      // Le jour de semaine n'est pas demandé : `isDue` l'ignore (achever un
-      // rappel hebdo le fait attendre à la semaine suivante, quel que soit le
-      // jour), et proposer « mardi » pour un rappel qui sonne aussi le vendredi
+      // Weekdays are not considered: `isDue` ignores them (it only checks if a task is due on a specific day).
+      // The weekly reminder simply postpones the matter to the following week, regardless of the circumstances.
+      // "...), and suggest "Tuesday" for a reminder that also appears on Friday."
       // serait un mensonge.
       CustomReminderFrequencyChoice.weekly => const ReminderFrequency.weekly(
           dayOfWeek: 1,
         ),
-      // Aucun jour n'est choisi ici : le jour est celui de naissance du bébé
-      // actif, lu à l'affichage comme pour la vitamine K.
+      // No specific date is chosen here; the date is simply the baby's birthday.
+      // active, and displayed as such, similar to vitamin K.
       CustomReminderFrequencyChoice.monthlyBirth => const ReminderFrequency.monthly(
           dayOfMonth: CustomReminderPresets.monthlyFallbackDay,
         ),
@@ -126,8 +126,8 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
       CustomReminder(
         label: _labelController.text.trim(),
         subtypeValue: _subtypeValue,
-        // D2 : le choix du soin décide de la source — un rappel sans soin est
-        // réglé par le tap « Fait », jamais par un événement de santé.
+        // D2: The choice of treatment determines the source – a reminder without treatment is...
+        // It was determined by the "Done" button, never by a health-related event.
         completionSource: _subtypeValue == null
             ? completionManual
             : completionFromEvents,
@@ -213,8 +213,8 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
   Widget _buildCareField() {
     return DropdownButtonFormField<String>(
       initialValue: _subtypeValue,
-      // « Aucun soin » est une entrée comme les autres, mais sa valeur est
-      // `null` : le dropdown la rend sélection en l'affichant comme indice.
+      // "No care" is an entry like any other, but its value is...
+      // `null`: The dropdown displays the selected option as an index.
       hint: Text(context.l.reminderCustomCareNone),
       decoration: InputDecoration(
         labelText: context.l.reminderCustomCareField,
@@ -253,7 +253,7 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
       ],
       onChanged: (value) {
         if (value == null) return;
-        // Le champ « nombre de jours » n'existe que pour un roulement.
+        // The "number of days" field is only available for shift schedules.
         setState(() => _choice = value);
       },
     );
@@ -279,11 +279,11 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
     );
   }
 
-  /// Wording d'un choix de rythme dans la liste déroulante.
+  /// Wording for selecting a rhythm from the drop-down list.
   ///
-  /// Le roulement emprunte le libellé du champ « Intervalle en jours » plutôt que
-  /// « Tous les N jours » : le nombre n'est pas encore saisi à cet endroit, et lui
-  /// en afficher un figerait un décalage entre la liste et le champ.
+  /// The scheduling system uses the label "Interval in days" for that field, rather than...
+  /// "Every n days": The value of 'n' has not yet been entered in this field, and neither has [the value associated with 'him/her/it']."
+  /// Displaying one would create a discrepancy between the list and the field.
   String _frequencyChoiceLabel(CustomReminderFrequencyChoice choice) {
     return switch (choice) {
       CustomReminderFrequencyChoice.daily => context.l.reminderFrequencyDaily,

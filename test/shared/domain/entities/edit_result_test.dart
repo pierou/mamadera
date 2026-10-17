@@ -6,7 +6,7 @@ void main() {
   group('UpdateResult', () {
     final baseTimestamp = DateTime.utc(2023, 10, 25, 14, 30);
 
-    // ── Construction et getters (champs typés directement) ─────
+    // ── Construction and getters (directly typed fields) ─────
     test('construction complète → tous les champs retournent les valeurs attendues', () {
       final result = UpdateResult(
         timestamp: baseTimestamp,
@@ -49,7 +49,7 @@ void main() {
       expect(result.cacaColor, equals(cacaColorVertOlive));
     });
 
-    // ── wasteType est déjà un enum typé (pas de parsing) ───────
+    // ── `wasteType` is already a typed enumeration (no parsing required).
     test('wasteType=WasteType.pipi → champ retourne l\'enum directement', () {
       const result = UpdateResult(wasteType: WasteType.pipi);
       expect(result.wasteType, equals(WasteType.pipi));
@@ -60,7 +60,7 @@ void main() {
       expect(result.wasteType, isNull);
     });
 
-    // ── pipiColor / cacaColor sont déjà des enums typés ────────
+    // ── `pipiColor` and `cacaColor` are already typed enumerations.
     test('pipiColor=pipiColorJauneClair → champ retourne l\'enum directement', () {
       const result = UpdateResult(pipiColor: pipiColorJauneClair);
 
@@ -101,7 +101,7 @@ void main() {
       expect(result.cacaColor, isNull);
     });
 
-    // ── Vérification que les enums ont bien un .dbValue getter ──
+    // -- Verify that the enums correctly have a .dbValue getter.
     test('WasteType enum a un .dbValue getter', () {
       const result = UpdateResult(wasteType: WasteType.lesDeux);
       expect(result.wasteType!.dbValue, equals('les_deux'));

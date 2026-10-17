@@ -12,7 +12,7 @@ import '../../shared/domain/entities/tracking_event.dart';
 import 'app_db.dart' as db_app;
 import 'db_constants.dart' as db_const;
 
-/// Mappe un row Drift vers le sous-type [TrackingEvent] approprié.
+/// Map the "row drift" event to the appropriate "[TrackingEvent]" subtype.
 TrackingEvent mapToEntity(
     db_app.TrackingEvent row, EncryptionService encryption) {
   switch (row.type) {
@@ -55,13 +55,13 @@ TrackingEvent _createSleepEvent(
   );
 }
 
-/// Unit de la ligne, telle qu'elle est **stockée** (v12).
+/// Line unit, as it is **stored** (v12).
 ///
-/// La colonne est NOT NULL depuis v12 : une ligne neuve la porte toujours.
-/// Le fallback ne couvre qu'un cas anormal — une colonne antérieure à la
-/// migration, ou une valeur que cette version ne connaît pas — et nomme alors
-/// l'unité que le parent voyait à l'écran ([defaultUnitFor]) au lieu d'en
-/// inventer une. Le rendu part d'ici : plus aucun `'ml'` codé en dur dans
+/// The column is NOT NULL starting from version 12: a new row will always have a value in this column.
+/// The fallback mechanism only addresses one abnormal case: a column that predates the...
+/// migration, or a value that this version does not recognize, and in that case, it will display the name.
+/// the unit that the parent saw on the screen ([defaultUnitFor]) instead of using a different one.
+/// invent a new one. The goal is to eliminate all hard-coded `'ml'` values.
 /// un widget.
 QuantityUnit _unitFromRow(db_app.TrackingEvent row) =>
     QuantityUnit.fromDbValue(row.unit) ??
@@ -85,15 +85,15 @@ TrackingEvent _createDiaperEvent(
   );
 }
 
-/// Mappe un row santé vers [TrackingEvent.health].
+/// Maps a health-related row to [TrackingEvent.health].
 ///
-/// Limite connue : un row dont la colonne `subtype` est NULL (données très
-/// anciennes) est rapporté avec le sous-type par défaut
-/// [HealthSubtype.nettoyageYeux] — l'entité domain ne représente pas
-/// explicitement un sous-type inconnu.
+/// Known limitation: a row where the `subtype` column is NULL (very old data).
+/// The "old" status is associated with the default subtype.
+/// [HealthSubtype.nettoyageYeux] — This domain entity does not represent anything.
+/// explicitly, a previously unknown subtype.
 TrackingEvent _createHealthEvent(
     db_app.TrackingEvent row, EncryptionService encryption) {
-  // Lire le subtype depuis la colonne dédiée (ou fallback pour anciennes données)
+  // Read the subtype from the designated column (or use a fallback for older data).
   final subtypeValue = row.subtype ?? '';
   final subtype =
       HealthSubtype.byValue(subtypeValue) ?? HealthSubtype.nettoyageYeux;
@@ -106,16 +106,16 @@ TrackingEvent _createHealthEvent(
   );
 }
 
-/// Détermine le FeedingSubtype depuis la colonne `subtype` ou fallback à `natural`.
+/// Determine the `FeedingSubtype` from the `subtype` column, or default to `natural` if the `subtype` column is empty or contains an invalid value.
 FeedingSubtype _feedingSubtypeFromRow(db_app.TrackingEvent row) {
   if (row.subtype != null && row.subtype!.isNotEmpty) {
     return FeedingSubtype.fromDbValue(row.subtype!) ?? FeedingSubtype.natural;
   }
-  // Fallback pour les anciennes données sans subtype column
+  // Fallback mechanism for older data without a subtype column.
   return FeedingSubtype.natural;
 }
 
-/// Parse la colonne `color` (format pipe-délimité pour les_deux).
+/// Parse the `color` column (pipe-delimited format for both).
 (PipiColor?, CacaColor?) _parseColors(db_app.TrackingEvent row) {
   PipiColor? pipiColor;
   CacaColor? cacaColor;
@@ -134,12 +134,12 @@ FeedingSubtype _feedingSubtypeFromRow(db_app.TrackingEvent row) {
           pipiColor = findPipiColorByValue(parts[0].trim());
           cacaColor = findCacaColorByValue(parts[1].trim());
         } else if (parts.isNotEmpty) {
-          // Row legacy : une seule partie de couleur. Attention au piège de
-          // précédence : `as` se lie PLUS FORT que `??`, donc
+          // Row legacy: a single colored section. Be careful of the trap.
+          // Precedence: `as` binds more strongly than `??`, therefore...
           // `findPipiColorByValue(x) ?? findCacaColorByValue(x) as PipiColor?`
-          // s'évalue comme `findPipi ?? (findCaca as PipiColor?)` et lève un
-          // TypeError dès que la valeur est une couleur caca. On résout donc
-          // explicitement la valeur vers son bon type de couleur.
+          // It is evaluated as `findPipi ?? (findCaca as PipiColor?)` and raises an.
+          // TypeError occurs as soon as the value is a "poop" color. Therefore, we need to find a solution.
+          // explicitly assigns the value to its correct color type.
           final part = parts.first.trim();
           final pipi = findPipiColorByValue(part);
           pipiColor = pipi;

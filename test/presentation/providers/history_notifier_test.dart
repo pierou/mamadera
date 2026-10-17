@@ -70,12 +70,12 @@ void main() {
         historyRepositoryProvider.overrideWith(
           (_) async => mockRepository,
         ),
-        // La frise « tout » fusionne les mesures : le vrai fournisseur
-        // ouvrirait la base en test, on la remplace par un faux en mémoire.
+        // The "all-inclusive" package combines all the services: this is the real provider.
+        // If the base were to be opened for testing, it would be replaced by a simulated version stored in memory.
         measurementRepositoryProvider
             .overrideWith((_) async => fakeMeasurementRepository),
-        // updateEvent / deleteEvent rafraîchissent les rappels : le vrai
-        // notifier lirait sa repository (base) — ici un no-op.
+        // The `updateEvent` and `deleteEvent` functions refresh the reminders: this is the correct way to do it.
+        // The `notifier` would read its repository (database) – in this case, it would perform a no-operation.
         reminderNotifierProvider.overrideWith(_QuietRemindersNotifier.new),
       ],
     );
@@ -212,12 +212,12 @@ void main() {
       when(mockRepository.getAllEventsOrdered())
           .thenAnswer((_) async => [eventTest]);
 
-      // Au démarrage, l'état devrait être loading
+      // Initially, the state should be "loading."
       final initial =
           container.read(historyNotifierProvider(HistoryFilter.all));
       expect(initial, isA<AsyncLoading<List<HistoryRow>>>());
 
-      // Après résolution, l'état devrait être data
+      // After the resolution is applied, the state should be updated with the new data.
       final data = await container
           .read(historyNotifierProvider(HistoryFilter.all).future);
       expect(data, isNotEmpty);
@@ -231,19 +231,19 @@ void main() {
       when(mockRepository.getAllEventsOrdered())
           .thenThrow(Exception('Erreur de connexion'));
 
-      // On déclenche le build
+      // We initiate the build process.
       final initialState =
           container.read(historyNotifierProvider(HistoryFilter.all));
       expect(initialState, isA<AsyncLoading<List<HistoryRow>>>());
 
-      // Attendre que les événements se propagent
+      // Wait for the events to spread.
       await Future<void>.delayed(const Duration(seconds: 1));
 
-      // Le test passe si le provider ne s'écrase pas
-      // (Le vrai test de l'erreur est vérifié via le mock)
+      // The test passes if the service provider doesn't crash.
+      // (The actual test of the error is verified through the mock object.)
       final finalState =
           container.read(historyNotifierProvider(HistoryFilter.all));
-      // State peut être loading, error, ou data selon la timing
+      // The state can be "loading," "error," or "data," depending on the timing.
       expect(finalState, isA<AsyncValue<List<HistoryRow>>>());
     });
   });
@@ -258,15 +258,15 @@ void main() {
           return [];
         });
 
-        // On déclenche le build
+        // We initiate the build process.
         final initialState =
             container.read(historyNotifierProvider(HistoryFilter.all));
         expect(initialState, isA<AsyncLoading<List<HistoryRow>>>());
 
-        // Attendre que le timeout soit déclenché (~10s + marge)
+        // Wait for the timeout to be triggered (approximately 10 seconds, plus a margin).
         await Future<void>.delayed(const Duration(seconds: 12));
 
-        // Vérifier que l'état a changé
+        // Verify that the state has changed.
         final finalState =
             container.read(historyNotifierProvider(HistoryFilter.all));
         expect(finalState, isA<AsyncValue<List<HistoryRow>>>());
@@ -289,7 +289,7 @@ void main() {
   });
 
   // ─────────────────────────────────────────────────────────────────────
-  // Frise unifiée (v1.2.1) : mesures fusionnées sous le filtre « tout »
+  // Unified timeline (v1.2.1): Merged entries displayed under the "all" filter.
   // ─────────────────────────────────────────────────────────────────────
   group('Frise unifiée — mesures', () {
     final mPoids = GrowthMeasurement(
@@ -300,7 +300,7 @@ void main() {
       babyId: 'baby_1',
       recordedAt: DateTime.utc(2023, 1, 1, 12),
     );
-    // Mêmes horodatages que event2 (2023-01-02T00) pour tester l'ex æquo.
+    // Same timestamps as event2 (2023-01-02T00) for testing purposes, to ensure fairness.
     final mTaille = GrowthMeasurement(
       id: 12,
       kind: MeasureKind.taille,
@@ -330,8 +330,8 @@ void main() {
       final state = await container
           .read(historyNotifierProvider(HistoryFilter.all).future);
 
-      // 3 événements + 3 mesures, triées desc. ; à horodatage égal,
-      // l'événement passe avant la mesure.
+      // 3 events + 3 actions, sorted in descending order; in case of a tie in timestamp, ...
+      // The event takes precedence over the measure.
       expect(state, hasLength(6));
       expect((state[0] as EventHistoryRow).event.id, 3);
       expect((state[1] as MeasurementHistoryRow).measurement.id, 13);
@@ -365,7 +365,7 @@ void main() {
 
       expect(state.whereType<MeasurementHistoryRow>(), hasLength(1));
       expect(state.whereType<EventHistoryRow>(), hasLength(1));
-      // La mesure garde sa valeur déchiffrée, pas un id d'événement.
+      // The measurement retains its decoded value, not an event ID.
       expect(
           (state.firstWhere((r) => r is MeasurementHistoryRow)
                   as MeasurementHistoryRow)
@@ -431,8 +431,8 @@ void main() {
 
     test('updateEvent : le repository est appelé et la frise rechargée',
         () async {
-      // La liste est mutable : le stub de `updateEvent` la corrige, et la
-      // relecture de la frise renvoie l'événement édité.
+      // The list is mutable: the `updateEvent` stub corrects it, and so does...
+      // Reviewing the timeline displays the edited event.
       final events = [event1, event2];
       when(mockRepository.getAllEventsOrdered())
           .thenAnswer((_) async => events);
@@ -477,8 +477,8 @@ void main() {
   });
 }
 
-/// Notifier de rappels muet : `refresh()` est un no-op, `build()` renvoie
-/// vide — les tests de la frise ne veulent pas de repository de rappels.
+/// Silent notifications: `refresh()` does nothing, and `build()` returns...
+/// empty — the tests for the header don't want a repository for reminders.
 class _QuietRemindersNotifier extends RemindersNotifier {
   @override
   Future<Map<TrackingType, List<ReminderStatus>>> build() async => const {};
@@ -487,8 +487,8 @@ class _QuietRemindersNotifier extends RemindersNotifier {
   Future<void> refresh() async {}
 }
 
-/// Repository de mesures en mémoire : `update` / `deleteById` mutent la
-/// liste et tiennent un journal d'appels pour les assertions.
+/// In-memory measurement repository: `update` and `deleteById` methods modify the data.
+/// They maintain a list and keep a call log for each claim.
 class _FakeMeasurementRepository implements MeasurementRepository {
   final List<GrowthMeasurement> rows = [];
   final List<GrowthMeasurement> updated = [];

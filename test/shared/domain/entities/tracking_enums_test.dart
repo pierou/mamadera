@@ -41,10 +41,10 @@ void main() {
     });
 
     test('fromDbValue never falls back to natural for unknown values', () {
-      // Comportement figé volontairement : un sous-type inconnu doit rester
-      // inconnu. L'interpréter en « lait maternel » inventerait un dossier de
-      // santé — c'est pourquoi l'import n'a pas de whitelist de sous-types
-      // d'alimentation : un 'purée' hérité doit survivre intact.
+      // Voluntarily fixed behavior: an unknown subtype must remain.
+      // unknown. Interpreting it as "breast milk" would fabricate a case.
+      // health — that's why the import feature doesn't have a whitelist of subtypes.
+      // Regarding feeding: a baby's inherited food should remain intact.
       expect(FeedingSubtype.fromDbValue('purée'), isNull);
       expect(FeedingSubtype.fromDbValue('unknown'), isNull);
     });

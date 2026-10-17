@@ -8,10 +8,10 @@ import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_icons.dart';
 
-/// Widget pour afficher les sous-types de soins santé.
+/// Widget to display the subtypes of healthcare services.
 ///
-/// L'état de sélection est local au [StatefulWidget] : il ne survit pas à la
-/// fermeture du dialog et ne fuit pas d'une ouverture à l'autre.
+/// The selection state is local to the [StatefulWidget]: it does not persist across rebuilds.
+/// It closes the dialogue and doesn't transition smoothly from one topic to another.
 class HealthSubtypeDialog extends StatefulWidget {
   const HealthSubtypeDialog({super.key});
 
@@ -42,7 +42,7 @@ class _HealthSubtypeDialogState extends State<HealthSubtypeDialog> {
             ),
             const SizedBox(height: 16),
 
-            // Liste des sous-types santé — utilise l'enum HealthSubtype au lieu de strings
+            // List of health subtypes — uses the `HealthSubtype` enumeration instead of strings.
             ...HealthSubtype.values.map((subtype) {
               final isSelected = selectedType == subtype;
               return ListTile(

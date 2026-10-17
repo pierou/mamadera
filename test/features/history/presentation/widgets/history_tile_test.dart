@@ -12,13 +12,13 @@ import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 
-/// Charge Roboto (la police Android de l'app) dans le processus de test.
+/// Load the Roboto font (the Android font used by the app) during the testing process.
 ///
-/// Sans cela, Flutter rend le texte en Ahem, dont chaque glyphe est un
-/// carré de la taille de la police — environ 2× plus large que Roboto. Les
-/// tests géométriques (débordement) doivent s'appuyer sur des métriques
-/// réelles. Les polices proviennent du cache du SDK Flutter
-/// (`bin/cache/artifacts/material_fonts`), le même que l'émulateur Android.
+/// Otherwise, Flutter renders the text in Ahem, where each glyph is a...
+/// font size square — approximately 2 times wider than Roboto. The...
+/// Geometric tests (overflow) should be based on metrics.
+/// These are real fonts, sourced from the Flutter SDK's repository.
+/// (`/`bin/cache/artifacts/material_fonts``), which is the same directory used by the Android emulator.
 Future<void> _loadRobotoFont() async {
   final flutterRoot = Platform.environment['FLUTTER_ROOT'];
   if (flutterRoot == null) return;
@@ -224,7 +224,7 @@ void main() {
   });
 
   group('HistoryTile — Unité de quantité (FeedingEvent)', () {
-    // Le suffixe suit le sous-type : un purée s'affiche en grammes, un
+    // The suffix follows the subtype: a puree is displayed in grams, a...
     // biberon en millilitres — jamais l'inverse.
     testWidgets('aliment solide → quantité en grammes', (tester) async {
       await pumpTile(
@@ -404,10 +404,10 @@ void main() {
             timestamp: DateTime.utc(2024),
             subtype: FeedingSubtype.natural),
       );
-      // Depuis la v1.2.1, la date anglaise reprend les minutes (« 09:32 PM »)
-      // : sur la plus petite cible elle tenait plus large que le titre et la
-      // ligne débordait de 12 px. On la coupe donc en date (ligne 1) et heure
-      // (ligne 2). Le libellé d'une seule ligne n'existe plus.
+      // Since version 1.2.1, the English date format now includes the minutes ("09:32 PM").
+      // Regarding the smallest target, it was wider than the title and the...
+      // The line was overflowing by 12 pixels. Therefore, it was split into two lines: one for the date (line 1) and one for the time.
+      // (line 2). The single-line description no longer exists.
       expect(find.text('15/06/2024'), findsOneWidget);
       expect(find.text('10:30'), findsOneWidget);
       expect(find.text('15/06/2024 10:30'), findsNothing);
@@ -415,9 +415,9 @@ void main() {
   });
 
   group('HistoryTile — Sommeil : une seule ligne de valeur', () {
-    // L'app enregistre les minutes de la sieste dans `quantity` ET `duration`
-    // (même valeur). La tuile ne doit pas les rendre deux fois (« Quantité : 45 min »
-    // + « Durée : 45 min ») : « Durée » est le libellé naturel d'une sieste.
+    // The app records the `duration` of the nap in both the `quantity` and "duration" fields.
+    // (same value). The tiles should not display the quantity twice ("Quantity: 45 min").
+    // + "Duration: 45 minutes"): "Duration" is the natural term used to describe a nap.
     testWidgets('SleepEvent avec quantité → « Durée » sans « Quantité »',
         (tester) async {
       await pumpTile(
@@ -447,17 +447,17 @@ void main() {
   });
 
   group('HistoryTile — Pas de débordement (plus petite cible)', () {
-    // Small_Phone : 720x1280 px @ 320 dpi = 360x640 dp. C'est sur cette
-    // largeur, avec le format anglais le plus large, que la date sur une
-    // seule ligne faisait déborder le titre.
+    // Small_Phone: 720x1280 pixels at 320 dpi = 360x640 dp. This is based on...
+    // width, using the widest English format, including the date on...
+    // Only one line was causing the title to overflow.
     testWidgets('date anglaise avec minutes à 360 dp → aucun overflow',
         (tester) async {
-      // Roboto (la police Android de l'app) et non Ahem : Ahem rend chaque
-      // glyphe carré (largeur = taille), environ 2× plus large que Roboto,
-      // et ferait déborder à 360 dp ce qui tient sur un vrai Small_Phone.
-      // Avec la police réelle, ce test reproduit la géométrie de
-      // l'appareil : la date sur une seule ligne (v1.2.1) y débordait de
-      // ~12 px, les deux lignes non.
+      // Roboto (the font used in the app, not Ahem): Ahem makes each...
+      // Square glyph (width equals height), approximately twice as wide as Roboto.
+      // and would overflow at 360 dp, which is the size that fits on a real Small_Phone.
+      // Using the actual font, this test replicates the geometry of...
+      // The device: the date was displayed on a single line (v1.2.1), causing it to overflow.
+      // Approximately 12 pixels, but not for both lines.
       await _loadRobotoFont();
       tester.view.physicalSize = const Size(720, 1280);
       tester.view.devicePixelRatio = 2.0;
@@ -468,9 +468,9 @@ void main() {
           child: MaterialApp(
             locale: const Locale('en'),
             supportedLocales: const [Locale('en')],
-            // Le thème de l'app, en police Roboto (celle de l'appareil).
-            // `textTheme`/`primaryTextTheme` sont les thèmes entièrement
-            // résolus (styles par défaut compris), donc `.apply` couvre
+            // The app's theme uses the Roboto font (the default font on the device).
+            // `textTheme`/`primaryTextTheme` are complete theme sets.
+            // resolved (including default styles), so `.apply` covers everything.
             // toutes les tailles.
             theme: AppTheme.lightTheme.copyWith(
               textTheme: AppTheme.lightTheme.textTheme
@@ -491,9 +491,9 @@ void main() {
                     timestamp: DateTime.utc(2026, 10, 13),
                     subtype: FeedingSubtype.natural,
                     quantity: 120),
-                // onTap non nul : sur l'écran d'historique réel, la tuile
-                // ouvre la dialog d'édition, donc le bloc de fin porte
-                // l'icône (et son espacement) comme sur l'appareil.
+                // `onTap` is not null: on the actual history screen, the tile...
+                // It opens the editing dialog, so the end block is displayed.
+                // The icon (and its spacing) should appear as it does on the device.
                 time: '10/13/2026 09:32 PM',
                 onTap: () {},
               ),
@@ -503,10 +503,10 @@ void main() {
       );
       await tester.pump();
 
-      // En mode debug, un débordement de `RenderFlex` est signalé via
-      // `FlutterError.reportError`, que le binding de test capture : il est
-      // renvoyé par `takeException()` (et fait échouer le test sinon). C'est
-      // la garde contre le « RIGHT OVERFLOWED BY 12 PIXELS » vu sur Small_Phone.
+      // In debug mode, a `RenderFlex` overflow is reported via...
+      // `FlutterError.reportError`, which is captured by the test binding: it is...
+      // thrown by `takeException()` (and causes the test to fail if it is). This is...
+      // The issue is related to "RIGHT OVERFLOWED BY 12 PIXELS" which was observed on the Small_Phone device.
       expect(tester.takeException(), isNull,
           reason: 'la tuile déborde sur la plus petite cible (Small_Phone)');
     });
@@ -610,8 +610,8 @@ void main() {
       expect(find.text('Pâteuse'), findsOneWidget);
     });
 
-    // Les changes notées avant la v9 n'ont pas de texture : la ligne ne doit
-    // pas inventer un cran ni afficher une ligne vide.
+    // Changes made before version 9 do not have a texture; the line should...
+    // Do not insert any blank lines or extra spaces.
     testWidgets('aucune ligne de texture pour une couche sans texture',
         (tester) async {
       await pumpTile(
@@ -625,7 +625,7 @@ void main() {
 
       expect(find.text('Pâteuse'), findsNothing);
       expect(find.text('Aqueuse'), findsNothing);
-      // Les indicateurs de couleur existants restent affichés (une couleur est
+      // The existing color indicators remain displayed (a color indicates...).
       // rendue en pastille + Tooltip, pas en texte).
       expect(find.byType(Tooltip), findsOneWidget);
     });

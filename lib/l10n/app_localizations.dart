@@ -274,12 +274,6 @@ abstract class AppLocalizations {
   /// **'Modifier la température'**
   String get growthSheetEditTitleTemperature;
 
-  /// No description provided for @growthSheetLastValueHint.
-  ///
-  /// In fr, this message translates to:
-  /// **'Dernière : {value}'**
-  String growthSheetLastValueHint(Object value);
-
   /// No description provided for @growthSheetNoteField.
   ///
   /// In fr, this message translates to:

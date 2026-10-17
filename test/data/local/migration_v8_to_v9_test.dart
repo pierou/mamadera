@@ -5,8 +5,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/data/local/app_db.dart';
 
-/// Coquille [GeneratedDatabase] vide servant uniquement à exécuter du SQL brut
-/// sur un fichier, sans aucune table définie par drift.
+/// Empty [GeneratedDatabase] shell used solely for executing raw SQL queries.
+/// on a file, without any tables defined by Drift.
 class _RawSqlDatabase extends GeneratedDatabase {
   _RawSqlDatabase(super.e);
 
@@ -17,15 +17,15 @@ class _RawSqlDatabase extends GeneratedDatabase {
   int get schemaVersion => 8;
 }
 
-/// Régression de la migration v9 : ajout de la colonne `texture`
-/// (consistance des selles) sur `tracking_events`.
+/// Migration regression v9: Added the `texture` column.
+/// (stool consistency) in the `tracking_events` table.
 ///
-/// Deux choses sont vérifiées, parce que ce sont les deux façons dont une
-/// migration de colonne peut silencieusement abîmer des données :
-/// 1. la colonne existe après montée, donc la première sauvegarde depuis
-///    l'appareil n'échoue pas sur « no such column: texture » ;
-/// 2. les changes déjà enregistrées restent à NULL — on n'invente pas la
-///    consistance d'un change noté avant cette option.
+/// Two things are verified because these are the two ways in which a...
+/// Column migration can silently corrupt data.
+/// 1. The column exists after the data is loaded, so this is the first backup since then.
+/// The device does not fail with the error message "no such column: texture";
+/// 2. Any changes that have already been recorded will remain as NULL – we don't fabricate data.
+/// consistency with a previously recorded exchange rate before this option was applied.
 void main() {
   late Directory tempDir;
   late File dbFile;
@@ -34,7 +34,7 @@ void main() {
     tempDir = await Directory.systemTemp.createTemp('mamadera_migration_v9');
     dbFile = File('${tempDir.path}/mamadera_v8.db');
 
-    // Base v8 physique, telle que lib/data/local/schema.sql (v8) la décrit.
+    // A physical V8 database, as described by the `lib/data/local/schema.sql` file (V8 version).
     final raw = _RawSqlDatabase(NativeDatabase(dbFile));
     await raw.customStatement('''
       CREATE TABLE baby_profiles (
@@ -61,14 +61,14 @@ void main() {
         item_id TEXT PRIMARY KEY NOT NULL,
         enabled BOOLEAN NOT NULL
       )''');
-    // Créée dès la v3, absente de ce seed minimaliste mais présente sur
-    // toute base v8 réelle : la reconstruction v11 la lit, il faut qu'elle existe.
+    // Created from version 3 onwards, it was absent from this minimalist seed but is present on...
+    // Any real V8 database: the V11 reconstruction reads it; it must exist.
     await raw.customStatement('''
       CREATE TABLE reminder_dismissals (
         item_id     TEXT PRIMARY KEY NOT NULL,
         dismissed_at TIMESTAMP            NOT NULL
       )''');
-    // Une couche enregistrée avant l'option, avec une couleur.
+    // A layer that was saved before the option was applied, with a specific color.
     await raw.customStatement(
       "INSERT INTO tracking_events (type, timestamp, waste_type, color) "
       "VALUES ('caca', 1756684800, 'caca', 'jaune_moutarde')",
@@ -86,10 +86,10 @@ void main() {
 
     final events = await db.select(db.trackingEvents).get();
     expect(events, hasLength(1));
-    // Lue via Drift : la colonne existe, et l'ancienne ligne est intacte.
+    // Checked using Drift: the column exists, and the old row is intact.
     expect(events.first.color, equals('jaune_moutarde'));
     expect(events.first.texture, equals(null));
-    // Le fichier est monté jusqu'à la version courante, pas seulement jusqu'à 9.
+    // The file has been updated to the current version, not just to version 9.
     expect(db.schemaVersion, equals(12));
   });
 
@@ -109,7 +109,7 @@ void main() {
     final rows = await db.select(db.trackingEvents).get();
     final fresh = rows.firstWhere((r) => r.texture != null);
     expect(fresh.texture, equals('pateuse'));
-    // Et l'ancienne ligne n'a pas été touchée par l'écriture.
+    // And the previous line was not affected by the writing.
     expect(rows.firstWhere((r) => r.color == 'jaune_moutarde').texture,
         equals(null));
   });
