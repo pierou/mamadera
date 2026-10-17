@@ -8,11 +8,11 @@ import '../../domain/entities/growth_measurement.dart';
 import '../../domain/entities/measure_kind.dart';
 import '../../domain/repositories/measurement_repository.dart';
 
-/// Implémentation base des mesures de croissance.
+/// Implementation based on growth metrics.
 ///
-/// `measurements.value` est du chiffré AES-GCM dans une colonne `TEXT` :
-/// l'en-clair n'existe que pendant la dé-chiffrement ici, et n'entre jamais
-/// dans un log (donnée de santé).
+/// `measurements.value` is an AES-GCM encrypted value stored in a `TEXT` column:
+/// The plaintext only exists during the decryption process and never enters [the system/process].
+/// in a log (health data).
 class MeasurementRepositoryImpl implements MeasurementRepository {
   /// Injection explicite : pas de fallback singleton.
   MeasurementRepositoryImpl({
@@ -34,13 +34,13 @@ class MeasurementRepositoryImpl implements MeasurementRepository {
     required DateTime recordedAt,
     String? notes,
   }) async {
-    // Garde-fous de borne : la feuille refuse déjà, mais une ligne hors
-    // plage ne doit jamais exister dans la table.
+    // Safety barrier: the sheet already rejects it, but a line is out of bounds.
+    // The word "beach" should never appear in the table.
     if (!kind.contains(value)) {
       throw ArgumentError.value(
           value, 'value', 'Valeur hors bornes pour ${kind.dbValue}');
     }
-    // Chiffrement avant insertion : la colonne ne contient jamais l'en-clair.
+    // Encryption before insertion: the column never contains the unencrypted data.
     await _database.into(_database.measurements).insert(
           db_app.MeasurementsCompanion.insert(
             babyId: Value(babyId),
@@ -51,20 +51,20 @@ class MeasurementRepositoryImpl implements MeasurementRepository {
             notes: Value(notes == null ? null : _encryption.encrypt(notes)),
           ),
         );
-    // Kind et compteur uniquement — jamais la valeur (donnée de santé).
+    // Kind and meter readings only – never the value (health data).
     _logger.d('mesure ajoutée kind=${kind.dbValue}');
   }
 
-  /// Lignes du bébé (et éventuellement d'un seul [kind]), triées du plus
-  /// récent au plus ancien (ex æquo : id décroissant).
+  /// Baby lines (and potentially just one [kind]), sorted from the longest to the shortest.
+  /// Most recent to oldest (equal: then decreasing).
   ///
-  /// Lecture non filtrée puis borne en Dart : `app_db.dart` est la source de
-  /// vérité du schéma et n'est pas touchée par v1.2.
+  /// Unfiltered reading, followed by processing in Dart: `app_db.dart` is the source.
+  /// The validity of the schema is not affected by version 1.2.
   Future<List<db_app.Measurement>> _rows(
       String? babyId, MeasureKind? kind) async {
     final rows = await _database.getAllMeasurements();
-    // `babyId == null` = « tous les bébés » — même sémantique que le
-    // repository d'événements : un filtre strict équivaut à ne rien voir.
+    // `babyId == null` = "all babies" - same meaning as the...
+    // Event repository: a strict filter will show you nothing.
     final scoped = [
       for (final row in rows)
         if ((babyId == null || row.babyId == babyId) &&
@@ -77,8 +77,8 @@ class MeasurementRepositoryImpl implements MeasurementRepository {
     return scoped;
   }
 
-  /// Traduit un row en entité ; `null` si le kind est inconnu (ligne
-  /// orpheline conservée en base, jamais affichée).
+  /// Translates a row into an entity; returns `null` if the type is unknown (row).
+  /// orphan record, kept in the database but never displayed).
   GrowthMeasurement? _toEntity(db_app.Measurement row) {
     final kind = MeasureKind.byValue(row.kind);
     if (kind == null) {
@@ -90,8 +90,8 @@ class MeasurementRepositoryImpl implements MeasurementRepository {
       id: row.id,
       babyId: row.babyId,
       kind: kind,
-      // Une valeur illisible devient `null` — l'UI l'affiche comme non
-      // déchiffrable, jamais comme zéro.
+      // An unreadable value becomes `null` – the user interface displays it as "not available."
+      // decipherable, never like zero.
       value: decrypted == null ? null : double.tryParse(decrypted),
       unit: row.unit,
       recordedAt: row.recordedAt,
@@ -127,8 +127,8 @@ class MeasurementRepositoryImpl implements MeasurementRepository {
       throw ArgumentError.value(
           value, 'value', 'Impossible de mettre à jour une mesure sans valeur');
     }
-    // Même garde-fou de borne qu'à l'insertion : une ligne hors plage ne
-    // doit jamais exister dans la table.
+    // The same type of boundary protection is used at the input: any value outside the valid range will not be accepted.
+    // It should never exist in the table.
     if (!measurement.kind.contains(value)) {
       throw ArgumentError.value(value, 'value',
           'Valeur hors bornes pour ${measurement.kind.dbValue}');
@@ -142,7 +142,7 @@ class MeasurementRepositoryImpl implements MeasurementRepository {
           ? null
           : _encryption.encrypt(measurement.notes!)),
     ));
-    // Kind et id uniquement — jamais la valeur (donnée de santé).
+    // Kind and ID only – never the value (health data).
     _logger.d('mesure mise à jour id=$id kind=${measurement.kind.dbValue}');
   }
 

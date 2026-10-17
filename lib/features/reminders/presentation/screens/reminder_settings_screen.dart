@@ -14,14 +14,14 @@ import '../widgets/custom_reminder_form_sheet.dart';
 import '../widgets/custom_reminder_tile.dart';
 import '../widgets/reminder_frequency_label.dart';
 
-/// Écran Réglages → Rappels : le parent éteint les rappels qui ne le concernent
-/// pas (Vit. K après la naissance, soins arrêtés sur avis médical…) et ajoute les
+/// Settings screen → Reminders: The parent disables the reminders that are not relevant to them.
+/// (Vitamin K after birth, discontinuation of treatment based on medical advice, etc.) and add the following:
 /// siens.
 ///
-/// Un rappel éteint n'est pas supprimé : il ne sonne plus, reste listé ici pour
-/// pouvoir être rallumé, et son historique de complétion est conservé. Rien
-/// d'automatique n'est envoyé à l'extérieur de l'app — les rappels sont des
-/// bandeaux sur l'accueil, jamais des notifications système.
+/// A muted reminder is not deleted; it simply stops sounding, but remains listed here.
+/// It can be restarted, and its completion history is preserved. Nothing else.
+/// automatic notifications are not sent outside of the app—reminders are.
+/// Banners displayed on the homepage, never system notifications.
 class ReminderSettingsScreen extends ConsumerWidget {
   const ReminderSettingsScreen({super.key});
 
@@ -38,15 +38,15 @@ class ReminderSettingsScreen extends ConsumerWidget {
       ),
       body: Builder(
         builder: (context) {
-          // Trois sources, un seul écran : afficher une section pendant que les
-          // autres tournent encore laisserait le parent deviner si « rien ici »
-          // veut dire « rien à régler » ou « pas encore chargé ».
+          // Three sources, one screen: display one section while the...
+          // Some still turn, allowing the parent to guess if "nothing is here."
+          // It means "nothing to adjust" or "not yet charged."
           if (presetsAsync.isLoading ||
               settingsAsync.isLoading ||
               customAsync.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          // Jamais l'exception brute à l'écran (charte confidentialité).
+          // Never display the raw exception on the screen (confidentiality policy).
           if (presetsAsync.hasError ||
               settingsAsync.hasError ||
               customAsync.hasError) {
@@ -56,9 +56,9 @@ class ReminderSettingsScreen extends ConsumerWidget {
             presets: presetsAsync.requireValue,
             custom: customAsync.requireValue,
             settings: settingsAsync.requireValue,
-            // Jour de naissance du bébé actif : seul un rythme mensuel s'en
-            // sert, et c'est ce qui affiche « Le 14 de chaque mois » plutôt que
-            // le jour fictif stocké en base.
+            // Date of birth of the active baby: only a monthly cycle applies.
+            // serves, and that's why it displays "The 14th of each month" instead of...
+            // The fictional date is stored in the database.
             monthlyDay: ref.watch(activeBabyProvider).value?.birthDate.day,
           );
         },
@@ -77,13 +77,13 @@ class _ReminderList extends ConsumerWidget {
 
   final List<ReminderItem> presets;
 
-  /// Rappels personnalisés enregistrés, dans l'ordre de création.
+  /// Personalized reminders, listed in the order they were created.
   final List<CustomReminder> custom;
 
-  /// `item_id → activé` ; une clé absente vaut activé (opt-out, pas opt-in).
+  /// `item_id → enabled`; if the key is missing, it defaults to enabled (opt-out, not opt-in).
   final Map<String, bool> settings;
 
-  /// Jour de naissance du bébé actif, `null` sans profil.
+  /// Date of birth of the active baby, `null` if no profile exists.
   final int? monthlyDay;
 
   @override
@@ -100,7 +100,7 @@ class _ReminderList extends ConsumerWidget {
         const SizedBox(height: AppTheme.spacingLg),
         for (final item in presets)
           SwitchListTile(
-            // Contenu accessible : le libellé et la fréquence sont lus ensemble.
+            // Accessible content: The label and frequency are read together.
             title: Text(_presetLabel(context, item)),
             subtitle: Text(reminderFrequencyLabel(context, item.frequency)),
             value: settings[item.id] ?? true,
@@ -155,11 +155,11 @@ class _ReminderList extends ConsumerWidget {
     );
   }
 
-  /// Clé de `reminder_settings` d'un rappel personnalisé.
+  /// Key for the `reminder_settings` of a custom reminder.
   ///
-  /// Rendue par [CustomReminderTile.keyOf] : l'extinction écrite par le switch de
-  /// la tuile et lue par cette liste tombent sur la même ligne par construction,
-  /// pas par coïncidence de deux chaînes recopiées.
+  /// Set by [CustomReminderTile.keyOf]: the written message from the switch.
+  /// By default, the "tile" and "lue" elements in this list will appear on the same line.
+  /// Not due to a coincidental match between two copied sequences.
   String _settingsKey(CustomReminder reminder) =>
       CustomReminderTile.keyOf(reminder);
 
@@ -177,10 +177,10 @@ class _ReminderList extends ConsumerWidget {
     }
   }
 
-  /// Ouvre le formulaire et écrit ce qu'il rend.
+  /// Open the form and write down whatever it says.
   ///
-  /// La feuille ne touche jamais la base : créer ici plutôt que dans la feuille
-  /// garde une seule sortie possible, celle qui prévient l'accueil.
+  /// The leaf never touches the base: create here instead of on the leaf.
+  /// It only allows for one possible exit, the one that alerts reception.
   Future<void> _openForm(
     BuildContext context,
     WidgetRef ref, {
@@ -194,10 +194,10 @@ class _ReminderList extends ConsumerWidget {
     if (draft == null) return;
 
     final notifier = ref.read(customRemindersProvider.notifier);
-    // Le try/catch n'est pas décoratif : sans lui, une écriture refusée (stockage
-    // plein, ligne trop longue) part dans un futur que personne n'attend — plante
-    // en debug, silencieuse en release — et le parent voit le panneau se fermer
-    // sans que rien n'apparaisse sur la liste.
+    // The try/catch block is not merely decorative; without it, a failed write operation (e.g., to storage) will...
+    // (full, excessively long queue) goes into a future that no one expects – plant.
+    // In debug mode, it's silent; in release mode, it's quiet, and the parent sees the panel close.
+    // without anything appearing on the list.
     try {
       if (existing == null) {
         await notifier.create(draft);
@@ -219,8 +219,8 @@ class _ReminderList extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(dialogContext.l.reminderCustomDeleteConfirm),
-        // Le parent peut craindre de perdre son historique : c'est le moment de
-        // dire que non, les événements suivis ne bougent pas.
+        // The parent may be afraid of losing their data: this is the time to...
+        // To say no, the subsequent events remain unchanged.
         content: Text(dialogContext.l.reminderCustomDeleteWarning),
         actions: [
           TextButton(
@@ -246,23 +246,23 @@ class _ReminderList extends ConsumerWidget {
       await ref.read(customRemindersProvider.notifier).remove(id);
     } on Object {
       if (!context.mounted) return;
-      // Sans ce garde-fou, l'écran afficherait un rang vidé alors que la ligne
-      // est toujours en base — et le ressersirait au prochain ouverture.
+      // Without this safeguard, the screen would display an empty row, while the line...
+      // It's still in the base, and I would tighten it again at the next opening.
       showError(context, context.l.reminderCustomDeleteError);
     }
   }
 
-  /// Nom complet du soin plutôt que l'abréviation de la pastille (« Vitamine D »
-  /// et non « Vit. D ») : ici on règle un rappel, on ne le lit pas en un coup
-  /// d'œil au-dessus d'un bouton.
+  /// Use the full name of the treatment rather than the abbreviation on the pill ("Vitamin D").
+  /// and not "Vit. D") : here, we're setting a reminder, not reading something quickly.
+  /// slightly above a button.
   String _presetLabel(BuildContext context, ReminderItem item) {
     final subtypeValue = item.subtypeValue;
     if (subtypeValue != null) {
       final subtype = HealthSubtype.byValue(subtypeValue);
       if (subtype != null) return resolveHealthLabel(context, subtype);
     }
-    // Invitation pour un rappel sans sous-type (les préréglages actuels en ont
-    // tous un) : on retombe sur la clé plutôt que de planter.
+    // Invitation for a reminder without a specific subtype (the current presets include...).
+    // all as one): it falls back to the key instead of crashing.
     return item.labelKey;
   }
 }

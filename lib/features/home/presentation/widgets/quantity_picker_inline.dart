@@ -34,40 +34,40 @@ class QuantityPickerInline extends StatefulWidget {
   final double value;
   final void Function(double) onValueChanged;
 
-  /// Nombre parsé **hors** de `[min, max]`, si l'hôte en veut la vue.
+  /// Number parsed **outside** the range `[min, max]` if the host requests it.
   ///
-  /// `null` (défaut) : une saisie hors plage est ignorée, comportement
-  /// historique. Fourni, l'hôte affiche son erreur existante et désactive
-  /// sa sauvegarde — le chiffre est transmis tel quel, **jamais clamped** :
-  /// corriger silencieusement un nombre de parent, c'est inventer une mesure.
+  /// `null` (default): An out-of-range input is ignored; this is the default behavior.
+  /// historical. The host displays its current error and disables it.
+  /// its backup — the figure is transmitted exactly as it is, **never rounded or modified**:
+  /// Silently correcting the number of parents is inventing a metric.
   final void Function(double)? onValueOutOfRange;
 
-  /// Pas des boutons +/-, en unités de [min]/[max].
+  /// No plus/minus buttons, with values in [min]/[max] units.
   ///
-  /// `null` (défaut) : pas de stepper, le rendu est identique à l'existant —
-  /// c'est ce qui protège les sites d'appel qui n'ont pas de pas naturel.
-  /// Les boutons apparaissent de part et d'autre de la valeur, clamped aux
-  /// bornes, désactivés (jamais masqués) quand on est déjà dessus.
+  /// `null` (default): no stepper, the rendering is identical to the existing version.
+  /// This is what protects call sites that do not have a natural gradient.
+  /// The buttons appear on either side of the value, and are attached to...
+  /// terminals, disabled (never hidden) when already in use.
   final double? step;
 
-  /// Couleur d'accent (titre, slider) — le vert miam n'est qu'un défaut.
+  /// Accent color (title, slider) - the "yum green" is just a minor flaw.
   final Color accentColor;
 
-  /// Décimales affichées et acceptées. `0` garde le comportement historique des
-  /// millilitres de biberon, au caractère près.
+  /// Decimal places displayed and accepted. `0` retains the historical behavior of...
+  /// Milliliters of formula, down to the last drop.
   ///
-  /// Une température se dit `37,5` : afficher `38` dans une app de santé n'est
-  /// pas un arrondi, c'est une réponse fausse.
+  /// A temperature is recorded as `37.5`: displaying `38` in a health app is...
+  /// It's not an approximation; it's a wrong answer.
   final int decimals;
 
-  /// Libellé d'appoint affiché **à la place de la valeur** tant que le parent
-  /// n'a rien saisi (feuille de mesure : « dernière : 36,8 °C »).
+  /// The supplementary label is displayed **instead of the value** as long as the parent element is present.
+  /// It didn't register anything (measurement sheet: "last reading: 36.8 °C").
   ///
-  /// Fourni, le champ texte démarre **vide** : la valeur de l'hôte n'est pas
-  /// une saisie du parent, et l'afficher comme telle, c'est la présenter
-  /// comme une mesure prise. L'hôte apprend que la saisie a eu lieu par le
-  /// premier appel à [onValueChanged] (slider, stepper ou champ) — c'est lui
-  /// qui décide d'activer sa sauvegarde.
+  /// The text field is provided, but it starts **empty**: the host value is not.
+  /// Displaying a parent's input and labeling it as such is how you present it.
+  /// as a measure that has been taken. The host learns that the seizure occurred through...
+  /// The first call to [onValueChanged] (for a slider, stepper, or field) – that's the one.
+  /// who decides to activate their backup.
   final String? hintLabel;
 
   @override
@@ -77,16 +77,16 @@ class QuantityPickerInline extends StatefulWidget {
 class _QuantityPickerInlineState extends State<QuantityPickerInline> {
   late TextEditingController _textController;
 
-  /// `false` tant que le parent n'a rien saisi en mode `hintLabel` : le champ
-  /// reste vide et l'en-tête affiche l'appoint, pas la valeur de l'hôte.
+  /// `false` until the parent has captured anything in `hintLabel` mode: the field.
+  /// The field remains empty, and the header displays the increment, not the host value.
   bool _hasUserInput = false;
 
-  /// Répétition du stepper au long-appui : annulée en [dispose], sinon un feu
-  /// post-démontage appellerait `setState` sur un State mort.
+  /// Repeatedly pressing and holding the "stepper" button: cancelled in [dispose], otherwise a fire will occur.
+  /// Calling `setState` on a component after it has been unmounted would result in an error.
   Timer? _repeatTimer;
 
-  /// Texte initial déjà calculé : `didChangeDependencies` repasse à chaque
-  /// changement de dépendance, le texte n'est écrit qu'une seule fois.
+  /// Original text already calculated: `didChangeDependencies` is called repeatedly.
+  /// dependency change: the text is written only once.
   bool _textInitialized = false;
 
   @override
@@ -99,8 +99,8 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Le texte initial dépend de la locale (séparateur décimal), un widget
-    // hérité : illisible dans `initState`, on l'écrit au premier passage de
+    // The initial text depends on the locale (decimal separator), and it's displayed as a widget.
+    // inherited: cannot be read in `initState`, so it is written during the first execution.
     // `didChangeDependencies`.
     if (!_textInitialized) {
       _textInitialized = true;
@@ -113,31 +113,31 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
   void didUpdateWidget(covariant QuantityPickerInline oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value == widget.value) return;
-    // En mode appoint, une valeur qui bouge avant la première saisie est la
-    // valeur de l'hôte qui se déplace, pas un écho d'une saisie : le champ
-    // reste vide, sinon on pré-remplit ce que la feuille s'interdit de
-    // pré-remplir.
+    // In "supplemental" mode, a value that changes before the initial entry is the...
+    // The value of the host that is moving, not an echo of an input: the field.
+    // If it's left blank, then it will automatically fill in the information that the form doesn't allow you to change.
+    // Pre-fill.
     if (!_hasUserInput) return;
-    // Ne pas réécrire ce que le parent est en train de taper : si le champ
-    // représente déjà la valeur qu'on vient de recevoir, le texte est déjà bon
-    // (« 37,5 » saisi, 37.5 reçu) et une réécriture placerait un point et
-    // déplacerait le curseur en milieu de saisie.
+    // Do not rewrite what the parent is currently typing: if the field...
+    // It already represents the value we just received, and the text is already good.
+    // ("37.5" entered, 37.5 received), and rewriting it would place a period and...
+    // It would move the cursor to the middle of the input field.
     final entered = double.tryParse(_textController.text.replaceAll(',', '.'));
     if (entered == widget.value) return;
     _textController.text = _textFor(widget.value);
   }
 
-  /// Texte du champ : troncature historique quand il n'y a pas de décimale,
-  /// sinon la valeur locale-formée — « 37,4 » en français, pas « 37.4 » : un
-  /// point tapé par le clavier français devient une seconde décimale au
-  /// prochain cran, et la valeur affichée n'est plus celle qui sera stockée.
+  /// Text field: Historical truncation when there is no decimal point.
+  /// Otherwise, the locally formed value is "37,4" in French, not "37.4": a.
+  /// The key pressed on the French keyboard becomes a second decimal point.
+  /// The next step will advance to the next setting, and the value displayed will no longer be the one that will be stored.
   String _textFor(double value) {
     if (widget.decimals == 0) return value.toInt().toString();
     final symbol = _decimalSymbol();
     return value.toStringAsFixed(widget.decimals).replaceAll('.', symbol);
   }
 
-  /// Séparateur décimal de la locale courante (virgule en fr, point en en).
+  /// Decimal separator for the current locale (comma in French, period in English).
   String _decimalSymbol() =>
       NumberFormat('#,##0', Localizations.localeOf(context).toLanguageTag())
           .symbols
@@ -150,21 +150,21 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
     super.dispose();
   }
 
-  /// Valeur de référence du stepper : ce qui est affiché dans le champ, pas la
-  /// position du slider. Si le parent a tapé `37,4`, `+` doit donner `37,5`.
+  /// Reference value of the stepper: the value displayed in the field, not the actual value.
+  /// position of the slider. If the parent element has the value `37.4`, then `+` should result in `37.5`.
   double _valueOnScreen() =>
       double.tryParse(_textController.text.replaceAll(',', '.')) ??
       widget.value;
 
-  /// Un cran dans la direction donnée : l'arithmétique se fait en `double`,
-  /// arrondie à [QuantityPickerInline.decimals] pour que `0.1 + 0.1 + 0.1`
-  /// s'affiche `0.3` et jamais `0.30000000000000004`, puis clamped aux bornes.
+  /// A step forward in the intended direction: calculations are performed using `double` precision.
+  /// rounded to [QuantityPickerInline.decimals] decimal places, so that `0.1 + 0.1 + 0.1`
+  /// It displays as `0.3` and never as `0.30000000000000004`, and then it's clamped to the boundaries.
   void _nudge(int direction) {
     final step = widget.step;
     if (step == null) return;
     final current = _valueOnScreen();
-    // Garde-fou pour la répétition au long-appui : si la borne est atteinte
-    // en cours de série, le timer n'ajoute plus rien.
+    // Safety mechanism for long-range shooting: if the target is reached.
+    // While the series is running, the timer no longer adds any time.
     final atBound =
         direction > 0 ? current >= widget.max : current <= widget.min;
     if (atBound) return;
@@ -178,7 +178,7 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
     widget.onValueChanged(clamped);
   }
 
-  /// Long-appui : un cran immédiat, puis un cran toutes les 120 ms.
+  /// Long press: an immediate click, followed by a click every 120 milliseconds.
   void _startRepeat(int direction) {
     _stopRepeat();
     _nudge(direction);
@@ -191,15 +191,15 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
     _repeatTimer = null;
   }
 
-  /// Bouton d'un cran : tooltip et label sémantique localisés, désactivé
-  /// (jamais masqué — un contrôle qui disparaît fait sauter la mise en page)
-  /// quand on est déjà sur la borne correspondante.
+  /// Button with one level: localized tooltip and semantic label, disabled.
+  /// (never masked - a control that disappears breaks the layout).
+  /// once you are already at the corresponding terminal.
   ///
   /// [InkResponse], et ni [IconButton] ni lui n'exposent `onLongPressStart` :
-  /// la répétition démarre donc sur `onLongPress` (le geste reconnu) et
-  /// s'arrête sur `onLongPressUp`. Un [GestureDetector] maison aurait donné le
-  /// même résultat en jetant le ripple, le curseur de survol et l'action
-  /// « activer » du lecteur d'écran — le tap simulé vient avec le widget.
+  /// The repetition therefore starts on the `onLongPress` event (the recognized gesture), and...
+  /// It stops at `onLongPressUp`. A custom [GestureDetector] would have provided the...
+  /// The same result is achieved by removing the ripple effect, the hover effect, and the action trigger.
+  /// "Activate" the screen reader — the simulated tap comes with the widget.
   Widget _buildStepButton(int direction) {
     final label = direction > 0 ? context.l.increment : context.l.decrement;
     final current = _valueOnScreen();
@@ -210,7 +210,7 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
       child: InkResponse(
         borderRadius: BorderRadius.circular(24),
         onTap: atBound ? null : () => _nudge(direction),
-        // Sur la borne, la répétition reste armable mais `_nudge` s'y no-op.
+        // On the device, the repeat function remains enabled, but the `_nudge` command will be ignored.
         onLongPress: atBound ? null : () => _startRepeat(direction),
         onLongPressUp: _stopRepeat,
         child: Padding(
@@ -233,20 +233,20 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
   }
 
   void _onTextChanged(String text) {
-    // La virgule est le séparateur décimal du clavier français, celui de la
-    // locale modèle de l'app : sans cette normalisation, « 37,5 » ne se parse
-    // pas, `onValueChanged` n'est jamais appelé, et le parent croit avoir saisi
-    // une température que l'app n'a jamais enregistrée. La normalisation est
-    // locale-neutre : point ET virgule se saisissent dans chaque locale.
+    // The comma is the decimal separator used on the French keyboard, unlike...
+    // App locale model: Without this standardization, "37.5" cannot be parsed.
+    // No, `onValueChanged` is never called, and the parent component believes it has successfully captured the value.
+    // a temperature that the app has never recorded before. Normalization is...
+    // Locale-neutral: The period and comma are used consistently across all locales.
     final parsed = double.tryParse(text.replaceAll(',', '.'));
     if (parsed == null) return;
     if (parsed >= widget.min && parsed <= widget.max) {
       _hasUserInput = true;
       widget.onValueChanged(parsed);
     } else {
-      // Hors plage : ne plus se taire. L'hôte reçoit la valeur saisie et
-      // décide de l'affichage (son label d'erreur, sa sauvegarde désactivée).
-      // L'erreur se lève et se lève seule : re-saisir dans la plage repasse
+      // Out of range: Do not remain silent. The host receives the entered value and...
+      // decides how it will be displayed (its error message, whether its autosave feature is enabled).
+      // The error message appears and resolves itself: re-enter the data within the specified range.
       // par `onValueChanged`.
       _hasUserInput = true;
       widget.onValueOutOfRange?.call(parsed);
@@ -254,22 +254,22 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
   }
 
   String _formatValue(double value) {
-    // decimals == 0 : le chemin des millilitres, inchangé au caractère près.
+    // If `decimals` is equal to 0, the path for milliliters remains unchanged, character for character.
     if (widget.decimals == 0) {
       return '${value.round()} ${widget.unit}';
     }
-    // Locale-aware : une température s'affiche « 37,5 °C » en français, pas
-    // « 37.5 ». C'est une donnée de santé, sa lisibilité compte.
+    // Locale-aware: a temperature is displayed as "37.5 °C" in French, not...
+    // "37.5". This is a health statistic, and its clarity is important.
     return '${_textFor(value)} ${widget.unit}';
   }
 
-  /// Slider thémé — **un seul par picker**.
+  /// Themed slider — **only one per selection**.
   ///
-  /// C'est un dispositif de visée, pas un instrument de précision : sur une
-  /// plage de 20 kg au pas de 10 g il y a un cran par dixième de pixel, et le
-  /// pouce s'arrête où le doigt s'arrête. Le champ de saisie et les boutons
-  /// +/- fixent la valeur exacte — c'est pourquoi il n'y a pas de second
-  /// curseur « fin » (retiré le 2026-10-13, voir docs/BACKLOG.md B2).
+  /// It's a sighting device, not a precision instrument: on a...
+  /// The range is 20 kg, with increments of 10 grams. There is a resolution of one tenth of a pixel, and...
+  /// The thumb stops where the finger stops. The input field and the buttons.
+  /// +/- determine the exact value – which is why there is no second [round/stage/attempt].
+  /// "End" slider (removed on 2026-10-13, see docs/BACKLOG.md B2).
   Widget _buildSlider({
     required double min,
     required double max,
@@ -298,15 +298,15 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
 
   @override
   Widget build(BuildContext context) {
-    // `step == null` : exactement le rendu d'aujourd'hui, sans stepper.
+    // `step == null`: This represents the exact output for today, without using the stepper.
     final showingHint = widget.hintLabel != null;
     final headerText = Text(
       _hasUserInput || !showingHint
           ? _formatValue(widget.value)
           : widget.hintLabel!,
       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            // L'appoint n'est pas une mesure : ton doux, pas la couleur
-            // d'accent réservée aux nombres.
+            // The supplement isn't a measure; it's about the tone, not the color.
+            // This accent mark is specifically used for numbers.
             color: _hasUserInput || !showingHint
                 ? widget.accentColor
                 : Theme.of(context).colorScheme.primary,
@@ -318,8 +318,8 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
         Center(
           child: widget.step == null
               ? headerText
-              : // `scaleDown` : identité visuelle quand la ligne tient, et
-              // réduction au lieu d'un overflow quand la feuille est étroite.
+              :               // `scaleDown`: visual identity that maintains its integrity even when scaled down, and...
+              // shrink instead of overflow when the sheet is narrow.
               FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Row(
@@ -338,8 +338,8 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
           max: widget.max,
           divisions: widget.divisions,
           value: widget.value,
-          // `clamp` : une saisie hors plage (B5) garde le nombre affiché dans
-          // le champ ; le pouce reste à la borne, il ne doit pas faire lever
+          // `clamp`: An out-of-range value (B5) will keep the displayed number within the specified range.
+          // The field; the thumb remains at the starting point and must not be raised.
           // l'assertion du Slider.
           clampedValue: widget.value.clamp(widget.min, widget.max),
         ),

@@ -3,14 +3,14 @@ import 'package:intl/intl.dart';
 
 import '../../../../data/local/db_constants.dart' as db_const;
 
-/// Les trois grandeurs de croissance mesurées (item 1 de v1.2.0).
+/// The three growth metrics measured (item 1 of version 1.2.0).
 ///
-/// L'enum porte ses propres bornes de validation (roadmap §8, verrouillées
-/// par les tests) : un cran au-delà de `[min, max]` est refusé à la saisie,
-/// jamais stocké puis expliqué dans l'historique. Métrique uniquement — pas
-/// de toggle d'unités ni de °F en v1.2.0.
+/// The enumeration process has its own validation checkpoints (roadmap §8, locked).
+/// (through testing): A value one step beyond the `[min, max]` range is rejected as input.
+/// never stored and then explained in the history. Metric only — not.
+/// No unit toggle or Fahrenheit (°F) support in version 1.2.0.
 enum MeasureKind {
-  /// Poids : grammes entiers, affichés en kg au-delà de 1 000 g.
+  /// Weight: Whole grams, displayed in kilograms for weights exceeding 1000 grams.
   poids(
     dbValue: db_const.kindPoids,
     labelKey: 'homeButtonPoids',
@@ -21,7 +21,7 @@ enum MeasureKind {
     decimals: 0,
   ),
 
-  /// Taille : centimètres, une décimale.
+  /// Size: centimeters, with one decimal place.
   taille(
     dbValue: db_const.kindTaille,
     labelKey: 'homeButtonTaille',
@@ -32,7 +32,7 @@ enum MeasureKind {
     decimals: 1,
   ),
 
-  /// Température : degrés Celsius, une décimale.
+  /// Temperature: degrees Celsius, with one decimal place.
   temperature(
     dbValue: db_const.kindTemperature,
     labelKey: 'homeButtonTemperature',
@@ -53,80 +53,80 @@ enum MeasureKind {
     required this.decimals,
   });
 
-  /// Valeur de la colonne `measurements.kind` (contrat de la table, v1.1.1).
+  /// Value of the `measurements.kind` column (table contract, v1.1.1).
   final String dbValue;
 
-  /// Clé l10n du libellé d'affichage (bouton d'accueil et titres).
+  /// Localization key for the display text (home button and titles).
   final String labelKey;
 
-  /// Unité stockée en colonne `measurements.unit` (`g`, `cm`, `degC`).
+  /// The unit of measurement is stored in the `measurements.unit` column (e.g., `g`, `cm`, `degC`).
   final String unit;
 
-  /// Icône canonique du bouton d'accueil et de l'historique.
+  /// Canonical icon for the home button and history.
   final IconData icon;
 
-  /// Borne basse inclusive, en unité de base (g, cm, °C).
+  /// Lower limit, inclusive, using basic units (g, cm, °C).
   final double min;
 
-  /// Borne haute inclusive, en unité de base (g, cm, °C).
+  /// High limit setting, in basic units (g, cm, °C).
   final double max;
 
-  /// Nombre de décimales de saisie (0 = entier).
+  /// Number of decimal places to be entered (0 = integer).
   final int decimals;
 
-  /// Unité d'affichage — diffère de [unit] pour la température (`°C`).
+  /// Display unit — differs from [unit] for temperature (`°C`).
   String get displayUnit => switch (this) {
         MeasureKind.poids => db_const.unitG,
         MeasureKind.taille => db_const.unitCm,
         MeasureKind.temperature => '°C',
       };
 
-  /// Pas du slider, en unité de base.
+  /// Not using a slider, but in its basic unit.
   ///
-  /// Le poids par **dizaines de grammes** : un nourrisson se pèse au sortir du
-  /// bain, et un cran de 200 g effacerait les paliers que le parent regarde. La
-  /// taille reste au centimètre — une règle de bébé ne se lit pas plus fin. La
-  /// température au **dixième de degré** : un cran de 0,5 ferait enregistrer
-  /// 37,5 là où le thermomètre affichait 37,4, et une mesure arrondie dans un
-  /// suivi de fièvre n'est pas une approximation, c'est une valeur fausse.
+  /// The weight is measured in **tens of grams**: a newborn baby is weighed immediately after birth.
+  /// a bath, and a 200g weight would eliminate the steps that the parent is observing.
+  /// Size is measured in centimeters – a baby's measuring tape can't be any finer. The...
+  /// Temperature measured to the nearest tenth of a degree: a change of 0.5 would be recorded.
+  /// 37.5, while the thermometer showed 37.4, and a rounded measurement in another.
+  /// Monitoring temperature is not an approximation; it's an inaccurate reading.
   ///
-  /// Conséquence assumée : 1980 crans pour le poids, soit un demi-pixel par
-  /// cran — le slider n'est plus un instrument de précision et ne prétend pas
-  /// l'être. Il amène à proximité ; le champ de saisie et les boutons +/-
-  /// fixent la valeur exacte, et la conservent telle quelle.
+  /// Consequence accepted: 1980 steps for the weight, which is equivalent to half a pixel.
+  /// cran — the slider is no longer a precision instrument and does not claim to be.
+  /// It brings things closer; it features a control field and plus/minus buttons.
+  /// They determine the exact value and preserve it as is.
   double get step => switch (this) {
         MeasureKind.poids => 10,
         MeasureKind.taille => 1,
         MeasureKind.temperature => 0.1,
       };
 
-  /// Nombre de divisions du slider, borné à la plage et au pas ci-dessus.
+  /// Number of divisions for the slider, limited by the range and step size specified above.
   int get divisions => ((max - min) / step).round();
 
-  /// Un cran au-delà des bornes est refusé : les intervalles sont inclusifs.
+  /// Going beyond the specified limits is not allowed: the intervals are inclusive.
   bool contains(num value) => value >= min && value <= max;
 
-  /// Valeur initiale du sheet, en unité de base.
+  /// Initial value of the sheet, in base units.
   ///
-  /// Toujours dans `[min, max]` et sur la grille de [step] : la feuille
-  /// s'ouvre sans erreur, sur une valeur plausible de nouveau-né.
+  /// Always within the range `[min, max]` and on the grid with a step of [step]: the sheet.
+  /// It opens without error, displaying a plausible value for a newborn.
   double get defaultValue => switch (this) {
         MeasureKind.poids => 3500,
         MeasureKind.taille => 50,
         MeasureKind.temperature => 37,
       };
 
-  /// Formate une borne (nombre seul, sans unité) pour les messages d'erreur.
+  /// Format the error messages as a number only, without any units.
   ///
-  /// Les bornes sont des entiers par construction : pas de séparateur
-  /// décimal, donc aucun dépendance de locale — string stable et testable.
+  /// By definition, the values are integers: there are no separators.
+  /// decimal, therefore no locale dependency – a stable and testable string.
   String formatBound(num bound) => bound.toInt().toString();
 
-  /// Formate [value] (en unité de base) pour l'affichage.
+  /// Format [value] (in base units) for display.
   ///
-  /// Le séparateur décimal vient d'intl via [localeName] (virgule en
-  /// français, point en anglais) — jamais codé en dur. Au-delà de 1 000 g,
-  /// le poids est en kg avec trois décimales au plus ; ≤ 1 000 g, en
+  /// The decimal separator is set to intl via [localeName] (using a comma).
+  /// (French, point in English) — never hardcoded. Beyond 1000 grams,
+  /// The weight is given in kilograms, with a maximum of three decimal places; for weights of ≤ 1000 grams, use:
   /// grammes entiers.
   String format(num value, {String localeName = 'fr'}) {
     if (this == MeasureKind.poids) {
@@ -139,8 +139,8 @@ enum MeasureKind {
     return '${NumberFormat(pattern, localeName).format(value)} $displayUnit';
   }
 
-  /// Traduit la valeur stockée (`measurements.kind`) en enum ; `null` si
-  /// inconnue — une ligne orpheline ne doit pas faire tomber la lecture.
+  /// Translates the stored value (`measurements.kind`) into an enumeration; returns `null` if...
+  /// unknown — a single, isolated line should not disrupt the flow of reading.
   static MeasureKind? byValue(String? value) {
     for (final kind in values) {
       if (kind.dbValue == value) return kind;

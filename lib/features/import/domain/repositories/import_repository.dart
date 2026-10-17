@@ -160,7 +160,7 @@ class ImportedCustomReminder {
   /// `HealthSubtype` value: the care whose absence makes the reminder due.
   ///
   /// `null` = reminder **detached** from any care (D2): only the parent's
-  /// « Fait » tap can complete it. Format-1 files always carry a value.
+  /// "Fait" can be completed using a tap. Format-1 files always contain a value.
   final String? subtypeValue;
 
   /// Stored frequency code (`daily` | `weekly` | `monthly` | `every_n_days`).
@@ -263,7 +263,7 @@ class ImportedMeasurement {
 ///
 /// The journal is append-only and carries no row id in the document: on
 /// restore the rows are re-inserted with fresh auto-increment ids, which is
-/// harmless — a completion only ever means « last completed at ».
+/// harmless — a completion only ever indicates "last completed at."
 class ImportedReminderCompletion {
   const ImportedReminderCompletion({
     required this.babyId,
@@ -278,7 +278,7 @@ class ImportedReminderCompletion {
   /// Reminder key (`custom_<id>` for a detached reminder).
   final String itemId;
 
-  /// When the parent tapped « Fait ».
+  /// When the parent tapped "OK."
   final DateTime completedAt;
 }
 
@@ -334,7 +334,7 @@ class ParsedExport {
   ///
   /// Mirrors the export's own definition of empty (`ExportCounts.isEmpty`):
   /// reminder rows alone do not make a useful backup, but a file whose only
-  /// content is a weigh-in or a « Fait » tap must stay restorable, or the
+  /// The content, whether it's a weight measurement or a "fact" entry, must remain editable or modifiable. Otherwise...
   /// export would hand the parent a backup this build refuses to read back.
   /// Restoring a file like that would only erase the current database.
   bool get hasNoRestorableData =>

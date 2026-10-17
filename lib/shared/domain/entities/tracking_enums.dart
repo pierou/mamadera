@@ -1,7 +1,7 @@
-/// Enums et types typed pour remplacer les magic strings dans tout le codebase.
+/// Enums and typed data structures to replace "magic strings" throughout the codebase.
 ///
 /// Chaque type contient :
-/// - `value` : la valeur stockée en base de données (format DB)
+/// - `value`: the value stored in the database (database format).
 /// - `label` : l'affichage utilisateur (format UI)
 library;
 
@@ -10,28 +10,28 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'tracking_enums.freezed.dart';
 
 // ──────────────────────────────────────────────
-// Feeding subtypes (sous-types du type "miam")
+// Feeding subtypes (subtypes of the "yum" category).
 // ──────────────────────────────────────────────
 
-/// Sous-type d'alimentation stocké en DB.
+/// Subtype of power supply stored in the database.
 enum FeedingSubtype {
   /// Allaitement maternel (lait maternel).
   natural, // 'natural'
   /// Allaitement artificiel (lait artificiel).
   artificial, // 'artificial'
-  /// Alimentation solide (purée, diversification) — la quantité s'exprime
+  /// Solid food (purees, introduction of solids) - the quantity is specified.
   /// en grammes, pas en millilitres.
   solid; // 'solid'
 
-  /// Retourne la valeur DB correspondante.
+  /// Returns the corresponding DB value.
   String get dbValue => switch (this) {
         FeedingSubtype.natural => 'natural',
         FeedingSubtype.artificial => 'artificial',
         FeedingSubtype.solid => 'solid',
       };
 
-  /// Convertit une valeur DB en enum.
-  /// Gère les anciennes valeurs ('sein', 'bib') pour la compatibilité ascendante.
+  /// Converts a database value into an enumeration.
+  /// Handles legacy values ('breast', 'nipple') for backward compatibility.
   static FeedingSubtype? fromDbValue(String? value) {
     if (value == null || value.isEmpty) return null;
     switch (value) {
@@ -39,14 +39,14 @@ enum FeedingSubtype {
         return FeedingSubtype.natural;
       case 'artificial':
         return FeedingSubtype.artificial;
-      // Compatibilité ascendante — anciennes données
+      // Backward compatibility – legacy data.
       case 'sein':
         return FeedingSubtype.natural;
       case 'bib':
         return FeedingSubtype.artificial;
       case 'solid':
         return FeedingSubtype.solid;
-      // Aucun alias hérité n'existe pour 'solid' : pas de compatibilité à inventer.
+      // No inherited alias exists for 'solid': no compatibility needs to be created.
       default:
         return null;
     }
@@ -57,20 +57,20 @@ enum FeedingSubtype {
 // Waste types (caca/pipi)
 // ──────────────────────────────────────────────
 
-/// Type de selle pour un nouveau-né.
+/// Type of seat for a newborn.
 enum WasteType {
   pipi, // 'pipi'
   caca, // 'caca'
   lesDeux; // 'les_deux'
 
-  /// Retourne la valeur DB correspondante (snake_case).
+  /// Returns the corresponding database value (in snake_case format).
   String get dbValue => switch (this) {
         WasteType.pipi => 'pipi',
         WasteType.caca => 'caca',
         WasteType.lesDeux => 'les_deux',
       };
 
-  /// Convertit une valeur DB en enum, ou null si inconnu/nullable.
+  /// Converts a database value to an enumeration, or returns null if the value is unknown or nullable.
   static WasteType? fromDbValue(String? value) {
     if (value == null || value.isEmpty) return null;
     switch (value.toLowerCase()) {
@@ -86,7 +86,7 @@ enum WasteType {
     }
   }
 
-  /// Convertit une valeur DB en enum avec fallback par défaut (caca).
+  /// Converts a database value into an enumeration, with a default fallback value ("caca").
   static WasteType fromDbValueOrDefault(String? value) {
     final result = fromDbValue(value);
     if (result != null) return result;
@@ -98,7 +98,7 @@ enum WasteType {
 // Pipi colors
 // ──────────────────────────────────────────────
 
-/// Couleur d'urine pour un nouveau-né.
+/// Urine color for a newborn.
 @freezed
 abstract class PipiColor with _$PipiColor {
   const factory PipiColor({
@@ -113,11 +113,11 @@ abstract class PipiColor with _$PipiColor {
 const pipiColorIncolore = PipiColor(
     value: 'incolore', label: 'Incolore', colorHex: 0xFFE8F5E9, labelKey: 'pipiColorIncolore');
 
-/// Jaune pâle.
+/// Pale yellow.
 const pipiColorJauneClair = PipiColor(
     value: 'jaune_clair', label: 'Jaune clair', colorHex: 0xFFFEEBC8, labelKey: 'pipiColorJauneClair');
 
-/// Jaune foncé.
+/// Dark yellow.
 const pipiColorJauneFonce = PipiColor(
     value: 'jaune_fonce', label: 'Jaune foncé', colorHex: 0xFFE6C25B, labelKey: 'pipiColorJauneFonce');
 
@@ -128,7 +128,7 @@ const pipiColorRoseUrates = PipiColor(
     colorHex: 0xFFF4A89D,
     labelKey: 'pipiColorRoseUrates');
 
-/// Liste de toutes les couleurs pipi disponibles.
+/// List of all available "pipi" colors.
 const List<PipiColor> pipiColors = [
   pipiColorIncolore,
   pipiColorJauneClair,
@@ -136,7 +136,7 @@ const List<PipiColor> pipiColors = [
   pipiColorRoseUrates,
 ];
 
-/// Lookup par valeur DB. Retourne null si inconnu ou nullable.
+/// Lookup by database value. Returns null if the value is not found or if the value is nullable.
 PipiColor? findPipiColorByValue(String? v) {
   if (v == null || v.isEmpty) return null;
   for (final c in pipiColors) {
@@ -145,7 +145,7 @@ PipiColor? findPipiColorByValue(String? v) {
   return null;
 }
 
-/// Convertit une valeur DB en PipiColor avec fallback (incolore par défaut).
+/// Converts a DB value into a PipiColor value, with a default fallback (transparent by default).
 PipiColor findPipiColorFromDbValue(String? dbValue) =>
     findPipiColorByValue(dbValue) ?? pipiColorIncolore;
 
@@ -153,7 +153,7 @@ PipiColor findPipiColorFromDbValue(String? dbValue) =>
 // Caca colors
 // ──────────────────────────────────────────────
 
-/// Couleur de selle pour un nouveau-né.
+/// Saddle color for a newborn.
 @freezed
 abstract class CacaColor with _$CacaColor {
   const factory CacaColor({
@@ -164,7 +164,7 @@ abstract class CacaColor with _$CacaColor {
   }) = _CacaColor;
 }
 
-/// Mécônium (premières selles).
+/// Meconium (the first stool).
 const cacaColorMeconium = CacaColor(
     value: 'meconium', label: 'Mécônium', colorHex: 0xFF5D4E37, labelKey: 'cacaColorMeconium');
 
@@ -180,7 +180,7 @@ const cacaColorJauneMoutarde = CacaColor(
 const cacaColorJauneClair = CacaColor(
     value: 'jaune_clair', label: 'Jaune clair', colorHex: 0xFFEED976, labelKey: 'cacaColorJauneClair');
 
-/// Liste de toutes les couleurs caca disponibles.
+/// List of all available "caca" colors.
 const List<CacaColor> cacaColors = [
   cacaColorMeconium,
   cacaColorVertOlive,
@@ -188,7 +188,7 @@ const List<CacaColor> cacaColors = [
   cacaColorJauneClair,
 ];
 
-/// Lookup par valeur DB. Retourne null si inconnu ou nullable.
+/// Lookup by database value. Returns null if the value is not found or if the value is nullable.
 CacaColor? findCacaColorByValue(String? v) {
   if (v == null || v.isEmpty) return null;
   for (final c in cacaColors) {
@@ -197,7 +197,7 @@ CacaColor? findCacaColorByValue(String? v) {
   return null;
 }
 
-/// Convertit une valeur DB en CacaColor avec fallback (jaune_moutarde par défaut).
+/// Converts a DB value into a CacaColor value, with a default fallback (mustard yellow).
 CacaColor findCacaColorFromDbValue(String? dbValue) =>
     findCacaColorByValue(dbValue) ?? cacaColorJauneMoutarde;
 
@@ -205,11 +205,11 @@ CacaColor findCacaColorFromDbValue(String? dbValue) =>
 // Stool texture
 // ──────────────────────────────────────────────
 
-/// Consistance d'une selle, du plus liquide au plus dur.
+/// Consistency of a saddle, from the most liquid to the most firm.
 ///
-/// Échelle en 5 crans inspirée des grilles de surveillance pédiatrique : elle
-/// sert à repérer une texture inhabituelle (aqueuse = risque de déshydratation,
-/// dure = constipation), pas à poser un diagnostic.
+/// A 5-point scale inspired by pediatric monitoring charts: it...
+/// It is used to identify an unusual texture (watery = risk of dehydration).
+/// (duration = constipation), but not to make a diagnosis.
 @freezed
 abstract class StoolTexture with _$StoolTexture {
   const factory StoolTexture({
@@ -219,7 +219,7 @@ abstract class StoolTexture with _$StoolTexture {
   }) = _StoolTexture;
 }
 
-/// Aqueuse (liquide, projette) — à surveiller chez le nouveau-né.
+/// Watery (liquid, discharge) — should be monitored in newborns.
 const stoolTextureAqueuse = StoolTexture(
     value: 'aqueuse', label: 'Aqueuse', labelKey: 'stoolTextureAqueuse');
 
@@ -229,22 +229,22 @@ const stoolTextureGrumeleuse = StoolTexture(
     label: 'Grumeleuse',
     labelKey: 'stoolTextureGrumeleuse');
 
-/// Pâteuse (crémeuse, homogène, forme le couche).
+/// Smooth (creamy, uniform, forms a layer).
 const stoolTexturePateuse = StoolTexture(
     value: 'pateuse', label: 'Pâteuse', labelKey: 'stoolTexturePateuse');
 
-/// Moulée (boudin souple, formé).
+/// Molded (soft sausage, shaped).
 const stoolTextureMoulee = StoolTexture(
     value: 'moulee', label: 'Moulée', labelKey: 'stoolTextureMoulee');
 
-/// Dure (billes sèches, difficile à évacuer).
+/// Hard (dry stools, difficult to pass).
 const stoolTextureDure = StoolTexture(
     value: 'dure', label: 'Dure', labelKey: 'stoolTextureDure');
 
-/// Liste de toutes les textures disponibles, de la plus liquide à la plus dure.
+/// Here is a list of all available textures, ranging from the most liquid to the most solid.
 ///
-/// Les `value` stockées en base restent en ASCII (les accents ne vivent que
-/// dans `label`) pour rester lisibles dans un export JSON édité à la main.
+/// The `value` data stored in the database remains in ASCII format (accent marks are not supported).
+/// within the `label`) to ensure they remain readable when exporting to a manually edited JSON file.
 const List<StoolTexture> stoolTextures = [
   stoolTextureAqueuse,
   stoolTextureGrumeleuse,
@@ -253,8 +253,8 @@ const List<StoolTexture> stoolTextures = [
   stoolTextureDure,
 ];
 
-/// Lookup par valeur DB. Retourne null si inconnu ou colonne vide : la texture
-/// est optionnelle, aucune valeur par défaut n'est inventée.
+/// Lookup by DB value. Returns null if unknown or column is empty: the texture.
+/// It is optional, and no default value is defined.
 StoolTexture? findStoolTextureByValue(String? v) {
   if (v == null || v.isEmpty) return null;
   for (final t in stoolTextures) {
@@ -264,10 +264,10 @@ StoolTexture? findStoolTextureByValue(String? v) {
 }
 
 // ──────────────────────────────────────────────
-// Health subtypes (stockés dans la colonne notes)
+// Health subtypes (stored in the notes column).
 // ──────────────────────────────────────────────
 
-/// Sous-type de soin santé.
+/// Subtype of healthcare service.
 @freezed
 abstract class HealthSubtype with _$HealthSubtype {
   const factory HealthSubtype({
@@ -276,9 +276,9 @@ abstract class HealthSubtype with _$HealthSubtype {
     required String labelKey,
   }) = _HealthSubtype;
 
-  // ── Valeurs stockées en base de données ───────
+  // ── Values stored in the database ───────
 
-  /// Valeur stockée en base de données (ex: 'nettoyage_yeux').
+  /// Value stored in the database (e.g., 'eye_cleaning').
   static const nettoyageYeux = HealthSubtype(
       value: 'nettoyage_yeux', label: 'Nettoyage des yeux', labelKey: 'healthNettoyageYeux');
   static const nettoyageNombril = HealthSubtype(
@@ -292,8 +292,8 @@ abstract class HealthSubtype with _$HealthSubtype {
   static const vitamineK = HealthSubtype(
       value: 'vitamine_k', label: 'Vitamine K', labelKey: 'healthVitamineK');
 
-  // ── Liste de tous les sous-types disponibles ──
-  /// Liste statique initialisée après les constantes.
+  // --- List of all available subtypes ---
+  /// A static list initialized after the constants.
   static final List<HealthSubtype> values = [
     nettoyageYeux,
     nettoyageNombril,
@@ -303,7 +303,7 @@ abstract class HealthSubtype with _$HealthSubtype {
     vitamineK,
   ];
 
-  /// Lookup par valeur DB. Retourne null si inconnu.
+  /// Lookup by database value. Returns null if not found.
   static HealthSubtype? byValue(String v) {
     for (final h in values) {
       if (h.value == v) return h;
@@ -316,9 +316,9 @@ abstract class HealthSubtype with _$HealthSubtype {
 // Filter sentinel (remplace 'all')
 // ──────────────────────────────────────────────
 
-/// Filtre d'affichage pour l'historique.
+/// Display filter for the history.
 enum HistoryFilter {
-  /// Tous les événements.
+  /// All events.
   all, // 'all'
   /// Alimentation uniquement.
   miam, // 'miam'
@@ -326,13 +326,13 @@ enum HistoryFilter {
   dodo, // 'dodo'
   /// Selles uniquement.
   caca, // 'caca'
-  /// Santé uniquement.
+  /// Health only.
   sante; // 'sante'
 
-  /// Retourne le nom de l'enum pour la compatibilité DB (TrackingType.name).
+  /// Returns the name of the enum for database compatibility (e.g., TrackingType.name).
   String get dbKey => name.toLowerCase();
 
-  /// Convertit une valeur string en enum. 'all' reste all, sinon converti via TrackingType.fromString.
+  /// Converts a string value into an enum. If the string is "all", it remains "all"; otherwise, it's converted using the `TrackingType.fromString` method.
   static HistoryFilter fromString(String value) {
     final lower = value.toLowerCase();
     if (lower == 'all' || lower.isEmpty) return HistoryFilter.all;
@@ -342,7 +342,7 @@ enum HistoryFilter {
     return HistoryFilter.all; // fallback safe
   }
 
-  /// Retourne le label affiché dans l'UI (French fallback).
+  /// Returns the label displayed in the user interface (with French as the fallback language).
   String get label {
     switch (this) {
       case HistoryFilter.all:
@@ -374,11 +374,11 @@ enum HistoryFilter {
     }
   }
 
-  /// Retourne le TrackingType correspondant (null pour all).
+  /// Returns the corresponding TrackingType (null for all).
   String? get trackingType {
     switch (this) {
       case HistoryFilter.all:
-        return null; // pas de type spécifique → tout récupérer
+        return null;         // No specific type → retrieve everything.
       default:
         return name.toLowerCase();
     }

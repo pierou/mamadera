@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/local/app_db.dart';
 import '../../data/local/database.dart';
 
-/// Provider singleton pour la connexion Drift.
-/// La DB est créée une seule fois et partagée via Riverpod au lieu du pattern factory statique.
+/// Singleton provider for the Drift connection.
+/// The database instance is created only once and shared via Riverpod instead of using the static factory pattern.
 final databaseProvider = FutureProvider<AppDatabase>((ref) async {
   return createAppDatabase();
 });

@@ -7,10 +7,10 @@ import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/utils/stool_texture_label_resolver.dart';
 
-/// Widget pour sélectionner le type de selle et les couleurs associées.
+/// Widget for selecting the type of saddle and the associated colors.
 ///
-/// L'état de sélection est local au [StatefulWidget] : il ne survit pas à la
-/// fermeture du dialog et ne fuit pas d'une ouverture à l'autre.
+/// The selection state is local to the [StatefulWidget]: it does not persist across rebuilds.
+/// It closes the dialogue and doesn't transition smoothly from one topic to another.
 class WasteDialog extends StatefulWidget {
   const WasteDialog({super.key});
 
@@ -23,13 +23,13 @@ class _WasteDialogState extends State<WasteDialog> {
   PipiColor? _pipiColor;
   CacaColor? _cacaColor;
 
-  /// Consistance de la selle — optionnelle, uniquement pour un caca.
+  /// Stool consistency – optional, only for bowel movements.
   StoolTexture? _stoolTexture;
 
   /// Date and time of the diaper, defaulted to the moment the sheet opened.
   DateTime _selectedDate = DateTime.now();
 
-  /// Retourne les données à retourner au parent (typed enums).
+  /// Returns the data to be passed back to the parent component (using typed enumerations).
   Map<String, dynamic> _toResult() {
     return {
       'wasteType': _selectedType,
@@ -56,7 +56,7 @@ class _WasteDialogState extends State<WasteDialog> {
             ),
             const SizedBox(height: 16),
 
-            // Sélection du type (chips radio)
+            // Select the type (radio chip).
             WasteDialogTypeChips(
               selectedType: _selectedType,
               onSelectedType: (type) => setState(() => _selectedType = type),
@@ -120,7 +120,7 @@ class _WasteDialogState extends State<WasteDialog> {
   }
 }
 
-/// Widget pour les chips de sélection du type de selle.
+/// Widget for selecting the type of saddle.
 class WasteDialogTypeChips extends StatelessWidget {
   const WasteDialogTypeChips({
     required this.selectedType,
@@ -148,7 +148,7 @@ class WasteDialogTypeChips extends StatelessWidget {
   }
 }
 
-/// Widget pour les chips de consistance des selles.
+/// Widget for assessing stool consistency.
 class WasteDialogTextureChips extends StatelessWidget {
   const WasteDialogTextureChips({
     required this.selectedTexture,
@@ -166,16 +166,16 @@ class WasteDialogTextureChips extends StatelessWidget {
       return FilterChip(
         label: Text(resolveStoolTextureLabel(context, t)),
         selected: isSelected,
-        // Retaper sur la puce choisie l'efface : la consistance reste
-        // optionnelle et un mauvais tap ne doit pas obliger à passer par
-        // l'historique pour être corrigé.
+        // Reseat the chip in its socket and clear its contents; the physical structure remains the same.
+        // optional, and a bad connection should not force you to go through it.
+        // The history needs to be reviewed and corrected.
         onSelected: (_) => onSelectedTexture(isSelected ? null : t),
       );
     }).toList());
   }
 }
 
-/// Widget pour les chips de couleur pipi.
+/// Widget for chips with a yellowish-brown color.
 class WasteDialogPipiColorChips extends StatelessWidget {
   const WasteDialogPipiColorChips({
     required this.selectedColor,
@@ -206,7 +206,7 @@ class WasteDialogPipiColorChips extends StatelessWidget {
   }
 }
 
-/// Widget pour les chips de couleur caca.
+/// Widget for brown-colored chips.
 class WasteDialogCacaColorChips extends StatelessWidget {
   const WasteDialogCacaColorChips({
     required this.selectedColor,
@@ -271,7 +271,7 @@ class _ChipRadio extends StatelessWidget {
   }
 }
 
-/// Résout le label localisé pour un PipiColor via son labelKey.
+/// Resolves the localized label for a PipiColor object using its labelKey.
 String _resolvePipiLabel(BuildContext ctx, PipiColor c) {
   switch (c.labelKey) {
     case 'pipiColorIncolore':
@@ -287,7 +287,7 @@ String _resolvePipiLabel(BuildContext ctx, PipiColor c) {
   }
 }
 
-/// Résout le label localisé pour un CacaColor via son labelKey.
+/// Resolves the localized label for a CacaColor object using its labelKey.
 String _resolveCacaLabel(BuildContext ctx, CacaColor c) {
   switch (c.labelKey) {
     case 'cacaColorMeconium':

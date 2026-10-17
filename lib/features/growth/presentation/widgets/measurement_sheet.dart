@@ -43,15 +43,15 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
   DateTime _selectedDate = DateTime.now();
   late TextEditingController _noteController;
 
-  /// Libellé d'appoint « dernière : 36,8 °C », résolu en asynchrone — `null`
-  /// tant que le chargement n'est pas arrivé, auquel cas le rendu retombe sur
-  /// la référence du type. Résolu **hors de `initState`** : `context.l` n'y
-  /// est pas encore sûr, et l'asynchrone ne laisse jamais un rendu
-  /// intermédiaire pré-remplir le champ.
+  /// Supplemental label: "last: 36.8 °C", resolved asynchronously — `null`
+  /// As long as the data hasn't been loaded, in which case the result will be...
+  /// The type reference. Resolved **outside of `initState`**: `context.l` is not available there.
+  /// It is not yet certain, and asynchronous operations never provide a result.
+  /// Automatically fill in the field.
   String? _lastHint;
 
-  /// Le parent a-t-il saisi un chiffre ? Le bouton de sauvegarde n'ouvre pas
-  /// avant : en afficher la valeur de départ comme une mesure prise, ce
+  /// Did the parent enter a number? The save button is not working.
+  /// Previously: display the initial value as a measurement taken, which...
   /// serait l'inventer.
   bool _hasInput = false;
 
@@ -63,23 +63,23 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
     _loadLastValue();
   }
 
-  /// Libellé d'appoint : la dernière mesure du même type si elle existe,
-  /// sinon la valeur de référence du type (« 37 °C »).
+  /// Supplemental description: the most recent measure of the same type, if one exists.
+  /// Otherwise, the reference value for the type (e.g., "37°C").
   String get _hintLabel =>
       _lastHint ??
       widget.kind
           .format(widget.kind.defaultValue, localeName: context.l.localeName);
 
-  /// Dernière mesure du même type, si elle existe : « dernière : 36,8 °C ».
-  /// En erreur ou sans valeur (chiffre illisible), on garde la référence du
-  /// type — l'appoint est un confort, jamais un bloqueur.
+  /// Last measurement of the same type, if available: "last: 36.8 °C".
+  /// If a digit is illegible or has no value, the reference number is retained.
+  /// type — the auxiliary heating is a comfort feature, never a blocking mechanism.
   ///
-  /// Elle sert aussi de **point de départ du curseur et des boutons ±** (défaut
-  /// v1.2.1 signalé sur l'appareil) : l'en-tête affiche « dernière : 36,8 °C »
-  /// dès l'ouverture, et le premier contact avec le curseur ou un ± renvoyait
-  /// 37,0 — la référence du type, c'est-à-dire un nombre que personne n'a mesuré.
-  /// Ce qui est visé doit être à l'endroit visé. Le champ texte reste vide et la
-  /// sauvegarde désactivée : une **position** de curseur n'est pas une saisie.
+  /// It also serves as the **starting point for the cursor and the +/- buttons** (default).
+  /// v1.2.1 (displayed on the device): The header shows "Last reading: 36.8 °C".
+  /// From the moment it opens, and upon the initial contact with the cursor or a plus/minus sign, it redirects.
+  /// 37.0 – This is the reference value for the type, meaning a number that no one has actually measured.
+  /// The target should be located at the intended point. The text field remains empty, and...
+  /// Autosave is disabled: a cursor position is not considered an input.
   Future<void> _loadLastValue() async {
     try {
       final repository = await ref.read(measurementRepositoryProvider.future);
@@ -91,14 +91,14 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
         _lastHint = context.l.growthSheetLastValueHint(
           widget.kind.format(lastValue, localeName: context.l.localeName),
         );
-        // Jamais après une saisie du parent : la lecture arrive en asynchrone et
-        // écraserait le chiffre qu'il est en train de taper.
+        // Never after a parent's seizure: the reading happens asynchronously and...
+        // It would overwrite the number he was currently typing.
         if (!_hasInput && widget.kind.contains(lastValue)) {
           _value = lastValue;
         }
       });
     } catch (_) {
-      // La feuille reste utilisable sans l'appoint.
+      // The sheet remains usable even without the additional component.
     }
   }
 
@@ -121,10 +121,10 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
           ? null
           : _noteController.text.trim(),
     );
-    // Relecture ici, avant de fermer : la rangée d'accueil et l'écran Croissance
+    // Please review here before closing: the welcome section and the Growth screen.
     // watchent `measurementNotifierProvider`, qui ne se relit ni tout seul ni au
-    // retour d'une autre page (défaut v1.2.1 : le parent qui enregistre 4,2 kg
-    // restait affiché sur 3,9 kg jusqu'à changer de bébé).
+    // Return from another page (bug in version 1.2.1: the parent recorded 4.2 kg).
+    // It remained displayed at 3.9 kg until the baby was changed.)
     await ref.read(measurementNotifierProvider.notifier).refresh();
     if (!mounted) return;
     Navigator.of(context).pop(_value);
@@ -133,8 +133,8 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
   @override
   Widget build(BuildContext context) {
     final l = context.l;
-    // Les bornes de l'en-tête affichent les unités, pas des chiffres bruts :
-    // « 200–20000 g » se lit « entre deux centaines et vingt kilos ».
+    // The header columns display units, not raw numbers.
+    // "200–20000 g" is read as "between two hundred grams and twenty kilograms."
     final rangeLabel =
         '${widget.kind.min.round()}–${widget.kind.max.round()} ${widget.kind.displayUnit}';
     final title = switch (widget.kind) {
@@ -151,9 +151,9 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom + AppTheme.spacingMd,
       ),
       child: SingleChildScrollView(
-        // Si la feuille dépasse l'écran (petit téléphone, clavier ouvert),
-        // elle défile au lieu de couper : le bouton d'enregistrement doit
-        // rester atteignable à toute taille.
+        // If the sheet extends beyond the screen (e.g., on a small phone or with the keyboard open),...
+        // It's set to record instead of being muted: the record button needs to be...
+        // It remains accessible at any size.
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,

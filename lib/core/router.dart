@@ -27,14 +27,14 @@ enum AppRoute {
   final String path;
 }
 
-/// Retourne l'index d'une route pour les transitions positionnelles.
+/// Returns the index of a route for positional transitions.
 int routeIndex(AppRoute route) => <AppRoute, int>{
   AppRoute.home: 0,
   AppRoute.history: 1,
   AppRoute.menu: 2,
 }[route]!;
 
-/// Retourne l'index d'une route basée sur son chemin.
+/// Returns the index of a route based on its path.
 int _routeIndexForPath(String path) {
   return <String, int>{
     AppRoute.home.path: 0,
@@ -81,7 +81,7 @@ String? _redirect(BuildContext context, GoRouterState state) {
   );
 }
 
-/// Router go_router avec ShellRoute pour la bottom navigation.
+/// Using the `go_router` package with a `ShellRoute` for the bottom navigation.
 final GoRouter router = GoRouter(
   initialLocation: _splashInitialLocation,
   debugLogDiagnostics: false,
@@ -168,7 +168,7 @@ final GoRouter router = GoRouter(
     ),
   ],
 
-  /// Error page quand la route n'existe pas.
+  /// Error page when the requested route does not exist.
   ///
   /// Title and action are localised (fr/en/es). The raw exception is never
   /// rendered: it is technical text that would leak internals and cannot be
@@ -203,7 +203,7 @@ final GoRouter router = GoRouter(
   },
 );
 
-/// Shell widget qui affiche la bottom navigation et le contenu de la route.
+/// A shell widget that displays the bottom navigation bar and the content of the current route.
 ///
 /// Detects tab switches and dismisses any open modal bottom sheets
 /// (event creation/editing dialogs) that would otherwise persist across

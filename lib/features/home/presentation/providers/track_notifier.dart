@@ -16,19 +16,19 @@ class TrackNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  /// Enregistre un événement de suivi (tétée, sommeil, couche, santé).
-  /// [duration] est en minutes pour dodo/sommeil.
-  /// [unit] est l'unité de [quantity] — portée par la ligne, jamais inférée à
-  /// la lecture (v12). Fournie par le dialogue de feeding (`ml`, `min` ou
-  /// `g`) ; `null` retombe sur l'unité que le sous-type portait avant v12,
-  /// c'est-à-dire ce que le parent voyait à l'écran ([defaultUnitFor]).
-  /// [wasteType], [pipiColor] et [cacaColor] sont utilisés uniquement pour les selles.
-  /// [feedingSubtype] est requis pour FeedingEvent (natural/artificial).
-  /// [healthSubtype] est requis pour HealthEvent (nettoyageYeux, etc.).
-  /// [timestamp] est le moment où l'événement s'est produit ; il permet de
-  /// saisir a posteriori (sieste terminée, change fait dans l'autre pièce).
+  /// Records a tracking event (feeding, sleep, diaper change, health).
+  /// [duration] is measured in minutes for sleep/nap time.
+  /// [unit] is the unit of measurement for [quantity] – specified in the line, and never inferred.
+  /// reading (v12). Provided by the feeding dialogue (`ml`, `min`, or...
+  /// `g`) ; `null` is assigned to the unit that the subtype previously held before version 12.
+  /// That is to say, what the parent saw on the screen ([defaultUnitFor]).
+  /// [wasteType], [pipiColor], and [cacaColor] are used exclusively for stool samples.
+  /// The `[feedingSubtype]` is required for a `FeedingEvent` (natural/artificial).
+  /// The [healthSubtype] field is required for HealthEvent records (e.g., eye cleaning).
+  /// [timestamp] is the moment the event happened; it lets you record
+  /// afterwards (nap finished, diaper changed in the other room).
   /// `null` = maintenant, comportement historique.
-  /// [stoolTexture] : consistance de la selle ; ignorée pour un pipi.
+  /// [stoolTexture]: consistency of the stool; ignored for urination.
   Future<void> track({
     required TrackingType type,
     String? notes,
@@ -57,8 +57,8 @@ class TrackNotifier extends AsyncNotifier<void> {
             timestamp: eventDate,
             babyId: babyId,
             subtype: feedingSubtypeOrNull,
-            // Le parent choisit ml ou min au sein ; le dialogue le passe.
-            // Sinon : l'unité du sous-type, pas une devinette.
+            // The parent chooses "ml" or "min" within the context; the dialogue proceeds accordingly.
+            // Otherwise: the consistency of the subtype is not a matter of guesswork.
             unit: unit ??
                 defaultUnitFor(
                   typeValue: db_const.typeMiam,

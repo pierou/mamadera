@@ -5,7 +5,7 @@ import '../../../../core/providers/encryption_provider.dart';
 import '../../data/repositories/tracking_repository_impl.dart';
 import '../../domain/repositories/tracking_repository.dart';
 
-/// Le repository dépend de la DB asynchrone et du chiffrement asynchrone → FutureProvider.
+/// The repository relies on asynchronous database operations and asynchronous encryption, utilizing the `FutureProvider`.
 final trackingRepositoryProvider = FutureProvider<TrackingRepository>(
   (ref) async {
     final encryption = await ref.read(encryptionServiceProvider.future);

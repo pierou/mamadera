@@ -10,11 +10,11 @@ import '../providers/measurement_providers.dart';
 import 'measure_kind_accent.dart';
 import 'measurement_sheet.dart';
 
-/// Bouton d'accueil d'une grande de croissance (item 1 de v1.2.0).
+/// Home button for a high-growth company (item 1 of v1.2.0).
 ///
-/// Plus compact qu'un `TrackButton` : icône, libellé en `FittedBox` (jamais
-/// rogné), et une sous-ligne `bodySmall` avec la dernière valeur — le tiret
-/// demi-cadrat `—` quand il n'y en a pas, jamais un état d'erreur.
+/// More compact than a `TrackButton`: icon, label displayed within a `FittedBox` (never...).
+/// a trimmed version), and a `bodySmall` sub-line with the last value – the hyphen.
+/// half-width dash `—` when there is none, never an error state.
 class MeasurementButton extends StatelessWidget {
   const MeasurementButton({
     required this.label,
@@ -24,17 +24,17 @@ class MeasurementButton extends StatelessWidget {
     super.key,
   });
 
-  /// Libellé résolu (l'appelant traduit [MeasureKind.labelKey]).
+  /// Resolved label (retrieving the label using the [MeasureKind.labelKey] key).
   final String label;
 
   final MeasureKind kind;
 
   final VoidCallback onTap;
 
-  /// Dernière valeur, déjà formatée (`3,4 kg`) ; `null` → tiret demi-cadrat.
+  /// Last value, already formatted (`3,4 kg`); `null` → the dash `—`.
   final String? latestValue;
 
-  /// Représentation d'une absence de valeur — jamais un nombre inventé.
+  /// Representation of a lack of value – never an invented number.
   static const String _noValue = '—';
 
   @override
@@ -104,15 +104,15 @@ class MeasurementButton extends StatelessWidget {
   }
 }
 
-/// Rangée des trois boutons de mesure sous la grille 2×2 d'accueil.
+/// Located below the main 2x2 grid are three measurement buttons.
 ///
-/// Widget autonome : la grille existante ne change que d'un conteneur, et les
-/// cibles de tap actuelles ne rétrécissent pas.
+/// Standalone widget: the existing grid only changes with a single container, and the...
+/// The current targets for tapping are not shrinking.
 class MeasurementButtonRow extends ConsumerWidget {
   const MeasurementButtonRow({super.key});
 
-  /// Traduit [MeasureKind.labelKey] — même schéma que le switch de
-  /// `_pillLabelFor` : la clé n'est qu'un nom de clé, jamais interpolée.
+  /// Translated [MeasureKind.labelKey] – same structure as the switch for...
+  /// `_pillLabelFor`: The key is simply a key name and is never interpolated.
   String _labelFor(BuildContext context, MeasureKind kind) {
     return switch (kind.labelKey) {
       'homeButtonPoids' => context.l.homeButtonPoids,
@@ -122,8 +122,8 @@ class MeasurementButtonRow extends ConsumerWidget {
     };
   }
 
-  /// Première occurrence du kind : la liste est triée du plus récent au plus
-  /// ancien, donc c'est la dernière valeur.
+  /// First occurrence of the "kind": the list is sorted from most recent to oldest.
+  /// It's an old value, so it's the last one.
   String? _latestFor(
     BuildContext context,
     List<GrowthMeasurement> measurements,

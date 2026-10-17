@@ -37,24 +37,24 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  /// La feuille a été ouverte — une seule fois par instantiation de l'écran.
+  /// The sheet was opened – only once for each instance of the screen.
   bool _onboardingShown = false;
 
-  /// Une frame est en attente d'ouvrir la feuille. Distinguer « en attente » de
-  /// « ouverte » est nécessaire : si la revérification ci-dessous fait annuler
-  /// l'affichage, un latch unique laisserait un premier lancement sans feuille
-  /// d'onboarding — un échec pire que celui qu'on corrige.
+  /// A frame is waiting to open the sheet. Distinguish "waiting" from...
+  /// "Open" is required: if the re-verification below results in cancellation.
+  /// The display, with a single latch, would result in an initial launch without a data sheet.
+  /// Onboarding – a failure that's worse than one that can be corrected.
   bool _onboardingScheduled = false;
 
-  /// Ouvre la feuille d'onboarding à la frame suivante, en revérifiant à cet
-  /// instant précis.
+  /// Open the onboarding sheet to the next frame, and double-check this.
+  /// precise moment.
   ///
-  /// La décision se prenait sur la valeur du fournisseur à la frame précédente et
-  /// la callback ne regardait plus rien : si une restauration aboutissait entre
-  /// les deux, la feuille restait ouverte au-dessus d'une base déjà peuplée et
-  /// son formulaire y ajoutait un profil. `null` (invalidation en cours) vaut
-  /// « on ne sait pas » : on n'ouvre pas sur une absence qu'on n'a pas constatée,
-  /// et on reste en attente qu'une valeur arrive.
+  /// The decision was based on the supplier's performance in the previous project phase, and...
+  /// The callback function no longer checked anything; it simply indicated whether a restore operation had been successful or not, regardless of what happened in between.
+  /// the two, the sheet stayed open above an already-populated database and
+  /// It added a profile to the form. `null` (currently being invalidated) means...
+  /// "We don't know": we don't open an investigation into an absence that we haven't confirmed.
+  /// And we remain in a waiting state until a value arrives.
   void _scheduleOnboardingSheet() {
     _onboardingScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -154,9 +154,9 @@ class _HomeContent extends ConsumerWidget {
 
     if (feedingResult != null && context.mounted) {
       final subtype = feedingResult['subtype'] as FeedingSubtype;
-      // L'unité vient du dialog : c'est le parent qui l'a choisie au sein.
-      // Le fallback ne couvre qu'un résultat incomplet, et nomme l'unité du
-      // sous-type, jamais une devinette.
+      // The sense of belonging comes from communication: it was the parent who chose this individual within the group.
+      // The fallback mechanism only handles incomplete results and specifies the unit of measurement.
+      // subtype, never a guessing game.
       final unit = feedingResult['unit'] as QuantityUnit? ??
           defaultUnitFor(
             typeValue: TrackingType.miam.name,
@@ -275,8 +275,8 @@ class _HomeContent extends ConsumerWidget {
   /// Formats and shows a feeding tracking confirmation with quantity details.
   void _showFeedingFeedback(BuildContext context, FeedingSubtype subtype,
       double? quantity, QuantityUnit unit) {
-    // Le label suit le sous-type, l'unité suit la ligne : un « 40 ml » dans le
-    // feedback d'une tétée de 20 minutes serait un chiffre de santé faux.
+    // The label indicates the subtype, while the unit specifies the line: a "40 ml" marking within the...
+    // Providing feedback based on a 20-minute feeding time would be misleading and inaccurate from a health perspective.
     final subtypeLabel = switch (subtype) {
       FeedingSubtype.natural => context.l.feedingSubtypeNatural,
       FeedingSubtype.artificial => context.l.feedingSubtypeArtificial,
@@ -314,15 +314,15 @@ class _HomeContent extends ConsumerWidget {
     final statusMap =
         statusesAsync.value ?? const <TrackingType, List<ReminderStatus>>{};
 
-    // Prénom du bébé actif au-dessus de la grille : contexte, pas titre.
-    // `watch` (pas `read`) : l'en-tête doit suivre un changement de bébé,
-    // jamais afficher un prénom capturé à la première construction.
+    // The baby's name displayed above the grid: context, not a title.
+    // `watch` (not `read`): the header should reflect changes in the baby's condition.
+    // Never display a first name that was captured during the initial setup.
     final babyName = ref.watch(activeBabyProvider).value?.name;
 
-    // Le prénom porte la barre d'app (titre) : il reste toujours sous la
-    // bande de statut du système sur Android, là où un nom posé en tête de
-    // la grille se retrouvait masqué. Sans bébé actif, pas de barre d'app —
-    // le parcours de premier lancement gère la création du profil.
+    // The name holds the application bar (title) and remains visible at all times.
+    // system status bar on Android, where a name is displayed at the top.
+    // The grid was hidden. Without an active baby monitor, the app bar disappears.
+    // The initial setup process manages the creation of the profile.
     final name =
         (babyName != null && babyName.trim().isNotEmpty) ? babyName : null;
     return Scaffold(
@@ -338,8 +338,8 @@ class _HomeContent extends ConsumerWidget {
             ),
       body: Container(
         color: Theme.of(context).scaffoldBackgroundColor,
-        // Sans barre d'app (aucun bébé actif), c'est le contenu lui-même qui
-        // respecte la bande de statut : le premier bloc ne doit pas s'y
+        // Without any app-specific features (no active baby mode), it's the content itself that...
+        // respects the status bar: the first block should not overlap with it.
         // rendre.
         child: SafeArea(
           // Scrollable so the 2x2 grid stays reachable on small viewports
@@ -394,10 +394,10 @@ class _HomeContent extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppTheme.spacingXl),
                 // Boutons de croissance (item 1 de v1.2) : widget autonome, la
-                // grille 2×2 ci-dessus est inchangée.
+                // The 2x2 grid shown above remains unchanged.
                 const MeasurementButtonRow(),
-                // Liste des rappels dus (D1) : remplace la lecture du « +N »
-                // des pastilles, sans toucher à la grille ni aux boutons.
+                // List of overdue recalls (D1): replaces the reading of "+N".
+                // small adhesive pads, without touching the grid or the buttons.
                 const HomeRemindersSection(),
               ],
             ),

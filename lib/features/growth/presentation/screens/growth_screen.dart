@@ -9,16 +9,16 @@ import '../../domain/entities/measure_kind.dart';
 import '../providers/measurement_providers.dart';
 import '../widgets/measure_kind_accent.dart';
 
-/// Écran « Croissance » (item 1 de v1.2.0) — lecture seule.
+/// "Growth" screen (item 1 in v1.2.0) - read-only.
 ///
-/// Dernières valeurs par grande en tête, puis historique le plus récent en
-/// premier. Pas d'édition ni de suppression en v1.2.0 : une valeur erronée
+/// Here are the latest values, categorized by type, followed by the most recent historical data.
+/// v1.2.0: No edits or deletions; this is an incorrect value.
 /// se corrige en ajoutant la bonne — l'historique complet reste lisible.
 class GrowthScreen extends ConsumerWidget {
   const GrowthScreen({super.key});
 
-  /// Traduit [MeasureKind.labelKey] en libellé de dernière valeur
-  /// (poids → « Dernier poids », etc.).
+  /// Translated "[MeasureKind.labelKey]" to the label for the last value.
+  /// (weight → "Last weight," etc.).
   String _latestLabelFor(BuildContext context, MeasureKind kind) {
     return switch (kind) {
       MeasureKind.poids => context.l.growthLatestWeight,
@@ -27,8 +27,8 @@ class GrowthScreen extends ConsumerWidget {
     };
   }
 
-  /// Valeur affichée d'une mesure : formatée, ou « valeur illisible » quand
-  /// le déchiffrement a échoué — jamais un nombre inventé.
+  /// Displayed value of a measurement: formatted, or "unreadable value" when...
+  /// The decryption failed – it was never a fabricated number.
   String _displayValue(BuildContext context, GrowthMeasurement measurement) {
     final value = measurement.value;
     if (value == null) return context.l.growthValueUndecryptable;
@@ -91,12 +91,12 @@ class GrowthScreen extends ConsumerWidget {
         formatDate(context, measurement.recordedAt) +
             (measurement.notes == null ? '' : ' — ${measurement.notes}'),
       ),
-      // Aucune unité en traîne : `kind.format()` rend déjà l'unité dans le
-      // titre, et `displayUnit` est l'unité de **stockage** (`g`). Les
-      // afficher ensemble faisait voisiner « 6.18 kg » et « g », qu'un parent
-      // pressé lit « 6,18 grammes ». Trouvé dans les captures v1.2.0
+      // No unit suffix: `kind.format()` already includes the unit in the output.
+      // title, and `displayUnit` is the storage unit (`g`). The...
+      // Displaying the information together placed "6.18 kg" and "g" next to each other, which a parent...
+      // The label reads "6.18 grams." Found in the v1.2.0 screenshots.
       // (docs/BUG-en-date-format-and-growth-unit.md). `displayUnit` reste
-      // l'invite du champ de saisie — là le gramme est la bonne unité.
+      // The input field label – in this case, "gram" is the correct unit.
     );
   }
 

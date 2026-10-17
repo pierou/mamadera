@@ -1,9 +1,9 @@
-/// Profil bébé : données identifiant un nouveau-né suivi dans l'application.
+/// Baby profile: information used to identify a newborn being tracked within the application.
 ///
-/// Utilisé comme source de vérité pour:
-/// - Reminders mensuels basés sur le jour de naissance (ex: Vitamine K le même jour chaque mois)
-/// - Calcul d'âge et statistiques par période postnatale
-/// - Support multi-bébé à l'avenir (isActive permet la sélection du bébé actif)
+/// Used as a source of truth for:
+/// - Monthly reminders based on the date of birth (e.g., Vitamin K administered on the same day each month).
+/// - Age calculation and statistics by postnatal period.
+/// - Future support for multiple babies (isActive allows selection of the active baby).
 
 library;
 

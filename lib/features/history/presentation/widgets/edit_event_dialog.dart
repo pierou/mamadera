@@ -16,7 +16,7 @@ import '../../../home/presentation/widgets/quantity_picker_inline.dart';
 
 part 'edit_event_dialog.freezed.dart';
 
-/// Résultat retourné par le formulaire d'édition (sealed class).
+/// Result returned by the editing form (sealed class).
 @freezed
 sealed class EditResult with _$EditResult {
   const factory EditResult.update({
@@ -24,8 +24,8 @@ sealed class EditResult with _$EditResult {
     double? duration,
     double? quantity,
 
-    /// Unité du nombre porté, telle qu'éditée (toggle ml/min au sein, ou
-    /// changement de sous-type passant la ligne en grammes).
+    /// Unit of flow rate displayed, as configured (toggle between ml/min within the settings, or...).
+    /// change of subtype (expressed in grams).
     QuantityUnit? unit,
     String? notes,
     FeedingSubtype? subtype,
@@ -39,11 +39,11 @@ sealed class EditResult with _$EditResult {
   const factory EditResult.delete() = DeleteResult;
 }
 
-/// Bottom sheet pour éditer les champs modifiables d'un événement.
+/// Bottom sheet for editing the editable fields of an event.
 class EditEventDialog extends ConsumerStatefulWidget {
   const EditEventDialog(this.event, {super.key});
 
-  /// Événement typé à modifier.
+  /// Event type to be modified.
   final TrackingEvent event;
 
   @override
@@ -56,28 +56,28 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   double? _duration;
   double? _quantity;
 
-  // Sous-type d'alimentation (natural/artificial/solid) pour feedings
+  // Subtype of feeding (natural/artificial/solid) for feeding procedures.
   FeedingSubtype _subtype = FeedingSubtype.natural;
 
-  /// Unité de la quantité en cours d'édition, lue de la ligne à l'ouverture.
+  /// Unit of quantity being edited, read from the line at the beginning.
   QuantityUnit _unit = QuantityUnit.ml;
 
-  /// La quantité est remise à 0 quand l'unité change, et le dialog le dit.
+  /// The quantity is reset to zero when the unit changes, and the dialog indicates this.
   bool _unitResetNotice = false;
 
-  /// Nombre saisi hors des bornes ; `null` = dans la plage.
+  /// Number entered is outside the valid range; `null` indicates that the value is within the range.
   double? _outOfRange;
 
-  // Pour les événements caca : type de selle et couleurs (typed via enums)
+  // For stool events: stool type and color (specified using enumerated values).
   WasteType? _wasteType;
   PipiColor? _pipiColor;
   CacaColor? _cacaColor;
   StoolTexture? _stoolTexture;
 
-  // Sous-type de soin pour les événements santé (indépendant des notes)
+  // Sub-type of care related to health events (independent of ratings).
   HealthSubtype? _healthSubtype;
 
-  /// Version normalisée en minuscule pour les comparaisons.
+  /// Standardized version in lowercase for comparisons.
   String get _normalizedType {
     return widget.event.map(
       (e) => 'unknown',
@@ -107,7 +107,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     _initEventFields();
   }
 
-  /// Initialise les champs spécifiques au type d'événement.
+  /// Initialize the fields specific to the event type.
   void _initEventFields() {
     widget.event.map(
       (e) {},
@@ -146,8 +146,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       timestamp: _selectedDate,
       duration: _duration,
       quantity: _quantity,
-      // L'unité courante part avec le nombre : passer de `natural`+`min` à
-      // `solid` rend `g`, rester au sein garde le choix du parent.
+      // The standard unit starts with a number: transitioning from `natural` + `min` to...
+      // `solid` assigns `g`, and remaining within the system allows the parent to retain the choice.
       unit: _unit,
       notes: _notesController.text.trim().isEmpty
           ? null
@@ -162,7 +162,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     Navigator.pop(context, result);
   }
 
-  /// Ouvre un dialogue de confirmation avant suppression.
+  /// Display a confirmation dialog before deleting.
   Future<void> _confirmDelete() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -248,7 +248,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         min: 0,
         max: 480,
         divisions: 96,
-        // Stepper aligné sur le pas du slider : 96 crans sur 480 min.
+        // Stepper motor aligned with the slider's step: 96 steps per 480 minutes.
         step: 5,
         value: _quantity ?? 0.0,
         onValueChanged: (double value) {
@@ -265,9 +265,9 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     return [
       const SizedBox(height: 20),
       _buildSectionTitle(context.l.editQuantitySectionTitle),
-      // Le sein est le seul sous-type à deux unités : téter se compte en
-      // minutes, tirer se compte en millilitres, et la même mère fait les
-      // deux le même jour. Les autres sous-types restent figés.
+      // The breast is the only subtype with two units: "to breastfeed" is counted in...
+      // minutes, the amount is measured in milliliters, and the same mother does them all.
+      // Two of them occur on the same day. The other subtypes remain unchanged.
       if (_subtype == FeedingSubtype.natural) ...[
         SegmentedButton<QuantityUnit>(
           segments: [
@@ -286,10 +286,10 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         ),
         const SizedBox(height: 12),
       ],
-      // Le message de remise à 0 sort du bloc `natural` : un re-typage
-      // biberon → solide remet aussi la quantité à 0 (le nombre ne survit pas
-      // au changement d'unité), et une remise à 0 silencieuse est le défaut
-      // que v1.2.1 existe à supprimer.
+      // The reset message originates from the `natural` block: it's a re-typing operation.
+      // bottle → also resets the quantity to 0 (the number is not saved).
+      // (upon changing units), and a silent reset is the defect.
+      // that version 1.2.1 exists and should be removed.
       if (_unitResetNotice) ...[
         const SizedBox(height: 8),
         Text(
@@ -305,7 +305,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         min: _pickerSpec.min,
         max: _pickerSpec.max,
         divisions: _pickerSpec.divisions,
-        // Stepper aligné sur le pas du slider pour l'unité courante.
+        // The stepper motor is aligned with the slider's step for the current unit.
         step: _pickerSpec.step,
         value: _quantity ?? 0.0,
         onValueChanged: (double value) {
@@ -314,8 +314,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             _outOfRange = null;
           });
         },
-        // Hors plage : le nombre du parent reste affiché, l'erreur apparaît,
-        // Enregistrer se désactive. Jamais de `clamp` (BACKLOG B5).
+        // Outside the designated time: the number of parents remains displayed, and an error message appears.
+        // Saving is disabled. No `clamp` functionality (BACKLOG B5).
         onValueOutOfRange: (value) => setState(() {
           _quantity = value;
           _outOfRange = value;
@@ -337,9 +337,9 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     ];
   }
 
-  /// Bornes et pas du picker, selon l'unité — les mêmes que la saisie
-  /// d'un nouvel événement (ml 0–300 par 10, min 0–120 par 1, g 0–1000
-  /// par 5) : éditer une valeur ne doit pas ouvrir une plage différente.
+  /// The number of columns and rows in the picker, depending on the unit – the same as the input fields.
+  /// of a new event (ml 0-300 per 10, min 0-120 per 1, g 0-1000).
+  /// (5) When editing a value, the range should not change.
   ({double min, double max, int divisions, double step}) get _pickerSpec =>
           switch (_unit) {
             QuantityUnit.ml => (min: 0, max: 300, divisions: 30, step: 10),
@@ -347,15 +347,15 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
             QuantityUnit.g => (min: 0, max: 1000, divisions: 200, step: 5),
           };
 
-  /// Unité d'un sous-type, figée hors `natural`.
+  /// A unit of a subtype, fixed and not considered `natural`."
   static QuantityUnit _unitFor(FeedingSubtype subtype) => switch (subtype) {
         FeedingSubtype.natural => QuantityUnit.min,
         FeedingSubtype.artificial => QuantityUnit.ml,
         FeedingSubtype.solid => QuantityUnit.g,
       };
 
-  /// Choix du sous-type : l'unité suit, et le nombre ne survit pas à un
-  /// changement d'unité — 20 ml n'est pas 20 minutes.
+  /// Subtype selection: the unit follows, and the number does not survive a [process/event].
+  /// Unit conversion — 20 ml is not the same as 20 minutes.
   void _selectSubtype(FeedingSubtype subtype) {
     setState(() {
       _subtype = subtype;
@@ -369,7 +369,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     });
   }
 
-  /// Choix ml/min au sein : même règle, aucun nombre ne change d'unité en
+  /// Choosing ml/min within the breast: the same rule applies, no number changes units.
   /// douceur.
   void _selectUnit(QuantityUnit unit) {
     if (unit == _unit) return;
@@ -456,9 +456,9 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
 
     if (_wasteType == WasteType.caca || _wasteType == WasteType.lesDeux) {
       sections.addAll([
-        // La consistance ne s'affiche que là où elle veut dire quelque chose :
-        // les 5 crans sous « caca » ajoutent un scroll en bas d'un bottom sheet
-        // déjà dense, on ne les montre donc pas pour un simple pipi.
+        // Consistency is only relevant where it conveys a meaningful message.
+        // The five notches below "caca" add a scroll bar to the bottom of a bottom sheet.
+        // They are already quite numerous, so we don't show them just for a simple bathroom break.
         ..._buildCacaColors(),
         ..._buildStoolTextures(),
       ]);
@@ -572,7 +572,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         width: double.infinity,
         child: ElevatedButton(
           // Hors plage : on ne sauvegarde pas, on n'efface pas non plus —
-          // le nombre reste à l'écran avec son message d'erreur.
+          // The number remains displayed on the screen along with its error message.
           onPressed: _outOfRange == null ? _submit : null,
           style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14)),
@@ -615,7 +615,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     );
   }
 
-  /// Résout le label localisé pour un PipiColor via son labelKey.
+  /// Resolves the localized label for a PipiColor object using its labelKey.
   String _resolvePipiLabel(BuildContext ctx, PipiColor c) {
     switch (c.labelKey) {
       case 'pipiColorIncolore':
@@ -631,7 +631,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     }
   }
 
-  /// Résout le label localisé pour un CacaColor via son labelKey.
+  /// Resolves the localized label for a CacaColor object using its labelKey.
   String _resolveCacaLabel(BuildContext ctx, CacaColor c) {
     switch (c.labelKey) {
       case 'cacaColorMeconium':
@@ -647,7 +647,7 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     }
   }
 
-  /// Retourne le label d'un WasteType via l'enum.
+  /// Returns the label of a WasteType using the enumeration.
   String _wasteTypeLabel(WasteType type) {
     switch (type) {
       case WasteType.pipi:
