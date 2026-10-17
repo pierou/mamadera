@@ -250,7 +250,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Tap the "Ajouter un bébé" button
+      // Tap the "Add a baby" button.
       await tester.tap(find.text('Ajouter un bébé'));
       await tester.pumpAndSettle();
 

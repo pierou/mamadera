@@ -83,20 +83,20 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
   @override
   Future<bool> deleteProfile(String id) async {
     try {
-      // Les événements du bébé et la ligne de profil partent dans une seule
-      // transaction : le schéma n'a ni clé étrangère ni cascade, donc une
-      // erreur entre les deux DELETE laisserait soit des événements orphelins,
-      // soit un profil dont les événements ont déjà disparu — alors que la
-      // boîte de confirmation promet à l'utilisateur les deux suppressions.
+      // The baby-related events and the profile page are now integrated into a single view.
+      // transaction: the schema has neither a foreign key nor a cascade effect, therefore...
+      // An error between the two DELETE statements could leave orphaned events.
+      // either a profile where the events have already been deleted, even though the...
+      // The confirmation box promises the user that both deletions will be performed.
       //
-      // M4 : le bébé emporte aussi ses mesures, ses achèvements manuels, ses
-      // réglages de rappels et ses « ignorer aujourd'hui » — les lignes où
-      // `baby_id` vaut son id. Les lignes portées par la sentinelle partagée
-      // `''` n'appartiennent à aucun profil et survivent à la suppression.
-      // Ses rappels personnalisés partent avec leurs clés `custom_<id>`
-      // purgées **tous bébés** : la clé est unique avec la ligne, elle meurt
-      // avec elle (même règle que `deleteCustomReminder`), et une copie
-      // orpheline sous un autre portage survivrait jusqu'à l'export.
+      // M4: The baby also brings along its measurements, its handmade items, and its...
+      // settings for reminders and its "snooze" feature — the lines where...
+      // `baby_id` takes on the value of its ID. These are the lines monitored by the shared sentinel.
+      // `''` `''`` do not belong to any profile and survive deletion.
+      // Its personalized reminders are sent with their unique keys, formatted as `custom_<id>`.
+      // "Purged **all babies**: the key is unique to the line, and it destroys everything."
+      // with it (same rule as `deleteCustomReminder`), and a copy.
+      // An orphan, under a different fostering arrangement, would survive until export.
       final customItemKeys = await _customReminderItemKeysOf(id);
       final deleted = await database.transaction(() async {
         await database.deleteTrackingEventsByBabyId(id);
@@ -120,8 +120,8 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
     }
   }
 
-  /// Clés de rappel (`custom_<id>`) des rappels personnalisés créés par le
-  /// bébé [babyId], lues **avant** la transaction de suppression.
+  /// Reminder keys (`custom_<id>`) for the custom reminders created by the system.
+  /// baby [babyId], read **before** the deletion transaction.
   Future<List<String>> _customReminderItemKeysOf(String babyId) async {
     final reminders = await database.getAllCustomReminders();
     return reminders
@@ -134,9 +134,9 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
   @override
   Future<void> setActiveProfile(String id) async {
     try {
-      // Désactiver tout puis activer l'élu doit être atomique : sans
-      // transaction, un échec entre les deux UPDATE laisse l'app sans aucun
-      // bébé actif (l'échec précédent laissait la fenêtre ouverte).
+      // Disabling everything and then enabling the selected option must be an atomic operation: without...
+      // transaction, a failure between the two UPDATE statements leaves the application without any...
+      // active baby (the previous attempt left the door open).
       await database.transaction(() async {
         // First deactivate all profiles.
         final all = await getAllProfiles();

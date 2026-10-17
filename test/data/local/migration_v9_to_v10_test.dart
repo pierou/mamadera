@@ -5,8 +5,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/data/local/app_db.dart';
 
-/// Coquille [GeneratedDatabase] vide servant uniquement à exécuter du SQL brut
-/// sur un fichier, sans aucune table définie par drift.
+/// Empty [GeneratedDatabase] shell used solely for executing raw SQL queries.
+/// on a file, without any tables defined by Drift.
 class _RawSqlDatabase extends GeneratedDatabase {
   _RawSqlDatabase(super.e);
 
@@ -17,16 +17,16 @@ class _RawSqlDatabase extends GeneratedDatabase {
   int get schemaVersion => 9;
 }
 
-/// Régression de la migration v10 : création de `custom_reminders`, la table des
-/// rappels inventés par le parent.
+/// Migration regression v10: creation of `custom_reminders`, the table for...
+/// Reminders created by the parent.
 ///
-/// Le risque n°1 d'une migration « créer une table » n'est pas la table neuve —
-/// c'est ce qui entoure : ici `reminder_settings` porte l'extinction de chaque
-/// rappel, y compris celle des rappels personnalisés (`custom_<id>`). Une
-/// migration qui la recréerait éteindrait d'un coup tous les rappels que le
-/// parent a pris la peine de couper. Les tests vérifient donc d'abord que les
-/// lignes anciennes survivent, puis que la nouvelle table est utilisable et
-/// revisitée après fermeture.
+/// The number one risk associated with a "create table" migration is not the new table itself.
+/// This is what it looks like: here, `reminder_settings` controls the disabling of each [feature/setting].
+/// reminder, including personalized reminders (`custom_<id>`). A
+/// migration that would recreate it would instantly erase all the memories that the...
+/// The parent took the trouble to cut [something]. Therefore, the tests first verify that [something] is properly cut.
+/// "Older lines still exist, and the new table is functional."
+/// Revised after closure.
 void main() {
   late Directory tempDir;
   late File dbFile;
@@ -35,7 +35,7 @@ void main() {
     tempDir = await Directory.systemTemp.createTemp('mamadera_migration_v10');
     dbFile = File('${tempDir.path}/mamadera_v9.db');
 
-    // Base v9 physique, telle que lib/data/local/schema.sql (v9) la décrit.
+    // Physical database v9, as described by the `lib/data/local/schema.sql` file (v9).
     final raw = _RawSqlDatabase(NativeDatabase(dbFile));
     await raw.customStatement('''
       CREATE TABLE baby_profiles (
@@ -68,7 +68,7 @@ void main() {
         item_id TEXT PRIMARY KEY NOT NULL,
         enabled BOOLEAN NOT NULL
       )''');
-    // Un préréglé éteint avant la mise à jour : il doit rester éteint après.
+    // A preset setting was turned off before the update: it should remain turned off after the update.
     await raw.customStatement(
       "INSERT INTO reminder_settings (item_id, enabled) VALUES ('vitamine_k', 0)",
     );
@@ -91,8 +91,8 @@ void main() {
     expect(db.schemaVersion, equals(12));
     expect(await db.getAllCustomReminders(), isEmpty);
 
-    // Le rappel éteint avant la mise à jour l'est toujours : la migration n'a
-    // pas touché à reminder_settings.
+    // The reminder that was active before the update remains so: the migration has...
+    // No changes made to reminder settings.
     final enabled = await db.getAllReminderSettings();
     expect(enabled, hasLength(1));
     expect(enabled.single.itemId, equals('vitamine_k'));
@@ -115,14 +115,14 @@ void main() {
             completionSource: const Value('from_events'),
           ),
         );
-    // L'extinction du rappel personnalisé vit dans l'autre table, sous sa clé.
+    // The deletion of the personalized reminder is stored in another table, under its corresponding key.
     await db.customStatement(
       'INSERT INTO reminder_settings (item_id, enabled) VALUES (?, ?)',
       ['custom_$id', 0],
     );
     await db.close();
 
-    // Rouverture sur le même fichier : ce qui a été écrit est réellement en
+    // Reopening the same file: what has been written is actually saved.
     // base, et pas seulement en cache de connexion.
     db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
@@ -142,8 +142,8 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    // L'ordre de la liste est celui de l'écran Réglages : insérer dans le
-    // désordre (id auto-incrémenté) ne doit pas réordonner les rappels.
+    // The order of the list corresponds to the order in the Settings screen: insert into the...
+    // The "disorder" field (with an automatically incrementing ID) should not reorder the reminders.
     for (final label in ['Deuxième', 'Premier', 'Troisième']) {
       await db.into(db.customReminders).insert(
             CustomRemindersCompanion.insert(

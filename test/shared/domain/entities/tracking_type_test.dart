@@ -1,4 +1,4 @@
-// ignore_for_file: lines_longer_than_80_chars // Tests des labels lisibles et du parsing de TrackingType
+// ignore_for_file: lines_longer_than_80_chars // Tests for readable labels and parsing of TrackingType.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
@@ -34,14 +34,14 @@ void main() {
     });
 
     group('.fromString() doit être insensible à la casse et aux accents', () {
-      // Le switch gère 'santé' || 'sante' via .toLowerCase(), donc les variantes
-      // accentuées, majuscules ou mixtes doivent toutes résoudre correctement.
+      // The switch statement handles both "health" and "sante" by using `.toLowerCase()`, so it accounts for variations in capitalization.
+      // Whether accented, in uppercase, or a combination of both, all characters must be rendered correctly.
       test('SANTÉ, Santé, sante retournent TrackingType.sante ; CACA retourne caca', () {
         expect(TrackingType.fromString('SANTÉ'), TrackingType.sante);
         expect(TrackingType.fromString('Santé'), TrackingType.sante);
         expect(TrackingType.fromString('sante'), TrackingType.sante);
 
-        // Vérifie aussi l'insensibilité à la casse sur un autre enum.
+        // Also, verify that the case sensitivity setting is correct for another enumeration.
         expect(TrackingType.fromString('CACA'), TrackingType.caca);
       });
     });

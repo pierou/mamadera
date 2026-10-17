@@ -6,8 +6,8 @@ import 'package:mamadera/data/local/app_db.dart';
 import 'package:mamadera/features/growth/data/repositories/measurement_repository_impl.dart';
 import 'package:mamadera/features/growth/domain/entities/measure_kind.dart';
 
-/// Fake de chiffrement déterministe : `enc:<texte>` → `<texte>`.
-/// Tout texte sans préfixe `enc:` déchiffre en null — cas clé perdue/rotée.
+/// Deterministic encryption spoof: `enc:<text>` → `<text>`.
+/// Any text without the `enc:` prefix will be deciphered as null – this indicates a lost or rotated key.
 class _FakeEncryption extends EncryptionService {
   @override
   String encrypt(String plainText) => 'enc:$plainText';
@@ -29,7 +29,7 @@ void main() {
     setUp(() async {
       final connection = LazyDatabase(NativeDatabase.memory);
       database = AppDatabase(connection);
-      // Déclenche la migration pour créer les tables avant toute lecture.
+      // Trigger the migration process to create the tables before any data is read.
       await database.select(database.reminderDismissals).get();
       encryption = _FakeEncryption();
       repository =
@@ -165,8 +165,8 @@ void main() {
 
       test('allForBaby(null) is unfiltered, like the events repository',
           () async {
-        // « Aucun bébé sélectionné » (chargement en cours, installation
-        // sans profil) ne doit pas masquer les mesures : même sémantique
+        // "No babies selected" (loading in progress, installation...).
+        // (without a profile) should not obscure the measures; even with the same semantic meaning.
         // que `getAllEventsOrdered(babyId: null)`.
         await seedRow(babyId: 'baby_1', value: 'enc:3500.0');
         await seedRow(babyId: null, value: 'enc:4200.0');

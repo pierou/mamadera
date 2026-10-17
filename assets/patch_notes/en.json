@@ -100,6 +100,7 @@
       "- Quantity resets to zero on every unit change, with a visible message",
       "- Out-of-range growth values refuse to save, showing the expected range",
       "- Single slider on every entry form, with the +/- buttons and the text field setting the exact value",
+      "- Dropped the \"Last:\" label in front of your previous measurement — the value is shown directly on the entry form",
       "### Fixes",
       "- Missing minutes in English dates (\"07:PM\") now display",
       "- Dropped the doubled unit on the growth trajectory (\"6.18 kg g\")",

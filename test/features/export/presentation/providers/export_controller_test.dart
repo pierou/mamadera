@@ -12,8 +12,8 @@ import 'package:mamadera/features/export/presentation/providers/export_providers
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 
-/// Fake de chiffrement identité : le chemin "rien à exporter" n'atteint
-/// jamais le déchiffrement, mais on ne touche de toute façon au keychain.
+/// Identity encryption spoofing: The "nothing to export" path is not achievable.
+/// It's never possible to decrypt it, but in any case, we're not accessing the keychain.
 class _NoopEncryption extends EncryptionService {
   @override
   String encrypt(String plainText) => plainText;
@@ -30,12 +30,12 @@ void main() {
     setUp(() async {
       final connection = LazyDatabase(NativeDatabase.memory);
       database = AppDatabase(connection);
-      // Déclenche la migration pour créer les tables.
+      // Trigger the migration process to create the tables.
       await database.select(database.reminderDismissals).get();
 
-      // Le repository pointe sur la base in-memory vide : le contrôle
-      // "rien à exporter" passe avant getTemporaryDirectory/share, donc la
-      // plateforme de partage n'est jamais appelée dans ce test.
+      // The repository points to an empty in-memory database: the control.
+      // "nothing to export" is processed before `getTemporaryDirectory/share`, so...
+      // The sharing platform is never called within this test.
       final repository = ExportRepositoryImpl(
         database: database,
         encryption: _NoopEncryption(),
@@ -81,10 +81,10 @@ void main() {
 
   /// Plateforme de partage enregistreuse.
   ///
-  /// Instance UNIQUE pour tout le fichier : `SharePlus.instance` est un
-  /// `static final` qui capture `SharePlatform.instance` à son premier accès,
-  /// donc une instance remplacée entre deux tests serait silencieusement
-  /// ignorée. On remet les relevés à zéro dans setUp à la place.
+  /// Unique instance for the entire file: `SharePlus.instance` is a...
+  /// `static final` which captures `SharePlatform.instance` upon its first access.
+  /// Therefore, an instance that is replaced between two tests would be silently replaced.
+  /// It was being ignored. Instead, we reset the values to zero in the `setUp` method.
   final sharePlatform = _RecordingSharePlatform();
 
   group('ExportController.shareExport — flux réel', () {
@@ -150,13 +150,13 @@ void main() {
         1,
       );
       expect(sharePlatform.calls, hasLength(1));
-      // Le fichier doit être lisible QUAND la feuille de partage le prend :
-      // le test inverse prouverait un export vide sur iOS/Android.
+      // The file must be readable WHEN the sharing sheet accesses it.
+      // The reverse test would demonstrate that there is no data being exported to iOS/Android.
       expect(sharePlatform.fileExistedDuringShare, isTrue);
       expect(
           sharePlatform.contentDuringShare, contains('"exportFormatVersion"'));
       expect(sharePlatform.contentDuringShare, contains('dodo'));
-      // Invariant de confidentialité : aucune copie en clair ne survit.
+      // Confidentiality invariant: No plaintext copies survive.
       expect(tempDir.listSync(), isEmpty);
     });
 
@@ -202,8 +202,8 @@ void main() {
   });
 }
 
-/// Plateforme de partage factice : enregistre ce qui lui est remis et peut
-/// échouer à la demande.
+/// Simulated sharing platform: It records the data it receives and can...
+/// fail to meet demand.
 class _RecordingSharePlatform extends SharePlatform {
   final List<ShareParams> calls = <ShareParams>[];
   Object? errorToThrow;
@@ -231,7 +231,7 @@ class _RecordingSharePlatform extends SharePlatform {
   }
 }
 
-/// Fournit un vrai répertoire temporaire au contrôleur, sans plugin.
+/// Provides a genuine temporary directory to the controller, without requiring any plugins.
 class _TempDirPathProvider extends PathProviderPlatform {
   _TempDirPathProvider(this._tempDir);
 

@@ -21,8 +21,8 @@ const int _supportedFormatVersion = 3;
 /// Oldest document format this build can still restore.
 ///
 /// A format-1 backup (pre-M4) must keep restoring: it may omit the two new
-/// sections and the `babyId` fields, and both absences read as « shared / »
-/// « empty ». Only the upper bound is a wall — format 3 belongs to a future
+/// sections and the `babyId` fields, and both absences are marked as "shared/".
+/// "Empty." Only the upper limit is a wall—format 3 belongs to the future.
 /// app.
 const int _oldestFormatVersion = 1;
 
@@ -73,8 +73,8 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
   final profileIds = <String>{};
   final eventIds = <int>{};
   final reminderIds = <int>{};
-  // Clés composites (bébé, item) : le même item peut être réglé ou ignoré
-  // une fois par bébé sans être en doublon.
+  // Composite keys (baby, item): The same item can be configured to be included or excluded.
+  // Once per baby, without duplicates.
   final settingKeys = <Object>{};
   final dismissalKeys = <Object>{};
   final measurementIds = <int>{};
@@ -157,7 +157,7 @@ void _validateHeader(Map<String, dynamic> document, int schemaVersion) {
 ///
 /// [optional] marks the two format-2 sections (`measurements`,
 /// `reminderCompletions`): a format-1 backup does not carry them, and
-/// « absent » must read as « empty » — never as « missing table ». The five
+/// "Absent" should be interpreted as "empty" – never as "missing table." The five...
 /// historical sections are always mandatory.
 List<T> _section<T>(
   Map<String, dynamic> document,
@@ -193,9 +193,9 @@ void _validateCounts(Map<String, dynamic> document, Map<String, int> actual) {
   for (final expected in actual.entries) {
     final declared = counts[expected.key];
     if (declared == null) {
-      // Une sauvegarde de format 1 ne déclare pas les deux tables du format
-      // 2 : la clé absente se lit comme « zéro ligne » — mais seulement si
-      // la section est bien vide, sinon le fichier n'est pas d'ici.
+      // A backup of format 1 does not declare both tables of the format.
+      // 2: The missing key is interpreted as "zero lines" – but only if...
+      // The section is empty, otherwise the file wouldn't be from here.
       if (expected.value != 0) {
         throw ImportFormatException(
           ImportRejectionReason.countsMismatch,
@@ -298,7 +298,7 @@ ImportedCustomReminder _parseCustomReminder(
   // Validated against the domain enum when present: a reminder pointing at a
   // care this build does not know could never be marked done, and would sit
   // there undiagnosable. `null` = reminder **detached** from any care (M4/D2):
-  // only the parent's « Fait » tap can complete it.
+  // Only the parent's "Fait" button can complete the process.
   final subtypeValue = _optionalString(row, 'subtypeValue', section);
   if (subtypeValue != null && HealthSubtype.byValue(subtypeValue) == null) {
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
@@ -309,7 +309,7 @@ ImportedCustomReminder _parseCustomReminder(
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
         section: section);
   }
-  // Absent (format 1) : `from_events`, la seule valeur qui existait alors.
+  // Absent (format 1): `from_events`, which was the only value that existed at that time.
   final completionSource = _optionalString(row, 'completionSource', section) ??
       db_const.completionFromEvents;
   if (!db_const.allCompletionSourceValues.contains(completionSource)) {
@@ -322,7 +322,7 @@ ImportedCustomReminder _parseCustomReminder(
     subtypeValue: subtypeValue,
     frequency: frequency,
     intervalDays: _optionalPositiveInt(row, 'intervalDays', section),
-    // Absent (format 1) : rappel partagé entre tous les bébés.
+    // Absent (format 1): A shared memory accessible to all babies.
     babyId: _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId,
     completionSource: completionSource,
   );
@@ -331,7 +331,7 @@ ImportedCustomReminder _parseCustomReminder(
 ImportedReminderSetting _parseSetting(
     Map<String, dynamic> row, Set<Object> seenKeys) {
   const section = 'reminderSettings';
-  // Absent (format 1) : réglage partagé entre tous les bébés.
+  // Absent (format 1): Setting shared by all babies.
   final babyId =
       _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
   final itemId = _requiredString(row, 'itemId', section);
@@ -351,7 +351,7 @@ ImportedReminderSetting _parseSetting(
 ImportedReminderDismissal _parseDismissal(
     Map<String, dynamic> row, Set<Object> seenKeys) {
   const section = 'reminderDismissals';
-  // Absent (format 1) : rejet partagé entre tous les bébés.
+  // Absent (format 1): Shared rejection among all the babies.
   final babyId =
       _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
   final itemId = _requiredString(row, 'itemId', section);
@@ -381,11 +381,11 @@ ImportedMeasurement _parseMeasurement(
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
         section: section);
   }
-  // Le fichier porte le nombre en clair (l'export l'a déchiffré) : il doit
-  // rester un nombre pour être re-chiffré tel quel à l'insertion. Une mesure
-  // exportée `valueUndecryptable` porte `value: null` et est rejetée ici : sans
-  // nombre, la ligne n'a rien à restaurer, et l'accepter écrirait une mesure
-  // vide au lieu d'un poids.
+  // The file contains the number in plain text (the export process decrypted it): it should...
+  // remain a number to be re-calculated exactly when inserted. A measurement.
+  // The `valueUndecryptable` property, which has a `value` of `null`, is rejected here: no further action.
+  // The number is valid, and there is nothing to restore in this line. Accepting it would register a measurement.
+  // empty instead of having weight.
   final value = _requiredString(row, 'value', section);
   if (double.tryParse(value) == null) {
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
@@ -393,8 +393,8 @@ ImportedMeasurement _parseMeasurement(
   }
   return ImportedMeasurement(
     id: id,
-    // Orpheline (babyId présent mais profil absent du fichier) : conservée,
-    // comme les événements.
+    // Orphaned (babyId present but profile missing from the file): retained.
+    // like events.
     babyId: _optionalString(row, 'babyId', section),
     kind: kind,
     value: value,
@@ -441,8 +441,8 @@ QuantityUnit _resolveEventUnit({
     throw ImportFormatException(ImportRejectionReason.invalidRow,
         section: section);
   }
-  // Le sein porte deux unités légitimes ; tout le reste n'en a qu'une, et
-  // une ligne qui en prétend une autre ment sur son propre nombre.
+  // The breast bears two legitimate units; everything else only has one, and...
+  // A line that claims to represent something else is, in effect, lying about its own quantity.
   final allowed =
       type == db_const.typeMiam && subtype == db_const.subtypeNatural
           ? const {QuantityUnit.ml, QuantityUnit.min}
@@ -632,8 +632,8 @@ class ImportRepositoryImpl implements ImportRepository {
 
     await database.transaction(() async {
       // Full replace, in dependency-free order (there are no foreign keys).
-      // Les deux tables du format 2 (M4) rejoignent les cinq historiques :
-      // tout ou rien, jamais à moitié.
+      // The two tables in format 2 (M4) are being added to the existing five historical tables.
+      // All or nothing, never half-hearted.
       await database.delete(database.measurements).go();
       await database.delete(database.reminderCompletions).go();
       await database.delete(database.babyProfiles).go();
@@ -672,9 +672,9 @@ class ImportRepositoryImpl implements ImportRepository {
           texture: Value(event.texture),
           babyId: Value(event.babyId),
           quantity: Value(event.quantity),
-          // Écrit depuis l'entité parsée : présente dans le fichier (format 3)
-          // ou backfillée par le parseur (formats 1-2). Jamais le DEFAULT de
-          // la colonne, qui ne sait rien du sous-type de la ligne.
+          // Written from the parsed entity: present in the file (format 3).
+          // or backfilled by the parser (formats 1-2). The DEFAULT value should never be:
+          // The column, which has no knowledge of the row's subtype.
           unit: event.unit.dbValue,
         ));
       }
@@ -685,12 +685,12 @@ class ImportRepositoryImpl implements ImportRepository {
                 id: Value(reminder.id),
                 label: reminder.label,
                 subtypeValue: Value(reminder.subtypeValue),
-                // M4 : la colonne nullable existe, la dérivation devient réelle
-                // — même règle qu'à chaque autre écriture (D2) : détaché
-                // (`subtypeValue == null`) ⟺ `manual`. La valeur portée par le
-                // fichier est validée au parsing mais pas écrite telle quelle :
-                // incohérente avec le `subtypeValue`, elle ne pourrait
-                // s'installer par une restauration.
+                // M4: The nullable column exists, and the derivation becomes a reality.
+                // — The same rule applies as for all other text (D2): single-spaced.
+                // (`subtypeValue == null`) ⟺ `manual`. The value it holds is:
+                // The file is validated during parsing, but it is not written as is.
+                // It is inconsistent with the `subtypeValue` and therefore cannot...
+                // to settle in by renovating.
                 completionSource: Value(
                   reminder.subtypeValue == null
                       ? db_const.completionManual
@@ -698,7 +698,7 @@ class ImportRepositoryImpl implements ImportRepository {
                 ),
                 frequency: reminder.frequency,
                 intervalDays: Value(reminder.intervalDays),
-                // Absent dans les sauvegardes de format 1 : partagé.
+                // Absent in format 1 backups: shared.
                 babyId: Value(reminder.babyId),
               ),
             );
@@ -707,8 +707,8 @@ class ImportRepositoryImpl implements ImportRepository {
       for (final setting in parsed.reminderSettings) {
         await database.into(database.reminderSettings).insert(
               db_app.ReminderSettingsCompanion.insert(
-                // `babyId` a une valeur par défaut côté colonne : le paramètre
-                // d'insertion est un `Value` optionnel, on l'enveloppe.
+                // The `babyId` column has a default value defined: the parameter.
+                // The `insertion` option is optional, so we enclose it in parentheses.
                 babyId: Value(setting.babyId),
                 itemId: setting.itemId,
                 enabled: setting.enabled,
@@ -729,14 +729,14 @@ class ImportRepositoryImpl implements ImportRepository {
       for (final measurement in parsed.measurements) {
         await database.into(database.measurements).insert(
               db_app.MeasurementsCompanion.insert(
-                // Explicit rowid, comme les événements : l'id du fichier est
+                // Explicit rowid, similar to events: the file ID is...
                 // l'id de la table.
                 id: Value(measurement.id),
                 babyId: Value(measurement.babyId),
                 kind: measurement.kind,
-                // Le fichier porte le nombre en clair (l'export l'a déchiffré) ;
-                // l'invariant « chiffré au repos » repasse par le même service,
-                // IV frais, comme les notes des événements.
+                // The file contains the number in plain text (the export process decrypted it).
+                // The "resting state" invariant value is being processed again by the same department.
+                // IV. Expenses, such as event costs.
                 value: encryption.encrypt(measurement.value),
                 unit: measurement.unit,
                 recordedAt: measurement.recordedAt,

@@ -11,20 +11,20 @@ class MockRemindersRepository implements RemindersRepository {
   /// `reminder_completions` log).
   final Map<String, DateTime?> manualCompletedByItem = {};
 
-  /// Maps item ID → last « ignorer » DateTime (simulates `reminder_dismissals`).
+  /// Maps item ID → last "ignore" DateTime (simulates `reminder_dismissals`).
   final Map<String, DateTime?> dismissedById = {};
 
-  /// Maps item ID → persisted enabled flag (absent = jamais touché = activé).
+  /// Maps item ID → persisted enabled flag (absent = never accessed = enabled).
   final Map<String, bool> enabledById = {};
 
-  /// Nombre d'appels à [setEnabled] (pour vérifier qu'un toggle écrit bien en base).
+  /// Number of calls to [setEnabled] (to verify that the toggle switch is correctly written to the database).
   int setEnabledCallCount = 0;
 
-  /// Nombre de recherches de dernière complétion — prouve qu'un rappel éteint
-  /// n'est plus du tout interrogé, et qu'un toggle provoque bien un nouveau scan.
+  /// Number of recent searches – indicates that a reminder has been dismissed.
+  /// It is no longer being queried at all, and toggling the switch does indeed trigger a new scan.
   int completedLookupCount = 0;
 
-  /// Identifiants effectivement interrogés par [getLastCompleted].
+  /// Identifiers actually queried by [getLastCompleted].
   final Set<String> lookedUpItemIds = {};
 
   /// Baby the most recent [getLastCompleted] call was scoped to (null = unscoped).
@@ -42,31 +42,31 @@ class MockRemindersRepository implements RemindersRepository {
   /// Baby the most recent [setEnabled] call was scoped to.
   String? lastEnabledBabyId;
 
-  /// Rappels personnalisés en mémoire, indexés par leur identifiant auto-incrémenté.
+  /// Personalized reminders are stored in memory and indexed by their automatically incrementing identifier.
   final Map<int, CustomReminder> customRemindersById = {};
 
-  /// Nombre d'appels reçus pour chaque écriture — pas de succès : prouver qu'une
-  /// écriture a été tentée, et une seule.
+  /// Number of calls received for each entry – no success: unable to prove that a...
+  /// An attempt at writing has been made, and only one.
   int insertCustomCallCount = 0;
 
-  /// Nombre d'écritures manuelles reçues ([recordCompletion]) et bébé auquel
-  /// la dernière a été scopée (`null` = non scopé).
+  /// Number of handwritten records received ([recordCompletion]) and the baby to whom they pertain.
+  /// The last one was scoped (`null` = not scoped).
   int recordCompletionCallCount = 0;
   String? lastRecordCompletionBabyId;
 
-  /// Nombre d'ignorés reçus ([dismissReminder]) et bébé auquel la dernière
-  /// écriture a été scopée (`null` = non scopé).
+  /// Number of ignored reminders ([dismissReminder]) and the baby to whom the last reminder was sent.
+  /// The writing has been scoped (`null` = not scoped).
   int dismissCallCount = 0;
   String? lastDismissBabyId;
   int editCustomCallCount = 0;
   int deleteCustomCallCount = 0;
 
-  /// Quand vrai, créer/modifier un rappel personnalisé échoue comme l'écriture
-  /// d'un stockage refusé (carte pleine, ligne rejetée), pour tester le retour
+  /// When true, creating or modifying a custom reminder fails, similar to writing.
+  /// due to a storage failure (full card, rejected line), to test the feedback mechanism.
   /// visible au parent.
   bool failCustomWrites = false;
 
-  /// Idem pour la suppression : une suppression qui échoue ne doit rien emporter.
+  /// The same applies to deletion: a failed deletion should not remove anything.
   bool failCustomDelete = false;
 
   int _nextCustomId = 1;
@@ -76,8 +76,8 @@ class MockRemindersRepository implements RemindersRepository {
     lastCompletedBabyId = babyId;
     completedLookupCount++;
     lookedUpItemIds.add(reminder.id);
-    // Fidèle à l'implémentation (invariant D2) : un item sans subtype n'est
-    // réglé par aucun événement.
+    // Faithful to the implementation (D2 invariant): an item without a subtype is...
+    // Not determined by any specific event.
     if (reminder.subtypeValue == null) return null;
     return lastCompletedByItem[reminder.id];
   }
@@ -124,7 +124,7 @@ class MockRemindersRepository implements RemindersRepository {
 
   @override
   Future<List<CustomReminder>> getCustomReminders({String? babyId}) async {
-    // Ordre d'insertion = ordre des identifiants, comme `ORDER BY id` en base.
+    // Insertion order = the order of identifiers, similar to `ORDER BY id` in a database.
     return customRemindersById.values.toList(growable: false);
   }
 
@@ -150,26 +150,26 @@ class MockRemindersRepository implements RemindersRepository {
 
   @override
   Future<void> deleteCustomReminder(int id, {String? babyId}) async {
-    // Le compteur compte les demandes reçues, pas les succès : un test qui
-    // refuse l'écriture doit pouvoir prouver que l'app a bien essayé.
+    // The counter tracks the number of requests received, not the number of successful operations: a test that...
+    // If an application is rejected, the system must be able to demonstrate that the application was indeed processed.
     deleteCustomCallCount++;
     if (failCustomDelete) throw StateError('stockage refusé');
     customRemindersById.remove(id);
-    // Comme la vraie implémentation : supprimer le rappel emporte son rang
-    // (et sa ligne `reminder_dismissals`, en base), sinon un fantôme survit
-    // à chaque export.
+    // Like the actual implementation: removing a callback also removes its associated priority level.
+    // (and its `reminder_dismissals` line, in the database), otherwise a ghost record persists.
+    // For each export.
     final key = '${CustomReminderPresets.customIdPrefix}$id';
     enabledById.remove(key);
   }
 }
 
-/// [MockRemindersRepository] dont les « ignorer » sont scopés par bébé,
-/// comme en base (une ligne `reminder_dismissals` porte le `baby_id`) :
-/// une suppression pour le bébé A ne masque jamais le rappel au bébé B.
+/// [MockRemindersRepository] where the "ignore" functionality is specific to each baby.
+/// like in the base (a `reminder_dismissals` row has a `baby_id`):
+/// A suppression for baby A never obscures the reminder for baby B.
 class ScopedDismissalRemindersRepository extends MockRemindersRepository {
   final Map<String, DateTime?> _dismissedByKey = {};
 
-  /// Seme une suppression datée (tests de la fenêtre de 24 h).
+  /// Implement a time-based deletion (24-hour window tests).
   void seedDismissal(String itemId, {String? babyId, required DateTime at}) {
     _dismissedByKey['$itemId@${babyId ?? 'all'}'] = at;
   }

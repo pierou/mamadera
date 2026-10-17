@@ -1,4 +1,4 @@
-// ignore_for_file: lines_longer_than_80_chars // Tests des propriétés et du parsing de HistoryFilter
+// ignore_for_file: lines_longer_than_80_chars // Tests for the properties and parsing of the HistoryFilter.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
@@ -28,7 +28,7 @@ void main() {
       });
     });
 
-    // ── .label pour chaque filtre (5) ──────────────────────────
+    // ── .label for each filter (5) ──────────────────────────
     group('.label doit retourner le texte affiché correct', () {
       test('all → "Tous"', () {
         expect(HistoryFilter.all.label, 'Tous');
@@ -51,7 +51,7 @@ void main() {
       });
     });
 
-    // ── .trackingType null pour all, string pour autres (2) ────
+    // ── .trackingType: null for "all", string for other options (2) ────
     group('.trackingType doit retourner le type de suivi ou null', () {
       test('all retourne null car il ne filtre aucun type spécifique', () {
         expect(HistoryFilter.all.trackingType, isNull);
@@ -71,7 +71,7 @@ void main() {
         expect(HistoryFilter.fromString('miam'), HistoryFilter.miam);
         expect(HistoryFilter.fromString('DODO'), HistoryFilter.dodo);
         expect(HistoryFilter.fromString('Caca'), HistoryFilter.caca);
-        expect(HistoryFilter.fromString('SANTÉ'), HistoryFilter.all); // 'santé' ≠ 'sante', fallback
+        expect(HistoryFilter.fromString('SANTÉ'), HistoryFilter.all);         // 'health' ≠ 'sante', fallback.
       });
 
       test('une entrée inconnue retourne all en fallback safe', () {
@@ -87,7 +87,7 @@ void main() {
   });
 
   group('HealthSubtype.byValue()', () {
-    // Chaque valeur DB connue retourne la bonne instance.
+    // Each known database value returns the correct instance.
     test('"nettoyage_yeux" → nettoyageYeux', () {
       expect(
         HealthSubtype.byValue('nettoyage_yeux'),
@@ -138,7 +138,7 @@ void main() {
   });
 
   group('HealthSubtype.values', () {
-    // Vérifie que la liste contient bien les 6 sous-types attendus.
+    // Please verify that the list contains the 6 expected subtypes.
     test('.values.length == 6', () {
       expect(HealthSubtype.values.length, equals(6));
     });

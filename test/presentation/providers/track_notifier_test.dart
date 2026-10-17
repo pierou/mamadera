@@ -18,7 +18,7 @@ void main() {
 
   setUp(() {
     mockRepository = MockTrackingRepository();
-    // Stub par défaut : insertEvent(event) retourne toujours un ID valide.
+    // Default behavior: The `insertEvent(event)` function always returns a valid ID.
     when(mockRepository.insertEvent(any)).thenAnswer((_) async => 1);
 
     container = ProviderContainer(
@@ -41,7 +41,7 @@ void main() {
         notes: 'notes de test',
       );
 
-      // Capturer l'événement passé à insertEvent pour vérifier le contenu.
+      // Capture the event that occurred in `insertEvent` to verify its content.
       final captured = verify(mockRepository.insertEvent(captureAny)).captured;
       expect(captured, hasLength(1));
       final event = captured.first as TrackingEvent;
@@ -54,7 +54,7 @@ void main() {
       final notifier = container.read(trackNotifierProvider.notifier);
       await notifier.track(type: TrackingType.dodo);
 
-      // Après succès, l'état est AsyncData.
+      // After a successful operation, the state becomes AsyncData.
       final result = container.read(trackNotifierProvider);
       expect(result, isA<AsyncData<void>>());
     });
@@ -81,7 +81,7 @@ void main() {
       expect(captured, hasLength(1));
       final event = captured.first as TrackingEvent;
       expect(event, isA<FeedingEvent>());
-      // Valeurs par défaut : natural, duration 0.0, notes null
+      // Default values: natural, duration 0.0, notes null.
       expect((event as FeedingEvent).subtype, equals(FeedingSubtype.natural));
 
       expect(container.read(trackNotifierProvider), isA<AsyncData<void>>());
@@ -164,8 +164,8 @@ void main() {
   });
 
   group('TrackNotifier.track() — date de l’événement', () {
-    // Le parent choisit le moment de l’événement ; le notifier doit le
-    // transmettre tel quel, et tomber sur maintenant lorsqu’il est omis.
+    // The parent chooses the time of the event; they are responsible for notifying [someone/everyone] about it.
+    // Transmit it exactly as is, and the word "now" will appear when it is omitted.
     test('un timestamp fourni est utilisé tel quel pour chaque type', () async {
       final notifier = container.read(trackNotifierProvider.notifier);
       final chosen = DateTime(2026, 2, 3, 14, 25);

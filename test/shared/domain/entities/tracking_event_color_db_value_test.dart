@@ -8,7 +8,7 @@ void main() {
   group('DiaperEvent.colorDbValue', () {
     final baseTimestamp = DateTime.utc(2023, 10, 25);
 
-    // ── pipi → retourne pipiColor.value (ou null si non sélectionné) ───
+    // ── pipi → returns `pipiColor.value` (or null if not selected) ───
     test('wasteType=pipi avec pipiColor sélectionnée → pipiColor.value', () {
       final event = DiaperEvent(
         timestamp: baseTimestamp,
@@ -29,7 +29,7 @@ void main() {
       expect(event.colorDbValue, isNull);
     });
 
-    // ── caca → retourne cacaColor.value (ou null si non sélectionné) ───
+    // ── caca → returns `cacaColor.value` (or `null` if not selected) ───
     test('wasteType=caca avec cacaColor sélectionnée → cacaColor.value', () {
       final event = DiaperEvent(
         timestamp: baseTimestamp,
@@ -50,7 +50,7 @@ void main() {
       expect(event.colorDbValue, isNull);
     });
 
-    // ── lesDeux → format pipe-délimité ou fallback单方 ────────────────
+    // ── lesDeux → pipe-delimited format or fallback to single-value.
     test('wasteType=lesDeux avec pipiColor et cacaColor → "pipi|caca"', () {
       final event = DiaperEvent(
         timestamp: baseTimestamp,
@@ -86,7 +86,7 @@ void main() {
       expect(event.colorDbValue, equals('meconium'));
     });
 
-    // ── wasteType null → toujours null, peu importe les couleurs ──────
+    // ── wasteType is always null, regardless of the colors.
     test('wasteType=null (même avec des couleurs) → null', () {
       final event = DiaperEvent(
         timestamp: baseTimestamp,

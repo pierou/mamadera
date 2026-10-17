@@ -6,13 +6,13 @@ import '../../../../core/theme.dart';
 import '../../../../core/utils/markdown_parser.dart';
 import '../providers/patch_notes_repository_provider.dart';
 
-/// Notes d'une langue, lues une fois puis partagées.
+/// Notes from a language, read once and then shared.
 ///
-/// L'écran appelait `loadPatchNotes()` depuis `build()`, donc fabriquait une
-/// `Future` neuve à chaque reconstruction : `FutureBuilder`, qui voit une autre
-/// future, repart de zéro — re-lecture de l'asset et bandeau « chargement » qui
-/// remplace le contenu un instant, à chaque fois qu'un ancêtre se reconstruit.
-/// Un `family` par langue : une seule `Future`, un contenu qui ne clignote pas.
+/// The screen was calling the `loadPatchNotes()` function from within the `build()` function, which was creating a...
+/// `Future` is rebuilt with each reconstruction: `FutureBuilder`, which sees a different outcome each time.
+/// future: start from scratch – re-examine the assets and display a "loading" banner.
+/// It temporarily replaces the content each time an ancestor is rebuilt.
+/// One `family` per language: a single `Future`," and content that doesn't flicker.
 final patchNotesProvider = FutureProvider.autoDispose
     .family<Map<String, dynamic>, String>((ref, languageCode) async {
   final repository = ref.watch(patchNotesRepositoryProvider);
@@ -32,7 +32,7 @@ class PatchNotesScreen extends ConsumerWidget {
     final locale = Localizations.localeOf(context).languageCode;
     final notesAsync = ref.watch(patchNotesProvider(locale));
 
-    // Bandeau nu, sans Scaffold : la feuille PatchNotesDialog en fournit déjà un.
+    // A bare banner, without a Scaffold: the PatchNotesDialog component already provides one.
     if (notesAsync.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -45,7 +45,7 @@ class PatchNotesScreen extends ConsumerWidget {
       );
     }
 
-    // Dernière version = dernière clé du document.
+    // Latest version = latest key for the document.
     final latestVersion = allNotes.keys.last;
     final versionNotes = allNotes[latestVersion] as Map<String, dynamic>;
     final title = versionNotes['title'] as String? ?? context.l.patchNotesTitle;
@@ -72,8 +72,8 @@ class PatchNotesScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppTheme.spacingLg),
 
-            // What changed section — au-dessus des titres de section du fichier,
-            // dont il doit rester visuellement le niveau supérieur.
+            // "What changed" section — located above the section titles in the file.
+            // of which he must remain visually aware of the higher level.
             Text(
               context.l.patchNotesWhatChanged,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -138,28 +138,28 @@ class _VersionHeader extends StatelessWidget {
   }
 }
 
-/// Une ligne des notes : titre de section, élément à cocher, ou rien du tout.
+/// A line of notes: this could be a section title, a checkbox item, or nothing at all.
 ///
-/// Le fichier JSON est écrit en markdown, comme celui des conditions
-/// d'utilisation : `### Titre` et `- élément` y sont de la syntaxe, jamais du
-/// texte à imprimer. Les afficher tels quels — ce que cet écran faisait depuis
-/// la v1.0.0 — pose un `### Nouvelles fonctionnalités` au même corps et à la
-/// même coche que les éléments qu'il annonce : le parent ne voit plus la
-/// hiérarchie. Le marqueur est donc interprété ici.
+/// The JSON file is written in Markdown, just like the file containing the terms and conditions.
+/// Usage: `### Title` and `- element` are part of the syntax, and should never be used as actual content.
+/// text to be printed. They were displayed exactly as they appeared — which is what this screen had been doing all along.
+/// v1.0.0 — places a `### New Features` heading within the same section.
+/// It's the same issue as the problems he describes: the parent can no longer see...
+/// hierarchy. Therefore, the marker is interpreted in this context.
 ///
-/// Le fichier n'est pas « nettoyé » pour autant : un rendu qui ne fonctionne que
-/// si personne n'écrit jamais de markdown est le bug, pas le correctif.
+/// The file is not "cleaned up" yet: the rendering only works...
+/// If no one ever writes in Markdown, then the problem isn't the fix, it's the underlying issue.
 class _PatchNotesItem extends StatelessWidget {
   const _PatchNotesItem({required this.item});
 
   /// Raw item text as stored in the JSON asset.
   final String item;
 
-  /// Profondeur du titre (`#`, `##`, `###`), `null` pour une ligne ordinaire.
+  /// Heading level (`#`, `##`, `###`), or `null` for a regular line.
   ///
-  /// Un `#Titre` sans espace n'est pas traité comme un titre : deviner une
-  /// hiérarchie là où il manque un espace écrirait une intention du rédacteur
-  /// qu'il n'a pas formulée.
+  /// A `#Title` without a space is not treated as a title: guessing a...
+  /// In a hierarchical structure where a space is missing, it would indicate the author's intended meaning.
+  /// that he has not yet expressed.
   static int? _headingLevel(String text) {
     var level = 0;
     while (level < text.length && text[level] == '#') {
@@ -172,8 +172,8 @@ class _PatchNotesItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = item.trim();
-    // Une entrée vide du tableau `items` ne doit pas produire une ligne
-    // cochée sans texte — c'était le cas de la dernière entrée de chaque fichier.
+    // An empty entry in the `items` array should not result in a row being generated.
+    // checked without any text — this was the case for the last entry in each file.
     if (text.isEmpty) return const SizedBox.shrink();
 
     final level = _headingLevel(text);
@@ -192,24 +192,24 @@ class _PatchNotesItem extends StatelessWidget {
   }
 }
 
-/// Titre de section (`### Améliorations`), sans coche.
+/// Section title (`### Improvements`), without a bullet point.
 ///
-/// Cocher un titre laisserait croire que la section est une action accomplie ;
-/// la hiérarchie se lit aussi à la taille, donc le niveau du `#` décide.
+/// Checking a box would suggest that the section represents a completed task.
+/// The hierarchy is also determined by size, so the level of the `#` symbol dictates the order.
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.level, required this.text});
 
-  /// Profondeur du `#` dans le markdown : 1 à 3.
+  /// Depth of the `#` symbol in Markdown: 1 to 3.
   final int level;
 
-  /// Titre déjà débarrassé de ses marqueurs.
+  /// The title has already been stripped of its identifying marks.
   final String text;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Niveau 1 au-dessus de niveau 2/3, et tous au-dessus du corps (bodyLarge)
-    // des éléments qu'ils annoncèrent : une section plus petite que ses propres
+    // Level 1 is positioned above level 2/3, and all of them are located above the "bodyLarge" element.
+    // elements that they announced: a section smaller than their own.
     // puces ne se voit pas.
     final base = switch (level) {
       1 => theme.textTheme.headlineSmall,
@@ -229,11 +229,11 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// Élément de liste : une coche et le texte du parent, markdown inline résolu.
+/// List item: a checkmark and the text of the parent element, with inline Markdown formatting applied.
 class _CheckedItem extends StatelessWidget {
   const _CheckedItem({required this.text});
 
-  /// Texte de l'élément, `- ` retiré et `**gras**` / `[lien](url)` résolus.
+  /// Text element: `-` removed, and `**bold**` / `[link](url)` formatting resolved.
   final String text;
 
   @override

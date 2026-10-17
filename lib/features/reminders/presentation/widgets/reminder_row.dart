@@ -14,37 +14,37 @@ import '../../domain/entities/reminders_state.dart';
 import '../providers/reminder_providers.dart';
 import 'reminder_frequency_label.dart';
 
-/// Une ligne de la liste des rappels d'accueil (D1) : icône du type, libellé,
-/// rythme, dernière complétion, puis les deux actions réelles — Fait et
+/// A line from the welcome message recall list (D1): icon type, label.
+/// rhythm, last completion, and then the two actual actions: "Done" and "Undone."
 /// Ignorer.
 ///
-/// La ligne est scopée au bébé actif par construction : les deux actions
-/// passent par [reminderNotifierProvider], qui écrit avec l'id du bébé actif.
-/// Un rappel ignoré pour un bébé reste affiché pour l'autre.
+/// The line is specifically designed for active babies, encompassing both actions.
+/// They go through [reminderNotifierProvider], which writes using the ID of the active baby.
+/// A reminder that was ignored for one baby remains visible for the other.
 class ReminderRow extends ConsumerWidget {
   const ReminderRow({required this.status, super.key});
 
-  /// Le rappel dû affiché par la ligne.
+  /// The amount due is displayed on the line.
   final ReminderStatus status;
 
-  /// Item sous-jacent, pour les actions et les tests.
+  /// Underlying item, for stocks and tests.
   ReminderItem get item => status.item;
 
-  /// Icône du type : le soin lié quand il y en a un, sinon l'alarme générique
-  /// des rappels détachés (D2).
+  /// Icon type: If a related care item exists, display that; otherwise, display the generic alarm icon.
+  /// detached recall items (D2).
   IconData get _icon {
     final subtypeValue = item.subtypeValue;
     if (subtypeValue != null) return HealthIcons.fromValue(subtypeValue);
     return Icons.alarm;
   }
 
-  /// Libellé affiché : le nom saisi par le parent pour un rappel
-  /// personnalisé, le nom complet du soin pour un préréglage lié, et la
-  /// courte étiquette traduite en dernier recours.
+  /// Displayed label: The name entered by the parent for a reminder.
+  /// personalized, the full name of the treatment for a related preset, and the...
+  /// Short label, translated as a last resort.
   String _label(BuildContext context) {
-    // Un personnalisé porte le nom du parent dans [ReminderItem.labelKey] :
-    // on ne le résout jamais comme clé l10n, sinon un « Thermomètre »
-    // s'afficherait comme une clé.
+    // A personalized item bears the parent's name in the [ReminderItem.labelKey] field:
+    // It's never truly resolved as a localization key (l10n), otherwise it's just a "thermometer" [meaning a simple indicator].
+    // It would appear as a key.
     if (item.id.startsWith(CustomReminderPresets.customIdPrefix)) {
       return item.labelKey;
     }
@@ -63,8 +63,8 @@ class ReminderRow extends ConsumerWidget {
     };
   }
 
-  /// « Dernière fois: … » — l'événement qui règle le rappel, ou le journal
-  /// manuel pour un détaché — ou « Jamais fait » si rien n'est encore loggé.
+  /// "Last time:..." — the event that triggers the recall, or the log.
+  /// manual for a detached component – or "Never done" if nothing has been logged yet.
   String _lastDoneLabel(BuildContext context) {
     final at = status.lastEventAt;
     if (at == null) return context.l.reminderNeverDone;
@@ -103,12 +103,12 @@ class ReminderRow extends ConsumerWidget {
               ],
             ),
           ),
-          // « Fait » ne s'affiche que là où il veut dire quelque chose (D2) :
-          // un rappel lié à un soin se règle en **suivant le soin**, pas en
-          // cochant une case. Écrire un achèvement manuel pour lui ne le
-          // réglerait pas (le service lit `tracking_events`) et afficherait un
-          // bouton qui fait semblant — le parent croirait la vitamine notée
-          // alors que rien ne l'est.
+          // "Done" only appears where it conveys a specific meaning (D2):
+          // A reminder related to a treatment is scheduled **following the treatment**, not before.
+          // by checking a box. Manually writing a completion message for him will not.
+          // would not resolve (the `tracking_events` service) and would display a...
+          // "Placebo button" - the parent would believe they are administering the vitamin labeled.
+          // while nothing is.
           if (item.completionSource == db_const.completionManual)
             IconButton(
               tooltip: context.l.reminderMarkDone,

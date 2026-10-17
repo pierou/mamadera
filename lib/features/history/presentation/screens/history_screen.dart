@@ -18,7 +18,7 @@ import '../widgets/measurement_history_tile.dart';
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
 
-  /// Liste des filtres pour l'historique (utilisée uniquement pour les labels UI).
+  /// List of filters for the history (used only for UI labels).
   static const List<HistoryFilter> _filters = [
     HistoryFilter.all,
     HistoryFilter.miam,
@@ -27,7 +27,7 @@ class HistoryScreen extends ConsumerWidget {
     HistoryFilter.sante,
   ];
 
-  /// Ouvre le bottom sheet d'édition pour un événement donné.
+  /// Opens the editing panel for a specific event.
   Future<void> _showEditDialog(
     BuildContext context,
     WidgetRef ref,
@@ -49,7 +49,7 @@ class HistoryScreen extends ConsumerWidget {
       return;
     }
 
-    // Gestion du résultat selon le type (update ou delete) via sealed class
+    // Managing the outcome based on the type of operation (update or delete) using a sealed class.
     switch (result) {
       case UpdateResult():
         {
@@ -95,8 +95,8 @@ class HistoryScreen extends ConsumerWidget {
     }
   }
 
-  /// Ouvre la feuille d'édition d'une mesure de croissance (frise unifiée
-  /// v1.2.1) : la ligne est corrigée sur place, ou supprimée.
+  /// Open the editing sheet for a growth measure (unified scale).
+  /// v1.2.1: The line is either corrected on-site or removed.
   Future<void> _showEditMeasurementSheet(
     BuildContext context,
     WidgetRef ref,
@@ -141,7 +141,7 @@ class HistoryScreen extends ConsumerWidget {
     }
   }
 
-  /// Applique les modifications retournées par le dialog sur l'événement original.
+  /// Apply the modifications returned by the dialog to the original event.
   TrackingEvent _applyUpdate(UpdateResult result, TrackingEvent event) {
     final ts = result.timestamp ?? event.timestamp;
     return event.map(
@@ -150,9 +150,9 @@ class HistoryScreen extends ConsumerWidget {
         id: e.id,
         timestamp: ts,
         subtype: result.subtype ?? e.subtype,
-        // L'unité suit la ligne éditée, et le sous-type édité : passer de
-        // `natural` à `solid` rend `g`, rester au sein garde le choix du
-        // parent (`ml` ou `min`). Jamais un défaut muet.
+        // The unit follows the specified line and subtype: changing from...
+        // `natural` to `solid` changes `g` to, and keeping it within the range preserves the choice of...
+        // parent (`ml` or `min`). Never a silent defect.
         unit: result.unit ?? e.unit,
         quantity: result.quantity ?? e.quantity,
         notes: result.notes ?? e.notes,
@@ -229,9 +229,9 @@ class HistoryScreen extends ConsumerWidget {
                 if (rows.isEmpty) {
                   return Center(child: Text(context.l.noEvents));
                 }
-                // Frise unifiée : une ligne est soit un événement de suivi,
-                // soit une mesure de croissance (fichier de vérité chiffré,
-                // jamais dupliqué ici).
+                // Unified timeline: a line represents either a tracking event,
+                // either a measure of growth (a numerically quantified "ground truth" file),
+                // never duplicated here).
                 return ListView.builder(
                   itemCount: rows.length,
                   itemBuilder: (context, index) {

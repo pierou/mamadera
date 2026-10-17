@@ -17,10 +17,10 @@ import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 import '../../../reminders/data/repositories/mock_reminders_repository.dart';
 import '../../../reminders/presentation/providers/no_poll_reminders_notifier.dart';
 
-/// Harnais de l'accueil pour le prénom du bébé actif : mêmes overrides
-/// que le harnais principal (dépôt de rappels en mémoire, notifier sans
-/// timer, mesures vides, profil existant) plus un notifier de bébé
-/// commutable pour prouver que l'en-tête est vivant, pas capturé.
+/// Welcome harness for the baby's name, active mode: same overrides.
+/// that the main harness (memory recall storage, notify without...).
+/// timer, empty measurements, existing profile) plus a baby monitor.
+/// This can be used to verify that the header is active and not captured.
 void main() {
   final babyA = BabyProfile(
     id: 'a',
@@ -33,8 +33,8 @@ void main() {
     birthDate: DateTime(2024, 5, 2),
   );
 
-  /// Pompe l'accueil complet et renvoie le notifier de bébé pour un
-  /// changement de profil au milieu du test.
+  /// The all-in-one pump provides complete breast milk expression and sends a notification to your phone when it's time to feed the baby.
+  /// Profile change during the test.
   Future<_SwitchableBabyNotifier> pumpHome(
     WidgetTester tester, {
     required BabyProfile? baby,
@@ -45,14 +45,14 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          // La rangée de croissance ne doit pas ouvrir la vraie base en test.
+          // The growth row should not expose the actual base during testing.
           measurementNotifierProvider
               .overrideWith(() => _NoMeasurementsNotifier()),
           activeBabyProvider.overrideWith(() => babyNotifier),
           anyBabyExistsProvider
               .overrideWith(() => _BabyExistsNotifier()),
-          // La section de rappels se remplit sans base : dépôt en mémoire,
-          // notifier sans timer de sondage (même recette que le harnais
+          // The recall section fills up without a base: it's a memory-based system.
+          // Notify without polling timer (same recipe as the harness).
           // principal).
           remindersRepositoryProvider
               .overrideWith((ref) async => MockRemindersRepository()),
@@ -81,7 +81,7 @@ void main() {
     testWidgets('shows the active baby name on home', (tester) async {
       await pumpHome(tester, baby: babyA);
 
-      // L'en-tête porte le prénom, lisible, au-dessus de la grille.
+      // The header displays the first name, clearly visible, above the grid.
       expect(find.text('Anna'), findsOneWidget);
     });
 
@@ -89,9 +89,9 @@ void main() {
         (tester) async {
       await pumpHome(tester, baby: babyA);
 
-      // Le prénom vit dans le titre de la barre d'app (dans le SafeArea du
-      // Scaffold) : posé en tête du corps de l'écran, il passait sous la
-      // bande de statut du système sur Android.
+      // The first name is displayed in the title bar of the app (within the safe area).
+      // (Scaffolding): Placed at the top of the screen, it extended beneath the...
+      // system status bar on Android.
       final appBar = tester.widget<AppBar>(find.byType(AppBar));
       expect(appBar.title, isA<Text>());
       expect((appBar.title! as Text).data, 'Anna');
@@ -100,8 +100,8 @@ void main() {
     testWidgets('no active baby means no AppBar on home', (tester) async {
       await pumpHome(tester, baby: null);
 
-      // Pas de bébé actif : pas de barre d'app, et le contenu reste
-      // sous la bande de statut par son propre SafeArea.
+      // No active baby: no app bar, and the content remains.
+      // under the status bar, using its own Safe Area.
       expect(find.byType(AppBar), findsNothing);
     });
 
@@ -110,9 +110,9 @@ void main() {
       final babyNotifier = await pumpHome(tester, baby: babyA);
       expect(find.text('Anna'), findsOneWidget);
 
-      // Le parent passe à l'autre bébé : l'en-tête et le titre des rappels
-      // suivent — un prénom capturé à la première construction resterait
-      // sur « Anna » et ferait échouer le test.
+      // The parent switches to the other baby: the header and title of the reminders.
+      // - A given name captured at the initial construction would remain.
+      // regarding "Anna" and would cause the test to fail.
       babyNotifier.switchTo(babyB);
       await tester.pumpAndSettle();
 
@@ -124,11 +124,11 @@ void main() {
         (tester) async {
       await pumpHome(tester, baby: null);
 
-      // Pas de « null », pas de faux identité : le premier lancement
-      // gère la création du profil.
+      // No "null" values, no fake identities: the initial launch.
+      // It manages the creation of the profile.
       expect(find.text('null'), findsNothing);
 
-      // Le titre des rappels retombe sur la forme neutre, sans prénom.
+      // The notification titles use a neutral form, without any first names.
       final l10n = AppLocalizations.of(tester.element(find.byType(HomeScreen)));
       expect(find.text(l10n.reminderListTitle), findsOneWidget);
     });
@@ -137,11 +137,11 @@ void main() {
         (tester) async {
       await pumpHome(tester, baby: babyA);
 
-      // L'assertion porte sur le message rendu par la chaîne, pas sur une
-      // chaîne française recopiée ici.
+      // The statement refers to the message conveyed by the channel, not to a specific individual.
+      // French text copied here.
       final l10n = AppLocalizations.of(tester.element(find.byType(HomeScreen)));
       expect(find.text(l10n.reminderListTitleFor('Anna')), findsOneWidget);
-      // Et la forme neutre n'existe plus dès qu'un prénom est présent.
+      // And the neutral form no longer exists as soon as a first name is used.
       expect(find.text(l10n.reminderListTitle), findsNothing);
     });
 
@@ -154,15 +154,15 @@ void main() {
       );
       await pumpHome(tester, baby: baby);
 
-      // L'en-tête tronque (ellipsis) : aucun rapport d'overflow.
+      // The header is truncated (indicated by an ellipsis): no overflow errors reported.
       expect(tester.takeException(), isNull);
       expect(find.text(longName), findsOneWidget);
     });
   });
 }
 
-/// Notifier de bébé commutable : le changement de profil publie l'état
-/// directement, comme un [ActiveBabyNotifier.switchProfile] abouti.
+/// Switchable baby monitor: changing the profile publishes the status.
+/// directly, like a successful [ActiveBabyNotifier.switchProfile] function.
 class _SwitchableBabyNotifier extends ActiveBabyNotifier {
   _SwitchableBabyNotifier(this.profile);
 
@@ -177,7 +177,7 @@ class _SwitchableBabyNotifier extends ActiveBabyNotifier {
   Future<BabyProfile?> build() async => profile;
 }
 
-/// Un profil existe : l'onboarding ne s'ouvre pas et cache l'accueil.
+/// A profile already exists: the onboarding process does not open, and the welcome screen is hidden.
 class _BabyExistsNotifier extends AnyBabyExistsNotifier {
   _BabyExistsNotifier();
 
@@ -185,7 +185,7 @@ class _BabyExistsNotifier extends AnyBabyExistsNotifier {
   Future<bool> build() async => true;
 }
 
-/// Mesures vides : la rangée de croissance affiche des tirets sans base.
+/// Empty fields: The growth row displays dashes without a base value.
 class _NoMeasurementsNotifier extends MeasurementNotifier {
   _NoMeasurementsNotifier();
 

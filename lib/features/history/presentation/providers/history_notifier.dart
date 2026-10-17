@@ -21,8 +21,8 @@ final historyNotifierProvider = AsyncNotifierProvider.autoDispose
   HistoryNotifier.new,
 );
 
-/// Provider de l'onglet d'historique sélectionné (état local de la route,
-/// remis à « tous » à chaque navigation — extrait du screen pour rester
+/// Provider of the selected history tab (local road conditions).
+/// reset to "all" at the start of each session – screenshot included for reference.
 /// testable sans arbre de widgets).
 final selectedFilterProvider =
     NotifierProvider<SelectedFilterNotifier, HistoryFilter>(
@@ -34,18 +34,18 @@ class SelectedFilterNotifier extends Notifier<HistoryFilter> {
   @override
   HistoryFilter build() => HistoryFilter.all;
 
-  /// Change le filtre ; la route re-lit alors `historyNotifierProvider`.
+  /// Change the filter; then the route re-reads the `historyNotifierProvider`.
   void setFilter(HistoryFilter filter) => state = filter;
 }
 
 /// Notifier to manage history data.
 ///
-/// La frise est **unifiée** (v1.2.1) : sous le filtre « tout », les mesures
-/// de croissance y figurent à côté des événements de suivi, triées au même
-/// horodatage. La lecture fusionne les deux tables sans jamais dupliquer
-/// une ligne : `measurements` reste la source de vérité chiffrée, les
-/// mesures n'obtiennent aucun `id` d'événement et n'apparaissent que sous
-/// « tout » (pas de filtre « croissance » — un parent qui filtre « biberon »
+/// The toolbar is now **unified** (v1.2.1): under the "all" filter, the measurements...
+/// Growth metrics are listed alongside tracking events, all sorted in the same way.
+/// timestamping. The reading process merges the two tables without ever creating duplicates.
+/// a line: `measurements` remains the source of truth for numerical data, and...
+/// The measurements do not obtain any event `id`s and only appear as...
+/// "everything" (no "growth" filter applied — a parent who filters "bottle").
 /// ne cherche pas sa courbe de poids).
 class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
   HistoryNotifier(this._filter);
@@ -57,8 +57,8 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
     return _fetchRows();
   }
 
-  /// Charge la frise courante : événements, plus mesures si le filtre est
-  /// « tout ».
+  /// Load the main timeline: events, and additional details if the filter is active.
+  /// "everything."
   Future<List<HistoryRow>> _fetchRows() async {
     final repository = await ref.read(historyRepositoryProvider.future);
     if (!ref.mounted) return [];
@@ -76,9 +76,9 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
       for (final event in events) HistoryRow.event(event),
     ];
 
-    // La fusion « tout » ne doit jamais faire perdre les événements : si la
-    // lecture de `measurements` échoue, la frise se limite aux événements
-    // (la même base en défaut ferait déjà échouer les événements).
+    // The "all-in-one" approach should never compromise the individual events: if the...
+    // The `measurements` file could not be read, so the timeline only displays events.
+    // (A faulty base system would already cause these events to fail.)
     if (_filter == HistoryFilter.all) {
       final measurements = await AsyncValue.guard(() async {
         final measurementRepository =
@@ -95,14 +95,14 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
       }
     }
 
-    // Le tri n'intervient que si une mesure a réellement fusionné : sinon
-    // l'ordre du repository (timestamp DESC) est conservé tel quel.
+    // Sorting is only applied if a merge operation has actually taken place; otherwise...
+    // The order of the repository (timestamp in descending order) is preserved as is.
     if (mergedMeasurements) rows.sort(_rowComparator);
     return rows;
   }
 
-  /// Tri desc. sur l'horodatage ; ex æquo, un événement de suivi passe avant
-  /// une mesure — l'ordre doit être déterministe, et le `sort` de Dart n'est
+  /// Sort in descending order based on the timestamp; in case of a tie, a follow-up event is prioritized.
+  /// a measurement — the order must be deterministic, and Dart's `sort` is
   /// pas stable.
   static int _rowComparator(HistoryRow a, HistoryRow b) {
     final byDate = b.timestamp.compareTo(a.timestamp);
@@ -112,8 +112,8 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
     return rankA - rankB;
   }
 
-  /// Traduit le filtre en type de suivi ; `all` n'atteint jamais cette
-  /// branche (les mesures y sont déjà fusionnées).
+  /// Translates the filter into a tracking type; `all` never reaches this state.
+  /// branch (the measures are already integrated within it).
   TrackingType _filterToTrackingType(HistoryFilter filter) {
     return switch (filter) {
       HistoryFilter.miam => TrackingType.miam,
@@ -125,7 +125,7 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
     };
   }
 
-  /// Met à jour un événement et rafraîchit la frise.
+  /// Updates an event and refreshes the timeline.
   Future<void> updateEvent(TrackingEvent event) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
@@ -137,7 +137,7 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
     unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
   }
 
-  /// Supprime un événement par son ID et rafraîchit la frise.
+  /// Removes an event by its ID and refreshes the timeline.
   Future<void> deleteEvent(int id) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
@@ -148,7 +148,7 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
     unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
   }
 
-  /// Corrige une mesure (valeur, date, note) puis re-charge la frise.
+  /// Correct a measurement (value, date, or grade) and then reload the timeline.
   Future<void> updateMeasurement(GrowthMeasurement measurement) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
@@ -159,7 +159,7 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
     _notifyMeasurementsChanged();
   }
 
-  /// Supprime une mesure puis re-charge la frise.
+  /// Remove a measurement, then reload the scale.
   Future<void> deleteMeasurement(int id) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
@@ -170,14 +170,14 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
     _notifyMeasurementsChanged();
   }
 
-  /// Avertit la rangée d'accueil et l'écran Croissance que la table
-  /// `measurements` a bougé : ils affichent la **dernière** valeur par grande,
-  /// et une ligne corrigée ou supprimée ici ne le leur disait pas — « dernier
-  /// poids » restait l'ancienne valeur jusqu'à changer de bébé.
+  /// Alerts the welcome screen and the Growth screen that the table is [available/occupied/etc.].
+  /// `measurements`: they display the **latest** value for each.
+  /// and a corrected or deleted line here wouldn't tell them — "last".
+  /// "Weight" remained the previous value until a new baby was added.
   ///
   /// `invalidate` et non `refresh` : marquer sale suffit, le fournisseur se relit
-  /// à la prochaine lecture. Forcer un build ici réveillerait le vrai fournisseur
-  /// — donc la base — dans un conteneur de test qui ne le regarde pas.
+  /// See you at the next reading. Forcing a build here would activate the actual provider.
+  /// — so, the foundation — is in a test container that doesn't affect it.
   void _notifyMeasurementsChanged() {
     ref.invalidate(measurementNotifierProvider);
   }

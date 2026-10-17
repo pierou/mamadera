@@ -26,13 +26,13 @@ class DurationPickerDialog extends StatefulWidget {
 }
 
 class _DurationPickerDialogState extends State<DurationPickerDialog> {
-  /// Pas du stepper +/- : identique au pas du slider (96 crans sur 480 min).
+  /// Stepper resolution: +/- the same as the slider resolution (96 steps over 480 minutes).
   static const double _stepMinutes = 5;
 
   late double _selectedMinutes;
 
-  /// Répétition du stepper au long-appui : annulée en [dispose], sinon un feu
-  /// post-démontage appellerait `setState` sur un State mort.
+  /// Repeatedly pressing and holding the "stepper" button: cancelled in [dispose], otherwise a fire will occur.
+  /// Calling `setState` on a component after it has been unmounted would result in an error.
   Timer? _repeatTimer;
 
   /// Start pinned by the user, or null while the start stays derived from the
@@ -46,8 +46,8 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
   DateTime get _effectiveStart => _pinnedStart ??
       DateTime.now().subtract(Duration(minutes: _selectedMinutes.round()));
 
-  /// Un cran de stepper : clamped aux bornes du slider, et no-op si on est
-  /// déjà dessus (garde-fou pour la répétition au long-appui).
+  /// A stepper motor stage: clamped to the ends of the slider, and inactive (no-op) if it is.
+  /// already working on it (safety mechanism for sustained firing).
   void _nudgeMinutes(int direction) {
     final atBound = direction > 0
         ? _selectedMinutes >= 480
@@ -58,7 +58,7 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
     });
   }
 
-  /// Long-appui : un cran immédiat, puis un cran toutes les 120 ms.
+  /// Long press: an immediate click, followed by a click every 120 milliseconds.
   void _startRepeat(int direction) {
     _stopRepeat();
     _nudgeMinutes(direction);
@@ -77,14 +77,14 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
     super.dispose();
   }
 
-  /// Bouton d'un cran : tooltip et label sémantique localisés, désactivé
-  /// (jamais masqué — un contrôle qui disparaît fait sauter la mise en page)
-  /// quand on est déjà sur la borne correspondante.
+  /// Button with one level: localized tooltip and semantic label, disabled.
+  /// (never masked - a control that disappears breaks the layout).
+  /// once you are already at the corresponding terminal.
   ///
-  /// [InkResponse] plutôt qu'un [GestureDetector] maison : `IconButton`
+  /// [IconButton] instead of a custom [GestureDetector]: `IconButton`
   /// n'expose pas `onLongPressStart`, mais `InkResponse` donne `onLongPress`
-  /// (où l'on arme la répétition) et `onLongPressUp` (où on la coupe), avec le
-  /// ripple, le focus et le tap simulé du lecteur d'écran.
+  /// (where the repetition is initiated) and `onLongPressUp` (where it is stopped), using the...
+  /// ripple, the focus, and the simulated tap of the screen reader.
   Widget _buildStepButton(int direction) {
     final label = direction > 0 ? context.l.increment : context.l.decrement;
     final atBound =
@@ -146,10 +146,10 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
             ),
             const SizedBox(height: 32),
             Center(
-              // `scaleDown` : identité visuelle quand la ligne tient, et
-              // réduction au lieu d'un overflow quand la feuille est étroite.
-              // (Le titre fait 56 px : plus large que certaines largeurs de
-              // sheet, même sans les boutons.)
+              // `scaleDown`: visual identity that maintains its integrity even when scaled down, and...
+              // Instead of causing an overflow when the sheet is narrow, it will be scaled down.
+              // (The title is 56 pixels wide, which is wider than some of the available widths.)
+              // sheet, even without the buttons.)
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Row(

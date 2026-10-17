@@ -10,7 +10,7 @@ import 'package:mamadera/features/growth/presentation/providers/measurement_prov
 import 'package:mamadera/features/growth/presentation/screens/growth_screen.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
 
-/// Notifier de test : liste fixe, sans dépendance à la base.
+/// Test notification: fixed list, independent of the database.
 class _TestMeasurementNotifier extends MeasurementNotifier {
   _TestMeasurementNotifier(this.measurements);
 
@@ -93,12 +93,12 @@ void main() {
       expect(find.text('Dernier poids'), findsOneWidget);
       expect(find.text('Dernière taille'), findsOneWidget);
       expect(find.text('Dernière température'), findsOneWidget);
-      // Chaque valeur apparaît deux fois : carte « dernier » + ligne d'historique.
+      // Each value appears twice: once as the "last" card, and once in the history log.
       expect(find.text('3,4 kg'), findsNWidgets(2));
       expect(find.text('51,2 cm'), findsNWidgets(2));
       expect(find.text('36,5 °C'), findsNWidgets(2));
 
-      // L'historique porte la date formatée (jj/mm/aaaa hh:mm en fr).
+      // The date format displayed is (dd/mm/yyyy hh:mm).
       expect(find.text('03/06/2025 00:00'), findsOneWidget);
       expect(find.text('02/06/2025 00:00'), findsOneWidget);
       expect(find.text('01/06/2025 00:00'), findsOneWidget);
@@ -119,7 +119,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Les deux cartes sans mesure affichent un tiret, pas un nombre.
+      // The two cards without a measurement display a hyphen, not a number.
       expect(find.text('—'), findsNWidgets(2));
       expect(find.text("Aucune mesure pour l'instant."), findsNothing);
     });
@@ -141,16 +141,16 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('6,18 kg'), findsNWidgets(2));
-      // La traîne affichait `displayUnit`, l'unité de stockage : « 6,18 kg »
-      // au-dessus d'un « g » se lisait « 6,18 grammes ». Le titre porte
-      // l'unité, la traîne n'y revient pas.
+      // The label displayed `displayUnit`," indicating the storage unit: "6.18 kg."
+      // Above a "g," the text read "6.18 grams." The title states:
+      // unit, the trailing label never repeats it.
       expect(find.text('g'), findsNothing);
     });
 
     testWidgets('english locale renders a full timestamp, minutes included',
         (tester) async {
-      // Le bug des captures v1.2.0 vivait en `en` uniquement — un passage en
-      // français ne prouverait rien sur ce ticket.
+      // The bug in the screenshot feature, version 1.2.0, only affected the `en` locale – a change to...
+      // The French language would not prove anything about this ticket.
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -161,8 +161,8 @@ void main() {
                   kind: MeasureKind.temperature,
                   unit: 'degC',
                   value: 37.4,
-                  // DateTime **local** : le formatage affiche l'heure locale,
-                  // donc un instant UTC rendrait une heure dépendante du fuseau
+                  // DateTime **local**: This formatting option displays the local time.
+                  // Therefore, a UTC time would result in a time that depends on the time zone.
                   // de la machine de test.
                   recordedAt: DateTime(2026, 10, 8, 19, 43),
                 ),

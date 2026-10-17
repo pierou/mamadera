@@ -81,7 +81,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      // The home screen shows 4 TrackButtons for Miam, Santé, Caca, Dodo
+      // The home screen shows 4 TrackButtons: `Miam`, `Santé`, `Caca`, `Dodo`.
       expect(find.byType(TrackButton), findsNWidgets(4));
     });
   });

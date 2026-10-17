@@ -19,10 +19,10 @@ const Set<String> allTypeValues = {
 
 // ── Custom reminder frequency codes (match `custom_reminders.frequency`) ───
 
-// Gravés en dur : les renommer changerait de sens chaque installation
-// existante, et ils se relisent tels quels dans un JSON de sauvegarde. Ils
-// vivent ici, et non dans le repository des rappels, parce que l'importateur
-// de sauvegarde doit valider ces codes sans dépendre de la couche data d'une
+// Permanently engraved: renaming them would change the meaning of each installation.
+// existing, and they are read again as is in a backup JSON file.
+// They live here, and not in the repository for reminders, because the importer...
+// The backup system must be able to validate these codes without relying on the data layer of a specific system.
 // autre feature.
 
 /// Rythme quotidien.
@@ -31,13 +31,13 @@ const String freqDaily = 'daily';
 /// Rythme hebdomadaire.
 const String freqWeekly = 'weekly';
 
-/// Rythme mensuel (jour de naissance du bébé actif).
+/// Monthly cycle (based on the baby's date of birth).
 const String freqMonthly = 'monthly';
 
 /// Rythme glissant de `interval_days` jours.
 const String freqEveryNDays = 'every_n_days';
 
-/// Tous les codes de rythme écrits en base et dans les sauvegardes.
+/// All rhythm codes are written in the base game and are also saved.
 const Set<String> allFrequencyValues = {
   freqDaily,
   freqWeekly,
@@ -84,14 +84,14 @@ const Set<String> allCompletionSourceValues = {
   completionManual
 };
 
-/// Sentinelle « installation sans profil » des clés composites (baby_id, item_id).
-/// NULL n'est **pas** utilisé : SQLite l'autorise dans une PRIMARY KEY composite,
+/// "Sentinelle" is a "profile-less" key system for composite keys (baby_id, item_id).
+/// NULL is **not** used: SQLite allows it in a composite PRIMARY KEY.
 /// et l'autorise en double.
 ///
-/// Les lignes portées par `''` sont l'état de l'app **sans bébé actif**
-/// (installation avant tout profil, ou basculement pendant le chargement).
-/// Elles ne s'appliquent à aucun bébé réel : un bébé n'hérite que de ses
-/// propres lignes — et d'un bébé créé après coup, on ne peut pas « hériter »
-/// (le partage « tous les bébés » de la v10 faisait fuiter réglages, ignorés
-/// et réglages manuels d'un bébé sur le suivant).
+/// The lines marked with `''` represent the state of the app **without an active baby profile**.
+/// (Installation is performed before any profile is created, or it can be switched on during the loading process.)
+/// These principles do not apply to any real baby; a baby only inherits traits from its...
+/// distinct lines — and a baby born later cannot "inherit" from them.
+/// (The "all babies" sharing feature in version 10 caused settings to leak, which were then ignored.)
+/// and manual adjustments for a baby on the following setting).
 const String sharedBabyId = '';

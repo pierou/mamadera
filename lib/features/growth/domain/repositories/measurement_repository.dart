@@ -1,16 +1,16 @@
 import '../entities/growth_measurement.dart';
 import '../entities/measure_kind.dart';
 
-/// Accès aux mesures de croissance (poids, taille, température).
+/// Access to growth measurements (weight, height, temperature).
 ///
-/// Toute lecture est bornée au bébé : `babyId == null` lit **toutes** les
-/// lignes (aucun bébé sélectionné — installation sans profil ou chargement
-/// en cours), comme le repository d'événements.
+/// Any reading operation is restricted to the baby: `babyId == null` reads **all** the...
+/// lines (no baby selected - installation without profile or loading).
+/// currently being developed), such as the event repository.
 abstract class MeasurementRepository {
-  /// Enregistre une mesure ; [value] en unité de base (g, cm, °C).
+  /// Records a measurement; [value] in base units (g, cm, °C).
   ///
-  /// Lance une [ArgumentError] si [value] est hors bornes pour [kind] :
-  /// l'hors-plage est refusé à la saisie et ne doit jamais être persisté.
+  /// Raises a [ArgumentError] if [value] is out of range for [kind]:
+  /// The beach towel is not subject to seizure and should never be pursued in a legal claim.
   Future<void> add({
     required String? babyId,
     required MeasureKind kind,
@@ -19,22 +19,22 @@ abstract class MeasurementRepository {
     String? notes,
   });
 
-  /// Dernière mesure de [kind] pour le bébé, `null` s'il n'en a jamais.
+  /// Last measurement of [kind] for the baby, `null` if no measurement has ever been taken.
   Future<GrowthMeasurement?> latestOfKind(String? babyId, MeasureKind kind);
 
-  /// Historique du bébé, le plus récent en premier ; [kind] optionnel.
+  /// Baby's medical history, with the most recent information first; [kind] is optional.
   Future<List<GrowthMeasurement>> allForBaby(String? babyId,
       {MeasureKind? kind});
 
-  /// Met à jour une mesure existante : valeur, date, note.
+  /// Updates an existing measure: value, date, and note.
   ///
-  /// Kind, unité et bébé ne changent jamais — seule la ligne est corrigée
-  /// (roadmap v1.2.1 : « une feuille d'édition où la valeur peut être
-  /// corrigée, avec suppression »). La mesure doit porter son `id` ; une
-  /// valeur hors bornes lève une [ArgumentError], comme à l'insertion.
+  /// Kindness, unity, and babies never change – only the line [or design] is adjusted.
+  /// (roadmap v1.2.1: "an editing sheet where the value can be...")
+  /// "corrected, with deletions"). The measure must include its `id`; a...
+  /// A value outside the acceptable range will raise a [ArgumentError], just like when inserting a value.
   Future<void> update(GrowthMeasurement measurement);
 
-  /// Supprime une mesure par son id. Retourne true si une ligne a été
-  /// supprimée.
+  /// Deletes a record based on its ID. Returns true if a record was deleted.
+  /// deleted.
   Future<bool> deleteById(int id);
 }

@@ -100,11 +100,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get growthSheetEditTitleTemperature => 'Modifier la température';
 
   @override
-  String growthSheetLastValueHint(Object value) {
-    return 'Dernière : $value';
-  }
-
-  @override
   String get growthSheetNoteField => 'Note (facultatif)';
 
   @override

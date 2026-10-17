@@ -35,7 +35,7 @@ class ExportCounts {
   /// Number of rows in `measurements` (weight/height/temperature, M4).
   final int measurements;
 
-  /// Number of rows in `reminder_completions` (the « Fait » tap journal, M4).
+  /// Number of rows in the `reminder_completions` table (the "Completed" task log, M4).
   final int reminderCompletions;
 
   /// True when the database holds nothing worth backing up.

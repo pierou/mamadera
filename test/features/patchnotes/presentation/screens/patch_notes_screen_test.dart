@@ -118,9 +118,9 @@ void main() {
       ),
     );
 
-    // Le dépôt factice résout à la microtask suivante : deux frames suffisent.
-    // Pas de `pumpAndSettle` : le bandeau de chargement anime sans fin et
-    // n'attendrait jamais son retour au calme.
+    // The proposed solution for this micro-task involves using only two frames.
+    // No `pumpAndSettle` effect: the loading bar animates endlessly.
+    // It would never expect a return to normalcy.
     await tester.pump();
     await tester.pump();
   }
@@ -193,17 +193,17 @@ void main() {
     });
   });
 
-  /// Notes d'une langue, lues depuis le fichier livré puis servies par un
-  /// dépôt factice.
+  /// Notes from a language, read from the provided file and then presented by a [system/device/person].
+  /// fictitious deposit.
   ///
-  /// Le verrou de non-régression porte bien sur le contenu publié — lecture du
-  /// fichier, pas d'une copie recopiée dans ce test ; seule la lecture d'asset
-  /// est court-circuitée. Charger le vrai asset dans un arbre de widgets n'est
-  /// pas fiable ici : `rootBundle` ne répond plus au-delà de la troisième
-  /// instantiation de `PatchNotesScreen` dans un même fichier de tests, et
-  /// `tester.runAsync` se bat avec le ticker du spinner — les deux observés à
-  /// l'écriture de ce fichier. Ce qui était cassé est le rendu ; c'est le
-  /// rendu qui est verrouillé.
+  /// The "no regression" policy specifically applies to published content – in other words, the ability to read...
+  /// file, not a copy that has been recopied for this test; only the reading of the asset is being tested.
+  /// is short-circuited. Loading a real asset into a widget tree does not.
+  /// Not reliable here: `rootBundle` no longer responds after the third call.
+  /// instantiation of the `PatchNotesScreen` within the same test file, and
+  /// `tester.runAsync` is struggling with the spinner's ticker – both are being observed at the same time.
+  /// the writing of this file. What was broken is the rendering; it's the...
+  /// It's a locked knob.
   PatchNotesRepository shippedAsset(String languageCode) =>
       _FakePatchNotesRepository({
         '9.9.9': <String, dynamic>{
@@ -213,13 +213,13 @@ void main() {
         },
       });
 
-  /// Titres de section réellement présents dans l'asset publié.
+  /// Section titles that are actually present in the published asset.
   ///
-  /// Dérivés du fichier, pas recopiés dans le test : un test qui épingle les
-  /// titres d'une version donnée échoue à la version suivante, ce qui n'est pas
-  /// une régression mais un piège — et un piège qui sonne faux chaque release
-  /// finit par être ignoré. Ce qui doit être verrouillé est le **comportement**
-  /// (tout titre de l'asset rendu sans son marqueur), pas le vocabulaire de 1.1.0.
+  /// Derivatives of the file, not copied into the test: a test that identifies...
+  /// If the titles of one version fail to carry over to the next version, that is not ideal.
+  /// a step backward, but a trap – and a trap that sounds off with every release.
+  /// Ultimately, it ends up being ignored. What needs to be controlled is the **behavior**.
+  /// (All asset titles are displayed without their markers), and the vocabulary is from version 1.1.0.
   List<String> shippedHeadings(String languageCode) => shippedItems(languageCode)
       .map((item) => item.trim())
       .where((item) => item.startsWith('#'))
@@ -237,8 +237,8 @@ void main() {
         expectNoMarkup(tester);
 
         final headings = shippedHeadings(languageCode);
-        // Un asset sans titre ne prouverait rien : le verrou exige d'avoir
-        // quelque chose à rendre.
+        // An asset without a title would prove nothing; the system requires that a title be present.
+        // Something to return.
         expect(headings, isNotEmpty,
             reason: '$languageCode : aucun titre d\'asset à vérifier');
         for (final heading in headings) {

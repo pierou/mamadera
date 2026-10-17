@@ -6,7 +6,7 @@ import 'package:mockito/mockito.dart';
 
 import 'encryption_service_test.mocks.dart';
 
-/// Clé AES-256 valide (32 octets) encodée en base64, utilisée uniquement pour les tests.
+/// Valid AES-256 key (32 bytes) encoded in base64, used only for testing.
 const String _validTestKeyBase64 =
     'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='; // gitleaks:allow — all-zero test key
 
@@ -18,7 +18,7 @@ void main() {
   setUp(() {
     mockStorage = MockFlutterSecureStorage();
 
-    // Simule une clé maître existante (32 octets en base64)
+    // Simulate an existing master key (32 bytes, encoded in base64).
     when(mockStorage.read(key: 'mamadera_master_key')).thenAnswer(
       (_) async => _validTestKeyBase64,
     );
@@ -43,7 +43,7 @@ void main() {
       const plainText = 'Mon bébé a bien mangé à 14h30';
       final encrypted = encryption.encrypt(plainText);
 
-      // Le format doit être iv:ciphertext
+      // The format must be: iv:ciphertext.
       expect(encrypted, isNotEmpty);
       expect(encrypted.split(':').length, equals(2));
 
@@ -77,7 +77,7 @@ void main() {
     test('decrypt() retourne null pour des données corrompues', () async {
       await encryption.initialize();
 
-      // Format invalide (pas de séparateur :)
+      // Invalid format (missing separator ":").
       expect(encryption.decrypt('données_corrompues'), isNull);
 
       // Base64 invalide
@@ -93,10 +93,10 @@ void main() {
       final encrypted1 = encryption.encrypt(plainText);
       final encrypted2 = encryption.encrypt(plainText);
 
-      // Les IV sont aléatoires, donc les ciphertexts doivent différer
+      // The IVs (initialization vectors) are random, so the ciphertexts must be different.
       expect(encrypted1, isNot(equals(encrypted2)));
 
-      // Mais les deux doivent se déchiffrer correctement
+      // But both must be deciphered correctly.
       expect(encryption.decrypt(encrypted1), equals(plainText));
       expect(encryption.decrypt(encrypted2), equals(plainText));
     });
@@ -116,7 +116,7 @@ void main() {
         when(mockStorage.delete(key: 'mamadera_master_key')).thenAnswer(
           (_) async {},
         );
-        // Après suppression, read retourne null → nouvelle clé générée
+        // After deletion, `read` returns null → a new key is generated.
         when(mockStorage.read(key: 'mamadera_master_key'))
             .thenAnswer((_) async => null);
 
@@ -124,7 +124,7 @@ void main() {
 
         verify(mockStorage.delete(key: 'mamadera_master_key')).called(1);
 
-        // La nouvelle clé est différente de l'ancienne
+        // The new key is different from the old one.
         expect(encryption.key, isNot(equals(oldKey)));
       });
     });
@@ -151,7 +151,7 @@ void main() {
 
         await encryption.destroyKey();
 
-        // key doit lancer une erreur car _cachedKey est null
+        // The system should raise an error because the `cachedKey` is null.
         expect(() => encryption.key, throwsA(isA<StateError>()));
       });
     });
@@ -170,7 +170,7 @@ void main() {
       });
 
       test('accepte un format iv:ciphertext valide (même si non généré par ce service)', () {
-        // Deux chaines de longueur raisonnable encodées en base64
+        // Two strings of reasonable length, encoded in base64.
         const fakeIv = 'QUJDREVGR0hJSktMTU5PUFFSUVQ='; // ABCDEFGHIJKLMNOPQRST
         const fakeCipher = 'YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo='; // abcdefghijklmnopqrstuvwxyz
 
@@ -209,7 +209,7 @@ void main() {
       late EncryptionService memoryEncryption;
 
       setUp(() async {
-        // Simule une exception lors de la lecture → fallback mémoire
+        // Simulates an exception during reading → falls back to memory.
         when(mockStorage.read(key: 'mamadera_master_key')).thenThrow(
           Exception('Secure storage not available'),
         );
@@ -235,7 +235,7 @@ void main() {
         
         await memoryEncryption.rotateKey();
 
-        // La nouvelle clé est différente - decrypt avec la new key works
+        // The new key is different – decryption works with the new key.
         const newText = 'after rotation';
         final newEncrypted = memoryEncryption.encrypt(newText);
         expect(memoryEncryption.decrypt(newEncrypted), equals(newText));
@@ -256,7 +256,7 @@ void main() {
       late EncryptionService newKeyEncryption;
 
       setUp(() async {
-        // read retourne null → aucune clé existante
+        // read returns null → no existing key.
         when(mockStorage.read(key: 'mamadera_master_key')).thenAnswer(
           (_) async => null,
         );
@@ -273,7 +273,7 @@ void main() {
         verify(
           mockStorage.read(key: 'mamadera_master_key'),
         ).called(1);
-        // Une nouvelle clé a été écrite (verify any call was made)
+        // A new key has been written (verify if any call was made).
 	        verify(
       mockStorage.write(key: anyNamed('key'), value: anyNamed('value')),
 	).called(1);

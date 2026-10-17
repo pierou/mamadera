@@ -22,14 +22,14 @@ void main() {
       expect(findStoolTextureByValue('dure'), equals(stoolTextureDure));
     });
 
-    // ── pas de valeur par défaut inventée ─────────────────────────────────
+    // ── no default value defined ─────────────────────────────────
     test('findStoolTextureByValue(null/""/inconnu) → null', () {
       expect(findStoolTextureByValue(null), isNull);
       expect(findStoolTextureByValue(''), isNull);
       expect(findStoolTextureByValue('cremeuse'), isNull);
     });
 
-    // ── l'échelle ─────────────────────────────────────────────────────────────
+    // ── the scale ─────────────────────────────────────────────────────────────
     test('stoolTextures contient 5 valeurs', () {
       expect(stoolTextures, hasLength(5));
     });
@@ -41,8 +41,8 @@ void main() {
     });
 
     test('les valeurs DB restent en ASCII (les accents sont dans le label)', () {
-      // Un export JSON relu à la main doit rester éditable sans clavier
-      // accentué, et une valeur normalisée NFD/NFC ne doit pas dépendre de
+      // A manually reviewed JSON export should remain editable without the need for a keyboard.
+      // accented, and a normalized value (NFD/NFC) should not depend on...
       // l'encodeur.
       for (final texture in stoolTextures) {
         expect(texture.value, matches(RegExp(r'^[a-z_]+$')));
@@ -79,7 +79,7 @@ void main() {
       expect(event.textureDbValue, equals('moulee'));
     });
 
-    // ── la consistance ne décrit qu'une selle ───────────────────────────────
+    // ── Consistency only describes a saddle.
     test('wasteType=pipi avec une texture encore remplie → null', () {
       final event = DiaperEvent(
         timestamp: timestamp,

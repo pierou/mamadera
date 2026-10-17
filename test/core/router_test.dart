@@ -58,10 +58,10 @@ void main() {
     testWidgets(
         'navigating to /growth renders the growth screen outside the shell',
         (tester) async {
-      // La route croissance est en plein écran (comme /reminder-settings),
-      // pas une tab de la barre de navigation : elle n'entre pas dans AppRoute.
-      // On teste le vrai routeur de l'app, avec des préférences acceptées et
-      // un notifier de mesures factice pour éviter la base de données.
+      // The "growth" route is currently displayed in full screen (like /reminder-settings).
+      // It's not a tab in the navigation bar; it doesn't fall under the `AppRoute` component.
+      // We're testing the app's actual router functionality, with accepted preferences and...
+      // a mechanism to report fake actions in order to avoid being flagged in the database.
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -81,7 +81,7 @@ void main() {
           ),
         ),
       );
-      // Splash → redirection → /home (shell avec la barre de navigation).
+      // Splash → redirection → /home (shell with the navigation bar).
       await tester.pumpAndSettle();
       expect(find.byType(AppShell), findsOneWidget);
 
@@ -89,7 +89,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(GrowthScreen), findsOneWidget);
-      // En plein écran : la shell de la barre de navigation n'est plus là.
+      // In full-screen mode: the shell of the navigation bar is no longer visible.
       expect(find.byType(AppShell), findsNothing);
     });
 
@@ -915,8 +915,8 @@ class _StubWithBottomSheet extends StatelessWidget {
   }
 }
 
-/// Notifier de test qui retourne des préférences acceptées de façon synchrone,
-/// pour que la redirection splash du routeur de production atterrisse sur /home.
+/// A test notification that synchronously returns the accepted preferences.
+/// To ensure that the splash page redirection on the production router leads to the `/home` directory.
 class _TestAppPreferencesNotifier extends AppPreferencesNotifier {
   @override
   Future<AppPreferences> build() async => const AppPreferences(
@@ -926,7 +926,7 @@ class _TestAppPreferencesNotifier extends AppPreferencesNotifier {
       );
 }
 
-/// Notifier de test qui retourne des mesures fixes sans base de données.
+/// Test notification that returns fixed measurements without using a database.
 class _TestMeasurementNotifier extends MeasurementNotifier {
   _TestMeasurementNotifier(this.measurements);
 

@@ -11,7 +11,7 @@ import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 
-/// Helper : pompe EditEventDialog dans un contexte MaterialApp + ProviderScope.
+/// Helper: Instantiates a `pompe` (pump) `EditEventDialog` within a `MaterialApp` and `ProviderScope` context.
 Future<void> pumpDialog(WidgetTester tester, TrackingEvent event) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -161,14 +161,14 @@ void main() {
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
-      // Aller en mode pipi pour voir les chips pipi
+      // Switch to "pee mode" to see the pee-shaped chips.
       await tester.tap(find.text('🟡 Pipi'));
       await tester.pumpAndSettle();
 
       final chip = find.widgetWithText(FilterChip, 'Jaune clair');
       expect(chip, findsOneWidget);
 
-      // Premier tap → sélectionné
+      // First tap → selected.
       await tester.tap(chip);
       await tester.pumpAndSettle();
       expect(
@@ -176,7 +176,7 @@ void main() {
         isTrue,
       );
 
-      // Deuxième tap → désélectionné (toggle)
+      // Second tap → deselect (toggle).
       await tester.tap(chip);
       await tester.pumpAndSettle();
       expect(
@@ -196,12 +196,12 @@ void main() {
       final chip = find.widgetWithText(FilterChip, 'Jaune moutarde');
       expect(chip, findsOneWidget);
 
-      // Sélectionner
+      // Select.
       await tester.tap(chip);
       await tester.pumpAndSettle();
       expect(tester.widget<FilterChip>(chip).selected, isTrue);
 
-      // Désélectionner
+      // Deselect.
       await tester.tap(chip);
       await tester.pumpAndSettle();
       expect(tester.widget<FilterChip>(chip).selected, isFalse);
@@ -264,7 +264,7 @@ void main() {
       await pumpDialog(tester, event);
       await tester.pumpAndSettle();
 
-      // Le tile Vitamine D doit avoir check_circle
+      // The "Vitamin D" tile should have a checkmark.
       expect(
         find.widgetWithIcon(ListTile, Icons.check_circle),
         findsOneWidget,
@@ -370,8 +370,8 @@ void main() {
   });
 
   group('EditEventDialog — Santé : préservation des notes (régression)', () {
-    // Régression : éditer un HealthEvent (ex. changer l'horodatage) et
-    // soumettre ne doit ni écraser les notes avec la string du sous-type
+    // Regression: Editing a HealthEvent (e.g., changing the timestamp) and...
+    // The submission process should not overwrite the notes with the subtype string.
     // ('vitamine_d'), ni perdre les notes existantes.
     testWidgets('sante: notes préservées au submit, sous-type inchangé',
         (tester) async {
@@ -409,15 +409,15 @@ void main() {
       await tester.tap(find.text('Ouvrir'));
       await tester.pumpAndSettle();
 
-      // Le tile Vitamine D est pré-sélectionné
+      // The "Vitamin D" tile is pre-selected.
       expect(find.widgetWithIcon(ListTile, Icons.check_circle), findsOneWidget);
 
-      // Soumettre sans rien modifier
+      // Submit without making any changes.
       await tester.tap(find.text('Enregistrer'));
       await tester.pumpAndSettle();
 
       final result = (await completer.future) as UpdateResult?;
-      // Assertion de régression : les notes ne sont PAS la string du sous-type
+      // Regression assertion: the grades are NOT the string representing the subtype.
       expect(result?.notes, originalNotes,
           reason: 'les notes originales doivent être préservées, '
               'jamais la value du sous-type');
@@ -459,7 +459,7 @@ void main() {
       await tester.tap(find.text('Ouvrir'));
       await tester.pumpAndSettle();
 
-      // Changer le sous-type vers Nettoyage des yeux
+      // Change the subtype to "Eye Cleaning."
       await tester.tap(find.text('Nettoyage des yeux'));
       await tester.pumpAndSettle();
 
@@ -524,7 +524,7 @@ void main() {
       await tester.tap(deleteBtn);
       await tester.pumpAndSettle();
 
-      // AlertDialog doit être présent avec son titre et contenu
+      // The AlertDialog must be present, including its title and content.
       expect(find.text('Supprimer l\'\u00e9v\u00e9nement'), findsOneWidget);
       expect(
         find.textContaining(
@@ -584,7 +584,7 @@ void main() {
       await tester.tap(find.text('Annuler'));
       await tester.pumpAndSettle();
 
-      // Le dialog principal est toujours là
+      // The main dialogue is still present.
       expect(find.text('Modifier l\'\u00e9v\u00e9nement'), findsOneWidget);
     });
 
@@ -630,7 +630,7 @@ void main() {
       await tester.tap(find.widgetWithText(TextButton, 'Supprimer'));
       await tester.pumpAndSettle();
 
-      // Confirmer la suppression (FilledButton rouge)
+      // Confirm deletion (red button).
       final filledDelete = find.byType(FilledButton);
       await tester.tap(filledDelete);
       await tester.pumpAndSettle();
@@ -640,8 +640,8 @@ void main() {
     });
   });
   group('EditEventDialog — Consistance de la selle', () {
-    // Le dialogue d'édition est long : sans viewport élargi, les chips du bas
-    // (et « Enregistrer ») restent hors écran et le tap échoue.
+    // The editing process is lengthy: without an expanded viewport, the lower portion of the image is cut off.
+    // (and "Save") remain hidden from the screen, and the tap fails to register.
     Future<void> openFor(WidgetTester tester, TrackingEvent event,
         Completer<EditResult?> completer) async {
       tester.view.devicePixelRatio = 1.0;
@@ -723,8 +723,8 @@ void main() {
       expect(result?.stoolTexture, equals(stoolTextureAqueuse));
     });
 
-    // Régression : la consistance ne décrit qu'une selle. Tourner un change en
-    // pipi ne doit pas laisser une texture orpheline repartir vers la base.
+    // Regression: The consistency only describes a saddle. Converting a gear shift into...
+    // "Pipi" should not leave a texture that allows the strands to separate and move back towards the roots.
     testWidgets('aucune section texture pour un événement pipi',
         (tester) async {
       final completer = Completer<EditResult?>();
@@ -743,8 +743,8 @@ void main() {
   });
 
   group('EditEventDialog — Re-typage en solide', () {
-    // Le re-typage biberon → purée doit repasser le picker en grammes, et
-    // l'horodatage original doit survivre au submit (pas un « now » neuf).
+    // The re-labeling of baby bottles to indicate puree volume must be done using grams.
+    // The original timestamp must be preserved during the submission process (it should not be a new "now" timestamp).
     testWidgets('re-typing biberon → solide : unité g, horodatage préservé',
         (tester) async {
       tester.view.devicePixelRatio = 1.0;
@@ -782,8 +782,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Retape en solide : le picker passe en grammes, et **le nombre ne
-      // survit pas au changement d'unité** (v1.2.1) : 120 ml n'est pas 120 g,
-      // la quantité est remise à 0 et le dialog l'annonce.
+      // **Does not handle unit changes** (v1.2.1): 120 ml is not the same as 120 g.
+      // The quantity is reset to zero, and a dialog box displays this information.
       await tester.tap(find.text('Solide'));
       await tester.pumpAndSettle();
       expect(find.text('0 g'), findsOneWidget);
@@ -807,7 +807,7 @@ void main() {
   });
 }
 
-/// Wrapper pour capturer le retour de showModalBottomSheet dans les tests.
+/// Wrapper to capture the return value of `showModalBottomSheet` in tests.
 class _DialogLauncher extends StatelessWidget {
   const _DialogLauncher({required this.event, required this.onResult});
 

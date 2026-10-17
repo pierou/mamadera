@@ -58,10 +58,10 @@ void main() {
         databaseProvider.overrideWith((ref) async => Future.value(mockDb)),
       ]);
 
-      // Première lecture — résout le futur
+      // First reading: solving the future.
       final first = await container.read(trackingRepositoryProvider.future);
 
-      // Deuxième lecture — retourne la même instance (cache Riverpod)
+      // Second read — returns the same instance (caches Riverpod).
       final second = await container.read(trackingRepositoryProvider.future);
 
       expect(identical(first, second), isTrue);
@@ -90,12 +90,12 @@ void main() {
         databaseProvider.overrideWith((ref) async => Future.value(mockDb)),
       ]);
 
-      // La construction du provider utilise les deux dépendances — si on
-      // change l'override, le résultat doit changer.
+      // The construction of the provider utilizes both dependencies – if we...
+      // If you change the override setting, the result should change accordingly.
       final repo = await container.read(trackingRepositoryProvider.future);
 
       expect(repo, isA<TrackingRepository>());
-      // L'accès réussi confirme que les injections ont fonctionné.
+      // Successful access confirms that the injections were effective.
 
       container.dispose();
     });
@@ -108,12 +108,12 @@ void main() {
         databaseProvider.overrideWith((ref) async => Future.value(mockDb)),
       ]);
 
-      // Le provider résout (la construction du repo ne fait pas d'op DB)
+      // The provider resolves the issue (building the repository does not involve any database operations).
       final repo = await container.read(trackingRepositoryProvider.future);
 
       expect(repo, isA<TrackingRepository>());
 
-      // Mais les opérations sur le repo propagent l'erreur de la DB
+      // However, repo transactions amplify the error stemming from the central bank's actions.
       final testEvent = FeedingEvent(
         unit: QuantityUnit.ml,
         timestamp: DateTime.now(),

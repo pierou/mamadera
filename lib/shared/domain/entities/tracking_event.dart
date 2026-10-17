@@ -84,8 +84,8 @@ extension TrackingEventTrackingType on TrackingEvent {
 
 /// Extension providing [colorDbValue] on [DiaperEvent].
 extension DiaperEventColorDbValue on DiaperEvent {
-  /// Retourne la valeur DB formatée pour la colonne `color`.
-  /// Pour [WasteType.lesDeux], retourne le format pipe-délimité (`pipi_color|caca_color`).
+  /// Returns the formatted DB value for the `color` column.
+  /// For [WasteType.lesDeux], returns the pipe-delimited format (`pipi_color|caca_color`).
   String? get colorDbValue {
     final wasteType = this.wasteType;
     if (wasteType == null) return null;
@@ -108,12 +108,12 @@ extension DiaperEventColorDbValue on DiaperEvent {
 
 /// Extension providing [textureDbValue] on [DiaperEvent].
 extension DiaperEventStoolTextureDbValue on DiaperEvent {
-  /// Retourne la valeur DB de la colonne `texture`.
+  /// Returns the database value of the `texture` column.
   ///
-  /// La consistance ne décrit qu'une selle : un change enregistré comme pipi
-  /// (ou sans type, ligne héritée) écrit NULL même si [stoolTexture] était
-  /// encore remplie dans le formulaire. Sans ce garde, tourner un « caca
-  /// pâteux » en « pipi » laissait une texture orpheline dans l'historique.
+  /// The consistency only describes one type of stool: a bowel movement recorded as "pee."
+  /// (or without a type, inherited line) writes NULL even if [stoolTexture] was.
+  /// still needs to be filled out in the form. Without this permit, you can't "go" (use the restroom).
+  /// `pâteux` into `pipi` left an orphan texture in the history.
   String? get textureDbValue {
     final wasteType = this.wasteType;
     if (wasteType == null || wasteType == WasteType.pipi) return null;

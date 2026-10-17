@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/features/baby/domain/repositories/baby_profile_repository.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 
-/// Mock de [BabyProfileRepository] pour tester le contrat d'interface.
+/// Mock object for [BabyProfileRepository] to test the interface contract.
 class MockBabyProfileRepository implements BabyProfileRepository {
   final Map<String, BabyProfile> _profiles = {};
   String? _activeId;

@@ -14,7 +14,7 @@
 /// advertise empty screens. The accepted uploads in `screenshots/android/` are
 /// populated, so a re-run had to reproduce that population. The fixture mirrors
 /// the iOS driver target (`lib/asc_driver_main.dart`): the same 3-month-old
-/// baby "Léa", the same day of events, plus a growth trajectory.
+/// baby `Léa`, the same day of events, plus a growth trajectory.
 ///
 /// `pumpMamadera` and `test_utils.dart` are deliberately NOT modified — they
 /// are shared with the other integration tests, whose assertions assume an

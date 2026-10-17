@@ -5,12 +5,12 @@ import 'package:mamadera/core/config/app_config.dart';
 
 void main() {
   group('AppConfig', () {
-    // Pas de version épinglée : un littéral dans un test oblige à le modifier
-    // à chaque release, et un test qu'on modifie à chaque release finit par
-    // n'être plus qu'un rituel. Ce qui compte n'est pas que la version vaille
-    // telle valeur — c'est qu'elle soit **la même** que celle de pubspec.yaml,
-    // l'invariant que la CI vérifie (`.github/workflows/ci.yml`) et dont une
-    // rupture publie une app dont l'écran « À propos » ment sur elle-même.
+    // No pinned version: A literal string in a test requires modification.
+    // With each release, and a test that is modified with each release, eventually...
+    // It shouldn't just be a ritual. What matters is not just that the version is good.
+    // This value should be the **same** as the one specified in the `pubspec.yaml` file.
+    // The invariant that the CI system checks (`.github/workflows/ci.yml`), and an example of:
+    // Rupture has released an app whose "About" screen contains false information about itself.
     test('version matches pubspec.yaml — the invariant CI enforces', () {
       final pubspec = File('pubspec.yaml').readAsLinesSync();
       final line = pubspec.firstWhere((l) => l.startsWith('version:'));

@@ -71,7 +71,7 @@ void main() {
   });
 
   group('complétion manuelle (completionSource)', () {
-    // Détaché d'un soin : pas de subtypeValue, réglé seulement par un tap.
+    // Detached from a care setting: no subtype value is specified, and it is only set by a single tap.
     final pedicureItem = ReminderItem(
       id: 'pedicure',
       labelKey: 'reminderPedicure',
@@ -85,7 +85,7 @@ void main() {
     });
 
     test('un rappel détaché est dû sans aucun événement', () async {
-      // Ni événement, ni complétion : le rappel sonne quand même.
+      // Neither an event nor a completed task: the alarm still goes off.
       service = RemindersService(items: [pedicureItem], repository: mockRepo);
 
       final result = await service.checkDue();
@@ -96,8 +96,8 @@ void main() {
     test('un événement du bon type ne règle pas un rappel manuel (invariant D2)', () async {
       service = RemindersService(items: [pedicureItem], repository: mockRepo);
 
-      // Le service ne doit même pas interroger les événements : un `sante`
-      // enregistré aujourd'hui ne doit pas le faire taire.
+      // The service should not even query the events; it should simply receive a "health" status.
+      // What was recorded today should not silence him.
       mockRepo.lastCompletedByItem['pedicure'] = DateTime.now();
       final result = await service.checkDue();
 
@@ -113,15 +113,15 @@ void main() {
       final settled = await service.checkDue();
       expect(settled, isA<RemindersAllCompleted>());
 
-      // Le lendemain, il redevient dû.
+      // The following day, it becomes due again.
       mockRepo.manualCompletedByItem['pedicure'] = at.subtract(const Duration(days: 1));
       final dueAgain = await service.checkDue();
       expect(dueAgain, isA<RemindersDue>());
     });
 
     test('une complétion manuelle ne règle jamais un rappel piloté par événements', () async {
-      // Le sens inverse de l'implication : le journal manuel est lu seulement
-      // pour les items `manual`.
+      // The converse of implication: the manual is only read.
+      // for the `manual` items.
       mockRepo.manualCompletedByItem['vitamin_d'] = DateTime.now();
       service = RemindersService(items: [vitaminDItem], repository: mockRepo);
 
@@ -152,7 +152,7 @@ void main() {
     });
 
     test("un rappel ignoré moins de 24 h plus tôt n'est pas dû", () async {
-      // Ignoré il y a une heure : il sort de la liste des dus sans être fait.
+      // Ignored one hour ago: it was removed from the list of tasks that needed to be completed.
       mockRepo.dismissedById['vitamin_d'] =
           DateTime.now().subtract(const Duration(hours: 1));
       service = RemindersService(items: [vitaminDItem], repository: mockRepo);
@@ -163,8 +163,8 @@ void main() {
     });
 
     test('un rappel ignoré il y a 25 h redevient dû', () async {
-      // La fenêtre est un délai, pas une suppression : au bout de 24 h le
-      // rappel reparaît tout seul.
+      // The window is a grace period, not a cancellation: after 24 hours, the...
+      // The reminder reappears automatically.
       mockRepo.dismissedById['vitamin_d'] =
           DateTime.now().subtract(const Duration(hours: 25));
       service = RemindersService(items: [vitaminDItem], repository: mockRepo);
@@ -175,7 +175,7 @@ void main() {
     });
 
     test('la fenêtre est injectable', () async {
-      // Ignoré il y a 3 h : la fenêtre de 2 h est passée, le rappel est dû.
+      // Ignored 3 hours ago: The 2-hour window has passed, and a reminder is due.
       mockRepo.dismissedById['vitamin_d'] =
           DateTime.now().subtract(const Duration(hours: 3));
       service = RemindersService(

@@ -1,6 +1,6 @@
 // ignore_for_file: lines_longer_than_80_chars
-// Tests du dialogue d'export : l'avertissement de confidentialité doit passer
-// AVANT toute action, et aucun détail technique interne ne doit s'afficher.
+// Export dialogue tests: the privacy warning must pass.
+// Before taking any action, and no internal technical details should be displayed.
 
 import 'dart:async';
 
@@ -12,8 +12,8 @@ import 'package:mamadera/features/export/presentation/providers/export_providers
 import 'package:mamadera/features/export/presentation/widgets/export_data_dialog.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
 
-/// Contrôleur stub : renvoie un résultat décidé à l'avance. Ni partage réel,
-/// ni disque, ni base — la feuille de partage ne s'ouvre jamais en test.
+/// Stub controller: returns a pre-determined result. No actual interaction.
+/// Neither a disk nor a database — the sharing sheet never opens during testing.
 class _StubController extends ExportController {
   _StubController(this._outcome);
 
@@ -26,7 +26,7 @@ class _StubController extends ExportController {
   Future<ExportOutcome> shareExport() async => _outcome;
 }
 
-/// Contrôleur stub bloqué : permet d'observer l'état de chargement.
+/// Stub controller locked: allows you to monitor the charging status.
 class _HangingController extends ExportController {
   final Completer<ExportOutcome> _completer = Completer<ExportOutcome>();
 
@@ -47,8 +47,8 @@ Future<_HangingController> _pumpHanging(
   return controller;
 }
 
-/// Le type `Override` n'est pas exposé par Riverpod 3 : on passe donc une
-/// fabrique de contrôleur typée plutôt qu'une liste d'overrides.
+/// The `Override` type is not exposed by Riverpod 3; therefore, we pass a...
+/// It's a controller factory that creates controllers based on types, rather than a list of overrides.
 Future<void> _pumpDialog(
   WidgetTester tester,
   ExportController Function() controllerFactory,
@@ -105,7 +105,7 @@ void main() {
       );
       expect(find.text('Exporter'), findsOneWidget);
       expect(find.text('Annuler'), findsOneWidget);
-      // Tant que l'utilisateur n'a pas confirmé, rien n'a été exporté.
+      // Nothing will be exported until the user confirms.
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
@@ -116,8 +116,8 @@ void main() {
       );
 
       await tester.tap(find.text('Annuler'));
-      // Deux pumps : le premier déclenche la frame qui initie le pop, le
-      // second laisse la route se retirer réellement de l'arbre.
+      // Two pumps: the first triggers the mechanism that initiates the pop, while the...
+      // Secondly, allow the road to gradually move away from the tree.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
 
@@ -168,8 +168,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
 
       expect(find.text('L\'export a échoué'), findsOneWidget);
-      // Un message d'exception non localisé trahirait des chemins internes à
-      // l'écran, exactement ce que l'écran d'erreur du routeur évite déjà.
+      // An exceptional, non-localized message would reveal internal pathways within...
+      // the screen, which is exactly what the router's error message already prevents.
       expect(find.textContaining('PathNotFoundException'), findsNothing);
       expect(find.textContaining('/private/var'), findsNothing);
     });

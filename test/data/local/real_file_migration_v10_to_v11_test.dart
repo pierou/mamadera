@@ -5,17 +5,17 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mamadera/data/local/database.dart';
 
-/// Passe de migration sur un **vrai fichier v10**.
+/// Migration process applied to a genuine v10 file.
 ///
-/// Le fixture `fixtures/mamadera_v10.db` est une base v10 authentique (DDL de
-/// la version publiée 1.1.1+8, `PRAGMA user_version = 10`) portant les données
-/// d'un parent : une bébé, quatre événements dont un `natural` de 20, deux
-/// rappels personnalisés (ids 3 et 7), un préréglage désactivé, un dismissal.
+/// The `fixtures/mamadera_v10.db` file is an authentic v10 database (DDL of...
+/// Version 1.1.1+8, with `PRAGMA user_version = 10`, containing the data.
+/// from a parent: one baby, four events, including one `natural` event at age 20, and two...
+/// personalized reminders (IDs 3 and 7), a disabled preset, and a dismissal.
 ///
-/// Ce test est la raison d'être de la passe émulateur (AGENTS.md) rejouée en
-/// CI : `onCreate` ne dira **jamais** si une montée v10 → v11 se passe bien,
-/// puisqu'il construit le schéma d'emblée sans rien déplacer. Ici le code de
-/// migration tourne pour de vrai sur un fichier qui contient déjà des données.
+/// This test is the purpose of the emulator replay feature (AGENTS.md), which allows you to reproduce the environment.
+/// CI: The `onCreate` method will **never** indicate whether an upgrade from version 10 to version 11 is successful.
+/// since it builds the structure from the outset without moving anything. Here, the code...
+/// The migration process actually relies on a file that already contains data.
 void main() {
   group('Migration v10 → v12 sur fichier réel', () {
     late Directory tmp;
@@ -34,8 +34,8 @@ void main() {
     });
 
     test('le fichier seedé est bien en v10 avant ouverture', () {
-      // Si cette assertion casse, le fixture a été modernisé et tout le reste
-      // du test ne prouve plus rien : on migre un v11 depuis un v11.
+      // If this statement proves to be false, then the fixture has been updated, and everything else is as described.
+      // The test no longer proves anything: we are migrating from one version 11 to another version 11.
       final header = File(fixturePath).readAsBytesSync();
       expect(header.length, greaterThan(0));
       expect(
@@ -50,9 +50,9 @@ void main() {
       final babies = await db.select(db.babyProfiles).get();
       expect(babies.length, 1);
       expect(babies.first.name, 'Léa');
-      // Installation à un seul bébé : la montée v12 ré-attribue les lignes
-      // « sans profil » (sentinelle `''`, fuite v1.2.0) au seul enfant —
-      // décision 2026-10-04, jamais de deviner à plusieurs bébés.
+      // Single-baby installation: the V12 system reconfigures the layout.
+      // "without profile" (sentinel `''`, leak v1.2.0) - only one child.
+      // Decision 2026-10-04: Never try to guess the gender of multiple babies at the same time.
       final babyId = babies.first.id;
 
       final events = await db.select(db.trackingEvents).get();
@@ -60,10 +60,10 @@ void main() {
           reason:
               'les quatre événements existants doivent survivre à la montée');
 
-      // Les ids des rappels personnalisés sont gravés dans le fichier de
-      // l'utilisateur et `reminder_settings` les reference par `custom_<id>`.
-      // Une remontée qui les renumérote détache le réglage en silence :
-      // l'utilisateur a « désactivé ce rappel » avant, et il revient activé.
+      // The IDs for personalized reminders are stored in the file.
+      // The user and the `reminder_settings` refer to them using the format `custom_<id>`.
+      // Renumbering the items will also reset the silent mode setting.
+      // The user had previously "disabled this reminder," but it has now been re-enabled.
       final customs = await db
           .customSelect(
             'SELECT id, baby_id, subtype_value, completion_source '
@@ -79,8 +79,8 @@ void main() {
         expect(row.read<String>('completion_source'), 'from_events');
       }
 
-      // Ré-implantation sous la clé composée : aucune clé ne doit être NULL,
-      // SQLite autorisant les doublons dès qu'une colonne de la clé l'est.
+      // Re-implantation using a composite key: no key value should be NULL.
+      // SQLite allows duplicate entries as long as at least one column of the primary key is unique.
       final settings = await db
           .customSelect(
             'SELECT baby_id, item_id, enabled FROM reminder_settings ORDER BY item_id',
@@ -104,8 +104,8 @@ void main() {
       final userVersion = await db.customSelect('PRAGMA user_version').get();
       expect(userVersion.first.read<int>('user_version'), 12);
 
-      // Un index absent après migration est invisible à l'œil et coûte une
-      // table scan sur chaque sondage de rappel, pour toujours.
+      // An index that is missing after a migration is invisible to the user and can be costly.
+      // Perform a full table scan on every recall query, every time.
       final indexes = await db
           .customSelect(
             "SELECT name FROM sqlite_master WHERE type = 'index' "

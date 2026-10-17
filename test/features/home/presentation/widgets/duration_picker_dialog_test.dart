@@ -10,7 +10,7 @@ import 'package:mamadera/core/widgets/event_date_time_field.dart';
 import 'package:mamadera/features/home/presentation/widgets/duration_picker_dialog.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
 
-/// Lit la date affichée par le champ de date du dialog (format fr FR : dd/MM/yyyy HH:mm).
+/// Reads the date displayed in the date field of the dialog box (format: dd/MM/yyyy HH:mm).
 DateTime _readFieldDate(WidgetTester tester) {
   final text = tester.widgetList<Text>(
     find.descendant(
@@ -21,7 +21,7 @@ DateTime _readFieldDate(WidgetTester tester) {
   return DateFormat('dd/MM/yyyy HH:mm', 'fr_FR').parseStrict(text);
 }
 
-/// Valide le dialogue de date (ou d'heure) ouvert au-dessus du dialog.
+/// Validates the date (or time) selection dialog that is currently open above the dialog box.
 Future<void> _tapOk(WidgetTester tester) async {
   await tester.tap(find.text('OK'));
   await tester.pumpAndSettle();
@@ -30,7 +30,7 @@ Future<void> _tapOk(WidgetTester tester) async {
 
 void main() {
   group('DurationPickerDialog', () {
-    // Helper pour pump le dialog dans un MaterialApp minimal
+    // Helper function to display a dialog within a minimal MaterialApp.
     Future<void> pumpDialog(WidgetTester tester, DurationPickerDialog dialog) =>
         tester.pumpWidget(
           ProviderScope(child: MaterialApp(
@@ -52,7 +52,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Durée du sommeil'), findsOneWidget);
-      // 30 min est la valeur par défaut de initialMinutes (widget default param)
+      // The default value for "initialMinutes" (a widget default parameter) is 30 minutes.
       expect(find.text('30 min'), findsOneWidget);
       expect(find.text('Confirmer'), findsOneWidget);
       expect(find.text('Annuler'), findsOneWidget);
@@ -66,12 +66,12 @@ void main() {
       // Slider part de 30 min → affichage initial "30 min"
       expect(find.text('30 min'), findsOneWidget);
 
-      // Drag le slider vers la droite pour augmenter (~60 min)
+      // Drag the slider to the right to increase the duration (approximately 60 minutes).
       final slider = find.byType(Slider);
       await tester.dragFrom(tester.getCenter(slider), const Offset(150, 0));
       await tester.pumpAndSettle();
 
-      // La valeur affichée n'est plus "30 min" (elle a changé suite au drag)
+      // The displayed value is no longer "30 min" (it has changed after the update).
       expect(find.text('30 min'), findsNothing);
     });
 
@@ -80,12 +80,12 @@ void main() {
       await pumpDialog(tester, DurationPickerDialog(onSleepSelected: completer.complete));
       await tester.pumpAndSettle();
 
-      expect(completer.isCompleted, isFalse); // pas encore appelé
+      expect(completer.isCompleted, isFalse);       // Not yet called.
 
       await tester.tap(find.text('Confirmer'));
       await tester.pumpAndSettle();
 
-      expect((await completer.future).minutes, equals(30.0)); // valeur par défaut du slider
+      expect((await completer.future).minutes, equals(30.0));       // Default slider value.
     });
 
     testWidgets('bouton annuler ne déclenche pas onSleepSelected', (tester) async {
@@ -93,28 +93,28 @@ void main() {
       await pumpDialog(tester, DurationPickerDialog(onSleepSelected: completer.complete));
       await tester.pumpAndSettle();
 
-      expect(completer.isCompleted, isFalse); // pas encore appelé
+      expect(completer.isCompleted, isFalse);       // Not yet called.
 
       await tester.tap(find.text('Annuler'));
-      // Navigator.pop() dans un test sans route → ErrorDialog, on ignore et on vérifie le callback
+      // `Navigator.pop()` in a test without a route → `ErrorDialog`, we ignore it and verify the callback.
       try {
         await tester.pumpAndSettle();
       } catch (e) {
-        // pop sur une route vide peut lever une exception en contexte de test isolé
+        // A "pop" operation on an empty data structure can raise an exception in an isolated testing environment.
       }
 
-      expect(completer.isCompleted, isFalse); // callback jamais appelé
+      expect(completer.isCompleted, isFalse);       // Callback never called.
     });
 
     testWidgets('affiche le format heures:minutes pour des durées > 60 min', (tester) async {
-      // initialMinutes à 75 → doit afficher "1h15" et non "75 min"
+      // initialMinutes set to 75 → should display "1h15" (1 hour 15 minutes) and not "75 min".
       await pumpDialog(
         tester,
         DurationPickerDialog(initialMinutes: 75, onSleepSelected: (_) {}),
       );
       await tester.pumpAndSettle();
 
-      // Le format heures:minutes doit être utilisé pour >60 min, pas "75 min"
+      // The format "hours:minutes" should be used for durations greater than 60 minutes, not "75 min."
       expect(find.text('1h15'), findsOneWidget);
       expect(find.text('75 min'), findsNothing);
     });
@@ -126,12 +126,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 45 min doit être affiché directement (pas "30 min")
+      // The duration of 45 minutes must be displayed directly (not "30 minutes").
       expect(find.text('45 min'), findsOneWidget);
       expect(find.text('30 min'), findsNothing);
     });
 
-    // ── Date de sieste (défaut = instant de saisie moins la durée) ──
+    // ── Nap time (default = current time minus the duration) ──
 
     group('date de début de sieste', () {
       testWidgets('le champ de date est affiché', (tester) async {
@@ -155,7 +155,7 @@ void main() {
         final start = _readFieldDate(tester);
         final expected = DateTime.now().subtract(const Duration(minutes: 30));
 
-        // Tolérance d'une minute : l'affichage est arrondi à la minute.
+        // Tolerance of one minute: the display is rounded to the nearest minute.
         expect(
           start.difference(expected).inSeconds.abs(),
           lessThan(65),
@@ -173,7 +173,7 @@ void main() {
 
         final startAt30 = _readFieldDate(tester);
 
-        // Drag le slider vers la droite : la durée augmente (> 30 min).
+        // Drag the slider to the right: the duration will increase (more than 30 minutes).
         await tester.dragFrom(tester.getCenter(find.byType(Slider)), const Offset(150, 0));
         await tester.pumpAndSettle();
 
@@ -190,11 +190,11 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Épingler la date : on valide le sélecteur de date puis celui d'heure.
+        // Confirm the date: We validate both the date picker and the time selector.
         await tester.tap(find.byType(EventDateTimeField));
         await tester.pumpAndSettle();
-        await _tapOk(tester); // jour sélectionné
-        await _tapOk(tester); // heure conservée
+        await _tapOk(tester);         // Selected date.
+        await _tapOk(tester);         // Time kept.
 
         final pinned = _readFieldDate(tester);
 

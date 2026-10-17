@@ -1,44 +1,44 @@
 // ignore_for_file: avoid_print
-/// Porte de contrôle v1.2.1-rc.2 — un seul curseur par fiche de saisie.
+/// Control panel v1.2.1-rc.2: Only one slider per input field.
 ///
-/// ## Pourquoi ce fichier existe
+/// ## Why this file exists.
 ///
-/// La paire « grossier / précis » (BACKLOG B2) est arrivée dans la v1.2.1 par
-/// le widget partagé `QuantityPickerInline` : un seul paramètre, cinq fiches
-/// touchées d'un coup — nouvelle prise, édition d'une prise, édition d'une
-/// sieste, nouvelle mesure, édition d'une mesure. Ouverte sur un appareil, la
-/// fiche posait la question « lequel des deux je fais bouger ? » sans y
-/// répondre ; la paire est donc retirée (docs/BACKLOG.md B2).
+/// The "rough/precise" pair (BACKLOG B2) was introduced in version 1.2.1.
+/// The `QuantityPickerInline` shared widget: a single parameter, with five display elements.
+/// touched by a stroke - new grip, edition of a grip, edition of a...
+/// siesta, new measure, edit a measure. Open on a device, the...
+/// The document posed the question, "Which of the two should I move?" without providing an answer.
+/// respond; therefore, the pair is removed (docs/BACKLOG.md B2).
 ///
-/// Ce fichier est la preuve, visuelle et chiffrée, du retrait : sur chaque
-/// surface il vérifie qu'il reste **exactement un** `Slider`, qu'il couvre
-/// **toute** la plage (et non une fenêtre recentrée), que les libellés
-/// `Grossier` / `Précis` ont disparu, que les boutons +/- sont toujours là,
-/// et qu'aucune exception de rendu (overflow `RenderFlex`) n'est levée —
-/// l'overflow est silencieux dans les tests d'unités qui remontent leur propre
-/// viewport, il ne l'est pas sur un vrai écran.
+/// This file provides visual and numerical proof of the withdrawal. For each...
+/// on the surface, it checks that there is **exactly one** `Slider` element, and that it covers...
+/// **The entire** beach (and not just a recentered window), and the labels.
+/// The "Rough" / "Precise" (French) options have been removed, but the plus/minus buttons are still present.
+/// and that no rendering errors (specifically, `RenderFlex` overflow errors) are raised.
+/// The overflow is silent in unit tests that report their own results.
+/// viewport, but it's not displayed on a real screen.
 ///
-/// Dernier test : le chemin manuel complet — curseur pour viser, +/- pour le
-/// quantum, clavier pour la valeur exacte — puis le document exporté, inspecté
-/// octet par octet. C'est le même document que le panneau de partage reçoit ;
-/// une sauvegarde qui omet une section est une sauvegarde fausse, et rien ne
-/// la signale à l'écran.
+/// Final test: the complete manual control scheme – use the cursor to aim, and +/- to adjust.
+/// quantum, keyboard for entering the exact value – then the document is exported and inspected.
+/// It's transmitted byte by byte. It's the same document that the sharing panel receives.
+/// A backup that omits a section is a faulty backup, and nothing...
+/// It displays the signal on the screen.
 ///
 /// ## Lancement
 ///
-/// Les deux plateformes passent par `flutter test` (`flutter drive` lève
-/// « Binding is already initialized » sur une cible `integration_test`) :
+/// Both platforms use `flutter test` (while `flutter drive` raises...).
+/// "Binding is already initialized" on target `integration_test`):
 ///
 /// ```bash
-/// # iOS — simulateur démarré
+/// # iOS - Simulator started.
 /// flutter test integration_test/pickers_gate_rc2.dart -d <udid>
-/// # Android — AVD Small_Phone, 360×640 dp, la cible la plus étroite
+/// # Android — AVD Small_Phone, 360x640 dp, the narrowest target device.
 /// flutter test integration_test/pickers_gate_rc2.dart -d emulator-5554
 /// ```
 ///
-/// Les PNG sont écrits dans le **Documents** de l'app (`path_provider` — un
-/// chemin relatif lève `errno 30` sur iOS) puis sortis du bac à sable :
-/// iOS par le chemin hôte du conteneur, Android par
+/// PNG files are stored in the app's **Documents** directory (using the `path_provider` package).
+/// (Relative path raises `errno 30` on iOS), then exits the sandbox:
+/// iOS uses the container's host path, while Android uses...
 /// `adb exec-out run-as <app> cat .../Documents/gate/08_historique.png`.
 library;
 
@@ -70,18 +70,18 @@ import 'package:path_provider/path_provider.dart';
 
 import 'test_utils.dart';
 
-/// Id du bébé du fixture — nom propre, identique dans chaque locale.
+/// Fixture baby id — a proper noun, identical in every locale.
 const _babyId = 'baby-gate';
 
-/// Base et chiffrement vivants : la dernière étape relit la base pour produire
-/// le document exporté, avec **la même** instance `EncryptionService` que
-/// l'app — deux instances chiffrent avec des clés différentes quand le
-/// stockage sécurisé n'est pas disponible, et alors tout se lit « illisible ».
+/// Live base and encryption: the final step re-reads the base to produce...
+/// the exported document, using the **same** `EncryptionService` instance as...
+/// The app—two instances encrypt data using different keys when...
+/// Secure storage is not available, and as a result, everything appears as "unreadable."
 AppDatabase? _liveDb;
 late EncryptionService _liveEncryption;
 
-/// Fixture : une sieste, une prise au biberon, une couche, un soin, et les
-/// trois mesures — de quoi ouvrir les cinq surfaces sans écran vide.
+/// Routine: a nap, a feeding, a diaper change, a skincare routine, and the...
+/// three steps – to enable the display of content on all five surfaces without showing a blank screen.
 Future<(AppDatabase, EncryptionService)> _seededEnv() async {
   final db = AppDatabase(NativeDatabase.memory());
   final encryption = EncryptionService();
@@ -138,8 +138,8 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
     ),
   );
 
-  // Par le dépôt, jamais par un insert brut : `value` et `notes` sont
-  // chiffrés, et une ligne en clair se lit « illisible » à l'écran.
+  // Through the repository, never a raw insert: `value` and `notes` are
+  // The numbers are scrambled, and a line of text appears on the screen, but it is unreadable.
   final measurements = MeasurementRepositoryImpl(
     database: db,
     encryption: encryption,
@@ -163,8 +163,8 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
   return (db, encryption);
 }
 
-/// Pompe l'app réelle sur le fixture, en **français** : les libellés retirés
-/// (« Grossier » / « Précis ») sont français, c'est dans cette langue que la
+/// Apply the real-world application to the fixture, in French: the labels have been removed.
+/// ("Crude" / "Precise") are French terms, and it is in this language that the...
 /// soustraction doit se constater.
 Future<void> pumpSeededApp(WidgetTester tester) async {
   if (_liveDb != null) {
@@ -193,12 +193,12 @@ Future<void> pumpSeededApp(WidgetTester tester) async {
   await tester.pump(const Duration(seconds: 1));
 }
 
-/// Le curseur unique de la surface courante.
+/// The single cursor for the current surface.
 Slider _theSlider(WidgetTester tester) =>
     tester.widgetList<Slider>(find.byType(Slider)).single;
 
-/// Un seul curseur, pleine plage, sans légende, ± présents, rien qui casse.
-/// Le `print` est la preuve chiffrée reversée dans docs/release-evidence/.
+/// A single cursor, full range, no labels, approximately present, nothing that disrupts the flow.
+/// The `print` statement provides the cryptographic proof, which is stored in the `docs/release-evidence/` directory.
 void expectOneFullRangeSlider(String surface, WidgetTester tester) {
   expect(find.byType(Slider), findsOneWidget,
       reason: '$surface : un seul curseur — la paire B2 est retirée');
@@ -219,13 +219,13 @@ void expectOneFullRangeSlider(String surface, WidgetTester tester) {
       'divisions=${slider.divisions} value=${slider.value}');
 }
 
-/// Capture : l'app écrit dans **son** répertoire de documents, puis les PNGs
-/// sont sortis à la main du bac à sable (simulateur iOS : un chemin de l'hôte ;
-/// emulator Android : `adb exec-out run-as`). Deux pièges mesurés ici même :
-/// écrire dans un chemin relatif lève `errno 30 Read-only file system` sur
-/// iOS, et `flutter drive` sur une cible `integration_test` fait lever
-/// `Binding is already initialized to LiveTestWidgetsFlutterBinding` — d'où
-/// `path_provider` d'un côté, `flutter test` de l'autre, pas l'un sans
+/// Capture: The app writes to its documents directory, and then saves the PNG files.
+/// came out of the sandbox (iOS simulator: a path from the host;).
+/// Android emulator: `adb exec-out run-as`. Two pitfalls identified here:
+/// writing to a relative path raises `errno 30 Read-only file system` on
+/// On iOS, and when using `flutter drive` with a target of `integration_test`, an error is raised.
+/// `Binding is already initialized to LiveTestWidgetsFlutterBinding` — hence
+/// On one hand, the `path_provider` package; on the other hand, `flutter test`; you can't have one without the other.
 /// l'autre.
 Future<void> capture(WidgetTester tester, String name) async {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -242,13 +242,13 @@ Future<void> capture(WidgetTester tester, String name) async {
   print('[CAPTURE] ✓ ${file.path} (${bytes.length} bytes)');
 }
 
-/// Défile la page (drag depuis le bas vers le haut) jusqu'à ce que [tile] soit
-/// dans l'arbre, en forçant la construction des tuiles paresseuses au bas de
-/// la frise. Indépendant de `scrollUntilVisible` : celui-ci ne défile que si la
-/// tuile est absente de l'arbre, et sa résolution de la Scrollable
-/// (`tester.element`) lève « No element » sur l'écran Historique — un drag sur
-/// des coordonnées brutes défile la Scrollable sans la résoudre. No-op si la
-/// tuile est déjà visible (viewport large, iPhone).
+/// Scroll the page (drag from the bottom to the top) until [tile] is.
+/// in the tree, forcing the construction of the loose tiles at the bottom.
+/// the frieze. Independent of `scrollUntilVisible`: the latter only scrolls if the...
+/// The tile is missing from the tree, and its scrollable resolution is not set.
+/// (`tester.element`) raises the "No element" message on the screen.  A drag-and-drop action...
+/// It displays raw coordinates in the Scrollable area without processing them. It does nothing if the...
+/// The tile is already visible (on a large screen, like an iPhone).
 Future<void> _scrollReveal(WidgetTester tester, Finder tile) async {
   final size = tester.getSize(find.byType(MaterialApp));
   final from = Offset(size.width / 2, size.height * 0.8);
@@ -258,38 +258,38 @@ Future<void> _scrollReveal(WidgetTester tester, Finder tile) async {
   }
 }
 
-/// Ouvre la première tuile d'événement du type demandé dans la frise unifiée.
+/// Opens the first event tile of the specified type in the unified timeline.
 Future<void> openEventTile(
     WidgetTester tester, bool Function(TrackingEvent) matches) async {
   final tile =
       find.byWidgetPredicate((w) => w is HistoryTile && matches(w.event));
-  // La frise est une liste paresseuse : sur un écran court (Small_Phone), une
-  // entrée ancienne est hors viewport donc absente de l'arbre de widgets.
-  // On la force à se construire **avant** d'asserter, sinon le `findsWidgets`
-  // d'avant défile échoue par absence et non par faute de donnée.
+  // The carousel is a lazy list: on a small screen (Small_Phone), it displays a...
+  // The old entry is outside the viewport, so it's not present in the widget tree.
+  // It forces you to build it **before** asserting its existence; otherwise, the `findsWidgets` function...
+  // The previous query failed due to a lack of data, not due to an error in the data itself.
   await _scrollReveal(tester, tile);
   expect(tile, findsWidgets, reason: 'aucune tuile du type demandé en base');
-  // Le reveal ne garantit que la construction, pas la visibilité : la tuile
-  // peut être dans l'arbre mais hors viewport, et le tap part dans le vide
-  // (`warnIfMissed`) — c'est arrivé à la température, au milieu de la frise.
+  // The reveal only guarantees the construction, not the visibility: the tile.
+  // It might be located within the tree, but outside the visible area of the screen, and the tap gesture is therefore registered in an empty space.
+  // (`warnIfMissed`) - This occurred at the specified temperature, in the middle of the band.
   await tester.ensureVisible(tile.first);
   await tester.pumpAndSettle(const Duration(milliseconds: 300));
   await tester.tap(tile.first);
   await tester.pumpAndSettle(const Duration(seconds: 1));
 }
 
-/// Ouvre la feuille d'édition de la mesure de [kind] dans la frise.
+/// Open the editing sheet for the [kind] measure in the timeline.
 Future<void> openMeasurementTile(WidgetTester tester, MeasureKind kind) async {
   final tile = find.byWidgetPredicate((w) =>
       w is MeasurementHistoryTile && w.measurement.kind == kind);
-  // Même piège que `openEventTile` : le poids (3 j) et la température (20 h)
-  // sont les mesures les plus vieilles, donc au bas de la frise paresseuse —
-  // hors viewport sur Small_Phone, présentes sur l'iPhone plus haut.
+  // The same issue as with `openEventTile`: the duration (3 days) and the temperature (20 hours).
+  // are the oldest measurements, and therefore located at the bottom of the scale.
+  // Outside the viewport on Small_Phone, these elements are displayed above the iPhone.
   await _scrollReveal(tester, tile);
   expect(tile, findsWidgets,
       reason: 'aucune tuile de mesure ${kind.name} en base');
-  // `ensureVisible` avant le tap : la tuile construite peut rester hors
-  // viewport et le tap rate (voir `openEventTile`).
+  // `ensureVisible` before the tap: the tile being constructed may remain hidden.
+  // viewport and tap rate (see `openEventTile`).
   await tester.ensureVisible(tile.first);
   await tester.pumpAndSettle(const Duration(milliseconds: 300));
   await tester.tap(tile.first);
@@ -319,7 +319,7 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       expectOneFullRangeSlider('prise · nouvelle', tester);
-      // Sein par défaut (v1.2.1) : la plage est celle des minutes.
+      // By default (v1.2.1): the range represents minutes.
       expect(_theSlider(tester).max, 120, reason: 'tétée en minutes 0–120');
       expect(_theSlider(tester).divisions, 120, reason: 'un cran par minute');
 
@@ -412,8 +412,8 @@ void main() {
       await tester.tap(findByKey(TestKeys.trackMiam));
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
-      // Le chemin d'un parent qui enregistre une tétée : le curseur vise,
-      // les +/- ajustent le quantum, le clavier fixe la valeur exacte.
+      // The path a parent takes when recording a feeding: the slider aims.
+      // The "+" and "-" buttons adjust the quantity, while the keyboard sets the exact value.
       final box = tester.getRect(find.byType(Slider));
       final before = _theSlider(tester).value;
       await tester.dragFrom(box.center - const Offset(30, 0),
@@ -433,13 +433,13 @@ void main() {
       expect(find.text('22 min'), findsWidgets);
       await capture(tester, '07_prise_saisie');
 
-      // Diagnostic : le bouton est-il armé ? (sinon le tap ne fait rien et le
-      // silence n'est pas un enregistrement.)
+      // Diagnosis: Is the button armed? (If not, the trigger will not activate, and...)
+      // (Silence does not indicate a recording.)
       final confirmFinder = find.text('Confirmer');
       expect(confirmFinder, findsOneWidget);
-      // La feuille défile : sans `ensureVisible` le tap part dans le vide
-      // hors viewport et le bouton, pourtant armé, ne se presse pas — c'est
-      // ce qui a fait échouer cette étape trois exécutions durant.
+      // The sheet scrolls: without `ensureVisible`, the tap gesture goes into empty space.
+      // outside the viewport, and the button, although armed, doesn't trigger immediately – it's...
+      // This is what caused this stage to fail after three attempts.
       await tester.ensureVisible(confirmFinder);
       await tester.pumpAndSettle();
       final button = tester.widget<ElevatedButton>(
@@ -458,16 +458,16 @@ void main() {
       print('[GATE] base après enregistrement → '
           '${rows.map((r) => '${r.type}/${r.unit}/${r.quantity}').join(', ')}');
 
-      // Le document exporté, relu ici : c'est le même contenu que l'app
-      // confie au panneau de partage, et une section absente ne se signale
-      // pas à l'écran.
+      // The exported document, reviewed here, contains the same content as the app.
+      // It relies on the sharing panel, and a missing section will not be indicated.
+      // not on the screen.
       final source = await ExportRepositoryImpl(
         database: _liveDb!,
         encryption: _liveEncryption,
       ).buildExportJson();
-      // Le document est aussi écrit dans le Documents de l'app : c'est la
-      // preuve exportable de ce que le panneau de partage aurait reçu
-      // (sorti du bac à sable comme les captures).
+      // The document is also included in the app's documentation; that's where you can find it.
+      // proof that can be exported, showing what the sharing panel would have received.
+      // (emerged from the sandbox, just like the screenshots).
       final gateDir =
           io.Directory('${(await getApplicationDocumentsDirectory()).path}/gate');
       await gateDir.create(recursive: true);
@@ -478,8 +478,8 @@ void main() {
 
       expect(doc.containsKey('measurements'), isTrue,
           reason: 'une table exportée sans être listée est une sauvegarde fausse');
-      // Preuve lisible dans le journal avant l'assertion : ce que le document
-      // contient vraiment, ligne par ligne.
+      // Evidence that can be found in the newspaper before the statement: this is what the document...
+      // It truly contains, line by line.
       print('[GATE] export lignes → '
           '${events.map((e) => '${e['type']}/${e['unit']}/${e['quantity']}').join(', ')}');
       expect(
@@ -498,10 +498,10 @@ void main() {
       await tester.tap(findByKey(TestKeys.historyTab));
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
-      // La sieste du fixture porte 95 min dans `quantity` ET `duration`
-      // (comme l'app l'écrit en vrai) ; la tuile ne doit les rendre qu'une
-      // fois, avec le libellé naturel d'un dodo — et la date de la tuile la
-      // plus récente est sur sa propre ligne (pas « 13/10/2026 21:32 » en
+      // The fixture nap carries 95 min in BOTH `quantity` AND `duration`
+      // (as the app actually states); the tiles should only make them a pair.
+      // Sometimes, with the straightforward description of a "goodnight" message – and the date of the unfortunate incident.
+      // The most recent entry is on its own line (not "13/10/2026 21:32" followed by...).
       // bloc unique).
       expect(find.text('Durée: 95 min'), findsOneWidget);
       expect(find.text('Quantité: 95 min'), findsNothing);

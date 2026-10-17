@@ -4,7 +4,7 @@ enum TrackingType {
   caca,
   dodo;
 
-  /// Convertit le type en une chaîne lisible pour l'UI si nécessaire
+  /// Converts the data type into a human-readable string for the user interface, if necessary.
   String get label {
     switch (this) {
       case TrackingType.miam: return 'Miam';
@@ -14,14 +14,14 @@ enum TrackingType {
     }
   }
 
-  /// Convertit une chaîne en enum (utile pour la parsing depuis le DB ou l'UI)
+  /// Converts a string into an enumeration (useful for parsing data from a database or user interface).
   static TrackingType fromString(String value) {
     return switch (value.toLowerCase()) {
       'miam' => TrackingType.miam,
       'santé' || 'sante' => TrackingType.sante,
       'caca' => TrackingType.caca,
       'dodo' => TrackingType.dodo,
-      _ => TrackingType.miam, // Valeur par défaut sécurisée
+      _ => TrackingType.miam,       // Secure default value.
     };
   }
 }

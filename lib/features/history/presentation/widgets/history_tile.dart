@@ -10,7 +10,7 @@ import '../../../../shared/domain/entities/tracking_icons.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../../shared/utils/stool_texture_label_resolver.dart';
 
-/// Tile affichant un événement dans l'historique.
+/// Tile displaying an event in the history.
 class HistoryTile extends StatelessWidget {
   const HistoryTile({
     required this.event,
@@ -20,7 +20,7 @@ class HistoryTile extends StatelessWidget {
   });
 
   final TrackingEvent event;
-  final String time; // formaté en dd/MM/yyyy HH:mm
+  final String time;   // formatted as dd/MM/yyyy HH:mm.
   final VoidCallback? onTap;
 
   String _typeLabel(BuildContext context) {
@@ -152,16 +152,16 @@ class HistoryTileSubtitle extends StatelessWidget {
     );
   }
 
-  /// Nombre et unité de la ligne, tous deux lus **de la ligne**.
+  /// The number and unit of the line, both read **from the line**.
   ///
-  /// `null` = pas de quantité (couche, soin, **sommeil**). L'unité vient de
-  /// `event.unit` (v12) et non d'un littéral du widget : c'est le défaut que
-  /// cette version supprime — afficher « ml » à côté d'une tétée de 20 minutes.
+  /// `null` = no quantity (layer, care, **sleep**). The unit is derived from...
+  /// `event.unit` (v12) and not a literal value from the widget: this is the default behavior.
+  /// This version removes the display of "ml" next to a feeding session that lasts 20 minutes.
   ///
-  /// Le sommeil ne produit pas de ligne ici : l'app enregistre les minutes de
-  /// la sieste dans **`quantity` ET `duration`** (même valeur, cf. home_screen),
-  /// et la ligne « Durée » les rend déjà. Afficher aussi « Quantité : 45 min »
-  /// répétait le même nombre sous deux libellés ; « Durée » est le libellé
+  /// Sleep tracking doesn't generate any data points here; the app only records the minutes of sleep.
+  /// The nap duration is specified in both **`quantity`** and **`duration`** (they have the same value, see the home screen).
+  /// and the "Duration" field already displays this information. Also, show "Quantity: 45 min".
+  /// It repeated the same number under two different labels; "Duration" is the label.
   /// naturel d'une sieste.
   (double, QuantityUnit)? _quantityRowData() {
     final event = this.event;
@@ -248,9 +248,9 @@ class HistoryTileSubtitle extends StatelessWidget {
     }
   }
 
-  /// Ligne de consistance, affichée seulement si la couche en porte une (les
-  /// changes enregistrés avant cette option n'en ont pas et n'en reçoivent pas
-  /// par défaut).
+  /// Consistency line, displayed only if the layer has one (plural).
+  /// Changes made before this option was enabled are not affected by it and will not be affected in the future.
+  /// by default).
   Widget _buildTexture(BuildContext context) {
     final event = this.event;
     if (event is! DiaperEvent || event.stoolTexture == null) {
@@ -335,16 +335,16 @@ class HistoryTileTrailing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Date sur deux lignes : `formatDate` sépare toujours la date et l'heure
-    // par une **seule** espace (en `MM/dd/yyyy hh:mm a`, fr/es
-    // `dd/MM/yyyy HH:mm`), et le jeton de date ne contient jamais d'espace.
-    // Le premier jeton est donc la date, le reste l'heure.
+    // Date format (two lines): The `formatDate` function always separates the date and time.
+    // using a **single** space (in `MM/dd/yyyy hh:mm a` format, for French/Spanish).
+    // `dd/MM/yyyy HH:mm`), and the date token never contains any spaces.
+    // Therefore, the first element is the date, and the rest represents the time.
     //
-    // La v1.2.1 a remis les minutes dans les dates anglaises (« 09:32 PM » au
-    // lieu de « 09:PM ») : sur la plus petite cible (Small_Phone, 360 dp) en
-    // anglais, la date sur une seule ligne tenait plus large que la place
-    // restante et la ligne du titre débordait de 12 px (« Feedin… »). Deux
-    // lignes ramènent la largeur du bloc à celle de la date seule.
+    // Version 1.2.1 has restored the minutes to the English date format ("09:32 PM," etc.).
+    // (instead of "09:PM"): on the smallest target (Small_Phone, 360 dp) in...
+    // English: The date, displayed on a single line, was too wide for the available space.
+    // The remaining text was cut off, and the title line extended beyond the visible area by 12 pixels ("Feedin…"). Two.
+    // These settings adjust the width of the block to match the width of the date alone.
     final parts = time.split(' ');
     final datePart = parts.first;
     final timePart = parts.length > 1 ? parts.sublist(1).join(' ') : '';

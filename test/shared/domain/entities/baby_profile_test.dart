@@ -1,4 +1,4 @@
-// ignore_for_file: lines_longer_than_80_chars // Tests des propriétés et méthodes de BabyProfile
+// ignore_for_file: lines_longer_than_80_chars // Tests for the properties and methods of the BabyProfile class.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';

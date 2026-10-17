@@ -5,7 +5,7 @@ import '../../../../core/providers/encryption_provider.dart';
 import '../../data/repositories/history_repository_impl.dart';
 import '../../domain/repositories/history_repository.dart';
 
-/// Le repository dépend de la DB asynchrone et du chiffrement asynchrone → FutureProvider.
+/// The repository relies on asynchronous database operations and asynchronous encryption, utilizing the `FutureProvider`.
 final historyRepositoryProvider = FutureProvider<HistoryRepository>(
   (ref) async {
     final encryption = await ref.read(encryptionServiceProvider.future);

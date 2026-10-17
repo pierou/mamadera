@@ -36,10 +36,10 @@ void main() {
         ],
       );
 
-  /// L'accueil écoute `reminderNotifierProvider` en permanence ; un test qui s'en
-  /// passe ne reçoit jamais de réponse : le notifieur attend, en `ref.read`, un
-  /// service `autoDispose` que rien ne maintient vivant pendant son chargement.
-  /// Les tests de pastilles branchent donc l'auditeur que l'app tient déjà.
+  /// The `reminderNotifierProvider` listener is constantly active; a test to verify this.
+  /// The "passe" (presumably a command or function) never receives a response: the notifier waits, in the "read" mode, for a...
+  /// the `autoDispose` service, which is not kept alive during its loading process.
+  /// These "prompt" tests essentially engage the listener that the app already has.
   void watchPills(ProviderContainer c) =>
       c.listen(reminderNotifierProvider, (_, __) {});
 
@@ -92,8 +92,8 @@ void main() {
     });
 
     test('an unknown item id in the settings table changes nothing', () async {
-      // Une ligne orpheline (rappel supprimé d'une version à l'autre, restauration
-      // d'une sauvegarde plus ancienne) ne doit pas faire disparaître les autres.
+      // A line that was unintentionally removed (its reminder was deleted between versions, and is now being restored).
+      // (of an older backup) should not cause the others to be deleted.
       mockReminders.enabledById['old_reminder'] = false;
 
       final items = await container.read(enabledRemindersProvider.future);
@@ -122,7 +122,7 @@ void main() {
 
       expect(mockReminders.enabledById[ReminderItemPresets.vitaminD.id], isFalse);
       expect(mockReminders.setEnabledCallCount, 1);
-      // Pas de rechargement : le switch ne doit pas revenir en arrière une frame.
+      // No back-tracking: the switch must not move backward by even a single frame.
       expect(
         container.read(reminderSettingsProvider).value,
         {ReminderItemPresets.vitaminD.id: false},
@@ -207,8 +207,8 @@ void main() {
 
       final item = (await container.read(customReminderItemsProvider.future)).single;
 
-      // La clé est l'identifiant de ligne, pas le libellé : le parent peut
-      // renommer son rappel sans orpheliner son extinction ni son rang.
+      // The key is the line identifier, not the label: the parent can...
+      // Rename the reminder without losing its expiration date, deletion status, or priority level.
       expect(item.id, 'custom_1');
       expect(item.labelKey, 'Crème du change');
       expect(item.subtypeValue, 'nettoyage_nez');
@@ -216,8 +216,8 @@ void main() {
     });
 
     test('a monthly reminder rings on the birth day of the active baby', () async {
-      // Le jour n'est pas la propriété du rappel : comme la vitamine K, il suit
-      // le bébé actif, et changer de bébé décale le rappel avec lui.
+      // The day does not belong to the recall; like vitamin K, it follows [a certain process/pathway].
+      // The baby is active, and switching to a different baby postpones the reminder associated with the first baby.
       storeCream(label: 'Bilan du mois');
       mockReminders.customRemindersById[1] = cream(
         id: 1,
@@ -271,7 +271,7 @@ void main() {
       final notifier = container.read(customRemindersProvider.notifier);
       final key = await notifier.create(cream());
 
-      // La clé rendue est celle que l'écran Réglages va utiliser pour le switch.
+      // The key provided will be used by the Settings screen for the switch.
       expect(key, 'custom_1');
       expect(mockReminders.customRemindersById[1]?.label, 'Crème du change');
       expect(container.read(customRemindersProvider).value, hasLength(1));
@@ -302,8 +302,8 @@ void main() {
       await container.read(customRemindersProvider.notifier).remove(1);
 
       expect(mockReminders.customRemindersById, isEmpty);
-      // Pas seulement vidé en base : l'écran Réglages doit relire la table, sinon
-      // son switch montrerait une position pour un rappel qui n'existe plus.
+      // Not just clearing the data in the database: the "Settings" screen needs to reread the table, otherwise...
+      // Its switch would indicate a setting for a feature that no longer exists.
       expect(
         await container.read(reminderSettingsProvider.future),
         isNot(contains('custom_1')),
@@ -317,9 +317,9 @@ void main() {
       final before = await container.read(reminderNotifierProvider.future);
       expect(before[TrackingType.sante]?.map((s) => s.item.id), contains('custom_1'));
 
-      // Le mock répond à la place de la table des événements : le soin associé a
-      // été enregistré à l'instant. L'accueil, lui, appelle `refresh()` après
-      // chaque soin tracé — c'est ce chemin de production que ce test vérifie.
+      // The mock object serves as a substitute for the event table; it represents the care associated with.
+      // The event was recorded just now. The "welcome" component, on the other hand, calls the `refresh()` function afterward.
+      // Each production process step – that is, the specific sequence of operations – is what this test verifies.
       mockReminders.lastCompletedByItem['custom_1'] = DateTime.now();
       await container.read(reminderNotifierProvider.notifier).refresh();
 

@@ -112,8 +112,8 @@ class EventDateTimeField extends StatelessWidget {
                   Icon(Icons.calendar_today,
                       size: 20, color: theme.colorScheme.primary),
                   const SizedBox(width: 12),
-                  // Expanded + ellipsis : la ligne est aussi utilisée dans des
-                  // feuilles étroites, un Spacer la ferait déborder.
+                  // Expanded + ellipsis: This line is also used in...
+                  // Narrow leaves; a spacer would cause it to overflow.
                   Expanded(
                     child: Text(
                       formatDate(context, value),

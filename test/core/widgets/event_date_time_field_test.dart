@@ -40,7 +40,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  /// Ouvre le sélecteur de date/heure en tapant sur la ligne.
+  /// Tap on the line to open the date/time selector.
   Future<void> openPicker(WidgetTester tester) async {
     await tester.tap(find.byType(EventDateTimeField));
     await tester.pumpAndSettle();
@@ -100,7 +100,7 @@ void main() {
         matching: find.text('20'),
       ));
       await tester.pumpAndSettle();
-      await tapText(tester, 'OK'); // → sélecteur d'heure
+      await tapText(tester, 'OK');       // → time selector
       expect(find.byType(TimePickerDialog), findsOneWidget);
       await tapText(tester, 'Annuler');
 
@@ -118,8 +118,8 @@ void main() {
       await tester.pumpAndSettle();
       await tapText(tester, 'OK');
 
-      // Le sélecteur d'heure démarre sur l'heure courante du champ (08:05) :
-      // le valider telle quelle doit renvoyer le jour choisi + cette heure.
+      // The time selector defaults to the current time in the field (08:05):
+      // To confirm it, the system must send a notification on the chosen date and time.
       await tapText(tester, 'OK');
 
       expect(selected, DateTime(2026, 3, 20, 8, 5));
@@ -127,8 +127,8 @@ void main() {
 
     testWidgets('une valeur hors intervalle ouvre quand même le sélecteur',
         (tester) async {
-      // Timestamp antérieur à firstDate : sans bornage initial, showDatePicker
-      // échoue son assertion et le tap ne se passe pas.
+      // Timestamp earlier than firstDate: If no initial date is set, display the date picker.
+      // The assertion fails, and the transaction is not completed.
       await pumpField(
         tester,
         value: DateTime(2000, 1, 1, 6, 0),

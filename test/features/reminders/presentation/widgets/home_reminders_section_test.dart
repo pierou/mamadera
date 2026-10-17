@@ -17,8 +17,8 @@ import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 import '../../data/repositories/mock_reminders_repository.dart';
 import '../providers/no_poll_reminders_notifier.dart';
 
-/// Notifier de bébé commutable en test : le parent passe d'un bébé à l'autre,
-/// et la liste des dus doit se ré-scoper.
+/// Switchable baby monitor for testing: allows parents to switch between monitoring different babies.
+/// and the list of duties needs to be redefined.
 class _SwitchableBabyNotifier extends ActiveBabyNotifier {
   _SwitchableBabyNotifier(this.profile);
 
@@ -33,7 +33,7 @@ class _SwitchableBabyNotifier extends ActiveBabyNotifier {
   Future<BabyProfile?> build() async => profile;
 }
 
-/// Un rappel personnalisé détaché (D2) : pas de soin, réglé à la main.
+/// A personalized, standalone reminder (D2): No treatment, manually adjusted.
 CustomReminder thermometer() => CustomReminder(
       id: 1,
       label: 'Thermomètre',
@@ -59,13 +59,13 @@ void main() {
     birthDate: DateTime(2024, 5, 2),
   );
 
-  /// Pompe la section et renvoie le container (teardown, ré-évaluation) et
-  /// le notifier de bébé (changement de bébé au milieu du test).
+  /// Analyze the section and return the container (deconstruction, re-evaluation), and...
+  /// notify of baby (change of baby during the test).
   ///
-  /// La chaîne de providers réelle est conservée — seuls le dépôt (faux, en
-  /// mémoire) et le notifier (sans timer de sondage) sont remplacés : c'est
-  /// ainsi que la liste des préréglages du bébé actif et les rappels custom
-  /// du dépôt montent ensemble à l'écran.
+  /// The actual chain of providers is maintained – only the deposit (which is a false entry) is removed.
+  /// The memory management and notification mechanisms (without polling timers) have been replaced.
+  /// and the list of settings for the "active baby" mode, as well as the custom reminders.
+  /// The data from the repository are displayed together on the screen.
   Future<(ProviderContainer, _SwitchableBabyNotifier)> pumpSection(
     WidgetTester tester, {
     required RemindersRepository repo,
@@ -76,8 +76,8 @@ void main() {
       overrides: [
         remindersRepositoryProvider.overrideWith((ref) async => repo),
         activeBabyProvider.overrideWith(() => babyNotifier),
-        // Pas de timer de sondage : il resterait en attente et ferait échouer
-        // l'invariant « no pending timer » du test de widget.
+        // No probe timer: it would remain in a waiting state and fail.
+        // The "no pending timer" invariant of the widget test.
         reminderNotifierProvider.overrideWith(NoPollRemindersNotifier.new),
       ],
     );
@@ -112,9 +112,9 @@ void main() {
       repo.customRemindersById[1] = thermometer();
       await pumpSection(tester, repo: repo, baby: babyA);
 
-      // Le titre porte le prénom du bébé actif (v1.2, message l10n avec
-      // placeholder) : l'ancienne attente exacte « Rappels à faire »
-      // décrivait l'état sans prénom, remplacé par celui de la chaîne.
+      // The title includes the baby's first name (version 1.2, with localization support).
+      // (placeholder): The previous, more precise feature: "Reminders to do."
+      // It described the state without a name, replacing it with the name of the channel.
       expect(find.text('Rappels de Anna à faire'), findsOneWidget);
       final rows = tester.widgetList<ReminderRow>(find.byType(ReminderRow));
       expect(
@@ -127,14 +127,14 @@ void main() {
           'custom_1',
         ],
       );
-      // Le libellé saisi par le parent s'affiche tel quel, jamais comme clé.
+      // The text entered by the parent is displayed exactly as it is, and never as a key or code.
       expect(find.text('Thermomètre'), findsOneWidget);
     });
 
     testWidgets('sans rappel dû : une ligne discrète, pas de titre ni de '
         'ligne (D1)', (tester) async {
       final repo = MockRemindersRepository();
-      // Tous les préréglages réglés aujourd'hui : plus rien à faire.
+      // All the settings have been configured today: there's nothing else to do.
       final now = DateTime.now();
       for (final id in const [
         'vitamine_d',
@@ -158,20 +158,20 @@ void main() {
       repo.manualCompletedByItem['custom_1'] = DateTime(2026, 9, 30, 8, 0);
       await pumpSection(tester, repo: repo, baby: babyA);
 
-      // Les préréglages quotidiens et le personnalisé partagent le rythme ;
-      // la vitamine K est mensuelle, au jour de naissance.
+      // The daily presets and the personalized settings share the same rhythm.
+      // Vitamin K is administered monthly, on the day of birth.
       expect(find.textContaining('Tous les jours'), findsNWidgets(4));
       expect(find.textContaining('Le 15 de chaque mois'), findsOneWidget);
-      // Le journal manuel date le dernier « fait » du personnalisé.
+      // The manual records the last "incident" involving personalized items.
       expect(find.textContaining('Dernière fois: 30/09/2026 08:00'),
           findsOneWidget);
-      // Les préréglages, sans événement, disent « Jamais fait ».
+      // The default settings, without any specific events configured, indicate "Never."
       expect(find.textContaining('Jamais fait'), findsNWidgets(4));
-      // Les actions ne sont pas les mêmes partout, et c'est voulu (D2) :
-      // « Fait » n'existe que sur le rappel détaché. Les quatre préréglages
-      // liés à un soin se règlent en suivant le soin — un bouton « Fait » sur
-      // leur ligne produirait un achèvement que le service ne lirait jamais,
-      // donc une case cochée pour rien.
+      // The actions are not the same everywhere, and that is intentional (D2):
+      // "Favorite" only exists in the detached recall mode. The four presets...
+      // Settings related to a specific treatment are adjusted within that treatment's settings – a "Done" button is located on...
+      // Their line of code would produce a result that the system would never actually process or display.
+      // So, a box ticked for no reason.
       expect(find.byTooltip('Ignorer ce rappel'), findsNWidgets(5));
       expect(find.byTooltip('Marquer comme fait'), findsOneWidget);
       expect(
@@ -195,8 +195,8 @@ void main() {
       final repo = MockRemindersRepository();
       await pumpSection(tester, repo: repo, baby: babyA);
 
-      // Même mise à jour du titre que plus haut : prénom du bébé actif
-      // dans le message l10n, jamais de concaténation.
+      // Same title update as above: Baby's name revealed.
+      // In the localization message, never use string concatenation.
       expect(find.text('Rappels de Anna à faire'), findsOneWidget);
       expect(find.byType(ReminderRow), findsNWidgets(4));
       expect(find.text('Vitamine D'), findsOneWidget);
@@ -226,7 +226,7 @@ void main() {
       expect(repo.lastRecordCompletionBabyId, babyA.id);
       expect(find.text('Thermomètre'), findsNothing);
 
-      // « Fait » n'a pas supprimé le rappel : on vide le journal et la
+      // "Done" did not cancel the recall: we are clearing the log and the...
       // ligne revient.
       repo.manualCompletedByItem.remove('custom_1');
       await container.read(reminderNotifierProvider.notifier).refresh();
@@ -239,8 +239,8 @@ void main() {
       final repo = MockRemindersRepository();
       await pumpSection(tester, repo: repo, baby: babyA);
 
-      // Pas de tap : l'affordance n'existe pas. C'est plus fort que « tap ne
-      // fait rien » — le parent ne peut même pas croire avoir réglé le rappel.
+      // No tap: the affordance doesn't exist. It's stronger than "tap" itself.
+      // "Did nothing" - the parent can't even believe they've resolved the recall issue.
       expect(
         find.descendant(
           of: rowFor('Vitamine D'),
@@ -254,7 +254,7 @@ void main() {
               'manuel fabriqué par le bouton');
       expect(find.text('Vitamine D'), findsOneWidget);
 
-      // Il garde de quoi se faire effacer de l écran.
+      // He still has a way to clear himself from the screen.
       expect(
         find.descendant(
           of: rowFor('Vitamine D'),
@@ -282,14 +282,14 @@ void main() {
       expect(repo.lastDismissBabyId, babyA.id);
       expect(find.text('Thermomètre'), findsNothing);
 
-      // Une heure après : toujours supprimé.
+      // One hour later: still deleted.
       repo.dismissedById['custom_1'] =
           DateTime.now().subtract(const Duration(hours: 1));
       await container.read(reminderNotifierProvider.notifier).refresh();
       await tester.pumpAndSettle();
       expect(find.text('Thermomètre'), findsNothing);
 
-      // Vingt-cinq heures après : de nouveau dû.
+      // Twenty-five hours later: the bill is due again.
       repo.dismissedById['custom_1'] =
           DateTime.now().subtract(const Duration(hours: 25));
       await container.read(reminderNotifierProvider.notifier).refresh();
@@ -315,7 +315,7 @@ void main() {
       expect(find.text('Thermomètre'), findsNothing);
       expect(repo.lastDismissBabyId, babyA.id);
 
-      // Le parent passe au bébé B : le rappel lui est dû, l'ignoré de A
+      // Parent B gives a reminder to baby B, which baby B remembers, while baby A ignores the reminder.
       // ne le concerne pas.
       babyNotifier.switchTo(babyB);
       await container.read(reminderNotifierProvider.future);

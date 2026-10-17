@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-// Le type de ligne Drift s'appelle aussi `CustomReminder` : on le masque au
-// profit de l'entité du domaine, seule nommée dans ce fichier.
+// The "Drift" line type is also known as `CustomReminder`: it is hidden by default.
+// profit of the entity within the domain, which is the only one named in this file.
 import 'package:mamadera/data/local/app_db.dart' hide CustomReminder;
 import 'package:mamadera/features/reminders/data/repositories/reminders_repository_impl.dart';
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
@@ -38,10 +38,10 @@ void main() {
       test(
           'a solid food event does not complete milk feeding reminders (exact subtype match)',
           () async {
-        // Un purée ne réhydrate pas un nouveau-né : les rappels miam matchent
-        // le sous-type EXACTEMENT (choix assumé, pas une omission — BACKLOG
-        // B1). Un match approximatif marquerait « nourri » et éteindrait les
-        // rappels d'un bébé mal nourri.
+        // A puree does not rehydrate a newborn baby: the "Miam" recall campaign is underway.
+        // the exact subtype (a deliberate choice, not an omission — BACKLOG).
+        // B1). A mediocre match would "feed" and extinguish the [something - the original text is incomplete].
+        // Recalls of malnourished infants.
         const miamNatural = ReminderItem(
           id: 'miam_natural',
           labelKey: 'miamNatural',
@@ -74,7 +74,7 @@ void main() {
               ),
             );
 
-        // Le purée règle uniquement le rappel « solide » — pas les laits.
+        // The puree setting only controls the "solid" portion of the meal—it doesn't affect the liquids.
         expect(await repository.getLastCompleted(miamSolid), isNotNull);
         expect(await repository.getLastCompleted(miamNatural), isNull);
         expect(await repository.getLastCompleted(miamArtificial), isNull);
@@ -193,10 +193,10 @@ void main() {
       });
 
       test('reads only profileless events when babyId is null', () async {
-        // L'état sans profil lit les événements posés avant tout profil
-        // (`baby_id IS NULL`) — jamais un événement d'un bébé : cette
-        // lecture « tous bébés » était la fuite entre bébés, côté
-        // préréglages liés à un soin.
+        // The stateless mode processes events before any specific user profile is loaded.
+        // (`baby_id IS NULL`) - never an event for a baby: this.
+        // The "all babies" reading group was a way for parents to connect with each other while their babies were together.
+        // Presets related to a treatment.
         final older = DateTime.now().subtract(const Duration(days: 5));
         final recent = DateTime.now().subtract(const Duration(days: 1));
         await database.into(database.trackingEvents).insert(
@@ -226,8 +226,8 @@ void main() {
 
     group('reminder settings (opt-out)', () {
       test('returns an empty map on a fresh database', () async {
-        // Table vide = personne n'a encore rien décoché, et donc tous les
-        // rappels sont activés. Ce n'est pas une erreur.
+        // Empty table = no one has selected anything yet, and therefore all the...
+        // The reminders are enabled. This is not a mistake.
         expect(await repository.getEnabledByItemId(), isEmpty);
       });
 
@@ -309,8 +309,8 @@ void main() {
               .getSingle();
 
           expect(stored.frequency, entry.key);
-          // Seul le roulement porte une longueur : les autres rythmes laissent
-          // la colonne à NULL, sinon une valeur parasite survivrait à un
+          // Only the drumbeat has a sustained length; the other rhythms fade away.
+          // set the column to NULL; otherwise, a spurious value would remain after the operation.
           // changement de rythme.
           expect(
             stored.intervalDays,
@@ -320,9 +320,9 @@ void main() {
 
         final read = await repository.getCustomReminders();
         expect(read, hasLength(4));
-        // Le jour de semaine et le jour du mois ne survivent pas volontairement
-        // au détour : le premier est un placeholder que `isDue` ignore, le second
-        // appartient au bébé et non au rappel. Un roulement, lui, est restitué
+        // Weekday and day-of-the-month designations don't survive intentionally.
+        // the round trip: the first is a placeholder that `isDue` ignores, the second
+        // It belongs to the baby, not to the recall process. A bearing, on the other hand, is returned.
         // exactement.
         expect(
           read.map((r) => r.frequency),
@@ -337,8 +337,8 @@ void main() {
         );
       });
 
-      // Le jour d'un rythme mensuel n'appartient pas au rappel : il suit la
-      // date de naissance du bébé actif. La base ne peut pas le détenir.
+      // The duration of a monthly cycle is not determined by a specific reminder; it follows a natural pattern.
+      // Date of birth of the active baby. The system cannot store this information.
       test(
           'a monthly reminder is stored without a day and read on the fallback day',
           () async {
@@ -360,9 +360,9 @@ void main() {
         );
       });
 
-      // Un code inconnu vient d'un JSON édité à la main ou d'une version future
-      // de l'app. Le jeter priverait le parent d'un rappel qu'il peut encore
-      // corriger : on redescend sur quotidien, le plus prudent.
+      // The unknown code likely originates from a manually edited JSON file or a future version.
+      // of the app. Deleting it would deprive the parent of a reminder that they can still...
+      // Correction: We're scaling back our plans, opting for a more cautious approach.
       test(
           'an unknown frequency code degrades to daily instead of dropping the row',
           () async {
@@ -373,8 +373,8 @@ void main() {
         expect(read.label, 'Rappel brut');
       });
 
-      // interval_days = 0 rendrait le rappel dû en permanence : l'écran
-      // d'accueil ne se vide plus jamais et le parent ne comprend pas pourquoi.
+      // `interval_days = 0` would ensure that the reminder is always due: the screen...
+      // The waiting room is constantly full, and the parent doesn't understand why.
       test('an unreadable interval falls back to a rolling week', () async {
         await insertRaw(frequency: 'every_n_days', intervalDays: 0);
 
@@ -398,14 +398,14 @@ void main() {
           () => repository.insertCustomReminder(reminder(label: 'x' * 61)),
           throwsA(isA<ArgumentError>()),
         );
-        // Aucune ligne parasites derrière les refus : le nom est validé avant
-        // l'écriture, pas après.
+        // No extraneous lines appear after a rejection: the name is validated beforehand.
+        // Writing, not afterwards.
         expect(await database.select(database.customReminders).get(),
             hasLength(1));
       });
 
-      // Le refus du libellé ne doit pas non plus être l'occasion de fuiter le
-      // texte saisi : c'est du texte de parent, pas une clé technique.
+      // The rejection of the wording should not also be an opportunity to leak the [information/document/details].
+      // This is parental text, not a technical key.
       test('a rejected label does not reach the error message verbatim',
           () async {
         const secret =
@@ -447,16 +447,16 @@ void main() {
         expect(read.single.label, 'Crème du change');
       });
 
-      // Le cœur de la suppression : trois tables sont touchées. Un réglage
-      // orphelin sous `custom_<id>` survivrait à chaque export et, plus grave,
-      // interdirait à un futur rappel portant le même identifiant de s'allumer.
+      // The core of the change involves three tables. A configuration adjustment is required.
+      // An orphan process with the identifier `custom_<id>` would survive each export operation, and, more seriously, ...
+      // It would prevent a future recall with the same identifier from being activated.
       test('deleting a reminder also deletes its setting and its dismissal',
           () async {
         final id = await repository.insertCustomReminder(reminder());
         final key = '${CustomReminderPresets.customIdPrefix}$id';
         await repository.setEnabled(key, enabled: false);
-        // Ligne d'extinction insérée à la main : les sauvegardes importées en
-        // contiennent, et la suppression doit les emporter.
+        // Manually inserted kill switch: imported backups.
+        // contain, and the removal process should prioritize those elements.
         await database.into(database.reminderDismissals).insert(
               ReminderDismissalsCompanion.insert(
                 itemId: key,
@@ -479,8 +479,8 @@ void main() {
 
         await repository.deleteCustomReminder(1234);
 
-        // Une suppression qui ne vise aucune ligne ne doit pas emporter les
-        // réglages des autres rappels.
+        // A deletion that doesn't target any specific line should not affect the...
+        // settings for other reminders.
         expect(await repository.getEnabledByItemId(), {'custom_99': false});
       });
 
@@ -494,10 +494,10 @@ void main() {
         );
         final key = 'custom_$id';
 
-        // Les trois tables satellites portent la clé du rappel : chacune doit
-        // mourir avec lui. `reminder_completions` aussi, parce que l'export lit
-        // cette table sans filtre — un achèvement orphelin serait écrit dans la
-        // sauvegarde, restauré, et réglerait un futur rappel reprenant cet id.
+        // The three satellite tables hold the key to the recall: each one must...
+        // to die with him. Also, `reminder_completions`, because the export reads...
+        // This unfiltered table – a sense of incompleteness would be evident in the...
+        // save, restore, and would schedule a future reminder using that same ID.
         await repository.setEnabled(key, enabled: false);
         await repository.recordCompletion(key, at: DateTime(2026, 3, 1));
         await repository.dismissReminder(key, at: DateTime(2026, 3, 2));
@@ -558,8 +558,8 @@ void main() {
       test(
           'an item without subtype is never settled by an event, even of its own type',
           () async {
-        // Le piège : un événement `sante` existe, du bon domaine, même du bon
-        // sous-type — mais l'item est détaché, il ne se règle qu'à la main.
+        // The trap: a "health" event exists, within a reputable domain, even a very good one.
+        // subtype – but the item is detached and can only be adjusted manually.
         final detached = ReminderItem(
           id: 'pedicure',
           labelKey: 'reminderPedicure',
@@ -613,7 +613,7 @@ void main() {
           () async {
         const presetId = 'vitamine_d';
 
-        // Éteint pour A, intact pour B.
+        // Off for A, functional for B.
         await repository.setEnabled(presetId, enabled: false, babyId: 'baby_a');
         expect(
             (await repository.getEnabledByItemId(babyId: 'baby_a'))[presetId],
@@ -623,14 +623,14 @@ void main() {
           isNot(contains(presetId)),
         );
 
-        // Ignoré pour A, le frère B n'est pas touché.
+        // Brother B is not affected, even though brother A was.
         await repository.dismissReminder(presetId, babyId: 'baby_a');
         expect(await repository.getLastDismissal(presetId, babyId: 'baby_a'),
             isNotNull);
         expect(await repository.getLastDismissal(presetId, babyId: 'baby_b'),
             isNull);
 
-        // Fait pour A, rien pour B.
+        // Made for A, nothing for B.
         await repository.recordCompletion(presetId, babyId: 'baby_a');
         expect(
           await repository.getLastManualCompletion(presetId, babyId: 'baby_a'),
@@ -641,7 +641,7 @@ void main() {
           isNull,
         );
 
-        // Une ligne par bébé par table : rien de partagé n'a été créé au
+        // One line per baby, per table: nothing was shared.
         // passage.
         expect(await database.getAllReminderSettings(), hasLength(1));
         expect(await database.getAllReminderDismissals(), hasLength(1));
@@ -654,14 +654,14 @@ void main() {
       test(
           "une ligne réglée sans profil ne s'applique à aucun bébé : le nouveau bébé part du défaut",
           () async {
-        // Ligne héritée d'une installation sans profil : écrite sans bébé.
+        // This line originates from an installation without a profile: it was written without using baby fonts.
         await repository.setEnabled('vitamine_d', enabled: false);
         expect((await database.getAllReminderSettings()).single.babyId, '');
 
-        // Lisible dans l'état sans profil…
+        // It's readable even without a profile.
         expect((await repository.getEnabledByItemId())['vitamine_d'], isFalse);
-        // …mais invisible pour un bébé créé après coup : son portage est
-        // vide, donc le préréglage reste activé par défaut.
+        // ...but it is invisible to a baby born later: its presence is.
+        // empty, so the preset remains active by default.
         expect(
           await repository.getEnabledByItemId(babyId: 'nouveau'),
           isNot(contains('vitamine_d')),
@@ -678,8 +678,8 @@ void main() {
             (await repository.getEnabledByItemId(
                 babyId: 'nouveau'))['vitamine_d'],
             isTrue);
-        // Le bébé « autre » ne lit ni sa propre ligne (absente) ni la ligne
-        // sans profil : défaut, donc activé.
+        // The "other" baby doesn't read either its own line (which is absent) or the line...
+        // without profile: this is a default setting, so it is enabled.
         expect(
           await repository.getEnabledByItemId(babyId: 'autre'),
           isNot(contains('vitamine_d')),
@@ -694,7 +694,7 @@ void main() {
           await repository.getLastDismissal('vitamine_d', babyId: 'bébé_tard'),
           isNull,
         );
-        // Mais il reste lisible dans l'état sans profil.
+        // However, it remains readable even without a profile.
         expect(await repository.getLastDismissal('vitamine_d'), isNotNull);
       });
 
@@ -712,13 +712,13 @@ void main() {
 
       test('a baby created later sees defaults, not another baby state',
           () async {
-        // Le premier a éteint Vit. D, l'a ignorée et l'a marquée faite.
+        // The first one turned off the Vitamin D, ignored it, and marked it as complete.
         await repository.setEnabled('vitamine_d', enabled: false, babyId: 'a');
         await repository.dismissReminder('vitamine_d', babyId: 'a');
         await repository.recordCompletion('vitamine_d', babyId: 'a');
 
-        // Le bébé b, créé après coup, n'hérite de rien : pas de réglage, pas
-        // d'ignoré, pas de réglage manuel.
+        // The "baby b" object, created afterward, inherits nothing: no settings, no...
+        // Ignored, no manual adjustment.
         expect(await repository.getEnabledByItemId(babyId: 'b'), isEmpty);
         expect(await repository.getLastDismissal('vitamine_d', babyId: 'b'),
             isNull);

@@ -29,7 +29,7 @@ void main() {
       final notifier = container.read(selectedFilterProvider.notifier);
 
       HistoryFilter.values.forEach(notifier.setFilter);
-      // Dernier filtre appliqué est le dernier de l'enum.
+      // The last filter applied is the last one in the enumeration.
       expect(
         container.read(selectedFilterProvider),
         HistoryFilter.values.last,

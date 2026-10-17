@@ -26,16 +26,16 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
   late DateTime _selectedDate;
   late AppLocalizations _locale;
 
-  /// Un `pop` a déjà été émis : un second en enlèverait une autre route du
-  /// navigator, et la feuille d'onboarding se fermerait sur un écran sans rapport.
+  /// A `pop` (likely referring to a traffic alert or notification) has already been issued; a second one would remove another route from consideration.
+  /// navigator, and the onboarding screen would close, displaying an unrelated screen.
   bool _closed = false;
 
-  /// Une sauvegarde est en cours : l'écoute de `anyBabyExistsProvider` ne doit
-  /// pas rendre la feuille avant qu'elle l'ait fait elle-même, avec le message de
-  /// succès — sinon une création réussie se termine en fermeture silencieuse.
+  /// A backup is in progress: listening to `anyBabyExistsProvider` should not...
+  /// Don't give the paper back to him until she has completed it herself, and include this message:
+  /// success – otherwise, a successful creation will end in a quiet closure.
   bool _saving = false;
 
-  /// Rend la feuille. [created] dit si un profil vient d'être créé ici.
+  /// "Sheet [created]" indicates whether a profile has just been created here.
   void _dismiss(bool created) {
     if (_closed || !mounted) return;
     _closed = true;
@@ -60,11 +60,11 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
   Widget build(BuildContext context) {
     _locale = context.l;
 
-    // Une restauration peut aboutir pendant que cette feuille est ouverte (import
-    // déclenché ailleurs, autre appareil). Son formulaire n'a plus de sens : il
-    // ajouterait un deuxième profil à une liste qui n'est plus vide. Elle se rend
-    // donc d'elle-même, sans message — la liste d'accueil qui se rafraîchit
-    // juste derrière explique l'affaire mieux qu'un texte.
+    // A restoration process can occur while this sheet is open (important).
+    // triggered elsewhere, on a different device). Its form no longer makes sense: it...
+    // It would add a second profile to a list that is no longer empty. She then...
+    // Therefore, it functions on its own, without any messages — it's a welcome screen that automatically updates.
+    // right behind explains the matter better than any text.
     ref.listen<AsyncValue<bool>>(anyBabyExistsProvider, (previous, next) {
       if (_saving) return;
       if (next.value ?? false) _dismiss(false);
@@ -175,9 +175,9 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
 
-    // Marquée avant la moindre écriture : les rafraîchissements qui suivent
-    // l'insertion déclenchent l'écoute posée dans `build()`, et elle ne doit pas
-    // prendre la main sur la fermeture de la sauvegarde.
+    // Marked before any writing: the refreshments that will follow.
+    // The inclusion triggers the listening process that is set up in the `build()` function, and it should not...
+    // take control of the shutdown process.
     _saving = true;
 
     try {
@@ -194,10 +194,10 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
         return;
       }
 
-      // Cette feuille n'existe que parce qu'aucun profil n'existait. Si la base en
-      // contient maintenant, un import a abouti pendant la saisie : insérer ne
-      // créerait pas « le premier bébé » mais le deuxième, sans que personne
-      // n'ait rien demandé — d'où la fermeture plutôt que l'écriture.
+      // This sheet only exists because no profile was found. If the database...
+      // Now contains: an import was completed during the capture: insert "not".
+      // It wouldn't create "the first baby," but rather the second, and no one...
+      // He didn't ask for anything—which is why the project was abandoned rather than completed.
       if (existingProfiles.isNotEmpty) {
         _dismiss(false);
         return;

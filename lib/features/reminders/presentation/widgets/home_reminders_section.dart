@@ -9,18 +9,18 @@ import '../../domain/entities/reminders_state.dart';
 import '../providers/reminder_providers.dart';
 import 'reminder_row.dart';
 
-/// La liste des rappels d'accueil (D1) : les rappels dus du bébé actif, sous
-/// les boutons de soin, en remplacement du compteur « +N » que la pastille ne
+/// The list of welcome reminders (D1): these are reminders for active babies, specifically those that are due.
+/// The care buttons replace the "+N" counter that the patch does not.
 /// permettait pas de lire.
 ///
-/// Préréglages d'abord, puis personnalisés dans l'ordre de création — l'ordre
-/// du notifieur, jamais réordonné ici. Sans rappel dû, la section se réduit à
-/// une ligne discrète : pas de carte, pas d'erreur.
+/// First, the presets, then the custom settings, in the order they were created – that's the order.
+/// from the notifier, never reordered here. Without any outstanding reminders, the section is reduced to...
+/// a discreet row: no card, no error.
 class HomeRemindersSection extends ConsumerWidget {
   const HomeRemindersSection({super.key});
 
-  /// Aplati la carte du notifieur en liste ordonnée ; vide en attente ou en
-  /// erreur — la pastille des boutons porte déjà l'état, et un spinner au
+  /// Flatten the notification map into an ordered list; display pending or processed items.
+  /// error — the button's status is already indicated, and a spinner is used to...
   /// milieu de l'accueil vaudrait moins que le silence.
   List<ReminderStatus> _due(
     AsyncValue<Map<TrackingType, List<ReminderStatus>>> reminders,
@@ -37,11 +37,11 @@ class HomeRemindersSection extends ConsumerWidget {
     final items = _due(ref.watch(reminderNotifierProvider));
     final theme = Theme.of(context);
 
-    // Le prénom du bébé actif passe par le placeholder du message l10n, jamais
-    // par concaténation : l'ordre des mots n'est pas universel.
-    // `watch` : le titre suit un changement de bébé. Sans bébé actif, le
-    // titre neutre « Rappels à faire » — pas de « null », pas de faux
-    // identité.
+    // The baby's name, which is dynamically inserted, goes through the l10n message placeholder, but never directly.
+    // by concatenation: the order of words is not universal.
+    // `watch`: The title refers to a change in the baby's condition. Without an active baby, the...
+    // Neutral title: "Things to remember" — no "null" values, no false information.
+    // identity.
     final babyName = ref.watch(activeBabyProvider).value?.name;
     final title = (babyName != null && babyName.trim().isNotEmpty)
         ? context.l.reminderListTitleFor(babyName)

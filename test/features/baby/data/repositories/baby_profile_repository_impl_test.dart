@@ -258,8 +258,8 @@ void main() {
         await repository.insertProfile(baby1);
         await repository.insertProfile(baby2);
 
-        // Rappels personnalisés : deux pour baby-001 (dont un détaché),
-        // un pour baby-002.
+        // Personalized reminders: two for baby-001 (including one separate reminder).
+        // One for baby-002.
         await database.into(database.customReminders).insert(
               db_app.CustomRemindersCompanion.insert(
                 id: const Value(1),
@@ -296,8 +296,8 @@ void main() {
                 enabled: true,
               ),
             );
-        // Le même rappel allumé pour l'autre bébé : la purge par clé touche
-        // TOUTES les portées, pas seulement celle du bébé supprimé.
+        // The same warning light illuminated for the other baby: the key touch sensor was malfunctioning.
+        // ALL the records, not just the ones related to the deleted baby.
         await database.into(database.reminderSettings).insert(
               db_app.ReminderSettingsCompanion.insert(
                 babyId: const Value('baby-002'),
@@ -319,7 +319,7 @@ void main() {
                 enabled: true,
               ),
             );
-        // Sentinelle partagée : elle ne doit jamais mourir avec un bébé.
+        // Shared sentinelle: it must never die with a baby.
         await database.into(database.reminderSettings).insert(
               db_app.ReminderSettingsCompanion.insert(
                 itemId: 'vitamine_k',
@@ -389,7 +389,7 @@ void main() {
                 recordedAt: DateTime(2026, 9, 1),
               ),
             );
-        // Mesure orpheline (babyId null) : ne se rattache à aucun profil.
+        // Orphaned record (babyId is null): This record is not associated with any profile.
         await database.into(database.measurements).insert(
               db_app.MeasurementsCompanion.insert(
                 id: const Value(3),
@@ -403,8 +403,8 @@ void main() {
         final deleted = await repository.deleteProfile('baby-001');
         expect(deleted, isTrue);
 
-        // Rappels personnalisés du bébé supprimé : leurs clés `custom_*`
-        // sont purgées partout, même sous la sentinelle partagée.
+        // Personalized baby reminders that have been deleted: their keys are `custom_*`.
+        // They are cleared everywhere, even under shared surveillance.
         final reminders = await database.getAllCustomReminders();
         expect(reminders.map((r) => r.id), containsAll(<int>[2]));
         expect(reminders.map((r) => r.id), isNot(contains(1)));
@@ -434,7 +434,7 @@ void main() {
         expect(completionKeys, isNot(contains(('', 'custom_1'))));
         expect(completionKeys, contains(('baby-002', 'custom_2')));
 
-        // Croissance : la mesure du bébé part avec lui, l'autre bébé et
+        // Growth: The measurement is taken with the baby, along with the other baby and...
         // l'orpheline restent.
         final measurements = await database.getAllMeasurements();
         expect(
@@ -454,7 +454,7 @@ void main() {
         await repository
             .insertProfile(babyProfileUpdated(baby2, isActive: true));
 
-        // Emma is active, switch to Léo.
+        // Emma is active, switch to `Léo`.
         await repository.setActiveProfile('baby-001');
 
         final leo = await repository.getActiveProfile();
