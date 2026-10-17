@@ -35,8 +35,8 @@ class _TestLocaleNotifier extends LocaleNotifier {
 void main() {
   late MockHistoryRepository mockRepository;
 
-  // Fixtures synthétiques (non-const car DateTime.utc n'est pas const)
-  // Utilisation de dates récentes pour éviter les erreurs de date picker (firstDate = now - 2 ans)
+  // Synthetic fixtures (not constant because DateTime.utc is not constant).
+  // Using recent dates to avoid date picker errors (firstDate = now - 2 years).
   final testEvents = [
     FeedingEvent(
       unit: QuantityUnit.ml,
@@ -296,10 +296,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 2 events → the date (ligne 1, partagée) et chaque heure (ligne 2)
-      // doivent être présents. La date et l'heure sont maintenant sur deux
-      // lignes (v1.2.1 : la date anglaise avec minutes débordait sur une
-      // seule ligne sur la plus petite cible).
+      // 2 events → the date (line 1, shared) and each hour (line 2).
+      // must be present. The date and time are now available on two [platforms/sources].
+      // lines (v1.2.1: the English date format was causing the minutes to overflow onto the next line).
+      // (only one line on the smallest target).
       expect(find.text('15/06/2025'), findsNWidgets(2));
       expect(find.text('08:00'), findsOneWidget);
       expect(find.text('09:30'), findsOneWidget);
@@ -545,7 +545,7 @@ void main() {
     });
 
     group('Frise unifiée — mesures', () {
-      /// Poids de 6180 g enregistré à 08:30 — entre le repas de 08:00
+      /// Weight of 6180 grams recorded at 8:30 AM – between the 8:00 AM meal.
       /// (testEvents[0]) et le sommeil de 09:30 (testEvents[1]).
       final weight = GrowthMeasurement(
         id: 42,
@@ -583,8 +583,8 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // La mesure est rendue par sa propre tuile, avec l'unité formatée
-        // (6180 g > 1000 → kg, séparateur décimal fr).
+        // The measurement is determined by its own tile, with a standardized format.
+        // (6180 g > 1000 → kg, using a French-style decimal separator).
         expect(find.byType(MeasurementHistoryTile), findsOneWidget);
         expect(find.text('Poids'), findsOneWidget);
         expect(find.text('6,18 kg'), findsOneWidget);
@@ -637,17 +637,17 @@ void main() {
   });
 }
 
-/// Notifier de filtre présélectionné sur « miam » — évite d'émuler le tap
-/// sur la puce pour tester l'exclusion des mesures.
+/// Set a pre-selected filter to "yum" – this prevents the need to simulate a tap.
+/// on the chip to test the exclusion of certain features.
 class _MiamFilterNotifier extends SelectedFilterNotifier {
   @override
   HistoryFilter build() => HistoryFilter.miam;
 }
 
-/// Fake sans base : le notifieur d'historique lit le repository de mesures
-/// même sous le filtre « tout » ; en test, la vraie usine attendrait des
-/// canaux (base, path_provider) qui ne répondent jamais et l'écran resterait
-/// en spinner indéfiniment.
+/// Fake without a basis: the historical data provider reads the measurement repository.
+/// even when using the "all" filter; in testing, the actual factory would be waiting for...
+/// channels (base, path_provider) that never respond, and the screen would remain stuck.
+/// It can spin indefinitely.
 class _FakeMeasurementRepository implements MeasurementRepository {
   _FakeMeasurementRepository({this.rows = const []});
 

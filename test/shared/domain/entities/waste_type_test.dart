@@ -25,7 +25,7 @@ void main() {
       expect(WasteType.fromDbValue('caca'), equals(WasteType.caca));
     });
 
-    // Accepte les variantes "les_deux" et "lesdeux". On teste le cas canonique.
+    // It accepts the variations "les_deux" and "lesdeux". It tests the standard case.
     test('"les_deux" → WasteType.lesDeux', () {
       expect(
         WasteType.fromDbValue('les_deux'),
@@ -49,7 +49,7 @@ void main() {
   });
 
   group('WasteType.fromDbValueOrDefault() – fallback caca', () {
-    // Quand la valeur est invalide (null, vide ou inconnue), on retombe sur caca.
+    // When the value is invalid (null, empty, or unknown), we end up with "caca" (which literally translates to "poop" but is often used as a derogatory term).
     test('valeur nulle → WasteType.caca par défaut', () {
       expect(
         WasteType.fromDbValueOrDefault(null),
@@ -71,7 +71,7 @@ void main() {
       );
     });
 
-    // Vérifie aussi que les valeurs valides ne sont pas écrasées.
+    // Also, make sure that valid values are not overwritten.
     test('"pipi" → WasteType.pipi (pas écrasé par le fallback)', () {
       expect(
         WasteType.fromDbValueOrDefault('pipi'),
@@ -88,7 +88,7 @@ void main() {
   });
 
   group('WasteType – round-trip dbValue → fromDbValue', () {
-    // Vérifie que chaque enum passe par la DB et revient intact.
+    // Please verify that each enumeration value is processed by the database and returns unchanged.
     test('pipi → "pipi" → pipi', () {
       expect(
         WasteType.fromDbValue(WasteType.pipi.dbValue),

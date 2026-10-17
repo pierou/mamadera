@@ -25,7 +25,7 @@ void main() {
   setUp(() async {
     mockAppDatabase = MockAppDatabase();
     mockEncryption = MockEncryptionService();
-    // Le mock de déchiffrement retourne la valeur brute pour les tests
+    // The decryption mock returns the raw value for testing purposes.
     when(mockEncryption.decrypt(any)).thenReturn('decrypted_notes');
 
     repository = HistoryRepositoryImpl(
@@ -62,7 +62,7 @@ void main() {
         when(mockAppDatabase.getAllEventsOrdered())
             .thenAnswer((_) async => [dbEvent1, dbEvent2]);
 
-        // Configure le mock pour retourner null sur decrypt(null) et la valeur brute sinon
+        // Configure the mock to return `null` when `decrypt` is called with `null` as input, and the raw value otherwise.
         when(mockEncryption.decrypt(null)).thenReturn(null);
         when(mockEncryption.decrypt('encrypted_notes_data'))
             .thenReturn('notes test');
@@ -71,7 +71,7 @@ void main() {
 
         expect(result, isA<List<entity.TrackingEvent>>());
         expect(result.length, 2);
-        // Les événements sont retournés tels quels par le mock
+        // The events are reproduced exactly as they appear in the mock environment.
         expect(result[0].id, 2);
         expect(result[0] is entity.SleepEvent, true);
         expect((result[0] as entity.SleepEvent).duration, 30.0);

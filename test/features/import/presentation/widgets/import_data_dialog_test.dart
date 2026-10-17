@@ -1,7 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
-// Tests du dialogue de restauration : la confirmation destructive doit passer
-// APRÈS que le parent a vu le contenu réel du fichier, et aucun détail
-// technique interne (exception, chemin, note) ne doit s'afficher.
+// Testing the restaurant dialogue: the destructive confirmation must be implemented.
+// After the parent has viewed the actual content of the file, and no details...
+// Internal techniques (exceptions, paths, notes) should not be displayed.
 
 import 'dart:convert';
 
@@ -26,8 +26,8 @@ const _cancel = 'Annuler';
 const _proceed = 'Restaurer';
 const _close = 'Fermer';
 
-/// Fake de chiffrement identité : le contenu des notes ne traverse que des
-/// variables de test, jamais le keychain.
+/// Identity encryption spoofing: the content of the notes only passes through...
+/// test variables, never the keychain.
 class _FakeEncryption extends EncryptionService {
   @override
   String encrypt(String plainText) => 'enc:$plainText';
@@ -40,8 +40,8 @@ class _FakeEncryption extends EncryptionService {
   }
 }
 
-/// Vrai repository instrumenté : compte les appels pour prouver que la
-/// phase d'avertissement ne déclenche AUCUN accès.
+/// Instrumented repository: it counts the calls to prove that the...
+/// The warning phase does not trigger any access.
 class _RecordingImportRepository extends ImportRepositoryImpl {
   _RecordingImportRepository(
       {required super.database, required super.encryption});
@@ -62,7 +62,7 @@ class _RecordingImportRepository extends ImportRepositoryImpl {
   }
 }
 
-/// Vrai repository dont la restauration échoue, pour le message d'échec.
+/// True repository, but restoration fails, displaying an error message.
 class _ThrowingRestoreRepository extends ImportRepositoryImpl {
   _ThrowingRestoreRepository(
       {required super.database, required super.encryption});
@@ -73,7 +73,7 @@ class _ThrowingRestoreRepository extends ImportRepositoryImpl {
   }
 }
 
-/// Un document JSON valide que le vrai repository accepte, avec les lignes que
+/// A valid JSON document that the actual repository will accept, including the following lines:
 /// le test veut imposer.
 Map<String, dynamic> validDocument({
   List<dynamic>? babyProfiles,
@@ -171,9 +171,9 @@ Map<String, dynamic> validDocument({
 
 String _jsonOf(Map<String, dynamic> document) => jsonEncode(document);
 
-/// Ouvre le dialogue sur une vraie base in-memory et un vrai
-/// `ImportRepositoryImpl` (ou le repository construit par le test), sans
-/// jamais toucher `FilePicker` : la lecture du fichier passe par la couture
+/// Open the dialogue on a truly in-memory basis and a genuine...
+/// `ImportRepositoryImpl` (or the repository created by the test), without...
+/// Never directly access the `FilePicker`: file reading must be done through the designated interface.
 /// `readBackup`.
 Future<AppDatabase> _pumpDialog(
   WidgetTester tester, {
@@ -184,8 +184,8 @@ Future<AppDatabase> _pumpDialog(
   final connection = LazyDatabase(NativeDatabase.memory);
   final database = AppDatabase(connection);
   addTearDown(database.close);
-  // Force onCreate pour que toutes les tables existent avant la première
-  // requête.
+  // Ensure that all tables exist before the first execution.
+  // query.
   database.select(database.reminderDismissals).get();
   final encryption = _FakeEncryption();
   final repository = buildRepository?.call(database, encryption) ??
@@ -221,10 +221,10 @@ Future<AppDatabase> _pumpDialog(
   return database;
 }
 
-/// L'analyse se passe dans un isolate de fond dont la réponse arrive sur la
-/// vraie boucle d'événements : `tester.runAsync` la fait arriver, à la
-/// différence d'un simple `pump` (horloge factice). On poll tant que la phase
-/// suivante n'est pas affichée, en bornant le temps réel.
+/// The analysis is performed within a background isolation chamber, and the resulting signal is received on the...
+/// True event loop: `tester.runAsync` triggers it, and it continues to run.
+/// The difference is simply that of a "dummy" clock. It continues to run as long as the phase...
+/// The next item is not displayed, as the real-time duration is limited.
 Future<void> _pumpUntil(WidgetTester tester, Finder finder) async {
   final deadline = DateTime.now().add(const Duration(seconds: 10));
   while (finder.evaluate().isEmpty && DateTime.now().isBefore(deadline)) {
@@ -287,7 +287,7 @@ void main() {
       await _pumpUntil(tester, _warningFinder());
       await tester.pump();
 
-      // Le dialogue est toujours monté, toujours sur la phase d'alerte.
+      // The discussion was always escalating, always reaching a point of heightened tension.
       expect(find.text(_title), findsOneWidget);
       expect(_warningFinder(), findsOneWidget);
       expect(find.text(_confirm), findsOneWidget);
@@ -341,7 +341,7 @@ void main() {
       );
 
       expect(find.text(_close), findsOneWidget);
-      // La base contient réellement les lignes du fichier.
+      // The database actually contains the lines of the file.
       final profiles = await database.getAllBabyProfiles();
       expect(profiles, hasLength(1));
       expect(profiles.single.id, 'baby_1');
@@ -391,8 +391,8 @@ void main() {
 
       expect(find.text(_title), findsNothing);
 
-      // Le document en attente a été jeté par l'annulation : un apply tardif,
-      // sans ré-inspection, ne peut plus rien restaurer.
+      // The pending document was discarded due to cancellation: a late application.
+      // Without a re-inspection, it can no longer be restored.
       final container = ProviderScope.containerOf(
         tester.element(find.text('ouvrir')),
         listen: false,
@@ -434,8 +434,8 @@ void main() {
 
     testWidgets('exportFormatVersion plus récente : message dédié',
         (tester) async {
-      // Le format 3 (v12, `unit` sur chaque événement) est celui de ce build :
-      // c'est le 4 qui est l'inconnu du futur.
+      // Format 3 (v12, with a `unit` field for each event) is the format used in this build:
+      // It's number 4 that represents the unknown of the future.
       await _pumpDialog(
         tester,
         readBackup: () async => _jsonOf(validDocument(formatVersion: 4)),
@@ -446,8 +446,8 @@ void main() {
 
     testWidgets("un fichier de format 1 (avant M4) se résume et restaure",
         (tester) async {
-      // Document 2 tronqué au format 1 : sections et clés de counts M4
-      // enlevées, c'est ce qu'écrivait réellement l'app précédente.
+      // Document 2, truncated to format 1: sections and M4 count keys.
+      // That's what the previous application actually displayed.
       final doc = validDocument(formatVersion: 1);
       doc.remove('measurements');
       doc.remove('reminderCompletions');
@@ -472,8 +472,8 @@ void main() {
             'Restauration terminée : 1 profil(s) et 1 événement(s)'),
       );
 
-      // Sections nouvelles absentes = vides ; les lignes existantes atterrissent
-      // dans la portée partagée.
+      // New sections that are missing will appear as blank; existing lines will be displayed correctly.
+      // within the shared scope.
       expect(await database.getAllMeasurements(), isEmpty);
       expect(await database.getAllReminderCompletions(), isEmpty);
       expect((await database.getAllCustomReminders()).single.babyId, '');
@@ -516,7 +516,7 @@ void main() {
           encryption: encryption,
         ),
       );
-      // Une ligne préexistante : elle doit survivre à l'échec.
+      // A pre-existing line: it must survive the failure.
       await database.insertEvent(TrackingEventsCompanion.insert(
         unit: 'min',
         type: 'dodo',
@@ -548,7 +548,7 @@ void main() {
         trackingEvents: [
           <String, dynamic>{
             'id': 1,
-            'type': 'bain', // type inconnu : tout le fichier est refusé
+            'type': 'bain',             // Unknown file type: the entire file is rejected.
             'timestampEpochSeconds': 1700000000,
             'notes': marker,
           },

@@ -7,9 +7,9 @@ import 'package:mamadera/core/services/encryption_service.dart';
 import 'package:mamadera/data/local/app_db.dart';
 import 'package:mamadera/features/export/data/repositories/export_repository_impl.dart';
 
-/// Fake de chiffrement déterministe : `enc:<texte>` → `<texte>`.
-/// Toute valeur commençant par `BAD:` (ou tout texte non chiffrable)
-/// déchiffre en null — cas clé perdue/rotée.
+/// Deterministic encryption spoof: `enc:<text>` → `<text>`.
+/// Any value that starts with `BAD:` (or any text that cannot be interpreted as a number).
+/// Decryption failed – key lost/rotated.
 class _FakeEncryption extends EncryptionService {
   @override
   String encrypt(String plainText) => 'enc:$plainText';
@@ -31,7 +31,7 @@ void main() {
     setUp(() async {
       final connection = LazyDatabase(NativeDatabase.memory);
       database = AppDatabase(connection);
-      // Déclenche la migration pour créer les tables avant toute lecture.
+      // Trigger the migration process to create the tables before any data is read.
       await database.select(database.reminderDismissals).get();
       encryption = _FakeEncryption();
       repository =
@@ -50,7 +50,7 @@ void main() {
           birthDate: 1700000000000, // millisecondes — nombre rond de l'audit
         ),
       );
-      // timestamp stocké en secondes → 1700000000000 ms = 1700000000 s
+      // timestamp stored in seconds → 1700000000000 ms = 1700000000 s.
       final timestamp =
           DateTime.fromMillisecondsSinceEpoch(1700000000000, isUtc: true);
       await database.insertEvent(
@@ -73,7 +73,7 @@ void main() {
           wasteType: const Value('caca'),
           color: const Value('meconium'),
           texture: const Value('pateuse'),
-          babyId: const Value(null), // row orpheline : doit être exportée
+          babyId: const Value(null),           // orphan row: must be exported.
         ),
       );
       await database.insertEvent(
@@ -99,7 +99,7 @@ void main() {
               intervalDays: const Value(3),
             ),
           );
-      // Rappel détaché (M4) : aucun soin lié, achèvement manuel.
+      // Loose recall (M4): No related care, manual completion.
       await database.into(database.customReminders).insert(
             CustomRemindersCompanion.insert(
               id: const Value(2),
@@ -109,14 +109,14 @@ void main() {
               frequency: 'weekly',
             ),
           );
-      // Le rappel éteint porte la clé de ce rappel personnalisé : c'est le
-      // couple qui doit se retrouver à la lecture, pas deux listes séparées.
+      // The reminder itself holds the key to this personalized reminder: it is the...
+      // A couple should be presented as a single entity, not as two separate lists.
       await database.customStatement(
         'INSERT INTO reminder_settings (item_id, enabled) VALUES (?, ?)',
         ['custom_1', 0],
       );
-      // Réglage scopé par bébé (M4) : la colonne baby_id doit survivre à
-      // l'export, pas se replier sur la sentinelle partagée.
+      // Scoped setting for baby (M4): The `baby_id` column must be preserved.
+      // Instead of focusing on internal collaboration, prioritize export activities.
       await database.customStatement(
         'INSERT INTO reminder_settings (baby_id, item_id, enabled) VALUES (?, ?, ?)',
         ['baby_1', 'vitamine_d', 1],
@@ -146,7 +146,7 @@ void main() {
                   .encrypt('Première pesée')), // nombre rond de l'audit
             ),
           );
-      // Mesure orpheline : l'export ne filtre jamais.
+      // Orphaned measure: the export function never filters.
       await database.into(database.measurements).insert(
             MeasurementsCompanion.insert(
               id: const Value(102),
@@ -156,7 +156,7 @@ void main() {
               recordedAt: timestamp,
             ),
           );
-      // Clé tournée : le chiffre part null, le flag le dit.
+      // Key turned: the counter starts at zero, as indicated by the flag.
       await database.into(database.measurements).insert(
             MeasurementsCompanion.insert(
               id: const Value(103),
@@ -205,8 +205,8 @@ void main() {
         expect((doc['measurements'] as List).length, 3);
         expect((doc['reminderCompletions'] as List).length, 2);
 
-        // Un tableau exporté dont le count divergerait serait une sauvegarde
-        // menteuse : les deux chiffres viennent de la même lecture.
+        // A table that is exported but has a different row count would be a backup.
+        // liar: both figures come from the same source.
         final declared = await repository.counts();
         expect(declared.customReminders, counts['customReminders']);
         expect(declared.reminderSettings, counts['reminderSettings']);
@@ -220,17 +220,17 @@ void main() {
         final doc = jsonDecode(await repository.buildExportJson())
             as Map<String, dynamic>;
 
-        // Format 3 (v12) : chaque événement porte son `unit`. Format 2 (M4)
-        // avait ajouté les deux nouvelles sections et les champs babyId ; un
-        // lecteur de ce build refuse au-dessus de 3, pas en dessous.
+        // Format 3 (v12): Each event has its own `unit`. Format 2 (M4).
+        // It added the two new sections and the `babyId` fields; a...
+        // The reader for this build only accepts values above 3, and no values below 3.
         expect(doc['exportFormatVersion'], 3);
         expect(doc['generator'], 'mamadera');
-        // Informationnel : suivi de la version réelle du schéma, pas un
-        // contrat de l'export (un bump de schéma ne doit pas casser ce test).
+        // Informational: Tracks the actual version of the schema, not a mock-up.
+        // export contract (a schema change should not break this test).
         expect(doc['databaseSchemaVersion'], database.schemaVersion);
         expect((doc['exportedAt'] as String).endsWith('Z'), isTrue);
         expect(doc.containsKey('appVersion'), isTrue);
-        // Jamais de clé, de préférence, de chemin ni d'identifiant d'appareil.
+        // Ideally, avoid using keys, paths, or device identifiers.
         expect(doc.containsKey('key'), isFalse);
         expect(doc.containsKey('preferences'), isFalse);
         final raw = await repository.buildExportJson();
@@ -254,8 +254,8 @@ void main() {
         expect(orphan.first['texture'], 'pateuse');
       });
 
-      // Une sauvegarde qui omet silencieusement une colonne n'en est pas une :
-      // toute ligne exportée porte la clé texture, null compris.
+      // A backup that silently omits a column is not a true backup.
+      // Every line exported includes the "texture" key, with a value of "null".
       test('la clé texture est présente sur toutes les lignes exportées',
           () async {
         await seedFullDatabase();
@@ -270,7 +270,7 @@ void main() {
           expect(event.containsKey('texture'), isTrue,
               reason: 'ligne ${event['type']} exportée sans la clé texture');
         }
-        // Une ligne sans consistance s'exporte en null explicite.
+        // A line without substance is exported as a null value.
         final sleep = events.firstWhere((e) => e['type'] == 'dodo');
         expect(sleep['texture'], isNull);
       });
@@ -302,7 +302,7 @@ void main() {
         expect(sleep['notes'], isNull);
         expect(sleep['notesUndecryptable'], isTrue);
 
-        // Ligne qui n'a JAMAIS eu de note : null sans flag, comme avant.
+        // This line has never received a rating: it's currently marked as "null," with no flags, just like before.
         final diaper = events.firstWhere((e) => e['type'] == 'caca');
         expect(diaper['notes'], isNull);
         expect(diaper.containsKey('notesUndecryptable'), isFalse);
@@ -335,14 +335,14 @@ void main() {
         final dismissals =
             (doc['reminderDismissals'] as List).cast<Map<String, dynamic>>();
 
-        // Trois lignes de réglages depuis que le rappel personnalisé seedé est
-        // éteint : on vise la préréglée par sa clé, pas par sa position.
+        // Three configuration options are available since the personalized reminder feature was implemented.
+        // extinguished: it is set using its key, not by its position.
         final sharedDismissal =
             dismissals.firstWhere((d) => d['itemId'] == 'vitaminK');
         expect(sharedDismissal['babyId'], '');
         expect(sharedDismissal['dismissedAtEpochSeconds'], 1700000000);
         expect(sharedDismissal['dismissedAtUtc'], '2023-11-14T22:13:20.000Z');
-        // La copie scopée porte le bébé, la partagée la sentinelle.
+        // The cloned individual carries the baby, while the shared individual acts as a guardian.
         final scopedSetting =
             settings.firstWhere((s) => s['itemId'] == 'vitamine_d');
         expect(scopedSetting['babyId'], 'baby_1');
@@ -359,8 +359,8 @@ void main() {
 
       test('un rappel éteint sort de la sauvegarde en false, pas effacé',
           () async {
-        // Depuis l'écran Réglages → Rappels, une ligne `enabled = 0` est le cas
-        // courant : SQLite la stocke en 0, une restauration doit retrouver false.
+        // From the Settings screen, specifically the Reminders section, if the line `enabled = 0` is present, it means that reminders are disabled.
+        // Currently: SQLite stores it as 0, so a restore operation should return "false".
         await database.customStatement(
           'INSERT INTO reminder_settings (item_id, enabled) VALUES (?, ?)',
           ['vitamine_d', 0],
@@ -376,9 +376,9 @@ void main() {
         expect((doc['counts'] as Map<String, dynamic>)['reminderSettings'], 1);
       });
 
-      // Un rappel personnalisé éteint est stocké sous la clé `custom_<id>` : si
-      // la ligne de définition n'est pas exportée, la clé ne pointe plus rien à
-      // la restauration et le rappel revient hanté.
+      // A personalized reminder that has been dismissed is stored under the key `custom_<id>`: if...
+      // The definition line is not being exported, and the key no longer points to anything.
+      // The restoration and recall process keeps coming back to haunt me.
       test(
           'l\'extinction d\'un rappel personnalisé reste rattachée à sa définition',
           () async {
@@ -401,8 +401,8 @@ void main() {
         );
       });
 
-      // Le rythme s'exporte en code brut, pas en libellé traduit : un fichier
-      // créé en français doit se relire à l'identique sur un téléphone espagnol.
+      // The rhythm is exported as raw code, not as a translated label: a file.
+      // Content created in French must be displayed identically on a Spanish phone.
       test(
           'le rythme d\'un rappel personnalisé s\'exporte en code brut, babyId et completionSource compris',
           () async {
@@ -422,7 +422,7 @@ void main() {
           'babyId': '',
           'completionSource': 'from_events',
         });
-        // Détaché : subtypeValue null est LA représentation d'un rappel sans
+        // Detached: The `subtypeValue` being null indicates that this is a reminder without a specific subtype.
         // soin (D2), et l'export ne l'invente pas en 'from_events'.
         expect(reminders.firstWhere((r) => r['id'] == 2), {
           'id': 2,
@@ -435,8 +435,8 @@ void main() {
         });
       });
 
-      // Un rythme mensuel n'a pas d'intervalle : la clé doit quand même être
-      // présente, pour qu'un lecteur de sauvegarde n'ait pas à deviner.
+      // A monthly rhythm doesn't have a defined interval; the key still needs to be...
+      // It is presented clearly so that a user restoring data doesn't have to guess.
       test(
           'un rappel mensuel exporte intervalDays null plutôt que d\'omettre la clé',
           () async {
@@ -477,7 +477,7 @@ void main() {
         expect(weight['recordedAtEpochSeconds'], 1700000000);
         expect(weight['recordedAtUtc'], '2023-11-14T22:13:20.000Z');
 
-        // Orpheline : null de babyId, exportée comme les événements orphelins.
+        // Orphaned: null babyId, exported as orphaned events.
         final height = rows.firstWhere((m) => m['id'] == 102);
         expect(height['babyId'], isNull);
         expect(height['notes'], isNull);
@@ -545,8 +545,8 @@ void main() {
         expect(jsonCounts['measurements'], 0);
         expect(jsonCounts['reminderCompletions'], 0);
         expect((doc['trackingEvents'] as List), isEmpty);
-        // Table vide exportée en tableau vide : une clé absente se lirait comme
-        // « ancienne version de l'app », pas comme « aucun rappel ».
+        // Empty table exported as an empty table: a missing key would be interpreted as...
+        // "Older version of the app," not like "no reminders."
         expect((doc['customReminders'] as List), isEmpty);
         expect((doc['measurements'] as List), isEmpty);
         expect((doc['reminderCompletions'] as List), isEmpty);

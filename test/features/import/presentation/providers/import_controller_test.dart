@@ -1,6 +1,6 @@
-// Tests du contrôleur d'import : le document inspecté doit être EXACTEMENT le
-// document restauré, un refus ne peut rien attendre ensuite, et le restore ne
-// doit jamais invalider `databaseProvider` (pas de deuxième connexion).
+// Import controller tests: the document being inspected must be EXACTLY the...
+// Once a document has been restored, any subsequent refusal cannot be overturned, and the restoration process itself cannot be challenged.
+// It should never invalidate the `databaseProvider` (no second connection should be established).
 
 import 'dart:convert';
 
@@ -24,8 +24,8 @@ import 'package:mamadera/shared/domain/entities/quantity_unit.dart';
 
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
-/// Fake de chiffrement identité : le contrôleur n'observe pas le chiffrement,
-/// il ne faut juste jamais toucher le keychain.
+/// Identity encryption spoofing: the controller does not detect the encryption.
+/// You should never, under any circumstances, touch the keychain.
 class _FakeEncryption extends EncryptionService {
   @override
   String encrypt(String plainText) => 'enc:$plainText';
@@ -40,13 +40,13 @@ class _FakeEncryption extends EncryptionService {
 
 AppDatabase _openDatabase() {
   final database = AppDatabase(LazyDatabase(NativeDatabase.memory));
-  // Force onCreate pour que toutes les tables existent avant la première
-  // requête.
+  // Ensure that all tables exist before the first execution.
+  // query.
   database.select(database.reminderDismissals).get();
   return database;
 }
 
-/// Un document analysé, typé, que le faux repository peut restituer.
+/// A document that has been analyzed and categorized, which the fake repository can return.
 ParsedExport _sampleParsed() => ParsedExport(
       babyProfiles: [
         const ImportedBabyProfile(
@@ -69,8 +69,8 @@ ParsedExport _sampleParsed() => ParsedExport(
           texture: null,
           babyId: 'baby_1',
           quantity: 100,
-          // Le fichier d'origine ne portait pas d'unité : le parseur nomme
-          // celle que le parent voyait (`natural` → ml), jamais il ne devine.
+          // The original file did not specify any units; the parser assigns them.
+          // The one the parent sees ("natural" → ml), they will never guess.
           unit: QuantityUnit.ml,
         ),
       ],
@@ -97,9 +97,9 @@ ParsedExport _sampleParsed() => ParsedExport(
       ],
     );
 
-/// Faux repository scripté : on décide à l'avance ce que l'analyse et la
-/// restauration renvoient ou lèvent, et chaque document remis à `restore` est
-/// capturé pour la vérification d'identité.
+/// Scripted fake repository: We predetermine what the analysis and...
+/// restoration commands either return or raise an exception, and each document passed to `restore` is.
+/// Captured for identity verification.
 class _ScriptedImportRepository extends ImportRepository {
   _ScriptedImportRepository({
     this.parseResult,
@@ -142,7 +142,7 @@ class _ScriptedImportRepository extends ImportRepository {
   }
 }
 
-/// Un document JSON valide, au format 2 (M4), que le vrai repository doit
+/// A valid JSON document, in format 2 (M4), which the actual repository must...
 /// accepter.
 Map<String, dynamic> validDocument() => <String, dynamic>{
       'exportFormatVersion': 2,
@@ -263,7 +263,7 @@ void main() {
       expect(container.read(importControllerProvider).value,
           isA<ImportRejected>());
 
-      // Le refus a jeté tout document en attente : aucun restore fantôme.
+      // The rejection cleared all pending documents; there were no "ghost" restores.
       final idle = await controller.applyRestore();
       expect(idle, const ImportIdle());
       expect(repository.restoreCalls, 0);
@@ -380,7 +380,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      // Une ligne ancienne qui doit disparaître au restore.
+      // An old line that needs to be removed during the restoration process.
       await database.insertEvent(TrackingEventsCompanion.insert(
         unit: 'min',
         type: 'dodo',
@@ -395,21 +395,21 @@ void main() {
       final outcome = await controller.applyRestore();
       expect(outcome, isA<ImportSuccess>());
 
-      // Un restore ne ferme ni ne supprime le fichier : invalider
-      // `databaseProvider` ouvrirait une deuxième connexion (et un deuxième
-      // isolate en arrière-plan) par restore, alors que ce contrôleur
-      // continuerait d'utiliser la première. La même instance doit donc
+      // A restore operation does not close or delete the file; it invalidates it.
+      // `databaseProvider` would open a second connection (and a second...
+      // isolate in the background) using the "restore" function, while this controller...
+      // would continue to use the first one. Therefore, the same instance should...
       // sortir du provider.
       final after = await container.read(databaseProvider.future);
       expect(identical(before, after), isTrue,
           reason: 'pas de deuxième connexion par restore');
 
-      // Les providers invalidés par le contrôleur re-lisent le contenu
-      // restauré, pas la ligne ancienne.
+      // The providers that have been invalidated by the controller will re-read the content.
+      // Restored, but not the original design.
       final history = await container
           .read(historyNotifierProvider(HistoryFilter.all).future);
-      // Frise unifiée : l'événement importé + la mesure importée (v12 :
-      // les mesures apparaissent dans le filtre « tout »).
+      // Unified timeline: imported event + imported measurement (version 12:).
+      // The measurements appear in the "all" filter.
       expect(history, hasLength(2));
       expect((history.first as EventHistoryRow).event.trackingType,
           TrackingType.miam);
@@ -417,7 +417,7 @@ void main() {
       final active = await container.read(activeBabyProvider.future);
       expect(active?.id, 'baby_1');
 
-      // Les deux tables de M4 ont traversé le restore, chiffre compris.
+      // Both M4 tables have been restored, including the data.
       final measurements = await database.getAllMeasurements();
       expect(measurements, hasLength(1));
       expect(measurements.single.value, startsWith('enc:'));

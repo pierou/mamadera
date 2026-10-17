@@ -7,7 +7,7 @@ import 'package:mamadera/data/local/tracking_event_mapper.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 import 'package:mamadera/shared/domain/entities/tracking_event.dart';
 
-/// Fake de chiffrement identité : le mapper n'utilise que decrypt().
+/// Identity encryption spoofing: the mapper only uses the `decrypt()` function.
 class _IdentityEncryption extends EncryptionService {
   @override
   String encrypt(String plainText) => plainText;
@@ -16,9 +16,9 @@ class _IdentityEncryption extends EncryptionService {
   String? decrypt(String? cipherText) => cipherText;
 }
 
-/// Test de régression : les rows legacy `les_deux` avec une seule partie de
-/// couleur ne doivent pas lever de TypeError dans le mapper (piège de
-/// précédence `??` vs `as`) et doivent être résolues vers le bon type.
+/// Regression test: The legacy rows named `les_deux` with only one part.
+/// The color values should not raise a TypeError within the mapping function (potential pitfall).
+/// The precedence (`??` vs. `as`) must be correctly resolved, and the result must be cast to the appropriate type.
 void main() {
   final encryption = _IdentityEncryption();
 
@@ -82,9 +82,9 @@ void main() {
       expect(diaper.stoolTexture, stoolTexturePateuse);
     });
 
-    // Une valeur lue en base qui ne fait pas partie de l\'échelle (version
-    // antérieure de l\'app, backup édité à la main) doit rester « aucune
-    // texture » plutôt que d\'être convertie au hasard vers un cran voisin.
+    // A value read in a specific base that does not fall within the defined range (version).
+    // (The previous version of the app, with manually edited backups) should remain set to "none."
+    // "texture" rather than being randomly converted to a neighboring setting.
     test('texture inconnue → null, jamais une texture par défaut', () {
       final row = drift.TrackingEvent(
         unit: 'ml',
@@ -101,8 +101,8 @@ void main() {
       expect(diaper.stoolTexture, isNull);
     });
 
-    // Les changes notées avant la v9 ont une colonne NULL : l\'écran ne doit
-    // rien inventer à leur sujet.
+    // Changes made before version 9 have a NULL column: the screen should not...
+    // Don't invent anything about them.
     test('column texture absente (lignes héritées) → null', () {
       final row = drift.TrackingEvent(
         unit: 'ml',

@@ -1,10 +1,10 @@
-/// Tests de l'entité CacaColor.
+/// Testing of the CacaColor entity.
 /// Couverture :
-/// - byValue() retourne la bonne instance pour chaque valeur DB connue (4)
-/// - byValue() retourne null pour null, vide et inconnu (1 combiné)
-/// - fromDbValue() retourne la bonne instance pour les valeurs connues (4)
-/// - fromDbValue() fallback sur cacaColorJauneMoutarde pour null, vide et inconnu (1 combiné)
-/// - .values contient exactement 4 éléments (1)
+/// - `byValue()` returns the correct instance for each known database value (4).
+/// - `byValue()` returns null for null, empty, and unknown values (1 combination).
+/// - `fromDbValue()` returns the correct instance for known values (4).
+/// - `fromDbValue()` falls back to `cacaColorJauneMoutarde` for null, empty, and unknown values (1 combination).
+/// - The `.values` attribute contains exactly 4 elements (1).
 library;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +12,7 @@ import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 
 void main() {
   group('CacaColor', () {
-    // ── byValue() retourne la bonne instance pour chaque valeur connue ────
+    // ── `byValue()` returns the correct instance for each known value. ────
     test("findCacaColorByValue('meconium') → cacaColorMeconium", () {
       expect(findCacaColorByValue('meconium'), equals(cacaColorMeconium));
     });
@@ -32,14 +32,14 @@ void main() {
       expect(findCacaColorByValue('jaune_clair'), equals(cacaColorJauneClair));
     });
 
-    // ── findCacaColorByValue() retourne null pour les entrées invalides ────────────────
+    // ── `findCacaColorByValue()` returns null for invalid inputs.
     test("findCacaColorByValue(null/''/'inconnu') → null", () {
       expect(findCacaColorByValue(null), isNull);
       expect(findCacaColorByValue(''), isNull);
       expect(findCacaColorByValue('inconnu'), isNull);
     });
 
-    // ── fromDbValue() retourne la bonne instance pour les valeurs connues ──
+    // ── `fromDbValue()` returns the correct instance for known values.
     test("findCacaColorFromDbValue('meconium') → cacaColorMeconium", () {
       expect(
         findCacaColorFromDbValue('meconium'),
@@ -54,7 +54,7 @@ void main() {
       );
     });
 
-    // ── findCacaColorFromDbValue() fallback sur [cacaColorJauneMoutarde] pour les entrées invalides ──
+    // ── The `findCacaColorFromDbValue()` function defaults to "[cacaColorJauneMoutarde]" for invalid entries. ──
     test("findCacaColorFromDbValue(null/''/'inconnu') → cacaColorJauneMoutarde", () {
       expect(
         findCacaColorFromDbValue(null),
@@ -70,7 +70,7 @@ void main() {
       );
     });
 
-    // ── cacaColors contient exactement 4 éléments ────────────────────────────
+    // ── cacaColors contains exactly 4 elements. ────────────────────────────
     test('cacaColors.length == 4', () {
       expect(cacaColors.length, equals(4));
     });

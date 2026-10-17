@@ -4,12 +4,12 @@ import 'package:mamadera/features/reminders/domain/entities/reminders_state.dart
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
-/// [RemindersNotifier] sans le sondage de cinq minutes : un timer périodique
-/// laissé en attente fait échouer les invariants des tests de widget
-/// (« A Timer is still pending »). La ré-évaluation passe par [refresh] et
-/// la réactivité de [build], comme en production : les actions des lignes
-/// (`markDone`/`snooze`, héritées) et le changement de bébé recalculent la
-/// liste des dus sans timer.
+/// [RemindersNotifier] without the five-minute survey: a periodic timer.
+/// Leaving it in a pending state causes the widget tests' invariants to fail.
+/// ("A timer is still pending"). The re-evaluation process involves [[refresh]ing] and...
+/// The responsiveness of [build], similar to that in production: the actions performed by the lines.
+/// (`markDone`/`snooze`, inherited) and the baby's age recalculate the...
+/// List of duties without a timer.
 class NoPollRemindersNotifier extends RemindersNotifier {
   NoPollRemindersNotifier({super.pollInterval = const Duration(minutes: 5)});
 
@@ -17,14 +17,14 @@ class NoPollRemindersNotifier extends RemindersNotifier {
   Future<Map<TrackingType, List<ReminderStatus>>> build() async {
     // Watch active baby — rebuilds when it changes (re-evaluates reminders).
     ref.watch(activeBabyProvider);
-    // Réactivité sur le service, comme le notifier réel : un réglage qui
-    // reconstruit la chaîne doit recalculer la liste sans sonnerie.
+    // Responsiveness in service, as well as accurate notifications: these are key features.
+    // To rebuild the chain, it must recalculate the list without the notification sound.
     await ref.watch(remindersServiceProvider.future);
     return _computeDue();
   }
 
-  /// Copie locale de l'évaluation du notifier réel (service + enrichissement
-  /// « dernière fois »), sans timer.
+  /// Local copy of the actual notification assessment (service + enhancements).
+  /// "last time"), without a timer.
   Future<Map<TrackingType, List<ReminderStatus>>> _computeDue() async {
     final service = await ref.read(remindersServiceProvider.future);
     final repository = await ref.read(remindersRepositoryProvider.future);
@@ -38,7 +38,7 @@ class NoPollRemindersNotifier extends RemindersNotifier {
     for (final status in statuses) {
       var lastEventAt =
           await repository.getLastCompleted(status.item, babyId: babyId);
-      // Un rappel détaché n'est loggé que dans le journal manuel.
+      // A detached reminder is only logged in the manual log.
       if (lastEventAt == null &&
           status.item.completionSource == completionManual) {
         lastEventAt = await repository.getLastManualCompletion(

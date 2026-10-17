@@ -7,8 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/data/local/app_db.dart';
 import 'package:mamadera/data/local/db_constants.dart' as db_const;
 
-/// Coquille [GeneratedDatabase] vide servant uniquement à exécuter du SQL brut
-/// sur un fichier, sans aucune table définie par drift.
+/// Empty [GeneratedDatabase] shell used solely for executing raw SQL queries.
+/// on a file, without any tables defined by Drift.
 class _RawSqlDatabase extends GeneratedDatabase {
   _RawSqlDatabase(super.e);
 
@@ -19,16 +19,16 @@ class _RawSqlDatabase extends GeneratedDatabase {
   int get schemaVersion => 10;
 }
 
-/// Régression de la migration v11 : re-clés des tables de rappels par bébé,
+/// Migration regression v11: Re-keying of recall tables by baby.
 /// reconstruction de `custom_reminders` (`subtype_value` nullable, `baby_id`,
-/// `completion_source`) et création de `measurements` + `reminder_completions`.
+/// `completion_source`) and creation of `measurements` and `reminder_completions`.
 ///
-/// Le risque n°1 n'est pas les tables neuves — ce sont les deux tables
-/// reconstruites : `reminder_settings` porte l'extinction de chaque rappel, et
-/// les ids de `custom_reminders` sont l'ancre de ces extinctions
-/// (`custom_<id>`). Les tests vérifient donc d'abord que les lignes anciennes
-/// survivent au copier-renommer, puis que la table reconstruite accepte des
-/// écritures sans collision d'ids, et enfin que la clé composite change
+/// The number one risk isn't new tables; it's the two tables.
+/// rebuilt: `reminder_settings` now includes the expiration time for each reminder, and
+/// The IDs of `custom_reminders` serve as the key to triggering these shutdowns.
+/// (`custom_<id>`). The tests first verify that the older lines...
+/// they survive the copy-rename operation, and then the rebuilt table can accept new...
+/// collision-free ID assignments, and finally, that the composite key changes.
 /// bien le comportement — le point entier de l'item M.
 void main() {
   late Directory tempDir;
@@ -38,7 +38,7 @@ void main() {
     tempDir = await Directory.systemTemp.createTemp('mamadera_migration_v11');
     dbFile = File('${tempDir.path}/mamadera_v10.db');
 
-    // Base v10 physique, telle que lib/data/local/schema.sql (v10) la décrit.
+    // Physical database structure, as described by the `lib/data/local/schema.sql` file (version 10).
     final raw = _RawSqlDatabase(NativeDatabase(dbFile));
     await raw.customStatement('''
       CREATE TABLE baby_profiles (
@@ -79,7 +79,7 @@ void main() {
         frequency     TEXT                              NOT NULL,
         interval_days INTEGER
       )''');
-    // Un préréglé éteint avant la mise à jour : il doit rester éteint après.
+    // A preset setting was turned off before the update: it should remain turned off after the update.
     await raw.customStatement(
       "INSERT INTO reminder_settings (item_id, enabled) VALUES ('vitamine_k', 0)",
     );
@@ -89,8 +89,8 @@ void main() {
     await raw.customStatement(
       "INSERT INTO reminder_settings (item_id, enabled) VALUES ('custom_7', 1)",
     );
-    // Rappel personnalisé à id explicite : cet id est l'ancre de la ligne
-    // 'custom_7' ci-dessus, il doit survivre à la reconstruction.
+    // Personalized reminder with explicit ID: this ID serves as the anchor for the line.
+    // "custom_7," as mentioned above, must survive the reconstruction process.
     await raw.customStatement(
       "INSERT INTO custom_reminders (id, label, subtype_value, frequency, interval_days) "
       "VALUES (7, 'Crème du nombril', 'nettoyage_nombril', 'every_n_days', 3)",
@@ -119,7 +119,7 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    // v12 s'ajoute au passage : le fichier monte jusqu'à la version courante.
+    // v12 is now available: the file has been updated to the latest version.
     expect(db.schemaVersion, equals(12));
 
     await db.into(db.measurements).insert(
@@ -147,9 +147,9 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    // L'extinction écrite avant la montée est conservée par la migration
-    // copier-renommer : une migration qui aurait recréé reminder_settings
-    // aurait rallumé tous les rappels coupés par le parent.
+    // The extinction rule, defined before the climb, is preserved through migration.
+    // copy-rename: a migration that would have recreated the `reminder_settings`.
+    // It would have reactivated all the reminders that the parent had previously disabled.
     final settings = await db.getAllReminderSettings();
     final vitamineK = settings.firstWhere((s) => s.itemId == 'vitamine_k');
     expect(vitamineK.babyId, equals(db_const.sharedBabyId));
@@ -161,7 +161,7 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    // Les ids sont recopiés explicitement : la clé d'extinction
+    // The IDs are explicitly copied: the kill switch key.
     // `custom_<id>` de reminder_settings s'y rapporte.
     final migrated = await db.getAllCustomReminders();
     expect(migrated, hasLength(1));
@@ -174,8 +174,8 @@ void main() {
     expect(migrated.single.completionSource,
         equals(db_const.completionFromEvents));
 
-    // Le piège AUTOINCREMENT : si la table reconstruite était repartie de 1,
-    // cette insertion collerait avec l'id 7 recopié.
+    // The AUTOINCREMENT trap: if the rebuilt table started counting from 1 again.
+    // This insertion should be linked to the ID number 7 that was copied.
     final newId = await db.into(db.customReminders).insert(
           CustomRemindersCompanion.insert(
             babyId: const Value(db_const.sharedBabyId),
@@ -199,7 +199,7 @@ void main() {
       expect(setting.babyId, equals(db_const.sharedBabyId));
     }
 
-    // La clé composite rejette une seconde ligne « partagée » du même
+    // The composite key rejects a second "shared" row from the same table.
     // rappel…
     await expectLater(
       db.into(db.reminderSettings).insert(
@@ -212,7 +212,7 @@ void main() {
       throwsA(anything),
     );
 
-    // …et accepte une ligne par bébé pour le même item : le point entier
+    // ...and please use one line per baby for each item: this will be considered the total quantity.
     // de l'item M.
     await db.into(db.reminderSettings).insert(
           ReminderSettingsCompanion.insert(
@@ -256,7 +256,7 @@ void main() {
     };
     expect(byBaby['baby_1|vitamine_k'], isFalse);
     expect(byBaby['baby_2|vitamine_k'], isTrue);
-    // La ligne « partagée » écrite avant la montée n'est pas touchée.
+    // The "shared" line written before the climb is not affected.
     expect(byBaby['|vitamine_k'], isFalse);
   });
 
@@ -268,8 +268,8 @@ void main() {
     expect(dismissals, hasLength(1));
     expect(dismissals.single.babyId, equals(db_const.sharedBabyId));
     expect(dismissals.single.itemId, equals('eye_cleaning'));
-    // drift relit les dates en zone locale : on compare l'instant, pas la
-    // représentation.
+    // Drift recalculates the dates based on the local time zone: it compares the current time, not the date itself.
+    // representation.
     expect(
       dismissals.single.dismissedAt.millisecondsSinceEpoch,
       equals(1768477800 * 1000),
@@ -281,7 +281,7 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    // Document de sauvegarde format 1, tel que l'exporteur v1.1.x l'écrit :
+    // Backup file in format 1, as written by the exporter version 1.1.x:
     // cinq sections, pas de measurements ni de reminderCompletions.
     const document = r'''
 {
@@ -317,10 +317,10 @@ void main() {
 ''';
     final decoded = jsonDecode(document) as Map<String, dynamic>;
 
-    // La restauration v11 de ce document suit la même forme que
-    // ImportRepositoryImpl au M4 : effacement complet, lignes de rappels
-    // insérées sur la sentinelle partagée, source d'achèvement par défaut
-    // 'from_events'. Les nouvelles tables restent vides : le document format
+    // The v11 revision of this document follows the same format as...
+    // ImportRepositoryImpl at M4: complete deletion, including reminder lines.
+    // inserted on the shared sentinel, serving as the default completion source.
+    // 'from_events'. The new tables remain empty: document format.
     // 1 ne porte pas de sections pour elles.
     await db.transaction(() async {
       await db.delete(db.customReminders).go();
@@ -368,8 +368,8 @@ void main() {
       }
     });
 
-    // Les sections neuves de l'export format 2 restent vides après
-    // restauration d'un fichier format 1.
+    // The new sections in the format 2 export remain empty after...
+    // Restoring a file in format 1.
     expect(await db.select(db.measurements).get(), isEmpty);
     expect(await db.select(db.reminderCompletions).get(), isEmpty);
 

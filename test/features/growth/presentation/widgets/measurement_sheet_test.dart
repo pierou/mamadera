@@ -14,7 +14,7 @@ import 'package:mamadera/features/home/presentation/widgets/quantity_picker_inli
 import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 
-/// Fake repo en mémoire : enregistre ce que la feuille lui envoie.
+/// In-memory fake repository: This stores the data that the sheet sends to it.
 class _FakeMeasurementRepository implements MeasurementRepository {
   final List<GrowthMeasurement> stored = [];
   GrowthMeasurement? lastAdded;
@@ -79,7 +79,7 @@ class _FakeMeasurementRepository implements MeasurementRepository {
   }
 }
 
-/// Notifier de test : liste fixe, sans dépendance à la base.
+/// Test notification: fixed list, independent of the database.
 class _TestMeasurementNotifier extends MeasurementNotifier {
   _TestMeasurementNotifier(this.measurements);
 
@@ -89,7 +89,7 @@ class _TestMeasurementNotifier extends MeasurementNotifier {
   Future<List<GrowthMeasurement>> build() async => measurements;
 }
 
-/// Bébé actif synchronise pour la feuille.
+/// Baby Active synchronizes with the sheet.
 class _TestActiveBabyNotifier extends ActiveBabyNotifier {
   @override
   Future<BabyProfile?> build() {
@@ -111,9 +111,9 @@ void main() {
       MeasureKind kind, {
       String locale = 'fr',
     }) async {
-      // La feuille se déploie en bottom sheet sur un téléphone : la vue de
-      // test est mise aux dimensions d'un téléphone moderne (412×915 dp),
-      // pas aux 800×600 par défaut qui n'ont jamais été sa surface cible.
+      // The sheet unfolds as a bottom sheet on a phone: the view of...
+      // The test is designed to fit the dimensions of a modern smartphone (412x915 dp).
+      // not at the default 800x600 resolution, which was never its intended target size.
       tester.view.physicalSize = const Size(412, 915);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -156,8 +156,8 @@ void main() {
       await pumpSheet(tester, MeasureKind.temperature);
       await tester.pumpAndSettle();
 
-      // Le champ part vide : une valeur pré-remplie serait une mesure
-      // inventée. L'appoint affiche la référence du type.
+      // The field is left blank: a pre-filled value would be considered a measurement.
+      // It was invented. The display shows the reference number of the type.
       expect(tester.widget<TextField>(valueField()).controller!.text, isEmpty);
       expect(find.text('37,0 °C'), findsOneWidget);
       expect(
@@ -173,7 +173,7 @@ void main() {
       await pumpSheet(tester, MeasureKind.poids);
       await tester.pumpAndSettle();
 
-      // Au-delà de 1000 g, l'affichage est en kg : l'appoint est « 3,5 kg ».
+      // For weights exceeding 1000 grams, the display shows the weight in kilograms: the additional weight is "3.5 kg."
       expect(find.text('3,5 kg'), findsOneWidget);
       expect(
         find.text('Valeur hors plage : entre 200 et 20000 g.'),
@@ -228,9 +228,9 @@ void main() {
       await pumpSheet(tester, MeasureKind.poids);
       await tester.pumpAndSettle();
 
-      // 99999 g n'est pas un poids de nouveau-né : le nombre saisi reste
-      // affiché tel quel (jamais clampé), la feuille révèle son erreur
-      // existante, et la sauvegarde est désactivée.
+      // 99999 g is not a valid weight for a newborn; the entered number will remain.
+      // Displayed as is (never clipped), the sheet reveals its error.
+      // existing, and the backup feature is disabled.
       await tester.enterText(valueField(), '99999');
       await tester.pumpAndSettle();
 
@@ -241,7 +241,7 @@ void main() {
       );
       expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNull);
 
-      // De retour dans la plage : l'erreur se lève, la sauvegarde se réactive.
+      // Back in the safe zone: the error is resolved, and the backup system is reactivated.
       await tester.enterText(valueField(), '3500');
       await tester.pumpAndSettle();
 
@@ -259,7 +259,7 @@ void main() {
       await pumpSheet(tester, MeasureKind.temperature);
       await tester.pumpAndSettle();
 
-      // 45 °C est au-dessus du maximum : même chemin que le poids.
+      // 45°C is above the maximum: the same principle applies as with weight.
       await tester.enterText(valueField(), '45');
       await tester.pumpAndSettle();
 
@@ -281,10 +281,10 @@ void main() {
       expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNotNull);
     });
 
-    // La virgule est le séparateur de la locale modèle (fr), mais l'app tourne
-    // dans les trois locales : « 37,4 » doit se parser sans erreur de plage
-    // partout. Le champ garde le texte saisi, l'affichage large est formaté
-    // dans la locale courante.
+    // The comma is used as the decimal separator for the French locale (fr), but the application still functions.
+    // In all three locations, the value "37.4" must be parsed without any range errors.
+    // everywhere. The field retains the entered text, and the wider display is formatted.
+    // in the usual location.
     for (final (tag, display) in const [
       ('en', '37.4 °C'),
       ('fr', '37,4 °C'),
@@ -300,8 +300,8 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text(display), findsOneWidget);
-        // Le seul ElevatedButton de la feuille est la sauvegarde : la valeur
-        // étant dans la plage, elle doit rester active.
+        // The only elevated button on the sheet is the "Save" button: its value.
+        // While she's on vacation, she needs to stay active.
         expect(find.byType(ElevatedButton), findsOneWidget);
         expect(
           tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
@@ -325,7 +325,7 @@ void main() {
       expect(fakeRepo.lastAdded!.kind, MeasureKind.poids);
       expect(fakeRepo.lastAdded!.unit, 'g');
       expect(fakeRepo.lastAdded!.notes, isNull);
-      // La feuille est fermée après enregistrement.
+      // The sheet is closed after saving.
       expect(find.byType(MeasurementSheet), findsNothing);
     });
 
@@ -370,9 +370,9 @@ void main() {
       await pumpSheet(tester, MeasureKind.temperature);
       await tester.pumpAndSettle();
 
-      // Un seul curseur, sur toute la plage 33–42 °C au pas de 0,1 : la
-      // précision du dixième vient du champ de saisie et du stepper ±, pas
-      // d'un second curseur (retiré — docs/BACKLOG.md B2).
+      // A single slider, covering the entire range of 33–42 °C with a step of 0.1: the...
+      // The precision to the tenth of a unit comes from the input field and the +/- stepper, not from something else.
+      // of a second cursor (removed - docs/BACKLOG.md B2).
       final slider = tester.widget<Slider>(find.byType(Slider));
       expect(slider.min, 33);
       expect(slider.max, 42);
@@ -381,8 +381,8 @@ void main() {
       await tester.enterText(valueField(), '37,4');
       await tester.pumpAndSettle();
 
-      // Trois endroits où un arrondi pourrait se glisser : l'affichage, la
-      // valeur transmise, et ce que le repository reçoit.
+      // Here are three places where a rounding error might occur: the display, the...
+      // the value that is passed, and what the repository receives.
       expect(find.text('37,4 °C'), findsWidgets);
 
       await tester.tap(saveButton());
@@ -410,13 +410,13 @@ void main() {
       expect(find.text('3500 g'), findsOneWidget);
     });
 
-    // ---- Réglages v1.2.1 — défauts signalés sur l'appareil (2026-10-13) ----
+    // ---- Settings v1.2.1 — Reported issues on the device (2026-10-13) ----
     //
-    // L'en-tête affiche « Dernière : 4,2 kg » dès l'ouverture, mais le curseur
-    // et les boutons ± démarraient sur la référence du type (3,5 kg / 37 °C) :
-    // le premier contact faisait donc sauter la valeur à un nombre que personne
-    // n'a mesuré. Ce qui est visé doit être à l'endroit visé — sans jamais
-    // pré-remplir le champ : une position de curseur n'est pas une saisie.
+    // The header displays "Last: 4.2 kg" as soon as it opens, but the slider...
+    // and the ± buttons were used to adjust the settings based on the reference values (3.5 kg / 37 °C):
+    // The initial contact therefore caused the value to jump to a number that no one...
+    // has been measured. The target must be precisely where it is intended to be — without ever...
+    // Pre-populate the field: a cursor position is not considered input.
 
     testWidgets(
         'weight: with a prior measurement, the slider and the steppers start on '
@@ -433,13 +433,13 @@ void main() {
       await pumpSheet(tester, MeasureKind.poids);
       await tester.pumpAndSettle();
 
-      // L'appoint montre bien la dernière mesure...
+      // The indicator clearly shows the latest measurement...
       expect(find.text('Dernière : 4,2 kg'), findsOneWidget);
-      // ...et c'est bien elle que le curseur vise.
+      // ...and that's precisely the one the cursor is targeting.
       expect(tester.widget<Slider>(find.byType(Slider)).value, 4200);
 
-      // Le contrat « jamais de valeur inventée » tient : champ vide et
-      // sauvegarde désactivée tant que le parent n'a rien saisi.
+      // The "no invented value" clause holds: empty field and...
+      // The save function is disabled as long as the parent hasn't entered any information.
       expect(tester.widget<TextField>(valueField()).controller!.text, isEmpty);
       expect(tester.widget<ElevatedButton>(saveButton()).onPressed, isNull);
 
@@ -496,7 +496,7 @@ void main() {
       await pumpSheet(tester, MeasureKind.poids);
       await tester.pumpAndSettle();
 
-      // Aucune mesure de poids : la référence du type reste le point de départ.
+      // No weight measurements are taken; the reference type serves as the starting point.
       expect(tester.widget<Slider>(find.byType(Slider)).value, 3500);
       expect(find.text('3,5 kg'), findsOneWidget);
     });
@@ -519,8 +519,8 @@ void main() {
       await tester.tap(saveButton());
       await tester.pumpAndSettle();
 
-      // La rangée d'accueil watche ce notifier : sans relecture à la sauvegarde,
-      // elle restait affichée sur l'ancienne valeur jusqu'à un changement de bébé.
+      // The welcome message displayed should indicate: "No automatic saving."
+      // It would remain displayed on the previous setting until a new baby was registered.
       final values = container.read(measurementNotifierProvider).value;
       expect(values, hasLength(1));
       expect(values!.single.value, 4300);

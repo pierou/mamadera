@@ -108,11 +108,11 @@ void main() {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Une restauration peut aboutir alors que cette feuille est ouverte : elle
-  // était là parce qu'aucun profil n'existait, et il en existe maintenant. Valider
-  // son formulaire ne crée alors pas « le premier bébé » mais un deuxième, à côté
-  // de ceux qui viennent de revenir — un bébé en trop que personne n'a demandé et
-  // que rien n'annonce. Ces tests verrouillent les deux fermetures.
+  // A restoration process can be initiated while this page is open: it...
+  // It was there because no such profile existed before, but now it does. Validate.
+  // His formula doesn't create the "first baby," but rather a second one, alongside it.
+  // of those who have just returned — an unwanted baby, one that no one asked for, and...
+  // that gives no indication. These tests lock both closures.
   // ─────────────────────────────────────────────────────────────────────────
   group('OnboardingDialog — a restore lands while the sheet is open', () {
     late _RecordingBabyProfileRepository repo;
@@ -162,8 +162,8 @@ void main() {
       await pumpDialog(tester);
       expect(find.byType(OnboardingDialog), findsOneWidget);
 
-      // La feuille n'est là que parce qu'aucun profil n'existe. Un import en
-      // amène un pendant la saisie.
+      // The sheet is only displayed because no profile exists. An import in...
+      // bring it during the seizure.
       await tester.enterText(find.byType(TextField), 'Lou');
       await tester.pump();
       repo.restore(_restoredProfile());
@@ -171,7 +171,7 @@ void main() {
       await tester.tap(find.text('Confirmer'));
       await tester.pumpAndSettle();
 
-      // Le doublon n'a pas été créé : c'est tout l'enjeu.
+      // The duplicate was not created: that is the whole issue.
       expect(repo.inserted, isEmpty);
       expect(find.byType(OnboardingDialog), findsNothing);
     });
@@ -180,7 +180,7 @@ void main() {
       await pumpDialog(tester);
       expect(find.byType(OnboardingDialog), findsOneWidget);
 
-      // Aucune saisie, aucun tap : la restauration seule doit rendre la feuille.
+      // No input, no typing: the restoration process alone should be sufficient to recover the document.
       repo.restore(_restoredProfile());
       await container.read(anyBabyExistsProvider.notifier).refresh();
       await tester.pumpAndSettle();
@@ -194,9 +194,9 @@ void main() {
       await pumpDialog(tester);
       expect(find.byType(OnboardingDialog), findsOneWidget);
 
-      // Le chemin de production n'appelle pas `refresh()` : la restauration
-      // « invalidate » le fournisseur (`import_providers.dart:183`). Une écoute
-      // qui ne réagirait qu'à un changement explicite ne se déclencherait jamais.
+      // The production path does not call `refresh()`; instead, it uses a restoration mechanism.
+      // "invalidate" the provider (`import_providers.dart:183`). A listener.
+      // It would never trigger unless it detected a clear and explicit change.
       repo.restore(_restoredProfile());
       container.invalidate(anyBabyExistsProvider);
       await tester.pumpAndSettle();
@@ -213,7 +213,7 @@ void main() {
       await tester.tap(find.text('Confirmer'));
       await tester.pumpAndSettle();
 
-      // Contrôle : les deux fermetures ci-dessus n'écrasent pas le chemin normal.
+      // Verification: The two closures mentioned above do not interfere with the normal path.
       expect(repo.inserted.map((p) => p.name), ['Lou']);
       expect(find.byType(OnboardingDialog), findsNothing);
     });
@@ -233,8 +233,8 @@ void main() {
   });
 }
 
-/// Profil issu d'une restauration — nom différent de celui que saisit le test,
-/// pour que ce ne soit pas la garde « nom en double » qui réponde.
+/// Profile derived from a restoration – the name is different from the one entered during the test.
+/// To ensure that the "duplicate name" record is not the one that responds.
 BabyProfile _restoredProfile() => BabyProfile(
       id: 'restored-1',
       name: 'Emma',
@@ -242,13 +242,13 @@ BabyProfile _restoredProfile() => BabyProfile(
       isActive: true,
     );
 
-/// Dépôt factice qui enregistre ce qu'on lui insère et dont la liste peut être
-/// peuplée en cours de route — c'est précisément ce que fait une restauration.
+/// A dummy repository that records everything inserted into it, and whose contents can be...
+/// populated along the way – that's precisely what a restoration does.
 class _RecordingBabyProfileRepository implements BabyProfileRepository {
   final List<BabyProfile> profiles = <BabyProfile>[];
   final List<BabyProfile> inserted = <BabyProfile>[];
 
-  /// Une restauration amène [profile] dans la base.
+  /// A restoration process brings [profile] back into the system.
   void restore(BabyProfile profile) => profiles.add(profile);
 
   @override

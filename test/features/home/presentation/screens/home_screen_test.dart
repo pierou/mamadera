@@ -44,7 +44,7 @@ import '../../../reminders/data/repositories/mock_reminders_repository.dart';
 import '../../../reminders/presentation/providers/no_poll_reminders_notifier.dart';
 import 'home_screen_test.mocks.dart';
 
-/// Helper : trouve un TrackButton par son label.
+/// Helper: Find a TrackButton by its label.
 Finder findTrackButton(String label) {
   return find.byWidgetPredicate(
     (widget) => widget is TrackButton && widget.label == label,
@@ -71,7 +71,7 @@ void main() {
     TestAnyBabyExistsNotifier.anyExists = false;
   });
 
-  /// Helper : pompe HomeScreen avec le repo mocked et un bébé actif pour éviter le onboarding.
+  /// Helper: Use the HomeScreen component with a mocked repository and an active user to bypass the onboarding process.
   Future<void> pumpHome(WidgetTester tester) async {
     tester.view.physicalSize = const Size(600, 900);
 
@@ -81,13 +81,13 @@ void main() {
           measurementRepositoryProvider
               .overrideWith((ref) async => _FakeMeasurementRepository()),
           trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
-          // La rangée de croissance ne doit pas ouvrir la vraie base en test.
+          // The growth row should not expose the actual base during testing.
           measurementNotifierProvider
               .overrideWith(() => TestMeasurementNotifier(const [])),
           // Override with a test notifier that resolves synchronously via Future.microtask.
           activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
           anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
-          // La section de rappels (D1) évalue le notifier ; la version de
+          // The recall section (D1) assesses the notification; the version of...
           // test ne laisse pas le timer de sondage de cinq minutes en attente.
           reminderNotifierProvider.overrideWith(NoPollRemindersNotifier.new),
         ],
@@ -108,7 +108,7 @@ void main() {
   }
 
   // ──────────────────────────────────────────────
-  // Affichage des TrackButtons
+  // Displaying the Track Buttons.
   // ──────────────────────────────────────────────
   // ──────────────────────────────────────────────
   // Boutons de mesure (croissance, item 1 de v1.2.0)
@@ -175,12 +175,12 @@ void main() {
   });
 
   // ──────────────────────────────────────────────
-  // Rappels dus sous les boutons (D1, M6)
+  // Reminders are available under the (D1, M6) buttons.
   // ──────────────────────────────────────────────
   group('Rappels dus sous les boutons (D1)', () {
-    /// Même harnais que [pumpHome], mais avec un dépôt de rappels en
-    /// mémoire : la chaîne réelle produit les 4 préréglages dus du bébé
-    /// actif, la liste sous les boutons est stable et les 4 lignes lisibles.
+    /// The same harness as [pumpHome], but with a reminder storage compartment.
+    /// Memory: The actual device produces the 4 pre-programmed settings for babies.
+    /// The system is active, the list below the buttons is stable, and all 4 lines are readable.
     Future<void> pumpHomeWithDueReminders(WidgetTester tester) async {
       tester.view.physicalSize = const Size(600, 900);
 
@@ -220,14 +220,14 @@ void main() {
         'croissance inchangés', (tester) async {
       await pumpHomeWithDueReminders(tester);
 
-      // Les 4 TrackButtons et les 3 boutons de croissance existent toujours.
+      // The four track buttons and the three growth buttons are still present.
       expect(find.byType(TrackButton), findsNWidgets(4));
       expect(find.byType(MeasurementButton), findsNWidgets(3));
 
-      // Les 4 rappels dus sont listés, pas agrégés en « +2 ».
-      // Le titre porte le prénom du bébé actif (v1.2, message l10n avec
-      // placeholder) : l'ancienne attente exacte « Rappels à faire »
-      // décrivait l'état sans prénom, remplacé par celui de la chaîne.
+      // The four outstanding recall notices are listed individually, not aggregated into a single "+2" entry.
+      // The title includes the baby's first name (version 1.2, with localization support).
+      // (placeholder): The previous, more precise feature: "Reminders to do."
+      // It described the state without a name, replacing it with the name of the channel.
       expect(find.text('Rappels de Test Baby à faire'), findsOneWidget);
       expect(find.byType(ReminderRow), findsNWidgets(4));
       expect(find.text('Vitamine D'), findsOneWidget);
@@ -239,7 +239,7 @@ void main() {
     testWidgets('la grille reste utilisable : Nourriture ouvre sa feuille',
         (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
-      // Trois puces de sous-type : la feuille déborde du harnais 200×300.
+      // Three sub-types of pins: the pin extends beyond the harness, with dimensions of 200x300.
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetDevicePixelRatio);
       await pumpHomeWithDueReminders(tester);
@@ -255,8 +255,8 @@ void main() {
         'ouvre sa feuille', (tester) async {
       await pumpHomeWithDueReminders(tester);
 
-      // La feuille de mesure est plus haute que l'écran du harnais 600x900 :
-      // on passe sur un écran de la hauteur d'une feuille, comme le harnais
+      // The measuring sheet is taller than the 600x900 screen of the harness.
+      // We're looking at a screen that's the size of a sheet of paper, just like the harness.
       // onboarding ci-dessous.
       tester.view.devicePixelRatio = 1;
       tester.view.physicalSize = const Size(1200, 3200);
@@ -276,19 +276,19 @@ void main() {
   // ──────────────────────────────────────────────
   // Navigation via bottom nav
   //
-  // Repris en main (M6) : ces tests pompaient HomeScreen seul, sans le
-  // routeur — la barre de navigation n'existait pas et le tap ne pouvait
-  // qu'exploser, d'où les anciens skips. Ils pompent maintenant le vrai
-  // routeur de l'app, avec des providers déterministes (même recette que
-  // test/core/router_test.dart) : le dépôt d'historique, la locale et le
-  // thème sont remplacés, parce que les canaux qu'ils attendent (base de
-  // données, path_provider) ne répondent jamais dans l'environnement de
-  // test et laisseraient les écrans en spinner indéfiniment.
+  // "Take Control" (M6): These tests were designed to test HomeScreen in isolation, without involving other components.
+  // router - the navigation bar was missing, and the tap could not...
+  // that would explode, hence the old ski jumps. Now, they're pumping in the real [substance/fuel/etc.].
+  // app router, with deterministic providers (same recipe as...).
+  // test/core/router_test.dart): the history stack, the locale, and the...
+  // The themes are replaced because the channels they are expecting (the database) are not available.
+  // The packages 'data' and 'path_provider' never work in this environment.
+  // they would test and leave the screens spinning indefinitely.
   // ──────────────────────────────────────────────
   group('Navigation via bottom nav', () {
-    /// Pompe le vrai routeur de l'app : splash → accueil, avec des providers
-    /// déterministes (préférences acceptées, bébés en mémoire, mesures
-    /// vides, rappels dus stables, profils résolus à vide).
+    /// Pompe is the core router within the app, handling navigation from the splash screen to the home screen, and managing different providers.
+    /// deterministic (preferences accepted, babies remembered, measurements).
+    /// (empty states, reminders due to stable conditions, resolved profiles in the absence of input).
     Future<void> pumpApp(WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -366,7 +366,7 @@ void main() {
   group('Interactions Nourriture/Sante/Couche/Dodo', () {
     testWidgets('tap Nourriture -> ouvre FeedingTrackingDialog',
         (tester) async {
-      // Trois puces de sous-type : la feuille déborde du harnais 200×300.
+      // Three sub-types of pins: the pin extends beyond the harness, with dimensions of 200x300.
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetDevicePixelRatio);
       await pumpHome(tester);
@@ -380,7 +380,7 @@ void main() {
       await tester.tap(miamBtn);
       await tester.pumpAndSettle();
 
-      // Un bottom sheet doit être ouvert (le dialog de tracking d'alimentation)
+      // A bottom sheet needs to be opened (the food tracking dialog).
       expect(find.byType(BottomSheet), findsOneWidget);
     });
 
@@ -444,7 +444,7 @@ void main() {
       await tester.tap(dodoBtn);
       await tester.pumpAndSettle();
 
-      // Durée par défaut (30 min).
+      // Default duration: 30 minutes.
       expect(find.text('30 min'), findsOneWidget);
 
       // Confirmer.
@@ -456,7 +456,7 @@ void main() {
       await tester.tap(confirmBtn, warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      // insertEvent a ete appele avec un SleepEvent.
+      // The `insertEvent` function was called with a `SleepEvent`.
       final captured = verify(mockRepo.insertEvent(captureAny)).captured;
       expect(captured.first, isA<SleepEvent>());
     });
@@ -469,7 +469,7 @@ void main() {
       await tester.tap(dodoBtn);
       await tester.pumpAndSettle();
 
-      // Tap en dehors du bottom sheet pour fermer.
+      // Tap outside the bottom sheet to close it.
       await tester.tapAt(const Offset(400, 50));
       await tester.pumpAndSettle();
 
@@ -558,7 +558,7 @@ void main() {
   });
 
   // ──────────────────────────────────────────────
-  // Date de l'événement à la création
+  // Event date at creation.
   // ──────────────────────────────────────────────
   group('Date de saisie', () {
     Future<void> openSheetAndConfirm(
@@ -571,7 +571,7 @@ void main() {
       await tester.tap(findTrackButton(buttonLabel));
       await tester.pumpAndSettle();
 
-      // Toute feuille de saisie expose le champ de date/heure.
+      // Every input form displays the date/time field.
       expect(find.byType(EventDateTimeField), findsOneWidget,
           reason: 'le dialogue $buttonLabel doit laisser choisir la date');
 
@@ -586,8 +586,8 @@ void main() {
 
     testWidgets('Nourriture : la date par défaut est le moment de la saisie',
         (tester) async {
-      // Trois puces de sous-type : la feuille d'alimentation déborde du
-      // harnais 200×300 par défaut (comme les autres feuilles hautes).
+      // Three subtypes of pins: the power supply pin protrudes from...
+      // The default size for the "harnais" sheet is 200x300 (like the other high-resolution sheets).
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetDevicePixelRatio);
 
@@ -608,8 +608,8 @@ void main() {
 
       final event = verify(mockRepo.insertEvent(captureAny)).captured.single
           as SleepEvent;
-      // Durée par défaut du slider : 30 min → une sieste commencée à 20:30 est
-      // enregistrée à 20:30, pas à l'heure du tic.
+      // Default slider duration: 30 minutes → A nap started at 8:30 PM will be...
+      // Recorded at 8:30 PM, not on time.
       final expected = DateTime.now().subtract(const Duration(minutes: 30));
       expect(event.timestamp.difference(expected).inSeconds.abs(), lessThan(65),
           reason: 'timestamp=${event.timestamp}, attendu≈$expected');
@@ -637,7 +637,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(EventDateTimeField), findsOneWidget);
 
-      // Une sélection est obligatoire : choisir un sous-type puis confirmer.
+      // A selection is mandatory: choose a subtype and then confirm.
       final subtype = find.text('Nettoyage des yeux');
       await tester.ensureVisible(subtype);
       await tester.tap(subtype, warnIfMissed: false);
@@ -691,8 +691,8 @@ void main() {
       expect(event.stoolTexture, equals(stoolTexturePateuse));
     });
 
-    // Régression : la consistance reste optionnelle. Un parent qui ne saisit
-    // rien ne doit pas voir son historique rempli d'un cran deviné.
+    // Regression: consistency is optional. A parent who doesn't understand...
+    // Nothing should have its history filled with a single, predetermined step.
     testWidgets('aucune texture saisie → événement sans texture',
         (tester) async {
       when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
@@ -731,24 +731,24 @@ void main() {
       expect(find.byType(OnboardingDialog), findsNothing);
     });
 
-    // Note: le cas positif était resté non couvert — `showModalBottomSheet`
-    // débordait des 600x900 du harnais, et l'overflow faisait tomber le test pour
-    // une raison étrangère à ce qu'il vérifiait. Il est couvert ci-dessous sur un
-    // écran à la hauteur de la feuille.
+    // Note: The positive case remained uncovered — `showModalBottomSheet`.
+    // It exceeded the 600x900 dimensions of the harness, and the overflow caused the test to fail.
+    // a reason unrelated to what he was verifying. He is discussed further below in a...
+    // Screen at the height of the sheet.
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Effacé puis réimporté : la base est de nouveau peuplée, mais la feuille
-  // d'onboarding était déjà ouverte. Elle ne doit pas survivre à ce retour, et ne
-  // doit surtout pas y répondre par un second profil.
+  // The database was cleared and then re-imported, so it's populated again, but the spreadsheet...
+  // The onboarding process was already underway. It should not continue after this point, and should not...
+  // It is especially important not to respond to this with a second profile.
   // ─────────────────────────────────────────────────────────────────────────
   group('Onboarding sheet over a restored database', () {
     Future<void> pumpHomeTall(WidgetTester tester) async {
-      // L'instance précédente appartient à un notifier détruit : la garder
-      // vivante ferait publier un état dans un fournisseur disparu.
+      // The previous instance belongs to a destroyed notifier: keep it.
+      // A living person would cause a notice to be published in a defunct publication.
       TestAnyBabyExistsNotifier.instance = null;
-      // La feuille est plus haute que l'écran du harnais ; sur 900 px elle
-      // déborde et le test tombe pour un motif de layout, pas de comportement.
+      // The sheet is taller than the harness screen; it measures 900 pixels in height.
+      // It overflows, and the test fails due to a layout issue, not a behavioral one.
       tester.view.physicalSize = const Size(1200, 3200);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -796,7 +796,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(OnboardingDialog), findsOneWidget);
 
-      // La restauration aboutit pendant que la feuille est affichée.
+      // The restoration process is completed while the document is on display.
       TestAnyBabyExistsNotifier.restored();
       await tester.pumpAndSettle();
 
@@ -805,7 +805,7 @@ void main() {
   });
 }
 
-/// Notifier de test pour la croissance : liste fixe, sans dépendance à la base.
+/// Test notification for growth: fixed list, independent of the database.
 class TestMeasurementNotifier extends MeasurementNotifier {
   TestMeasurementNotifier(this.measurements);
 
@@ -832,8 +832,8 @@ class TestActiveBabyNotifier extends ActiveBabyNotifier {
 class TestAnyBabyExistsNotifier extends AnyBabyExistsNotifier {
   static bool anyExists = false;
 
-  /// Fait apparaître un profil alors que la feuille d'onboarding est déjà ouverte
-  /// — ce que produit une restauration qui aboutit à ce moment-là.
+  /// Displays a profile even when the onboarding screen is already open.
+  /// — what is produced by a restoration process that culminates at that point.
   static void restored() {
     anyExists = true;
     instance?._publishRestored();
@@ -851,9 +851,9 @@ class TestAnyBabyExistsNotifier extends AnyBabyExistsNotifier {
   }
 }
 
-/// Préférences acceptées pour les tests du vrai routeur : le notifier réel
-/// ouvrirait le store de l'appareil, absent en test — c'est ce qui
-/// bloquait l'ancienne version de ces tests sur la redirection splash.
+/// Accepted preferences for testing the actual router: provide the real notification.
+/// it would open the device's shutter, which was missing during the test – and that's what...
+/// It was blocking the old version of these tests related to the splash page redirection.
 class _AcceptedPrefsNotifier extends AppPreferencesNotifier {
   @override
   Future<AppPreferences> build() async => const AppPreferences(
@@ -863,8 +863,8 @@ class _AcceptedPrefsNotifier extends AppPreferencesNotifier {
       );
 }
 
-/// Locale déterministe : le vrai notifier attend le canal path_provider,
-/// qui ne répond jamais dans l'environnement de test, et MenuScreen resterait
+/// Deterministic locale: the actual notification is waiting for the `path_provider` channel.
+/// which never responds in the test environment, and the MenuScreen would remain.
 /// en spinner.
 class _LocalePrefsNotifier extends LocaleNotifier {
   @override
@@ -872,15 +872,15 @@ class _LocalePrefsNotifier extends LocaleNotifier {
       const LocalePreference(languageCode: 'en', isManualOverride: false);
 }
 
-/// Thème déterministe, même raison que [_LocalePrefsNotifier].
+/// Deterministic theme, for the same reason as [_LocalePrefsNotifier].
 class _ThemePrefsNotifier extends ThemeNotifier {
   @override
   Future<ThemePreference> build() async =>
       const ThemePreference(mode: 'system');
 }
 
-/// Historique vide : le vrai dépôt attend la base de données, dont le canal
-/// de création ne répond jamais dans l'environnement de test — HistoryScreen
+/// Empty history: the actual data repository is waiting for the database, including the channel.
+/// The "Create" button never works in the test environment — HistoryScreen.
 /// resterait en spinner.
 class _EmptyHistoryRepository implements HistoryRepository {
   @override
@@ -903,10 +903,10 @@ class _EmptyHistoryRepository implements HistoryRepository {
   Future<bool> deleteEvent(int id) async => false;
 }
 
-/// Fake sans base : le notifieur d'historique lit le repository de mesures
-/// même sous le filtre « tout » ; en test, la vraie usine attendrait des
-/// canaux (base, path_provider) qui ne répondent jamais et l'écran resterait
-/// en spinner indéfiniment.
+/// Fake without a basis: the historical data provider reads the measurement repository.
+/// even when using the "all" filter; in testing, the actual factory would be waiting for...
+/// channels (base, path_provider) that never respond, and the screen would remain stuck.
+/// It can spin indefinitely.
 class _FakeMeasurementRepository implements MeasurementRepository {
   @override
   Future<void> add({

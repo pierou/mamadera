@@ -130,9 +130,9 @@ void main() {
       expect(textFinder, findsOneWidget);
     });
 
-    // Régression : "Nourriture" (10 caractères) ne tient pas en 32 pt dans la
-    // tuile 2 colonnes de l'écran d'accueil — il doit être réduit en largeur
-    // (FittedBox scaleDown) plutôt que coupé sur deux lignes.
+    // Regression: The word "food" (10 characters) does not fit within the 32-point font size in the...
+    // The tile should be two columns wide on the home screen, but its width needs to be reduced.
+    // (FittedBox scaleDown) instead of being split across two lines.
     testWidgets('keeps long labels on a single line via scaleDown', (tester) async {
       await tester.pumpWidget(ProviderScope(
         child: pumpTrackButton(label: 'Nourriture', color: AppTheme.miam),
@@ -283,8 +283,8 @@ void main() {
         expect(find.text('+1'), findsNothing);
       });
 
-      // Le bouton a une hauteur fixe : une quatrième pastille se paierait en
-      // place sur le libellé, et l'aire d'appui du bouton est ce qui reste.
+      // The button has a fixed height: a fourth button would be added to it.
+      // The label is placed on top, and the remaining area is the button's support surface.
       testWidgets('le quatrième rappel est compté, pas affiché', (tester) async {
         await tester.pumpWidget(ProviderScope(
           child: pumpTrackButton(
@@ -294,12 +294,12 @@ void main() {
           ),
         ));
 
-        // Deux libellés + un compteur : trois éléments, que ce soit 4 ou 10.
+        // Two labels plus one counter: these are the three elements, whether it's a quantity of 4 or 10.
         expect(find.byType(ReminderPill), findsNWidgets(3));
         expect(find.text('+2'), findsOneWidget);
         expect(find.text('Crème numéro 1'), findsOneWidget);
         expect(find.text('Crème numéro 2'), findsOneWidget);
-        // Ce qui est caché l'est vraiment — sinon le compteur ne gagnerait rien.
+        // What is hidden is truly hidden – otherwise, the meter wouldn't gain anything.
         expect(find.text('Crème numéro 3'), findsNothing);
       });
 
@@ -317,8 +317,8 @@ void main() {
         expect(find.text('+5'), findsOneWidget);
       });
 
-      // Le cas qui a motivé le cap : six rappels personnalisés aux noms allongés
-      // ne doivent pas faire déborder l'affichage ni casser l'appui.
+      // The case that prompted this feature: six personalized reminders for names that are unusually long.
+      // They must not cause the display to overflow or break the support.
       testWidgets('une dizaine de rappels ne déborde pas du bouton',
           (tester) async {
         await tester.pumpWidget(ProviderScope(

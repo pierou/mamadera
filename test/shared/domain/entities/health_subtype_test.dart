@@ -1,15 +1,15 @@
-// Tests de l'entité HealthSubtype.
+// Tests for the HealthSubtype entity.
 // Couverture :
-// - byValue() retourne le bon subtype pour chaque valeur connue (6)
-// - byValue() retourne null pour une valeur inconnue (1)
-// - .values contient exactement 6 éléments (1)
+// - `byValue()` returns the correct subtype for each known value (6).
+// - `byValue()` returns null for an unknown value (1).
+// - The `.values` attribute contains exactly 6 elements (1).
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 
 void main() {
   group('HealthSubtype', () {
-    // ── byValue() retourne le bon subtype pour chaque valeur connue ────
+    // ── `byValue()` returns the correct subtype for each known value. ────
     test("byValue('nettoyage_yeux') → nettoyageYeux", () {
       expect(
         HealthSubtype.byValue('nettoyage_yeux'),
@@ -52,12 +52,12 @@ void main() {
       );
     });
 
-    // ── byValue() retourne null pour une valeur inconnue ────────────────
+    // ── `byValue()` returns null for an unknown value.
     test("byValue('inconnu') → null", () {
       expect(HealthSubtype.byValue('inconnu'), isNull);
     });
 
-    // ── .values contient exactement 6 éléments ──────────────────────────
+    // -- .values contains exactly 6 elements ──────────────────────────
     test('.values.length == 6', () {
       expect(HealthSubtype.values.length, equals(6));
     });

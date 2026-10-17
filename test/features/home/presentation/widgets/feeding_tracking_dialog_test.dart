@@ -9,7 +9,7 @@ import 'package:mamadera/l10n/app_localizations.dart';
 
 void main() {
   group('FeedingTrackingDialog', () {
-    // Helper pour pump le dialog et attendre la fin du rendu
+    // Helper to manage the dialog and wait for the rendering to complete.
     Future<void> pumpDialog(WidgetTester tester) => tester.pumpWidget(
           const ProviderScope(
             child: MaterialApp(
@@ -48,12 +48,12 @@ void main() {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
-      // Le premier FilterChip (Lait Maternel) doit être sélectionné
+      // The first FilterChip (Breast Milk) must be selected.
       final naturalChip = find.widgetWithText(FilterChip, 'Lait Maternel');
       final chipState = tester.widget<FilterChip>(naturalChip);
       expect(chipState.selected, isTrue);
 
-      // Et le second non sélectionné
+      // And the second person who was not selected.
       final artificialChip = find.widgetWithText(FilterChip, 'Lait Artificiel');
       final chipArtificial = tester.widget<FilterChip>(artificialChip);
       expect(chipArtificial.selected, isFalse);
@@ -68,12 +68,12 @@ void main() {
       await tester.tap(find.text('Lait Artificiel'));
       await tester.pumpAndSettle();
 
-      // Maintenant c'est Lait Artificiel qui est sélectionné
+      // Now, it's artificial milk that is being selected.
       final artificialChip = find.widgetWithText(FilterChip, 'Lait Artificiel');
       final chipState = tester.widget<FilterChip>(artificialChip);
       expect(chipState.selected, isTrue);
 
-      // Et Lait Maternel n'est plus sélectionné
+      // And "Breast Milk" is no longer being selected.
       final naturalChip = find.widgetWithText(FilterChip, 'Lait Maternel');
       final chipNatural = tester.widget<FilterChip>(naturalChip);
       expect(chipNatural.selected, isFalse);
@@ -88,8 +88,8 @@ void main() {
 
     testWidgets('natural s\'ouvre en minutes : la quantité par défaut est 0 min',
         (tester) async {
-      // L'unité par défaut de `natural` est `min` (décision propriétaire
-      // 2026-10-03) : une tétée se chronomètre, un biberon se mesure.
+      // The default unit for `natural` is `min` (this is a proprietary decision).
+      // (October 3, 2026): The duration of breastfeeding is timed, and the amount of formula given in a bottle is measured.
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
@@ -114,24 +114,24 @@ void main() {
       expect(find.text('0 g'), findsOneWidget);
     });
 
-    // Verrou de sémantique des données (décision propriétaire 2026-10-03,
-    // amendement n°2) : le sein n'est figé **ni** en minutes **ni** en ml — le
-    // parent choisit, et le choix est réversible. Le nombre ne survit jamais
-    // à un changement d'unité : 20 min n'est pas 20 ml.
+    // Semantic data lock (proprietary decision, October 3, 2026).
+    // Amendment No. 2: The breast volume is not fixed, either in minutes or in milliliters – it is...
+    // The parent cell chooses, and this choice is reversible. The number never survives.
+    // It's important to pay attention to the units of measurement: 20 minutes is not the same as 20 milliliters.
     //
-    // La protection des lignes `natural` **existantes** (lait tiré affiché « 20
-    // ml » sur tous les builds livrés) n'est plus ici : elle est dans le
-    // backfill de la migration v12 (`natural` → `'ml'`, jamais `'min'`),
-    // verrouillé par `test/data/local/migration_v11_to_v12_test.dart`. Ce test
-    // vérifie le contrat de **saisie** : ouverture en min, ml au toggle, remise
-    // à 0 annoncée.
+    // The protection of existing `natural` product lines (e.g., breast milk displayed as "20...").
+    // "ml" (which previously appeared on all delivered builds) is no longer present; it has been moved to the...
+    // Backfill the migration from version 12, changing the value from `natural` to `'ml'`, but never to `'min'`.
+    // locked by `test/data/local/migration_v11_to_v12_test.dart`. This test.
+    // Check the "seizure" contract: opening in "min" and "ml" modes, with a toggle switch, and a reset function.
+    // Announced at 0.
     testWidgets(
         'natural : min à l\'ouverture, ml au toggle, remise à 0 avec message',
         (tester) async {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
-      // Ouverture : `min`, et le toggle est visible (seul `natural` l'a).
+      // Opening: `min`, and the toggle is visible (only `natural` has this feature).
       final picker = tester
           .widget<QuantityPickerInline>(find.byType(QuantityPickerInline));
       expect(picker.unit, equals('min'));
@@ -139,8 +139,8 @@ void main() {
       expect(find.text('Millilitres'), findsOneWidget);
       expect(find.text('Minutes'), findsOneWidget);
 
-      // 20 minutes saisies, puis passage en ml : le nombre est remis à 0 et
-      // le dialog le dit — jamais re-étiqueté en silence.
+      // 20 minutes of data collection, then conversion to milliliters: the count is reset to 0, and...
+      // The dialogue says it – never silently relabeled.
       await tester.enterText(find.byType(TextField), '20');
       await tester.pump();
       expect(find.text('20 min'), findsOneWidget);
@@ -191,10 +191,10 @@ void main() {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
-      // Vérifier que le dialog est affiché
+      // Ensure that the dialog box is displayed.
       expect(find.text('Suivre l\'Alimentation'), findsOneWidget);
 
-      // Le bouton Confirmer doit être présent
+      // The "Confirm" button must be present.
       final confirmButton = find.text('Confirmer');
       expect(confirmButton, findsOneWidget);
 
@@ -211,12 +211,12 @@ void main() {
       await tester.tap(find.text('Lait Artificiel'));
       await tester.pumpAndSettle();
 
-      // Vérifier que Lait Artificiel est sélectionné
+      // Make sure that "Infant Formula" is selected.
       final artificialChip = find.widgetWithText(FilterChip, 'Lait Artificiel');
       final chipState = tester.widget<FilterChip>(artificialChip);
       expect(chipState.selected, isTrue);
 
-      // Cliquer sur Confirmer devrait fonctionner sans crash
+      // Clicking the "Confirm" button should work without causing any errors.
       await tester.tap(find.text('Confirmer'));
       await tester.pumpAndSettle();
     });
@@ -225,7 +225,7 @@ void main() {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
-      // Le bouton Annuler doit être présent
+      // The "Cancel" button must be present.
       final cancelButton = find.text('Annuler');
       expect(cancelButton, findsOneWidget);
 

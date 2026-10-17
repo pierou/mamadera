@@ -29,7 +29,7 @@ final _baby = BabyProfile(
   birthDate: DateTime(2026, 1, 15),
 );
 
-/// Le switch de la ligne dont le titre est [label].
+/// The switch for the line with the label "[label]".
 Finder _switchFor(String label) => find.descendant(
       of: find.ancestor(
         of: find.text(label),
@@ -95,14 +95,14 @@ void main() {
     testWidgets('liste les quatre rappels préréglés avec leur fréquence', (tester) async {
       await pumpScreen(tester);
 
-      // Nom complet du soin, pas l'abréviation de la pastille d'accueil.
+      // Please provide the full name of the treatment, not the abbreviation from the welcome tablet.
       expect(find.text('Vitamine D'), findsOneWidget);
       expect(find.text('Vitamine K'), findsOneWidget);
       expect(find.text('Nettoyage des yeux'), findsOneWidget);
       expect(find.text('Nettoyage du visage'), findsOneWidget);
 
       expect(find.text('Tous les jours'), findsNWidgets(3));
-      // Vit. K est calée sur le jour de naissance (15) du profil actif.
+      // Vitamin K is set to the date of birth (15) in the active profile.
       expect(find.text('Le 15 de chaque mois'), findsOneWidget);
     });
 
@@ -140,7 +140,7 @@ void main() {
 
       expect(mockReminders.enabledById['vitamine_d'], isFalse);
       expect(mockReminders.setEnabledCallCount, 1);
-      // Pas de retour en arrière le temps d'un rechargement.
+      // There's no going back once the charging process begins.
       expect(_isOn(tester, 'Vitamine D'), isFalse);
     });
 
@@ -157,8 +157,8 @@ void main() {
     });
 
     testWidgets('la liste reste affichée quand tout est déjà fait aujourd\'hui', (tester) async {
-      // Les réglages n'ont rien à voir avec le fait qu'un rappel soit dû ou non :
-      // la liste des préréglages s'affiche même si aucun n'est en retard.
+      // The settings have nothing to do with whether a reminder is due or not.
+      // The list of presets is displayed even if none of them are overdue.
       mockReminders.lastCompletedByItem['vitamine_d'] = DateTime.now();
       mockReminders.lastCompletedByItem['vitamine_k'] = DateTime.now();
       mockReminders.lastCompletedByItem['eye_cleaning'] = DateTime.now();
@@ -172,7 +172,7 @@ void main() {
   });
 
   group('ReminderSettingsScreen, rappels personnalisés', () {
-    /// Amène une ligne hors écran en haut de la liste, puis la touche.
+    /// Bring a line outside the visible area to the top of the list, then select it.
     Future<void> tapRow(WidgetTester tester, Finder finder) async {
       if (finder.evaluate().isEmpty) {
         await tester.scrollUntilVisible(
@@ -226,8 +226,8 @@ void main() {
 
       await pumpScreen(tester);
 
-      // Le préréglage dit quel soin ; un rappel personnalisé dit ce que le parent
-      // a voulu retenir. « Nettoyage du nez » ici serait un mensonge.
+      // The preset setting indicates the type of treatment; a personalized reminder tells the parent what to do.
+      // He wanted to keep it, but "nose cleaning" would be a lie in this context.
       expect(find.text('Crème du change'), findsOneWidget);
       expect(find.text('Tous les jours'), findsNWidgets(4));
       expect(find.byType(CustomReminderTile), findsOneWidget);
@@ -256,11 +256,11 @@ void main() {
       await pumpScreen(tester);
 
       expect(find.byType(CustomReminderTile), findsOneWidget);
-      // Le libellé du parent, son rythme…
+      // The wording of the label, its rhythm...
       expect(find.text('Thermomètre'), findsOneWidget);
       expect(find.text('Tous les 2 jours'), findsOneWidget);
-      // …et l'avertissement de complétion manuelle — sans nom de soin inventé
-      // derrière un rappel qui n'en porte pas.
+      // ...and the warning about manual completion—without any invented care names.
+      // behind a reminder that doesn't actually serve as one.
       expect(
         find.text("S'efface quand vous le marquez fait."),
         findsOneWidget,
@@ -277,7 +277,7 @@ void main() {
 
       expect(mockReminders.enabledById['custom_1'], isFalse);
       expect(mockReminders.setEnabledCallCount, 1);
-      // Les préréglages ne sont pas touchés par cette extinction.
+      // These settings are not affected by this shutdown.
       expect(mockReminders.enabledById.keys, ['custom_1']);
     });
 
@@ -309,7 +309,7 @@ void main() {
       expect(mockReminders.customRemindersById.values.single.label, 'Sérum visage');
       expect(find.byType(CustomReminderTile), findsOneWidget);
       expect(find.text('Sérum visage'), findsOneWidget);
-      // Plus rien de modale : l'écran est revenu, prêt à une seconde saisie.
+      // Nothing is modal anymore: the screen has reappeared, ready for a second input.
       expect(find.text('Nouveau rappel'), findsNothing);
     });
 
@@ -358,7 +358,7 @@ void main() {
       await tester.tap(find.text('Supprimer'));
       await tester.pumpAndSettle();
 
-      // Le nom du rappel dans la question, l'historique promis dans la réponse.
+      // The name of the item being referenced in the question, and the promised details in the answer.
       expect(find.text('Supprimer ce rappel ?'), findsOneWidget);
       expect(
         find.text(
@@ -415,8 +415,8 @@ void main() {
       expect(find.byType(CustomReminderTile), findsNothing);
     });
 
-    // Sans ces deux cas, une écriture refusée se traduirait par un panneau qui se
-    // ferme sans rien : l'exception partirait dans un futur que personne n'attend.
+    // Without these two specific cases, a rejected writing would simply result in a sign that...
+    // The farm was closed without any explanation: the exception would disappear in a future that no one anticipated.
     testWidgets('un enregistrement refusé le dit au lieu de disparaître en silence',
         (tester) async {
       mockReminders.failCustomWrites = true;
@@ -432,7 +432,7 @@ void main() {
 
       expect(find.text("Le rappel n'a pas pu être enregistré. Réessayez."),
           findsOneWidget);
-      // Rien n'a été inventé : pas de ligne, pas de faux souvenir.
+      // Nothing was fabricated: no lines were added, and no false memories were created.
       expect(mockReminders.customRemindersById, isEmpty);
       expect(find.byType(CustomReminderTile), findsNothing);
     });
@@ -458,8 +458,8 @@ void main() {
       expect(find.text("Le rappel n'a pas pu être supprimé. Réessayez."),
           findsOneWidget);
       expect(mockReminders.deleteCustomCallCount, 1);
-      // Le rappel est toujours là, texte et switch compris : rien n'a été fait à
-      // moitié.
+      // The reminder is still there, including the text and the switch: nothing has been changed.
+      // half.
       expect(mockReminders.customRemindersById, hasLength(1));
       expect(find.byType(CustomReminderTile), findsOneWidget);
     });

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/services/encryption_service.dart';
-// Alias pour le drift database (différent de l'entity domain)
+// Alias for the drift database (different from the entity domain).
 import 'package:mamadera/data/local/app_db.dart' as db_app;
 import 'package:mamadera/features/home/data/repositories/tracking_repository_impl.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
@@ -104,7 +104,7 @@ void main() {
       when(mockDb.insertEvent(any)).thenAnswer((invocation) async {
         final companion = invocation.positionalArguments.first
             as db_app.TrackingEventsCompanion;
-        // Vérifier que subtype est écrit avec 'artificial'
+        // Ensure that the "subtype" field is written with the word "artificial."
         expect(companion.subtype.value, equals('artificial'));
         return 1;
       });
@@ -124,7 +124,7 @@ void main() {
       when(mockDb.insertEvent(any)).thenAnswer((invocation) async {
         final companion = invocation.positionalArguments.first
             as db_app.TrackingEventsCompanion;
-        // Vérifier que health subtype est écrit dans 'subtype' et NON dans wasteType
+        // Please ensure that the "health subtype" is written in the "subtype" field and NOT in the "wasteType" field.
         expect(companion.subtype.value, equals('vitamine_d'));
         expect(companion.wasteType.value, isNull);
         return 1;
@@ -153,7 +153,7 @@ void main() {
       final insertedId = await repository.insertEvent(event);
       expect(insertedId, equals(100));
 
-      // Simuler la lecture depuis DB avec subtype="bib" dans la colonne dédiée
+      // Simulate reading from the database using the "bib" subtype in the designated column.
       when(mockDb.getAllEventsOrdered()).thenAnswer((_) async => [
             db_app.TrackingEvent(
               unit: 'ml',
@@ -187,7 +187,7 @@ void main() {
       );
       await repository.insertEvent(event);
 
-      // Simuler la lecture depuis DB avec subtype="nettoyage_yeux" dans la colonne dédiée
+      // Simulate reading from the database, using the "nettoyage_yeux" subtype in the designated column.
       when(mockDb.getAllEventsOrdered()).thenAnswer((_) async => [
             db_app.TrackingEvent(
               unit: 'ml',
@@ -196,7 +196,7 @@ void main() {
               timestamp: DateTime.utc(2024, 6, 15),
               duration: null,
               subtype:
-                  'nettoyage_yeux', // La colonne subtype contient la valeur health
+                  'nettoyage_yeux',                   // The subtype column contains the "health" value.
               notes: null,
               wasteType: null,
               color: null,

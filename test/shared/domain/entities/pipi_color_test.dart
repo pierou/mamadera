@@ -1,10 +1,10 @@
-/// Tests de l'entité PipiColor.
+/// Testing of the PipiColor entity.
 /// Couverture :
-/// - byValue() retourne la bonne instance pour chaque valeur DB connue (4)
-/// - byValue() retourne null pour null, vide et inconnu (1 combiné)
-/// - fromDbValue() retourne la bonne instance pour les valeurs connues (4)
-/// - fromDbValue() fallback sur incolore pour null, vide et inconnu (1 combiné)
-/// - .values contient exactement 4 éléments (1)
+/// - `byValue()` returns the correct instance for each known database value (4).
+/// - `byValue()` returns null for null, empty, and unknown values (1 combination).
+/// - `fromDbValue()` returns the correct instance for known values (4).
+/// - `fromDbValue()` defaults to "inconspicuous" for null, empty, and unknown values (1 combination).
+/// - The `.values` attribute contains exactly 4 elements (1).
 library;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +12,7 @@ import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 
 void main() {
   group('PipiColor', () {
-    // ── byValue() retourne la bonne instance pour chaque valeur connue ────
+    // ── `byValue()` returns the correct instance for each known value. ────
     test("findPipiColorByValue('incolore') → pipiColorIncolore", () {
       expect(findPipiColorByValue('incolore'), equals(pipiColorIncolore));
     });
@@ -32,14 +32,14 @@ void main() {
       );
     });
 
-    // ── findPipiColorByValue() retourne null pour les entrées invalides ────────────────
+    // ── `findPipiColorByValue()` returns null for invalid inputs.
     test("findPipiColorByValue(null/''/'inconnu') → null", () {
       expect(findPipiColorByValue(null), isNull);
       expect(findPipiColorByValue(''), isNull);
       expect(findPipiColorByValue('inconnu'), isNull);
     });
 
-    // ── fromDbValue() retourne la bonne instance pour les valeurs connues ──
+    // ── `fromDbValue()` returns the correct instance for known values.
     test("findPipiColorFromDbValue('jaune_fonce') → pipiColorJauneFonce", () {
       expect(
         findPipiColorFromDbValue('jaune_fonce'),
@@ -54,14 +54,14 @@ void main() {
       );
     });
 
-    // ── fromDbValue() fallback sur [incolore] pour les entrées invalides ───
+    // ── `fromDbValue()` falls back to "[incolore]" for invalid inputs. ───
     test("findPipiColorFromDbValue(null/''/'inconnu') → pipiColorIncolore", () {
       expect(findPipiColorFromDbValue(null), equals(pipiColorIncolore));
       expect(findPipiColorFromDbValue(''), equals(pipiColorIncolore));
       expect(findPipiColorFromDbValue('inconnu'), equals(pipiColorIncolore));
     });
 
-    // ── pipiColors contient exactement 4 éléments ────────────────────────────
+    // ── pipiColors consists of exactly 4 elements. ────────────────────────────
     test('pipiColors.length == 4', () {
       expect(pipiColors.length, equals(4));
     });

@@ -62,7 +62,7 @@ void main() {
       final result = await repository.updateEvent(id: 10, event: event);
 
       expect(result, isTrue);
-      // Pas de notes → encrypt ne doit jamais être appelé (privacy-first)
+      // No notes → `encrypt` should never be called (privacy-first).
       verifyNever(mockEncryption.encrypt(any));
     });
 
