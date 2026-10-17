@@ -412,8 +412,9 @@ void main() {
 
     // ---- Settings v1.2.1 — Reported issues on the device (2026-10-13) ----
     //
-    // The header displays "Last: 4.2 kg" as soon as it opens, but the slider...
-    // and the ± buttons were used to adjust the settings based on the reference values (3.5 kg / 37 °C):
+    // The header displays "4.2 kg" as soon as it opens (value directly, no
+    // "Last:" label), but the slider... and the ± buttons were used to adjust
+    // the settings based on the reference values (3.5 kg / 37 °C):
     // The initial contact therefore caused the value to jump to a number that no one...
     // has been measured. The target must be precisely where it is intended to be — without ever...
     // Pre-populate the field: a cursor position is not considered input.
@@ -434,7 +435,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // The indicator clearly shows the latest measurement...
-      expect(find.text('Dernière : 4,2 kg'), findsOneWidget);
+      expect(find.text('4,2 kg'), findsOneWidget);
       // ...and that's precisely the one the cursor is targeting.
       expect(tester.widget<Slider>(find.byType(Slider)).value, 4200);
 
@@ -465,7 +466,7 @@ void main() {
       await pumpSheet(tester, MeasureKind.temperature);
       await tester.pumpAndSettle();
 
-      expect(find.text('Dernière : 36,8 °C'), findsOneWidget);
+      expect(find.text('36,8 °C'), findsOneWidget);
       expect(tester.widget<Slider>(find.byType(Slider)).value, 36.8);
 
       await tester.tap(find.byIcon(Icons.add_circle_outline));

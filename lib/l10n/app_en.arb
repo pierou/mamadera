@@ -45,12 +45,6 @@
   "growthSheetEditTitleWeight": "Edit weight",
   "growthSheetEditTitleHeight": "Edit height",
   "growthSheetEditTitleTemperature": "Edit temperature",
-  "@growthSheetLastValueHint": {
-    "placeholders": {
-      "value": {}
-    }
-  },
-  "growthSheetLastValueHint": "Last: {value}",
   "growthSheetNoteField": "Note (optional)",
   "growthSheetSave": "Save",
   "growthMeasurementUpdated": "Measurement updated",

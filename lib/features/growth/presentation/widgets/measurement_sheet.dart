@@ -43,11 +43,10 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
   DateTime _selectedDate = DateTime.now();
   late TextEditingController _noteController;
 
-  /// Supplemental label: "last: 36.8 °C", resolved asynchronously — `null`
-  /// As long as the data hasn't been loaded, in which case the result will be...
-  /// The type reference. Resolved **outside of `initState`**: `context.l` is not available there.
-  /// It is not yet certain, and asynchronous operations never provide a result.
-  /// Automatically fill in the field.
+  /// Header text before any input: the last measured value of this type
+  /// (e.g. "36,8 °C"), resolved asynchronously — `null` until the data has
+  /// been loaded, in which case the type's reference value is shown.
+  /// Resolved **outside of `initState`**: `context.l` is not available there.
   String? _lastHint;
 
   /// Did the parent enter a number? The save button is not working.
@@ -70,16 +69,14 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
       widget.kind
           .format(widget.kind.defaultValue, localeName: context.l.localeName);
 
-  /// Last measurement of the same type, if available: "last: 36.8 °C".
-  /// If a digit is illegible or has no value, the reference number is retained.
-  /// type — the auxiliary heating is a comfort feature, never a blocking mechanism.
+  /// Loads the last measurement of the same type, if available.
   ///
-  /// It also serves as the **starting point for the cursor and the +/- buttons** (default).
-  /// v1.2.1 (displayed on the device): The header shows "Last reading: 36.8 °C".
-  /// From the moment it opens, and upon the initial contact with the cursor or a plus/minus sign, it redirects.
-  /// 37.0 – This is the reference value for the type, meaning a number that no one has actually measured.
-  /// The target should be located at the intended point. The text field remains empty, and...
-  /// Autosave is disabled: a cursor position is not considered an input.
+  /// The header shows the value directly ("36.8 °C") from the moment the
+  /// sheet opens — no "Last:" label — and it doubles as the **starting point
+  /// of the cursor and the +/- buttons**. Without a prior measurement, the
+  /// type's reference value (e.g. 37.0) is shown instead: a number no one
+  /// measured, so the text field stays empty and Save disabled until real
+  /// input — a cursor position is not an input.
   Future<void> _loadLastValue() async {
     try {
       final repository = await ref.read(measurementRepositoryProvider.future);
@@ -88,11 +85,12 @@ class _MeasurementSheetState extends ConsumerState<MeasurementSheet> {
       final lastValue = last?.value;
       if (!mounted || lastValue == null) return;
       setState(() {
-        _lastHint = context.l.growthSheetLastValueHint(
-          widget.kind.format(lastValue, localeName: context.l.localeName),
+        _lastHint = widget.kind.format(
+          lastValue,
+          localeName: context.l.localeName,
         );
-        // Never after a parent's seizure: the reading happens asynchronously and...
-        // It would overwrite the number he was currently typing.
+        // The read is asynchronous: never overwrite a number the parent is
+        // currently typing.
         if (!_hasInput && widget.kind.contains(lastValue)) {
           _value = lastValue;
         }

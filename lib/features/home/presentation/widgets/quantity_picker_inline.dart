@@ -61,7 +61,7 @@ class QuantityPickerInline extends StatefulWidget {
   final int decimals;
 
   /// The supplementary label is displayed **instead of the value** as long as the parent element is present.
-  /// It didn't register anything (measurement sheet: "last reading: 36.8 °C").
+  /// It didn't register anything (measurement sheet: the last measured value, e.g. "36,8 °C").
   ///
   /// The text field is provided, but it starts **empty**: the host value is not.
   /// Displaying a parent's input and labeling it as such is how you present it.
