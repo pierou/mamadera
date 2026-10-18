@@ -11,6 +11,7 @@ consoles' own — ASC 30/30/100/170/4000, Play 30/80/4000/500.
 """
 
 import json
+import re
 import struct
 import sys
 from pathlib import Path
@@ -159,6 +160,47 @@ def png_size(path: Path) -> tuple[int, int]:
     return struct.unpack(">II", head[16:24])
 
 
+def check_no_duplicate_prose() -> None:
+    """A guide must point at a field file, never restate it.
+
+    Two copies of a 1 700-character description is how v1.2.1 nearly shipped a French listing
+    whose wording differed from the file being pasted. Long prose inside a guide is a bug.
+    """
+    print("== no duplicated prose inside the guides")
+    for guide in sorted((PKG / "apple").glob("*.md")) + sorted((PKG / "play").glob("*.md")):
+        blocks = re.findall(r"```\n(.*?)\n```", guide.read_text(encoding="utf-8"), re.S)
+        long = [b for b in blocks if len(b.strip()) > 200]
+        report(not long, guide.relative_to(PKG).as_posix(),
+               "" if not long else f" holds {len(long)} long text block(s) — reference fields/ instead")
+
+
+def check_source_is_canonical() -> None:
+    """The EN fields and the per-locale editorial fields must be the source bytes."""
+    print("== fields are copies of store/source/, not edits")
+    source = ROOT / "store" / "source"
+    for store, kind in (("apple", "name"), ("apple", "subtitle"), ("apple", "keywords"),
+                        ("play", "title"), ("apple", "promo"), ("apple", "description"),
+                        ("play", "short"), ("play", "description")):
+        src = source / "en" / f"{store}-{kind}.txt"
+        dst = PKG / "fields" / f"{store}-en-{kind}.txt"
+        if not src.exists():
+            report(False, f"source/en/{store}-{kind}.txt", " missing")
+            continue
+        same = dst.exists() and src.read_bytes() == dst.read_bytes()
+        report(same, f"{store}-en-{kind}", "" if same else " differs from store/source/en/")
+    for locale in ("fr", "es"):
+        for store, kind in (("apple", "name"), ("apple", "subtitle"),
+                            ("apple", "keywords"), ("play", "title")):
+            src = source / locale / f"{store}-{kind}.txt"
+            dst = PKG / "fields" / f"{store}-{locale}-{kind}.txt"
+            if not src.exists():
+                report(False, f"source/{locale}/{store}-{kind}.txt", " missing")
+                continue
+            same = dst.exists() and src.read_bytes() == dst.read_bytes()
+            report(same, f"{store}-{locale}-{kind} (editorial)",
+                   "" if same else " differs from store/source — the build owns this file")
+
+
 def check_screenshots() -> None:
     print("== screenshots — Play (per locale, hard requirement)")
     for locale, w, h, want in PLAY_SLOTS:
@@ -193,6 +235,8 @@ def main() -> int:
     check_version(version)
     check_fields()
     check_machine_archive()
+    check_no_duplicate_prose()
+    check_source_is_canonical()
     check_notes(version, write)
     check_screenshots()
     if problems:

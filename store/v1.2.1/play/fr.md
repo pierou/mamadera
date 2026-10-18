@@ -1,65 +1,48 @@
 # Google Play Console — fiche FR (fr-FR)
 
-Version **1.2.1** (build 11 → `versionCode` 11). Limites Play : titre 30, description
-courte 80, description complète 4 000, notes de version 500.
+Version **1.2.1** (`versionCode` 11). Play publie **par langue** : chaque localisation a son
+titre, sa description courte, sa description complète et **ses notes de version**.
 
 ## Titre — deux options
 
-| option | valeur | |
+| option | valeur | limite |
 |---|---|---|
 | **garder** | `Mamadera Suivi Bébé` | 19/30 |
 | candidat | `Mamadera : poids & tétées` | 24/30 |
 
-Le titre est le signal ASO le plus fort sur Play : le changer sur une fiche en place se
-justifie par une stratégie, pas par une release. Décision propriétaire.
+Le titre est le signal ASO le plus fort d'une fiche en place : il se change par stratégie,
+pas par release. Le candidat contient « tétées » — mot que l'app n'affiche jamais (son bouton
+dit **Nourriture**) : `make store-check` le signale, à trancher à la revue.
 
-## Description courte — deux options
+## Coller depuis `fields/`
 
-| option | valeur | |
-|---|---|---|
-| **garder** | `Suivi bébé 100% privé : tétées, sommeil, couches — hors-ligne & chiffré` | 71/80 |
-| candidat | `Suivi bébé privé : tétées, poids, sommeil, couches — hors-ligne et chiffré` | 74/80 |
+| champ Play | fichier | limite | origine |
+|---|---|---|---|
+| Description courte | `fields/play-fr-short.txt` | 80 | TranslateGemma, aligné |
+| Description complète | `fields/play-fr-description.txt` | 4 000 | TranslateGemma, aligné |
+| Notes de version | `../release-notes/play-fr.txt` | 500 | TranslateGemma, aligné |
 
-Le candidat nomme le poids, absent des textes depuis v1.1.0 alors que la mesure est en
-production depuis v1.2.0.
+Sortie brute du modèle sous [`../machine/fr/`](../machine/fr/). Le plafond de 500 caractères
+des notes est celui de Play, et le français s'allonge de 20 à 50 % : si ça déborde, on
+raccourcit `store/source/en/play-release-notes.txt` et on relance
+`python3 scripts/build_store_package.py --translate` — jamais en rognant le français.
 
-## Description complète (4 000)
+## Sécurité des données — inchangée par 1.2.1
 
-```
-Suivez les tétées, le sommeil, les changements de couche et la santé de votre nouveau-né avec une confidentialité totale. Toutes les données restent sur votre appareil — pas de cloud, pas de suivi, pas de télémétrie.
+« Je ne collecte, ne partage et n'autorise l'accès à aucune donnée ». 1.2.1 ajoute une
+colonne `unit` à la base locale : aucun réseau, aucune nouvelle autorisation, donc rien à
+déclarer de nouveau. Note libre à maintenir :
 
-Fonctionnalités :
-• Historique des tétées (seins/biberons) et de l'alimentation solide, en grammes
-• Suivi du poids, de la taille et de la température — valeurs chiffrées sur l'appareil
-• Les mesures s'affichent dans l'historique, à côté des autres événements, et se modifient ou se suppriment depuis cet écran
-• Journal des couches, avec texture des selles
-• Rappels santé (Vitamine D/K) — et rappels personnalisés liés à un soin
-• Rappels indépendants pour chaque enfant
-• Saisie rétroactive d'un événement avec date et heure exactes
-• Profils multiples pour bébé
-• Sauvegarde et restauration JSON, 100 % sur l'appareil
-• Notes chiffrées au repos
+> Toutes les données de suivi du bébé sont stockées localement sur l'appareil dans une base
+> SQLite ; les notes textuelles sensibles sont chiffrées champ par champ en AES-256-GCM (le
+> fichier de base lui-même n'est pas chiffré). Aucune donnée ne quitte le téléphone sauf
+> export JSON volontaire. Nous ne collectons, partageons ni transmettons aucune donnée.
 
-Mamadera est open source sous licence MIT. Les données de votre bébé ne quittent jamais votre téléphone, sauf si vous lancez vous-même l'export JSON puis le panneau de partage de votre appareil.
-```
+Catégorie : **Santé et forme** (recommandation — la catégorie réellement publiée n'est pas
+consignée dans `docs/`, à vérifier dans la Console avant d'y toucher). Public : parents de
+nouveau-nés, déclaré « Enfants » — déjà en place.
 
-## Notes de version (500)
+## Notes de version — où les coller
 
-Coller [`../release-notes/play-fr.txt`](../release-notes/play-fr.txt) — 460/500.
-
-## Sécurité des données (à ne pas toucher sauf changement réel)
-
-« Je ne collecte, ne partage et n'autorise l'accès à aucune donnée » — inchangé : v1.2.1
-ajoute une colonne `unit` à la base locale, aucun réseau, aucune nouvelle autorisation.
-Note libre à garder :
-
-> Toutes les données de suivi du bébé sont stockées localement sur l'appareil dans une
-> base SQLite ; les notes textuelles sensibles sont chiffrées champ par champ en
-> AES-256-GCM (le fichier de base lui-même n'est pas chiffré). Aucune donnée ne quitte
-> le téléphone sauf export JSON volontaire. Nous ne collectons, partageons ni transmettons
-> aucune donnée utilisateur.
-
-Catégorie : **Santé et forme** (recommandation — la catégorie actuellement en place sur la
-fiche n'est pas consignée dans `docs/`, à vérifier dans la Console avant de la modifier).
-Public cible : parents de nouveau-nés, déclaré « Enfants » (l'app est utilisée par
-l'adulte pour le compte du nourrisson) — réponse déjà en place, inchangée.
+Dans la **release** (boîte « Notes de version », par langue), pas seulement dans la fiche :
+c'est ce que le parent lit en mettant à jour. `../release-notes/play-fr.txt`, 427/500.

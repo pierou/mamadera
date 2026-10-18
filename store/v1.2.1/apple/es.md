@@ -1,73 +1,47 @@
 # App Store Connect — ficha ES (es-ES)
 
-Versión **1.2.1** (build 11). Campos pegados tal cual en App Store Connect →
-**Versiones** → español. Límites ASC: nombre 30, subtítulo 30, palabras clave 100,
-texto promocional 170, descripción 4 000, Novedades 4 000.
+Versión **1.2.1** (build 11). Cada campo tiene **un solo archivo** en
+[`../fields/`](fields/): ese es el que se pega, nunca una transcripción.
 
-## Nombre de la app — **guardar** `Mamadera Bebé` (13/30)
+## Nombre — guardar `Mamadera Bebé`
 
-Aprobado y publicado desde v1.1.0: renombrarlo rompe el historial ASO y vuelve a lanzar
-una revisión de unicidad. Cambiar solo por decisión del propietario.
+Aprobado y publicado desde v1.1.0. Renombrar rompe el historial ASO y reabre el control de
+unicidad de Apple. Decisión del propietario, no una tarea de release.
 
 ## Subtítulo — dos opciones
 
-| opción | valor | |
+| opción | valor | límite |
 |---|---|---|
 | **guardar** | `Recién nacido, 100 % privado` | 28/30 |
 | candidato | `Tomas, sueño y crecimiento` | 26/30 |
 
-El candidato nombra el tercer eje de medida (peso / estatura / temperatura), ausente de
-todos los campos desde v1.1.0. Decisión del propietario — ASC indexa el subtítulo.
+El candidato nombra el tercer eje de medida (peso / estatura / temperatura), ausente de todos
+los campos desde v1.1.0. **Ojo:** la app nunca escribe « tomas » ni « pecho » — su botón
+(`homeButtonMiam`) dice **Alimento** y el subtipo (`feedingSubtypeNatural`) dice **Leche
+Materna**. `make store-check` lo marca como WARN: es una decisión de revisión, no un detalle.
 
-## Palabras clave (100)
+## Campos largos — pegar desde `fields/`
 
-```
-recien-nacido,toma,sueno,panal,seguimiento,privacidad,sin-nube,lactancia,copia-seguridad,crecimiento
-```
+| campo ASC | archivo | límite | origen |
+|---|---|---|---|
+| Palabras clave | `fields/apple-es-keywords.txt` | 100 | editorial — nunca traducido por la máquina |
+| Texto promocional | `fields/apple-es-promo.txt` | 170 | TranslateGemma, alineado |
+| Descripción | `fields/apple-es-description.txt` | 4 000 | TranslateGemma, alineado |
+| Novedades | `../release-notes/apple-whatsnew-es.txt` | 4 000 | `assets/patch_notes/es.json` |
 
-`crecimiento` se añade a las nueve palabras originales, ninguna eliminada. 100/100 justos
-— sin tildes y sin espacios tras las comas (ASC los cuenta).
-
-## Texto promocional (170)
-
-```
-Peso, estatura y temperatura cifrados en tu dispositivo y visibles en el historial junto a tomas, sueño y pañales. Ningún dato sale del teléfono.
-```
-
-## Descripción (4 000)
-
-```
-Registra las tomas, el sueño, los pañales y la salud de tu bebé — todo guardado localmente en tu dispositivo con cifrado. Sin nube, sin telemetría, sin rastreo.
-
-QUÉ PUEDES HACER
-• Anotar tomas de pecho y biberón, alimentación sólida en gramos, sueños y cambios de pañal — incluida la textura de las heces
-• Registrar peso, estatura y temperatura: los valores se cifran en el dispositivo y se leen en el historial, junto a los demás eventos
-• Editar o suprimir una medida directamente desde el historial
-• Seguir las rutinas de salud (vitaminas D y K) con sus recordatorios, y crear recordatorios personalizados vinculados a un cuidado
-• Mantener recordatorios independientes para cada bebé
-• Registrar un evento con su fecha y hora exactas, aunque lo anotes más tarde
-• Mantener perfiles separados para cada bebé
-• Exportar todos los datos en un único archivo JSON y restaurarlos cuando quieras — 100 % en el dispositivo, sin cuenta ni nube
-
-PRIVACIDAD POR DISEÑO
-Mamadera se construyó priorizando la privacidad: las notas sensibles y las medidas se cifran en reposo, la aplicación no pide permisos innecesarios y nada se sube nunca. La única salida de datos es la exportación JSON que inicias tú mismo y el panel de compartir de tu dispositivo. Gratis, de código abierto y bajo licencia MIT.
-
-Ideal para padres que valoran su privacidad — y para bebés que merecen la suya.
-```
-
-## Novedades — archivo listo para pegar
-
-[`../release-notes/apple-whatsnew-es.txt`](../release-notes/apple-whatsnew-es.txt) —
-generado desde `assets/patch_notes/es.json`, para que la tienda y el diálogo « Novedades »
-de la app no digan cosas distintas.
+El texto español lo hizo TranslateGemma y se alineó término a término contra
+`lib/l10n/app_es.arb`; la salida bruta del modelo está en [`../machine/es/`](../machine/es/).
+Si una palabra no convence, se acorta **`store/source/en/`** (o se añade una regla de
+alineamiento citada en `scripts/build_store_package.py`) y se relanza
+`python3 scripts/build_store_package.py --translate`. Editar `fields/` a mano pierde esa frase
+en el siguiente build.
 
 ## Notas para el equipo de revisión
 
-- Sin cuenta de demostración: la app funciona desde el primer arranque, con las condiciones
-  aceptadas y nada que conectar.
-- Para ver las medidas cifradas: Inicio → botón Peso → guardar, y luego la pestaña
-  Historial — la fila aparece allí con su unidad.
-- « Leche materna » ofrece un conmutador ml / minutos; los demás tipos de alimentación
-  tienen unidad fija.
-- Sin contenido médico, sin diagnóstico, sin consejo: la app guarda lo que anota el
-  padre o la madre. La lactancia es contenido parental, no sexual.
+- Sin cuenta de demostración: funciona desde el primer arranque, condiciones aceptadas, nada
+  que conectar.
+- Para ver las medidas cifradas: Inicio → botón **Peso** → Guardar, y luego la pestaña
+  **Historial** — la fila aparece con su unidad (`6,18 kg`).
+- « Leche Materna » ofrece un conmutador ml / minutos; los demás tipos tienen unidad fija.
+- Sin contenido médico, sin diagnóstico, sin consejo: la app guarda lo que anota el padre o la
+  madre. La lactancia es contenido parental, no sexual.
