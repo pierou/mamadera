@@ -271,7 +271,7 @@ If this is a simple utility app and you complete Internal testing successfully, 
 Google Play **requires** a publicly accessible privacy policy. Use:
 
 ```
-https://raw.githubusercontent.com/pvjio/mamadera/main/.github/PRIVACY.md
+https://raw.githubusercontent.com/pierou/mamadera/main/.github/PRIVACY.md
 ```
 
 Or host a nicely formatted version on GitHub Pages or Netlify. Set it in **Setup → App content → Privacy policy**.
