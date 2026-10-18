@@ -89,6 +89,14 @@ Under **Pricing & Availability**:
 
 ## Step 5 — Localized Descriptions
 
+> ⚠️ **SUPERSEDED for v1.2.1+.** The copy below is the v1.1.0 text, kept as history. The
+> listing text you paste now comes from `store/v<version>/fields/` (built from
+> `store/source/en/`, French and Spanish produced by TranslateGemma and term-aligned to
+> `lib/l10n/app_<locale>.arb`), and "What's New" from
+> `store/v<version>/release-notes/apple-whatsnew-<locale>.txt`. Nothing in a version
+> directory is hand-written — `make store-check` enforces the limits. This block is also the
+> last place the app promised « tétées »: its own home button has always said **Nourriture**.
+
 For each language (fr, en, es), fill in under **App Store** tab → scroll to descriptions:
 
 > v1.1.0 copy. Limits: Name/Subtitle 30 chars, Keywords 100 chars,

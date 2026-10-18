@@ -87,6 +87,13 @@ Under **Release → Managed open testing** (or Production), select all countries
 
 ## Step 6 — Store Listings
 
+> ⚠️ **SUPERSEDED for v1.2.1+.** v1.1.0 copy, kept as history. Paste from
+> `store/v<version>/fields/` (`play-<locale>-short.txt`, `play-<locale>-description.txt`) and
+> `store/v<version>/release-notes/play-<locale>.txt` — built from `store/source/en/`, French
+> and Spanish translated by TranslateGemma and term-aligned to the ARB, every field
+> length-checked by `make store-check`. The v1.1.0 text below predates growth tracking entirely:
+> it never mentions weight, height or temperature, which shipped in v1.2.0.
+
 > v1.1.0 listing copy. Full descriptions are plain text in fenced blocks —
 > copy them verbatim (Play does not render HTML; an earlier revision of this
 > doc used `<br>` tags which would have shipped literally).

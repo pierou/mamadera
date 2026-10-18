@@ -1,4 +1,4 @@
-.PHONY: ci lint test build-android build-aab build-ipa clean codegen l10n check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration integration-driver splash-create
+.PHONY: ci lint test build-android build-aab build-ipa clean codegen l10n check-coverage audit-trivy audit-gitleaks patch-notes check-ui integration-test-simulator ci-integration integration-driver splash-create store-package store-prose store-check store-shots
 
 # Harness-based integration tests (integration_test binding — require a
 # connected device). driver_integration_test.dart is excluded: it is a
@@ -10,7 +10,7 @@ INTEGRATION_TESTS := integration_test/baby_profile_flow_test.dart \
 	integration_test/onboarding_flow_test.dart \
 	integration_test/rendering_validation_test.dart
 
-ci: pub-get lint test check-coverage ## Run full local CI pipeline (aligned with GitHub Actions)
+ci: pub-get lint test check-coverage store-check ## Run full local CI pipeline (aligned with GitHub Actions)
 pub-get:
 	flutter pub get
 lint: pub-get
@@ -122,3 +122,31 @@ integration-driver: pub-get
 		--target=lib/driver_main.dart
 
 
+
+# 🏪 Store package — the release deliverable (store/v<version>/)
+# Canonical listing prose lives in store/source/en/ and is authored ONCE. Per-release,
+# per-locale packages are BUILT from it; nothing in a version directory is hand-written.
+#   store-package        copy canonical text + Apple notes, report every field length
+#   store-prose          the same, plus TranslateGemma en→fr/es (raw output archived under
+#                        machine/, then term-aligned to lib/l10n/app_<locale>.arb)
+#   store-check          enforce the consoles' character limits, note consistency, screenshot
+#                        inventory — runs in `make ci`, needs no device
+#   store-shots        recapture the Play screenshots for fr/es/en (emulator required)
+#
+# TranslateGemma runs on the box, which has ONE model slot: never run `make store-prose`
+# while a box-* subagent is queued or running, and expect ~6 s of reload afterwards.
+store-package:
+	@python3 scripts/build_store_package.py
+
+store-prose:
+	@python3 scripts/build_store_package.py --translate
+
+store-check:
+	@found=0; for check in store/v*/check.py; do \
+		[ -e "$$check" ] || continue; found=1; \
+		echo "── $$check"; python3 "$$check" || exit 1; \
+	done; \
+	[ "$$found" = "1" ] || { echo "no store/v*/check.py — run: python3 scripts/build_store_package.py"; exit 1; }
+
+store-shots:
+	@bash store/v$(VERSION)/capture.sh

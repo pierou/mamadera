@@ -117,7 +117,11 @@ All commands available via [`Makefile`](Makefile):
 | `make lint` | Run `flutter analyze --fatal-infos --fatal-warnings` |
 | `make test` | Run all tests with coverage (`--coverage`) |
 | `make check-coverage` | Verify ≥ 80% line coverage (uses `lcov`) |
-| `make ci` | Full pipeline: pub-get → lint → test → coverage check |
+| `make ci` | Full pipeline: pub-get → lint → test → coverage check → store-check |
+| `make store-package` | Build `store/v<version>/` from `store/source/en/` (no network) |
+| `make store-prose` | Same + TranslateGemma fr/es, raw output archived under `machine/` |
+| `make store-check` | Consoles' character limits, note consistency, screenshot inventory |
+| `make store-shots` VERSION=1.2.2 | Recapture Play screenshots for fr/es/en (emulator) |
 | `make build-android` | Build release APK |
 | `make clean` | Clean build artifacts |
 | `make audit-trivy` | Security scan dependencies with Trivy (HIGH/CRITICAL) |
@@ -174,6 +178,21 @@ The pass, in order:
 3. **The manual entry path**: record a feeding, a sleep, a measurement, then export and inspect the
    JSON. An export that silently omits a section is a broken backup and no test catches it if the
    fixture only contains what the test writes.
+
+4. **The store package** (`make store-check`, no device needed): the publish deliverable is
+   built, not hand-written — `python3 scripts/build_store_package.py [--translate]` assembles
+   `store/v<version>/` from `store/source/en/`, and
+   `scripts/build_store_package.py --translate` produces the French and Spanish prose with
+   **TranslateGemma** (`tg-translate`, box). Raw model output is archived under
+   `store/v<version>/machine/<locale>/` and then term-aligned to `lib/l10n/app_<locale>.arb`;
+   brand names, subtitles and ASO keywords are **never** machine-translated (they are per-locale
+   editorial values in `store/source/<locale>/`). Two reasons this is scripted rather than
+   remembered, both learned in v1.2.1: a hand-written French listing promised « tétées » while
+   the app's own button says **Nourriture**, and the model rendered "nothing is ever uploaded"
+   as « rien n'est jamais **téléchargé** » — which in French means *downloaded*, a weaker claim
+   in the one sentence that carries the privacy promise. Over-length fields are fixed by
+   shortening `store/source/en/`, never by trimming the translation.
+   Box has one model slot: do not run `make store-prose` while a `box-*` subagent is queued.
 
 Available targets: `flutter emulators` (Android: `Pixel_10_Pro`, `Small_Phone`, `ci_test`) and
 `xcrun simctl list devices available` (iOS). Record in the PR description which pass was run, on
