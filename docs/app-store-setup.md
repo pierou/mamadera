@@ -186,6 +186,12 @@ Ideal para padres que valoran su privacidad — y para bebés que merecen la suy
 
 ### Required screenshots
 
+> **Every uploaded screenshot is named `<locale>-<screen>.png`** (`fr-home.png`,
+> `es-history.png`). The simulator pipeline writes bare names into
+> `screenshots/ios/asc/<size>/`, which every later run overwrites — copy them into the
+> package with the locale prefix (`store/v<version>/capture.sh --asc-only` does it), so a
+> file that escapes its folder still declares its language.
+
 ASC accepts these iPhone sizes (portrait + landscape) — all are already
 produced, ribbon-free, in [`screenshots/ios/asc/`](../screenshots/ios/asc/):
 

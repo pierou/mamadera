@@ -32,7 +32,9 @@ TRANSLATED = {"promo", "description", "short", "release-notes"}
 # store slot → (directory under store/v1.2.1/screenshots, expected size, required)
 # `required` means a missing/wrong set is a blocker: Play wants a screenshot set per
 # localization and refuses a release whose listing language has none.
-PLAY_SLOTS = [(locale, 1280, 2856, 8) for locale in LOCALES]
+PLAY_SCREENS = ("home", "history", "menu", "feeding_dialog", "sleep_diagram",
+                "diaper_dialog", "health_diagram", "growth")
+PLAY_SLOTS = [(locale, 1280, 2856, len(PLAY_SCREENS)) for locale in LOCALES]
 
 # Recaptured by the iOS simulator pipeline (asc_driver_main + postprocess.sh). Until each
 # locale is run, the accepted-but-old ASC set lives in screenshots/ios/ — reported as a
@@ -202,31 +204,42 @@ def check_source_is_canonical() -> None:
 
 
 def check_screenshots() -> None:
+    """Every uploaded screenshot carries its locale in the FILENAME, not just the folder.
+
+    A bare `home.png` is unidentifiable outside its directory, and `screenshots/android/`
+    holds whichever language ran last with no marker at all. A French shot in the English
+    listing is otherwise indistinguishable from a correct one.
+    """
     print("== screenshots — Play (per locale, hard requirement)")
     for locale, w, h, want in PLAY_SLOTS:
         directory = SHOTS / "play" / locale
-        files = sorted(p for p in directory.glob("*.png") if not p.name.startswith("_"))
-        bad = [p.name for p in files if png_size(p) != (w, h)]
-        ribbon = [p.name for p in files if p.name.startswith("_debug")]
-        good = len(files) == want and not bad and not ribbon
-        report(
-            good,
-            f"play/{locale}",
-            f" {len(files)}/{want} png {w}x{h}"
-            + (f" wrong size: {bad}" if bad else "")
-            + (f" debug artifacts present: {ribbon}" if ribbon else ""),
-        )
+        files = sorted(p for p in directory.glob("*.png") if not p.name.startswith("_debug"))
+        bad_size = [p.name for p in files if png_size(p) != (w, h)]
+        no_locale = [p.name for p in files if not p.name.startswith(f"{locale}-")]
+        expected = {f"{locale}-{s}.png" for s in PLAY_SCREENS}
+        missing = sorted(expected - {p.name for p in files})
+        good = len(files) == want and not bad_size and not no_locale and not missing
+        detail = f" {len(files)}/{want} png {w}x{h}"
+        if not good:
+            detail += (f" | no locale prefix: {no_locale}" if no_locale else "")
+            detail += (f" | wrong size: {bad_size}" if bad_size else "")
+            detail += (f" | missing: {missing}" if missing else "")
+        report(good, f"play/{locale}", detail)
+
     print("== screenshots — App Store (per locale, simulator pipeline)")
     for rel, w, h in ASC_SLOTS:
         directory = SHOTS / rel
-        files = sorted(p for p in directory.glob("*.png") if not p.name.startswith("_"))
+        locale = rel.split("/")[1]
+        files = sorted(p for p in directory.glob("*.png") if not p.name.startswith("_debug"))
         if not files:
-            # A warning, not a blocker: the alternative is silently uploading v1.2.0 pixels.
             print(f"  WARN {rel} — empty; recapture with asc_driver_main "
                   f"--dart-define=APP_LOCALE, or upload screenshots/ios/asc/ knowingly")
             continue
-        bad = [p.name for p in files if png_size(p) != (w, h)]
-        report(not bad, rel, f" {len(files)} png {w}x{h}")
+        bad_size = [p.name for p in files if png_size(p) != (w, h)]
+        no_locale = [p.name for p in files if not p.name.startswith(f"{locale}-")]
+        report(not bad_size and not no_locale, rel, f" {len(files)} png {w}x{h}"
+               + (f" | no locale prefix: {no_locale}" if no_locale else "")
+               + (f" | wrong size: {bad_size}" if bad_size else ""))
 
 
 def main() -> int:

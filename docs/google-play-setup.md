@@ -190,6 +190,13 @@ Mamadera es de código abierto bajo licencia MIT. Los datos de tu bebé nunca sa
 
 ### Capturing Screenshots
 
+> **Every uploaded screenshot is named `<locale>-<screen>.png`** (`fr-home.png`,
+> `es-history.png`, `en-growth.png`). The capture folder is overwritten by the next run and
+> says nothing once a file leaves it; the filename is what travels. `make store-check` fails
+> a package with a bare name, and
+> `/usr/bin/python3 screenshots/android/verify_android.py --locale=fr` verifies the upload set
+> (size, ribbon, names) for one language.
+
 Eight store screens (home, history, menu, the four tracking bottom sheets,
 and the growth screen — `/growth`, added in v1.2.0) are captured automatically
 on the Pixel_10_Pro emulator (1280×2856, English, no DEBUG banner) against a

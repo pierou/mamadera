@@ -193,6 +193,12 @@ The pass, in order:
    in the one sentence that carries the privacy promise. Over-length fields are fixed by
    shortening `store/source/en/`, never by trimming the translation.
    Box has one model slot: do not run `make store-prose` while a `box-*` subagent is queued.
+   **Screenshot filenames carry the locale** — `fr-home.png`, `es-history.png`, not `home.png`.
+   The capture directories are overwritten by every run and hold whichever language ran last with
+   no marker at all, and a French screenshot dropped into the English listing is indistinguishable
+   from a correct one in the console, in a zip, and to a reviewer. The folder is not the record:
+   the filename is. `store/v<x>/check.py` fails the package on a bare name;
+   `/usr/bin/python3 screenshots/android/verify_android.py --locale=fr` verifies an upload set.
 
 Available targets: `flutter emulators` (Android: `Pixel_10_Pro`, `Small_Phone`, `ci_test`) and
 `xcrun simctl list devices available` (iOS). Record in the PR description which pass was run, on

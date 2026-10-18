@@ -28,8 +28,10 @@ store/v1.2.1/
 │   ├── build-entry.yml        ← the 1.2.1 build block for docs/fdroiddata/*.yml (stale at 1.0.1)
 │   └── changelogs/11[_<lang>].txt  ← F-Droid changelogs, en/fr/es
 └── screenshots/
-    ├── play/<locale>/         ← 1280×2856, ribbon-free, verified
-    └── asc/<locale>/          ← the four iPhone sizes + two iPad sizes
+    ├── play/<locale>/         ← 8 png 1280×2856, ribbon-free, verified,
+    │                            NAMED `<locale>-<screen>.png` (fr-home.png …) — the locale is
+    │                            in the filename because the folder is not the record
+    └── asc/<locale>/<size>/   ← the four iPhone sizes + two iPad sizes, same naming
 ```
 
 `<locale>` = `fr`, `en`, `es`. Names, subtitles and Play titles are **not** in `fields/` as

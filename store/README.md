@@ -12,6 +12,19 @@ Two kinds of things live here:
    version on each store, per language. Text paste-ready per console field, screenshots per
    device slot, and a checker that enforces the consoles' limits.
 
+## Screenshot names carry the language
+
+`<locale>-<screen>.png` — `fr-home.png`, `es-history.png`, `en-growth.png` — **inside**
+`v<version>/screenshots/play/<locale>/` and `.../asc/<locale>/<size>/`.
+
+The folder is not the record. `screenshots/android/` and `screenshots/ios/asc/<size>/` are
+overwritten by every capture run and hold whichever language ran last with no marker at all;
+the moment a bare `home.png` leaves its folder — dragged into the console, zipped, attached to
+a ticket — nothing says which language it is, and a French shot in the English listing looks
+exactly like a correct one. The locale in the filename survives all of that.
+`store/v<x>/check.py` fails a package on a bare name;
+`/usr/bin/python3 screenshots/android/verify_android.py --locale=fr` verifies an upload set.
+
 ## The translation chain (why the French is machine-made)
 
 ```
