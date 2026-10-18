@@ -165,9 +165,34 @@ def main() -> int:
     version, build = pubspec_version()
     version = args.version or version
     pkg = STORE / f"v{version}"
+
+    # Validate BEFORE touching the filesystem: a KeyError from deep inside the notes
+    # renderer used to leave a half-built store/v<version>/ on disk (caught running the
+    # next-release path dry, 2026-10-18). "Add the patch notes first" is the whole answer,
+    # so say that instead of throwing.
+    missing_notes = []
+    for locale in LOCALES:
+        path = ROOT / "assets" / "patch_notes" / f"{locale}.json"
+        if not path.exists():
+            missing_notes.append(f"{locale} (no {path.relative_to(ROOT)})")
+        elif version not in json.loads(path.read_text(encoding="utf-8")):
+            missing_notes.append(f"{locale} (no key {version})")
+    if missing_notes:
+        raise SystemExit(
+            f"cannot build store/v{version}/: patch notes incomplete — {', '.join(missing_notes)}.\n"
+            f"Add the {version} entry to assets/patch_notes/{{fr,en,es}}.json first "
+            f"(that is also what the in-app 'What's New' dialog reads), then re-run.")
+    if pkg.exists() and not (pkg / "check.py").exists():
+        raise SystemExit(
+            f"{pkg} exists but has no check.py — a previous run died mid-build.\n"
+            f"Delete it and re-run; do not hand-fill a partial package.")
+
+    created = not pkg.exists()
     (pkg / "fields").mkdir(parents=True, exist_ok=True)
     (pkg / "release-notes").mkdir(parents=True, exist_ok=True)
     print(f"store package {pkg.relative_to(ROOT)}  (build {build})")
+    if created:
+        print("  (directory created by this run)")
 
     missing = [f"en/{s}-{f}" for s, f in LIMITS if not (SOURCE / "en" / f"{s}-{f}.txt").exists()]
     for locale in TRANSLATE_INTO:
