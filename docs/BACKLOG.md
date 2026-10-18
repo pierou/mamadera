@@ -208,10 +208,19 @@ la lisibilité du texte.
 
 ---
 
-## B5 — une saisie hors plage est avalée sans message (feeding) — résolu à moitié
+## B5 — une saisie hors plage est avalée sans message (feeding) — résolu
 
-**Statut:** ouvert (reste le chemin feeding) · **Priorité:** haute (santé) · **Coût:** trivial —
+**Statut:** **résolu en v1.2.1** — les deux chemins sont câblés : mesures (`a101429`,
+avant rc) et feeding (`6133af9`, avec le toggle ml/min de B1 — même fichier, « À faire »
+point 4 honoré) · **Priorité:** haute (santé) · **Coût:** trivial —
 un callback à câbler, le mécanisme existe
+
+### Résolu (v1.2.1, vérifié dans le code 2026-10-18)
+`feeding_tracking_dialog.dart` câble `onValueOutOfRange` : la valeur saisie reste à
+l'écran, le message `feedingValueOutOfRange` (nouvelle clé arb, sur le modèle de
+`growthValueOutOfRange`) affiche la plage attendue, et `onConfirmPressed` est `null`
+tant que la valeur est hors plage. Pas de `clamp`. Le reste de la fiche ci-dessous
+est l'historique du défaut (état du 2026-10-06) — conservé tel quel.
 **Trouvé:** 2026-10-04, en vérifiant une conséquence signalée par un worker
 **Vérifié à nouveau:** 2026-10-06 — le commit `a101429` (« fix(growth,reminders): out-of-range
    feedback, comma in all locales, per-baby reminder isolation ») a corrigé le chemin **mesures** ;
