@@ -292,7 +292,13 @@ Answer honestly. For mamadera you'll likely get rated **4+**. The questionnaire 
 
 ## Step 8 — Encryption Declaration
 
-Because we set `ITSAppUsesNonExemptEncryption = true` in Info.plist (the app ships its own AES-256-GCM implementation via the `encrypt` package rather than calling Apple's crypto APIs), Apple will not show the per-submission encryption questionnaire. You must instead keep export compliance documentation on file (EAR self-classification report for everyday/mass-market encryption) — no per-build paperwork in App Store Connect.
+Because `ios/Runner/Info.plist` sets **`ITSAppUsesNonExemptEncryption = false`** (`:69-70`, verified 2026-10-18), App Store Connect treats the build as
+export-compliant on upload: the build never gets `Missing Compliance` status, and there is no per-submission encryption questionnaire to answer.
+
+**This paragraph used to claim the opposite** (`= true`, plus a pile of EAR paperwork). It was wrong, and it was the kind of wrong that wastes an afternoon:
+a build marked non-exempt *does* need documentation before it can be attached to a submission, so anyone debugging a build that "cannot be selected"
+would go chase compliance paperwork for a build that never had the problem. The value in the plist is the authority, not this file. `docs/SUBMISSION-CHECKLIST.md`
+already had it right.
 
 ---
 

@@ -131,7 +131,7 @@ flutter build ios --config-only --release     # generates ios/Flutter/ephemeral/
 - [ ] Metadata still required for a first submission: screenshots 6.7″ + 5.5″ (≥3 per language,
       en/fr/es), privacy policy URL
       (`https://raw.githubusercontent.com/pierou/mamadera/main/.github/PRIVACY.md`), age rating,
-      `ITSAppUsesNonExemptEncryption` already `true` in Info.plist
+      `ITSAppUsesNonExemptEncryption` already `false` in Info.plist (exempt — was documented as `true` here until 2026-10-18; the plist says `false`)
 - [ ] TestFlight first: run the **same upgrade test** as Phase 5 (1.0.1 data came from Play;
       on iOS it's fresh — still test a schema v≤9 → v10 upgrade with an old local build if one
       was ever installed)
