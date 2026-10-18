@@ -1,0 +1,4 @@
+• Les mesures de croissance apparaissent dans l'historique, à côté des prises, du sommeil et des couches — et se modifient ou se suppriment depuis cet écran
+• L'allaitement au sein se saisit en minutes ou en ml, à votre choix
+• Une valeur hors plage est refusée, avec la plage attendue affichée
+• Corrections : minutes manquantes dans les dates anglaises, unité en double sur la courbe, dates qui débordaient sur petit écran, séparateur décimal selon la langue

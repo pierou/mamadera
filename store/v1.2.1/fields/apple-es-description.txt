@@ -1,0 +1,16 @@
+Registra las tomas, el sueño, los pañales y la salud de tu bebé — todo guardado localmente en tu dispositivo con cifrado. Sin nube, sin telemetría, sin rastreo.
+
+QUÉ PUEDES HACER
+• Anotar tomas de pecho y biberón, alimentación sólida en gramos, sueños y cambios de pañal — incluida la textura de las heces
+• Registrar peso, estatura y temperatura: los valores se cifran en el dispositivo y se leen en el historial, junto a los demás eventos
+• Editar o suprimir una medida directamente desde el historial
+• Seguir las rutinas de salud (vitaminas D y K) con sus recordatorios, y crear recordatorios personalizados vinculados a un cuidado
+• Mantener recordatorios independientes para cada bebé
+• Registrar un evento con su fecha y hora exactas, aunque lo anotes más tarde
+• Mantener perfiles separados para cada bebé
+• Exportar todos los datos en un único archivo JSON y restaurarlos cuando quieras — 100 % en el dispositivo, sin cuenta ni nube
+
+PRIVACIDAD POR DISEÑO
+Mamadera se construyó priorizando la privacidad: las notas sensibles y las medidas se cifran en reposo, la aplicación no pide permisos innecesarios y nada se sube nunca. La única salida de datos es la exportación JSON que inicias tú mismo y el panel de compartir de tu dispositivo. Gratis, de código abierto y bajo licencia MIT.
+
+Ideal para padres que valoran su privacidad — y para bebés que merecen la suya.

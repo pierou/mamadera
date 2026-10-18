@@ -1,0 +1,15 @@
+Registra las tomas, el sueño, los cambios de pañal, el crecimiento y la rutina de salud de tu recién nacido con privacidad total. Todos los datos se guardan en tu dispositivo — sin nube, sin telemetría, sin rastreo.
+
+Características:
+• Registro de tomas de pecho y biberón, y de alimentación sólida en gramos
+• Peso, estatura y temperatura — valores cifrados en el dispositivo
+• Las medidas aparecen en el historial junto a los demás eventos, y se editan o suprimen desde ahí
+• Historial de pañales, con textura de las heces
+• Recordatorios de salud (vitamina D/K) — y recordatorios personalizados vinculados a un cuidado
+• Recordatorios independientes para cada niño
+• Registro retroactivo de un evento con fecha y hora exactas
+• Múltiples perfiles de bebé
+• Copia de seguridad y restauración en JSON, 100 % en el dispositivo
+• Notas cifradas en reposo
+
+Mamadera es de código abierto bajo licencia MIT. Los datos de tu bebé nunca salen de tu teléfono, a menos que inicies tú mismo la exportación JSON y pases el archivo al panel de compartir de tu dispositivo.

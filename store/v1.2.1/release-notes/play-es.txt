@@ -1,0 +1,4 @@
+• Las medidas de crecimiento aparecen en el historial junto a tomas, sueño y pañales — y se editan o suprimen desde ahí
+• La lactancia en el pecho se registra en minutos o ml, a tu elección
+• Un valor fuera de rango se rechaza, mostrando el rango esperado
+• Correcciones: minutos ausentes en las fechas en inglés, unidad duplicada en la curva, fechas desbordadas en pantallas pequeñas, separador decimal según el idioma

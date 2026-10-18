@@ -1,0 +1,1 @@
+Poids, taille et température suivis et chiffrés sur l'appareil, visibles dans l'historique avec les prises, le sommeil et les couches. Aucune donnée ne sort du téléphone.
