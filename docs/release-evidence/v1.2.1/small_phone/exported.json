@@ -1,0 +1,123 @@
+{
+  "exportFormatVersion": 3,
+  "generator": "mamadera",
+  "appVersion": "1.2.1",
+  "databaseSchemaVersion": 12,
+  "exportedAt": "2026-10-15T22:07:38.159203Z",
+  "counts": {
+    "babyProfiles": 1,
+    "trackingEvents": 4,
+    "customReminders": 0,
+    "reminderSettings": 0,
+    "reminderDismissals": 0,
+    "measurements": 3,
+    "reminderCompletions": 0
+  },
+  "babyProfiles": [
+    {
+      "id": "baby-upgrade",
+      "name": "Emma",
+      "birthDateEpochMs": 1784585173120,
+      "birthDateUtc": "2026-07-20T22:06:13.120Z",
+      "isActive": true
+    }
+  ],
+  "trackingEvents": [
+    {
+      "id": 1,
+      "type": "miam",
+      "timestampEpochSeconds": 1792091173,
+      "timestampUtc": "2026-10-15T19:06:13.000Z",
+      "durationMinutes": null,
+      "subtype": "natural",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "baby-upgrade",
+      "quantity": null,
+      "unit": "ml"
+    },
+    {
+      "id": 2,
+      "type": "dodo",
+      "timestampEpochSeconds": 1792044373,
+      "timestampUtc": "2026-10-15T06:06:13.000Z",
+      "durationMinutes": 460.0,
+      "subtype": null,
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "baby-upgrade",
+      "quantity": 460.0,
+      "unit": "min"
+    },
+    {
+      "id": 3,
+      "type": "miam",
+      "timestampEpochSeconds": 1792102036,
+      "timestampUtc": "2026-10-15T22:07:16.000Z",
+      "durationMinutes": null,
+      "subtype": "natural",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "baby-upgrade",
+      "quantity": 0.0,
+      "unit": "min"
+    },
+    {
+      "id": 4,
+      "type": "dodo",
+      "timestampEpochSeconds": 1792100246,
+      "timestampUtc": "2026-10-15T21:37:26.000Z",
+      "durationMinutes": 30.0,
+      "subtype": null,
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "baby-upgrade",
+      "quantity": 30.0,
+      "unit": "min"
+    }
+  ],
+  "customReminders": [],
+  "reminderSettings": [],
+  "reminderDismissals": [],
+  "measurements": [
+    {
+      "id": 1,
+      "babyId": "baby-upgrade",
+      "kind": "poids",
+      "value": "3900.0",
+      "unit": "g",
+      "recordedAtEpochSeconds": 1791929173,
+      "recordedAtUtc": "2026-10-13T22:06:13.000Z",
+      "notes": null
+    },
+    {
+      "id": 2,
+      "babyId": "baby-upgrade",
+      "kind": "taille",
+      "value": "52.5",
+      "unit": "cm",
+      "recordedAtEpochSeconds": 1791669973,
+      "recordedAtUtc": "2026-10-10T22:06:13.000Z",
+      "notes": null
+    },
+    {
+      "id": 3,
+      "babyId": "baby-upgrade",
+      "kind": "temperature",
+      "value": "36.8",
+      "unit": "degC",
+      "recordedAtEpochSeconds": 1792015573,
+      "recordedAtUtc": "2026-10-14T22:06:13.000Z",
+      "notes": null
+    }
+  ],
+  "reminderCompletions": []
+}
