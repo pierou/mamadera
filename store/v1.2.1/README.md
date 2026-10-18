@@ -10,15 +10,18 @@ store/v1.2.1/
 ├── README.md                  ← this file: what goes where, what is still missing
 ├── check.py                   ← verifies limits + note consistency + screenshot inventory
 ├── capture.sh               ← recaptures Play screenshots for fr/es/en on the emulator
-├── fields/                  ← paste-ready listing text, 15 files
-│   ├── apple-<locale>-keywords.txt   (≤100)
-│   ├── apple-<locale>-promo.txt      (≤170)
-│   ├── apple-<locale>-description.txt (≤4000)
-│   ├── play-<locale>-short.txt       (≤80)
-│   └── play-<locale>-description.txt  (≤4000)
+├── fields/                  ← paste-ready listing text, one file per console field × locale
+│   ├── apple-<locale>-name.txt / -subtitle.txt (≤30)      ← editorial, never machine
+│   ├── apple-<locale>-keywords.txt   (≤100)               ← editorial, never machine
+│   ├── apple-<locale>-promo.txt      (≤170)               ← TranslateGemma + aligned
+│   ├── apple-<locale>-description.txt (≤4000)             ← TranslateGemma + aligned
+│   ├── play-<locale>-title.txt       (≤30)                ← editorial
+│   ├── play-<locale>-short.txt       (≤80)                ← TranslateGemma + aligned
+│   └── play-<locale>-description.txt (≤4000)              ← TranslateGemma + aligned
+├── machine/<locale>/        ← RAW TranslateGemma output, kept: proves who wrote each sentence
 ├── release-notes/
 │   ├── apple-whatsnew-<locale>.txt   ← generated from assets/patch_notes/<locale>.json
-│   └── play-<locale>.txt             ← curated ≤500 (Play's own limit)
+│   └── play-<locale>.txt             ← TranslateGemma from source/en, ≤500 (Play's own limit)
 ├── apple/<locale>.md          ← per-locale ASC guide: keep vs change, review notes
 ├── play/<locale>.md           ← per-locale Play guide: keep vs change, data safety
 ├── fdroid/
@@ -29,9 +32,23 @@ store/v1.2.1/
     └── asc/<locale>/          ← the four iPhone sizes + two iPad sizes
 ```
 
-`<locale>` = `fr`, `en`, `es`. Names, subtitles and Play titles are **not** in `fields/`:
-they are owner decisions, documented as keep-vs-candidate tables in `apple/<locale>.md`
-and `play/<locale>.md`.
+`<locale>` = `fr`, `en`, `es`. Names, subtitles and Play titles are **not** in `fields/` as
+translations: they are owner decisions, documented as keep-vs-candidate tables in
+`apple/<locale>.md` and `play/<locale>.md`, and carried verbatim in `store/source/<locale>/`.
+
+## How the French and Spanish got here
+
+Built, not typed: `python3 scripts/build_store_package.py --translate`. English canonical in
+`store/source/en/` → TranslateGemma (`tg-translate`, box, temp 0) → raw output archived in
+`machine/<locale>/` → term alignment cited to `lib/l10n/app_<locale>.arb` → `fields/`. Two
+fixes the alignment made here are load-bearing, and both were the model's choices:
+
+- « rien n'est jamais **téléchargé** » → « rien n'est jamais **envoyé** ». In French
+  *télécharger* means **download**: the model had turned "nothing is ever uploaded" into a
+  weaker claim in the single sentence that carries the privacy promise. Authority:
+  `arb:exportDataWarning`, the app's own « rien n'est envoyé automatiquement ».
+- « crypté(s) » / « encriptación » → « chiffré(s) » / « cifrado » — register, and consistent
+  with the rest of the listing.
 
 ## Build identity — check this before uploading anything
 
@@ -131,3 +148,8 @@ text, is what has been blocking it.
   claim a change there.
 - Do not edit `release-notes/apple-whatsnew-*.txt` by hand — edit `assets/patch_notes/*.json`
   and run `python3 store/v1.2.1/check.py --write`. One source, two renderings.
+- Do not hand-write the French or Spanish `fields/`. They are TranslateGemma's output, aligned
+  by cited rules in `scripts/build_store_package.py`. Editing them locally means the next
+  `--translate` run silently reverts your sentence — and the listing then ships wording nobody
+  reviewed. Change `store/source/en/` (or add an `ALIGN` rule with a citation) instead.
+- Do not machine-translate names, subtitles or ASO keywords.

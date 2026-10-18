@@ -1,4 +1,4 @@
-• Growth measurements now appear in History next to feeds, sleep and diapers — edit or delete them right there
-• Breastfeeding is now logged in minutes or ml, your choice
-• Out-of-range values are refused, with the expected range shown
-• Fixes: missing minutes in English dates, doubled unit on the growth chart, dates overflowing small screens, decimal separator per language
+• Growth measurements now show in History — edit or delete them there
+• Breastfeeding logged in minutes or ml, your choice
+• Out-of-range values are refused, with the range shown
+• Fixes: English dates, doubled chart units, small-screen layout

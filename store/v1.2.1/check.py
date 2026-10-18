@@ -22,7 +22,11 @@ NOTES = PKG / "release-notes"
 LOCALES = ("fr", "en", "es")
 
 # Paste-ready field kind → the console's hard character limit.
-LIMITS = {"keywords": 100, "promo": 170, "description": 4000, "short": 80}
+LIMITS = {"keywords": 100, "promo": 170, "description": 4000, "short": 80,
+          "name": 30, "subtitle": 30, "title": 30}
+# Fields TranslateGemma produced. Their raw model output must be archived under machine/:
+# that archive is what makes "who wrote this sentence" answerable after the fact.
+TRANSLATED = {"promo", "description", "short", "release-notes"}
 
 # store slot → (directory under store/v1.2.1/screenshots, expected size, required)
 # `required` means a missing/wrong set is a blocker: Play wants a screenshot set per
@@ -84,10 +88,21 @@ def check_version(version: str) -> None:
                if version in notes else f" missing key {version}")
 
 
+def check_machine_archive() -> None:
+    print("== TranslateGemma archive (machine/)")
+    for locale in ("fr", "es"):
+        for store, kinds in (("apple", ("promo", "description")),
+                             ("play", ("short", "description", "release-notes"))):
+            for kind in kinds:
+                path = PKG / "machine" / locale / f"{store}-{kind}.txt"
+                report(path.exists(), f"machine/{locale}/{store}-{kind}.txt",
+                     "" if path.exists() else " missing — run build_store_package.py --translate")
+
+
 def check_fields() -> None:
     print("== paste-ready fields")
-    for store, kinds in (("apple", ("keywords", "promo", "description")),
-                        ("play", ("short", "description"))):
+    for store, kinds in (("apple", ("name", "subtitle", "keywords", "promo", "description")),
+                        ("play", ("title", "short", "description"))):
         for locale in LOCALES:
             for kind in kinds:
                 path = FIELDS / f"{store}-{locale}-{kind}.txt"
@@ -177,6 +192,7 @@ def main() -> int:
     version = pubspec_version()
     check_version(version)
     check_fields()
+    check_machine_archive()
     check_notes(version, write)
     check_screenshots()
     if problems:

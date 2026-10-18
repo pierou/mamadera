@@ -1,16 +1,16 @@
-Suivez les tétées, le sommeil, les couches et la santé de votre bébé — tout stocké localement sur votre appareil avec chiffrement. Pas de cloud, pas de télémétrie, pas de suivi.
+Suivez les repas, le sommeil, les couches et les routines de santé de votre bébé – toutes ces informations sont stockées localement sur votre appareil, avec chiffrement. Pas de cloud, pas de télémétrie, pas de suivi.
 
 CE QUE VOUS POUVEZ FAIRE
-• Noter les tétées et biberons, l'alimentation solide en grammes, les sessions de sommeil et les changements de couche — y compris la texture des selles
-• Enregistrer le poids, la taille et la température : les valeurs sont chiffrées sur l'appareil et se relisent dans l'historique, à côté de tous les autres événements
-• Modifier ou supprimer une mesure directement depuis l'historique
-• Suivre les routines santé (vitamines D et K) avec leurs rappels, et créer vos propres rappels liés à un soin
-• Garder des rappels indépendants pour chaque enfant
-• Saisir un événement avec sa date et son heure exactes, même à posteriori
-• Tenir des profils séparés pour chaque enfant
-• Exporter toutes vos données dans un fichier JSON et les restaurer quand vous voulez — entièrement sur l'appareil, sans compte ni cloud
+• Enregistrez les tétées au sein et les biberons, les aliments solides en grammes, les périodes de sommeil et les changements de couches – y compris la consistance des selles.
+• Enregistrez le poids, la taille et la température : les valeurs sont chiffrées sur l'appareil et peuvent être consultées dans l'historique, aux côtés de tous les autres événements.
+• Modifiez ou supprimez une mesure directement depuis l'historique.
+• Suivez les routines de santé (vitamines D et K) avec des rappels intégrés, et créez des rappels personnalisés liés à n'importe quel soin.
+• Gérez des rappels indépendants pour chacun de vos bébés.
+• Enregistrez un événement avec sa date et son heure exactes, même a posteriori.
+• Créez des profils distincts pour chacun de vos bébés.
+• Exportez toutes vos données sous forme d'un seul fichier JSON et restaurez-les à tout moment – entièrement sur l'appareil, sans compte ni cloud requis.
 
-CONFIDENTIALITÉ PAR CONCEPTION
-Mamadera est conçu pour protéger la vie privée : les notes sensibles et les mesures sont chiffrées au repos, l'application ne demande aucune permission inutile et rien n'est jamais envoyé. La seule sortie de données est l'export JSON que vous lancez vous-même, puis le panneau de partage de votre appareil. Gratuit, open source et sous licence MIT.
+LA CONFIDENTIALITÉ AU CŒUR DE LA CONCEPTION
+Mamadera est conçu pour la confidentialité : les notes et les mesures sensibles sont chiffrées, l'application ne demande aucune autorisation inutile, et rien n'est jamais envoyé. La seule façon pour les données de quitter l'appareil est l'exportation au format JSON que vous initiez vous-même, puis via la fonction de partage de votre appareil. L'application est gratuite, open source et sous licence MIT.
 
-Idéal pour les parents qui valorisent leur vie privée — et pour les nouveau-nés qui méritent la leur.
+Idéale pour les parents qui accordent de l'importance à leur vie privée – et pour les nouveau-nés qui méritent la leur.

@@ -1,1 +1,1 @@
-Peso, estatura y temperatura cifrados en tu dispositivo y visibles en el historial junto a tomas, sueño y pañales. Ningún dato sale del teléfono.
+Peso, altura y temperatura, cifrados en su dispositivo y mostrados en el historial, junto con información sobre las tomas, el sueño y los pañales.

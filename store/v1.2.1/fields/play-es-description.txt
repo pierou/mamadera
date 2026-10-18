@@ -1,15 +1,15 @@
-Registra las tomas, el sueño, los cambios de pañal, el crecimiento y la rutina de salud de tu recién nacido con privacidad total. Todos los datos se guardan en tu dispositivo — sin nube, sin telemetría, sin rastreo.
+Realice un seguimiento de las tomas, los patrones de sueño, los cambios de pañal, el crecimiento y las rutinas de salud de su bebé recién nacido, con total privacidad. Todos los datos se almacenan en su dispositivo: no se utiliza la nube, no se realiza ningún seguimiento ni telemetría.
 
 Características:
-• Registro de tomas de pecho y biberón, y de alimentación sólida en gramos
-• Peso, estatura y temperatura — valores cifrados en el dispositivo
-• Las medidas aparecen en el historial junto a los demás eventos, y se editan o suprimen desde ahí
-• Historial de pañales, con textura de las heces
-• Recordatorios de salud (vitamina D/K) — y recordatorios personalizados vinculados a un cuidado
-• Recordatorios independientes para cada niño
-• Registro retroactivo de un evento con fecha y hora exactas
-• Múltiples perfiles de bebé
-• Copia de seguridad y restauración en JSON, 100 % en el dispositivo
-• Notas cifradas en reposo
+• Registro de lactancia materna y alimentación con biberón, además de alimentos sólidos en gramos.
+• Peso, altura y temperatura: los valores están cifrados en el dispositivo.
+• Las mediciones de crecimiento aparecen en su historial junto con cada otro evento, y pueden editarse o eliminarse directamente allí.
+• Historial de cambios de pañal, con información sobre la consistencia de las heces.
+• Recordatorios de rutinas de salud (vitamina D/K), además de sus propios recordatorios personalizados vinculados a cualquier cuidado.
+• Los recordatorios se mantienen independientes para cada niño.
+• Registre un evento con su fecha y hora exactas, incluso después de que haya ocurrido.
+• Múltiples perfiles de bebé.
+• Copia de seguridad y restauración en formato JSON: exporte todo, restaure en cualquier momento, directamente en el dispositivo.
+• Notas encriptadas.
 
-Mamadera es de código abierto bajo licencia MIT. Los datos de tu bebé nunca salen de tu teléfono, a menos que inicies tú mismo la exportación JSON y pases el archivo al panel de compartir de tu dispositivo.
+Mamadera es de código abierto bajo la licencia MIT. Los datos de su bebé nunca abandonan su teléfono, a menos que inicie usted mismo la exportación en formato JSON y transfiera el archivo a la función de compartir de su dispositivo.
