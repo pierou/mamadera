@@ -39,12 +39,17 @@ import 'main.dart' as app;
 
 const _babyId = 'baby-asc';
 
-/// Locale pinned to French regardless of the host device language.
-class _FrLocaleNotifier extends LocaleNotifier {
+/// Locale of the App Store shots, from `--dart-define=APP_LOCALE=<code>`
+/// (default `fr`, the primary market and the locale of the accepted uploads).
+/// `en` and `es` produce the other two localized sets in one re-run.
+const _localeCode = String.fromEnvironment('APP_LOCALE', defaultValue: 'fr');
+
+/// Pins the app to [_localeCode] regardless of the host device language.
+class _PinnedLocaleNotifier extends LocaleNotifier {
   @override
   Future<LocalePreference> build() async {
     const pref = LocalePreference(
-      languageCode: 'fr',
+      languageCode: _localeCode,
       isManualOverride: true,
     );
     state = const AsyncData(pref);
@@ -258,7 +263,7 @@ void main() async {
   runApp(
     ProviderScope(
       overrides: [
-        localeProvider.overrideWith(_FrLocaleNotifier.new),
+        localeProvider.overrideWith(_PinnedLocaleNotifier.new),
         appPreferencesProvider.overrideWith(_AcceptedTermsNotifier.new),
         anyBabyExistsProvider.overrideWith(_BabyExistsNotifier.new),
         databaseProvider.overrideWith((ref) async => db),

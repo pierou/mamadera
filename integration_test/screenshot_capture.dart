@@ -52,6 +52,7 @@ import 'package:mamadera/core/services/encryption_service.dart';
 import 'package:mamadera/data/local/app_db.dart';
 import 'package:mamadera/features/growth/data/repositories/measurement_repository_impl.dart';
 import 'package:mamadera/features/growth/domain/entities/measure_kind.dart';
+import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/main.dart';
 
 import 'test_utils.dart';
@@ -174,12 +175,17 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
   await measure(MeasureKind.poids, 5300, const Duration(days: 30));
   await measure(MeasureKind.poids, 5750, const Duration(days: 14));
   await measure(MeasureKind.poids, 6120, const Duration(days: 3));
-  await measure(MeasureKind.poids, 6180, const Duration(hours: 20));
+  // The last two measurements land **inside the first History screen**. This is
+  // the release's headline feature (v1.2.1 unified timeline: a weight row among
+  // today's events), and a store screenshot that scrolls past it advertises an
+  // older app. Events on this fixture run from now-0,5h to now-26h, so 2 h and
+  // 3 h ago interleave them in the visible area instead of trailing below the fold.
+  await measure(MeasureKind.poids, 6180, const Duration(hours: 2));
   await measure(MeasureKind.taille, 51, const Duration(days: 80));
   await measure(MeasureKind.taille, 56, const Duration(days: 45));
   await measure(MeasureKind.taille, 60.5, const Duration(days: 10));
   await measure(MeasureKind.temperature, 36.8, const Duration(days: 20));
-  await measure(MeasureKind.temperature, 37.2, const Duration(days: 2));
+  await measure(MeasureKind.temperature, 37.2, const Duration(hours: 3));
 
   return (db, encryption);
 }
@@ -194,6 +200,13 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
 /// app, and leaving the old in-memory `AppDatabase` alive makes drift warn
 /// ("created the database class AppDatabase multiple times … might corrupt the
 /// database"). Closing is honest hygiene, not `dontWarnAboutMultipleDatabases`.
+/// Locale of the store shots, from `--dart-define=APP_LOCALE=<code>`.
+///
+/// Default `en` keeps the eight accepted uploads in `screenshots/android/`
+/// reproducible byte-for-byte; `fr` and `es` produce the localized sets the
+/// Play Console and ASC want per localization.
+const _locale = String.fromEnvironment('APP_LOCALE', defaultValue: 'en');
+
 AppDatabase? _liveDb;
 
 Future<void> pumpSeededApp(WidgetTester tester) async {
@@ -214,7 +227,7 @@ Future<void> pumpSeededApp(WidgetTester tester) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        localeProvider.overrideWith(() => ConfigurableLocaleNotifier('en')),
+        localeProvider.overrideWith(() => ConfigurableLocaleNotifier(_locale)),
         appPreferencesProvider.overrideWith(AcceptedTermsNotifier.new),
         anyBabyExistsProvider.overrideWith(BabyExistsNotifier.new),
         databaseProvider.overrideWith((ref) async => db),
@@ -356,15 +369,18 @@ void main() {
       await captureScreen(binding, 'health_diagram', tester);
     });
 
-    // v1.2.0 — the growth screen, opened from the Menu ("Growth" tile, English
-    // locale here). The tile label doubles as a section header, so the finder
-    // is scoped to the ListTile.
+    // v1.2.0 — the growth screen, opened from the Menu. **LAST ON PURPOSE**:
+    // `/growth` is a pushed top-level route with no bottom navigation
+    // (router.dart, outside the ShellRoute), and tab/route state survives
+    // pumpWidget re-pumps — a test that ran after this one found no `home-tab`
+    // to tap and failed.
     //
-    // LAST ON PURPOSE: `/growth` is a pushed top-level route with no bottom
-    // navigation (router.dart:139, outside the ShellRoute), and tab/route state
-    // survives pumpWidget re-pumps — the documented gotcha below. A test that
-    // ran after this one found no `home-tab` to tap and failed.
+    // Labels come from the **captured locale**, never a literal: `APP_LOCALE=fr`
+    // puts "Croissance" on that tile and a hardcoded `'Growth'` finder fails the
+    // run (it did, 2026-10-18 — the FR capture died in scrollUntilVisible on
+    // line 390 with the tile never found). Same for the empty-state string.
     testWidgets('growth.png', (tester) async {
+      final strings = lookupAppLocalizations(const Locale(_locale));
       await pumpSeededApp(tester);
       await tester.pumpAndSettle();
 
@@ -373,7 +389,7 @@ void main() {
 
       final tile = find.descendant(
         of: find.byType(ListTile),
-        matching: find.text('Growth'),
+        matching: find.text(strings.growthMenuTile),
       );
       await tester.scrollUntilVisible(tile, 200,
           scrollable: find.byType(Scrollable).first);
@@ -382,8 +398,8 @@ void main() {
 
       // The screen must show real values, never the empty state — exact
       // string, `find.text` does not do substring matching.
-      expect(find.text('Growth'), findsWidgets);
-      expect(find.text('No measurements yet.'), findsNothing);
+      expect(find.text(strings.growthMenuTile), findsWidgets);
+      expect(find.text(strings.growthEmptyState), findsNothing);
 
       await captureScreen(binding, 'growth', tester);
     });
