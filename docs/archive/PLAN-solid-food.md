@@ -1,6 +1,11 @@
 # PLAN — solid food feeding subtype (`solid`), quantity in grams (v1.2.0)
 
-Companion to [`PLAN-v1.2.0.md`](PLAN-v1.2.0.md) and [`BACKLOG.md`](BACKLOG.md) (read B1).
+Status: **SHIPPED in v1.2.0** — `FeedingSubtype.solid` carries `QuantityUnit.g`
+(`lib/features/home/presentation/widgets/feeding_tracking_dialog.dart:71`); commit `f0d22d2`
+("feat(feeding): solid food subtype, quantity in grams") is contained in tag `v1.2.0`. Kept as
+implementation history.
+
+Companion to [`PLAN-v1.2.0.md`](PLAN-v1.2.0.md) and [`BACKLOG.md`](../BACKLOG.md) (read B1).
 Branch: `feat/v1.2.0-growth-and-baby-scoped-reminders`. Do not branch, do not commit.
 
 ## Why

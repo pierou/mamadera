@@ -125,7 +125,9 @@ becomes a wrong fix.
 - Migration and schema version claims (`v10`→`v11`, `DEFAULT 'ml'`).
 - Anything the reviewer answers `ASK`.
 
-These go to `docs/TRANSLATION-FINDINGS.md` with FR, literal EN, adopted EN, code evidence.
+These go to `docs/TRANSLATION-FINDINGS.md` — **planned output, not yet created** (the file does not exist
+in the repo as of 2026-10-20; it is the destination this stage writes to when an item is escalated) — with
+FR, literal EN, adopted EN, code evidence.
 
 ## Stage 4 — gate
 

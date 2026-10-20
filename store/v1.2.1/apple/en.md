@@ -2,7 +2,7 @@
 
 Version **1.2.1** (build 11). English is the **canonical** language: every field here is the
 text in `store/source/en/`, copied by the build, never retyped. Fix a word in the source, not
-in this guide and not in `fields/`.
+in this guide and not in `../fields/`.
 
 ## App name — **keep** `Mamadera Baby Tracker`
 
@@ -31,7 +31,7 @@ edit.
 | Description | `store/source/en/apple-description.txt` | 4 000 | canonical prose |
 | What's New | `../release-notes/apple-whatsnew-en.txt` | 4 000 | `assets/patch_notes/en.json` |
 
-`fields/apple-en-*.txt` are byte-identical copies of the source files — paste either, they are
+`../fields/apple-en-*.txt` are byte-identical copies of the source files — paste either, they are
 the same bytes. What's New renders from the app's own patch notes so the store page and the
 in-app "What's New" dialog cannot say two different things.
 

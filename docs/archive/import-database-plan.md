@@ -1,6 +1,8 @@
 # Plan: Database Import (restore from export)
 
-Status: **implemented** (uncommitted) — see §10 for the deviations from this plan.
+Status: **implemented and committed** — `01d046d` ("feat(import): restore the whole database from an
+exported backup"), contained in tag `v1.1.0-rc.1` and shipped on the v1.1.0 line; see §10 for the
+deviations from this plan.
 
 > **Review record.** Every claim about this repo was re-checked against the sources: the export
 > document shape, the storage precisions, `schemaVersion` 10, the `_performReset` provider list,

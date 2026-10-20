@@ -155,7 +155,7 @@ Then run `make lint` to verify no unresolved imports remain.
 ## 🌍 Open Source & Contribution
 
 - **License**: MIT ([LICENSE](.github/LICENSE))
-- Required files: [`CONTRIBUTING.md`](CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), [`SECURITY.md`](.github/SECURITY.md)
+- Required files: [`CONTRIBUTING.md`](.github/CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](.github/CODE_OF_CONDUCT.md), [`SECURITY.md`](.github/SECURITY.md)
 - Commit messages: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `security:`)
 
 ## 🧪 Release Gate: emulator pass before EVERY PR (non negotiable, added 2026-10-03)

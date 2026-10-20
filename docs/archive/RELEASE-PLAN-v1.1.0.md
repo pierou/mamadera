@@ -1,6 +1,10 @@
 # RELEASE PLAN — v1.1.0 (target: Google Play update + first App Store release)
 
-Status: **draft — awaiting Phase 0 decisions.** Source: `feature/audit-corrections-and-db-export`
+Status: **CLOSED — v1.1.0 shipped; kept as release history.** Live on Google Play since 2026-09-15
+(per [`release-notes/v1.1.0.md`](../release-notes/v1.1.0.md) and the `1.1.0` entry of
+`assets/patch_notes/en.json`, `releaseDate: 2026-09-15`); tags `v1.1.0-rc.1` and `v1.1.0-rc.2` exist,
+and v1.1.1 followed (tag `v1.1.1`). No Phase 0 decision is still outstanding — the release happened.
+Source: `feature/audit-corrections-and-db-export`
 (31+ commits ahead of `main`, not in `develop`). Content: custom reminders tied to a care, preset
 reminder toggles, stool texture on diapers, date/time picker for new events, manual JSON export
 via share sheet, **full DB restore from an exported backup** (`file_picker` 13.1.0, replace-only,

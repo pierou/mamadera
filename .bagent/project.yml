@@ -30,7 +30,7 @@ flags:
 - privacy mandate (AGENTS.md, non-negotiable): never add analytics/telemetry/crash reporting or any network dependency; propose local/offline solutions first
 - web/, linux/, macos/, windows/ platform folders exist but are NOT targets (iOS/Android only unless explicitly requested)
 - lib/data/local/app_db.dart is the DDL source of truth; schema.sql is a generated reference
-- docs/ holds store-submission material: google-play-setup.md, app-store-setup.md, fdroiddata/, keystore-setup.md, RELEASE-PLAN-v1.1.0.md, ROADMAP-reminders-and-sync.md, import-database-plan.md
+- docs/ holds store-submission material: google-play-setup.md, app-store-setup.md, fdroiddata/, keystore-setup.md, ROADMAP-reminders-and-sync.md; shipped plans moved to docs/archive/ on 2026-10-19 (RELEASE-PLAN-v1.1.0.md, import-database-plan.md, PLAN-v1.2.0.md et al.) - re-index with `rag idx` to refresh those paths
 declared_by: agent
 declared_on: '2026-09-27'
 updated_on: '2026-09-29'

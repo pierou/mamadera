@@ -5,7 +5,7 @@ Two kinds of things live here:
 1. **`source/en/`** — the canonical listing prose, authored **once** in English. This is the
    file you edit. French and Spanish are not written here: they are generated.
 2. **Marketing art** at this level — banners, headers, feature graphics, generated trilingual
-   by `/usr/bin/python3 mamadera_banner_final.py`. No suffix = French, `_en`, `_es`.
+   by `/usr/bin/python3 mamadera_banner_final.py` (repo root — `../mamadera_banner_final.py` seen from this file). No suffix = French, `_en`, `_es`.
    These are app-branding assets, not per-release, so they are not versioned by directory.
 3. **`v<version>/`** — one directory per release, **built** by
    `python3 scripts/build_store_package.py [--translate]`: the complete package to publish that

@@ -1,7 +1,7 @@
 # App Store Connect — ficha ES (es-ES)
 
 Versión **1.2.1** (build 11). Cada campo tiene **un solo archivo** en
-[`../fields/`](fields/): ese es el que se pega, nunca una transcripción.
+[`../fields/`](../fields/): ese es el que se pega, nunca una transcripción.
 
 ## Nombre — guardar `Mamadera Bebé`
 
@@ -20,20 +20,20 @@ los campos desde v1.1.0. **Ojo:** la app nunca escribe « tomas » ni « pecho �
 (`homeButtonMiam`) dice **Alimento** y el subtipo (`feedingSubtypeNatural`) dice **Leche
 Materna**. `make store-check` lo marca como WARN: es una decisión de revisión, no un detalle.
 
-## Campos largos — pegar desde `fields/`
+## Campos largos — pegar desde `../fields/`
 
 | campo ASC | archivo | límite | origen |
 |---|---|---|---|
-| Palabras clave | `fields/apple-es-keywords.txt` | 100 | editorial — nunca traducido por la máquina |
-| Texto promocional | `fields/apple-es-promo.txt` | 170 | TranslateGemma, alineado |
-| Descripción | `fields/apple-es-description.txt` | 4 000 | TranslateGemma, alineado |
+| Palabras clave | `../fields/apple-es-keywords.txt` | 100 | editorial — nunca traducido por la máquina |
+| Texto promocional | `../fields/apple-es-promo.txt` | 170 | TranslateGemma, alineado |
+| Descripción | `../fields/apple-es-description.txt` | 4 000 | TranslateGemma, alineado |
 | Novedades | `../release-notes/apple-whatsnew-es.txt` | 4 000 | `assets/patch_notes/es.json` |
 
 El texto español lo hizo TranslateGemma y se alineó término a término contra
 `lib/l10n/app_es.arb`; la salida bruta del modelo está en [`../machine/es/`](../machine/es/).
 Si una palabra no convence, se acorta **`store/source/en/`** (o se añade una regla de
 alineamiento citada en `scripts/build_store_package.py`) y se relanza
-`python3 scripts/build_store_package.py --translate`. Editar `fields/` a mano pierde esa frase
+`python3 scripts/build_store_package.py --translate`. Editar `../fields/` a mano pierde esa frase
 en el siguiente build.
 
 ## Notas para el equipo de revisión

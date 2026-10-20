@@ -1,5 +1,10 @@
 # PLAN — show the active baby's name on home (v1.2.0, small)
 
+Status: **SHIPPED in v1.2.0** — `HomeScreen` watches the active baby's name
+(`lib/features/home/presentation/screens/home_screen.dart:320`) and renders it as the app bar title
+(`:329-338`); commit `ee794af` ("feat(home): name the active baby, so reminders are not anonymous") is
+contained in tag `v1.2.0`. Kept as implementation history.
+
 Companion to [`PLAN-v1.2.0.md`](PLAN-v1.2.0.md). Branch `feat/v1.2.0-growth-and-baby-scoped-reminders`.
 Do not branch, do not commit.
 

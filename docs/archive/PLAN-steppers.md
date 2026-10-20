@@ -1,5 +1,10 @@
 # PLAN — +/- steppers on every numeric picker (v1.2.0)
 
+Status: **SHIPPED in v1.2.0** — the ±steppers live in `QuantityPickerInline`
+(`lib/features/home/presentation/widgets/quantity_picker_inline.dart`, stepper paths at `:47`, `:153`);
+commit `e025904` ("feat(pickers): +/- steppers on every numeric input") is contained in tag `v1.2.0`.
+Kept as implementation history.
+
 Companion to [`PLAN-v1.2.0.md`](PLAN-v1.2.0.md). Read this file only; it is self-contained.
 Branch: `feat/v1.2.0-growth-and-baby-scoped-reminders`. Work on the current tree, do not branch.
 

@@ -1,6 +1,15 @@
 # PLAN — v1.2.1: `unit` on every tracked quantity (schema v12) + coarse/fine sliders
 
-Companion to [`PLAN-v1.2.0.md`](PLAN-v1.2.0.md) and [`BACKLOG.md`](BACKLOG.md) (B1, B2).
+Status: **SHIPPED in v1.2.1 for the `unit` column** — `tracking_events.unit TEXT NULL`
+(`lib/data/local/app_db.dart:44`), drift `schemaVersion` 12 (`app_db.dart:151`), export format 3
+(`export_repository_impl.dart:49`, importer accepts ≤3 via `_supportedFormatVersion = 3`,
+`import_repository_impl.dart:19`); commit `6133af9` is contained in tag `v1.2.1`. **The coarse/fine
+slider half of this plan did NOT stay**: it shipped in v1.2.1 and was reverted 2026-10-13 by the owner
+(ticket B2, now in [`BACKLOG-RESOLVED.md`](../BACKLOG-RESOLVED.md)) — one slider per picker stands.
+Kept as implementation history.
+
+Companion to [`PLAN-v1.2.0.md`](PLAN-v1.2.0.md) and [`BACKLOG.md`](../BACKLOG.md) (B1; B2 now in
+[`BACKLOG-RESOLVED.md`](../BACKLOG-RESOLVED.md)).
 Branch off `develop` when v1.2.0 is merged. Owner decisions of 2026-10-03 are the contract here.
 
 ## Why now
@@ -83,7 +92,7 @@ One widget change in `QuantityPickerInline`, reused everywhere — not four per-
 > **Reverted 2026-10-13** (owner, after one week on a device): two sliders on one form answer no question
 > the ±steppers and the text field did not already answer. One slider per picker now, at the same fine
 > steps; the `SliderPair` parameter is gone from `QuantityPickerInline`. Full reasoning and what would
-> re-open it: [`BACKLOG.md`](BACKLOG.md) B2.
+> re-open it: [`BACKLOG-RESOLVED.md`](../BACKLOG-RESOLVED.md) B2.
 
 ## Out of scope
 Sync (BACKLOG B3 — blocked on a written privacy-mandate change from the owner), no network, no
@@ -190,7 +199,7 @@ sauvegarde sans modification doit être refusée avec un message — pas silenci
 
 ## Deux bugs à corriger en v1.2.1 (trouvés à la campagne de captures v1.2.0, 2026-10-10)
 
-Preuve complète, images comprises : [`BUG-en-date-format-and-growth-unit.md`](BUG-en-date-format-and-growth-unit.md).
+Preuve complète, images comprises : [`BUG-en-date-format-and-growth-unit.md`](../BUG-en-date-format-and-growth-unit.md).
 Les deux sont **visibles dans les captures déjà générées** et dans le binaire `v1.2.0` taggué ; ils n'ont
 pas été corrigés pendant la campagne, parce que la campagne doit photographier ce qui est livré — toucher
 `lib/` après le tag rendrait les assets faux sur le binaire. Témoignage à l'œil, pas devinette : aucun

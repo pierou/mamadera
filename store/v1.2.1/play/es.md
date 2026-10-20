@@ -14,12 +14,12 @@ El título es la señal ASO más fuerte de una ficha publicada: se cambia por es
 release. El candidato dice « tomas » — palabra que la app nunca muestra: su botón
 (`homeButtonMiam`) dice **Alimento**. `make store-check` lo avisa.
 
-## Pegar desde `fields/`
+## Pegar desde `../fields/`
 
 | campo Play | archivo | límite | origen |
 |---|---|---|---|
-| Descripción corta | `fields/play-es-short.txt` | 80 | TranslateGemma, alineado |
-| Descripción completa | `fields/play-es-description.txt` | 4 000 | TranslateGemma, alineado |
+| Descripción corta | `../fields/play-es-short.txt` | 80 | TranslateGemma, alineado |
+| Descripción completa | `../fields/play-es-description.txt` | 4 000 | TranslateGemma, alineado |
 | Notas de versión | `../release-notes/play-es.txt` | 500 | TranslateGemma, alineado |
 
 Salida bruta del modelo en [`../machine/es/`](../machine/es/). Si una descripción pasa de

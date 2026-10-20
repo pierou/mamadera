@@ -1,6 +1,10 @@
 # PLAN — mamadera v1.2.0 (`1.2.0+1`, drift schema v11, export format v2)
 
-Status: **ready to implement.** Written 2026-10-02 against `1.1.1+8` @ `894042a`.
+Status: **SHIPPED in v1.2.0** (tag `v1.2.0`, 2026-10-09) — kept as implementation history, no longer
+an input to anything. Evidence: `git tag --contains f0d22d2` / `e025904` / `ee794af` → `v1.2.0`;
+`lib/features/growth/` exists, drift `schemaVersion` has since moved to 12 (`app_db.dart:151`),
+`_exportFormatVersion = 3` (`export_repository_impl.dart:49`); `pubspec.yaml` is at `1.2.1+11`.
+Written 2026-10-02 against `1.1.1+8` @ `894042a`.
 Supersedes nothing; it executes `docs/ROADMAP-reminders-and-sync.md` §4 (items M, 3, 4, 8).
 
 This file is the **only** input an implementer gets. Everything needed is here: verified

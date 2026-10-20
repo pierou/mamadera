@@ -67,6 +67,17 @@
       ""
     ]
   },
+  "1.1.1": {
+    "releaseDate": "2026-09-29",
+    "title": "Novedades de Mamadera 1.1.1",
+    "items": [
+      "### Correcciones de errores",
+      "- Corrección del recordatorio desactivado en los ajustes que permanecía en la pantalla de inicio",
+      "- Actualización de las etiquetas de los botones de inicio para usar « Nourriture » y « Couche » en lugar de « Miam » y « Caca »",
+      "- Ajuste de la etiqueta « Nourriture » en la pantalla de inicio para que quepa en una sola línea",
+      ""
+    ]
+  },
   "1.2.0": {
     "releaseDate": "2026-10-03",
     "title": "Novedades de Mamadera 1.2.0",

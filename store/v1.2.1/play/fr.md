@@ -14,12 +14,12 @@ Le titre est le signal ASO le plus fort d'une fiche en place : il se change par 
 pas par release. Le candidat contient « tétées » — mot que l'app n'affiche jamais (son bouton
 dit **Nourriture**) : `make store-check` le signale, à trancher à la revue.
 
-## Coller depuis `fields/`
+## Coller depuis `../fields/`
 
 | champ Play | fichier | limite | origine |
 |---|---|---|---|
-| Description courte | `fields/play-fr-short.txt` | 80 | TranslateGemma, aligné |
-| Description complète | `fields/play-fr-description.txt` | 4 000 | TranslateGemma, aligné |
+| Description courte | `../fields/play-fr-short.txt` | 80 | TranslateGemma, aligné |
+| Description complète | `../fields/play-fr-description.txt` | 4 000 | TranslateGemma, aligné |
 | Notes de version | `../release-notes/play-fr.txt` | 500 | TranslateGemma, aligné |
 
 Sortie brute du modèle sous [`../machine/fr/`](../machine/fr/). Le plafond de 500 caractères
