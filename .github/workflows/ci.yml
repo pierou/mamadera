@@ -108,18 +108,54 @@ jobs:
       - name: Analyze (strict)
         run: flutter analyze --fatal-infos --fatal-warnings
 
+      # Formatting was checked nowhere in the estate until 2026-10-19; `dart format` is free
+      # and its absence meant every future refactor could arrive unformatted.
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test integration_test scripts
+
+      - name: Architecture ratchet (AGENTS.md layer rules)
+        # Ratchet, not a clean-slate rule: scripts/architecture_baseline.json locks today's
+        # grandfathered counts, and the job fails only on NEW violations. Counts may only go
+        # down; the script says so when they do. Needs no toolchain beyond python3.
+        run: python3 scripts/check_architecture.py
+
       - name: Run tests
-        run: |
-          flutter test \
-            test/data/ \
-            test/presentation/ \
-            test/core \
-            test/features \
-            test/shared \
-          --coverage
+        # The WHOLE test/ directory. The previous form enumerated five subdirectories
+        # (test/data/ test/presentation/ test/core test/features test/shared) and therefore
+        # silently skipped test/main_test.dart and test/widget_test.dart — the same bug the
+        # Makefile documents as fixed at Makefile:20-22, where the fix never reached CI.
+        # The startup path (main.dart init order, encryption init, ProviderScope wiring) had
+        # no CI signal at all because of it.
+        run: flutter test --coverage
 
       - name: Install lcov tools
         run: sudo apt-get install -y lcov
+
+      - name: Complexity budget (lizard)
+        # Enforces the AGENTS.md "widgets > ~25 lines → extract sub-widgets" intent as a budget,
+        # not a cliff. Baseline cap 3, measured on 2026-10-19:
+        #   _FeedingTrackingDialogState::build  187 NLOC · MenuScreen::build 154 NLOC
+        #   HistoryScreen::_applyUpdate  CCN 31
+        # lizard has NO Dart parser: `lizard lib` reports ONE function and zero warnings, i.e. a
+        # vacuous green. The explicit file list is mandatory, and the Fun Cnt guard fails loudly
+        # rather than certifying a scan that looked at nothing.
+        run: |
+          pip install --quiet lizard
+          FILES=$(find lib -name '*.dart' ! -name '*.g.dart' ! -name '*.freezed.dart')
+          OUT=$(lizard $FILES --CCN 30 --length 150)
+          echo "$OUT" | tail -4
+          FUN=$(echo "$OUT" | tail -1 | awk '{print $5}')
+          WARN=$(echo "$OUT" | tail -1 | awk '{print $6}')
+          if [ "${FUN:-0}" -lt 400 ]; then echo "lizard analysed ${FUN:-0} functions (<400) — scan is broken, not clean"; exit 1; fi
+          if [ "${WARN:-0}" -gt 3 ]; then echo "${WARN} functions over CCN 30 / NLOC 150 (cap 3)"; lizard $FILES --CCN 30 --length 150 -w | head -12; exit 1; fi
+          echo "complexity within budget: $FUN functions scanned, $WARN over cap (baseline 3)"
+
+      - name: Check store package
+        # store-check was in `make ci` but NEVER in CI — so the publish deliverable could
+        # regress without any CI signal (AGENTS.md:120 describes it as part of the pipeline).
+        # Needs no device: it validates console character limits, note consistency and the
+        # locale-carrying screenshot filenames.
+        run: make store-check
 
       - name: Check Coverage Threshold
         run: |

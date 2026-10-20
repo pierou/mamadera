@@ -1,0 +1,23 @@
+{
+  "_comment": "Ratchet: counts may only go down. Regenerate with --update.",
+  "counts": {
+    "core_to_feature_presentation": 2,
+    "domain_framework_imports": 0,
+    "escaped_imports": 0,
+    "oversized_files": 0,
+    "presentation_to_data": 4
+  },
+  "detail": {
+    "core_to_feature_presentation": [
+      "lib/core/providers/active_baby_provider.dart: ../../features/baby/presentation/providers/baby_profile_providers.dart",
+      "lib/core/providers/any_baby_exists_provider.dart: ../../features/baby/presentation/providers/baby_profile_providers.dart"
+    ],
+    "presentation_to_data": [
+      "lib/features/home/presentation/providers/track_notifier.dart: ../../../../data/local/db_constants.dart",
+      "lib/features/reminders/presentation/providers/reminder_notifier.dart: ../../../../data/local/db_constants.dart",
+      "lib/features/reminders/presentation/widgets/custom_reminder_form_sheet.dart: ../../../../data/local/db_constants.dart",
+      "lib/features/reminders/presentation/widgets/reminder_row.dart: ../../../../data/local/db_constants.dart"
+    ]
+  },
+  "max_file_lines": 800
+}
