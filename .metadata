@@ -21,18 +21,10 @@ migration:
     - platform: ios
       create_revision: 924134a44c189315be2148659913dda1671cbe99
       base_revision: 924134a44c189315be2148659913dda1671cbe99
-    - platform: linux
-      create_revision: 924134a44c189315be2148659913dda1671cbe99
-      base_revision: 924134a44c189315be2148659913dda1671cbe99
-    - platform: macos
-      create_revision: 924134a44c189315be2148659913dda1671cbe99
-      base_revision: 924134a44c189315be2148659913dda1671cbe99
-    - platform: web
-      create_revision: 924134a44c189315be2148659913dda1671cbe99
-      base_revision: 924134a44c189315be2148659913dda1671cbe99
-    - platform: windows
-      create_revision: 924134a44c189315be2148659913dda1671cbe99
-      base_revision: 924134a44c189315be2148659913dda1671cbe99
+  # linux / macos / web / windows entries were removed on 2026-10-19 along with their
+  # folders: iOS and Android are the only targets (AGENTS.md). Leaving them registered made
+  # `flutter migrate` keep replaying desktop template diffs onto folders that no longer exist.
+  # Re-add with: flutter create --platforms=web,linux,macos,windows .
 
   # User provided section
 
