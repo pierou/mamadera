@@ -8,7 +8,7 @@ import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
-import '../../../../shared/domain/entities/tracking_icons.dart';
+import '../../../../shared/widgets/tracking_icons.dart';
 import 'quantity_picker_inline.dart';
 
 /// A dialog for tracking feeding events with subtype selection and quantity.

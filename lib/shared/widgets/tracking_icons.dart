@@ -6,8 +6,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'tracking_enums.dart';
-import 'tracking_type.dart';
+import '../domain/entities/tracking_enums.dart';
+import '../domain/entities/tracking_type.dart';
 
 // ──────────────────────────────────────────────
 // TrackingType → canonical IconData

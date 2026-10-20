@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../../core/config/app_config.dart';
-import '../../../../../core/l10n/app_localizations_extension.dart';
-import '../../../../../core/theme.dart';
+import '../../../../core/config/app_config.dart';
+import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/theme.dart';
 
 /// App information and attributions screen.
 ///

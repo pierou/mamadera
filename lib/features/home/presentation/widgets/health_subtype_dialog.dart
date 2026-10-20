@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/utils/health_label_resolver.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
-import '../../../../shared/domain/entities/tracking_icons.dart';
+import '../../../../shared/utils/health_label_resolver.dart';
+import '../../../../shared/widgets/tracking_icons.dart';
 
 /// Widget to display the subtypes of healthcare services.
 ///

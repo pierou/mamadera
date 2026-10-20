@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
-import '../../../../shared/domain/entities/baby_profile.dart';
+import '../../features/baby/presentation/providers/baby_profile_providers.dart';
+import '../../shared/domain/entities/baby_profile.dart';
 
 /// Provider that watches the active baby profile and exposes it across the app.
 ///

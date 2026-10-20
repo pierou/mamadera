@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../data/local/db_constants.dart' as db_const;
@@ -15,7 +14,6 @@ enum MeasureKind {
     dbValue: db_const.kindPoids,
     labelKey: 'homeButtonPoids',
     unit: db_const.unitG,
-    icon: Icons.scale_outlined,
     min: 200,
     max: 20000,
     decimals: 0,
@@ -26,7 +24,6 @@ enum MeasureKind {
     dbValue: db_const.kindTaille,
     labelKey: 'homeButtonTaille',
     unit: db_const.unitCm,
-    icon: Icons.straighten,
     min: 30,
     max: 110,
     decimals: 1,
@@ -37,7 +34,6 @@ enum MeasureKind {
     dbValue: db_const.kindTemperature,
     labelKey: 'homeButtonTemperature',
     unit: db_const.unitDegC,
-    icon: Icons.thermostat,
     min: 33,
     max: 42,
     decimals: 1,
@@ -47,7 +43,6 @@ enum MeasureKind {
     required this.dbValue,
     required this.labelKey,
     required this.unit,
-    required this.icon,
     required this.min,
     required this.max,
     required this.decimals,
@@ -61,9 +56,6 @@ enum MeasureKind {
 
   /// The unit of measurement is stored in the `measurements.unit` column (e.g., `g`, `cm`, `degC`).
   final String unit;
-
-  /// Canonical icon for the home button and history.
-  final IconData icon;
 
   /// Lower limit, inclusive, using basic units (g, cm, °C).
   final double min;

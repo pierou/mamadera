@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
-import 'package:mamadera/shared/domain/entities/tracking_icons.dart';
+import 'package:mamadera/shared/widgets/tracking_icons.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 void main() {

@@ -9,9 +9,9 @@ import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
-import '../../../../shared/domain/entities/tracking_icons.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../../../shared/utils/stool_texture_label_resolver.dart';
+import '../../../../shared/widgets/tracking_icons.dart';
 import '../../../home/presentation/widgets/quantity_picker_inline.dart';
 
 part 'edit_event_dialog.freezed.dart';
