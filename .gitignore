@@ -12,8 +12,14 @@
 .swiftpm/
 .continue
 migrate_working_dir/
-*.pbxproj
-*.xcworkspace
+
+# NOTE: `*.pbxproj` and `*.xcworkspace` used to be listed here. They were removed
+# on 2026-10-19: ios/Runner.xcodeproj/project.pbxproj and ios/Runner.xcworkspace/
+# are TRACKED build deliverables, and those two patterns matched them — the iOS
+# project survived only because it was committed before the patterns were added.
+# Any `git rm -r --cached ios/` + re-add would have silently dropped the Xcode
+# project from the repo while leaving a clean-looking diff.
+# `*.xcuserdata` STAYS: that one is genuinely machine-local Xcode state, not a deliverable.
 *.xcuserdata
 *.hprof
 
@@ -24,8 +30,9 @@ migrate_working_dir/
 .idea/
 
 # The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
+# VS Code which you may wish to be included in version control.
+# Active here: this project is worked on with pi, not VS Code, so editor state
+# stays machine-local and is never shared with contributors or CI.
 .vscode/
 
 # Flutter/Dart/Pub related
@@ -53,9 +60,13 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Agents
-/.github/agents
-.agents/agents/beast.agent.md
-.gitignore
-.agents/agents/Plan.agent.md
+# Python tooling caches (the *.pyc rule above only caught the files, not the dirs)
+__pycache__/
+
+# Scratch tree for the fr→en comment pipeline (29 MB, regenerable)
 .fr2en/
+
+# Release-gate evidence IS a deliverable — AGENTS.md requires the emulator pass to be
+# recorded, and a record that cannot be committed is a record that can be lost silently
+# (the blanket `*.log` rule above was swallowing gate-*.log). Un-ignore exactly these.
+!docs/release-evidence/**/*.log
