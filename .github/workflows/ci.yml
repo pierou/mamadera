@@ -136,18 +136,25 @@ jobs:
         # not a cliff. Baseline cap 3, measured on 2026-10-19:
         #   _FeedingTrackingDialogState::build  187 NLOC · MenuScreen::build 154 NLOC
         #   HistoryScreen::_applyUpdate  CCN 31
-        # lizard has NO Dart parser: `lizard lib` reports ONE function and zero warnings, i.e. a
-        # vacuous green. The explicit file list is mandatory, and the Fun Cnt guard fails loudly
-        # rather than certifying a scan that looked at nothing.
+        # A bare `pip install` cannot succeed on ubuntu-latest (PEP 668: the system Python is
+        # externally-managed) — the step died on line one before ever scanning (2026-10-21).
+        # The throwaway venv fixes that. Two more traps, both learned the same day:
+        #   * lizard's bounded exit code is 1 whenever ANY warning exists — i.e. on every
+        #     within-budget scan — so the `|| true` is deliberate; a real crash is caught by
+        #     the Fun Cnt guard below, which fails loudly on a scan that looked at nothing.
+        #   * current lizard HAS a Dart parser (540 functions, 2026-10-21); the explicit file
+        #     list and the Fun Cnt guard remain as protection against a parser regression.
         run: |
-          pip install --quiet lizard
+          python3 -m venv /tmp/lizard-venv
+          /tmp/lizard-venv/bin/pip install --quiet lizard
+          command -v /tmp/lizard-venv/bin/lizard >/dev/null 2>&1 || { echo "lizard install failed — check the pip output above"; exit 1; }
           FILES=$(find lib -name '*.dart' ! -name '*.g.dart' ! -name '*.freezed.dart')
-          OUT=$(lizard $FILES --CCN 30 --length 150)
+          OUT=$(/tmp/lizard-venv/bin/lizard $FILES --CCN 30 --length 150) || true
           echo "$OUT" | tail -4
           FUN=$(echo "$OUT" | tail -1 | awk '{print $5}')
           WARN=$(echo "$OUT" | tail -1 | awk '{print $6}')
           if [ "${FUN:-0}" -lt 400 ]; then echo "lizard analysed ${FUN:-0} functions (<400) — scan is broken, not clean"; exit 1; fi
-          if [ "${WARN:-0}" -gt 3 ]; then echo "${WARN} functions over CCN 30 / NLOC 150 (cap 3)"; lizard $FILES --CCN 30 --length 150 -w | head -12; exit 1; fi
+          if [ "${WARN:-0}" -gt 3 ]; then echo "${WARN} functions over CCN 30 / NLOC 150 (cap 3)"; /tmp/lizard-venv/bin/lizard $FILES --CCN 30 --length 150 -w | head -12; exit 1; fi
           echo "complexity within budget: $FUN functions scanned, $WARN over cap (baseline 3)"
 
       - name: Check store package

@@ -57,9 +57,11 @@ check-architecture:
 
 # Cyclomatic complexity / function length — the AGENTS.md "~25 lines → extract sub-widgets" rule,
 # which was previously unenforced (scripts/check_function_length.py existed with zero callers).
-# NOTE: lizard has NO Dart parser. `lizard lib` analyses ONE function and reports zero warnings —
-# a vacuous green. The file list must be explicit, and the Fun Cnt guard below fails loudly if a
-# scan ever looks at nothing (a check that cannot fail is worse than no check).
+# NOTE: current lizard HAS a Dart parser (540 functions, 2026-10-21); an older version parsed
+# nothing (`lizard lib` reported ONE function and zero warnings) — a vacuous green. The explicit
+# file list and the Fun Cnt guard below stay as protection against that regression (a check that
+# cannot fail is worse than no check). Lizard's bounded exit code is 1 whenever ANY warning
+# exists — i.e. on every within-budget scan — so the guards, not the exit code, decide pass/fail.
 # Baseline 3 (measured 2026-10-19, tighten as these are refactored):
 #   _FeedingTrackingDialogState::build  187 NLOC   feeding_tracking_dialog.dart:128
 #   MenuScreen::build                   154 NLOC   menu_screen.dart:27
