@@ -9,6 +9,7 @@ import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_frequency.dart';
 import '../../domain/entities/reminder_item.dart';
 import '../../domain/repositories/reminders_repository.dart';
+
 class RemindersRepositoryImpl implements RemindersRepository {
   /// Explicit injection — no fallback singleton.
   const RemindersRepositoryImpl({
@@ -34,7 +35,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
       babyId == null ? const [db_const.sharedBabyId] : [babyId];
 
   @override
-  Future<DateTime?> getLastCompleted(ReminderItem item, {String? babyId}) async {
+  Future<DateTime?> getLastCompleted(ReminderItem item,
+      {String? babyId}) async {
     try {
       // Invariant D2: An item without a [ReminderItem.subtypeValue] is considered detached.
       // of a delicate nature — no event can resolve it, not even a perfectly executed `sante`."
@@ -68,7 +70,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
       final results = await q.get();
       if (results.isEmpty) return null;
 
-      _logger.d('getLastCompleted(${item.id}) — found: ${results.first.timestamp}');
+      _logger.d(
+          'getLastCompleted(${item.id}) — found: ${results.first.timestamp}');
       return results.first.timestamp;
     } catch (e, stack) {
       _logger.e(
@@ -81,7 +84,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<DateTime?> getLastManualCompletion(String itemId, {String? babyId}) async {
+  Future<DateTime?> getLastManualCompletion(String itemId,
+      {String? babyId}) async {
     try {
       // Append-only journal: reading always displays the most recent entry.
       // of the baby — nothing else, the `''` character represents the state without...
@@ -127,17 +131,18 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<void> recordCompletion(String itemId, {String? babyId, DateTime? at}) async {
+  Future<void> recordCompletion(String itemId,
+      {String? babyId, DateTime? at}) async {
     try {
       final scope = _scope(babyId);
       final completedAt = at ?? DateTime.now();
       await database.into(database.reminderCompletions).insert(
-        db_app.ReminderCompletionsCompanion.insert(
-          babyId: Value(scope),
-          itemId: itemId,
-          completedAt: completedAt,
-        ),
-      );
+            db_app.ReminderCompletionsCompanion.insert(
+              babyId: Value(scope),
+              itemId: itemId,
+              completedAt: completedAt,
+            ),
+          );
       _logger.d('recordCompletion($itemId, $scope)');
     } catch (e, stack) {
       _logger.e(
@@ -150,7 +155,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<void> dismissReminder(String itemId, {String? babyId, DateTime? at}) async {
+  Future<void> dismissReminder(String itemId,
+      {String? babyId, DateTime? at}) async {
     try {
       final scope = _scope(babyId);
       final dismissedAt = at ?? DateTime.now();
@@ -164,12 +170,12 @@ class RemindersRepositoryImpl implements RemindersRepository {
               ..where((t) => t.babyId.equals(scope) & t.itemId.equals(itemId)))
             .go();
         await database.into(database.reminderDismissals).insert(
-          db_app.ReminderDismissalsCompanion.insert(
-            babyId: Value(scope),
-            itemId: itemId,
-            dismissedAt: dismissedAt,
-          ),
-        );
+              db_app.ReminderDismissalsCompanion.insert(
+                babyId: Value(scope),
+                itemId: itemId,
+                dismissedAt: dismissedAt,
+              ),
+            );
       });
       _logger.d('dismissReminder($itemId, $scope)');
     } catch (e, stack) {
@@ -204,7 +210,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<void> setEnabled(String itemId, {required bool enabled, String? babyId}) async {
+  Future<void> setEnabled(String itemId,
+      {required bool enabled, String? babyId}) async {
     try {
       final scope = _scope(babyId);
       _logger.d('setEnabled($itemId, $enabled, $scope)');
@@ -218,12 +225,12 @@ class RemindersRepositoryImpl implements RemindersRepository {
               ..where((t) => t.babyId.equals(scope) & t.itemId.equals(itemId)))
             .go();
         await database.into(database.reminderSettings).insert(
-          db_app.ReminderSettingsCompanion.insert(
-            babyId: Value(scope),
-            itemId: itemId,
-            enabled: enabled,
-          ),
-        );
+              db_app.ReminderSettingsCompanion.insert(
+                babyId: Value(scope),
+                itemId: itemId,
+                enabled: enabled,
+              ),
+            );
       });
     } catch (e, stack) {
       _logger.e(
@@ -271,8 +278,7 @@ class RemindersRepositoryImpl implements RemindersRepository {
         // The day of the month is not stored; instead, it represents the baby's date of birth.
         // active, and reviewed each time the list is created – like vitamin K.
         monthly: (_) => (code: _freqMonthly, intervalDays: null),
-        customInterval: (f) =>
-            (code: _freqEveryNDays, intervalDays: f.days),
+        customInterval: (f) => (code: _freqEveryNDays, intervalDays: f.days),
       );
 
   /// Tolerant decoding: an unknown code — manually restored JSON, version.
@@ -351,29 +357,30 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<int> insertCustomReminder(CustomReminder reminder, {String? babyId}) async {
+  Future<int> insertCustomReminder(CustomReminder reminder,
+      {String? babyId}) async {
     try {
       final scope = _scope(babyId);
       final (code: code, intervalDays: intervalDays) =
           _encodeFrequency(reminder.frequency);
 
       final id = await database.into(database.customReminders).insert(
-        db_app.CustomRemindersCompanion.insert(
-          label: _validatedLabel(reminder.label),
-          subtypeValue: Value(reminder.subtypeValue),
-          // The core principle, established here at the very beginning of the writing process, is a reminder without...
-          // The care cannot be excluded from the events; it should be included in the calculation.
-          // The first health event that came to mind.
-          completionSource: Value(
-            reminder.subtypeValue == null
-                ? db_const.completionManual
-                : db_const.completionFromEvents,
-          ),
-          babyId: Value(scope),
-          frequency: code,
-          intervalDays: Value(intervalDays),
-        ),
-      );
+            db_app.CustomRemindersCompanion.insert(
+              label: _validatedLabel(reminder.label),
+              subtypeValue: Value(reminder.subtypeValue),
+              // The core principle, established here at the very beginning of the writing process, is a reminder without...
+              // The care cannot be excluded from the events; it should be included in the calculation.
+              // The first health event that came to mind.
+              completionSource: Value(
+                reminder.subtypeValue == null
+                    ? db_const.completionManual
+                    : db_const.completionFromEvents,
+              ),
+              babyId: Value(scope),
+              frequency: code,
+              intervalDays: Value(intervalDays),
+            ),
+          );
       _logger.d('insertCustomReminder(id: $id, $scope)');
       return id;
     } catch (e, stack) {
@@ -387,7 +394,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<void> updateCustomReminder(CustomReminder reminder, {String? babyId}) async {
+  Future<void> updateCustomReminder(CustomReminder reminder,
+      {String? babyId}) async {
     try {
       final id = reminder.id;
       if (id == null) {
@@ -419,7 +427,8 @@ class RemindersRepositoryImpl implements RemindersRepository {
           intervalDays: Value(intervalDays),
         ),
       );
-      _logger.d('updateCustomReminder($id, ${_scope(babyId)}) — rows: $updated');
+      _logger
+          .d('updateCustomReminder($id, ${_scope(babyId)}) — rows: $updated');
     } catch (e, stack) {
       _logger.e(
         'updateCustomReminder error',
@@ -433,8 +442,7 @@ class RemindersRepositoryImpl implements RemindersRepository {
   @override
   Future<void> deleteCustomReminder(int id, {String? babyId}) async {
     try {
-      final itemKey =
-          '${CustomReminderPresets.customIdPrefix}$id';
+      final itemKey = '${CustomReminderPresets.customIdPrefix}$id';
 
       // Transaction: Four hands are involved. One card has been cut in half.
       // It would leave an orphaned setting in each backup, and that's...

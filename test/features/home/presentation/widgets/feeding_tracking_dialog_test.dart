@@ -86,7 +86,8 @@ void main() {
       expect(find.byType(QuantityPickerInline), findsOneWidget);
     });
 
-    testWidgets('natural s\'ouvre en minutes : la quantité par défaut est 0 min',
+    testWidgets(
+        'natural s\'ouvre en minutes : la quantité par défaut est 0 min',
         (tester) async {
       // The default unit for `natural` is `min` (this is a proprietary decision).
       // (October 3, 2026): The duration of breastfeeding is timed, and the amount of formula given in a bottle is measured.
@@ -153,8 +154,7 @@ void main() {
       expect(pickerMl.unit, equals('ml'));
       expect(pickerMl.max, equals(300));
       expect(find.text('0 ml'), findsOneWidget);
-      expect(
-          find.text('Unité modifiée : la quantité a été remise à 0.'),
+      expect(find.text('Unité modifiée : la quantité a été remise à 0.'),
           findsOneWidget);
     });
 

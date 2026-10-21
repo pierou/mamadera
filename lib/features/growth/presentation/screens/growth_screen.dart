@@ -35,11 +35,11 @@ class GrowthScreen extends ConsumerWidget {
     return measurement.kind.format(value, localeName: context.l.localeName);
   }
 
-  Widget _latestCard(BuildContext context, GrowthMeasurement? latest, MeasureKind kind) {
+  Widget _latestCard(
+      BuildContext context, GrowthMeasurement? latest, MeasureKind kind) {
     final theme = Theme.of(context);
     final color = kind.accent;
-    final value =
-        latest == null ? '—' : _displayValue(context, latest);
+    final value = latest == null ? '—' : _displayValue(context, latest);
     return Container(
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
@@ -85,7 +85,8 @@ class GrowthScreen extends ConsumerWidget {
       ),
       title: Text(
         _displayValue(context, measurement),
-        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        style:
+            theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
       ),
       subtitle: Text(
         formatDate(context, measurement.recordedAt) +
@@ -112,7 +113,8 @@ class GrowthScreen extends ConsumerWidget {
       ),
       body: measurementsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text(l.errorMessage(error.toString()))),
+        error: (error, _) =>
+            Center(child: Text(l.errorMessage(error.toString()))),
         data: (measurements) {
           if (measurements.isEmpty) {
             return Center(child: Text(l.growthEmptyState));
@@ -127,7 +129,8 @@ class GrowthScreen extends ConsumerWidget {
               Row(
                 children: [
                   for (final kind in MeasureKind.values) ...[
-                    Expanded(child: _latestCard(context, latestByKind[kind], kind)),
+                    Expanded(
+                        child: _latestCard(context, latestByKind[kind], kind)),
                     if (kind != MeasureKind.values.last)
                       const SizedBox(width: AppTheme.spacingMd),
                   ],
@@ -136,7 +139,9 @@ class GrowthScreen extends ConsumerWidget {
               const SizedBox(height: AppTheme.spacingXl),
               Text(
                 l.growthSectionTitle,
-                style: Theme.of(context).textTheme.titleMedium
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: AppTheme.spacingMd),

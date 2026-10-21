@@ -106,12 +106,14 @@ void main() {
   group('AppTheme textPrimaryForTint', () {
     test('returns black for light colors (luminance > 0.17)', () {
       expect(AppTheme.textPrimaryForTint(Colors.white), equals(Colors.black));
-      expect(AppTheme.textPrimaryForTint(Colors.grey.shade200), equals(Colors.black));
+      expect(AppTheme.textPrimaryForTint(Colors.grey.shade200),
+          equals(Colors.black));
     });
 
     test('returns white for dark colors (luminance <= 0.17)', () {
       expect(AppTheme.textPrimaryForTint(Colors.black), equals(Colors.white));
-      expect(AppTheme.textPrimaryForTint(const Color(0xFF1A1A1A)), equals(Colors.white));
+      expect(AppTheme.textPrimaryForTint(const Color(0xFF1A1A1A)),
+          equals(Colors.white));
     });
 
     test('returns white when tint is null', () {
@@ -126,8 +128,10 @@ void main() {
 
       expect(overlay.statusBarColor, equals(Colors.transparent));
       expect(overlay.statusBarIconBrightness, equals(Brightness.light));
-      expect(overlay.systemNavigationBarIconBrightness, equals(Brightness.light));
-      expect(overlay.systemNavigationBarColor, equals(darkTheme.scaffoldBackgroundColor));
+      expect(
+          overlay.systemNavigationBarIconBrightness, equals(Brightness.light));
+      expect(overlay.systemNavigationBarColor,
+          equals(darkTheme.scaffoldBackgroundColor));
     });
 
     test('returns correct overlay style for light theme', () {
@@ -136,8 +140,10 @@ void main() {
 
       expect(overlay.statusBarColor, equals(Colors.transparent));
       expect(overlay.statusBarIconBrightness, equals(Brightness.dark));
-      expect(overlay.systemNavigationBarIconBrightness, equals(Brightness.dark));
-      expect(overlay.systemNavigationBarColor, equals(lightTheme.scaffoldBackgroundColor));
+      expect(
+          overlay.systemNavigationBarIconBrightness, equals(Brightness.dark));
+      expect(overlay.systemNavigationBarColor,
+          equals(lightTheme.scaffoldBackgroundColor));
     });
   });
 
@@ -155,8 +161,10 @@ void main() {
     });
 
     test('returns grey for unknown type including dodo', () {
-      expect(AppTheme.accentForTrackingType('dodo'), equals(Colors.grey.shade700));
-      expect(AppTheme.accentForTrackingType('unknown'), equals(Colors.grey.shade700));
+      expect(
+          AppTheme.accentForTrackingType('dodo'), equals(Colors.grey.shade700));
+      expect(AppTheme.accentForTrackingType('unknown'),
+          equals(Colors.grey.shade700));
     });
 
     test('handles uppercase type names', () {
@@ -200,7 +208,8 @@ void main() {
 
     test('light theme inputDecoration has correct fillColor', () {
       final theme = AppTheme.lightTheme;
-      expect(theme.inputDecorationTheme.fillColor, equals(AppTheme.lightInputFillColor));
+      expect(theme.inputDecorationTheme.fillColor,
+          equals(AppTheme.lightInputFillColor));
       expect(theme.inputDecorationTheme.filled, isTrue);
     });
   });
@@ -209,7 +218,8 @@ void main() {
     test('darkTheme has outlinedButtonTheme configured', () {
       final theme = AppTheme.darkTheme;
       expect(theme.outlinedButtonTheme, isNotNull);
-      expect(theme.outlinedButtonTheme.style?.foregroundColor?.resolve({}), equals(AppTheme.sante));
+      expect(theme.outlinedButtonTheme.style?.foregroundColor?.resolve({}),
+          equals(AppTheme.sante));
     });
 
     test('darkTheme has elevatedButtonTheme with sante background', () {
@@ -233,7 +243,8 @@ void main() {
     test('darkTheme has textButtonTheme with sante foreground', () {
       final theme = AppTheme.darkTheme;
       expect(theme.textButtonTheme, isNotNull);
-      expect(theme.textButtonTheme.style?.foregroundColor?.resolve({}), equals(AppTheme.sante));
+      expect(theme.textButtonTheme.style?.foregroundColor?.resolve({}),
+          equals(AppTheme.sante));
     });
   });
 

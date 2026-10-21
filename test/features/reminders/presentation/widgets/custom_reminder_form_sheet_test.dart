@@ -161,7 +161,8 @@ void main() {
       // Two fields: the name, followed by the interval that appears based on the selected rhythm.
       expect(find.byType(TextFormField), findsNWidgets(2));
       // A default value prevents validation errors from occurring on empty fields.
-      expect(tester.widget<TextFormField>(_intervalField()).controller?.text, '3');
+      expect(
+          tester.widget<TextFormField>(_intervalField()).controller?.text, '3');
     });
 
     testWidgets('un roulement rend le nombre de jours demandé', (tester) async {
@@ -172,7 +173,8 @@ void main() {
 
       await _confirm(tester);
 
-      expect(_popped!.frequency, const ReminderFrequency.customInterval(days: 12));
+      expect(
+          _popped!.frequency, const ReminderFrequency.customInterval(days: 12));
     });
 
     testWidgets('un intervalle hors des bornes est refusé', (tester) async {
@@ -240,11 +242,14 @@ void main() {
           'Crème du change');
       // The recorded rhythm is selected, including the specified interval.
       expect(find.byType(TextFormField), findsNWidgets(2));
-      expect(tester.widget<TextFormField>(_intervalField()).controller?.text, '5');
       expect(
-        tester.widget<DropdownButtonFormField<String>>(
-          find.byType(DropdownButtonFormField<String>),
-        ).initialValue,
+          tester.widget<TextFormField>(_intervalField()).controller?.text, '5');
+      expect(
+        tester
+            .widget<DropdownButtonFormField<String>>(
+              find.byType(DropdownButtonFormField<String>),
+            )
+            .initialValue,
         HealthSubtype.nettoyageYeux.value,
       );
 
@@ -253,7 +258,8 @@ void main() {
 
       expect(_popped!.id, 7);
       expect(_popped!.label, 'Crème du change, le soir');
-      expect(_popped!.frequency, const ReminderFrequency.customInterval(days: 5));
+      expect(
+          _popped!.frequency, const ReminderFrequency.customInterval(days: 5));
     });
 
     testWidgets('annuler ne rend rien et n\'écrit rien', (tester) async {
@@ -269,7 +275,8 @@ void main() {
   });
 
   group('soin détaché (M3)', () {
-    testWidgets('le menu des soins commence par « Aucun soin »', (tester) async {
+    testWidgets('le menu des soins commence par « Aucun soin »',
+        (tester) async {
       await _open(tester);
 
       await tester.tap(find.byType(DropdownButtonFormField<String>));
@@ -289,8 +296,7 @@ void main() {
       );
     });
 
-    testWidgets(
-        'choisir « Aucun soin » rend un rappel détaché réglé par tap',
+    testWidgets('choisir « Aucun soin » rend un rappel détaché réglé par tap',
         (tester) async {
       await _open(tester);
       await tester.enterText(_labelField(), 'Thermomètre');
@@ -343,7 +349,8 @@ void main() {
       expect(_popped!.label, 'Thermomètre');
       expect(_popped!.subtypeValue, isNull);
       expect(_popped!.completionSource, completionManual);
-      expect(_popped!.frequency, const ReminderFrequency.customInterval(days: 2));
+      expect(
+          _popped!.frequency, const ReminderFrequency.customInterval(days: 2));
     });
 
     testWidgets('un rappel lié au soin reste lié, réglé par événement',

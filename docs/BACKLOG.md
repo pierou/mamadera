@@ -4,11 +4,21 @@ Things we know are wrong, cheap-ish to fix, and chose not to fix in the release 
 Each entry says **why it was deferred** and **what makes it urgent**, so the next person can
 re-decide instead of re-discovering. Nothing here is hidden; nothing here is approved silently.
 
+> **Resolved, shipped and decided items are archived in [`BACKLOG-RESOLVED.md`](BACKLOG-RESOLVED.md)**
+> (append-only history). **MOVED 2026-10-20:** **B2** (coarse + fine slider pair — shipped v1.2.1,
+> reverted 2026-10-13) and **B5** (out-of-range input swallowed without a message — resolved v1.2.1), bodies
+> moved verbatim, numbers preserved. **B1** and **B7** stay here: B1 keeps its full evidence under a
+> corrected status line, and B7 still carries open work (the `HistoryFilter.measurements` chip,
+> re-requested by the owner 2026-10-17).
+
 ---
 
 ## B1 — `tracking_events.quantity` has no unit column
 
-**Status:** open · **Severity:** medium · **Cost:** one migration (schema v12) + export format bump
+**Status:** ~~open~~ **resolved in v1.2.1** — the `unit` column landed (`tracking_events.unit TEXT NULL`,
+`lib/data/local/app_db.dart:44`; `measurements.unit` at `:119`), schema v12 (`app_db.dart:151`), commit
+`6133af9` tagged `v1.2.1` — see [`docs/release-notes/v1.2.1.md`](release-notes/v1.2.1.md). Body kept as
+the decision record · **Severity:** medium · **Cost:** one migration (schema v12) + export format bump
 **Found:** 2026-10-03, while adding the `solid` feeding subtype for v1.2.0
 **Files:** `lib/data/local/app_db.dart:28`, `lib/features/history/presentation/widgets/history_tile.dart:134`,
 `lib/features/home/presentation/widgets/feeding_tracking_dialog.dart:121`,
@@ -42,13 +52,13 @@ the v10→v11 re-key had been run on a single real device. Two irreversible migr
 both unverified on hardware, is how you lose a user's data.
 
 ### What makes it urgent
-1. **The day a meal is logged in ml and g at once** — a bottle *and* a purée at one sitting — the
+1. **The day a meal is logged in ml and g at once** — a bottle *and* pureed food at one sitting — the
    model cannot express it. One row per event, one number, one inferred unit: the second food's
    quantity becomes ambiguous or the meal has to be split into two events with no link between them.
 2. **Any future import of a foreign format** (another app's export, a spreadsheet restore) cannot be
    validated: an out-of-range value is only detectable if you know what unit you're checking against.
 3. **Rendered output is wrong for `solid`** unless every display site was updated in lockstep. A missed
-   site prints "40 ml" for 40 g of purée. That is a wrong health number on screen, in an app whose
+   site prints "40 ml" for 40 g of pureed food. That is a wrong health number on screen, in an app whose
    entire promise is correct health numbers. Four sites hardcoded `'ml'` for all feeding and had to be
    found and fixed in v1.2.0 — the fourth was not in the plan's list.
 4. `measurements` (v1.2.0) *does* carry a `unit` column (`app_db.dart:102`). The schema now contradicts
@@ -59,26 +69,26 @@ Per-subtype units are now the product contract, not an accident of inference:
 
 | subtype | unit | who chooses |
 |---------|------|-------------|
-| `natural` | **`ml` or `min` — sélectionné par le parent** | le parent, à la saisie (toggle) |
-| `artificial` | `ml` | fixe |
-| `solid` | `g` | fixe |
-| `dodo` | `min` | fixe |
+| `natural` | **`ml` or `min` — chosen by the parent** | the parent, at input time (toggle) |
+| `artificial` | `ml` | fixed |
+| `solid` | `g` | fixed |
+| `dodo` | `min` | fixed |
 
-Amendment owner 2026-10-03 (second): le sein ne se fige **ni** en minutes **ni** en ml. Le parent
-choisit. Téter se compte en minutes, tirer un biberon se compte en ml, et la même mère fait les deux
-le même jour — figer le sous-type supprimait l'un des deux usages, ce qui n'est pas un détail pour
-un parent qui tire. Le toggle n'apparaît que pour `natural` ; les autres sous-types restent figés,
-parce qu'une seule unité y a un sens.
+Amendment owner 2026-10-03 (second): the breast is fixed **neither** to minutes **nor** to ml. The parent
+chooses. Nursing counts in minutes, pumping counts in ml, and the same mother does both
+the same day — freezing the subtype would have removed one of the two usages, which is no small thing for
+a pumping parent. The toggle only shows for `natural`; the other subtypes stay frozen,
+because only one unit has meaning there.
 
-### Backfill à la migration v12 — règle explicite
-**Toutes les lignes `natural` existantes passent à `'ml'`**, parce que c'est ce que l'interface
-affichait : un parent qui a saisi 20 a vu « 20 ml », donc la donnée *veut* dire 20 ml. Aucune
-conversion arithmétique, aucune déduction : on nomme l'unité que l'utilisateur a vue. Une ligne dont
-l'unité devinerait la minute serait une invention.
+### Backfill at migration v12 — explicit rule
+**All existing `natural` rows get `'ml'`**, because that is what the interface
+was showing: a parent who entered 20 saw « 20 ml », so the data *meant* to be 20 ml. No
+arithmetic conversion, no inference: we name the unit the user saw. A row whose
+unit was guessed as minutes would be fabrication.
 
-Conséquence assumée : au sein, `ml` et `min` coexistent dans la même colonne et le même sous-type.
-Tout agrégat doit filtrer sur `unit` — additionner des minutes à des millilitres n'est pas une
-approximation, c'est un non-sens. Vérifié : rien ne somme le volume d'alimentation aujourd'hui.
+Accepted consequence: at the breast, `ml` and `min` coexist in the same column and the same subtype.
+Any aggregate must filter on `unit` — adding minutes to millilitres is not an
+approximation, it is nonsense. Verified: nothing sums feeding volume today.
 
 That makes the `unit` column a **prerequisite**, not a cleanup: without it, `quantity` would hold
 minutes and millilitres under one subtype name with nothing distinguishing them.
@@ -92,8 +102,8 @@ and stay `'ml'`, truthfully. Consequences, all of them intended:
 - `natural` rows carry two units across time, distinguished only by `unit`. Any query, chart or
   "last fed" logic that ignores `unit` will mix volumes and durations. Verify there is no such query
   before shipping — today there is none, nothing sums feeding volume (checked 2026-10-03).
-- ~~Expressed milk loses its input field~~ — **résolu** par le toggle ml/min sur `natural`
-  (amendement ci-dessus) : pas de quatrième sous-type, le sein accepte les deux unités.
+- ~~Expressed milk loses its input field~~ — **resolved** by the ml/min toggle on `natural`
+  (amendment above): no fourth subtype, the breast accepts both units.
 - Duration of a feed becomes available per row, which is what a paediatrician asking "how long does
   she feed?" actually wants. That is the gain paying for all of the above.
 
@@ -112,51 +122,8 @@ unverified irreversible migrations in one release is how a re-key goes wrong wit
 
 ### Do not
 Do not "fix" this by widening reminder matching to `type == miam`. Reminders match `subtype`
-exactly (`reminders_repository_impl.dart:58`) — that is why a purée does **not** silence a milk
+exactly (`reminders_repository_impl.dart:58`) — that is why `Solide` (pureed food) does **not** silence a milk
 reminder. That exactness is behaviour, not oversight.
-
----
-
-## B2 — Weight slider has 1980 stops → coarse + fine slider pair
-
-**Status:** ~~approved for v1.2.1~~ **shipped in v1.2.1, reverted 2026-10-13** (owner) ·
-**Severity:** low · **Cost:** UI, ~2 h
-**Found:** 2026-10-03, when the step moved from 200 g to 10 g
-
-Half a pixel per stop on a phone. The slider is an aiming device, not an input device; the text
-field and the ±steppers set the real value. Accepted deliberately because 10 g of granularity is
-what the parent is looking at, and a coarse slider is a lesser sin than a coarse measurement.
-
-**Decision:** two sliders, not one. A **coarse** slider spanning the whole range for rapid finding
-(50 g, or 100 g below 3 kg) and a **fine** slider spanning a narrow window around the current value
-for the exact one (±50 g, step 10 g), the window re-centring as the coarse slider moves. Same pattern
-resolves temperature (coarse 33–42 by 0,5, fine ±1 °C by 0,1) and height. The ±steppers stay — they
-are the fastest way to nudge one quantum, and the fine slider is the fastest way to see the neighbours.
-Reused across all measurement kinds and the feeding picker, so this is one widget change, not four.
-Reverting the step to 200 g is **not** an option: coarse selection and fine value are both required.
-
-### Reverted (owner, 2026-10-13)
-Shipped in v1.2.1, taken out the same week: the owner opened an edit sheet, saw two sliders, and could
-not tell which one to move or what the second was for. That is the whole verdict — a control whose
-purpose has to be explained is not a control. And the diagnosis it was written for had already been
-solved twice over: `MeasureKind.step` was documented as *« le slider amène à proximité ; le champ de
-saisie et les boutons +/- fixent la valeur exacte »*, and the ±steppers were kept in the decision above.
-The fine slider therefore added no reach the ± and the keyboard did not already give (volume: coarse 50 /
-fine 10 / stepper 10 — the fine slider was the stepper, drawn 300 px wide), while costing a legend per
-slider and ~60 px of a bottom sheet that was already scrolling.
-
-**Kept:** the 10 g / 1 cm / 0,1 °C steps (that half of the decision stands — `divisions` still spans the
-full range at the fine step, the thumb just stops where the finger stops), the ±steppers, the text field.
-**Removed:** the `SliderPair` typedef, the `sliderPair` parameter of `QuantityPickerInline`, the two
-`Grossier`/`Précis` captions (`sliderCoarse`/`sliderFine` deleted from all three ARBs). One slider per
-picker, everywhere — `QuantityPickerInline`, `measurement_sheet`, `edit_measurement_sheet`,
-`edit_event_dialog`, `feeding_tracking_dialog`.
-
-**What would re-open this:** a parent who cannot land a value with ± plus keyboard. Not a dense slider —
-Flutter skips painting tick marks once they fall below ~12 px apart (`adjustedTrackWidth / divisions >=
-3 * tickMarkWidth`, `material/slider.dart`), and at `trackHeight: 4` every range in this app is under
-that threshold: the 1980 stops are not painted, they only snap. If the thumb lands on the wrong 10 g,
-the fix is a narrower *range* per kind, not a second thumb.
 
 ---
 
@@ -172,368 +139,350 @@ promise. No code, no dependency, no spike until that sentence changes — see `A
 
 ---
 
-## B4 — Contraste insuffisant : le jaune (jour) et le brun (nuit)
+## B4 — Insufficient contrast: the yellow (day) and the brown (night)
 
-**Statut:** ouvert, candidate v1.2.1 · **Priorité:** accessibilité réelle · **Coût:** choix couleur + passe de vérification
-**Trouvé:** 2026-10-04, à l'œil sur captures Android (clair) et iOS (sombre)
+**Status:** open, v1.2.1 candidate · **Priority:** real accessibility · **Cost:** colour choice + verification pass
+**Found:** 2026-10-04, by eye on Android (light) and iOS (dark) captures
 
-### Le problème, vu et non deviné
-- **Mode clair :** le bouton « Feeding » est en jaune pâle sur fond jaune pâle — à peine lisible.
-- **Mode sombre :** le bouton « Couche » est en brun sombre sur fond sombre — à peine lisible.
-Les deux sont **déjà en production** (le thème n'a pas changé sur cette branche). Ce n'est pas un
-goût, c'est un parent qui lit l'écran d'une main à moitié endormi, à 3 h, sur un écran réduit.
+### The problem, seen and not guessed
+- **Light mode:** the « Feeding » button is pale yellow on a pale yellow background — barely
+readable.
+- **Dark mode:** the « Couche » button is dark brown on a dark background — barely readable.
+Both are **already in production** (the theme did not change on this branch). This is not a matter
+of taste, it is a parent reading the screen one-handed, half asleep, at 3 h, on a dimmed screen.
 
-### Candidats, avec le ratio à mesurer — pas à deviner
-Règle WCAG AA : **4,5:1** pour le texte normal, **3:1** pour le texte large (≥ 24 px / gras ≥ 18,7 px).
-Les titres de bouton sont larges, mais les pilules (« Vit. D ») et les valeurs (« 3 510 g ») ne le
-sont pas — c'est donc 4,5:1 qu'il faut viser sur les libellés de ces boutons.
+### Candidates, with the ratio to measure — not to guess
+WCAG AA rule: **4,5:1** for normal text, **3:1** for large text (≥ 24 px / bold ≥ 18,7 px).
+Button titles are large, but the pills (« Vit. D ») and the values (« 3 510 g ») are not
+— so it is 4,5:1 that must be targeted on the labels of these buttons.
 
-| rôle | problème | candidat à tester |
+| role | problem | candidate to test |
 |---|---|---|
-| `miam` (jaune, clair) | trop pâle sur fond clair | ambre foncé `#B26A00`, ou jaune saturé `#E0A400` **avec texte brun foncé** par-dessus |
-| `couche` (brun, sombre) | trop sombre sur fond sombre | terracotta `#C97B5A`, ou argile `#D08B6A` |
-| alternative structurelle | — | garder les teintes, mais passer le **libellé** en couleur de texte à contraste garanti (foncé sur fond clair, clair sur fond sombre), et réserver la teinte au fond et à l'icône |
+| `miam` (yellow, light) | too pale on a light background | dark amber `#B26A00`, or saturated yellow `#E0A400` **with dark brown text** on top |
+| `couche` (brown, dark) | too dark on a dark background | terracotta `#C97B5A`, or clay `#D08B6A` |
+| structural alternative | — | keep the tints, but make the **label** a guaranteed-contrast text colour (dark on light background, light on dark background), and reserve the tint for the background and the icon |
 
-L'alternative structurelle est probablement la bonne : elle garde l'identité visuelle (les quatre
-couleurs qui distinguent soin/nourriture/couche/sommeil) sans demander à une teinte pastel de porter
-la lisibilité du texte.
+The structural alternative is probably the right one: it keeps the visual identity (the four
+colours that distinguish care/feeding/nappy/sleep) without asking a pastel tint to carry
+the readability of the text.
 
-### À faire avant de toucher aux couleurs
-1. Mesurer le ratio réel des paires actuelles (extrait de capture + calculateur WCAG) et noter les
-   chiffres — une fiche de couleurs sans ratios est une opinion.
-2. Choisir une paire par thème, vérifier 4,5:1 sur les libellés et les pilules dans **les deux**
-   thèmes, sur le plus petit appareil.
-3. Ne pas changer une couleur d'identité à la légère : ces quatre teintes sont le système de
-   repérage de l'app, et un đổi couleur non mesuré peut en casser deux autres.
-
----
-
-## B5 — une saisie hors plage est avalée sans message (feeding) — résolu à moitié
-
-**Statut:** ouvert (reste le chemin feeding) · **Priorité:** haute (santé) · **Coût:** trivial —
-un callback à câbler, le mécanisme existe
-**Trouvé:** 2026-10-04, en vérifiant une conséquence signalée par un worker
-**Vérifié à nouveau:** 2026-10-06 — le commit `a101429` (« fix(growth,reminders): out-of-range
-   feedback, comma in all locales, per-baby reminder isolation ») a corrigé le chemin **mesures** ;
-le chemin **feeding** est toujours ouvert.
-**Fichiers:** `lib/features/home/presentation/widgets/quantity_picker_inline.dart:186-193`
-(le callback `onValueOutOfRange`, ajouté par `a101429`),
-`lib/features/growth/presentation/widgets/measurement_sheet.dart:122,129,156` (**référend** :
-onValueOutOfRange câblé, libellé `growthValueOutOfRange` affiché, `onConfirmPressed: _inRange ?
-_save : null`), `lib/features/home/presentation/widgets/feeding_tracking_dialog.dart:156` (**ouvert** :
-`QuantityPickerInline` utilisé **sans** `onValueOutOfRange` — la saisie hors plage y est encore
-avalée en silence).
-
-### Le fait (état du 2026-10-06)
-Le widget `QuantityPickerInline` ne se tait plus : hors plage, il appelle `onValueOutOfRange` si
-l'hôte le câble, sinon il se tait (callback optionnel, `quantity_picker_inline.dart:42`). Le sheet
-des mesures est le seul hôte câblé : « 99999 » g en poids affiche « Valeur hors plage : entre X et
-Y » et désactive Enregistrer — corrigé et testé. Le dialogue de feeding n'est **pas** câblé :
-« 99999 » ml ou g n'y produit toujours ni valeur ni message. Même péché que le point-virgule de
-température, moitié payé.
-
-### Pourquoi le test ne l'avait pas attrapé
-Un test affirmait que le sheet « s'ouvre hors plage » — ce qui n'était pas le comportement de la
-saisie, mais l'effet de bug `_value = 0`. Le vrai chemin (la frappe hors plage) n'a **jamais** été
-testé, et l'assertion est morte avec le défaut qu'elle masquait. Le test du chemin mesures existe
-aujourd'hui (à étendre, pas à réinventer).
-
-### À faire
-1. `feeding_tracking_dialog.dart:156` : câbler `onValueOutOfRange` → state local + libellé d'erreur
-   (nouvelle clé arb `feedingValueOutOfRange` sur le modèle de `growthValueOutOfRange`) + confirm
-   désactivé tant que la valeur est hors plage. Ne rien appeler d'autre.
-2. Ne pas borner silencieusement (`clamp`) : corriger le nombre du parent sans le lui dire est
-   exactement ce qu'on refuse de faire.
-3. Tester : taper 99999 en ml → erreur visible + confirm désactivé ; taper 9999 en g (solid) →
-   idem ; revenir dans la plage → erreur effacée. Le référend mesures (`measurement_sheet`)
-   démontre la suite attendue.
-4. Rattacher à **v1.2.1** : le dialogue de feeding est touché de toute façon par le toggle ml/min
-   de B1 — même fichier, même PR de revue, un callback de plus.
+### To do before touching the colours
+1. Measure the real ratio of the current pairs (capture excerpt + WCAG calculator) and note the
+   numbers — a colour sheet without ratios is an opinion.
+2. Choose one pair per theme, verify 4,5:1 on the labels and the pills in **both**
+   themes, on the smallest device.
+3. Do not change an identity colour lightly: these four tints are the app's
+   wayfinding system, and an unmeasured colour change can break two others.
 
 ---
 
-## B6 — Le rappel Vitamine D est activé par défaut ; OMS 2022 (Rec 36) : recherche uniquement
+## B6 — The Vitamin D reminder is on by default; WHO 2022 (Rec 36): research only
 
-**Statut :** ouvert, priorité haute (clinique) — **décision A tranchée** (propriétaire, 2026-10-06 : pas de
-migration, nouveau défaut seulement) · **Coût :** petit — un champ + un fallback de filtre + tests
-**Trouvé:** 2026-10-05, archive de recherche (`docs/research/2026-10-05-clinical-evidence.md`, Rec 36) ;
-demande de retrait au backlog par le propriétaire, 2026-10-06.
-**Fichiers:** `lib/features/reminders/domain/entities/reminder_item.dart:51` (preset `vitamine_d`),
+**Status:** open, high priority (clinical) — **decision A made** (owner, 2026-10-06: no
+migration, new default only) · **Cost:** small — one field + one filter fallback + tests
+**Found:** 2026-10-05, research archive (`docs/research/2026-10-05-clinical-evidence.md`, Rec 36);
+removal request to the backlog by the owner, 2026-10-06.
+**Files:** `lib/features/reminders/domain/entities/reminder_item.dart:51` (preset `vitamine_d`),
 `lib/features/reminders/presentation/providers/reminder_providers.dart:84` (`settings[item.id] ?? true`),
-`lib/features/reminders/presentation/providers/reminder_settings_notifier.dart` (le doc comment
-documente « clé absente = activé »), `lib/features/reminders/presentation/screens/reminder_settings_screen.dart`,
+`lib/features/reminders/presentation/providers/reminder_settings_notifier.dart` (the doc comment
+documents « clé absente = activé » ),
+`lib/features/reminders/presentation/screens/reminder_settings_screen.dart` ,
 `lib/features/reminders/presentation/widgets/reminder_row.dart`.
 
-### Le fait
-La liste de rappels par défaut inclut une pastille Vit. D quotidienne (`ReminderItemPresets.vitaminD`,
-`Daily()`, réglée par un événement santé de sous-type `vitamine_d`). Tous les préréglages sont **activés par
-défaut** : le filtre est `settings[item.id] ?? true`, et le doc comment du notifieur le dit explicitement :
-« Une clé absente signifie *jamais touché*, donc **activé** : l'extinction est une option de retrait, pas une
-adhésion. Un parent qui n'ouvre jamais cet écran continue de recevoir Vit. D, Vit. K, Yeux et Visage. »
+### The fact
+The default reminder list includes a daily Vit. D pill (`ReminderItemPresets.vitaminD`,
+`Daily()`, triggered by a health event of subtype `vitamine_d`). All presets are **enabled by
+default**: the filter is `settings[item.id] ?? true`, and the notifier's doc comment says it explicitly <!-- lang:fr: verbatim doc comment, quoted below -->:
+« Une clé absente signifie *jamais touché*, donc **activé** : » <!-- lang:fr: verbatim doc
+comment -->
+« l'extinction est une option de retrait, pas une adhésion. » <!-- lang:fr: verbatim doc comment
+-->
+« Un parent qui n'ouvre jamais cet écran continue de recevoir Vit. D, Vit. K, Yeux et Visage. »
+<!-- lang:fr: verbatim doc comment -->
 
-L'OMS 2022 *Caring for the newborn*, Rec 36 : la supplémentation en vitamine D du nouveau-né est
-**recherche uniquement** — pas une recommandation (Rec 35 montre le modèle pour la vitamine A : des seuils de
-contexte, jamais un complément systématique). L'app envoie donc, tous les jours, par défaut, un rappel pour une
-pratique que le guideline de référence ne recommande pas — dans une app dont la raison d'être est les zones de
-mortalité néonatale (`docs/PLAN-francophone-neonatal.md`). C'est la divergence clinique ouverte documentée dans
-l'archive de recherche : « This is a live clinical discrepancy in the current build, in the app's own default
+WHO 2022 *Caring for the newborn*, Rec 36: vitamin D supplementation of the newborn is
+**research only** — not a recommendation (Rec 35 shows the model for vitamin A: context thresholds,
+never a systematic supplement). The app therefore sends, every day, by default, a reminder for a
+practice the reference guideline does not recommend — in an app whose reason for being is the
+neonatal mortality areas (`docs/PLAN-francophone-neonatal.md`). It is the open clinical discrepancy documented in
+the research archive: « This is a live clinical discrepancy in the current build, in the app's
+own default
 reminder list. »
 
-### Le fix (mécanique)
-1. Ajouter `enabledByDefault` (bool, défaut `true`) à `ReminderItem` ; le mettre à `false` sur `vitamine_d`.
-2. Le filtre devient `settings[item.id] ?? item.enabledByDefault`. L'invariant « clé absente = activé » reste
-   entier pour tous les autres items — le modèle d'opt-out est préservé, seule la Vit. D devient opt-in.
-3. `reminder_settings_screen.dart` / `reminder_row.dart` doivent rendre l'état initial du switch depuis le même
-   fallback — vérifier qu'aucun « activé par défaut » n'est recodé dans le widget.
-4. Le suivi reste : `HealthSubtype.vitamineD` (`tracking_enums.dart:290`) demeure dans
-   `health_subtype_dialog.dart`. Un parent avec prescription continue de loguer la vitamine D, et le rappel reste
-   rallumable dans Réglages → Rappels. On change le **défaut**, pas la **fonction**.
-5. l10n : ajouter une courte justification sur la ligne des réglages (« Non recommandé en routine — OMS 2022, Rec
-   36 ») en fr/en/es, pour que l'état éteint par défaut ne ressemble pas à un bug.
+### The fix (mechanics)
+1. Add `enabledByDefault` (bool, default `true`) to `ReminderItem`; set it to `false` on `vitamine_d`.
+2. The filter becomes `settings[item.id] ?? item.enabledByDefault` . The
+« clé absente = activé » invariant
+   stays intact for all the other items — the opt-out model is preserved, only the Vit. D becomes opt-in.
+3. `reminder_settings_screen.dart` / `reminder_row.dart` must render the switch's initial state from the same
+   fallback — verify that no « activé par défaut » is re-coded in the widget.
+4. Tracking stays: `HealthSubtype.vitamineD` (`tracking_enums.dart:290`) remains in
+   `health_subtype_dialog.dart`. A parent with a prescription keeps logging vitamin D, and the reminder stays
+    re-enableable in « Réglages » → « Rappels » (Settings → Reminders). We change the
+    **default**, not the **function**.
+5. l10n: add a short justification on the settings row (« Non recommandé en routine — OMS 2022, Rec 36 ») in fr/en/es, so that the off-by-default state does not look like a bug.
 
-### Point de décision (propriétaire) — les installations existantes
-Un parent installé avant ce changement a « Vit. D = jamais touché » = **activé**. Deux options :
-- **A. Nouveau défaut seulement** (pas de migration) : les existants continuent de recevoir le rappel jusqu'à
-  extinction manuelle ; les nouveaux bébés/installations démarrent éteints.
-- **B. Migration** seedant `reminder_settings(baby_id, 'vitamine_d', enabled: false)` pour tous les scopes
-  existants (profils + portage `''`) : toutes les installations basculent à l'upgrade.
+### Decision point (owner) — existing installations
+A parent installed before this change has « Vit. D = jamais touché » = **on**. Two options:
+- **A. New default only** (no migration): existing ones keep receiving the reminder until
+  manual turning off; new babies/installations start off.
+- **B. Migration** seeding `reminder_settings(baby_id, 'vitamine_d', enabled: false)` for all existing
+  scopes (profiles + carry-over `''`): all installations flip at upgrade.
 
-Recommandation : **A** + note de patch expliquant le changement. B retire silencieusement un rappel visible
-sans consentement — exactement le péché que la règle de backfill de B1 refuse pour les données (« on nomme
-l'unité que l'utilisateur a vue »).
+Recommendation: **A** + a patch note explaining the change. B silently removes a visible reminder
+without consent — exactly the sin that B1's backfill rule refuses for data (« on nomme l'unité que l'utilisateur a vue »).
 
-**Décision (propriétaire, 2026-10-06) : A.** Nouveau défaut seulement, pas de migration. Les installations
-existantes gardent le rappel jusqu'à extinction manuelle ; les nouveaux bébés/installations démarrent éteints.
-Note de patch expliquant le changement (sans le marketer comme « l'app suit l'OMS » — voir « Ne pas »).
+**Decision (owner, 2026-10-06): A.** New default only, no migration. Existing installations
+keep the reminder until manual turning off; new babies/installations start off.
+Patch note explaining the change (without marketing it as « l'app suit l'OMS » — see « Do not »
+).
 
-### Ne pas
-- Ne pas **supprimer** le rappel vitamine D ni le sous-type santé `vitamine_d`. « Recherche uniquement » n'est
-  pas « interdit » : dans une partie du marché cible (pratique US, AAP : 400 UI/jour) c'est le standard. La
-  suppression est une décision différente, beaucoup plus bruyante.
-- Ne pas inverser le **défaut global** « clé absente » en « désactivé » : l'opt-out porte les préréglages Vit. K
-  (après le premier mois), Yeux, Visage — tous deviendraient opt-in et l'écran d'accueil d'un nouveau parent
-  serait vide de rappels.
-- Ne pas présenter ce changement en store/patch notes comme « l'app suit désormais l'OMS sur les
-  suppléments » : le reste de la liste par défaut (yeux, visage, Vit. K) est une hygiène de soin,
-  pas une liste dérivée de l'OMS. Une sur-généralisation est une promesse clinique que l'archive
-  de recherche interdit de faire.
+### Do not
+- Do not **remove** the vitamin D reminder or the `vitamine_d` health subtype.
+« Recherche uniquement » is
+   not « interdit » : in part of the target market (US practice, AAP: 400 IU/day) it is the
+   standard. The
+  removal is a different, much noisier decision.
+- Do not invert the **global default** « clé absente » to « désactivé » : the opt-out carries
+the Vit. K
+  presets (after the first month), Yeux, Visage — all would become opt-in and a new parent's home screen
+  would be empty of reminders.
+- Do not present this change in store/patch notes as
+« l'app suit désormais l'OMS sur les suppléments » : the rest of the default list (eyes, face,
+Vit. K) is care hygiene,
+  not a WHO-derived list. An over-generalisation is a clinical promise that the research
+  archive forbids making.
 
 ---
 
-## B7 — L'onglet Historique n'a pas *tous* les types d'événements : les mesures en sont absentes
+## B7 — The History tab does not have *all* event types: measurements are absent from it
 
-**Statut :** la partie frise est **livrée en v1.2.1** (vérifié dans le code, 2026-10-17 :
-   `measurement_history_tile` dans `history_screen`, fusion `tracking_events` + `measurements` dans
-   `history_notifier`) ; reste dans ce ticket, redemandé par le propriétaire le 2026-10-17 (« filtrer
-   les événements de l'historique par mesures ») : le chip `HistoryFilter.measurements` dédié,
-   explicitement **hors périmètre v1.2.1** (section « Out of scope » du plan : « no `HistoryFilter`
-   value for growth ») → candidat v1.3.0. · **Coût de la partie restante:** petit
-**Trouvé:** demande du propriétaire, 2026-10-06 (« l'onglet historique devrait avoir tous les types
-   d'événements »), vérifié dans le code — et recoupé avec le plan v1.2.1 le 2026-10-06 ; la demande
-   du chip de filtre est re-ouverte le 2026-10-17, périmètre exact ci-dessous.
-**Fichiers:** `lib/features/history/presentation/screens/history_screen.dart:20` (`_filters` :
-all/miam/dodo/caca/sante), `lib/features/history/presentation/providers/history_notifier.dart:28-50` (ne
-consulte que `tracking_events`), `lib/features/history/data/repositories/history_repository.dart`
+**Status:** the timeline part is **shipped in v1.2.1** (verified in the code, 2026-10-17:
+   `measurement_history_tile` in `history_screen`, `tracking_events` + `measurements` merge in
+   `history_notifier`); what remains on this ticket, re-requested by the owner on 2026-10-17
+    (« filtrer les événements de l'historique par mesures »): the dedicated
+    `HistoryFilter.measurements` chip,
+   explicitly **out of v1.2.1 scope** (the plan's « Out of scope » section: « no `HistoryFilter`
+   value for growth ») → v1.3.0 candidate. · **Cost of the remaining part:** small
+**Found:** owner request, 2026-10-06 (« l'onglet historique devrait avoir tous les types d'événements »),
+   verified in the code — and cross-checked against the v1.2.1 plan on 2026-10-06; the
+   chip filter request was re-opened on 2026-10-17, exact scope below.
+**Files:** `lib/features/history/presentation/screens/history_screen.dart:20` (`_filters`:
+all/miam/dodo/caca/sante), `lib/features/history/presentation/providers/history_notifier.dart:28-50` (only
+consults `tracking_events`), `lib/features/history/data/repositories/history_repository_impl.dart`
 (`getAllEventsOrdered`, `getEventsByType`), `lib/shared/domain/entities/tracking_enums.dart:320`
-(`HistoryFilter`), `lib/data/local/app_db.dart:96` (table `measurements`, séparée, valeurs chiffrées),
+(`HistoryFilter`), `lib/data/local/app_db.dart:96` (table `measurements`, separate, encrypted values),
 `lib/features/history/presentation/widgets/history_tile.dart`.
 
-### Le fait
-« Historique » promet tous les événements ; il n'affiche que `tracking_events` (miam, dodo, caca, sante).
-Depuis v1.2.0, poids/taille/température vivent dans la table **`measurements`** — une autre table, valeurs
-chiffrées, unité en colonne, son propre repository (`MeasurementRepository.allForBaby`, borné au bébé, déjà
-trié du plus récent au plus ancien). La vue « tous » du parent est donc muette sur une classe entière
-d'événements : les mesures n'apparaissent que sur l'écran Croissance (lui-même caché dans le menu, voir B8).
-Un parent qui veut « tout ce qui s'est passé aujourd'hui » ne voit pas le poids pris ce matin.
+### The fact
+« Historique » (History) promises all events; it only shows `tracking_events` (miam, dodo, caca,
+sante).
+Since v1.2.0, weight/height/temperature live in the **`measurements`** table — a separate table, encrypted
+values, unit in its own column, its own repository (`MeasurementRepository.allForBaby`, scoped to the baby, already
+sorted newest to oldest). The parent's « tous » (all) view is therefore silent on an entire
+class
+of events: measurements only appear on the Croissance (Growth) screen (itself hidden in the menu, see B8).
+A parent who wants « tout ce qui s'est passé aujourd'hui » (everything that happened today) does
+not see the weight logged this morning.
 
-### À faire
-**Partie v1.2.1 — LIVRÉE (ne pas redéfinir, c'est le contrat du plan)** : frise unifiée en **lecture seule** —
-`history_notifier` fusionne `tracking_events` et `measurements` triés par horodatage, chaque ligne
-rendant son unité depuis sa propre colonne `unit` ; modification/suppression adressées à la table
-d'origine (jamais aux deux) ; **pas de duplication** dans `tracking_events` — le plan la refuse
-explicitement : `quantity` y est **en clair** au repos, dupliquer y créerait une copie non chiffrée
-de la donnée la plus sensible de l'app. Tuile « échec de déchiffrement → `growthValueUndecryptable`,
-jamais un nombre inventé ». Voir le plan pour les détails d'édition (`measurement_sheet.dart` ou
+### To do
+**Part v1.2.1 — SHIPPED (do not redefine, it is the plan's contract)**: unified timeline in **read-only** —
+`history_notifier` merges `tracking_events` and `measurements` sorted by timestamp, each row
+rendering its unit from its own `unit` column; modification/deletion addressed to the source
+table (never to both); **no duplication** in `tracking_events` — the plan refuses it
+explicitly: `quantity` there is **in the clear** at rest, duplicating would create an unencrypted
+copy of the app's most sensitive data. Tile
+« échec de déchiffrement → `growthValueUndecryptable`, jamais un nombre inventé ».
+See the plan for the editing details (`measurement_sheet.dart` or
 `edit_event_dialog.dart`).
 
-**Partie restante (v1.3.0 si toujours voulue)** :
-1. `HistoryFilter.measurements` (valeur `'mesures'`, libellé l10n fr/en/es) en plus de l'inclusion dans
-   `all` (celle-ci arrive avec la frise v1.2.1) ; `HistoryFilter.fromString` : `'mesures'` avant le
-   fallback `all` (le fallback sûr déjà en place).
-2. Le chip s'insère dans `_filters` de `history_screen.dart` — position et icône au plan (les mesures ne
-   sont ni un type `TrackingType` ni une couleur existante).
-3. Rien à bumper dans le format d'export : les mesures sont déjà exportées/importées, le chip est une
-   pure question de lecture.
+**Remaining part (v1.3.0 if still wanted)**:
+1. `HistoryFilter.measurements` (value `'mesures'`, l10n label fr/en/es) on top of the inclusion in
+   `all` (the latter arrives with the v1.2.1 timeline); `HistoryFilter.fromString`: `'mesures'` before the
+   fallback `all` (the safe fallback already in place).
+2. The chip is inserted into `_filters` of `history_screen.dart` — position and icon at the plan (measurements
+   are neither a `TrackingType` type nor an existing colour).
+3. Nothing to bump in the export format: measurements are already exported/imported, the chip is a
+   pure read question.
 
-### Ne pas
-- Ne pas migrer `measurements` **dans** `tracking_events` pour « unifier » l'historique. Les deux tables ont des
-  contrats différents (colonne `unit`, valeur chiffrée, enum `kind`, pas de sous-type) ; la dette B1 montre
-  précisément ce que fait une colonne numérique unique qui porte la sémantique. Une fusion **d'affichage**
-  suffit ; une fusion de schéma est une migration irréversible sans gain.
-- Ne pas ajouter les `reminder_completions` ou les `reminder_dismissals` à l'historique : ce sont des
-  journaux de service, pas des événements du bébé.
-
----
-
-## B8 — Mesures : pas d'onglet dédié, pas de visualisation
-
-**Statut:** ouvert (demande du propriétaire, 2026-10-06 : « un onglet de visualisation pour les mesures ») ·
-**Coût:** petit côté routeur, moyen côté graphique (dépendance ou `CustomPainter`)
-**Fichiers:** `lib/core/router.dart:23` (`AppRoute` : home/history/menu), `:137` (route `/growth`
-**hors** du shell), `lib/features/menu/presentation/screens/menu_screen.dart:111` (`context.push('/growth')`),
-`lib/features/growth/presentation/screens/growth_screen.dart` (3 cartes dernière valeur + liste plate, aucun
-graphique).
-
-### Le fait
-Croissance est aujourd'hui un push plein écran depuis le Menu — deux tapes de profondeur — et sa
-« visualisation » est trois cartes de dernière valeur au-dessus d'une liste plate. Il n'existe **aucun**
-graphique : pas de courbe de poids dans le temps, pas de tendance. Un parent qui suit le poids de son
-nouveau-né regarde des tuiles, pas une trajectoire.
-
-### À faire
-1. Déplacer `GrowthScreen` dans le `ShellRoute` comme **quatrième onglet** de la navigation basse. Ordre :
-   Home, History, Croissance, Menu (à valider au plan — le Menu reste le dernier, c'est l'onglet de
-   service ; quatre onglets est la limite de confort de Material, on n'en ajoute pas un cinquième).
-2. `AppRoute` enum + `routeIndex` + `_routeIndexForPath` + label/icône de nav (nouvelle clé l10n ou
-   réutilisation de `growthScreenTitle`/`growthMenuTile` — vérifier les trois arb).
-3. La tuile « Croissance » du Menu devient redondante : la supprimer ou la garder comme raccourci —
-   décision au plan. Si on la garde, l'onglet et la tuile mènent au même endroit (le push disparaît,
-   remplacé par une navigation d'onglet).
-4. La visualisation elle-même : courbe **poids dans le temps** (et taille en option). Deux chemins :
-   - (a) `CustomPainter` maison — zéro dépendance, fidèle à la charte de confidentialité, ~une journée ;
-   - (b) paquet de graphiques pur Dart (ex. `fl_chart`) — **audit obligatoire** : `make audit-trivy` +
-     revue de confidentialité des dépendances (AGENTS.md : aucune dépendance sans audit, zéro réseau,
-     zéro télémétrie).
-   Décision au plan ; (a) n'a aucune raison d'être refusée.
-5. La **température** ne va pas dans le graphique : une température n'a pas de sens en tendance (c'est un
-   état, pas une trajectoire). Elle reste carte + liste. Le graphique porte poids (et taille).
-
-### Ne pas
-- Ne pas superposer les **percentiles OMS** (courbes de croissance). C'est du contenu clinique : l'archive
-  de recherche est explicite — aucune intervention numérique n'a démontré d'effet sur la mortalité néonatale,
-  l'app ne doit pas se marketer comme un outil clinique, et l'archive refuse de reconstruire des couleurs
-  de triage IMNCI d'après des sources de seconde main. Une superposition de percentiles sans revue
-  clinique serait la première **interprétation** de données de santé de l'app. Si des percentiles sont un
-  jour voulus, c'est d'abord une tâche de recherche (docs/research/), pas un paramètre de graphique.
-- Ne pas créer un **cinquième** onglet « tous les événements » : B7 fusionne les mesures dans
-  Historique. L'onglet Croissance et le filtre `measurements` de l'historique sont complémentaires —
-  l'onglet pour la **visualisation**, l'historique pour le **registre chronologique** — et non rivaux.
-- Ne pas toucher à l'export/import dans ce ticket : les mesures voyagent déjà (`docs/import-database-plan.md`,
-  format d'export). L'onglet change la présentation, pas le contrat des données.
+### Do not
+- Do not migrate `measurements` **into** `tracking_events` to « unifier » the history. The two
+tables have
+  different contracts (`unit` column, encrypted value, `kind` enum, no subtype); B1's debt shows
+  precisely what a single numeric column carrying semantics does. A **display**
+  merge is enough; a schema merge is an irreversible migration with no gain.
+- Do not add `reminder_completions` or `reminder_dismissals` to the history: they are
+  service logs, not the baby's events.
 
 ---
 
-## B9 — Sélection du bébé en haut de l'app : le prénom de la barre d'app est inerte
+## B8 — Measurements: no dedicated tab, no visualisation
 
-**Statut:** ouvert (demande du propriétaire, 2026-10-06 : « baby selection in the top of app ») ·
-**Coût:** petit — une feuille + un titre d'AppBar cliquable
-**Trouvé:** vérification du 2026-10-06 — le nom du bébé actif est affiché en titre de la barre d'app de
-   l'accueil (`home_screen.dart:316-335`, « contexte, pas titre ») et ne fait rien ; le changement de bébé
-   exige Menu → Profil bébés.
-**Fichiers:** `lib/features/home/presentation/screens/home_screen.dart:316-335` (AppBar, titre = nom,
-   inerte), `lib/core/providers/active_baby_provider.dart:32` (`switchProfile(id)` existe déjà),
-   `lib/features/menu/presentation/widgets/baby_profile_section.dart` (UI de liste existante, pour la
-   cohérence visuelle), `lib/features/baby/presentation/providers/baby_profile_providers.dart`.
+**Status:** open (owner request, 2026-10-06: « un onglet de visualisation pour les mesures ») ·
+**Cost:** small on the router side, medium on the chart side (dependency or `CustomPainter`)
+**Files:** `lib/core/router.dart:23` (`AppRoute`: home/history/menu), `:137` (route `/growth`
+**outside** the shell), `lib/features/menu/presentation/screens/menu_screen.dart:111` (`context.push('/growth')`),
+`lib/features/growth/presentation/screens/growth_screen.dart` (3 last-value cards + flat list, no
+chart).
 
-### À faire
-1. Rendre le titre de l'AppBar de l'accueil cliquable (affordance `expand_more`), ouvrant une bottom sheet :
-   liste des profils (avatar + nom + date de naissance), profil actif coché, tap →
-   `ref.read(activeBabyProvider.notifier).switchProfile(id)`, la feuille se ferme.
-2. Une ligne « Ajouter un bébé » en bas de la feuille → le flux de création de profil existant (celui que
-   la section du Menu utilise), pour que l'entrée en haut soit complète : on bascule **et** on ajoute sans
-   redescendre dans le Menu.
-3. Cas d'un seul bébé : décision au plan — la feuille s'ouvre quand même (cohérent, c'est aussi là qu'on
-   ajoute le deuxième) ou l'affordance disparaît (moins de bruit, incohérent). Recommandation : la feuille
-   s'ouvre toujours, elle est le point d'entrée « famille ».
+### The fact
+Croissance (Growth) is today a full-screen push from the Menu — two taps deep — and its
+« visualisation » is three last-value cards above a flat list. There is **no**
+chart: no weight curve over time, no trend. A parent who follows their
+newborn's weight is looking at tiles, not a trajectory.
 
-### Pourquoi c'est bon marché et sûr
-La chaîne réactive existe déjà : le notifieur de rappels `watch`e `activeBabyProvider`, l'historique lit
-`.value`, l'en-tête de l'accueil se re-rend au basculement (le commentaire de `home_screen.dart:316`
-documente précisément pourquoi c'est un `watch` et non un `read`). Rien à invalider manuellement —
-l'invalidation globale après reset de base (`menu_screen.dart:350-357`) couvre déjà les providers
-concernés.
+### To do
+1. Move `GrowthScreen` into the `ShellRoute` as the **fourth tab** of the bottom navigation. Order:
+   Home, History, Croissance, Menu (to validate at the plan — the Menu stays last, it is the service
+   tab; four tabs is Material's comfort limit, we do not add a fifth).
+2. `AppRoute` enum + `routeIndex` + `_routeIndexForPath` + nav label/icon (new l10n key or
+   reuse of `growthScreenTitle`/`growthMenuTile` — check the three arbs).
+3. The Menu's « Croissance » tile becomes redundant: remove it or keep it as a shortcut —
+   decision at the plan. If kept, the tab and the tile lead to the same place (the push disappears,
+   replaced by tab navigation).
+4. The visualisation itself: **weight over time** curve (height optional). Two paths:
+   - (a) home-grown `CustomPainter` — zero dependencies, faithful to the privacy charter, ~one day;
+   - (b) pure Dart chart package (e.g. `fl_chart`) — **audit required**: `make audit-trivy` +
+     dependency privacy review (AGENTS.md: no dependency without audit, zero network,
+     zero telemetry).
+   Decision at the plan; (a) has no reason to be refused.
+5. **Temperature** does not go into the chart: temperature has no meaning as a trend (it is a
+   state, not a trajectory). It stays card + list. The chart carries weight (and height).
 
-### Ne pas
-- Ne pas déplacer la **gestion** des profils (édition nom/naissance, suppression) dans la feuille du haut.
-  Le haut est un **commutateur** ; la gestion reste dans Menu → Profil bébés. Deux points d'entrée pour la
-  suppression, c'est comme ça qu'un « supprimer ce profil » accidentel se fabrique.
-- Ne pas écrire sous le portage `''` pendant un basculement transitoire : le même piège que
-  `markDone`/`snooze` documentent dans `reminder_notifier.dart` — résolution par
-  `activeBabyProvider.future`, jamais `.value` sur une lecture transitoire (les lignes `''` se lisaient
-  pour **tous** les bébés avec le partage v10).
-- Ne pas afficher le prénom du bébé **et** une icône de famille : l'un ou l'autre. Deux porteurs de
-  contexte sur la même barre, c'est du double discours.
-
----
-
-## B10 — Les commentaires de code sont français : ~1 750 lignes à angliciser
-
-**Statut:** ouvert (demande du propriétaire, 2026-10-06 : « tous les commentaires de code en anglais ») ·
-**Coût:** gros, mécanique (~5–8 h) · **Risque:** faible si la discipline est tenue
-**Compté:** 2026-10-06 — 945 lignes de commentaires en `lib/` (56 fichiers), 800 en `test/` (71 fichiers),
-   comptage sur lignes de commentaires contenant des caractères accentués, fichiers générés exclus.
-
-### Le fait
-Le code porte des commentaires `//` et `///` en français à travers `lib/` et `test/` (les chaînes
-utilisateurs sont, elles, intentionnellement trilingues — `lib/l10n/*.arb` — mais les **commentaires**
-sont unidiomes par convention de repo : anglais). Les commentaires français rendent le code plus dur à
-chercher pour un second lecteur et pour le prochain agent : « trouver l'invariant » exige des mots
-français, et la recherche d'agent (RAG inclus) est calibrée sur l'anglais.
-
-### À faire
-1. Traduire `lib/` (hors générés), puis `test/`, fichier par fichier. Tâche purement mécanique —
-   **idéale pour un fan-out** `box-coder`/`fast-coder` (pas de décision de design), mais la revue du diff
-   reste humaine : certains commentaires portent des invariants (D1/D2/D3, le portage `''`, la règle de
-   backfill de B1, le « do not » de B5) qui doivent survivre **en tant que raisonnement**, pas en résumé.
-   Une traduction qui efface un « pourquoi » est un échec, pas une simplification.
-2. Les fichiers générés (`*.freezed.dart`, `.g.dart` de drift) **copient** les doc comments de la source —
-   ne jamais les éditer à la main ; traduire la source, relancer `make codegen`, ils suivent.
-3. Après la passe : `make lint` + `make test` (les tests doivent rester inchangés en comportement —
-   seule la langue des commentaires bouge).
-4. Optionnel, à trancher à la revue : une garde CI (grep des lignes de commentaires accentuées
-   `é è ê à â ç ù û ô î ï` dans `lib/**/*.dart` et `test/**/*.dart`) pour empêcher la régression —
-   à brancher sur le pipeline existant (`make ci`).
-
-### Ne pas
-- Ne pas traduire les **chaînes utilisateur** : `lib/l10n/*.arb` et les `app_localizations_*.dart` générés
-  restent intacts. C'est le produit, pas du code.
-- Ne pas **supprimer** de commentaires pour « simplifier » : la règle AGENTS.md — jamais de suppression
-  sans justification et remplacement fonctionnel. Un « pourquoi » perdu (la trappe de backfill de B1 en
-  est l'exemple) est une perte de données d'un autre type.
-- Ne pas faire cette passe **dans le même PR** que B6–B9 : le diff noierait les changements fonctionnels et
-  la revue des invariants. Un PR de balayage séparé, et de préférence **avant** tout autre travail — tout ce
-  que l'on touche ensuite sera écrit en anglais et la dette cessera de grossir.
-- Ne pas « traduire » en résumant : un commentaire de six lignes doit en rester six. La traduction qui
-  perd une nuance de portage ou d'invariant est pire que le français original.
+### Do not
+- Do not overlay **WHO percentiles** (growth curves). It is clinical content: the research
+  archive is explicit — no digital intervention has ever demonstrated an effect on neonatal mortality,
+  the app must not market itself as a clinical tool, and the archive refuses to reconstruct IMNCI
+  triage colours from second-hand sources. A percentile overlay without clinical
+  review would be the app's first **interpretation** of health data. If percentiles are
+  ever wanted, it is first a research task (docs/research/), not a chart parameter.
+- Do not create a **fifth** tab « tous les événements » (all events): B7 merges measurements
+into
+  Historique (History). The Croissance tab and the history's `measurements` filter are complementary —
+  the tab for the **visualisation**, the history for the **chronological register** — not rivals.
+- Do not touch export/import in this ticket: measurements already travel (`docs/import-database-plan.md`,
+  export format). The tab changes the presentation, not the data contract.
 
 ---
 
-## B11 — La notification de changement de langue s'affiche dans l'ancienne langue
+## B9 — Baby selection at the top of the app: the app bar's name is inert
 
-**Statut:** ouvert (demande du propriétaire, 2026-10-06 : « la notification de changement de langue doit
-   être dans la langue cible ») · **Coût:** trivial
-**Trouvé:** vérification du 2026-10-06 dans `menu_screen.dart:217-218`.
-**Fichiers:** `lib/features/menu/presentation/screens/menu_screen.dart:211-220` (le tap de la tuile
-   de langue), `lib/l10n/app_localizations.dart:1711` (`lookupAppLocalizations(Locale)` — le mécanisme de
-   correction, déjà public), les clés `languageChanged` dans les trois arb (fr : « Langue changée », en :
-   « Language changed », es : « Idioma cambiado »).
+**Status:** open (owner request, 2026-10-06: « baby selection in the top of app ») ·
+**Cost:** small — one sheet + a clickable AppBar title
+**Found:** verification of 2026-10-06 — the active baby's name is shown as the title of the home
+    app bar (`home_screen.dart:316-335`, « contexte, pas titre » ) and does nothing; switching
+    baby
+   requires Menu → « Profil bébés » (baby profiles).
+**Files:** `lib/features/home/presentation/screens/home_screen.dart:316-335` (AppBar, title = name,
+   inert), `lib/core/providers/active_baby_provider.dart:32` (`switchProfile(id)` already exists),
+   `lib/features/menu/presentation/widgets/baby_profile_section.dart` (existing list UI, for
+   visual consistency), `lib/features/baby/presentation/providers/baby_profile_providers.dart`.
 
-### Le fait
+### To do
+1. Make the home AppBar title clickable (affordance `expand_more`), opening a bottom sheet:
+   list of profiles (avatar + name + birth date), active profile checked, tap →
+   `ref.read(activeBabyProvider.notifier).switchProfile(id)`, the sheet closes.
+2. An « Ajouter un bébé » (Add a baby) row at the bottom of the sheet → the existing profile
+creation flow (the one
+   the Menu section uses), so the top entry is complete: we switch **and** we add without
+   going back down into the Menu.
+3. Single-baby case: decision at the plan — the sheet still opens (consistent, it is also where we
+   add the second one) or the affordance disappears (less noise, inconsistent). Recommendation: the sheet
+   always opens, it is the « famille » (family) entry point.
+
+### Why it is cheap and safe
+The reactive chain already exists: the reminders notifier `watch`es `activeBabyProvider`, the history reads
+`.value`, the home header re-renders on switch (the `home_screen.dart:316` comment
+documents precisely why it is a `watch` and not a `read`). Nothing to invalidate manually —
+the global invalidation after database reset (`menu_screen.dart:350-357`) already covers the providers
+concerned.
+
+### Do not
+- Do not move profile **management** (edit name/birth, delete) into the top sheet.
+  The top is a **switcher**; management stays in Menu → « Profil bébés ». Two entry points for
+  deletion, that is how an accidental « supprimer ce profil » (delete this profile) gets made.
+- Do not write under the carry-over `''` during a transient switch: the same trap that
+  `markDone`/`snooze` document in `reminder_notifier.dart` — resolution via
+  `activeBabyProvider.future`, never `.value` on a transient read (the `''` rows were read
+  for **all** babies with the v10 share).
+- Do not show the baby's name **and** a family icon: one or the other. Two context
+  carriers on the same bar, it is a double voice.
+
+---
+
+## B10 — Code comments are in French: ~1 750 lines to anglicise
+
+**Status:** open (owner request, 2026-10-06: « tous les commentaires de code en anglais ») ·
+**Cost:** large, mechanical (~5–8 h) · **Risk:** low if the discipline is kept
+**Counted:** 2026-10-06 — 945 lines of comments in `lib/` (56 files), 800 in `test/` (71 files),
+   count on comment lines containing accented characters, generated files excluded.
+
+### The fact
+The code carries `//` and `///` comments in French through `lib/` and `test/` (user-facing
+strings are, for their part, intentionally trilingual — `lib/l10n/*.arb` — but the **comments**
+are monolingual by repo convention: English). French comments make the code harder to
+search for a second reader and for the next agent: « trouver l'invariant » (finding the
+invariant) requires French
+words, and agent search (RAG included) is calibrated on English.
+
+### To do
+1. Translate `lib/` (excluding generated), then `test/`, file by file. Purely mechanical task —
+   **ideal for a fan-out** of `box-coder`/`fast-coder` (no design decision), but the diff review
+   stays human: some comments carry invariants (D1/D2/D3, the `''` carry-over, B1's
+    backfill rule, B5's « do not » — archived in `BACKLOG-RESOLVED.md` ) that must survive **as
+    reasoning**, not as summary.
+   A translation that erases a « why » is a failure, not a simplification.
+2. Generated files (`*.freezed.dart`, drift's `.g.dart`) **copy** the source's doc comments —
+   never edit them by hand; translate the source, re-run `make codegen`, they follow.
+3. After the pass: `make lint` + `make test` (the tests must remain unchanged in behaviour —
+   only the language of the comments moves).
+4. Optional, to decide at the review: a CI guard (grep of accented comment lines
+   `é è ê à â ç ù û ô î ï` in `lib/**/*.dart` and `test/**/*.dart`) to prevent the regression —
+   to wire into the existing pipeline (`make ci`).
+
+### Do not
+- Do not translate the **user-facing strings**: `lib/l10n/*.arb` and the generated `app_localizations_*.dart`
+  stay untouched. That is the product, not code.
+- Do not **remove** comments to « simplifier »: the AGENTS.md rule — no removal
+  without justification and functional replacement. A lost « why » (B1's backfill trap
+  is the example) is a loss of data of another type.
+- Do not do this pass **in the same PR** as B6–B9: the diff would muddy the functional changes and
+  the invariants review. A separate sweep PR, and preferably **before** any other work — everything
+  we touch afterwards will be written in English and the debt will stop growing.
+- Do not « translate » by summarising: a six-line comment must stay six lines. The translation
+that
+  loses a nuance of carry-over or invariant is worse than the original French.
+
+---
+
+## B11 — The language-change notification shows in the old language
+
+**Status:** open (owner request, 2026-10-06:
+« la notification de changement de langue doit être dans la langue cible ») · **Cost:** trivial
+**Found:** verification of 2026-10-06 in `menu_screen.dart:217-218`.
+**Files:** `lib/features/menu/presentation/screens/menu_screen.dart:211-220` (the tap of the language
+   tile), `lib/l10n/app_localizations.dart:1711` (`lookupAppLocalizations(Locale)` — the fix
+    mechanism, already public), the `languageChanged` keys in the three arbs (fr:
+    « Langue changée » , en:
+   « Language changed », es: « Idioma cambiado »).
+
+### The fact
 ```dart
 onTap: () async {
   await ref.read(localeProvider.notifier).setLocale(code);
   if (context.mounted) _showSnackBar(context, context.l.languageChanged);
 },
 ```
-Après le basculement, l'arbre de widgets est **encore** construit dans l'ancienne locale — la
-reconstruction dans la nouvelle se fait à la frame suivante, après que le snackbar a lu la chaîne. Un
-parent qui passe fr → en voit **« Langue changée »** : la confirmation arrive dans la langue qu'il vient
-de quitter. La seule chaîne dont le métier est de dire « tu es maintenant en anglais » est elle-même
-encore en français.
+After the switch, the widget tree is **still** built in the old locale — the
+rebuild in the new one happens on the next frame, after the snackbar has read the string. A
+parent who goes fr → en sees **« Langue changée »**: the confirmation arrives in the language
+they just
+left. The one string whose job is to say « you are now in English » is itself
+still in French.
 
-### Le fix
-Résoudre la chaîne dans la **locale cible**, pas la locale courante — `lookupAppLocalizations` est public
-et synchrone :
+### The fix
+Resolve the string in the **target locale**, not the current one — `lookupAppLocalizations` is public
+and synchronous:
 ```dart
 onTap: () async {
   await ref.read(localeProvider.notifier).setLocale(code);
@@ -542,151 +491,153 @@ onTap: () async {
   _showSnackBar(context, target.languageChanged);
 },
 ```
-`Locale(code)` est toujours supportée (les trois codes de l'écran sont `fr`/`en`/`es` ; `lookupAppLocalizations`
-les couvre tous, une langue ajoutée demain l'ajoute à `supportedLoces` et au switch — la correction suit
-sans code supplémentaire).
+`Locale(code)` is always supported (the three codes of the screen are `fr`/`en`/`es`; `lookupAppLocalizations`
+covers all of them, a language added tomorrow adds itself to `supportedLoces` and to the switch — the fix follows
+with no extra code).
 
 ### Tests
-- fr → en : snackbar « Language changed » ; fr → es : « Idioma cambiado » ; en → fr : « Langue changée ».
-  Les trois directions, pas seulement celle du rapporteur.
-- Widget test existant du menu à étendre : surcharger `localeProvider`, taper la tuile, pump, attendre la
-  chaîne de la **cible** (pas de l'ancienne). L'assertion sur l'ancienne chaîne est le bug — la ne jamais
-  re-écrire.
+- fr → en: snackbar « Language changed » ; fr → es: « Idioma cambiado » ; en → fr:
+« Langue changée » .
+  The three directions, not only that of the reporter.
+- Existing widget test of the menu to extend: override `localeProvider`, tap the tile, pump, wait for the
+  **target's** string (not the old one's). The assertion on the old string is the bug — never
+  re-write it.
 
-### Ne pas
-- Ne pas « corriger » en **différant** le snackbar jusqu'à la reconstruction (`addPostFrameCallback` puis
-  lire `context.l`) : cela couple le message au timing d'une frame et affiche la mauvaise chaîne si la
-  reconstruction est retardée. Lire la locale cible directement est le seul fix déterministe.
-- Ne pas retirer la notification : c'est la seule confirmation du changement (l'écran entier, lui, se
-  met à jour à la frame suivante et le parent n'y prête pas attention) — la corriger, pas la tuer.
+### Do not
+- Do not « fix » by **deferring** the snackbar until the rebuild (`addPostFrameCallback` then
+  reading `context.l`): that couples the message to the timing of a frame and shows the wrong string if the
+  rebuild is delayed. Reading the target locale directly is the only deterministic fix.
+- Do not remove the notification: it is the only confirmation of the change (the whole screen, for its part,
+  updates on the next frame and the parent does not notice it) — fix it, don't kill it.
 
 ---
 
-## B12 — Les rappels dus sont en bas de l'accueil : ils doivent être en haut
+## B12 — Due reminders are at the bottom of the home: they should be at the top
 
-**Statut:** ouvert (demande du propriétaire, 2026-10-06 : « les rappels devraient être en haut de
-   l'écran d'accueil ») · **Coût:** trivial — un réordonnancement de `Column`
-**Trouvé:** vérification du 2026-10-06 — la liste des rappels dus est le **troisième** enfant de la
-   `Column` de l'accueil, sous la grille 2×2 de suivi **et** sous la rangée de boutons de croissance.
-**Fichiers:** `lib/features/home/presentation/screens/home_screen.dart:344-396` (la `Column` :
+**Status:** open (owner request, 2026-10-06:
+« les rappels devraient être en haut de l'écran d'accueil » ) · **Cost:** trivial — a reordering
+of the `Column`
+**Found:** verification of 2026-10-06 — the due reminders list is the **third** child of the
+   home `Column`, under the 2×2 tracking grid **and** under the row of growth buttons.
+**Files:** `lib/features/home/presentation/screens/home_screen.dart:344-396` (the `Column`:
    `GridView.count` → `MeasurementButtonRow` → `HomeRemindersSection`),
-   `lib/features/reminders/presentation/widgets/home_reminders_section.dart:19` (le doc comment dit
-   explicitement « sous les boutons de soin »).
+   `lib/features/reminders/presentation/widgets/home_reminders_section.dart:19` (the doc comment says
+   explicitly « sous les boutons de soin »).
 
-### Le fait
-Sur l'accueil, l'ordre actuel est : (1) la grille 2×2 des boutons de suivi (miam/santé/caca/dodo),
-(2) les trois boutons de mesure (poids/taille/température), (3) la liste des rappels dus du bébé actif
-(`HomeRemindersSection`). Les rappels — l'action du jour, « Vit. K à faire », « Yeux à nettoyer » —
-sont donc le **dernier** bloc de l'écran : sur un petit téléphone, avec deux ou trois rappels dus,
-il faut scroller pour les voir. Or c'est l'information la plus urgente : un parent qui ouvre l'app le
-matin cherche d'abord « qu'est-ce qu'il reste à faire ? », pas « comment est-ce que j'enregistre ? ».
-Le compteur « +N » sur les pastilles des boutons (`track_button.dart`) pointe vers cette liste en bas
-tandis que le doigt est en haut — le regard fait un aller-retour inutile.
+### The fact
+On the home, the current order is: (1) the 2×2 grid of tracking buttons
+(`miam`/`santé`/`caca`/`dodo`), (2) the three measurement buttons
+(weight/height/temperature), (3) the due reminders list of the active baby
+(`HomeRemindersSection`). The reminders — the action of the day, « Vit. K à faire », « Yeux à nettoyer » — are therefore the **last** block of the screen: on a small phone, with two or
+three due reminders, one has to scroll to see them. And yet it is the most urgent
+information: a parent who opens the app in the morning first looks for « qu'est-ce qu'il reste à faire ? »
+(what is left to do?), not « comment est-ce que j'enregistre ? » (how do I log?). The « +N » counter on the buttons' pills (`track_button.dart`) points to this list at
+the bottom while the finger is at the top — the eye does a useless round trip.
 
-### À faire
-1. Dans la `Column` de `home_screen.dart`, déplacer `HomeRemindersSection` **au premier** enfant :
-   rappels dus → grille 2×2 → boutons de mesure. C'est un cut/paste de deux widgets, aucun changement
-   de données, de provider ni de test de comportement.
-2. Mettre à jour le doc comment de `home_reminders_section.dart` (« sous les boutons de soin » →
-   « au-dessus de la grille ») et le commentaire inline de `home_screen.dart:393` (« remplace la
-   lecture du « +N » des pastilles, sans toucher à la grille ») — les deux sont faux après le
-   réordonnancement. (En anglais si B10 est passé d'abord ; sinon en français, B10 les traduira.)
-3. L'état vide : `HomeRemindersSection` rend aujourd'hui la ligne centrée « Rien à faire pour
-   l'instant. » (`reminderListEmpty`) quand aucun rappel n'est dû. En haut de l'écran, cette ligne
-   occuperait la première place **la plupart du temps** (c'est l'état normal d'une journée calme).
-   Décision au plan : **masquer la section quand elle est vide** (recommandé — le silence est
-   l'information : rien à faire, on passe aux boutons) ou garder la ligne discrète. Si on masque,
-   la liste apparaît/disparaît au fil de la journée : vérifier que le saut de mise en page ne
-   dérange pas (le `SingleChildScrollView` absorbe, mais le confirmer sur `Small_Phone`).
+### To do
+1. In the `Column` of `home_screen.dart`, move `HomeRemindersSection` to the **first**
+   child: due reminders → 2×2 grid → measurement buttons. It is a cut/paste of two widgets, no
+   change to data, to provider, nor to behaviour tests.
+2. Update the doc comment of `home_reminders_section.dart` (« sous les boutons de soin » →
+   « au-dessus de la grille ») and the inline comment of `home_screen.dart:393`
+   (« remplace la lecture du `+N` des pastilles, sans toucher à la grille ») — both are wrong after the
+   reordering. (In English if B10 went first; otherwise in French, B10 will translate them.)
+3. Empty state: `HomeRemindersSection` today renders the centred row
+   « Rien à faire pour l'instant. » (`reminderListEmpty`) when no reminder is due. At the top of the screen, this row
+   would take the first place **most of the time** (it is the normal state of a calm day).
+   Decision at the plan: **hide the section when empty** (recommended — the silence is
+   the information: nothing to do, we move to the buttons) or keep the discreet row. If hidden,
+   the list appears/disappears through the day: verify that the layout jump does
+   not disturb (the `SingleChildScrollView` absorbs it, but confirm on `Small_Phone`).
 
-### Pourquoi c'est trivial mais pas gratuit
-- Le réordonnancement est sûr pour les tests : `home_screen_test.dart` et
-  `home_baby_name_test.dart` assertent la **présence** des widgets (`findsOneWidget`,
-  `findsNWidgets`), pas leur ordre — ils passent sans changement. `home_reminders_section_test.dart`
-  teste le widget seul, pas sa position.
-- L'AGENTS.md est clair : les tests unitaires ne rendent pas une layout sur un écran de 4,7 pouces.
-  Le passage émulateur (gate de release) est **obligatoire** : screenshots `Small_Phone` + un
-  appareil normal, avec et sans rappels dus, **et** avec le prénom en barre d'app (B9) pour vérifier
-  que la partie haute de l'écran ne s'affole pas quand les deux tickets atterrissent.
-- Pas de migration, pas de changement d'export, pas de provider : le `reminderNotifierProvider`
-  est watché par le widget quel que soit sa position dans la `Column`.
+### Why it is trivial but not free
+- The reordering is safe for tests: `home_screen_test.dart` and
+  `home_baby_name_test.dart` assert the **presence** of the widgets (`findsOneWidget`,
+  `findsNWidgets`), not their order — they pass unchanged. `home_reminders_section_test.dart`
+  tests the widget alone, not its position.
+- AGENTS.md is clear: unit tests do not render a layout on a 4.7-inch screen.
+  The emulator pass (release gate) is **mandatory**: screenshots on `Small_Phone` + a
+  normal device, with and without due reminders, **and** with the name in the app bar (B9) to verify
+  that the top of the screen does not go crazy when the two tickets land.
+- No migration, no export change, no provider: `reminderNotifierProvider`
+  is watched by the widget whatever its position in the `Column`.
 
-### Ne pas
-- Ne pas toucher aux **pastilles** « +N » des `TrackButton` : elles restent, c'est l'indicateur par
-  type sur le bouton ; la liste en haut est la vue détaillée. Les retirer au prétexte que la liste est
-  maintenant visible serait une suppression de fonctionnalité sans demande — et B4 documente que
-  ces pastilles ont un problème de contraste à régler, pas de redondance.
-- Ne pas réordonner la **grille** elle-même (miam/santé/caca/dodo) ni les boutons de mesure dans ce
-  ticket : la demande est « les rappels en haut », pas « refaire l'accueil ». Un réordonnancement
-  supplémentaire dans le même diff est du scope creep qui complique la revue et le passage
-  émulateur.
-- Ne pas masquer la section vide **et** déplacer la liste en haut dans le même PR sans la capture
-  `Small_Phone` : le saut de mise en page au premier rappel réglé du jour (la liste disparaît, la
-  grille remonte) est exactement le genre de chose invisible en test unitaire et agaçante en usage
-  réel — à valider à l'œil, pas à deviner.
+### Do not
+- Do not touch the « +N » **pills** of the `TrackButton`s: they stay, they are the per-
+  type indicator on the button; the top list is the detailed view. Removing them on the pretext that the list is
+  now visible would be a feature removal without request — and B4 documents that
+  these pills have a contrast problem to fix, not a redundancy.
+- Do not reorder the **grid** itself (`miam`/`santé`/`caca`/`dodo`) nor the measurement buttons in this
+  ticket: the request is « les rappels en haut », not « refaire l'accueil ». An extra
+  reordering in the same diff is scope creep that complicates the review and the emulator
+  pass.
+- Do not hide the empty section **and** move the list to the top in the same PR without the
+  `Small_Phone` capture: the layout jump on the first reminder resolved of the day (the list disappears, the
+  grid comes back up) is exactly the kind of thing invisible in unit tests and annoying in
+  real use — to validate by eye, not to guess.
 
 ---
 
-## B13 — Sommeil : la même minute est écrite dans `quantity` ET `duration`
+## B13 — Sleep: the same minute is written in `quantity` AND in `duration`
 
-**Statut:** ouvert, **post-v1.2.1** (la partie *affichage* est déjà payée dans rc.2 ; la partie
-*modèle* est reportée) · **Coût:** petit (chemin d'écriture + entité + tests) ; **zéro migration**
-si on ne nettoie pas les lignes existantes
-**Trouvé:** 2026-10-13, au passage émulateur rc.2 — le propriétaire a vu « Quantité: 45 min » et
-« Durée: 0 min » côte à côte sur une sieste.
-**Fichiers:** `lib/features/home/presentation/screens/home_screen.dart:204-208` (le track `dodo`
-passe `duration: selection.minutes` **et** `quantity: selection.minutes`),
+**Status:** open, **post-v1.2.1** (the *display* part is already paid for in rc.2; the
+*model* part is deferred) · **Cost:** small (write path + entity + tests); **zero migration**
+if we do not clean up the existing rows
+**Found:** 2026-10-13, at the rc.2 emulator pass — the owner saw « Quantité: 45 min » and
+« Durée: 0 min » side by side on a nap.
+**Files:** `lib/features/home/presentation/screens/home_screen.dart:204-208` (the `dodo` track
+passes `duration: selection.minutes` **and** `quantity: selection.minutes`),
 `lib/features/home/presentation/providers/track_notifier.dart:70-76` (`TrackingEvent.sleep`),
-`lib/shared/domain/entities/tracking_event.dart:33` (`SleepEvent` : `duration` requis + `quantity`
-optionnel), `lib/data/local/app_db.dart` (colonnes `duration` et `quantity`, toutes deux `REAL NULL`),
+`lib/shared/domain/entities/tracking_event.dart:33` (`SleepEvent`: `duration` required + `quantity`
+optional), `lib/data/local/app_db.dart` (columns `duration` and `quantity`, both `REAL NULL`),
 `lib/features/history/presentation/widgets/history_tile.dart`.
 
-### Le fait
-Pour une sieste, l'app enregistre **le même nombre de minutes dans deux colonnes** : `duration`
-(le champ naturel du sommeil, présent depuis le début) et `quantity` (le champ générique de la
-quantité, que la v1.2.1 a commencé à remplir pour le sommeil afin que « la frise rende depuis la
-donnée comme toute autre ligne » — B1). Les deux colonnes existent pour d'autres raisons :
-`quantity` sert au volume des prises (ml/g), `duration` au sommeil. Mais pour `dodo`, les deux
-contiennent la même valeur.
+### The fact
+For a nap, the app logs **the same number of minutes in two columns**: `duration`
+(the natural field of sleep, present since the beginning) and `quantity` (the generic field of
+quantity, which v1.2.1 started filling for sleep so that
+« la frise rende depuis la donnée comme toute autre ligne » — B1). The two columns exist for other reasons:
+`quantity` serves the feed volume (ml/g), `duration` serves sleep. But for `dodo`, both
+contain the same value.
 
-La tuile d'historique rendait **les deux** : `Quantité: 45 min` (depuis `quantity` + `unit`) et
-`Durée: 45 min` (depuis `duration`). Le même nombre, deux libellés. Le propriétaire a d'abord vu
-`45` et `0` parce que la base du test de migration avait `quantity=45` et `duration` absent (→ 0) —
-mais même avec les deux à 45, la tuile répétait la valeur.
+The history tile was rendering **both**: `Quantité: 45 min` (from `quantity` + `unit`) and
+`Durée: 45 min` (from `duration`). The same number, two labels. The owner first saw
+`45` and `0` because the migration test database had `quantity=45` and `duration` absent (→ 0) —
+but even with both at 45, the tile repeated the value.
 
-### Ce que rc.2 a payé (affichage seulement, pas le modèle)
-`history_tile.dart` ne rend plus la ligne `Quantité` pour un `SleepEvent` : une sieste affiche
-**`Durée: X min`** seulement, le libellé naturel d'un dodo. Le défaut visible est réglé et testé
-(`history_tile_test.dart`, groupe « Sommeil : une seule ligne de valeur »). Le modèle de données,
-lui, écrit toujours les deux colonnes.
+### What rc.2 paid for (display only, not the model)
+`history_tile.dart` no longer renders the `Quantité` row for a `SleepEvent`: a nap shows
+**`Durée: X min`** only, the natural label of a dodo. The visible defect is fixed and tested
+(`history_tile_test.dart`, « Sommeil : une seule ligne de valeur » group). The data model,
+for its part, still writes both columns.
 
-### Le fix futur — choisir **une** colonne canonique pour le sommeil
-Objectif : une sieste porte sa valeur **une fois**, dans le champ qui a du sens.
+### The future fix — choose **one** canonical column for sleep
+Goal: a nap carries its value **once**, in the field that makes sense.
 
-- **Option A (recommandée) : le sommeil garde `duration`, on cesse d'écrire `quantity`.**
-  `home_screen.dart` passe `quantity: null` pour le `dodo`. `duration` est le champ sémantique du
-  sommeil ; `quantity` reste la propriété des prises (ml/g). **Aucune migration** : les nouvelles
-  lignes ont `quantity=NULL`, les anciennes gardent leurs deux colonnes (identiques, inoffensives)
-  et se lisent via `duration`. Vérifier avant de toucher : qu'aucun chemin de **lecture** ne dépende
-  de `sleep.quantity` (l'export l'exporte déjà, nullable ; agrégats — B1 dit que rien ne somme,
-  à confirmer pour la durée du sommeil).
-- **Option B : le sommeil garde `quantity` + `unit`, on cesse d'écrire `duration`.**
-  Plus lourd : requalifier le libellé de la tuile (aujourd'hui « Durée ») ou accepter « Quantité »
-  pour un dodo, et `duration` reste en colonnes pour les lignes existantes. Moins sémantique.
+- **Option A (recommended): sleep keeps `duration`, we stop writing `quantity`.**
+  `home_screen.dart` passes `quantity: null` for `dodo`. `duration` is the semantic field of
+  sleep; `quantity` stays the property of feeds (ml/g). **No migration**: new
+  rows have `quantity=NULL`, old rows keep their two columns (identical, harmless)
+  and are read via `duration`. Verify before touching: that no **read** path depends
+  on `sleep.quantity` (the export already exports it, nullable; aggregates — B1 says nothing sums,
+  to confirm for sleep duration).
+- **Option B: sleep keeps `quantity` + `unit`, we stop writing `duration`.**
+  Heavier: re-label the tile's label (today « Durée ») or accept « Quantité »
+  for a dodo, and `duration` stays in the columns for existing rows. Less semantic.
 
-### Pourquoi ce n'est pas dans rc.2
-rc.2 est le retrait des curseurs + la date sur deux lignes ; y ajouter le point modèle n'ajouterait
-rien au produit (le défaut visible est déjà réglé) mais ouvrirait une **décision de modèle** (entité
-+ chemin d'écriture + éventuel nettoyage des lignes existantes + export) au pire moment — la semaine
-d'un ship, sur une base dont on vient de valider la migration v11→v12. C'est une dette de modèle,
-pas un bug d'affichage : elle attend un changement à part, avec sa propre revue.
+### Why it is not in rc.2
+rc.2 is the cursors removal + the date on two rows; adding the model point would add
+nothing to the product (the visible defect is already fixed) but would open a **model decision** (entity
++ write path + possible cleanup of existing rows + export) at the worst time — the week
+of a ship, on a base whose v11→v12 migration was just validated. It is a model debt,
+not a display bug: it waits for a separate change, with its own review.
 
-### Ne pas
-- Ne pas **supprimer la colonne** `quantity` ou `duration` du schéma : `quantity` est portée par les
-  prises (ml/g), `duration` existe depuis v1. Une suppression de colonne est une migration
-  irréversible sans gain (B7 dit la même chose pour `measurements`).
-- Ne pas **convertir** de valeur : les deux colonnes sont égales, il n'y a rien à arithmeticiser —
-  la même règle que le backfill de B1 (« nommer, pas déduire »).
-- Ne pas faire ce changement **en silence** dans un PR de balayage : c'est une décision de
-  sémantique de données, elle mérite sa propre fiche (celle-ci) et sa propre revue, même si le diff
-  est petit.
+### Do not
+- Do not **remove the column** `quantity` or `duration` from the schema: `quantity` is carried by the
+  feeds (ml/g), `duration` has existed since v1. A column removal is an
+  irreversible migration with no gain (B7 says the same thing for `measurements`).
+- Do not **convert** a value: the two columns are equal, there is nothing to arithmeticise —
+  the same rule as B1's backfill (« nommer, pas déduire »).
+- Do not make this change **silently** in a sweep PR: it is a data
+  semantics decision, it deserves its own ticket (this one) and its own review, even if the diff
+  is small.

@@ -37,7 +37,8 @@ class RemindersService {
     for (final item in items) {
       // A recent "dismiss" (less than [dismissalWindow] ago) removes the...
       // Remind the user of the list without marking any items as complete.
-      final lastDismissal = await repository.getLastDismissal(item.id, babyId: babyId);
+      final lastDismissal =
+          await repository.getLastDismissal(item.id, babyId: babyId);
       if (lastDismissal != null &&
           now.difference(lastDismissal) < dismissalWindow) {
         continue;
@@ -52,6 +53,8 @@ class RemindersService {
       dueItems.add(ReminderStatus(item: item));
     }
 
-    return dueItems.isEmpty ? const RemindersState.allCompleted() : RemindersState.due(items: dueItems);
+    return dueItems.isEmpty
+        ? const RemindersState.allCompleted()
+        : RemindersState.due(items: dueItems);
   }
 }

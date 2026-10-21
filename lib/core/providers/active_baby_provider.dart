@@ -1,14 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
-import '../../../../shared/domain/entities/baby_profile.dart';
+import '../../features/baby/presentation/providers/baby_profile_providers.dart';
+import '../../shared/domain/entities/baby_profile.dart';
 
 /// Provider that watches the active baby profile and exposes it across the app.
 ///
 /// This is the single source of truth for "which baby is currently selected".
 /// Only one baby can be active at a time — switching is handled via
 /// [ActiveBabyNotifier.switchProfile].
-final activeBabyProvider = AsyncNotifierProvider<ActiveBabyNotifier, BabyProfile?>(
+final activeBabyProvider =
+    AsyncNotifierProvider<ActiveBabyNotifier, BabyProfile?>(
   ActiveBabyNotifier.new,
 );
 

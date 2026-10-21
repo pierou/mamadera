@@ -25,7 +25,8 @@ void main() {
     test('build returns device locale when supported', () async {
       final container = ProviderContainer(
         overrides: [
-          localeServiceProvider.overrideWith((ref) => _TestLocaleService(tempDir.path)),
+          localeServiceProvider
+              .overrideWith((ref) => _TestLocaleService(tempDir.path)),
         ],
       );
 
@@ -39,7 +40,8 @@ void main() {
     test('build returns fr when no saved preference', () async {
       final container = ProviderContainer(
         overrides: [
-          localeServiceProvider.overrideWith((ref) => _TestLocaleService(tempDir.path)),
+          localeServiceProvider
+              .overrideWith((ref) => _TestLocaleService(tempDir.path)),
         ],
       );
 
@@ -56,7 +58,8 @@ void main() {
     test('setLocale updates state and persists', () async {
       final container = ProviderContainer(
         overrides: [
-          localeServiceProvider.overrideWith((ref) => _TestLocaleService(tempDir.path)),
+          localeServiceProvider
+              .overrideWith((ref) => _TestLocaleService(tempDir.path)),
         ],
       );
 
@@ -70,7 +73,8 @@ void main() {
       // Verify persistence
       final file = File('${tempDir.path}/.mamadera_locale.json');
       expect(file.existsSync(), isTrue);
-      final content = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final content =
+          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
       expect(content['languageCode'], equals('en'));
       expect(content['isManualOverride'], isTrue);
 
@@ -80,7 +84,8 @@ void main() {
     test('setLocale fr updates correctly', () async {
       final container = ProviderContainer(
         overrides: [
-          localeServiceProvider.overrideWith((ref) => _TestLocaleService(tempDir.path)),
+          localeServiceProvider
+              .overrideWith((ref) => _TestLocaleService(tempDir.path)),
         ],
       );
 
@@ -96,7 +101,8 @@ void main() {
     test('setLocale unsupported language does nothing', () async {
       final container = ProviderContainer(
         overrides: [
-          localeServiceProvider.overrideWith((ref) => _TestLocaleService(tempDir.path)),
+          localeServiceProvider
+              .overrideWith((ref) => _TestLocaleService(tempDir.path)),
         ],
       );
 
@@ -113,7 +119,8 @@ void main() {
     test('resolveLocale returns correct ui.Locale', () async {
       final container = ProviderContainer(
         overrides: [
-          localeServiceProvider.overrideWith((ref) => _TestLocaleService(tempDir.path)),
+          localeServiceProvider
+              .overrideWith((ref) => _TestLocaleService(tempDir.path)),
         ],
       );
 
@@ -135,7 +142,8 @@ void main() {
       // First container - set English
       final container1 = ProviderContainer(
         overrides: [
-          localeServiceProvider.overrideWith((ref) => _TestLocaleService(tempDir.path)),
+          localeServiceProvider
+              .overrideWith((ref) => _TestLocaleService(tempDir.path)),
         ],
       );
 
@@ -146,7 +154,8 @@ void main() {
       // Second container - should load English
       final container2 = ProviderContainer(
         overrides: [
-          localeServiceProvider.overrideWith((ref) => _TestLocaleService(tempDir.path)),
+          localeServiceProvider
+              .overrideWith((ref) => _TestLocaleService(tempDir.path)),
         ],
       );
 

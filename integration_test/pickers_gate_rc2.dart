@@ -92,8 +92,7 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
     BabyProfilesCompanion.insert(
       id: _babyId,
       name: 'Léa',
-      birthDate:
-          now.subtract(const Duration(days: 87)).millisecondsSinceEpoch,
+      birthDate: now.subtract(const Duration(days: 87)).millisecondsSinceEpoch,
       isActive: const Value(true),
     ),
   );
@@ -203,7 +202,14 @@ void expectOneFullRangeSlider(String surface, WidgetTester tester) {
   expect(find.byType(Slider), findsOneWidget,
       reason: '$surface : un seul curseur — la paire B2 est retirée');
 
-  for (final caption in ['Grossier', 'Précis', 'Coarse', 'Fine', 'Grueso', 'Fino']) {
+  for (final caption in [
+    'Grossier',
+    'Précis',
+    'Coarse',
+    'Fine',
+    'Grueso',
+    'Fino'
+  ]) {
     expect(find.text(caption), findsNothing,
         reason: '$surface : la légende « $caption » doit avoir disparu');
   }
@@ -280,8 +286,8 @@ Future<void> openEventTile(
 
 /// Open the editing sheet for the [kind] measure in the timeline.
 Future<void> openMeasurementTile(WidgetTester tester, MeasureKind kind) async {
-  final tile = find.byWidgetPredicate((w) =>
-      w is MeasurementHistoryTile && w.measurement.kind == kind);
+  final tile = find.byWidgetPredicate(
+      (w) => w is MeasurementHistoryTile && w.measurement.kind == kind);
   // The same issue as with `openEventTile`: the duration (3 days) and the temperature (20 hours).
   // are the oldest measurements, and therefore located at the bottom of the scale.
   // Outside the viewport on Small_Phone, these elements are displayed above the iPhone.
@@ -416,12 +422,11 @@ void main() {
       // The "+" and "-" buttons adjust the quantity, while the keyboard sets the exact value.
       final box = tester.getRect(find.byType(Slider));
       final before = _theSlider(tester).value;
-      await tester.dragFrom(box.center - const Offset(30, 0),
-          const Offset(90, 0));
+      await tester.dragFrom(
+          box.center - const Offset(30, 0), const Offset(90, 0));
       await tester.pumpAndSettle();
       expect(_theSlider(tester).value, greaterThan(before),
           reason: 'le curseur unique doit encore déplacer la valeur');
-
 
       await tester.tap(find.byIcon(Icons.add_circle_outline));
       await tester.pumpAndSettle();
@@ -468,16 +473,17 @@ void main() {
       // The document is also included in the app's documentation; that's where you can find it.
       // proof that can be exported, showing what the sharing panel would have received.
       // (emerged from the sandbox, just like the screenshots).
-      final gateDir =
-          io.Directory('${(await getApplicationDocumentsDirectory()).path}/gate');
+      final gateDir = io.Directory(
+          '${(await getApplicationDocumentsDirectory()).path}/gate');
       await gateDir.create(recursive: true);
       await io.File('${gateDir.path}/export.json').writeAsString(source);
       final doc = jsonDecode(source) as Map<String, dynamic>;
-      final events = (doc['trackingEvents'] as List<dynamic>)
-          .cast<Map<String, dynamic>>();
+      final events =
+          (doc['trackingEvents'] as List<dynamic>).cast<Map<String, dynamic>>();
 
       expect(doc.containsKey('measurements'), isTrue,
-          reason: 'une table exportée sans être listée est une sauvegarde fausse');
+          reason:
+              'une table exportée sans être listée est une sauvegarde fausse');
       // Evidence that can be found in the newspaper before the statement: this is what the document...
       // It truly contains, line by line.
       print('[GATE] export lignes → '

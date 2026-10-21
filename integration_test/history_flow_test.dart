@@ -54,10 +54,13 @@ void main() {
 
       // With no events in the DB, we should see an empty state indicator.
       final hasListView = find.byType(ListView).evaluate().isNotEmpty;
-      final hasCenterWithText = find.descendant(
-        of: find.byType(Center),
-        matching: find.textContaining('No'),
-      ).evaluate().isNotEmpty;
+      final hasCenterWithText = find
+          .descendant(
+            of: find.byType(Center),
+            matching: find.textContaining('No'),
+          )
+          .evaluate()
+          .isNotEmpty;
 
       expect(
         !hasListView || hasCenterWithText,
@@ -80,7 +83,8 @@ void main() {
       expect(
         chips.length >= 3,
         isTrue,
-        reason: 'Should have at least 3 filter chips for event types (found: ${chips.length})',
+        reason:
+            'Should have at least 3 filter chips for event types (found: ${chips.length})',
       );
 
       // Tap the first non-selected chip (if any).

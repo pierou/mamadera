@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../core/providers/active_baby_provider.dart';
-import '../../../../../data/local/db_constants.dart';
-import '../../../../../shared/domain/entities/tracking_type.dart';
+import '../../../../core/providers/active_baby_provider.dart';
+import '../../../../data/local/db_constants.dart';
+import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../domain/entities/reminder_item.dart';
 import '../../domain/entities/reminders_state.dart';
 import 'reminder_providers.dart';
@@ -14,11 +14,13 @@ const Duration _defaultPollInterval = Duration(minutes: 5);
 
 /// Provider that emits a map of [TrackingType] → list of pending [ReminderStatus].
 /// Polls every [_defaultPollInterval] to re-evaluate which reminders are due.
-final reminderNotifierProvider = AsyncNotifierProvider<RemindersNotifier, Map<TrackingType, List<ReminderStatus>>>(
+final reminderNotifierProvider = AsyncNotifierProvider<RemindersNotifier,
+    Map<TrackingType, List<ReminderStatus>>>(
   RemindersNotifier.new,
 );
 
-class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderStatus>>> {
+class RemindersNotifier
+    extends AsyncNotifier<Map<TrackingType, List<ReminderStatus>>> {
   RemindersNotifier({this.pollInterval = _defaultPollInterval});
 
   /// Intervalle entre deux sondages de rappels dus.
@@ -93,7 +95,8 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
     final result = await service.checkDue(babyId: babyId);
 
     // Enrich each ReminderStatus with lastEventAt from the reminders repository.
-    if (result case RemindersDue(items: final List<ReminderStatus> originalItems)) {
+    if (result
+        case RemindersDue(items: final List<ReminderStatus> originalItems)) {
       final items = List<ReminderStatus>.from(originalItems);
       for (final (index, status) in items.indexed) {
         var lastEventAt = await repository.getLastCompleted(
@@ -126,7 +129,8 @@ class RemindersNotifier extends AsyncNotifier<Map<TrackingType, List<ReminderSta
   }
 
   /// Group [ReminderStatus] list by [TrackingType].
-  Map<TrackingType, List<ReminderStatus>> _groupByTrackingType(List<ReminderStatus> statuses) {
+  Map<TrackingType, List<ReminderStatus>> _groupByTrackingType(
+      List<ReminderStatus> statuses) {
     final grouped = <TrackingType, List<ReminderStatus>>{};
     for (final status in statuses) {
       grouped.putIfAbsent(status.item.trackingType, () => []).add(status);

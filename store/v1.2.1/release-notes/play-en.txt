@@ -1,0 +1,4 @@
+• Growth measurements now show in History — edit or delete them there
+• Breastfeeding logged in minutes or ml, your choice
+• Out-of-range values are refused, with the range shown
+• Fixes: English dates, doubled chart units, small-screen layout

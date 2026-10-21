@@ -67,6 +67,17 @@
       ""
     ]
   },
+  "1.1.1": {
+    "releaseDate": "2026-09-29",
+    "title": "What's New in Mamadera 1.1.1",
+    "items": [
+      "### Bug Fixes",
+      "- A reminder switched off in Settings now disappears from the Home screen right away",
+      "- Home button labels renamed in French: « Nourriture » instead of « Miam », « Couche » instead of « Caca »",
+      "- Long labels such as « Nourriture » now scale down to fit one line on the Home screen",
+      ""
+    ]
+  },
   "1.2.0": {
     "releaseDate": "2026-10-03",
     "title": "What's New in Mamadera 1.2.0",

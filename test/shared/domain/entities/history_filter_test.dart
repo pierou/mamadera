@@ -71,7 +71,8 @@ void main() {
         expect(HistoryFilter.fromString('miam'), HistoryFilter.miam);
         expect(HistoryFilter.fromString('DODO'), HistoryFilter.dodo);
         expect(HistoryFilter.fromString('Caca'), HistoryFilter.caca);
-        expect(HistoryFilter.fromString('SANTÉ'), HistoryFilter.all);         // 'health' ≠ 'sante', fallback.
+        expect(HistoryFilter.fromString('SANTÉ'),
+            HistoryFilter.all); // 'health' ≠ 'sante', fallback.
       });
 
       test('une entrée inconnue retourne all en fallback safe', () {
@@ -144,4 +145,3 @@ void main() {
     });
   });
 }
-

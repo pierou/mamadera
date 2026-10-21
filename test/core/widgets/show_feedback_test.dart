@@ -67,7 +67,8 @@ void main() {
       );
 
       await tester.pump();
-      showFeedback(feedbackContext, 'Longer message', duration: const Duration(seconds: 5));
+      showFeedback(feedbackContext, 'Longer message',
+          duration: const Duration(seconds: 5));
       await tester.pump();
 
       expect(find.text('Longer message'), findsOneWidget);
@@ -183,7 +184,8 @@ void main() {
       );
 
       await tester.pump();
-      showError(errorContext, 'Custom 1.5s error', duration: const Duration(milliseconds: 1500));
+      showError(errorContext, 'Custom 1.5s error',
+          duration: const Duration(milliseconds: 1500));
       await tester.pump();
 
       expect(find.text('Custom 1.5s error'), findsOneWidget);

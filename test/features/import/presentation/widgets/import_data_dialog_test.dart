@@ -548,7 +548,7 @@ void main() {
         trackingEvents: [
           <String, dynamic>{
             'id': 1,
-            'type': 'bain',             // Unknown file type: the entire file is rejected.
+            'type': 'bain', // Unknown file type: the entire file is rejected.
             'timestampEpochSeconds': 1700000000,
             'notes': marker,
           },

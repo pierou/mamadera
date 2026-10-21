@@ -1,6 +1,6 @@
 name: CI & Secure Build
 
-# Permissions par défaut : lecture seule
+# Default permissions: read-only
 permissions:
   contents: read
   security-events: write
@@ -27,7 +27,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  # 1. 🔍 Audit dépendances & secrets
+  # 1. 🔍 Audit dependencies & secrets
   security-audit:
     runs-on: ubuntu-latest
     steps:
@@ -39,7 +39,7 @@ jobs:
           # the default shallow clone would miss most of it.
           fetch-depth: 0
 
-      - name: Trivy (vuln dépendances)
+      - name: Trivy (dependency vulns)
         # Blocking: HIGH/CRITICAL findings fail the pipeline (`exit-code: 1`).
         # Pinned to a version tag (was @master) so the scanner itself cannot
         # change underneath a build.
@@ -52,7 +52,7 @@ jobs:
           # and produces false positives. Use `dart pub outdated` + manual review instead.
           skip-dirs: '${{ github.workspace }}/.pub-cache'
 
-      - name: Semgrep (SAST basique)
+      - name: Semgrep (basic SAST)
         # Blocking: any new SAST finding fails the pipeline.
         uses: semgrep/semgrep-action@v1
         with:
@@ -108,18 +108,61 @@ jobs:
       - name: Analyze (strict)
         run: flutter analyze --fatal-infos --fatal-warnings
 
+      # Formatting was checked nowhere in the estate until 2026-10-19; `dart format` is free
+      # and its absence meant every future refactor could arrive unformatted.
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test integration_test scripts
+
+      - name: Architecture ratchet (AGENTS.md layer rules)
+        # Ratchet, not a clean-slate rule: scripts/architecture_baseline.json locks today's
+        # grandfathered counts, and the job fails only on NEW violations. Counts may only go
+        # down; the script says so when they do. Needs no toolchain beyond python3.
+        run: python3 scripts/check_architecture.py
+
       - name: Run tests
-        run: |
-          flutter test \
-            test/data/ \
-            test/presentation/ \
-            test/core \
-            test/features \
-            test/shared \
-          --coverage
+        # The WHOLE test/ directory. The previous form enumerated five subdirectories
+        # (test/data/ test/presentation/ test/core test/features test/shared) and therefore
+        # silently skipped test/main_test.dart and test/widget_test.dart — the same bug the
+        # Makefile documents as fixed at Makefile:20-22, where the fix never reached CI.
+        # The startup path (main.dart init order, encryption init, ProviderScope wiring) had
+        # no CI signal at all because of it.
+        run: flutter test --coverage
 
       - name: Install lcov tools
         run: sudo apt-get install -y lcov
+
+      - name: Complexity budget (lizard)
+        # Enforces the AGENTS.md "widgets > ~25 lines → extract sub-widgets" intent as a budget,
+        # not a cliff. Baseline cap 3, measured on 2026-10-19:
+        #   _FeedingTrackingDialogState::build  187 NLOC · MenuScreen::build 154 NLOC
+        #   HistoryScreen::_applyUpdate  CCN 31
+        # A bare `pip install` cannot succeed on ubuntu-latest (PEP 668: the system Python is
+        # externally-managed) — the step died on line one before ever scanning (2026-10-21).
+        # The throwaway venv fixes that. Two more traps, both learned the same day:
+        #   * lizard's bounded exit code is 1 whenever ANY warning exists — i.e. on every
+        #     within-budget scan — so the `|| true` is deliberate; a real crash is caught by
+        #     the Fun Cnt guard below, which fails loudly on a scan that looked at nothing.
+        #   * current lizard HAS a Dart parser (540 functions, 2026-10-21); the explicit file
+        #     list and the Fun Cnt guard remain as protection against a parser regression.
+        run: |
+          python3 -m venv /tmp/lizard-venv
+          /tmp/lizard-venv/bin/pip install --quiet lizard
+          command -v /tmp/lizard-venv/bin/lizard >/dev/null 2>&1 || { echo "lizard install failed — check the pip output above"; exit 1; }
+          FILES=$(find lib -name '*.dart' ! -name '*.g.dart' ! -name '*.freezed.dart')
+          OUT=$(/tmp/lizard-venv/bin/lizard $FILES --CCN 30 --length 150) || true
+          echo "$OUT" | tail -4
+          FUN=$(echo "$OUT" | tail -1 | awk '{print $5}')
+          WARN=$(echo "$OUT" | tail -1 | awk '{print $6}')
+          if [ "${FUN:-0}" -lt 400 ]; then echo "lizard analysed ${FUN:-0} functions (<400) — scan is broken, not clean"; exit 1; fi
+          if [ "${WARN:-0}" -gt 3 ]; then echo "${WARN} functions over CCN 30 / NLOC 150 (cap 3)"; /tmp/lizard-venv/bin/lizard $FILES --CCN 30 --length 150 -w | head -12; exit 1; fi
+          echo "complexity within budget: $FUN functions scanned, $WARN over cap (baseline 3)"
+
+      - name: Check store package
+        # store-check was in `make ci` but NEVER in CI — so the publish deliverable could
+        # regress without any CI signal (AGENTS.md:120 describes it as part of the pipeline).
+        # Needs no device: it validates console character limits, note consistency and the
+        # locale-carrying screenshot filenames.
+        run: make store-check
 
       - name: Check Coverage Threshold
         run: |
@@ -158,7 +201,7 @@ jobs:
             exit 1
           fi
 
-  # 3. 🤖 Build Android (Reproductible & Signé)
+  # 3. 🤖 Build Android (Reproducible & Signed)
   # 3. 🤖 Build Android (tags only — requires the release keystore)
   build-android:
     if: startsWith(github.ref, 'refs/tags/')
@@ -253,7 +296,7 @@ jobs:
         run: |
           flutter build ios --release --no-codesign --split-debug-info=build/
 
-        # flutter build ios appelle automatiquement pod install si nécessaire
+        # flutter build ios runs pod install automatically if needed
 
       - name: Archive Runner.app
         run: |
@@ -529,7 +572,7 @@ jobs:
         if: always()
         run: $ANDROID_HOME/platform-tools/adb -s emulator-5554 emu kill || true
 
-  # 6. 📦 Release GitHub (sur tag v*)
+  # 6. 📦 Release GitHub (on v* tags)
   release:
     runs-on: ubuntu-latest
     needs: [build-android, build-ios, integration-tests-local]

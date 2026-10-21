@@ -83,8 +83,7 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
     BabyProfilesCompanion.insert(
       id: _babyId,
       name: 'Léa',
-      birthDate:
-          now.subtract(const Duration(days: 87)).millisecondsSinceEpoch,
+      birthDate: now.subtract(const Duration(days: 87)).millisecondsSinceEpoch,
       isActive: const Value(true),
     ),
   );
@@ -103,8 +102,8 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
         recordedAt: now.subtract(ago),
       );
 
-  await measure(MeasureKind.poids, _lastWeightG.toDouble(),
-      const Duration(days: 3));
+  await measure(
+      MeasureKind.poids, _lastWeightG.toDouble(), const Duration(days: 3));
   await measure(MeasureKind.taille, _lastHeightCm, const Duration(days: 10));
   await measure(MeasureKind.temperature, _lastTempC, const Duration(hours: 20));
 
@@ -112,7 +111,8 @@ Future<(AppDatabase, EncryptionService)> _seededEnv() async {
 }
 
 /// Pumps the real app on the fixture, in [locale].
-Future<void> pumpSeededApp(WidgetTester tester, {required String locale}) async {
+Future<void> pumpSeededApp(WidgetTester tester,
+    {required String locale}) async {
   if (_liveDb != null) {
     await _liveDb!.close();
     _liveDb = null;
@@ -191,10 +191,12 @@ void expectBareLastValue(
   expect(field.controller!.text, isEmpty,
       reason: '$surface : le champ reste vide sans saisie réelle');
   final save = tester.widget<ElevatedButton>(
-    find.ancestor(
-      of: find.text('Enregistrer'),
-      matching: find.byType(ElevatedButton),
-    ).first,
+    find
+        .ancestor(
+          of: find.text('Enregistrer'),
+          matching: find.byType(ElevatedButton),
+        )
+        .first,
   );
   expect(save.onPressed, isNull,
       reason: '$surface : Enregistrer reste désarmé sans saisie');
@@ -245,8 +247,7 @@ void main() {
       await capture(tester, '01_fiche_poids_fr');
     });
 
-    testWidgets("fr · température : l'en-tête lit « 37,2 °C »",
-        (tester) async {
+    testWidgets("fr · température : l'en-tête lit « 37,2 °C »", (tester) async {
       await pumpSeededApp(tester, locale: 'fr');
       await openEntrySheet(tester, 'Température');
 
@@ -351,14 +352,14 @@ void main() {
         database: _liveDb!,
         encryption: _liveEncryption,
       ).buildExportJson();
-      final gateDir =
-          io.Directory('${(await getApplicationDocumentsDirectory()).path}/gate');
+      final gateDir = io.Directory(
+          '${(await getApplicationDocumentsDirectory()).path}/gate');
       await gateDir.create(recursive: true);
       await io.File('${gateDir.path}/export.json').writeAsString(source);
 
       final doc = jsonDecode(source) as Map<String, dynamic>;
-      final measurements = (doc['measurements'] as List<dynamic>)
-          .cast<Map<String, dynamic>>();
+      final measurements =
+          (doc['measurements'] as List<dynamic>).cast<Map<String, dynamic>>();
       // `value` is stored (and exported) as the decimal string of the number
       // in its base unit: accept either shape, compare as a number.
       double parsed(Object? raw) =>

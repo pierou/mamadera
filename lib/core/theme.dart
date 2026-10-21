@@ -32,13 +32,14 @@ class AppTheme {
 
   // ── Color palette (tracking-type accents, mode-agnostic) ─────
   // WCAG AA compliant variants — adjusted from neon for readability on both themes
-  static const Color miam = Color(0xFFFFE082);  // soft yellow, was #F7F72A
+  static const Color miam = Color(0xFFFFE082); // soft yellow, was #F7F72A
   static const Color sante = Color(0xFF66BB6A); // accessible green, was #22FC00
-  static const Color caca = Color(0xFF5D4037);  // brown, was #373A0E
-  static const Color dodo = Color(0xFF42A5F5);  // blue, was #279FEA
+  static const Color caca = Color(0xFF5D4037); // brown, was #373A0E
+  static const Color dodo = Color(0xFF42A5F5); // blue, was #279FEA
 
   // ── Shared button/input configs (reused by both themes) ─────
-  static OutlinedButtonThemeData _outlinedButtonTheme() => OutlinedButtonThemeData(
+  static OutlinedButtonThemeData _outlinedButtonTheme() =>
+      OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.transparent,
           foregroundColor: sante,
@@ -49,12 +50,14 @@ class AppTheme {
         ),
       );
 
-  static ElevatedButtonThemeData _elevatedButtonTheme() => ElevatedButtonThemeData(
+  static ElevatedButtonThemeData _elevatedButtonTheme() =>
+      ElevatedButtonThemeData(
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.all(sante),
           foregroundColor: WidgetStateProperty.all(Colors.black),
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadiusExtraLarge))),
+              RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(borderRadiusExtraLarge))),
         ),
       );
 
@@ -83,7 +86,8 @@ class AppTheme {
       statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
       systemNavigationBarColor: theme.scaffoldBackgroundColor,
       systemNavigationBarDividerColor: theme.colorScheme.outlineVariant,
-      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
     );
   }
 
@@ -117,8 +121,12 @@ class AppTheme {
           surfaceContainerHighest: darkDialogBackground,
         ),
         textTheme: const TextTheme(
-          headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: darkTextPrimary),
-          titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white),
+          headlineLarge: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: darkTextPrimary),
+          titleLarge: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white),
           bodyLarge: TextStyle(fontSize: 18, color: darkTextPrimary),
           bodyMedium: TextStyle(fontSize: 14, color: darkTextSecondary),
           bodySmall: TextStyle(fontSize: 12, color: Color(0xFF999999)),
@@ -171,7 +179,8 @@ class AppTheme {
         dialogTheme: const DialogThemeData(
           backgroundColor: darkDialogBackground,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(shapeBottomSheetRadius)),
+            borderRadius:
+                BorderRadius.all(Radius.circular(shapeBottomSheetRadius)),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
@@ -223,13 +232,21 @@ class AppTheme {
           surfaceContainerHighest: lightDialogBackground,
         ),
         textTheme: const TextTheme(
-          headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: lightTextPrimary),
-          titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: lightTextPrimary),
+          headlineLarge: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: lightTextPrimary),
+          titleLarge: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: lightTextPrimary),
           bodyLarge: TextStyle(fontSize: 18, color: lightTextPrimary),
           bodyMedium: TextStyle(fontSize: 14, color: lightTextSecondary),
           bodySmall: TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
           labelSmall: TextStyle(
-              fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF616161)),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF616161)),
         ),
         outlinedButtonTheme: _outlinedButtonTheme(),
         elevatedButtonTheme: _elevatedButtonTheme(),
@@ -278,7 +295,8 @@ class AppTheme {
         dialogTheme: const DialogThemeData(
           backgroundColor: lightDialogBackground,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(shapeBottomSheetRadius)),
+            borderRadius:
+                BorderRadius.all(Radius.circular(shapeBottomSheetRadius)),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(

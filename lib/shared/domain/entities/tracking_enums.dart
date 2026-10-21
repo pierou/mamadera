@@ -111,15 +111,24 @@ abstract class PipiColor with _$PipiColor {
 
 /// Couleur incolore/transparente.
 const pipiColorIncolore = PipiColor(
-    value: 'incolore', label: 'Incolore', colorHex: 0xFFE8F5E9, labelKey: 'pipiColorIncolore');
+    value: 'incolore',
+    label: 'Incolore',
+    colorHex: 0xFFE8F5E9,
+    labelKey: 'pipiColorIncolore');
 
 /// Pale yellow.
 const pipiColorJauneClair = PipiColor(
-    value: 'jaune_clair', label: 'Jaune clair', colorHex: 0xFFFEEBC8, labelKey: 'pipiColorJauneClair');
+    value: 'jaune_clair',
+    label: 'Jaune clair',
+    colorHex: 0xFFFEEBC8,
+    labelKey: 'pipiColorJauneClair');
 
 /// Dark yellow.
 const pipiColorJauneFonce = PipiColor(
-    value: 'jaune_fonce', label: 'Jaune foncé', colorHex: 0xFFE6C25B, labelKey: 'pipiColorJauneFonce');
+    value: 'jaune_fonce',
+    label: 'Jaune foncé',
+    colorHex: 0xFFE6C25B,
+    labelKey: 'pipiColorJauneFonce');
 
 /// Rose/Orange (urates).
 const pipiColorRoseUrates = PipiColor(
@@ -166,19 +175,31 @@ abstract class CacaColor with _$CacaColor {
 
 /// Meconium (the first stool).
 const cacaColorMeconium = CacaColor(
-    value: 'meconium', label: 'Mécônium', colorHex: 0xFF5D4E37, labelKey: 'cacaColorMeconium');
+    value: 'meconium',
+    label: 'Mécônium',
+    colorHex: 0xFF5D4E37,
+    labelKey: 'cacaColorMeconium');
 
 /// Vert olive.
 const cacaColorVertOlive = CacaColor(
-    value: 'vert_olive', label: 'Vert olive', colorHex: 0xFF8A9B6C, labelKey: 'cacaColorVertOlive');
+    value: 'vert_olive',
+    label: 'Vert olive',
+    colorHex: 0xFF8A9B6C,
+    labelKey: 'cacaColorVertOlive');
 
 /// Jaune moutarde (seins).
 const cacaColorJauneMoutarde = CacaColor(
-    value: 'jaune_moutarde', label: 'Jaune moutarde', colorHex: 0xFFF5D138, labelKey: 'cacaColorJauneMoutarde');
+    value: 'jaune_moutarde',
+    label: 'Jaune moutarde',
+    colorHex: 0xFFF5D138,
+    labelKey: 'cacaColorJauneMoutarde');
 
 /// Jaune clair.
 const cacaColorJauneClair = CacaColor(
-    value: 'jaune_clair', label: 'Jaune clair', colorHex: 0xFFEED976, labelKey: 'cacaColorJauneClair');
+    value: 'jaune_clair',
+    label: 'Jaune clair',
+    colorHex: 0xFFEED976,
+    labelKey: 'cacaColorJauneClair');
 
 /// List of all available "caca" colors.
 const List<CacaColor> cacaColors = [
@@ -238,8 +259,8 @@ const stoolTextureMoulee = StoolTexture(
     value: 'moulee', label: 'Moulée', labelKey: 'stoolTextureMoulee');
 
 /// Hard (dry stools, difficult to pass).
-const stoolTextureDure = StoolTexture(
-    value: 'dure', label: 'Dure', labelKey: 'stoolTextureDure');
+const stoolTextureDure =
+    StoolTexture(value: 'dure', label: 'Dure', labelKey: 'stoolTextureDure');
 
 /// Here is a list of all available textures, ranging from the most liquid to the most solid.
 ///
@@ -280,13 +301,21 @@ abstract class HealthSubtype with _$HealthSubtype {
 
   /// Value stored in the database (e.g., 'eye_cleaning').
   static const nettoyageYeux = HealthSubtype(
-      value: 'nettoyage_yeux', label: 'Nettoyage des yeux', labelKey: 'healthNettoyageYeux');
+      value: 'nettoyage_yeux',
+      label: 'Nettoyage des yeux',
+      labelKey: 'healthNettoyageYeux');
   static const nettoyageNombril = HealthSubtype(
-      value: 'nettoyage_nombril', label: 'Nettoyage du nombril', labelKey: 'healthNettoyageNombril');
+      value: 'nettoyage_nombril',
+      label: 'Nettoyage du nombril',
+      labelKey: 'healthNettoyageNombril');
   static const nettoyageVisage = HealthSubtype(
-      value: 'nettoyage_visage', label: 'Nettoyage du visage', labelKey: 'healthNettoyageVisage');
+      value: 'nettoyage_visage',
+      label: 'Nettoyage du visage',
+      labelKey: 'healthNettoyageVisage');
   static const nettoyageNez = HealthSubtype(
-      value: 'nettoyage_nez', label: 'Nettoyage du nez', labelKey: 'healthNettoyageNez');
+      value: 'nettoyage_nez',
+      label: 'Nettoyage du nez',
+      labelKey: 'healthNettoyageNez');
   static const vitamineD = HealthSubtype(
       value: 'vitamine_d', label: 'Vitamine D', labelKey: 'healthVitamineD');
   static const vitamineK = HealthSubtype(
@@ -378,7 +407,7 @@ enum HistoryFilter {
   String? get trackingType {
     switch (this) {
       case HistoryFilter.all:
-        return null;         // No specific type → retrieve everything.
+        return null; // No specific type → retrieve everything.
       default:
         return name.toLowerCase();
     }

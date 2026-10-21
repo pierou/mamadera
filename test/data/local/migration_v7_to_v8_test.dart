@@ -26,8 +26,11 @@ class _RawSqlDatabase extends GeneratedDatabase {
 /// lib/data/local/schema.sql (without the reminder_settings section), opens the AppDatabase.
 /// It uses the same file and then proves that the table exists and is writable.
 void main() {
-  test('opening a v7 database (no reminder_settings) upgrades it to a writable v8', () async {
-    final tempDir = await Directory.systemTemp.createTemp('mamadera_migration_v7');
+  test(
+      'opening a v7 database (no reminder_settings) upgrades it to a writable v8',
+      () async {
+    final tempDir =
+        await Directory.systemTemp.createTemp('mamadera_migration_v7');
     addTearDown(() async {
       await tempDir.delete(recursive: true);
     });
@@ -56,7 +59,8 @@ void main() {
         baby_id     TEXT,
         quantity    REAL
       )''');
-    await raw.customStatement('CREATE INDEX idx_tracking_events_type ON tracking_events(type)');
+    await raw.customStatement(
+        'CREATE INDEX idx_tracking_events_type ON tracking_events(type)');
     await raw.customStatement(
         'CREATE INDEX idx_tracking_events_timestamp_type ON tracking_events(timestamp DESC, type)');
     await raw.customStatement('''
@@ -70,7 +74,7 @@ void main() {
     final premise = _RawSqlDatabase(NativeDatabase(dbFile));
     await expectLater(
       premise.customStatement('SELECT * FROM reminder_settings'),
-      throwsA(anything),       // "Table 'reminder_settings' does not exist."
+      throwsA(anything), // "Table 'reminder_settings' does not exist."
     );
     await premise.close();
 
@@ -80,12 +84,12 @@ void main() {
 
     // The table now exists and can be modified.
     await db.into(db.reminderSettings).insert(
-      const ReminderSettingsCompanion(
-        babyId: Value(''),
-        itemId: Value('test-reminder'),
-        enabled: Value(true),
-      ),
-    );
+          const ReminderSettingsCompanion(
+            babyId: Value(''),
+            itemId: Value('test-reminder'),
+            enabled: Value(true),
+          ),
+        );
     final rows = await db.select(db.reminderSettings).get();
     expect(rows, hasLength(1));
     expect(rows.first.itemId, equals('test-reminder'));

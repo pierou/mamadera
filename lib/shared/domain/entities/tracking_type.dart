@@ -7,10 +7,14 @@ enum TrackingType {
   /// Converts the data type into a human-readable string for the user interface, if necessary.
   String get label {
     switch (this) {
-      case TrackingType.miam: return 'Miam';
-      case TrackingType.sante: return 'Santé';
-      case TrackingType.caca: return 'Caca';
-      case TrackingType.dodo: return 'Dodo';
+      case TrackingType.miam:
+        return 'Miam';
+      case TrackingType.sante:
+        return 'Santé';
+      case TrackingType.caca:
+        return 'Caca';
+      case TrackingType.dodo:
+        return 'Dodo';
     }
   }
 
@@ -21,7 +25,7 @@ enum TrackingType {
       'santé' || 'sante' => TrackingType.sante,
       'caca' => TrackingType.caca,
       'dodo' => TrackingType.dodo,
-      _ => TrackingType.miam,       // Secure default value.
+      _ => TrackingType.miam, // Secure default value.
     };
   }
 }

@@ -76,9 +76,8 @@ void main() {
     final indexes = <String>[];
     for (final row in rows) {
       final indexName = row.read<String>('name');
-      final columns = await db
-          .customSelect('PRAGMA index_info("$indexName")')
-          .get();
+      final columns =
+          await db.customSelect('PRAGMA index_info("$indexName")').get();
       indexes.add(
         '$indexName('
         '${columns.map((c) => c.data['name'] ?? '?').join(',')}'
@@ -90,19 +89,19 @@ void main() {
 
   /// Effective structure for all tables within an open database.
   Future<Map<String, _TableStructure>> structureOf(GeneratedDatabase db) async {
-    final names = (await db.customSelect(
-      "SELECT name FROM sqlite_master WHERE type = 'table' "
-      'AND name NOT LIKE \'sqlite_%\' ORDER BY name',
-    ).get())
+    final names = (await db
+            .customSelect(
+              "SELECT name FROM sqlite_master WHERE type = 'table' "
+              'AND name NOT LIKE \'sqlite_%\' ORDER BY name',
+            )
+            .get())
         .map((row) => row.read<String>('name'))
         .toList();
 
-
     final result = <String, _TableStructure>{};
     for (final table in names) {
-      final columns = await db
-          .customSelect('PRAGMA table_info("$table")')
-          .get();
+      final columns =
+          await db.customSelect('PRAGMA table_info("$table")').get();
       result[table] = (
         columns: columns
             .map((c) => [
@@ -125,7 +124,7 @@ void main() {
   Future<AppDatabase> freshDatabase() async {
     final file = File('${tempDir.path}/fresh.db');
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(file)));
-    await db.customSelect('SELECT 1').get();     // triggers onCreate.
+    await db.customSelect('SELECT 1').get(); // triggers onCreate.
     return db;
   }
 
@@ -176,7 +175,7 @@ void main() {
     await raw.close();
 
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(file)));
-    await db.customSelect('SELECT 1').get();     // triggers the onUpgrade event.
+    await db.customSelect('SELECT 1').get(); // triggers the onUpgrade event.
     return db;
   }
 

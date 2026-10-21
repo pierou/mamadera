@@ -88,17 +88,21 @@ void main() {
       expect(find.text('Zone de danger'), findsOneWidget);
     });
 
-    testWidgets('affiche le bouton réinitialisation base de données', (tester) async {
+    testWidgets('affiche le bouton réinitialisation base de données',
+        (tester) async {
       await pumpMenuScreen(tester: tester);
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('Réinitialiser la base de données'), findsOneWidget);
     });
 
-    testWidgets('affiche la tuile export au-dessus du reset et ouvre la boîte de dialogue', (tester) async {
+    testWidgets(
+        'affiche la tuile export au-dessus du reset et ouvre la boîte de dialogue',
+        (tester) async {
       await pumpMenuScreen(tester: tester);
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('Exporter mes données'), findsOneWidget);
-      expect(find.text('Sauvegarde JSON de toutes vos données'), findsOneWidget);
+      expect(
+          find.text('Sauvegarde JSON de toutes vos données'), findsOneWidget);
 
       // The danger zone is located under the fold: make the tile visible before tapping.
       await tester.ensureVisible(find.text('Exporter mes données'));
@@ -113,14 +117,17 @@ void main() {
       // The dialog box displays the privacy warning.
       // Before taking any action, please use the "cancel" or "confirm" buttons.
       expect(
-        find.text('Ce fichier contiendra toutes vos données, y compris les notes de santé en texte lisible. Vous choisissez où l\'enregistrer : rien n\'est envoyé automatiquement.'),
+        find.text(
+            'Ce fichier contiendra toutes vos données, y compris les notes de santé en texte lisible. Vous choisissez où l\'enregistrer : rien n\'est envoyé automatiquement.'),
         findsOneWidget,
       );
       expect(find.text('Exporter'), findsOneWidget);
       expect(find.text('Annuler'), findsOneWidget);
     });
 
-    testWidgets('affiche la tuile restauration entre export et reset et ouvre le dialogue import', (tester) async {
+    testWidgets(
+        'affiche la tuile restauration entre export et reset et ouvre le dialogue import',
+        (tester) async {
       await pumpMenuScreen(tester: tester);
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('Restaurer depuis une sauvegarde'), findsOneWidget);
@@ -128,8 +135,10 @@ void main() {
 
       // The vertical order of operations for the danger zone is: export, then restore, then reset.
       final exportY = tester.getCenter(find.text('Exporter mes données')).dy;
-      final restoreY = tester.getCenter(find.text('Restaurer depuis une sauvegarde')).dy;
-      final resetY = tester.getCenter(find.text('Réinitialiser la base de données')).dy;
+      final restoreY =
+          tester.getCenter(find.text('Restaurer depuis une sauvegarde')).dy;
+      final resetY =
+          tester.getCenter(find.text('Réinitialiser la base de données')).dy;
       expect(restoreY, greaterThan(exportY));
       expect(resetY, greaterThan(restoreY));
 
@@ -142,13 +151,15 @@ void main() {
 
       // A key element of effective communication: the destructive warning, preceding any action.
       expect(
-        find.textContaining('supprimera définitivement toutes les données actuellement sur cet appareil'),
+        find.textContaining(
+            'supprimera définitivement toutes les données actuellement sur cet appareil'),
         findsOneWidget,
       );
       expect(find.text('Choisir un fichier…'), findsOneWidget);
     });
 
-    testWidgets('la tuile reset est toujours présente et ouvre sa confirmation', (tester) async {
+    testWidgets('la tuile reset est toujours présente et ouvre sa confirmation',
+        (tester) async {
       await pumpMenuScreen(tester: tester);
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('Réinitialiser la base de données'), findsOneWidget);

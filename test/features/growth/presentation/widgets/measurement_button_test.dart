@@ -50,7 +50,8 @@ void main() {
       );
     }
 
-    testWidgets('renders the three measurement buttons in order', (tester) async {
+    testWidgets('renders the three measurement buttons in order',
+        (tester) async {
       await pumpRow(tester, const []);
       await tester.pumpAndSettle();
 
@@ -58,8 +59,9 @@ void main() {
       expect(find.text('Taille'), findsOneWidget);
       expect(find.text('Température'), findsOneWidget);
 
-      final buttons =
-          tester.widgetList<MeasurementButton>(find.byType(MeasurementButton)).toList();
+      final buttons = tester
+          .widgetList<MeasurementButton>(find.byType(MeasurementButton))
+          .toList();
       expect(buttons.map((b) => b.kind).toList(), [
         MeasureKind.poids,
         MeasureKind.taille,
@@ -67,14 +69,16 @@ void main() {
       ]);
     });
 
-    testWidgets('shows an em dash when the baby has no measurements', (tester) async {
+    testWidgets('shows an em dash when the baby has no measurements',
+        (tester) async {
       await pumpRow(tester, const []);
       await tester.pumpAndSettle();
 
       expect(find.text('—'), findsNWidgets(3));
     });
 
-    testWidgets('shows the latest value of each kind, formatted', (tester) async {
+    testWidgets('shows the latest value of each kind, formatted',
+        (tester) async {
       // Notification contract: A sorted list, from most recent to oldest.
       await pumpRow(
         tester,
@@ -110,7 +114,8 @@ void main() {
       expect(find.text('—'), findsOneWidget);
     });
 
-    testWidgets('an undecryptable value is never shown as a number', (tester) async {
+    testWidgets('an undecryptable value is never shown as a number',
+        (tester) async {
       await pumpRow(
         tester,
         [
@@ -137,7 +142,8 @@ void main() {
       await tester.tap(find.text('Taille'));
       await tester.pumpAndSettle();
 
-      final sheet = tester.widget<MeasurementSheet>(find.byType(MeasurementSheet));
+      final sheet =
+          tester.widget<MeasurementSheet>(find.byType(MeasurementSheet));
       expect(sheet.kind, MeasureKind.taille);
     });
 

@@ -16,8 +16,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Feeding Tracking Flow', () {
-    testWidgets(
-        'Tapping track miam opens FeedingTrackingDialog bottom sheet',
+    testWidgets('Tapping track miam opens FeedingTrackingDialog bottom sheet',
         (tester) async {
       await pumpMamadera(tester);
 
@@ -51,7 +50,8 @@ void main() {
       );
     });
 
-    testWidgets('Tapping cancel dismisses FeedingTrackingDialog', (tester) async {
+    testWidgets('Tapping cancel dismisses FeedingTrackingDialog',
+        (tester) async {
       await pumpMamadera(tester);
 
       // Open the dialog.
@@ -74,7 +74,8 @@ void main() {
       expectUnique(tester, TestKeys.trackMiam);
     });
 
-    testWidgets('Tapping track sante opens HealthSubtypeDialog', (tester) async {
+    testWidgets('Tapping track sante opens HealthSubtypeDialog',
+        (tester) async {
       await pumpMamadera(tester);
 
       // Tap "sante" tracking button — should show health subtype options.
@@ -107,7 +108,8 @@ void main() {
       );
     });
 
-    testWidgets('Tapping track dodo opens DurationPickerDialog', (tester) async {
+    testWidgets('Tapping track dodo opens DurationPickerDialog',
+        (tester) async {
       await pumpMamadera(tester);
 
       // Tap "dodo" tracking button — should show sleep duration picker.

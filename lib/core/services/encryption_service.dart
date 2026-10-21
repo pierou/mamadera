@@ -19,6 +19,7 @@ class EncryptionService {
   final FlutterSecureStorage _secureStorage;
   final Logger _logger = appLogger();
   Key? _cachedKey;
+
   /// True if the memory fallback mechanism is being used (no keyring is available).
   bool _usingMemoryFallback = false;
 
@@ -37,7 +38,8 @@ class EncryptionService {
     _cachedKey = newKey;
     _usingMemoryFallback = true;
 
-    _logger.w('⚠️ CLÉ VOLATILE: les données chiffrées seront perdues au redémarrage.');
+    _logger.w(
+        '⚠️ CLÉ VOLATILE: les données chiffrées seront perdues au redémarrage.');
   }
 
   /// Initialize or retrieve the master key from secure storage.
@@ -146,7 +148,7 @@ class EncryptionService {
       await _secureStorage.delete(key: _masterKeyName);
     }
     _cachedKey = null;
-    await initialize();     // Generate a new key.
+    await initialize(); // Generate a new key.
   }
 
   /// Completely remove the master key (logout / secure uninstallation).

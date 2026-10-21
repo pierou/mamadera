@@ -216,24 +216,24 @@ void main() {
 
         // Two events for baby-001, one for baby-002.
         await database.insertEvent(
-          db_app.TrackingEventsCompanion(unit: const Value('ml'),
-            
+          db_app.TrackingEventsCompanion(
+            unit: const Value('ml'),
             type: const Value('miam'),
             timestamp: Value(DateTime(2026, 9, 1)),
             babyId: const Value('baby-001'),
           ),
         );
         await database.insertEvent(
-          db_app.TrackingEventsCompanion(unit: const Value('min'),
-            
+          db_app.TrackingEventsCompanion(
+            unit: const Value('min'),
             type: const Value('dodo'),
             timestamp: Value(DateTime(2026, 9, 2)),
             babyId: const Value('baby-001'),
           ),
         );
         await database.insertEvent(
-          db_app.TrackingEventsCompanion(unit: const Value('ml'),
-            
+          db_app.TrackingEventsCompanion(
+            unit: const Value('ml'),
             type: const Value('miam'),
             timestamp: Value(DateTime(2026, 9, 1, 12)),
             babyId: const Value('baby-002'),

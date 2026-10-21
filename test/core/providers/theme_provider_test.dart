@@ -26,7 +26,8 @@ void main() {
     test('build returns system mode by default', () async {
       final container = ProviderContainer(
         overrides: [
-          themeServiceProvider.overrideWith((ref) => _TestThemeService(tempDir.path)),
+          themeServiceProvider
+              .overrideWith((ref) => _TestThemeService(tempDir.path)),
         ],
       );
 
@@ -39,7 +40,8 @@ void main() {
     test('setMode updates state and persists', () async {
       final container = ProviderContainer(
         overrides: [
-          themeServiceProvider.overrideWith((ref) => _TestThemeService(tempDir.path)),
+          themeServiceProvider
+              .overrideWith((ref) => _TestThemeService(tempDir.path)),
         ],
       );
 
@@ -54,7 +56,8 @@ void main() {
       // Verify persistence
       final file = File('${tempDir.path}/.mamadera_theme.json');
       expect(file.existsSync(), isTrue);
-      final content = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final content =
+          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
       expect(content['themeMode'], equals('dark'));
 
       container.dispose();
@@ -63,7 +66,8 @@ void main() {
     test('setMode light updates correctly', () async {
       final container = ProviderContainer(
         overrides: [
-          themeServiceProvider.overrideWith((ref) => _TestThemeService(tempDir.path)),
+          themeServiceProvider
+              .overrideWith((ref) => _TestThemeService(tempDir.path)),
         ],
       );
 
@@ -79,7 +83,8 @@ void main() {
     test('setMode invalid does nothing', () async {
       final container = ProviderContainer(
         overrides: [
-          themeServiceProvider.overrideWith((ref) => _TestThemeService(tempDir.path)),
+          themeServiceProvider
+              .overrideWith((ref) => _TestThemeService(tempDir.path)),
         ],
       );
 
@@ -95,7 +100,8 @@ void main() {
     test('resolveThemeMode returns correct ThemeMode', () async {
       final container = ProviderContainer(
         overrides: [
-          themeServiceProvider.overrideWith((ref) => _TestThemeService(tempDir.path)),
+          themeServiceProvider
+              .overrideWith((ref) => _TestThemeService(tempDir.path)),
         ],
       );
 

@@ -135,7 +135,8 @@ void main() {
     expect(reminders.single.intervalDays, equals(3));
 
     final enabled = await db.getAllReminderSettings();
-    expect(enabled.map((s) => s.itemId), containsAll(['vitamine_k', 'custom_$id']));
+    expect(enabled.map((s) => s.itemId),
+        containsAll(['vitamine_k', 'custom_$id']));
   });
 
   test('several custom reminders come back in creation order', () async {

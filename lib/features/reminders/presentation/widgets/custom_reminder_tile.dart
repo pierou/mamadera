@@ -73,7 +73,6 @@ class CustomReminderTile extends StatelessWidget {
               ],
             )
           : Text(reminderFrequencyLabel(context, display.frequency)),
-
       onTap: () => onAction(CustomReminderAction.edit),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

@@ -124,7 +124,8 @@ void main() {
       expect(find.text("Aucune mesure pour l'instant."), findsNothing);
     });
 
-    testWidgets('a promoted kilogram value is never contradicted by a bare gram label',
+    testWidgets(
+        'a promoted kilogram value is never contradicted by a bare gram label',
         (tester) async {
       await pumpScreen(
         tester,

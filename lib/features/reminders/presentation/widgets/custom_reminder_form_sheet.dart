@@ -28,7 +28,8 @@ class CustomReminderFormSheet extends StatefulWidget {
   final CustomReminder? existing;
 
   @override
-  State<CustomReminderFormSheet> createState() => _CustomReminderFormSheetState();
+  State<CustomReminderFormSheet> createState() =>
+      _CustomReminderFormSheetState();
 }
 
 class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
@@ -114,10 +115,12 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
         ),
       // No specific date is chosen here; the date is simply the baby's birthday.
       // active, and displayed as such, similar to vitamin K.
-      CustomReminderFrequencyChoice.monthlyBirth => const ReminderFrequency.monthly(
+      CustomReminderFrequencyChoice.monthlyBirth =>
+        const ReminderFrequency.monthly(
           dayOfMonth: CustomReminderPresets.monthlyFallbackDay,
         ),
-      CustomReminderFrequencyChoice.everyNDays => ReminderFrequency.customInterval(
+      CustomReminderFrequencyChoice.everyNDays =>
+        ReminderFrequency.customInterval(
           days: _intervalDays,
         ),
     };
@@ -128,9 +131,8 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
         subtypeValue: _subtypeValue,
         // D2: The choice of treatment determines the source – a reminder without treatment is...
         // It was determined by the "Done" button, never by a health-related event.
-        completionSource: _subtypeValue == null
-            ? completionManual
-            : completionFromEvents,
+        completionSource:
+            _subtypeValue == null ? completionManual : completionFromEvents,
         frequency: frequency,
         id: widget.existing?.id,
       ),

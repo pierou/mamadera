@@ -25,7 +25,7 @@ class TrackingEvents extends Table {
   TextColumn get wasteType =>
       text().nullable()(); // pipi, caca, les_deux (diaper events only)
   TextColumn get color =>
-      text().nullable()();       // Color of stool or urine (urine|feces).
+      text().nullable()(); // Color of stool or urine (urine|feces).
   TextColumn get texture =>
       text().nullable()(); // consistance de la selle (diaper events only)
   TextColumn get babyId => text()
@@ -115,11 +115,11 @@ class Measurements extends Table {
   /// Nullable, like `tracking_events.baby_id`: tracking without a profile remains readable.
   TextColumn get babyId => text().nullable()();
   TextColumn get kind => text()(); // 'poids' | 'taille' | 'temperature'
-  TextColumn get value => text()();   // encrypted.
+  TextColumn get value => text()(); // encrypted.
   TextColumn get unit => text()(); // 'g' | 'cm' | 'degC'
   DateTimeColumn get recordedAt => dateTime()();
   TextColumn get notes =>
-      text().nullable()();       // encrypted, same pipeline as events.
+      text().nullable()(); // encrypted, same pipeline as events.
 }
 
 /// Manual completion of a reminder (`completion_source = 'manual'`, D2).

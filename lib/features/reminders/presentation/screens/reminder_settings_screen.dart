@@ -108,7 +108,6 @@ class _ReminderList extends ConsumerWidget {
                 .read(reminderSettingsProvider.notifier)
                 .setEnabled(item.id, enabled: enabled),
           ),
-
         const SizedBox(height: AppTheme.spacingXxl),
         Text(
           context.l.reminderCustomSectionTitle,
@@ -143,8 +142,7 @@ class _ReminderList extends ConsumerWidget {
               onToggle: (enabled) => ref
                   .read(reminderSettingsProvider.notifier)
                   .setEnabled(_settingsKey(reminder), enabled: enabled),
-              onAction: (action) =>
-                  _onAction(context, ref, reminder, action),
+              onAction: (action) => _onAction(context, ref, reminder, action),
             ),
         ListTile(
           leading: const Icon(Icons.add_alarm_outlined),

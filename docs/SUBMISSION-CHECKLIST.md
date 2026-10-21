@@ -17,6 +17,25 @@ flutter analyze --fatal-infos --fatal-warnings   # Clean output
 
 ## Phase 3 — Manual Store Setup
 
+### 📦 Step 0 — Build the store package (before touching any console)
+
+The deliverable is **built from one canonical source**, never typed into a console:
+
+```bash
+make store-prose     # TranslateGemma en→fr/es, raw archived under machine/, then aligned to the ARB
+make store-check     # consoles' limits + note consistency + screenshot inventory
+```
+
+Output: [`store/v<version>/`](../store/v1.2.1/README.md) — one paste-ready file per console
+field per language, plus the screenshots per device slot. Every field the consoles accept is
+length-checked, so a 106-character keyword list fails here instead of at upload.
+
+- [ ] `store/v<version>/` built from `store/source/en/` (nothing hand-written inside it)
+- [ ] `store/v<version>/machine/<locale>/` present — proof the fr/es prose is TranslateGemma output
+- [ ] `make store-check` passes (ASC WARN lines are decisions, not accidents: read them)
+
+---
+
 ### 📋 Shared Prerequisites (do these first)
 
 - [ ] **Privacy policy is publicly accessible**  
@@ -49,7 +68,8 @@ Follow → [`docs/app-store-setup.md`](app-store-setup.md)
 | Enroll in Apple Developer Program ($99/year) | ✅ done |
 | Create app entry in App Store Connect (`com.pvjio.mamadera`) | ✅ done |
 | Archive + sign + upload via **Xcode Cloud** (auto on `main` push; auto-managed signing) | ✅ first green build 2026-09-20 — 1.1.0 build in ASC, ready to attach |
-| Fill metadata (name, subtitle, description × 3 languages — copy in `docs/app-store-setup.md` Step 5) | ☐ |
+| Fill metadata (name, subtitle, description × 3 languages — **from `store/v<version>/fields/`**; the v1.1.0 block in `docs/app-store-setup.md` Step 5 is superseded) | ☐ |
+| Paste What's New × 3 (`store/v<version>/release-notes/apple-whatsnew-<locale>.txt` — rendered from `assets/patch_notes/`, never hand-edited) | ☐ |
 | Upload screenshots (iPhone 6.7" + 5.5") — at least 3 per language | ☐ |
 | Set privacy policy URL | ☐ |
 | Complete age rating questionnaire | ☐ |
@@ -77,7 +97,7 @@ Follow → [`docs/google-play-setup.md`](google-play-setup.md)
 | Create app entry (`com.pvjio.mamadera`) | ☐ |
 | Complete Data Safety section ("No data collected") | ☐ |
 | Complete IARC questionnaire (Everyone rating expected) | ☐ |
-| Fill store listing + localizations × 3 languages | ☐ |
+| Fill store listing + localizations × 3 languages — **from `store/v1.2.1/fields/`** + `release-notes/play-<locale>.txt` (the v1.1.0 copy in `docs/google-play-setup.md` Step 6 is superseded) | ☐ |
 | Upload feature graphic (1024×500), app icon (512×512), screenshots (≥3) | ☐ |
 | Build & sign AAB locally OR use CI artifacts | ☐ |
 | Upload to Internal Testing track first | ☐ |

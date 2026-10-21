@@ -47,7 +47,8 @@ abstract class RemindersRepository {
 
   /// Updates or creates the "enabled/disabled" flag for [itemId] (column in the...).
   /// baby [babyId].
-  Future<void> setEnabled(String itemId, {required bool enabled, String? babyId});
+  Future<void> setEnabled(String itemId,
+      {required bool enabled, String? babyId});
 
   /// Returns the personalized reminders for the care of [babyId] (the line `''` ).
   /// They are only visible without a profile, and are sorted by insertion ID.

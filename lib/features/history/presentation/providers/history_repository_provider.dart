@@ -16,4 +16,3 @@ final historyRepositoryProvider = FutureProvider<HistoryRepository>(
     );
   },
 );
-

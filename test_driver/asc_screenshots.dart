@@ -17,8 +17,29 @@
 library;
 
 import 'dart:io' as io;
+import 'dart:ui' show Locale;
 
 import 'package:flutter_driver/flutter_driver.dart';
+import 'package:mamadera/l10n/app_localizations.dart';
+
+/// Locale of this run — **must** be the same `--dart-define=APP_LOCALE=<code>`
+/// the target (`lib/asc_driver_main.dart`) pins, default `fr`.
+///
+/// Every label the driver taps is resolved from it instead of being written as a
+/// literal. The hardcoded `'Croissance'` / `'Annuler'` / `'Retour'` this file used
+/// to carry are exactly what broke the first `fr`-only assumption: an `en` or `es`
+/// run cannot find a tile whose label it guessed wrong. The Android pipeline hit the
+/// same wall on 2026-10-18 (`scrollUntilVisible`, tile « Croissance »).
+const _localeCode = String.fromEnvironment('APP_LOCALE', defaultValue: 'fr');
+
+/// App strings, in the locale the target renders. `cancel` dismisses every sheet.
+final _s = lookupAppLocalizations(const Locale(_localeCode));
+
+/// `backButtonTooltip` of the AppBar back button, from **GlobalMaterialLocalizations**
+/// (read from the SDK's `material_{fr,es,en}.arb`, 2026-10-18 — not guessed). The
+/// driver cannot reach that delegate, so the three values live here; if the app ever
+/// registers a different delegate, this map is the thing that breaks.
+const _backTooltipByLocale = {'fr': 'Retour', 'es': 'Atrás', 'en': 'Back'};
 
 // Overridable via the ASC_RAW_DIR host env var so the same driver can feed
 // other device pipelines (e.g. the iPad run writes to
@@ -35,19 +56,20 @@ const _trackCaca = 'track-caca';
 
 /// Tile that opens `/growth` — the menu tile carries no ValueKey
 /// (`menu_screen.dart` navigates by `context.push('/growth')`), so the driver
-/// targets it by its French label (locale is pinned to `fr` by the target).
+/// targets it by its label, in the locale of this run.
 ///
 /// The label appears TWICE on the menu (section header at `menu_screen.dart:101`
 /// and tile title at `:109`), and `scrollIntoView` throws `Bad state: Too many
 /// elements` on an ambiguous finder — so the match is scoped to the ListTile.
 final _growthTile = find.descendant(
   of: find.byType('ListTile'),
-  matching: find.text('Croissance'),
+  matching: find.text(_s.growthMenuTile),
 );
 
 /// Tooltip of the AppBar back button — localized by GlobalMaterialLocalizations
 /// (`main.dart` registers the delegate, `fr` is supported).
-const _backTooltip = 'Retour';
+// `final`, not `const`: a map lookup is not a constant expression.
+final _backTooltip = _backTooltipByLocale[_localeCode] ?? 'Back';
 
 Future<void> sleep(int ms) => Future<void>.delayed(Duration(milliseconds: ms));
 
@@ -124,7 +146,7 @@ Future<void> capture(FlutterDriver driver, String name) async {
 }
 
 /// Taps the tracked-event button on Home, captures the opened bottom sheet,
-/// then dismisses it via its "Annuler" (Cancel) button.
+/// then dismisses it via its cancel button (`_s.cancel`, locale-aware).
 Future<void> sheetShot(
   FlutterDriver driver,
   String trackKey,
@@ -155,8 +177,7 @@ Future<void> sheetShot(
   await driver.tap(button, timeout: const Duration(seconds: 10));
   await sleep(1500); // sheet slide-in + field layout
   await capture(driver, name);
-  // Dismiss: tap the sheet's cancel button ("Annuler" — locale is pinned to
-  // French by the driver target). Never tap the nav tabs while the sheet is
+  // Dismiss: tap the sheet's cancel button, resolved in the locale of this run. Never tap the nav tabs while the sheet is
   // open: driver taps wait for the finder to be hit-testable, and the tab is
   // covered by the sheet's barrier forever.
   // In landscape the sheet content overflows the short viewport, so the
@@ -164,18 +185,18 @@ Future<void> sheetShot(
   // the sheet content down using its (always visible) title as the drag
   // anchor, but only when the button is actually not tappable.
   try {
-    await driver.waitForTappable(find.text('Annuler'),
+    await driver.waitForTappable(find.text(_s.cancel),
         timeout: const Duration(seconds: 2));
   } on Object {
-    // "Annuler" sits below the fold inside the sheet's scroll view:
+    // The cancel button sits below the fold inside the sheet's scroll view:
     // Scrollable.ensureVisible scrolls the sheet to it.
-    await driver.scrollIntoView(find.text('Annuler'),
+    await driver.scrollIntoView(find.text(_s.cancel),
         timeout: const Duration(seconds: 10));
-    await driver.waitForTappable(find.text('Annuler'),
+    await driver.waitForTappable(find.text(_s.cancel),
         timeout: const Duration(seconds: 5));
     await sleep(400);
   }
-  await driver.tap(find.text('Annuler'), timeout: const Duration(seconds: 10));
+  await driver.tap(find.text(_s.cancel), timeout: const Duration(seconds: 10));
   await sleep(900);
   await driver.waitFor(find.byValueKey(_trackMiam),
       timeout: const Duration(seconds: 10)); // sheet is gone, home grid back

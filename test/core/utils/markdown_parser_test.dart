@@ -64,7 +64,8 @@ void main() {
       expect(headingSpan.style?.fontSize, 24);
     });
 
-    testWidgets('adds separator newline before heading when not first line', (tester) async {
+    testWidgets('adds separator newline before heading when not first line',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(home: const SizedBox.shrink()),
       );
@@ -73,7 +74,8 @@ void main() {
       expect(spans.any((s) => s.text == '\n\n'), isTrue);
     });
 
-    testWidgets('does not add separator for first-line heading', (tester) async {
+    testWidgets('does not add separator for first-line heading',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(home: const SizedBox.shrink()),
       );
@@ -130,7 +132,8 @@ void main() {
       expect(spans[0].text, '\n---\n');
     });
 
-    testWidgets('renders regular paragraph with inline parsing', (tester) async {
+    testWidgets('renders regular paragraph with inline parsing',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(home: const SizedBox.shrink()),
       );

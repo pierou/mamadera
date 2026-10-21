@@ -5,7 +5,7 @@
 /// duplicated parsing code across modules.
 library;
 
-import '../../../../core/services/encryption_service.dart';
+import '../../core/services/encryption_service.dart';
 import '../../shared/domain/entities/quantity_unit.dart';
 import '../../shared/domain/entities/tracking_enums.dart';
 import '../../shared/domain/entities/tracking_event.dart';

@@ -72,7 +72,8 @@ class ExportController extends AsyncNotifier<ExportOutcome> {
     state = guarded;
     final error = guarded.asError;
     if (error != null) {
-      _logger.e('shareExport failed', error: error.error, stackTrace: error.stackTrace);
+      _logger.e('shareExport failed',
+          error: error.error, stackTrace: error.stackTrace);
       return ExportFailure(message: error.error.toString());
     }
     return guarded.value!;
@@ -120,11 +121,13 @@ class ExportController extends AsyncNotifier<ExportOutcome> {
   /// `mamadera-export-YYYYMMDD-HHmmss.json` from the local clock.
   String _fileName(DateTime now) {
     String two(int value) => value.toString().padLeft(2, '0');
-    final stamp = '${now.year}${two(now.month)}${two(now.day)}-${two(now.hour)}${two(now.minute)}${two(now.second)}';
+    final stamp =
+        '${now.year}${two(now.month)}${two(now.day)}-${two(now.hour)}${two(now.minute)}${two(now.second)}';
     return 'mamadera-export-$stamp.json';
   }
 }
 
 /// Provider for the export controller.
 final exportControllerProvider =
-    AsyncNotifierProvider<ExportController, ExportOutcome>(ExportController.new);
+    AsyncNotifierProvider<ExportController, ExportOutcome>(
+        ExportController.new);

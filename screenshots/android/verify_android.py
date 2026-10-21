@@ -54,10 +54,27 @@ def red_count(im: Image.Image) -> int:
 def main() -> None:
     failures = 0
 
+    # --locale=<code> verifies the UPLOAD set in the store package instead of the raw
+    # capture directory. There the locale is part of the filename on purpose — a bare
+    # `home.png` is unidentifiable outside its folder, and the folder gets overwritten
+    # by the next run — so the verifier demands the prefix and rejects its absence.
+    args = [a for a in sys.argv[1:]]
+    locale = next((a.split("=", 1)[1] for a in args if a.startswith("--locale=")), None)
+    base = BASE
+    if locale:
+        version = Path(__file__).resolve().parents[2]
+        for line in (version / "pubspec.yaml").read_text(encoding="utf-8").splitlines():
+            if line.startswith("version:"):
+                base = (version / "store" / f"v{line.split()[1].split('+')[0]}"
+                       / "screenshots" / "play" / locale)
+                break
+        print(f"[info] verifying the upload set: {base.relative_to(version)} (locale {locale})")
+
     for name in EXPECTED:
-        p = BASE / f"{name}.png"
+        fname = f"{locale}-{name}.png" if locale else f"{name}.png"
+        p = base / fname
         if not p.exists():
-            print(f"[FAIL] {name}.png: missing")
+            print(f"[FAIL] {fname}: missing")
             failures += 1
             continue
         im = Image.open(p)
@@ -66,7 +83,7 @@ def main() -> None:
         if not ok:
             failures += 1
         print(
-            f"[{'ok' if ok else 'FAIL'}] {name}.png "
+            f"[{'ok' if ok else 'FAIL'}] {fname} "
             f"{im.size[0]}x{im.size[1]} red={reds}"
         )
 

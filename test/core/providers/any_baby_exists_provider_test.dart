@@ -25,7 +25,8 @@ class FakeBabyProfileRepository implements BabyProfileRepository {
     String id, {
     String? name,
     DateTime? birthDate,
-  }) async => null;
+  }) async =>
+      null;
 
   @override
   Future<bool> deleteProfile(String id) async => false;

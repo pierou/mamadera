@@ -67,6 +67,17 @@
       ""
     ]
   },
+  "1.1.1": {
+    "releaseDate": "2026-09-29",
+    "title": "Nouveautés de Mamadera 1.1.1",
+    "items": [
+      "### Corrections de bugs",
+      "- Correction d'un rappel désactivé dans les réglages qui restait affiché sur l'accueil",
+      "- Renommage des boutons d'accueil : « Nourriture » au lieu de « Miam » et « Couche » au lieu de « Caca »",
+      "- Mise à l'échelle du libellé « Nourriture » sur l'écran d'accueil, qui ne passe plus sur deux lignes",
+      ""
+    ]
+  },
   "1.2.0": {
     "releaseDate": "2026-10-03",
     "title": "Nouveautés de Mamadera 1.2.0",

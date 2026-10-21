@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
-import '../../../shared/domain/entities/tracking_enums.dart';
-import '../../../shared/domain/entities/tracking_type.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/domain/entities/tracking_enums.dart';
+import '../../shared/domain/entities/tracking_type.dart';
 
 /// Formats a [DateTime] using locale-appropriate date/time patterns.
 ///

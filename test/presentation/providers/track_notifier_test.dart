@@ -60,7 +60,8 @@ void main() {
     });
 
     test('transition état loading → error en cas d\'échec', () async {
-      when(mockRepository.insertEvent(any)).thenThrow(Exception('Erreur de base de données'));
+      when(mockRepository.insertEvent(any))
+          .thenThrow(Exception('Erreur de base de données'));
 
       final notifier = container.read(trackNotifierProvider.notifier);
       await notifier.track(type: TrackingType.caca);
@@ -92,10 +93,8 @@ void main() {
       await notifier.track(
         type: TrackingType.caca,
         wasteType: WasteType.pipi,
-        pipiColor:
-        pipiColorJauneClair,
-        cacaColor:
-        cacaColorMeconium,
+        pipiColor: pipiColorJauneClair,
+        cacaColor: cacaColorMeconium,
       );
 
       final captured = verify(mockRepository.insertEvent(captureAny)).captured;
@@ -176,8 +175,9 @@ void main() {
 
         await notifier.track(type: type, timestamp: chosen);
 
-        final event = verify(mockRepository.insertEvent(captureAny)).captured.single
-            as TrackingEvent;
+        final event = verify(mockRepository.insertEvent(captureAny))
+            .captured
+            .single as TrackingEvent;
         expect(event.timestamp, equals(chosen),
             reason: 'timestamp ignoré pour ${type.name}');
       }
@@ -189,13 +189,15 @@ void main() {
 
       await notifier.track(type: TrackingType.dodo, duration: 30);
 
-      final event = verify(mockRepository.insertEvent(captureAny)).captured.single
-          as TrackingEvent;
+      final event = verify(mockRepository.insertEvent(captureAny))
+          .captured
+          .single as TrackingEvent;
       expect(event.timestamp.isBefore(before), isFalse);
       expect(event.timestamp.isAfter(DateTime.now()), isFalse);
     });
 
-    test('un timestamp dans le passé est conservé (saisie a posteriori)', () async {
+    test('un timestamp dans le passé est conservé (saisie a posteriori)',
+        () async {
       final notifier = container.read(trackNotifierProvider.notifier);
       final sieste = DateTime.now().subtract(const Duration(hours: 2));
 
@@ -206,11 +208,11 @@ void main() {
         timestamp: sieste,
       );
 
-      final event = verify(mockRepository.insertEvent(captureAny)).captured.single
-          as SleepEvent;
+      final event = verify(mockRepository.insertEvent(captureAny))
+          .captured
+          .single as SleepEvent;
       expect(event.timestamp, equals(sieste));
       expect(event.duration, equals(45.0));
     });
   });
 }
-

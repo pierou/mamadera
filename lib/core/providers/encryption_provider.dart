@@ -5,7 +5,8 @@ import '../services/encryption_service.dart';
 ///
 /// Uses [FutureProvider] to ensure [EncryptionService.initialize()] is called
 /// before the service is accessed, avoiding uninitialized state crashes.
-final encryptionServiceProvider = FutureProvider<EncryptionService>((ref) async {
+final encryptionServiceProvider =
+    FutureProvider<EncryptionService>((ref) async {
   final service = EncryptionService();
   await service.initialize();
   return service;

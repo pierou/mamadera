@@ -38,15 +38,15 @@ Finder _switchFor(String label) => find.descendant(
       matching: find.byType(Switch),
     );
 
-bool _isOn(WidgetTester tester, String label) =>
-    tester.widget<Switch>(find.descendant(
+bool _isOn(WidgetTester tester, String label) => tester
+    .widget<Switch>(find.descendant(
       of: find.ancestor(
         of: find.text(label),
         matching: find.byType(SwitchListTile),
       ),
       matching: find.byType(Switch),
     ))
-        .value;
+    .value;
 
 void main() {
   late MockRemindersRepository mockReminders;
@@ -55,7 +55,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
+          remindersRepositoryProvider
+              .overrideWith((ref) async => mockReminders),
           activeBabyProvider.overrideWith(() => _ActiveBabyStub(_baby)),
         ],
         child: MaterialApp(
@@ -79,7 +80,8 @@ void main() {
   });
 
   group('ReminderSettingsScreen', () {
-    testWidgets('affiche le titre et la promesse de confidentialité', (tester) async {
+    testWidgets('affiche le titre et la promesse de confidentialité',
+        (tester) async {
       await pumpScreen(tester);
 
       expect(find.text('Rappels'), findsOneWidget);
@@ -92,7 +94,8 @@ void main() {
       );
     });
 
-    testWidgets('liste les quatre rappels préréglés avec leur fréquence', (tester) async {
+    testWidgets('liste les quatre rappels préréglés avec leur fréquence',
+        (tester) async {
       await pumpScreen(tester);
 
       // Please provide the full name of the treatment, not the abbreviation from the welcome tablet.
@@ -106,11 +109,18 @@ void main() {
       expect(find.text('Le 15 de chaque mois'), findsOneWidget);
     });
 
-    testWidgets('tout est activé par défaut : les rappels sont une option de retrait', (tester) async {
+    testWidgets(
+        'tout est activé par défaut : les rappels sont une option de retrait',
+        (tester) async {
       await pumpScreen(tester);
 
       expect(find.byType(SwitchListTile), findsNWidgets(4));
-      for (final label in ['Vitamine D', 'Vitamine K', 'Nettoyage des yeux', 'Nettoyage du visage']) {
+      for (final label in [
+        'Vitamine D',
+        'Vitamine K',
+        'Nettoyage des yeux',
+        'Nettoyage du visage'
+      ]) {
         expect(_isOn(tester, label), isTrue, reason: label);
       }
     });
@@ -124,7 +134,8 @@ void main() {
       expect(_isOn(tester, 'Vitamine D'), isTrue);
     });
 
-    testWidgets('un enabled enregistré true laisse le rappel activé', (tester) async {
+    testWidgets('un enabled enregistré true laisse le rappel activé',
+        (tester) async {
       mockReminders.enabledById['vitamine_d'] = true;
 
       await pumpScreen(tester);
@@ -132,7 +143,8 @@ void main() {
       expect(_isOn(tester, 'Vitamine D'), isTrue);
     });
 
-    testWidgets('éteindre un rappel l\'enregistre et le switch reste éteint', (tester) async {
+    testWidgets('éteindre un rappel l\'enregistre et le switch reste éteint',
+        (tester) async {
       await pumpScreen(tester);
 
       await tester.tap(_switchFor('Vitamine D'));
@@ -156,7 +168,8 @@ void main() {
       expect(_isOn(tester, 'Nettoyage du visage'), isTrue);
     });
 
-    testWidgets('la liste reste affichée quand tout est déjà fait aujourd\'hui', (tester) async {
+    testWidgets('la liste reste affichée quand tout est déjà fait aujourd\'hui',
+        (tester) async {
       // The settings have nothing to do with whether a reminder is due or not.
       // The list of presets is displayed even if none of them are overdue.
       mockReminders.lastCompletedByItem['vitamine_d'] = DateTime.now();
@@ -220,7 +233,8 @@ void main() {
       expect(find.byType(CustomReminderTile), findsNothing);
     });
 
-    testWidgets('une ligne existante porte le nom choisi par le parent, pas le nom du soin',
+    testWidgets(
+        'une ligne existante porte le nom choisi par le parent, pas le nom du soin',
         (tester) async {
       store(label: 'Crème du change');
 
@@ -233,9 +247,12 @@ void main() {
       expect(find.byType(CustomReminderTile), findsOneWidget);
     });
 
-    testWidgets('un rythme mensuel est annoncé sur le jour de naissance du bébé',
+    testWidgets(
+        'un rythme mensuel est annoncé sur le jour de naissance du bébé',
         (tester) async {
-      store(label: 'Bilan du mois', frequency: const ReminderFrequency.monthly(dayOfMonth: 1));
+      store(
+          label: 'Bilan du mois',
+          frequency: const ReminderFrequency.monthly(dayOfMonth: 1));
 
       await pumpScreen(tester);
 
@@ -268,7 +285,8 @@ void main() {
       expect(find.text('Nettoyage du nez'), findsNothing);
     });
 
-    testWidgets('le switch d\'une ligne personnalisée éteint le rappel sous sa propre clé',
+    testWidgets(
+        'le switch d\'une ligne personnalisée éteint le rappel sous sa propre clé',
         (tester) async {
       store();
 
@@ -291,7 +309,8 @@ void main() {
       expect(tester.widget<Switch>(customSwitch()).value, isFalse);
     });
 
-    testWidgets("ajouter un rappel l'enregistre et l'affiche sans quitter l'écran",
+    testWidgets(
+        "ajouter un rappel l'enregistre et l'affiche sans quitter l'écran",
         (tester) async {
       await pumpScreen(tester);
 
@@ -306,14 +325,16 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(mockReminders.insertCustomCallCount, 1);
-      expect(mockReminders.customRemindersById.values.single.label, 'Sérum visage');
+      expect(mockReminders.customRemindersById.values.single.label,
+          'Sérum visage');
       expect(find.byType(CustomReminderTile), findsOneWidget);
       expect(find.text('Sérum visage'), findsOneWidget);
       // Nothing is modal anymore: the screen has reappeared, ready for a second input.
       expect(find.text('Nouveau rappel'), findsNothing);
     });
 
-    testWidgets('renommer un rappel passe par le formulaire prérempli et ne le duplique pas',
+    testWidgets(
+        'renommer un rappel passe par le formulaire prérempli et ne le duplique pas',
         (tester) async {
       store(label: 'Crème du change');
 
@@ -376,7 +397,8 @@ void main() {
       expect(find.byType(CustomReminderTile), findsOneWidget);
     });
 
-    testWidgets('supprimer après accord retire la ligne et sa position de switch',
+    testWidgets(
+        'supprimer après accord retire la ligne et sa position de switch',
         (tester) async {
       store();
       mockReminders.enabledById['custom_1'] = false;
@@ -417,7 +439,8 @@ void main() {
 
     // Without these two specific cases, a rejected writing would simply result in a sign that...
     // The farm was closed without any explanation: the exception would disappear in a future that no one anticipated.
-    testWidgets('un enregistrement refusé le dit au lieu de disparaître en silence',
+    testWidgets(
+        'un enregistrement refusé le dit au lieu de disparaître en silence',
         (tester) async {
       mockReminders.failCustomWrites = true;
 

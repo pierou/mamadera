@@ -7,14 +7,15 @@ void main() {
     final baseTimestamp = DateTime.utc(2023, 10, 25, 14, 30);
 
     // ── Construction and getters (directly typed fields) ─────
-    test('construction complète → tous les champs retournent les valeurs attendues', () {
+    test(
+        'construction complète → tous les champs retournent les valeurs attendues',
+        () {
       final result = UpdateResult(
         timestamp: baseTimestamp,
         duration: 60,
         notes: 'nettoyage_yeux',
         wasteType: WasteType.pipi,
-        pipiColor:
-        pipiColorJauneClair,
+        pipiColor: pipiColorJauneClair,
       );
 
       expect(result.timestamp, equals(baseTimestamp));
@@ -61,13 +62,15 @@ void main() {
     });
 
     // ── `pipiColor` and `cacaColor` are already typed enumerations.
-    test('pipiColor=pipiColorJauneClair → champ retourne l\'enum directement', () {
+    test('pipiColor=pipiColorJauneClair → champ retourne l\'enum directement',
+        () {
       const result = UpdateResult(pipiColor: pipiColorJauneClair);
 
       expect(result.pipiColor, equals(pipiColorJauneClair));
     });
 
-    test('lesDeux avec pipiColor et cacaColor → les deux champs sont typés', () {
+    test('lesDeux avec pipiColor et cacaColor → les deux champs sont typés',
+        () {
       const result = UpdateResult(
         wasteType: WasteType.lesDeux,
         pipiColor: pipiColorIncolore,
@@ -93,8 +96,7 @@ void main() {
     test('lesDeux avec seule pipiColor → caca reste null', () {
       const result = UpdateResult(
         wasteType: WasteType.lesDeux,
-        pipiColor:
-        pipiColorRoseUrates,
+        pipiColor: pipiColorRoseUrates,
       );
 
       expect(result.pipiColor, equals(pipiColorRoseUrates));
@@ -108,14 +110,12 @@ void main() {
     });
 
     test('PipiColor enum a un .dbValue getter', () {
-      const result = UpdateResult(pipiColor:
-        pipiColorJauneClair);
+      const result = UpdateResult(pipiColor: pipiColorJauneClair);
       expect(result.pipiColor!.value, equals('jaune_clair'));
     });
 
     test('CacaColor enum a un .dbValue getter', () {
-      const result = UpdateResult(cacaColor:
-        cacaColorVertOlive);
+      const result = UpdateResult(cacaColor: cacaColorVertOlive);
       expect(result.cacaColor!.value, equals('vert_olive'));
     });
   });

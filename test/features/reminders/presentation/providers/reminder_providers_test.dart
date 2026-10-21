@@ -41,7 +41,8 @@ void main() {
 
     testWidgets('returns empty map when RemindersAllCompleted', (tester) async {
       // Set all items as completed today → no reminders due
-      mockReminders.lastCompletedByItem[ReminderItemPresets.vitaminD.id] = DateTime.now();
+      mockReminders.lastCompletedByItem[ReminderItemPresets.vitaminD.id] =
+          DateTime.now();
 
       final service = RemindersService(
         items: [ReminderItemPresets.vitaminD],
@@ -59,9 +60,12 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('enriches ReminderStatus with lastEventAt from the reminders repo', (tester) async {
+    testWidgets(
+        'enriches ReminderStatus with lastEventAt from the reminders repo',
+        (tester) async {
       // Set up: Vitamin D was tracked on 1 June 2024 (long ago → still due today).
-      mockReminders.lastCompletedByItem[ReminderItemPresets.vitaminD.id] = DateTime.utc(2024, 6, 1);
+      mockReminders.lastCompletedByItem[ReminderItemPresets.vitaminD.id] =
+          DateTime.utc(2024, 6, 1);
 
       final service = RemindersService(
         items: [ReminderItemPresets.vitaminD],
@@ -78,7 +82,8 @@ void main() {
       expect(result, isNotEmpty);
       expect(result[TrackingType.sante], isNotNull);
       expect(result[TrackingType.sante]!.length, equals(1));
-      expect(result[TrackingType.sante]!.first.lastEventAt, equals(DateTime.utc(2024, 6, 1)));
+      expect(result[TrackingType.sante]!.first.lastEventAt,
+          equals(DateTime.utc(2024, 6, 1)));
       container.dispose();
     });
 
@@ -103,7 +108,8 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('handles null lastEventAt when event never tracked', (tester) async {
+    testWidgets('handles null lastEventAt when event never tracked',
+        (tester) async {
       // No events set — repo returns null for everything
       final mockReminders = MockRemindersRepository();
 
@@ -125,7 +131,8 @@ void main() {
     });
 
     testWidgets('scopes due lookups to the active baby', (tester) async {
-      final baby = BabyProfile(id: 'baby_a', name: 'Baby A', birthDate: DateTime(2024, 1, 5));
+      final baby = BabyProfile(
+          id: 'baby_a', name: 'Baby A', birthDate: DateTime(2024, 1, 5));
       final mockReminders = MockRemindersRepository();
 
       final service = RemindersService(
@@ -147,7 +154,8 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('refresh() triggers re-evaluation of reminders', (tester) async {
+    testWidgets('refresh() triggers re-evaluation of reminders',
+        (tester) async {
       final mockReminders = MockRemindersRepository();
       final service = RemindersService(
         items: [ReminderItemPresets.vitaminD, ReminderItemPresets.eyeCleaning],
@@ -164,21 +172,24 @@ void main() {
       expect(firstResult[TrackingType.sante]!.length, equals(2));
 
       // Mark one item as completed today
-      mockReminders.lastCompletedByItem[ReminderItemPresets.vitaminD.id] = DateTime.now();
+      mockReminders.lastCompletedByItem[ReminderItemPresets.vitaminD.id] =
+          DateTime.now();
 
       // Refresh
       final notifier = container.read(reminderNotifierProvider.notifier);
       await notifier.refresh();
 
       final secondResult = container.read(reminderNotifierProvider);
-      expect(secondResult, isA<AsyncData<Map<TrackingType, List<ReminderStatus>>>>());
+      expect(secondResult,
+          isA<AsyncData<Map<TrackingType, List<ReminderStatus>>>>());
       final data = secondResult.maybeWhen(
         data: (d) => d,
         orElse: () => <TrackingType, List<ReminderStatus>>{},
       );
       // Only eyeCleaning should remain due
       expect(data[TrackingType.sante]!.length, equals(1));
-      expect(data[TrackingType.sante]!.first.item.id, equals(ReminderItemPresets.eyeCleaning.id));
+      expect(data[TrackingType.sante]!.first.item.id,
+          equals(ReminderItemPresets.eyeCleaning.id));
       container.dispose();
     });
   });
@@ -188,8 +199,10 @@ void main() {
     testWidgets(
       'dynamicRemindersProvider re-evaluates when active baby changes',
       (tester) async {
-        final babyA = BabyProfile(id: 'baby_a', name: 'Baby A', birthDate: DateTime(2024, 1, 5));
-        final babyB = BabyProfile(id: 'baby_b', name: 'Baby B', birthDate: DateTime(2024, 3, 20));
+        final babyA = BabyProfile(
+            id: 'baby_a', name: 'Baby A', birthDate: DateTime(2024, 1, 5));
+        final babyB = BabyProfile(
+            id: 'baby_b', name: 'Baby B', birthDate: DateTime(2024, 3, 20));
 
         // Container for baby A
         final containerA = ProviderContainer(
@@ -198,7 +211,8 @@ void main() {
           ],
         );
 
-        final remindersA = await containerA.read(dynamicRemindersProvider.future);
+        final remindersA =
+            await containerA.read(dynamicRemindersProvider.future);
         expect(remindersA, isNotEmpty);
 
         // Container for baby B
@@ -208,14 +222,16 @@ void main() {
           ],
         );
 
-        final remindersB = await containerB.read(dynamicRemindersProvider.future);
+        final remindersB =
+            await containerB.read(dynamicRemindersProvider.future);
         expect(remindersB, isNotEmpty);
 
         // Both babies get the same 4 reminder ids (Vitamin D daily, Vitamin K monthly
         // on the birth day, eye/face cleaning); only the monthly anchor differs.
         expect(remindersA.length, equals(4));
         expect(remindersB.length, equals(4));
-        expect(remindersA.map((e) => e.id), equals(remindersB.map((e) => e.id)));
+        expect(
+            remindersA.map((e) => e.id), equals(remindersB.map((e) => e.id)));
 
         containerA.dispose();
         containerB.dispose();
@@ -228,8 +244,10 @@ void main() {
     testWidgets(
       'remindersServiceProvider reflects new active baby after switch',
       (tester) async {
-        final babyA = BabyProfile(id: 'baby_a', name: 'Baby A', birthDate: DateTime(2024, 1, 5));
-        final babyB = BabyProfile(id: 'baby_b', name: 'Baby B', birthDate: DateTime(2024, 3, 20));
+        final babyA = BabyProfile(
+            id: 'baby_a', name: 'Baby A', birthDate: DateTime(2024, 1, 5));
+        final babyB = BabyProfile(
+            id: 'baby_b', name: 'Baby B', birthDate: DateTime(2024, 3, 20));
 
         // Simulate what remindersServiceProvider builds for each active baby.
         // The provider depends on dynamicRemindersProvider (which watches activeBabyProvider),
@@ -242,11 +260,13 @@ void main() {
 
         final containerA = ProviderContainer(
           overrides: [
-            remindersServiceProvider.overrideWith((ref) => Future.value(serviceA)),
+            remindersServiceProvider
+                .overrideWith((ref) => Future.value(serviceA)),
           ],
         );
 
-        final readServiceA = await containerA.read(remindersServiceProvider.future);
+        final readServiceA =
+            await containerA.read(remindersServiceProvider.future);
         expect(readServiceA, isA<RemindersService>());
 
         // Container for baby B
@@ -257,16 +277,19 @@ void main() {
 
         final containerB = ProviderContainer(
           overrides: [
-            remindersServiceProvider.overrideWith((ref) => Future.value(serviceB)),
+            remindersServiceProvider
+                .overrideWith((ref) => Future.value(serviceB)),
           ],
         );
 
-        final readServiceB = await containerB.read(remindersServiceProvider.future);
+        final readServiceB =
+            await containerB.read(remindersServiceProvider.future);
 
         // Same reminder ids for both babies; Vitamin K is monthly and anchored on
         // each baby's birth day, which differs (5 vs 20).
         expect(readServiceB.items.length, equals(4));
-        expect(readServiceB.items.map((e) => e.id), equals(readServiceA.items.map((e) => e.id)));
+        expect(readServiceB.items.map((e) => e.id),
+            equals(readServiceA.items.map((e) => e.id)));
 
         containerA.dispose();
         containerB.dispose();
@@ -285,7 +308,8 @@ void main() {
       expect(status.lastEventAt, equals(tracked));
     });
 
-    testWidgets('handles null lastEventAt for never-tracked events', (tester) async {
+    testWidgets('handles null lastEventAt for never-tracked events',
+        (tester) async {
       final status = ReminderStatus(item: ReminderItemPresets.vitaminD);
 
       expect(status.lastEventAt, isNull);
@@ -305,7 +329,8 @@ void main() {
       expect(status1, equals(status2));
     });
 
-    testWidgets('ReminderStatus with different values are not equal', (tester) async {
+    testWidgets('ReminderStatus with different values are not equal',
+        (tester) async {
       final status1 = ReminderStatus(
         item: ReminderItemPresets.vitaminD,
         lastEventAt: DateTime.utc(2024, 5, 15),
@@ -329,7 +354,8 @@ void main() {
   });
 
   group('babyProfileProvider', () {
-    testWidgets('provider is a FutureProvider of BabyProfileRepository', (tester) async {
+    testWidgets('provider is a FutureProvider of BabyProfileRepository',
+        (tester) async {
       expect(
         babyProfileProvider,
         isA<FutureProvider<BabyProfileRepository>>(),
@@ -374,13 +400,10 @@ void main() {
         completionSource: completionManual,
       );
       final baby = BabyProfile(
-          id: 'baby-1',
-          name: 'Léa',
-          birthDate: DateTime(2024, 1, 15));
+          id: 'baby-1', name: 'Léa', birthDate: DateTime(2024, 1, 15));
 
       final container = ProviderContainer(overrides: [
-        remindersRepositoryProvider
-            .overrideWith((ref) async => mockReminders),
+        remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
         activeBabyProvider.overrideWith(() => _ActiveBabyStub(baby)),
       ]);
 
@@ -427,13 +450,10 @@ void main() {
         subtypeValue: 'nettoyage_nez',
       );
       final baby = BabyProfile(
-          id: 'baby-1',
-          name: 'Léa',
-          birthDate: DateTime(2024, 1, 15));
+          id: 'baby-1', name: 'Léa', birthDate: DateTime(2024, 1, 15));
 
       final container = ProviderContainer(overrides: [
-        remindersRepositoryProvider
-            .overrideWith((ref) async => mockReminders),
+        remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
         activeBabyProvider.overrideWith(() => _ActiveBabyStub(baby)),
       ]);
 
