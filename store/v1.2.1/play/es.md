@@ -1,46 +1,49 @@
-# Google Play Console — ficha ES (es-ES)
+# Google Play Console — ES sheet (es-ES)
 
-Versión **1.2.1** (`versionCode` 11). Play publica **por idioma**: cada localización tiene su
-título, su descripción corta, su descripción completa y **sus notas de versión**.
+Version **1.2.1** (`versionCode` 11). Play publishes **per language**: each localisation has its
+own title, its short description, its full description and **its release notes**.
 
-## Título — dos opciones
+## Title — two options
 
-| opción | valor | límite |
+| option | value | limit |
 |---|---|---|
-| **guardar** | `Mamadera Seguimiento Bebé` | 25/30 |
-| candidato | `Mamadera: Peso y tomas` | 22/30 |
+| **keep** | `Mamadera Seguimiento Bebé` | 25/30 |
+| candidate | `Mamadera: Peso y tomas` | 22/30 |
 
-El título es la señal ASO más fuerte de una ficha publicada: se cambia por estrategia, no por
-release. El candidato dice « tomas » — palabra que la app nunca muestra: su botón
-(`homeButtonMiam`) dice **Alimento**. `make store-check` lo avisa.
+The title is the strongest ASO signal of a published listing: it changes by strategy, not per
+release. The candidate says « tomas » (feeds) — a word the app never shows: its button
+(`homeButtonMiam`) says **Alimento** (Food). `make store-check` warns about it.
 
-## Pegar desde `../fields/`
+## Paste from `../fields/`
 
-| campo Play | archivo | límite | origen |
+| Play field | file | limit | origin |
 |---|---|---|---|
-| Descripción corta | `../fields/play-es-short.txt` | 80 | TranslateGemma, alineado |
-| Descripción completa | `../fields/play-es-description.txt` | 4 000 | TranslateGemma, alineado |
-| Notas de versión | `../release-notes/play-es.txt` | 500 | TranslateGemma, alineado |
+| Descripción corta (Short description) | `../fields/play-es-short.txt` | 80 | TranslateGemma, aligned |
+| Descripción completa (Full description) | `../fields/play-es-description.txt` | 4 000 | TranslateGemma, aligned |
+| Notas de versión (Release notes) | `../release-notes/play-es.txt` | 500 | TranslateGemma, aligned |
 
-Salida bruta del modelo en [`../machine/es/`](../machine/es/). Si una descripción pasa de
-500, se acorta **`store/source/en/play-release-notes.txt`** y se relanza
-`python3 scripts/build_store_package.py --translate`; no se recorta el español a mano.
+Raw model output in [`../machine/es/`](../machine/es/). If a description goes over 500, shorten
+**`store/source/en/play-release-notes.txt`** and rerun
+`python3 scripts/build_store_package.py --translate`; the Spanish is never trimmed by hand.
 
-## Seguridad de los datos — sin cambios en 1.2.1
+## Data safety — no change in 1.2.1
 
-« No recopilo, comparto ni permito el acceso a ningún dato ». 1.2.1 añade una columna `unit`
-a la base local: sin red y sin nuevos permisos, no hay nada nuevo que declarar. Nota libre a
-mantener:
+« No recopilo, comparto ni permito el acceso a ningún dato » (I collect, share and grant access to
+no data). 1.2.1 adds a `unit` column to the local database: no network and no new permissions, so
+there is nothing new to declare. Free-text note to maintain:
 
+```text
 > Todos los datos de seguimiento del bebé se guardan localmente en el dispositivo en una base
 > SQLite; las notas de texto sensibles se cifran campo por campo con AES-256-GCM (el archivo
 > de la base no está cifrado). Ningún dato sale del teléfono salvo que inicies tú la
 > exportación JSON. No recopilamos, compartimos ni transmitimos datos de usuario.
+```
 
-Categoría: **Salud y forma física** (recomendación — la publicada no está consignada en
-`docs/`, verificarla en la Console). Público: padres de recién nacidos, declarado « Niños ».
+Category: **Salud y forma física** (Health and Fitness — recommendation; the published category is
+not recorded in `docs/`, verify it in the Console). Audience: parents of newborns, declared
+« Niños » (Children).
 
-## Notas de versión — dónde van
+## Release notes — where they go
 
-En la **release** (caja « Notas de la versión », por idioma), no solo en la ficha: es lo que
-el padre lee al actualizar. `../release-notes/play-es.txt`, 367/500.
+In the **release** ("Notas de la versión" box, per language), not only in the listing: that is
+what the parent reads when updating. `../release-notes/play-es.txt`, 367/500.

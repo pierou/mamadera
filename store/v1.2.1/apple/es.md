@@ -1,47 +1,46 @@
-# App Store Connect — ficha ES (es-ES)
+# App Store Connect — ES sheet (es-ES)
 
-Versión **1.2.1** (build 11). Cada campo tiene **un solo archivo** en
-[`../fields/`](../fields/): ese es el que se pega, nunca una transcripción.
+Version **1.2.1** (build 11). Each field has **exactly one file** in
+[`../fields/`](../fields/): that is the one you paste, never a transcription.
 
-## Nombre — guardar `Mamadera Bebé`
+## Name — keep `Mamadera Bebé`
 
-Aprobado y publicado desde v1.1.0. Renombrar rompe el historial ASO y reabre el control de
-unicidad de Apple. Decisión del propietario, no una tarea de release.
+Approved and live since v1.1.0. Renaming it breaks the ASO history and reopens Apple's
+uniqueness check. Owner's decision, not a release task.
 
-## Subtítulo — dos opciones
+## Subtitle — two options
 
-| opción | valor | límite |
+| option | value | limit |
 |---|---|---|
-| **guardar** | `Recién nacido, 100 % privado` | 28/30 |
-| candidato | `Tomas, sueño y crecimiento` | 26/30 |
+| **keep** | `Recién nacido, 100 % privado` | 28/30 |
+| candidate | `Tomas, sueño y crecimiento` | 26/30 |
 
-El candidato nombra el tercer eje de medida (peso / estatura / temperatura), ausente de todos
-los campos desde v1.1.0. **Ojo:** la app nunca escribe « tomas » ni « pecho » — su botón
-(`homeButtonMiam`) dice **Alimento** y el subtipo (`feedingSubtypeNatural`) dice **Leche
-Materna**. `make store-check` lo marca como WARN: es una decisión de revisión, no un detalle.
+The candidate names the third measurement axis (peso / estatura / temperatura — weight / height /
+temperature), absent from every field since v1.1.0. **Careful:** the app never writes « tomas »
+nor « pecho » (never "feeds" nor "breast") — its button (`homeButtonMiam`) says **Alimento**
+(Food) and the subtype (`feedingSubtypeNatural`) says **Leche Materna** (Breast milk).
+`make store-check` flags this as WARN: it is a review decision, not a detail.
 
-## Campos largos — pegar desde `../fields/`
+## Long fields — paste from `../fields/`
 
-| campo ASC | archivo | límite | origen |
+| ASC field | file | limit | origin |
 |---|---|---|---|
-| Palabras clave | `../fields/apple-es-keywords.txt` | 100 | editorial — nunca traducido por la máquina |
-| Texto promocional | `../fields/apple-es-promo.txt` | 170 | TranslateGemma, alineado |
-| Descripción | `../fields/apple-es-description.txt` | 4 000 | TranslateGemma, alineado |
-| Novedades | `../release-notes/apple-whatsnew-es.txt` | 4 000 | `assets/patch_notes/es.json` |
+| Palabras clave (Keywords) | `../fields/apple-es-keywords.txt` | 100 | editorial — never machine-translated |
+| Texto promocional (Promotional text) | `../fields/apple-es-promo.txt` | 170 | TranslateGemma, aligned |
+| Descripción (Description) | `../fields/apple-es-description.txt` | 4 000 | TranslateGemma, aligned |
+| Novedades (What's New) | `../release-notes/apple-whatsnew-es.txt` | 4 000 | `assets/patch_notes/es.json` |
 
-El texto español lo hizo TranslateGemma y se alineó término a término contra
-`lib/l10n/app_es.arb`; la salida bruta del modelo está en [`../machine/es/`](../machine/es/).
-Si una palabra no convence, se acorta **`store/source/en/`** (o se añade una regla de
-alineamiento citada en `scripts/build_store_package.py`) y se relanza
-`python3 scripts/build_store_package.py --translate`. Editar `../fields/` a mano pierde esa frase
-en el siguiente build.
+The Spanish text was produced by TranslateGemma and aligned term by term against
+`lib/l10n/app_es.arb`; the model's raw output is in [`../machine/es/`](../machine/es/).
+If a word does not convince, shorten **`store/source/en/`** (or add an alignment rule cited in
+`scripts/build_store_package.py`) and rerun `python3 scripts/build_store_package.py --translate`.
+Editing `../fields/` by hand loses that sentence on the next build.
 
-## Notas para el equipo de revisión
+## Notes for the review team
 
-- Sin cuenta de demostración: funciona desde el primer arranque, condiciones aceptadas, nada
-  que conectar.
-- Para ver las medidas cifradas: Inicio → botón **Peso** → Guardar, y luego la pestaña
-  **Historial** — la fila aparece con su unidad (`6,18 kg`).
-- « Leche Materna » ofrece un conmutador ml / minutos; los demás tipos tienen unidad fija.
-- Sin contenido médico, sin diagnóstico, sin consejo: la app guarda lo que anota el padre o la
-  madre. La lactancia es contenido parental, no sexual.
+- No demo account: it works from first launch, terms accepted, nothing to connect.
+- To see the encrypted measurements: Inicio → botón **Peso** → Guardar (Home → **Weight** button →
+  Save), then the **Historial** (History) tab — the row shows up with its unit (`6,18 kg`).
+- « Leche Materna » offers an ml / minutes toggle; the other types have a fixed unit.
+- No medical content, no diagnosis, no advice: the app stores what the father or the mother
+  records. Breastfeeding is parental content, not sexual.

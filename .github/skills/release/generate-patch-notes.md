@@ -54,13 +54,14 @@ make patch-notes LANG=fr
 
 ## Commit Types Mapped to Categories
 
+<!-- lang:fr: literal emitted by scripts/generate_patch_notes.py -->
 | Commit Type | English Category | French Category |
 |-------------|-----------------|-----------------|
-| `feat:` | New Features | Nouvelles fonctionnalités |
-| `fix:` | Bug Fixes | Corrections de bugs |
-| `perf:` | Performance Improvements | Améliorations de performances |
-| `security:` | Security Fixes | Correctifs de sécurité |
-| `chore:`, `docs:`, etc. | Other Changes (hidden) | Autres modifications (masqué) |
+| `feat:` | New Features | `Nouvelles fonctionnalités` |
+| `fix:` | Bug Fixes | `Corrections de bugs` |
+| `perf:` | Performance Improvements | `Améliorations de performances` |
+| `security:` | Security Fixes | `Correctifs de sécurité` |
+| `chore:`, `docs:`, etc. | Other Changes (hidden) | `Autres modifications (masqué)` |
 
 ## How to Commit
 

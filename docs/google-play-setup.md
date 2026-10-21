@@ -130,8 +130,8 @@ Go to **Store presence → Localizations** → Add French:
 
 | Field | Content |
 |-------|---------|
-| **Title** (19/30) | Mamadera Suivi Bébé |
-| **Short description** (71/80) | Suivi bébé 100% privé : tétées, sommeil, couches — hors-ligne & chiffré |
+| **Title** (19/30) | `Mamadera Suivi Bébé` |
+| **Short description** (71/80) | `Suivi bébé 100% privé : tétées, sommeil, couches — hors-ligne & chiffré` |
 
 **Full description:**
 
@@ -155,8 +155,8 @@ Mamadera est open source sous licence MIT. Les données de votre bébé ne quitt
 
 | Field | Content |
 |-------|---------|
-| **Title** (25/30) | Mamadera Seguimiento Bebé |
-| **Short description** (72/80) | Seguimiento privado de bebé: tomas, sueño, pañales — sin nube ni rastreo |
+| **Title** (25/30) | `Mamadera Seguimiento Bebé` |
+| **Short description** (72/80) | `Seguimiento privado de bebé: tomas, sueño, pañales — sin nube ni rastreo` |
 
 **Full description:**
 

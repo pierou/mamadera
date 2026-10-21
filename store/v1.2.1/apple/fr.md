@@ -1,51 +1,50 @@
-# App Store Connect — fiche FR (fr-FR)
+# App Store Connect — FR sheet (fr-FR)
 
-Version **1.2.1** (build 11). Chaque champ a **un seul fichier** dans
-[`../fields/`](../fields/) : c'est lui qu'on colle, jamais une recopie. Ce guide ne
-répète pas le texte — il dit ce qu'on garde, ce qu'on change, et pourquoi.
+Version **1.2.1** (build 11). Each field has **exactly one file** in
+[`../fields/`](../fields/): paste that file, never a retyped copy. This guide does not
+repeat the text — it says what to keep, what to change, and why.
 
-## Nom — garder `Mamadera Suivi Bébé`
+## Name — keep `Mamadera Suivi Bébé`
 
-Approuvé et en place depuis v1.1.0. Le renommer casse l'historique ASO et relance un
-contrôle d'unicité côté Apple. Décision propriétaire, pas une tâche de release.
+Approved and in place since v1.1.0. Renaming it breaks the ASO history and reopens a
+uniqueness check on Apple's side. An owner decision, not a release task.
 
-## Sous-titre — deux options
+## Subtitle — two options
 
-| option | valeur | limite |
+| option | value | limit |
 |---|---|---|
-| **garder** | `Suivi nouveau-né 100% privé` | 27/30 |
-| candidat | `Tétées, sommeil, croissance` | 27/30 |
+| **keep** | `Suivi nouveau-né 100% privé` | 27/30 |
+| candidate | `Tétées, sommeil, croissance` | 27/30 |
 
-Le candidat nomme le troisième axe de mesure (poids/taille/température), absent de tous les
-champs depuis v1.1.0. **Attention :** l'app n'écrit jamais « tétées » — son bouton
-(`homeButtonMiam`) dit **Nourriture**. Un sous-titre qui nomme une chose que l'écran ne
-montre pas est un écart entre la fiche et l'app, pas une amélioration. `make store-check`
-le signale en WARN ; c'est une décision à prendre à la revue, pas à laisser passer.
+The candidate names the third measurement axis (weight/height/temperature), absent from all
+fields since v1.1.0. **Warning:** the app never writes « tétées » — its button
+(`homeButtonMiam`) says **Nourriture**. A subtitle that names something the screen does not
+show is a gap between the listing and the app, not an improvement. `make store-check`
+flags it as WARN; it is a decision to make in review, not one to let slide.
 
-## Les champs longs — coller depuis `../fields/`
+## Long fields — paste from `../fields/`
 
-| champ ASC | fichier | limite | origine |
+| ASC field | file | limit | origin |
 |---|---|---|---|
-| Mots-clés | `../fields/apple-fr-keywords.txt` | 100 | éditorial — jamais traduit par une machine |
-| Texte promotionnel | `../fields/apple-fr-promo.txt` | 170 | TranslateGemma, aligné |
-| Description | `../fields/apple-fr-description.txt` | 4 000 | TranslateGemma, aligné |
-| Nouveautés | `../release-notes/apple-whatsnew-fr.txt` | 4 000 | `assets/patch_notes/fr.json` |
+| `Mots-clés` | `../fields/apple-fr-keywords.txt` | 100 | editorial — never machine-translated |
+| `Texte promotionnel` | `../fields/apple-fr-promo.txt` | 170 | TranslateGemma, aligned |
+| `Description` | `../fields/apple-fr-description.txt` | 4 000 | TranslateGemma, aligned |
+| `Nouveautés` | `../release-notes/apple-whatsnew-fr.txt` | 4 000 | `assets/patch_notes/fr.json` |
 
-Le texte français est celui de TranslateGemma, aligné terme à terme sur
-`lib/l10n/app_fr.arb` ; sa sortie brute est sous [`../machine/fr/`](../machine/fr/).
-Si un mot ne convient pas, on corrige **`store/source/en/`** (ou on ajoute une règle
-d'alignement citée dans `scripts/build_store_package.py`) et on relance
-`python3 scripts/build_store_package.py --translate` — éditer `../fields/` localement fait
-perdre la phrase au prochain build, et la fiche se retrouve avec du texte que personne n'a
-relu.
+The French text is TranslateGemma's, aligned term by term against
+`lib/l10n/app_fr.arb`; the raw output is under [`../machine/fr/`](../machine/fr/).
+If a word is wrong, fix **`store/source/en/`** (or add an alignment rule cited in
+`scripts/build_store_package.py`) and re-run
+`python3 scripts/build_store_package.py --translate` — editing `../fields/` locally loses
+the sentence at the next build, and the listing ends up carrying text nobody has
+re-read.
 
-## Notes pour l'équipe de revue
+## Notes for the review team
 
-- Aucun compte de démonstration : l'app fonctionne dès le premier lancement, conditions
-  acceptées, rien à connecter.
-- Pour voir les mesures chiffrées : Accueil → bouton **Poids** → Enregistrer, puis onglet
-  **Historique** — la ligne apparaît avec son unité (`6,18 kg`, virgule française).
-- « Lait Maternel » propose un bascule ml / minutes ; les autres types d'alimentation ont
-  une unité fixe.
-- Pas de contenu médical, pas de diagnostic, pas de conseil : l'app enregistre ce que le
-  parent saisit. L'allaitement y est parental, non sexuel.
+- No demo account: the app works from the first launch, terms accepted, nothing to connect.
+- To see the encrypted measurements: Home → button **Poids** → Enregistrer, then the
+  **Historique** tab — the row appears with its unit (`6,18 kg`, French comma).
+- « Lait Maternel » offers an ml / minutes toggle; the other feeding types have a
+  fixed unit.
+- No medical content, no diagnosis, no advice: the app records what the parent enters.
+  Breastfeeding is parental content there, not sexual.

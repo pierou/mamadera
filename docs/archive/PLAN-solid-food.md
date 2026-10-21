@@ -50,7 +50,7 @@ stated there (two unverified irreversible migrations in one release is how you l
 ### The rule that matters more than the UI
 **A solid-food event must NOT satisfy a milk-feeding reminder.** Reminders match subtype exactly
 (`reminders_repository_impl.dart:58`), so this works by construction — and it is *behaviour, not
-accident*: a purée does not hydrate a hungry newborn. **Do not widen reminder matching.** Add a test
+accident*: pureed food does not hydrate a hungry newborn. **Do not widen reminder matching.** Add a test
 that proves it (below). If any code path you touch makes `miam` reminders match on `type` alone,
 stop and report it rather than shipping it.
 
@@ -83,7 +83,7 @@ matching logic, `docs/PLAN-v1.2.0.md`. No new dependencies. No network. No analy
 ## Required tests (English names, French comments)
 1. `dbValue` and `fromDbValue` round-trip `solid`.
 2. **`fromDbValue` returns null for an unknown value** — the `default:` branch is silent today; pin
-   its behaviour so a future edit cannot turn it into a fallback to `natural`. A baby's purée
+   its behaviour so a future edit cannot turn it into a fallback to `natural`. A baby's pureed food
    restored as "breast milk" is a fabricated health record.
 3. Selecting "Solide" shows `g` and the 0–1000 range; selecting "Biberon" shows `ml` again.
 4. Saving a solid event persists quantity as grams and subtype `solid`.

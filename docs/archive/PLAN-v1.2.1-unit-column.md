@@ -123,89 +123,89 @@ analytics, no new dependencies, no `HistoryFilter` value for growth, `TrackButto
    of a ml feeding, a min feeding, a solid and a weight → export inspected. Simulator id and what was
    seen recorded in the PR description.
 
-## Décision — les mesures doivent apparaître comme événements (owner, 2026-10-04)
-Aujourd'hui `measurements` vit dans sa propre table et **n'apparaît pas dans l'historique**
-(vérifié sur l'appareil : poids et température ne s'affichent que sur les tuiles du domicile).
-Le parent doit pouvoir voir « 37,4 °C à 20:26 » dans la même frise que les biberons et les siestes.
+## Decision — measurements must appear as events (owner, 2026-10-04)
+Today `measurements` lives in its own table and **does not appear in the history**
+(verified on the device: weight and temperature only show up on the home tiles).
+The parent must be able to see « 37,4 °C à 20:26 » on the same timeline as the bottles and the naps.
 
-**Approche retenue : lecture unifiée, PAS de duplication.**
-- `measurements` reste la source de vérité, **chiffrée au repos** comme aujourd'hui.
-- L'historique construit une frise en fusionnant `tracking_events` et `measurements`, triée par
-  horodatage, chaque ligne sachant rendre son unité depuis sa propre colonne `unit`.
-- Modification et suppression adressées à la table d'origine — jamais aux deux.
+**Chosen approach: unified read, NO duplication.**
+- `measurements` stays the source of truth, **encrypted at rest** as today.
+- The history builds a timeline merging `tracking_events` and `measurements`, sorted by
+  timestamp, each row knowing how to render its unit from its own `unit` column.
+- Modification and deletion addressed to the source table — never to both.
 
-**Pourquoi pas dupliquer dans `tracking_events` :** cela écrirait deux fois un chiffre de santé,
-dont une copie dans une colonne `quantity` **en clair** (vérifié : `quantity` est en clair au repos,
-seules les notes et la valeur de `measurements` sont chiffrées). Dupliquer, c'est créer un doublon
-non chiffré de la donnée la plus sensible de l'app. C'est refusé.
+**Why not duplicate in `tracking_events`:** that would write a health number twice,
+one of the copies into a `quantity` column **in the clear** (verified: `quantity` is in the clear at rest,
+only the notes and the `measurements` value are encrypted). Duplicating is creating an unencrypted
+copy of the app's most sensitive data. It is refused.
 
-Coût réel : une jointure de lecture triée + un type de ligne d'historique pour les mesures + une
-route d'édition vers la bonne table. Rien dans le schéma de stockage ne change — seule la lecture.
+Real cost: a sorted read join + a history row type for measurements + an
+edit route to the right table. Nothing in the storage schema changes — only the read.
 
-## Décision — devenir des lignes `''` à la migration v12 (orchestrateur, 2026-10-04)
-Le correctif de fuite restreint la portée au bébé actif ; les lignes `''` existantes deviennent
-invisibles pour le bébé A. Décision :
-- **si exactement un bébé existe** : réaffecter `''` → ce bébé (`reminder_settings`,
-  `reminder_dismissals`, `reminder_completions`, `custom_reminders`). Un seul bébé = l'état lui
-  appartient sans ambiguïté, et ce sont des **contenus** (rappels personnalisés) autant que des états :
-  les perdre serait une régression pour l'immense majorité des installations.
-- **si 0 ou plusieurs bébés** : **ne rien réaffecter**. Choisir à quel bébé appartient un rappel
-  `''` sur un appareil multi-bébés serait une devinette ; on laisse l'état « sans profil », sémantique
-  du correctif.
-- Aucune donnée détruite dans les deux cas ; export/import continue de faire l'aller-retour.
+## Decision — fate of the `''` rows at migration v12 (orchestrator, 2026-10-04)
+The leak fix restricts the scope to the active baby; the existing `''` rows become
+invisible to baby A. Decision:
+- **if exactly one baby exists**: reassign `''` → that baby (`reminder_settings`,
+  `reminder_dismissals`, `reminder_completions`, `custom_reminders`). One baby = the state belongs
+  to it without ambiguity, and these are **contents** (custom reminders) as much as states:
+  losing them would be a regression for the vast majority of installations.
+- **if 0 or several babies**: **reassign nothing**. Choosing to which baby belongs a reminder
+  `''` on a multi-baby device would be a guess; we leave the state « sans profil » (no profile),
+  the semantics of the fix.
+- No data destroyed in both cases; export/import keeps the round trip.
 
-## Choix de locale — la virgule décimale est acceptée partout (owner, 2026-10-04) — **VÉRIFIÉ APPAREIL, OK**
-Passé sur l'appareil Android en locale anglais (switch par le menu de l'app, pas par adb) : la
-saisie caractère par caractère donne `3` `37` `37,` `37,4` — la virgule inscrite telle quelle, **aucun
-point inséré avant**. L'en-tête affiche `37.4 °C` en anglais, `Enregistrer` actif, aucune erreur.
-Aucun `InputFormatter` n'existe sur ce chemin : `keyboardType` n'est qu'une indication, et
-`_onTextChanged` normalise par `replaceAll(',', '.')`, donc locale-neutre.
-**Mon observation antérieure `0.037,4` était un artefact de mon propre geste** : j'ai tapé dans un
-champ non vidé, curseur au milieu — `37.037,4` → `tryParse` nul → ignoré, même symptôme « rien ne se
-passe », zéro défaut. Leçon notée : avant d'appeler un bug un bug, vider le champ et recommencer.
+## Locale choice — the decimal comma is accepted everywhere (owner, 2026-10-04) — **DEVICE VERIFIED, OK**
+Run on the Android device in the English locale (switch via the app menu, not via adb): the
+character-by-character entry gives `3` `37` `37,` `37,4` — the comma entered as-is, **no
+dot inserted before**. The header displays `37.4 °C` in English, `Enregistrer` (Save) active, no error.
+No `InputFormatter` exists on this path: `keyboardType` is only a hint, and
+`_onTextChanged` normalises via `replaceAll(',', '.')`, hence locale-neutral.
+**My earlier observation `0.037,4` was an artefact of my own gesture**: I typed into a
+field not emptied, cursor in the middle — `37.037,4` → `tryParse` null → ignored, same symptom « rien ne se
+passe », zero defect. Lesson noted: before calling a bug a bug, empty the field and start over.
 
-### Vrai détail repéré au passage (v1.2.1, cosmétique)
-Le texte **initial du champ** est toujours formaté avec un point (`_textFor` → `toStringAsFixed`,
-`quantity_picker_inline.dart:113`) alors que l'**en-tête** est formaté selon la locale. En fr/es, le
-parent voit donc `37,5` en haut et `37.5` dans le champ vide. Incohérence réelle, visible, sans impact
-sur la donnée — à corriger avec le pré-remplissage par la dernière mesure, qui touchera le même code.
+### Genuine detail spotted in passing (v1.2.1, cosmetic)
+The **initial text of the field** is always formatted with a dot (`_textFor` → `toStringAsFixed`,
+`quantity_picker_inline.dart:113`) whereas the **header** is formatted according to the locale. In fr/es, the
+parent therefore sees `37,5` on top and `37.5` in the empty field. Genuine inconsistency, visible, no impact
+on the data — to fix together with the pre-fill with the last measurement, which will touch the same code.
 
-`37,4` doit être accepté en `en` comme en `fr`/`es`. Le refus observé sur l'appareil en anglais
-venait du clavier/touche décimale, pas du parsing — **à revérifier sur l'appareil en `en`**, car une
-observation manuelle avait donné « 0.037,4 » hors plage : si le champ reformate le point avant la
-virgule, un `InputFormatter` est en cause et le test en `en` ne le voit pas nécessairement.
+`37,4` must be accepted in `en` as in `fr`/`es`. The refusal observed on the English device
+came from the keyboard/decimal key, not from the parsing — **to re-verify on the device in `en`**, because a
+manual observation had given « 0.037,4 » out of range: if the field reformats the dot before the
+comma, an `InputFormatter` is involved and the test in `en` does not necessarily see it.
 
-## v1.2.1 — mesures comme événements, avec écran d'édition/suppression (owner, 2026-10-04)
-Confirmé pour v1.2.1 (et non v1.2.0) : frise unifiée **plus** un vrai écran pour **modifier** et
-**supprimer** une mesure. Édition et suppression adressent la table `measurements` d'origine — jamais
-une copie. `unit` suit la ligne éditée : changer une mesure de 37,4 °C à 38,1 °C ne doit pas réécrire
-l'unité ni arrondir.
+## v1.2.1 — measurements as events, with edit/delete screen (owner, 2026-10-04)
+Confirmed for v1.2.1 (and not v1.2.0): unified timeline **plus** a genuine screen to **modify** and
+**delete** a measurement. Edit and delete address the source `measurements` table — never
+a copy. `unit` follows the edited row: changing a measurement from 37,4 °C to 38,1 °C must not rewrite
+the unit nor round.
 
-## Valeur par défaut = la dernière mesure de ce type (owner, 2026-10-04)
-Le sheet pré-remplit avec la dernière mesure **du même `kind`** (`ORDER BY recorded_at DESC LIMIT 1`,
-chiffrée au repos → déchiffrée pour l'affichage). S'il n'y en a aucune, on retombe sur les défauts
-actuels : 3500 g, 50 cm, 37 °C.
+## Default value = the last measurement of that type (owner, 2026-10-04)
+The sheet pre-fills with the last measurement **of the same `kind`** (`ORDER BY recorded_at DESC LIMIT 1`,
+encrypted at rest → decrypted for display). If there is none, we fall back to the current
+defaults: 3500 g, 50 cm, 37 °C.
 
-### Le piège, et ce qu'on fait dessus (à ne pas laisser implicite)
-Un champ pré-rempli que le parent peut valider sans toucher enregistre **la valeur d'hier comme la
-mesure d'aujourd'hui**. Dans une app de santé, ce n'est pas une commodité, c'est une donnée inventée :
-36,8 °C relevé ce matin et rejoué ce soir efface la fièvre qui n'était pas là, ou en fabrique une.
+### The trap, and what we do about it (not to leave implicit)
+A pre-filled field that the parent can validate without touching it records **yesterday's value as
+today's measurement**. In a health app, that is not a convenience, it is an invented datum:
+36,8 °C taken this morning and replayed this evening erases the fever that was not there, or fabricates one.
 
-Règle proposée : la dernière mesure s'affiche comme **indice** (`hintText`, teinte doux, « dernière :
-36,8 °C »), et non comme une valeur déjà saisie ; le champ démarre vide et **Enregistrer reste
-désactivé tant que rien n'a été saisi**. Le parent garde la référence sous les yeux sans pouvoir la
-valider par inadvertance. Si le pré-remplissage en valeur active est malgré tout voulu, alors la
-sauvegarde sans modification doit être refusée avec un message — pas silencieusement acceptée.
+Proposed rule: the last measurement is displayed as a **hint** (`hintText`, soft tint, <!-- lang:fr: verbatim proposed hint text --> « dernière :
+36,8 °C » <!-- lang:fr: verbatim proposed hint text -->), and not as an already-entered value; the field starts empty and **Enregistrer stays
+disabled until something has been entered**. The parent keeps the reference under their eyes without being able to
+validate it by accident. If the pre-fill with an active value is nevertheless wanted, then the
+save without modification must be refused with a message — not silently accepted.
 
-## Deux bugs à corriger en v1.2.1 (trouvés à la campagne de captures v1.2.0, 2026-10-10)
+## Two bugs to fix in v1.2.1 (found in the v1.2.0 capture campaign, 2026-10-10)
 
-Preuve complète, images comprises : [`BUG-en-date-format-and-growth-unit.md`](../BUG-en-date-format-and-growth-unit.md).
-Les deux sont **visibles dans les captures déjà générées** et dans le binaire `v1.2.0` taggué ; ils n'ont
-pas été corrigés pendant la campagne, parce que la campagne doit photographier ce qui est livré — toucher
-`lib/` après le tag rendrait les assets faux sur le binaire. Témoignage à l'œil, pas devinette : aucun
-test unitaire ne les attrape.
+Complete evidence, images included: [`BUG-en-date-format-and-growth-unit.md`](../BUG-en-date-format-and-growth-unit.md).
+The two are **visible in the captures already generated** and in the tagged `v1.2.0` binary; they were
+not fixed during the campaign, because the campaign must photograph what is shipped — touching
+`lib/` after the tag would make the assets wrong on the binary. Testimony by eye, not guessing: no
+unit test catches them.
 
-### 1. `formatDate` perd les minutes en anglais — tout l'app
+### 1. `formatDate` loses the minutes in English — the whole app
 
 `lib/core/l10n/date_localization.dart:21`
 
@@ -214,36 +214,36 @@ case 'en':
   return DateFormat('MM/dd/yyyy hh:aa', 'en_US').format(date);   // ← `aa` n'est pas une minute
 ```
 
-En ICU la minute est `mm`, et `a` le marqueur AM/PM. `aa` rend donc le marqueur, les minutes
-disparaissent, et le deux-points qui les introduisait reste suspendu.
+In ICU the minute is `mm`, and `a` the AM/PM marker. `aa` therefore renders the marker, the minutes
+disappear, and the colon that introduced them remains dangling.
 
-| Écran | Renderu | Devrait être |
+| Screen | Rendered | Should be |
 |---|---|---|
-| Accueil → rappels | `Last done: 10/08/2026 07:PM` | `Last done: 10/08/2026 07:43 PM` |
-| Croissance (historique) | `10/09/2026 01:AM` | `10/09/2026 01:43 AM` |
+| Home → reminders | `Last done: 10/08/2026 07:PM` | `Last done: 10/08/2026 07:43 PM` |
+| Growth (history) | `10/09/2026 01:AM` | `10/09/2026 01:43 AM` |
 
-`fr` et `es` utilisent `HH:mm` et sont corrects — c'est exactement pourquoi ça a survécu : toutes les
-captures et tous les fixtures écrits en français n'ont jamais touché la branche anglaise. Le commentaire
-de doc en L11 **retranscrit le bug** (`MM/dd/yyyy hh:aa`) : le corriger sans corriger le commentaire
-laisserait la même erreur écrite noir sur blanc pour le prochain relecteur.
+`fr` and `es` use `HH:mm` and are correct — that is exactly why it survived: all the
+captures and all the fixtures written in French never touched the English branch. The doc comment
+at L11 **restates the bug** (`MM/dd/yyyy hh:aa`): fixing it without fixing the comment
+would leave the same error written in black and white for the next re-reader.
 
-**Sites touchés** (`formatDate` partagé, 4 appelants) : `event_date_time_field.dart`, `growth_screen.dart`,
-`history_screen.dart`, `reminder_row.dart`. Le `_formatDate` de `onboarding_dialog.dart:231` est un
-calendrier ISO sans heure — hors sujet, vérifié.
+**Sites touched** (`formatDate` shared, 4 call sites): `event_date_time_field.dart`, `growth_screen.dart`,
+`history_screen.dart`, `reminder_row.dart`. The `_formatDate` of `onboarding_dialog.dart:231` is an
+ISO calendar without time — off subject, verified.
 
-**Fix** : `DateFormat('MM/dd/yyyy hh:mm a', 'en_US')` + le commentaire L11 avec. **Test requis** :
-les trois locales épinglées sur un `DateTime` fixe, pour que le motif ne pourrisse plus.
+**Fix**: `DateFormat('MM/dd/yyyy hh:mm a', 'en_US')` + the L11 comment with it. **Test required**:
+the three locales pinned on a fixed `DateTime`, so the pattern never rots again.
 
-**Pourquoi ce n'est pas cosmétique** : dans un suivi de fièvre, `09:PM` ne distingue pas 21:04 de
-21:59. L'horodatage est le seul intérêt de la ligne.
+**Why it is not cosmetic**: in a fever tracking, `09:PM` does not distinguish 21:04 from
+21:59. The timestamp is the only interest of the row.
 
-### 2. L'unité de traîne de l'historique de croissance contredit la valeur affichée
+### 2. The trailing unit of the growth history contradicts the displayed value
 
 `lib/features/growth/presentation/screens/growth_screen.dart:95` — `trailing: Text(measurement.kind.displayUnit)`
 
-`MeasureKind.displayUnit` (`measure_kind.dart:78`) renvoie l'unité **de stockage** (`unitG` = `g`),
-alors que `MeasureKind.format()` promeut les poids > 1 000 g en kilogrammes. Le tuile affiche les deux,
-et ils se contredisent :
+`MeasureKind.displayUnit` (`measure_kind.dart:78`) returns the **storage** unit (`unitG` = `g`),
+whereas `MeasureKind.format()` promotes weights > 1 000 g to kilograms. The tile displays the two,
+and they contradict each other:
 
 ```
 6.18 kg      ← titre, formaté (kg)
@@ -252,18 +252,18 @@ et ils se contredisent :
       g
 ```
 
-Seul le poids est **faux** : la traîne affirme une unité que la valeur n'utilise pas, ce qu'un parent
-pressé lit « 6,18 grammes ». Taille et température sont des doublons inoffensifs.
+Only the weight is **wrong**: the trailing asserts a unit the value does not use, which a rushed parent
+reads « 6,18 grammes ». Height and temperature are harmless duplicates.
 
-**Fix** : supprimer la traîne quand `format()` a déjà rendu l'unité, ou en faire un indice
-d'unité de stockage explicitement assumé. **Ne pas** « corriger » en faisant renvoyer `kg` par
-`displayUnit` : le getter sert aussi au champ du sheet (`measurement_sheet.dart:108` et `:132`),
-où l'unité de stockage (`g`, pas de 10 g) est la bonne invite — on troquerait un défaut contre un autre.
+**Fix**: remove the trailing when `format()` has already rendered the unit, or make it a hint
+of the explicitly assumed storage unit. **Do not** « fix » it by making `displayUnit` return `kg`:
+the getter also serves the sheet field (`measurement_sheet.dart:108` and `:132`),
+where the storage unit (`g`, not 10 g) is the right hint — we would swap one defect for another.
 
-### Conséquence sur la gate
+### Consequence on the gate
 
-Ces deux correctifs touchent le rendu → **nouvelle campagne de captures après le fix** (les 50 PNG
-actuels montrent les deux défauts). Le passage `Small_Phone` de la gate doit regarder `history_screen`
-et `growth_screen` **en anglais**, puisque c'est la locale où le bug vit — un passage émulateur en
-français ne prouverait rien sur ce ticket.
+These two fixes touch the rendering → **new capture campaign after the fix** (the 50 PNGs
+currently show the two defects). The `Small_Phone` pass of the gate must look at `history_screen`
+and `growth_screen` **in English**, since that is the locale where the bug lives — an emulator pass in
+French would prove nothing on this ticket.
 

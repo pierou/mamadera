@@ -51,11 +51,11 @@ CATEGORIES = {
         'other': 'Other Changes',
     },
     'fr': {
-        'feat': 'Nouvelles fonctionnalités',
-        'fix': 'Corrections de bugs',
-        'perf': 'Améliorations de performances',
-        'security': 'Correctifs de sécurité',
-        'other': 'Autres modifications',
+        'feat': 'Nouvelles fonctionnalités',  # lang:fr: section heading displayed in the app's release notes
+        'fix': 'Corrections de bugs',  # lang:fr: section heading displayed in the app's release notes
+        'perf': 'Améliorations de performances',  # lang:fr: section heading displayed in the app's release notes
+        'security': 'Correctifs de sécurité',  # lang:fr: section heading displayed in the app's release notes
+        'other': 'Autres modifications',  # lang:fr: section heading displayed in the app's release notes
     },
 }
 

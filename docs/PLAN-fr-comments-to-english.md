@@ -42,10 +42,10 @@ lines, official `tg-translate` template, temp 0:
 | mac `translategemma-27b-it-mlx-fp16` | 61/70 = 87% | 5 | 4 | ~5.0 | 56.7 GB of 98.8 ceiling |
 
 The 12B was **faster and structurally more reliable**: it translated all 9 lines the 27B
-blanked or looped on (`propage jusqu'aux pastilles…` → empty on 27B; `réglages → rappels
-activés → service` → `→ → →` loop on 27B). The repetition loops live in **oMLX**, which has
-no repetition penalty configured; llama.cpp's server-side defaults suppress them. Smaller
-model, better service.
+blanked or looped on (`propage jusqu'aux pastilles…` → empty on 27B;
+`réglages → rappels activés → service` → `→ → →` loop on 27B). The repetition
+loops live in **oMLX**, which has no repetition penalty configured; llama.cpp's
+server-side defaults suppress them. Smaller model, better service.
 
 **Decision: the translator is cheap and the reviewer is the brain.** ~35 min on the box buys
 machine throughput; the ~2.5 h saved is spent on the code-truth pass, which is the only thing

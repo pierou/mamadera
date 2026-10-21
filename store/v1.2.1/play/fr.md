@@ -1,48 +1,50 @@
-# Google Play Console — fiche FR (fr-FR)
+# Google Play Console — FR sheet (fr-FR)
 
-Version **1.2.1** (`versionCode` 11). Play publie **par langue** : chaque localisation a son
-titre, sa description courte, sa description complète et **ses notes de version**.
+Version **1.2.1** (`versionCode` 11). Play publishes **per language**: each localisation has its
+own title, its short description, its full description and **its release notes**.
 
-## Titre — deux options
+## Title — two options
 
-| option | valeur | limite |
+| option | value | limit |
 |---|---|---|
-| **garder** | `Mamadera Suivi Bébé` | 19/30 |
-| candidat | `Mamadera : poids & tétées` | 24/30 |
+| **keep** | `Mamadera Suivi Bébé` | 19/30 |
+| candidate | `Mamadera : poids & tétées` | 24/30 |
 
-Le titre est le signal ASO le plus fort d'une fiche en place : il se change par stratégie,
-pas par release. Le candidat contient « tétées » — mot que l'app n'affiche jamais (son bouton
-dit **Nourriture**) : `make store-check` le signale, à trancher à la revue.
+The title is the strongest ASO signal of a live listing: it changes by strategy, not per release.
+The candidate contains « tétées » (the app never displays that word — its button says
+**Nourriture** / Food): `make store-check` flags it, to be settled at review.
 
-## Coller depuis `../fields/`
+## Paste from `../fields/`
 
-| champ Play | fichier | limite | origine |
+| Play field | file | limit | origin |
 |---|---|---|---|
-| Description courte | `../fields/play-fr-short.txt` | 80 | TranslateGemma, aligné |
-| Description complète | `../fields/play-fr-description.txt` | 4 000 | TranslateGemma, aligné |
-| Notes de version | `../release-notes/play-fr.txt` | 500 | TranslateGemma, aligné |
+| Description courte (Short description) | `../fields/play-fr-short.txt` | 80 | TranslateGemma, aligned |
+| `Description complète` (Full description) | `../fields/play-fr-description.txt` | 4 000 | TranslateGemma, aligned |
+| Notes de version (Release notes) | `../release-notes/play-fr.txt` | 500 | TranslateGemma, aligned |
 
-Sortie brute du modèle sous [`../machine/fr/`](../machine/fr/). Le plafond de 500 caractères
-des notes est celui de Play, et le français s'allonge de 20 à 50 % : si ça déborde, on
-raccourcit `store/source/en/play-release-notes.txt` et on relance
-`python3 scripts/build_store_package.py --translate` — jamais en rognant le français.
+Raw model output under [`../machine/fr/`](../machine/fr/). The ceiling of 500 characters on the
+notes is Play's own, and French lengthens by 20 to 50 %: if it overflows, shorten
+`store/source/en/play-release-notes.txt` and rerun
+`python3 scripts/build_store_package.py --translate` — never by trimming the French.
 
-## Sécurité des données — inchangée par 1.2.1
+## Data safety — unchanged by 1.2.1
 
-« Je ne collecte, ne partage et n'autorise l'accès à aucune donnée ». 1.2.1 ajoute une
-colonne `unit` à la base locale : aucun réseau, aucune nouvelle autorisation, donc rien à
-déclarer de nouveau. Note libre à maintenir :
+« Je ne collecte, ne partage et n'autorise l'accès à aucune donnée » (I collect, share and grant
+access to no data). 1.2.1 adds an `unit` column to the local database: no network, no new
+permission, so nothing new to declare. Free-text note to maintain:
 
+```text
 > Toutes les données de suivi du bébé sont stockées localement sur l'appareil dans une base
 > SQLite ; les notes textuelles sensibles sont chiffrées champ par champ en AES-256-GCM (le
 > fichier de base lui-même n'est pas chiffré). Aucune donnée ne quitte le téléphone sauf
 > export JSON volontaire. Nous ne collectons, partageons ni transmettons aucune donnée.
+```
 
-Catégorie : **Santé et forme** (recommandation — la catégorie réellement publiée n'est pas
-consignée dans `docs/`, à vérifier dans la Console avant d'y toucher). Public : parents de
-nouveau-nés, déclaré « Enfants » — déjà en place.
+Category: `Santé et forme` (Health and Fitness — recommendation; the category actually published
+is not recorded in `docs/`, check it in the Console before touching it). Audience: parents of
+newborns, declared « Enfants » (Children) — already in place.
 
-## Notes de version — où les coller
+## Release notes — where to paste them
 
-Dans la **release** (boîte « Notes de version », par langue), pas seulement dans la fiche :
-c'est ce que le parent lit en mettant à jour. `../release-notes/play-fr.txt`, 427/500.
+In the **release** ("Notes de version" box, per language), not only in the listing: that is what
+the parent reads when updating. `../release-notes/play-fr.txt`, 427/500.

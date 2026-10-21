@@ -46,7 +46,7 @@ Built, not typed: `python3 scripts/build_store_package.py --translate`. English 
 fixes the alignment made here are load-bearing, and both were the model's choices:
 
 - « rien n'est jamais **téléchargé** » → « rien n'est jamais **envoyé** ». In French
-  *télécharger* means **download**: the model had turned "nothing is ever uploaded" into a
+  `télécharger` means **download**: the model had turned "nothing is ever uploaded" into a
   weaker claim in the single sentence that carries the privacy promise. Authority:
   `arb:exportDataWarning`, the app's own « rien n'est envoyé automatiquement ».
 - « crypté(s) » / « encriptación » → « chiffré(s) » / « cifrado » — register, and consistent

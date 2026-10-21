@@ -28,7 +28,7 @@ evidence:
    mortality effect **uncertain** [32813276]. ⇒ *mamadera must never be marketed as saving babies.*
 4. **The language does not reach the mother.** Locales are fr/en/es. In the eight highest-rate
    countries adult female literacy is **~19–35%**, and the spoken languages are Hausa, Yoruba, Igbo,
-   Pidgin, Urdu, Punjabi, Pashto, Somali, Amharic, Oromo, Lingala, Swahili, Bambara, Wolof, Mooré…
+   Pidgin, Urdu, Punjabi, Pashto, Somali, Amharic, Oromo, Lingala, Swahili, Bambara, Wolof, Mooré… <!-- lang:fr: proper nouns -- language and country names -->
    **Spanish maps to zero target countries.**
 
 So the honest question is not "how do we distribute this app there" but **"what is the smallest thing
@@ -52,7 +52,7 @@ file):
 
 | Country | deaths | NMR | | Country | deaths | NMR |
 |---|---|---|---|---|---|---|
-| DR Congo | 105 425 | 23.6 | | Côte d'Ivoire | 27 601 | 27.4 |
+| DR Congo | 105 425 | 23.6 | | `Côte d'Ivoire` | 27 601 | 27.4 |
 | Niger | 36 634 | **32.8** | | Cameroon | 24 029 | 24.8 |
 | Mali | 27 067 | 28.0 | | Madagascar | 23 361 | 23.1 |
 | Chad | 26 626 | **30.4** | | Senegal | 11 300 | 20.9 |
@@ -70,7 +70,7 @@ three symmetric translation files. It is not. It is the strategic asset.
 **Honest qualification, and it is load-bearing:** French is the language of the *health system*, of
 clinical records, of the midwife and the CHW — not of the rural mother in Diffa, Tahoua or Kisangani.
 So French buys the **frontline-worker layer**, and the mother still needs icons and recorded audio in
-Wolof, Bambara, Mooré, Hausa, Lingala, Swahili, Fulfulde. `fast-scout` found **no open-source
+Wolof, Bambara, Mooré, Hausa, Lingala, Swahili, Fulfulde. `fast-scout` found **no open-source <!-- lang:fr: proper nouns -- language and country names -->
 speech synthesis for any of those languages** (§5) — meaning audio must be **human-recorded by local
 partners**. That single fact determines the shape of §3: **the first user of this app in a
 high-burden setting should be the health worker, not the mother.**

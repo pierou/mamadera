@@ -132,8 +132,8 @@ Perfect for parents who value their privacy — and for newborns who deserve the
 
 | Field | Content |
 |-------|---------|
-| **Name** (19/30) | Mamadera Suivi Bébé |
-| **Subtitle** (27/30) | Suivi nouveau-né 100% privé |
+| **Name** (19/30) | `Mamadera Suivi Bébé` |
+| **Subtitle** (27/30) | `Suivi nouveau-né 100% privé` |
 | **Keywords** | bebe, nouveau-ne, tetee, sommeil, couche, confidentialite, hors-ligne, allaitement, sauvegarde |
 
 **Description:**
@@ -158,8 +158,8 @@ Idéal pour les parents qui valorisent leur vie privée — et pour les nouveau-
 
 | Field | Content |
 |-------|---------|
-| **Name** (13/30) | Mamadera Bebé |
-| **Subtitle** (28/30) | Recién nacido, 100 % privado |
+| **Name** (13/30) | `Mamadera Bebé` |
+| **Subtitle** (28/30) | `Recién nacido, 100 % privado` |
 | **Keywords** | recien-nacido, toma, sueno, panal, seguimiento, privacidad, sin-nube, lactancia, copia seguridad |
 
 **Description:**
