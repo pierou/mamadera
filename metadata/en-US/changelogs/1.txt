@@ -1,0 +1,7 @@
+First stable release of Mamadera, a privacy-first newborn tracking app.
+• Baby profiles: create, edit, duplicate, delete (with cascade-aware cleanup)
+• Feedings (breast & bottle, with duration), sleep, diapers, health routines
+• Health reminders: Vitamin D (daily), Vitamin K (rolling 30 days), cleaning care
+• History with filters, inline editing and deletion
+• 100% offline: data never leaves the device, sensitive fields encrypted at rest
+• French, English and Spanish

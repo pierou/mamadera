@@ -1,3 +1,9 @@
+# SUPERSEDED 2026-10-21: the AAB output and the process described here were wrong
+# for F-Droid (it installs APKs built from source on its own infra, Flutter via
+# the fdroiddata 'flutter' srclib). The final metadata, the signing-guard patch
+# and the upstream metadata/ tree now live in docs/fdroiddata/ + metadata/ —
+# see docs/fdroiddata/README.md.
+# ---
 # F-Droid metadata update for v1.2.1 — apply to docs/fdroiddata/com.pvjio.mamadera.yml
 # (that file is still parked at 1.0.1 / versionCode 2, so F-Droid has never seen 1.1.x,
 # 1.2.0 or this release). F-Droid builds from source on their infra: the tag must be

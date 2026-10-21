@@ -1,0 +1,9 @@
+--- a/android/app/build.gradle.kts
++++ b/android/app/build.gradle.kts
+@@ -71,5 +71,5 @@
+     val releaseBuildRequested =
+         allTasks.any { it.name == "assembleRelease" || it.name == "bundleRelease" }
+-    if (releaseBuildRequested && !hasReleaseSigning) {
++    if (false) { // F-Droid: no upstream keystore in the build environment; F-Droid re-signs all APKs itself
+         throw GradleException(
+             "Release build requested but the release keystore is not configured.\n"
