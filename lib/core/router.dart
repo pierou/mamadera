@@ -29,18 +29,19 @@ enum AppRoute {
 
 /// Returns the index of a route for positional transitions.
 int routeIndex(AppRoute route) => <AppRoute, int>{
-  AppRoute.home: 0,
-  AppRoute.history: 1,
-  AppRoute.menu: 2,
-}[route]!;
+      AppRoute.home: 0,
+      AppRoute.history: 1,
+      AppRoute.menu: 2,
+    }[route]!;
 
 /// Returns the index of a route based on its path.
 int _routeIndexForPath(String path) {
   return <String, int>{
-    AppRoute.home.path: 0,
-    AppRoute.history.path: 1,
-    AppRoute.menu.path: 2,
-  }[path] ?? 0;
+        AppRoute.home.path: 0,
+        AppRoute.history.path: 1,
+        AppRoute.menu.path: 2,
+      }[path] ??
+      0;
 }
 
 /// Initial route shown while launch state is loading.
@@ -73,7 +74,9 @@ String? _redirect(BuildContext context, GoRouterState state) {
   return prefs.when(
     data: (AppPreferences p) {
       if (!p.termsAccepted) return '/terms';
-      if (p.appVersion != AppConfig.version && p.patchNotesOptOut == false) return '/patch-notes';
+      if (p.appVersion != AppConfig.version && p.patchNotesOptOut == false) {
+        return '/patch-notes';
+      }
       return AppRoute.home.path;
     },
     loading: () => null, // Stay on splash screen while loading
@@ -152,17 +155,20 @@ final GoRouter router = GoRouter(
         GoRoute(
           path: AppRoute.home.path,
           name: 'home',
-          pageBuilder: (context, state) => const MaterialPage(child: HomeScreen()),
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: HomeScreen()),
         ),
         GoRoute(
           path: AppRoute.history.path,
           name: 'history',
-          pageBuilder: (context, state) => const MaterialPage(child: HistoryScreen()),
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: HistoryScreen()),
         ),
         GoRoute(
           path: AppRoute.menu.path,
           name: 'menu',
-          pageBuilder: (context, state) => const MaterialPage(child: MenuScreen()),
+          pageBuilder: (context, state) =>
+              const MaterialPage(child: MenuScreen()),
         ),
       ],
     ),
@@ -319,7 +325,8 @@ class _SplashScreen extends ConsumerWidget {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!p.termsAccepted) {
             context.go('/terms');
-          } else if (p.appVersion != AppConfig.version && p.patchNotesOptOut == false) {
+          } else if (p.appVersion != AppConfig.version &&
+              p.patchNotesOptOut == false) {
             context.go('/patch-notes');
           } else {
             context.go(AppRoute.home.path);

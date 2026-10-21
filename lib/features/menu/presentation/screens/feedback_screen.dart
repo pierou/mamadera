@@ -64,11 +64,10 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
 
     final subject = _buildSubject();
     final body = _buildBody();
-    final uri = Uri.parse(AppConfig.githubIssuesUrl)
-        .replace(queryParameters: {
-          'title': subject,
-          'body': body,
-        });
+    final uri = Uri.parse(AppConfig.githubIssuesUrl).replace(queryParameters: {
+      'title': subject,
+      'body': body,
+    });
 
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       _showLaunchError();
@@ -85,7 +84,8 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     final uri = Uri(
       scheme: 'mailto',
       path: AppConfig.contactEmail,
-      query: 'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
+      query:
+          'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
     );
 
     if (!await launchUrl(uri)) {
@@ -281,7 +281,9 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
               size: 20,
             ),
             const SizedBox(width: AppTheme.spacingXs),

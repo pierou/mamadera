@@ -36,13 +36,15 @@ Future<EncryptionService> _initializeEncryption() async {
   final encryption = EncryptionService();
   await encryption.initialize();
   if (encryption.isUsingMemoryFallback) {
-    Logger().w('⚠️ Mode fallback: clé volatile en mémoire (pas de keyring disponible).');
+    Logger().w(
+        '⚠️ Mode fallback: clé volatile en mémoire (pas de keyring disponible).');
   }
   return encryption;
 }
 
 void main() async {
-  FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
+  FlutterNativeSplash.preserve(
+      widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
 
   final encryption = await _initializeEncryption();
   runApp(
@@ -66,7 +68,11 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Mamadera',
       locale: locale,
-      supportedLocales: const [ui.Locale('fr'), ui.Locale('en'), ui.Locale('es')],
+      supportedLocales: const [
+        ui.Locale('fr'),
+        ui.Locale('en'),
+        ui.Locale('es')
+      ],
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -94,4 +100,3 @@ class MyApp extends ConsumerWidget {
     );
   }
 }
-

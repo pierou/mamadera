@@ -40,7 +40,8 @@ void main() {
       expect(stoolTextures.map((t) => t.labelKey).toSet(), hasLength(5));
     });
 
-    test('les valeurs DB restent en ASCII (les accents sont dans le label)', () {
+    test('les valeurs DB restent en ASCII (les accents sont dans le label)',
+        () {
       // A manually reviewed JSON export should remain editable without the need for a keyboard.
       // accented, and a normalized value (NFD/NFC) should not depend on...
       // l'encodeur.

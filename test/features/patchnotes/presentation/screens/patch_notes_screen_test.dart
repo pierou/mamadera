@@ -153,12 +153,14 @@ void main() {
 
   group('PatchNotesScreen — markdown never reaches the screen', () {
     testWidgets('no rendered text keeps a heading marker', (tester) async {
-      await pump(tester, repository: _FakePatchNotesRepository(_markdownDocument));
+      await pump(tester,
+          repository: _FakePatchNotesRepository(_markdownDocument));
       expect(rendered(tester).where((text) => text.contains('#')), isEmpty);
     });
 
     testWidgets('no rendered text keeps a bullet marker', (tester) async {
-      await pump(tester, repository: _FakePatchNotesRepository(_markdownDocument));
+      await pump(tester,
+          repository: _FakePatchNotesRepository(_markdownDocument));
       expect(
         rendered(tester).where(
           (text) => text.startsWith('- ') || text.startsWith('* '),
@@ -168,14 +170,16 @@ void main() {
     });
 
     testWidgets('inline bold is resolved, not printed', (tester) async {
-      await pump(tester, repository: _FakePatchNotesRepository(_markdownDocument));
+      await pump(tester,
+          repository: _FakePatchNotesRepository(_markdownDocument));
       expect(rendered(tester).where((text) => text.contains('**')), isEmpty);
       expect(find.text('Ajout d\'un rappel'), findsOneWidget);
     });
 
     testWidgets('headings render as section titles without a check icon',
         (tester) async {
-      await pump(tester, repository: _FakePatchNotesRepository(_markdownDocument));
+      await pump(tester,
+          repository: _FakePatchNotesRepository(_markdownDocument));
       expect(find.text('Nouvelles fonctionnalités'), findsOneWidget);
       expect(find.text('Corrections'), findsOneWidget);
       // Three bullets in the document => three icons; two headings and two empty
@@ -184,7 +188,8 @@ void main() {
     });
 
     testWidgets('an empty entry renders no row at all', (tester) async {
-      await pump(tester, repository: _FakePatchNotesRepository(_markdownDocument));
+      await pump(tester,
+          repository: _FakePatchNotesRepository(_markdownDocument));
       expect(
         rendered(tester).where((text) => text.trim().isEmpty),
         isEmpty,
@@ -220,11 +225,12 @@ void main() {
   /// a step backward, but a trap – and a trap that sounds off with every release.
   /// Ultimately, it ends up being ignored. What needs to be controlled is the **behavior**.
   /// (All asset titles are displayed without their markers), and the vocabulary is from version 1.1.0.
-  List<String> shippedHeadings(String languageCode) => shippedItems(languageCode)
-      .map((item) => item.trim())
-      .where((item) => item.startsWith('#'))
-      .map((item) => item.replaceFirst(RegExp(r'^#+\s*'), '').trim())
-      .toList();
+  List<String> shippedHeadings(String languageCode) =>
+      shippedItems(languageCode)
+          .map((item) => item.trim())
+          .where((item) => item.startsWith('#'))
+          .map((item) => item.replaceFirst(RegExp(r'^#+\s*'), '').trim())
+          .toList();
 
   group('PatchNotesScreen — shipped assets (regression lock)', () {
     for (final languageCode in ['fr', 'en', 'es']) {
@@ -249,17 +255,20 @@ void main() {
     }
 
     testWidgets('fr notes check one row per bullet', (tester) async {
-      await pump(tester, repository: shippedAsset('fr'), locale: const Locale('fr'));
+      await pump(tester,
+          repository: shippedAsset('fr'), locale: const Locale('fr'));
       expectIconsMatchBullets(tester, 'fr');
     });
 
     testWidgets('en notes check one row per bullet', (tester) async {
-      await pump(tester, repository: shippedAsset('en'), locale: const Locale('en'));
+      await pump(tester,
+          repository: shippedAsset('en'), locale: const Locale('en'));
       expectIconsMatchBullets(tester, 'en');
     });
 
     testWidgets('es notes check one row per bullet', (tester) async {
-      await pump(tester, repository: shippedAsset('es'), locale: const Locale('es'));
+      await pump(tester,
+          repository: shippedAsset('es'), locale: const Locale('es'));
       expectIconsMatchBullets(tester, 'es');
     });
   });

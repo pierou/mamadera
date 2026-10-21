@@ -8,7 +8,8 @@ sealed class ReminderFrequency with _$ReminderFrequency {
   const factory ReminderFrequency.daily() = Daily;
   const factory ReminderFrequency.weekly({required int dayOfWeek}) = Weekly;
   const factory ReminderFrequency.monthly({required int dayOfMonth}) = Monthly;
-  const factory ReminderFrequency.customInterval({@Default(7) int days}) = CustomInterval;
+  const factory ReminderFrequency.customInterval({@Default(7) int days}) =
+      CustomInterval;
 }
 
 /// Private helper: compare two dates for same calendar day.
@@ -29,7 +30,10 @@ final DateTime _weeklyEpoch = DateTime.utc(2000, 1, 3);
 /// in later weeks always score higher. Dates before [_weeklyEpoch] truncate
 /// toward zero, which is irrelevant here: no baby event predates the epoch.
 int _weekIndex(DateTime date) =>
-    DateTime.utc(date.year, date.month, date.day).difference(_weeklyEpoch).inDays ~/ 7;
+    DateTime.utc(date.year, date.month, date.day)
+        .difference(_weeklyEpoch)
+        .inDays ~/
+    7;
 
 /// Monotonic index of the calendar month containing [date] (2025-01 → 24301).
 int _monthIndex(DateTime date) => date.year * 12 + date.month;
@@ -66,23 +70,23 @@ extension ReminderFrequencyIsDue on ReminderFrequency {
   /// - [CustomInterval]: unchanged rolling behaviour — due once at least
   ///   [CustomInterval.days] whole days have elapsed since [lastCompleted].
   bool isDue(DateTime now, DateTime? lastCompleted) => map(
-    daily: (_) => lastCompleted == null || !_isSameDay(now, lastCompleted),
-    weekly: (_) {
-      if (lastCompleted == null) return true;
-      // Different ISO week => due; same week => suppressed.
-      return _weekIndex(now) > _weekIndex(lastCompleted);
-    },
-    monthly: (freq) {
-      if (lastCompleted == null) return true;
-      // Same month (or clock skew backwards) — this month's occurrence is done.
-      if (_monthIndex(now) <= _monthIndex(lastCompleted)) return false;
-      // Later month, but not before the configured day of that month.
-      return now.day >= _clampedDayOfMonth(now, freq.dayOfMonth);
-    },
-    customInterval: (freq) {
-      if (lastCompleted == null) return true;
-      final diff = now.difference(lastCompleted).inDays;
-      return diff >= freq.days;
-    },
-  );
+        daily: (_) => lastCompleted == null || !_isSameDay(now, lastCompleted),
+        weekly: (_) {
+          if (lastCompleted == null) return true;
+          // Different ISO week => due; same week => suppressed.
+          return _weekIndex(now) > _weekIndex(lastCompleted);
+        },
+        monthly: (freq) {
+          if (lastCompleted == null) return true;
+          // Same month (or clock skew backwards) — this month's occurrence is done.
+          if (_monthIndex(now) <= _monthIndex(lastCompleted)) return false;
+          // Later month, but not before the configured day of that month.
+          return now.day >= _clampedDayOfMonth(now, freq.dayOfMonth);
+        },
+        customInterval: (freq) {
+          if (lastCompleted == null) return true;
+          final diff = now.difference(lastCompleted).inDays;
+          return diff >= freq.days;
+        },
+      );
 }

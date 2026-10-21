@@ -215,7 +215,8 @@ void main() {
       // Breastfeeding: default subtype (breast), quantity: zero.
       final miam = findByKey(TestKeys.trackMiam);
       if (miam.evaluate().isEmpty) {
-        final visibles = find.byType(Text)
+        final visibles = find
+            .byType(Text)
             .evaluate()
             .map((e) => (e.widget as Text).data)
             .whereType<String>()
@@ -287,7 +288,8 @@ void main() {
       // The Android system would remain open, and the dialog spinner would prevent any further action.
       // pumpAndSettle.
       final doc = shareStash.content;
-      expect(doc, isNotNull, reason: 'le JSON a été capturé au moment du share');
+      expect(doc, isNotNull,
+          reason: 'le JSON a été capturé au moment du share');
       print('[EXPORT] ${shareStash.params?.files?.single.path} ');
       expect(doc!, contains('"exportFormatVersion"'));
       expect(doc, contains('"babyProfiles"'));

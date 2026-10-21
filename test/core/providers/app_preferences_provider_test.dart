@@ -39,14 +39,18 @@ void main() {
     });
 
     test('setPatchNotesOptOut sets patchNotesOptOut', () async {
-      await container.read(appPreferencesProvider.notifier).setPatchNotesOptOut(value: true);
+      await container
+          .read(appPreferencesProvider.notifier)
+          .setPatchNotesOptOut(value: true);
       final state = container.read(appPreferencesProvider);
 
       expect(state.value!.patchNotesOptOut, true);
     });
 
     test('markPatchNotesSeen sets appVersion to current', () async {
-      await container.read(appPreferencesProvider.notifier).markPatchNotesSeen();
+      await container
+          .read(appPreferencesProvider.notifier)
+          .markPatchNotesSeen();
       final state = container.read(appPreferencesProvider);
 
       expect(state.value!.appVersion, AppConfig.version);
@@ -54,8 +58,12 @@ void main() {
 
     test('multiple operations work correctly', () async {
       await container.read(appPreferencesProvider.notifier).acceptTerms();
-      await container.read(appPreferencesProvider.notifier).setPatchNotesOptOut(value: true);
-      await container.read(appPreferencesProvider.notifier).markPatchNotesSeen();
+      await container
+          .read(appPreferencesProvider.notifier)
+          .setPatchNotesOptOut(value: true);
+      await container
+          .read(appPreferencesProvider.notifier)
+          .markPatchNotesSeen();
 
       final state = container.read(appPreferencesProvider);
       expect(state.value!.termsAccepted, true);

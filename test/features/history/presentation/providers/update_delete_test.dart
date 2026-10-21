@@ -63,7 +63,7 @@ void main() {
       final updated = FeedingEvent(
         unit: QuantityUnit.ml,
         id: 10,
-        timestamp: DateTime.utc(2024, 6, 1),         // Timestamp modified.
+        timestamp: DateTime.utc(2024, 6, 1), // Timestamp modified.
         subtype: FeedingSubtype.natural,
       );
 
@@ -89,7 +89,7 @@ void main() {
         isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
-      await updateFuture;       // Wait for the operation to finish.
+      await updateFuture; // Wait for the operation to finish.
       pendingFutures.remove(updateFuture);
 
       // Post-waiting state: data state with a refreshed list containing the modified event.
@@ -115,8 +115,8 @@ void main() {
       when(mockRepository.getEventsByType(TrackingType.miam))
           .thenAnswer((_) async {
         callCount++;
-        if (callCount == 1) return [event1];         // Initial filtered build, yum!
-        return [updated];         // Filtered refresh after update.
+        if (callCount == 1) return [event1]; // Initial filtered build, yum!
+        return [updated]; // Filtered refresh after update.
       });
 
       final notifier = container.read(
@@ -132,7 +132,7 @@ void main() {
         isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
-      await updateFuture;       // Wait for the operation to finish.
+      await updateFuture; // Wait for the operation to finish.
       pendingFutures.remove(updateFuture);
 
       // The "refresh post-update" feature used the `getEventsByType` function, respecting the specified filter.
@@ -191,7 +191,7 @@ void main() {
         if (callCount == 1) return [event1, event2]; // Initial build : 2 events
         return [
           event1
-        ];         // Post-deletion refresh: only the event that was not deleted remains.
+        ]; // Post-deletion refresh: only the event that was not deleted remains.
       });
 
       final notifier = container.read(
@@ -207,7 +207,7 @@ void main() {
         isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
-      await deleteFuture;       // Wait for the operation to finish.
+      await deleteFuture; // Wait for the operation to finish.
 
       final state = container.read(historyNotifierProvider(HistoryFilter.all));
       expect(state, isA<AsyncData<List<HistoryRow>>>());
@@ -248,7 +248,7 @@ void main() {
         isA<AsyncLoading<List<HistoryRow>>>(),
       );
 
-      await deleteFuture;       // Wait for the operation to finish.
+      await deleteFuture; // Wait for the operation to finish.
 
       final state = container.read(historyNotifierProvider(HistoryFilter.dodo));
       expect(state, isA<AsyncData<List<HistoryRow>>>());

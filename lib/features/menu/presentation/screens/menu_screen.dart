@@ -62,9 +62,12 @@ class MenuScreen extends ConsumerWidget {
                     ),
               ),
               const SizedBox(height: AppTheme.spacingMd),
-              _buildLanguageTile(context, ref, 'fr', currentLanguage, context.l.languageFrench),
-              _buildLanguageTile(context, ref, 'en', currentLanguage, context.l.languageEnglish),
-              _buildLanguageTile(context, ref, 'es', currentLanguage, context.l.languageSpanish),
+              _buildLanguageTile(context, ref, 'fr', currentLanguage,
+                  context.l.languageFrench),
+              _buildLanguageTile(context, ref, 'en', currentLanguage,
+                  context.l.languageEnglish),
+              _buildLanguageTile(context, ref, 'es', currentLanguage,
+                  context.l.languageSpanish),
 
               // Theme Section
               const SizedBox(height: AppTheme.spacingXxl),
@@ -75,9 +78,30 @@ class MenuScreen extends ConsumerWidget {
                     ),
               ),
               const SizedBox(height: AppTheme.spacingMd),
-              _buildThemeTile(context, ref, 'system', currentThemeMode, Icons.brightness_auto_outlined, Icons.brightness_1, context.l.themeSystem),
-              _buildThemeTile(context, ref, 'light', currentThemeMode, Icons.light_mode_outlined, Icons.light_mode, context.l.themeLight),
-              _buildThemeTile(context, ref, 'dark', currentThemeMode, Icons.dark_mode_outlined, Icons.dark_mode, context.l.themeDark),
+              _buildThemeTile(
+                  context,
+                  ref,
+                  'system',
+                  currentThemeMode,
+                  Icons.brightness_auto_outlined,
+                  Icons.brightness_1,
+                  context.l.themeSystem),
+              _buildThemeTile(
+                  context,
+                  ref,
+                  'light',
+                  currentThemeMode,
+                  Icons.light_mode_outlined,
+                  Icons.light_mode,
+                  context.l.themeLight),
+              _buildThemeTile(
+                  context,
+                  ref,
+                  'dark',
+                  currentThemeMode,
+                  Icons.dark_mode_outlined,
+                  Icons.dark_mode,
+                  context.l.themeDark),
 
               // Reminders Section
               const SizedBox(height: AppTheme.spacingXxl),
@@ -244,7 +268,8 @@ class MenuScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildResetDatabaseTile(BuildContext context, WidgetRef ref) => _buildDangerTile(
+  Widget _buildResetDatabaseTile(BuildContext context, WidgetRef ref) =>
+      _buildDangerTile(
         context: context,
         icon: Icons.warning_amber_rounded,
         title: context.l.resetDatabaseButton,
@@ -309,7 +334,8 @@ class MenuScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(8),
       );
 
-  Future<void> _showResetDatabaseDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showResetDatabaseDialog(
+      BuildContext context, WidgetRef ref) async {
     final colorScheme = Theme.of(context).colorScheme;
     final confirmTitle = context.l.resetDatabaseConfirm;
     final confirmContent = context.l.resetDatabaseWarningDetail;
@@ -321,8 +347,13 @@ class MenuScreen extends ConsumerWidget {
         title: Text(confirmTitle),
         content: Text(confirmContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(cancelLabel)),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, true), style: TextButton.styleFrom(foregroundColor: colorScheme.error), child: Text(confirmLabel)),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(cancelLabel)),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+              child: Text(confirmLabel)),
         ],
       ),
     );
@@ -360,15 +391,20 @@ class MenuScreen extends ConsumerWidget {
         ..invalidate(reminderNotifierProvider);
       if (context.mounted) _showSnackBar(context, successLabel);
     } catch (e) {
-      if (context.mounted) _showSnackBar(context, errorLabel(e.toString()), isError: true);
+      if (context.mounted) {
+        _showSnackBar(context, errorLabel(e.toString()), isError: true);
+      }
     }
   }
 
-  void _showSnackBar(BuildContext context, String message, {bool isError = false}) {
+  void _showSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
+        backgroundColor: isError
+            ? Theme.of(context).colorScheme.error
+            : Theme.of(context).colorScheme.primary,
       ),
     );
   }

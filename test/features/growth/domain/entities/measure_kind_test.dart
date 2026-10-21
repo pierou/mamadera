@@ -29,7 +29,8 @@ void main() {
       }
     });
 
-    test('defaultValue is inside the range and on the step grid, for every kind',
+    test(
+        'defaultValue is inside the range and on the step grid, for every kind',
         () {
       expect(MeasureKind.poids.defaultValue, 3500);
       expect(MeasureKind.taille.defaultValue, 50);

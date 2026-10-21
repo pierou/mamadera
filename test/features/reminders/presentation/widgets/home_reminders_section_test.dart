@@ -131,7 +131,8 @@ void main() {
       expect(find.text('Thermomètre'), findsOneWidget);
     });
 
-    testWidgets('sans rappel dû : une ligne discrète, pas de titre ni de '
+    testWidgets(
+        'sans rappel dû : une ligne discrète, pas de titre ni de '
         'ligne (D1)', (tester) async {
       final repo = MockRemindersRepository();
       // All the settings have been configured today: there's nothing else to do.
@@ -151,7 +152,8 @@ void main() {
       expect(find.byType(ReminderRow), findsNothing);
     });
 
-    testWidgets('chaque ligne montre libellé, rythme, dernière fois et les '
+    testWidgets(
+        'chaque ligne montre libellé, rythme, dernière fois et les '
         'deux actions (D1)', (tester) async {
       final repo = MockRemindersRepository();
       repo.customRemindersById[1] = thermometer();
@@ -190,7 +192,8 @@ void main() {
       );
     });
 
-    testWidgets('quatre rappels dus : les quatre sont lisibles, pas un '
+    testWidgets(
+        'quatre rappels dus : les quatre sont lisibles, pas un '
         '« +2 » (D1)', (tester) async {
       final repo = MockRemindersRepository();
       await pumpSection(tester, repo: repo, baby: babyA);
@@ -207,12 +210,12 @@ void main() {
   });
 
   group('actions de la ligne (D1/D2/D3)', () {
-    testWidgets('« fait » sur un détaché : la ligne part, le journal est '
+    testWidgets(
+        '« fait » sur un détaché : la ligne part, le journal est '
         'scopé au bébé actif (D1)', (tester) async {
       final repo = MockRemindersRepository();
       repo.customRemindersById[1] = thermometer();
-      final (container, _) =
-          await pumpSection(tester, repo: repo, baby: babyA);
+      final (container, _) = await pumpSection(tester, repo: repo, baby: babyA);
 
       await tester.tap(
         find.descendant(
@@ -234,7 +237,8 @@ void main() {
       expect(find.text('Thermomètre'), findsOneWidget);
     });
 
-    testWidgets('un préréglage lié à un soin n offre aucun bouton « fait » '
+    testWidgets(
+        'un préréglage lié à un soin n offre aucun bouton « fait » '
         '— impossible de fabriquer un faux achèvement (D2)', (tester) async {
       final repo = MockRemindersRepository();
       await pumpSection(tester, repo: repo, baby: babyA);
@@ -249,8 +253,7 @@ void main() {
         findsNothing,
       );
       expect(repo.recordCompletionCallCount, 0,
-          reason:
-              'un soin se règle par son événement, jamais par un journal '
+          reason: 'un soin se règle par son événement, jamais par un journal '
               'manuel fabriqué par le bouton');
       expect(find.text('Vitamine D'), findsOneWidget);
 
@@ -264,12 +267,12 @@ void main() {
       );
     });
 
-    testWidgets('« ignorer » : la ligne part, tient 24 h, revient de '
+    testWidgets(
+        '« ignorer » : la ligne part, tient 24 h, revient de '
         'soi-même (D3)', (tester) async {
       final repo = MockRemindersRepository();
       repo.customRemindersById[1] = thermometer();
-      final (container, _) =
-          await pumpSection(tester, repo: repo, baby: babyA);
+      final (container, _) = await pumpSection(tester, repo: repo, baby: babyA);
 
       await tester.tap(
         find.descendant(
@@ -297,7 +300,8 @@ void main() {
       expect(find.text('Thermomètre'), findsOneWidget);
     });
 
-    testWidgets('un ignoré pour le bébé A reste affiché pour le bébé B '
+    testWidgets(
+        'un ignoré pour le bébé A reste affiché pour le bébé B '
         '(D3, à l\'écran)', (tester) async {
       final repo = ScopedDismissalRemindersRepository();
       repo.customRemindersById[1] = thermometer();

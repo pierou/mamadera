@@ -75,7 +75,8 @@ class _ImportDataDialogState extends ConsumerState<ImportDataDialog> {
     } catch (error) {
       // MissingPluginException, a revoked URI permission, a file moved away
       // while the picker was open — all one honest outcome.
-      _showResult(const ImportRejected(reason: ImportRejectionReason.unreadableFile));
+      _showResult(
+          const ImportRejected(reason: ImportRejectionReason.unreadableFile));
       return;
     }
     final outcome =
@@ -253,7 +254,9 @@ class _ImportDataDialogState extends ConsumerState<ImportDataDialog> {
           counts.trackingEvents,
         ),
       ImportRejected(:final reason) => _rejectionMessage(l, reason),
-      ImportFailed() || ImportIdle() || ImportSummaryReady() =>
+      ImportFailed() ||
+      ImportIdle() ||
+      ImportSummaryReady() =>
         l.importDataErrorFailed,
       null => l.importDataErrorFailed,
     };
@@ -283,8 +286,10 @@ class _ImportDataDialogState extends ConsumerState<ImportDataDialog> {
         ImportRejectionReason.fileTooLarge =>
           l.importDataErrorInvalidFile,
         ImportRejectionReason.notAMamaderaFile => l.importDataErrorNotMamadera,
-        ImportRejectionReason.newerFormatVersion => l.importDataErrorNewerVersion,
-        ImportRejectionReason.newerSchemaVersion => l.importDataErrorNewerSchema,
+        ImportRejectionReason.newerFormatVersion =>
+          l.importDataErrorNewerVersion,
+        ImportRejectionReason.newerSchemaVersion =>
+          l.importDataErrorNewerSchema,
         ImportRejectionReason.emptyFile => l.importDataErrorEmpty,
         ImportRejectionReason.unreadableFile => l.importDataErrorUnreadable,
       };

@@ -76,7 +76,8 @@ void main() {
       await service.clear();
 
       // Verify file is removed
-      expect(File('${tempDir.path}/.mamadera_theme.json').existsSync(), isFalse);
+      expect(
+          File('${tempDir.path}/.mamadera_theme.json').existsSync(), isFalse);
     });
 
     test('clear does nothing when file does not exist', () async {

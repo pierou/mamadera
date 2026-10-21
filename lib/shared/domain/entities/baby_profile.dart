@@ -36,5 +36,3 @@ BabyProfile babyProfileUpdated(
     isActive: isActive ?? profile.isActive,
   );
 }
-
-

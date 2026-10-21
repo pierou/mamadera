@@ -55,8 +55,7 @@ void main() {
       expectUnique(tester, TestKeys.trackDodo);
     });
 
-    testWidgets(
-        'Opening a dialog then switching tabs dismisses the overlay',
+    testWidgets('Opening a dialog then switching tabs dismisses the overlay',
         (tester) async {
       await pumpMamadera(tester);
 
@@ -87,11 +86,13 @@ void main() {
       expect(
         find.byType(FilterChip),
         findsWidgets,
-        reason: 'History screen should be visible after tab switch dismisses dialog',
+        reason:
+            'History screen should be visible after tab switch dismisses dialog',
       );
     });
 
-    testWidgets('Rapid tab switching settles on final destination', (tester) async {
+    testWidgets('Rapid tab switching settles on final destination',
+        (tester) async {
       await pumpMamadera(tester);
 
       // Simulate rapid taps across all three tabs.
@@ -113,7 +114,11 @@ void main() {
       await pumpMamadera(tester);
 
       // Verify all tab keys exist simultaneously on the initial home screen.
-      for (final key in [TestKeys.homeTab, TestKeys.historyTab, TestKeys.menuTab]) {
+      for (final key in [
+        TestKeys.homeTab,
+        TestKeys.historyTab,
+        TestKeys.menuTab
+      ]) {
         expectUnique(
           tester,
           key,

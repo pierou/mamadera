@@ -20,7 +20,8 @@ export 'reminder_settings_notifier.dart';
 ///
 /// Exposed under the domain interface [RemindersRepository] so the presentation
 /// layer depends on the abstraction (and tests can override a fake).
-final remindersRepositoryProvider = FutureProvider<RemindersRepository>((ref) async {
+final remindersRepositoryProvider =
+    FutureProvider<RemindersRepository>((ref) async {
   final database = await ref.watch(databaseProvider.future);
   return RemindersRepositoryImpl(database: database);
 });
@@ -38,7 +39,8 @@ final babyProfileProvider = FutureProvider<BabyProfileRepository>((ref) async {
 /// re-evaluates reactively whenever the selected baby changes — ensuring
 /// reminders are always computed for the currently active profile, not a
 /// stale cached value.
-final dynamicRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async {
+final dynamicRemindersProvider =
+    FutureProvider<List<ReminderItem>>((ref) async {
   // ref.watch creates a reactive dependency — when activeBabyProvider changes,
   // this FutureProvider re-evaluates automatically.
   final activeProfile = await ref.watch(activeBabyProvider.future);
@@ -78,7 +80,8 @@ final customReminderItemsProvider =
 /// If a key is missing from the `reminderSettingsProvider`, it defaults to "enabled," and the other two...
 /// families adhere to the same table – a `custom_7` that is turned off is stored just like any other.
 /// `vitamin_d` is disabled.
-final enabledRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async {
+final enabledRemindersProvider =
+    FutureProvider<List<ReminderItem>>((ref) async {
   final presets = await ref.watch(dynamicRemindersProvider.future);
   final custom = await ref.watch(customReminderItemsProvider.future);
   final settings = await ref.watch(reminderSettingsProvider.future);
@@ -92,7 +95,8 @@ final enabledRemindersProvider = FutureProvider<List<ReminderItem>>((ref) async 
 /// Uses a reactive dependency on `enabledRemindersProvider.future`
 /// to ensure this provider re-evaluates whenever
 /// the dynamic reminders list changes (e.g. when the active baby switches).
-final remindersServiceProvider = FutureProvider.autoDispose<RemindersService>((ref) async {
+final remindersServiceProvider =
+    FutureProvider.autoDispose<RemindersService>((ref) async {
   // Watch enabledRemindersProvider.future to create a reactive dependency.
   // When it changes (baby switch, or a reminder switched off in the menu), this
   // FutureProvider re-evaluates with the new item list.

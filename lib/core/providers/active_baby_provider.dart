@@ -8,7 +8,8 @@ import '../../shared/domain/entities/baby_profile.dart';
 /// This is the single source of truth for "which baby is currently selected".
 /// Only one baby can be active at a time — switching is handled via
 /// [ActiveBabyNotifier.switchProfile].
-final activeBabyProvider = AsyncNotifierProvider<ActiveBabyNotifier, BabyProfile?>(
+final activeBabyProvider =
+    AsyncNotifierProvider<ActiveBabyNotifier, BabyProfile?>(
   ActiveBabyNotifier.new,
 );
 

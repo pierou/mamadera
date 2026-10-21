@@ -21,8 +21,8 @@ void main() {
 
       // Verify we can perform operations (database is functional)
       await db.insertEvent(
-        TrackingEventsCompanion(unit: const Value('ml'),
-          
+        TrackingEventsCompanion(
+          unit: const Value('ml'),
           type: const Value('miam'),
           timestamp: Value(DateTime.now()),
           duration: const Value(null),
@@ -55,8 +55,8 @@ void main() {
 
       // Insert
       final id = await db.insertEvent(
-        TrackingEventsCompanion(unit: const Value('min'),
-          
+        TrackingEventsCompanion(
+          unit: const Value('min'),
           type: const Value('dodo'),
           timestamp: Value(DateTime.now()),
           duration: const Value(60),
@@ -67,7 +67,10 @@ void main() {
       );
 
       // Update
-      await db.updateEvent(id, const TrackingEventsCompanion(unit: const Value('ml'), notes: Value('nap')));
+      await db.updateEvent(
+          id,
+          const TrackingEventsCompanion(
+              unit: const Value('ml'), notes: Value('nap')));
 
       // Read
       final events = await db.getEvents();
@@ -87,8 +90,10 @@ void main() {
 
     setUp(() async {
       counter++;
-      final uniqueName = 'mamadera_test_$counter${DateTime.now().millisecondsSinceEpoch}';
-      tempDir = await Directory('${Directory.systemTemp.path}/$uniqueName').create(recursive: true);
+      final uniqueName =
+          'mamadera_test_$counter${DateTime.now().millisecondsSinceEpoch}';
+      tempDir = await Directory('${Directory.systemTemp.path}/$uniqueName')
+          .create(recursive: true);
     });
 
     tearDown(() async {
@@ -100,15 +105,16 @@ void main() {
       await tempDir.delete(recursive: true);
     });
 
-    test('createAppDatabase creates functional database with directoryPath', () async {
+    test('createAppDatabase creates functional database with directoryPath',
+        () async {
       final db = await createAppDatabase(directoryPath: tempDir.path);
 
       expect(db.schemaVersion, greaterThan(0));
 
       // Verify we can perform operations (database is functional)
       await db.insertEvent(
-        TrackingEventsCompanion(unit: const Value('ml'),
-          
+        TrackingEventsCompanion(
+          unit: const Value('ml'),
           type: const Value('miam'),
           timestamp: Value(DateTime.now()),
           duration: const Value(null),
@@ -132,7 +138,9 @@ void main() {
   group('resetDatabase', () {
     test('does nothing when database file does not exist', () async {
       final uniqueName = 'reset_test_${DateTime.now().millisecondsSinceEpoch}';
-      final tempDir = await Directory('${Directory.systemTemp.path}/$uniqueName').create(recursive: true);
+      final tempDir =
+          await Directory('${Directory.systemTemp.path}/$uniqueName')
+              .create(recursive: true);
 
       try {
         // No database file created - should not throw
@@ -144,14 +152,16 @@ void main() {
 
     test('deletes database file when it exists', () async {
       final uniqueName = 'reset_test2_${DateTime.now().millisecondsSinceEpoch}';
-      final tempDir = await Directory('${Directory.systemTemp.path}/$uniqueName').create(recursive: true);
+      final tempDir =
+          await Directory('${Directory.systemTemp.path}/$uniqueName')
+              .create(recursive: true);
 
       try {
         // Create a database file
         final db = await createAppDatabase(directoryPath: tempDir.path);
         await db.insertEvent(
-          TrackingEventsCompanion(unit: const Value('ml'),
-            
+          TrackingEventsCompanion(
+            unit: const Value('ml'),
             type: const Value('miam'),
             timestamp: Value(DateTime.now()),
           ),

@@ -34,7 +34,8 @@ class CustomRemindersNotifier extends AsyncNotifier<List<CustomReminder>> {
   Future<String> create(CustomReminder reminder) async {
     final profile = await ref.read(activeBabyProvider.future);
     final repository = await ref.read(remindersRepositoryProvider.future);
-    final id = await repository.insertCustomReminder(reminder, babyId: profile?.id);
+    final id =
+        await repository.insertCustomReminder(reminder, babyId: profile?.id);
     await _refreshAfterWrite();
     return '${CustomReminderPresets.customIdPrefix}$id';
   }

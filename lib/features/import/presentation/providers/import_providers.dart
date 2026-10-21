@@ -88,8 +88,7 @@ class ImportController extends AsyncNotifier<ImportOutcome> {
 
   /// Parses and validates [json]; on success the outcome carries the row counts
   /// for the confirmation dialog. Performs no write.
-  Future<ImportOutcome> inspectFile(String json) =>
-      _run(() async {
+  Future<ImportOutcome> inspectFile(String json) => _run(() async {
         final repository = await ref.read(importRepositoryProvider.future);
         final parsed = await repository.parseExport(json);
         if (!ref.mounted) return const ImportIdle();
@@ -191,4 +190,5 @@ class ImportController extends AsyncNotifier<ImportOutcome> {
 /// Not autoDispose: the confirmation summary lives in the controller's pending
 /// document, and a dialog rebuild must not throw the parent's decision away.
 final importControllerProvider =
-    AsyncNotifierProvider<ImportController, ImportOutcome>(ImportController.new);
+    AsyncNotifierProvider<ImportController, ImportOutcome>(
+        ImportController.new);

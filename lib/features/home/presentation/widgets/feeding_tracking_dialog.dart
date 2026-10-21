@@ -113,11 +113,11 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
   /// The slider brings it closer, the stepper adjusts it precisely, and the input field sets the value.
   /// dernier cran (docs/BACKLOG.md B2).
   ({double min, double max, int divisions, double step}) get _pickerSpec =>
-          switch (_unit) {
-            QuantityUnit.ml => (min: 0, max: 300, divisions: 30, step: 10),
-            QuantityUnit.min => (min: 0, max: 120, divisions: 120, step: 1),
-            QuantityUnit.g => (min: 0, max: 1000, divisions: 200, step: 5),
-          };
+      switch (_unit) {
+        QuantityUnit.ml => (min: 0, max: 300, divisions: 30, step: 10),
+        QuantityUnit.min => (min: 0, max: 120, divisions: 120, step: 1),
+        QuantityUnit.g => (min: 0, max: 1000, divisions: 200, step: 5),
+      };
 
   /// The displayed unit: the unit of the line currently being entered, resolved since...
   /// the locale — an `'ml'` character will never be written in the widget.

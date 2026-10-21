@@ -16,7 +16,8 @@ void main() {
       GlobalCupertinoLocalizations.delegate,
     ];
 
-    testWidgets('renders Scaffold with AppBar showing terms title', (tester) async {
+    testWidgets('renders Scaffold with AppBar showing terms title',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -50,7 +51,8 @@ void main() {
       expect(appBar.centerTitle, isTrue);
     });
 
-    testWidgets('shows loading indicator while fetching terms content', (tester) async {
+    testWidgets('shows loading indicator while fetching terms content',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -102,7 +104,9 @@ void main() {
       expect(find.byType(TermsScreen), findsOneWidget);
     });
 
-    testWidgets('uses French asset path as default fallback for non-en/es locales', (tester) async {
+    testWidgets(
+        'uses French asset path as default fallback for non-en/es locales',
+        (tester) async {
       // For any locale not en/es, should fall back to French assets/terms/terms_fr.md
       // We verify the Scaffold/AppBar render regardless of asset loading success
       await tester.pumpWidget(
@@ -162,7 +166,8 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('displays error message when asset fails to load', (tester) async {
+    testWidgets('displays error message when asset fails to load',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -181,7 +186,8 @@ void main() {
       expect(center, findsWidgets);
     });
 
-    testWidgets('FutureBuilder handles all connection states gracefully', (tester) async {
+    testWidgets('FutureBuilder handles all connection states gracefully',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -193,7 +199,7 @@ void main() {
       );
 
       await tester.pump();
-      
+
       // Verify FutureBuilder is present and handling waiting state initially
       expect(find.byType(FutureBuilder<String>), findsOneWidget);
     });

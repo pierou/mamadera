@@ -47,11 +47,13 @@ void main() {
       GlobalCupertinoLocalizations.delegate,
     ];
 
-    testWidgets('renders dialog with close button and opt-out checkbox', (tester) async {
+    testWidgets('renders dialog with close button and opt-out checkbox',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -74,7 +76,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -94,13 +97,15 @@ void main() {
       expect(dismissed, isTrue);
     });
 
-    testWidgets('renders skip button when showSkipButton is true', (tester) async {
+    testWidgets('renders skip button when showSkipButton is true',
+        (tester) async {
       bool skipped = false;
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -124,11 +129,13 @@ void main() {
       expect(skipped, isTrue);
     });
 
-    testWidgets('does not render skip button when showSkipButton is false', (tester) async {
+    testWidgets('does not render skip button when showSkipButton is false',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -147,7 +154,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -166,7 +174,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -192,7 +201,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -212,7 +222,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -231,7 +242,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -244,14 +256,16 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
 
       final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
-      expect(button.style?.padding?.resolve({}), equals(const EdgeInsets.symmetric(vertical: 16)));
+      expect(button.style?.padding?.resolve({}),
+          equals(const EdgeInsets.symmetric(vertical: 16)));
     });
 
     testWidgets('skip button has primary color styling', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -267,7 +281,8 @@ void main() {
 
       await tester.pump(const Duration(seconds: 2));
 
-      final skipButton = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
+      final skipButton =
+          tester.widget<OutlinedButton>(find.byType(OutlinedButton));
       expect(skipButton.style?.side?.resolve({}), isNotNull);
     });
 
@@ -275,7 +290,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -295,7 +311,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -307,16 +324,19 @@ void main() {
 
       await tester.pump(const Duration(seconds: 2));
 
-      expect(find.byType(Row), findsWidgets); // Checkbox row + type selector rows in content
+      expect(find.byType(Row),
+          findsWidgets); // Checkbox row + type selector rows in content
     });
 
-    testWidgets('multiple taps on close call callback each time', (tester) async {
+    testWidgets('multiple taps on close call callback each time',
+        (tester) async {
       var dismissCount = 0;
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -334,12 +354,14 @@ void main() {
       expect(dismissCount, equals(1));
     });
 
-    testWidgets('dialog builds with async provider loading state', (tester) async {
+    testWidgets('dialog builds with async provider loading state',
+        (tester) async {
       // Test that dialog renders even when provider is still loading
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,

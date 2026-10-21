@@ -86,7 +86,9 @@ class DialogActionButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(child: DialogCancelButton(onPressed: onCancelPressed, label: cancelLabel)),
+        Expanded(
+            child: DialogCancelButton(
+                onPressed: onCancelPressed, label: cancelLabel)),
         const SizedBox(width: 8),
         Expanded(
           child: DialogConfirmButton(

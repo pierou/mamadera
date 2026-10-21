@@ -18,7 +18,8 @@ abstract class BabyProfileRepository {
   /// Update an existing profile's mutable fields.
   ///
   /// Returns the updated profile on success, or `null` if [id] was not found.
-  Future<BabyProfile?> updateProfile(String id, {String? name, DateTime? birthDate});
+  Future<BabyProfile?> updateProfile(String id,
+      {String? name, DateTime? birthDate});
 
   /// Delete a baby profile and, in the same transaction, every tracking event
   /// belonging to it — no event is ever left orphaned behind a deleted baby.

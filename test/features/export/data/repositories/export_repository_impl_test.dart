@@ -73,7 +73,7 @@ void main() {
           wasteType: const Value('caca'),
           color: const Value('meconium'),
           texture: const Value('pateuse'),
-          babyId: const Value(null),           // orphan row: must be exported.
+          babyId: const Value(null), // orphan row: must be exported.
         ),
       );
       await database.insertEvent(

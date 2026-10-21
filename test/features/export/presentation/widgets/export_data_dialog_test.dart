@@ -92,7 +92,9 @@ const _counts = ExportCounts(
 
 void main() {
   group('ExportDataDialog — consentement', () {
-    testWidgets("l'avertissement de confidentialité s'affiche avant toute action", (tester) async {
+    testWidgets(
+        "l'avertissement de confidentialité s'affiche avant toute action",
+        (tester) async {
       await _pumpDialog(
         tester,
         () => _StubController(const ExportIdle()),
@@ -100,7 +102,8 @@ void main() {
 
       expect(find.text('Exporter mes données'), findsOneWidget);
       expect(
-        find.text('Ce fichier contiendra toutes vos données, y compris les notes de santé en texte lisible. Vous choisissez où l\'enregistrer : rien n\'est envoyé automatiquement.'),
+        find.text(
+            'Ce fichier contiendra toutes vos données, y compris les notes de santé en texte lisible. Vous choisissez où l\'enregistrer : rien n\'est envoyé automatiquement.'),
         findsOneWidget,
       );
       expect(find.text('Exporter'), findsOneWidget);
@@ -126,7 +129,8 @@ void main() {
   });
 
   group('ExportDataDialog — résultats', () {
-    testWidgets('succès : message localisé, aucun détail interne', (tester) async {
+    testWidgets('succès : message localisé, aucun détail interne',
+        (tester) async {
       await _pumpDialog(
         tester,
         () => _StubController(const ExportSuccess(counts: _counts)),
@@ -153,12 +157,14 @@ void main() {
       expect(find.text('Aucune donnée à exporter'), findsOneWidget);
     });
 
-    testWidgets('échec : message generic, jamais l\'exception brute', (tester) async {
+    testWidgets('échec : message generic, jamais l\'exception brute',
+        (tester) async {
       await _pumpDialog(
         tester,
         () => _StubController(
           const ExportFailure(
-            message: "PathNotFoundException: Cannot open file, path = '/private/var/tmp/x'",
+            message:
+                "PathNotFoundException: Cannot open file, path = '/private/var/tmp/x'",
           ),
         ),
       );

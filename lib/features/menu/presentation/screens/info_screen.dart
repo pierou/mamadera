@@ -51,7 +51,8 @@ class InfoScreen extends ConsumerWidget {
 
             const SizedBox(height: AppTheme.spacingMd),
             ListTile(
-              leading: Icon(Icons.image_outlined, color: colorScheme.onSurfaceVariant),
+              leading: Icon(Icons.image_outlined,
+                  color: colorScheme.onSurfaceVariant),
               title: Text(l.aboutFlaticonCredit),
               subtitle: RichText(
                 text: TextSpan(
@@ -83,10 +84,13 @@ class InfoScreen extends ConsumerWidget {
 
             const SizedBox(height: AppTheme.spacingMd),
             ListTile(
-              leading: Icon(Icons.code_outlined, color: colorScheme.onSurfaceVariant),
+              leading: Icon(Icons.code_outlined,
+                  color: colorScheme.onSurfaceVariant),
               title: Text(l.aboutLicenseLabel),
-              trailing: Icon(Icons.open_in_new, size: 18, color: colorScheme.onSurfaceVariant),
-              onTap: () => _launchUrl(context, 'https://github.com/pierou/mamadera'),
+              trailing: Icon(Icons.open_in_new,
+                  size: 18, color: colorScheme.onSurfaceVariant),
+              onTap: () =>
+                  _launchUrl(context, 'https://github.com/pierou/mamadera'),
             ),
           ],
         ),
@@ -97,7 +101,11 @@ class InfoScreen extends ConsumerWidget {
   Widget _buildSection(BuildContext context, String label, String value) {
     return Row(
       children: [
-        Text(label, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Text(label,
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(width: AppTheme.spacingSm),
         Text(value, style: Theme.of(context).textTheme.titleMedium),
       ],
@@ -107,7 +115,10 @@ class InfoScreen extends ConsumerWidget {
   Widget _buildSectionTitle(String title, BuildContext context) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+      style: Theme.of(context)
+          .textTheme
+          .titleMedium
+          ?.copyWith(fontWeight: FontWeight.bold),
     );
   }
 

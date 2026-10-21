@@ -13,5 +13,6 @@ class AppConfig {
   static const String contactEmail = 'support@pvj.io';
 
   /// GitHub repository URL for issue tracking.
-  static const String githubIssuesUrl = 'https://github.com/pierou/mamadera/issues/new';
+  static const String githubIssuesUrl =
+      'https://github.com/pierou/mamadera/issues/new';
 }

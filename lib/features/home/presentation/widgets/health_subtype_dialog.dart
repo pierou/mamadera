@@ -38,7 +38,10 @@ class _HealthSubtypeDialogState extends State<HealthSubtypeDialog> {
           children: [
             Text(
               context.l.healthSubtypeDialogTitle,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
 
@@ -52,7 +55,8 @@ class _HealthSubtypeDialogState extends State<HealthSubtypeDialog> {
                 ),
                 title: Text(resolveHealthLabel(context, subtype)),
                 trailing: selectedType == subtype
-                    ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+                    ? Icon(Icons.check_circle,
+                        color: Theme.of(context).colorScheme.primary)
                     : null,
                 onTap: () {
                   setState(() => _selectedType = subtype);
@@ -82,7 +86,8 @@ class _HealthSubtypeDialogState extends State<HealthSubtypeDialog> {
                   }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(context.l.healthSubtypeRequiredError)),
+                    SnackBar(
+                        content: Text(context.l.healthSubtypeRequiredError)),
                   );
                 }
               },

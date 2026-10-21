@@ -80,7 +80,8 @@ void main() {
   }
 
   group('markDone (D1/D2)', () {
-    test('un détaché : le journal manuel est scopé au bébé actif, la ligne part',
+    test(
+        'un détaché : le journal manuel est scopé au bébé actif, la ligne part',
         () async {
       final repo = ScopedDismissalRemindersRepository();
       // The deposit is applied before the container: this is how the provider chain works.
@@ -98,7 +99,9 @@ void main() {
           .values
           .expand((s) => s)
           .firstWhere((s) => s.item.id == 'custom_1');
-      await container.read(reminderNotifierProvider.notifier).markDone(status.item);
+      await container
+          .read(reminderNotifierProvider.notifier)
+          .markDone(status.item);
       await settle(container);
 
       expect(ids(container), isNot(contains('custom_1')));
@@ -108,7 +111,8 @@ void main() {
       // The newspaper has already processed the payment for today's subscription; no further payment is due.
       // As long as the day doesn't change (daily frequency).
       expect(
-        item.frequency.isDue(DateTime.now(), repo.manualCompletedByItem['custom_1']),
+        item.frequency
+            .isDue(DateTime.now(), repo.manualCompletedByItem['custom_1']),
         isFalse,
       );
     });
@@ -127,7 +131,9 @@ void main() {
           .values
           .expand((s) => s)
           .firstWhere((s) => s.item.id == 'vitamine_d');
-      await container.read(reminderNotifierProvider.notifier).markDone(status.item);
+      await container
+          .read(reminderNotifierProvider.notifier)
+          .markDone(status.item);
       await settle(container);
 
       // No entries found in `reminder_completions`: a care reminder was not...
@@ -154,7 +160,9 @@ void main() {
           .values
           .expand((s) => s)
           .firstWhere((s) => s.item.id == 'vitamine_d');
-      await container.read(reminderNotifierProvider.notifier).snooze(status.item);
+      await container
+          .read(reminderNotifierProvider.notifier)
+          .snooze(status.item);
       await settle(container);
 
       expect(repo.dismissCallCount, 1);
@@ -180,7 +188,9 @@ void main() {
           .values
           .expand((s) => s)
           .firstWhere((s) => s.item.id == 'vitamine_d');
-      await container.read(reminderNotifierProvider.notifier).snooze(status.item);
+      await container
+          .read(reminderNotifierProvider.notifier)
+          .snooze(status.item);
       await settle(container);
       expect(ids(container), isNot(contains('vitamine_d')));
 

@@ -20,7 +20,7 @@ class HistoryTile extends StatelessWidget {
   });
 
   final TrackingEvent event;
-  final String time;   // formatted as dd/MM/yyyy HH:mm.
+  final String time; // formatted as dd/MM/yyyy HH:mm.
   final VoidCallback? onTap;
 
   String _typeLabel(BuildContext context) {

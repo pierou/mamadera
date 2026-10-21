@@ -37,7 +37,8 @@ class FakeBabyProfileRepository implements BabyProfileRepository {
   }
 
   @override
-  Future<BabyProfile?> updateProfile(String id, {String? name, DateTime? birthDate}) async {
+  Future<BabyProfile?> updateProfile(String id,
+      {String? name, DateTime? birthDate}) async {
     final profile = _profiles[id];
     if (profile == null) return null;
     final updated = BabyProfile(
@@ -83,17 +84,29 @@ void main() {
     });
 
     test('returns active profile when set', () async {
-      final profile = BabyProfile(id: '1', name: 'Test', birthDate: DateTime(2024, 1, 1), isActive: true);
+      final profile = BabyProfile(
+          id: '1',
+          name: 'Test',
+          birthDate: DateTime(2024, 1, 1),
+          isActive: true);
       mockRepo.setProfile(profile);
-      
+
       final result = await container.read(activeBabyProvider.future);
       expect(result?.name, 'Test');
     });
 
     test('refreshes active profile', () async {
-      final profile1 = BabyProfile(id: '1', name: 'Test1', birthDate: DateTime(2024, 1, 1), isActive: true);
-      final profile2 = BabyProfile(id: '2', name: 'Test2', birthDate: DateTime(2024, 2, 2), isActive: true);
-      
+      final profile1 = BabyProfile(
+          id: '1',
+          name: 'Test1',
+          birthDate: DateTime(2024, 1, 1),
+          isActive: true);
+      final profile2 = BabyProfile(
+          id: '2',
+          name: 'Test2',
+          birthDate: DateTime(2024, 2, 2),
+          isActive: true);
+
       mockRepo.setProfile(profile1);
       var result = await container.read(activeBabyProvider.future);
       expect(result?.name, 'Test1');
@@ -105,12 +118,20 @@ void main() {
     });
 
     test('switchProfile updates active profile', () async {
-      final profile1 = BabyProfile(id: '1', name: 'Test1', birthDate: DateTime(2024, 1, 1), isActive: true);
-      final profile2 = BabyProfile(id: '2', name: 'Test2', birthDate: DateTime(2024, 2, 2), isActive: true);
-      
+      final profile1 = BabyProfile(
+          id: '1',
+          name: 'Test1',
+          birthDate: DateTime(2024, 1, 1),
+          isActive: true);
+      final profile2 = BabyProfile(
+          id: '2',
+          name: 'Test2',
+          birthDate: DateTime(2024, 2, 2),
+          isActive: true);
+
       mockRepo.setProfile(profile1);
       mockRepo.setProfile(profile2);
-      
+
       await container.read(activeBabyProvider.notifier).switchProfile('2');
       final result = await container.read(activeBabyProvider.future);
       expect(result?.id, '2');

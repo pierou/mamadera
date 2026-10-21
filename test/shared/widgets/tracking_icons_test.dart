@@ -54,8 +54,10 @@ void main() {
   group('HealthIcons.fromValue', () {
     test('nettoyage types return cleaning_services icon', () {
       expect(HealthIcons.fromValue('nettoyage_yeux'), Icons.cleaning_services);
-      expect(HealthIcons.fromValue('nettoyage_nombril'), Icons.cleaning_services);
-      expect(HealthIcons.fromValue('nettoyage_visage'), Icons.cleaning_services);
+      expect(
+          HealthIcons.fromValue('nettoyage_nombril'), Icons.cleaning_services);
+      expect(
+          HealthIcons.fromValue('nettoyage_visage'), Icons.cleaning_services);
       expect(HealthIcons.fromValue('nettoyage_nez'), Icons.cleaning_services);
     });
 
@@ -65,17 +67,22 @@ void main() {
     });
 
     test('unknown value returns health_and_safety icon', () {
-      expect(HealthIcons.fromValue('unknown_fallback'), Icons.health_and_safety);
+      expect(
+          HealthIcons.fromValue('unknown_fallback'), Icons.health_and_safety);
     });
   });
 
   group('HealthIcons.from (HealthSubtype)', () {
     test('returns correct icon for each HealthSubtype constant', () {
       // Nettoyages → cleaning_services
-      expect(HealthIcons.from(HealthSubtype.nettoyageYeux), Icons.cleaning_services);
-      expect(HealthIcons.from(HealthSubtype.nettoyageNombril), Icons.cleaning_services);
-      expect(HealthIcons.from(HealthSubtype.nettoyageVisage), Icons.cleaning_services);
-      expect(HealthIcons.from(HealthSubtype.nettoyageNez), Icons.cleaning_services);
+      expect(HealthIcons.from(HealthSubtype.nettoyageYeux),
+          Icons.cleaning_services);
+      expect(HealthIcons.from(HealthSubtype.nettoyageNombril),
+          Icons.cleaning_services);
+      expect(HealthIcons.from(HealthSubtype.nettoyageVisage),
+          Icons.cleaning_services);
+      expect(HealthIcons.from(HealthSubtype.nettoyageNez),
+          Icons.cleaning_services);
 
       // Vitamines → medication
       expect(HealthIcons.from(HealthSubtype.vitamineD), Icons.medication);

@@ -11,7 +11,8 @@ import 'package:flutter/material.dart';
 /// 1.1.0 — a declared dependency you do not use is still an audit surface).
 /// If richer markdown is ever needed, a real span visitor belongs here, not a
 /// silent re-add of that package.
-List<TextSpan> parseMarkdownToTextSpans(List<String> lines, BuildContext context) {
+List<TextSpan> parseMarkdownToTextSpans(
+    List<String> lines, BuildContext context) {
   final spans = <TextSpan>[];
   final theme = Theme.of(context);
   final style = TextStyle(
@@ -67,7 +68,8 @@ List<TextSpan> parseMarkdownToTextSpans(List<String> lines, BuildContext context
         ),
         const TextSpan(text: '\n\n'),
       ]);
-    } else if ((line.startsWith('- ') || line.startsWith('* ')) && !line.startsWith('--')) {
+    } else if ((line.startsWith('- ') || line.startsWith('* ')) &&
+        !line.startsWith('--')) {
       spans.addAll([
         const TextSpan(text: '  •  '),
         TextSpan(text: parseInlineMarkdown(line.substring(2)), style: style),

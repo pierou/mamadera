@@ -53,7 +53,11 @@ void main() {
       await pumpMamadera(tester);
 
       // All three tabs should render in the BottomNavigationBar.
-      for (final key in [TestKeys.homeTab, TestKeys.historyTab, TestKeys.menuTab]) {
+      for (final key in [
+        TestKeys.homeTab,
+        TestKeys.historyTab,
+        TestKeys.menuTab
+      ]) {
         expectUnique(tester, key);
       }
     });
