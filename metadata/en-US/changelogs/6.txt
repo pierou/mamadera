@@ -1,0 +1,4 @@
+Fix-forward on v1.1.0 — and the first Apple App Store release:
+• Reminders switched off in Settings now disappear from Home immediately instead of waiting for the next poll
+• Removed an unreachable reminder cooldown code path
+• iOS export-compliance declaration: exempt encryption only, keys never leave the device

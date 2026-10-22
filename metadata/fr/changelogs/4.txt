@@ -1,0 +1,7 @@
+Ce qui compte, à l'abri 📬
+• Ajout de rappels personnalisés par soin, avec désactivation des prédéfinis
+• Choix de la date et de l'heure à la création d'un événement
+• Suivi de la texture des selles lors des changements de couche
+• Exportation de toutes les données en JSON et restauration depuis fichier exporté — sans cloud, sur l'appareil
+• Termes, dates et notes de version désormais en espagnol
+• Corrections : notes conservées à la modification d'une entrée santé, récupération après effacement
