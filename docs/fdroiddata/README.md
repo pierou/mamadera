@@ -6,7 +6,7 @@ holds two kinds of files that live in *different* repositories:
 | File | Goes to |
 |------|---------|
 | `com.pvjio.mamadera.yml` | fork of https://gitlab.com/fdroid/fdroiddata → `metadata/` |
-| `disable-release-signing-guard.patch` | same fork → `patches/com.pvjio.mamadera/` |
+| `disable-release-signing-guard.patch` | same fork → `metadata/com.pvjio.mamadera/` (per-app dir — **not** the legacy 1.x `patches/` tree, which no longer exists on master; `patch:` entries resolve against `metadata/<appid>/`, cf. `a2dp.Vol`) |
 | (the `metadata/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source |
 
 ## One-time submission (status: MR opened 2026-10-22)
@@ -15,7 +15,7 @@ holds two kinds of files that live in *different* repositories:
    v1.1.0 shipped from that RC; there was never a stable tag). All six
    `Builds` entries reference pushed tags only.
 2. Fork `fdroiddata` (GitLab), add `metadata/com.pvjio.mamadera.yml` and
-   `patches/com.pvjio.mamadera/disable-release-signing-guard.patch`, open a MR
+   `metadata/com.pvjio.mamadera/disable-release-signing-guard.patch`, open a MR
    labelled **"New App"**. The fdroiddata pipeline builds, scans and signs.
    **Done:** MR [!53740](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53740)
    opened 2026-10-22 from fork `pvjacquier/fdroiddata`, branch
@@ -57,6 +57,12 @@ The first pipeline run (2026-10-22) failed on three jobs, all formatting:
     dir**, and srclibs are checked out *outside* it — `build/srclib/flutter`
     entries are "non-exist + unused" errors. Only `.pub-cache` (created
     inside the source by `PUB_CACHE=$(pwd)/.pub-cache`) belongs there.
+- **`patch:` files live in `metadata/<appid>/`, not `patches/<appid>/`.**
+  The legacy 1.x `patches/` tree no longer exists on fdroiddata master and
+  fdroidserver does not look there: it resolves `patch:` entries against
+  `metadata/<appid>/` (exactly like `a2dp.Vol/gradle.patch`). A patch in the
+  wrong tree fails the build with `Can't open patch file … : No such file or
+  directory`.
 
 Before pushing any change to the fork, run locally (the pipeline uses the
 Debian-trixie `fdroidserver` package; any recent fdroidserver gets you most of
