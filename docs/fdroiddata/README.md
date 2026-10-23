@@ -41,8 +41,22 @@ The first pipeline run (2026-10-22) failed on three jobs, all formatting:
 - **`fdroid rewritemeta` / `checkupdates`** — both fail if the file is not
   byte-identical to fdroidserver's own canonical rewrite. The canonical form
   (2.0): no comments, `output` right after `commit`, `build` last in the entry,
-  and `AutoUpdateMode`/`UpdateCheckMode`/`UpdateCheckData`/`CurrentVersion`/
-  `CurrentVersionCode` **after** `Builds:` at the end of the file.
+  `AutoName` in the header block (checkupdates --auto fetches it from the
+  AndroidManifest label and adds it), and `AutoUpdateMode`/`UpdateCheckMode`/
+  `UpdateCheckData`/`CurrentVersion`/`CurrentVersionCode` **after** `Builds:`
+  at the end of the file.
+- **Scanner (run by `fdroid build`)** — two Flutter-specific traps, both
+  fixed in the current file:
+  - the Flutter template's `org.gradle.toolchains.foojay-resolver-convention`
+    plugin in `android/settings.gradle.kts` is a **usual suspect** (it
+    downloads JVM toolchains over the network). Every Flutter app in fdroiddata
+    strips it in prebuild: `sed -i -e '/foojay/d' android/settings.gradle.kts`
+    (see `app.fluffy`). `android/gradle/gradle-daemon-jvm.properties` is
+    removed automatically by fdroidserver — no patch needed.
+  - `scanignore`/`scandelete` paths are resolved inside the **scanned source
+    dir**, and srclibs are checked out *outside* it — `build/srclib/flutter`
+    entries are "non-exist + unused" errors. Only `.pub-cache` (created
+    inside the source by `PUB_CACHE=$(pwd)/.pub-cache`) belongs there.
 
 Before pushing any change to the fork, run locally (the pipeline uses the
 Debian-trixie `fdroidserver` package; any recent fdroidserver gets you most of

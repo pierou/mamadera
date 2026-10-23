@@ -8,6 +8,8 @@ SourceCode: https://github.com/pierou/mamadera
 IssueTracker: https://github.com/pierou/mamadera/issues
 Changelog: https://github.com/pierou/mamadera/releases
 
+AutoName: Mamadera
+
 RepoType: git
 Repo: https://github.com/pierou/mamadera
 
@@ -26,10 +28,8 @@ Builds:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - $$flutter$$/bin/flutter config --no-analytics
       - $$flutter$$/bin/flutter pub get --enforce-lockfile
-    scanignore:
-      - build/srclib/flutter/bin/cache
+      - sed -i -e '/foojay/d' android/settings.gradle.kts
     scandelete:
-      - build/srclib/flutter
       - .pub-cache
     build:
       - export PUB_CACHE=$(pwd)/.pub-cache
@@ -49,10 +49,8 @@ Builds:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - $$flutter$$/bin/flutter config --no-analytics
       - $$flutter$$/bin/flutter pub get --enforce-lockfile
-    scanignore:
-      - build/srclib/flutter/bin/cache
+      - sed -i -e '/foojay/d' android/settings.gradle.kts
     scandelete:
-      - build/srclib/flutter
       - .pub-cache
     build:
       - export PUB_CACHE=$(pwd)/.pub-cache
@@ -74,10 +72,8 @@ Builds:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - $$flutter$$/bin/flutter config --no-analytics
       - $$flutter$$/bin/flutter pub get --enforce-lockfile
-    scanignore:
-      - build/srclib/flutter/bin/cache
+      - sed -i -e '/foojay/d' android/settings.gradle.kts
     scandelete:
-      - build/srclib/flutter
       - .pub-cache
     build:
       - export PUB_CACHE=$(pwd)/.pub-cache
@@ -99,10 +95,8 @@ Builds:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - $$flutter$$/bin/flutter config --no-analytics
       - $$flutter$$/bin/flutter pub get --enforce-lockfile
-    scanignore:
-      - build/srclib/flutter/bin/cache
+      - sed -i -e '/foojay/d' android/settings.gradle.kts
     scandelete:
-      - build/srclib/flutter
       - .pub-cache
     build:
       - export PUB_CACHE=$(pwd)/.pub-cache
@@ -124,10 +118,8 @@ Builds:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - $$flutter$$/bin/flutter config --no-analytics
       - $$flutter$$/bin/flutter pub get --enforce-lockfile
-    scanignore:
-      - build/srclib/flutter/bin/cache
+      - sed -i -e '/foojay/d' android/settings.gradle.kts
     scandelete:
-      - build/srclib/flutter
       - .pub-cache
     build:
       - export PUB_CACHE=$(pwd)/.pub-cache
@@ -149,10 +141,8 @@ Builds:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - $$flutter$$/bin/flutter config --no-analytics
       - $$flutter$$/bin/flutter pub get --enforce-lockfile
-    scanignore:
-      - build/srclib/flutter/bin/cache
+      - sed -i -e '/foojay/d' android/settings.gradle.kts
     scandelete:
-      - build/srclib/flutter
       - .pub-cache
     build:
       - export PUB_CACHE=$(pwd)/.pub-cache
