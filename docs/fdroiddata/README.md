@@ -7,6 +7,7 @@ holds two kinds of files that live in *different* repositories:
 |------|---------|
 | `com.pvjio.mamadera.yml` | fork of https://gitlab.com/fdroid/fdroiddata → `metadata/` |
 | `disable-release-signing-guard.patch` | same fork → `metadata/com.pvjio.mamadera/` (per-app dir — **not** the legacy 1.x `patches/` tree, which no longer exists on master; `patch:` entries resolve against `metadata/<appid>/`, cf. `a2dp.Vol`) |
+| `remove-java-toolchain-pin.patch` | same per-app dir | v1.2.0+ only — see scanner/build notes below |
 | (the `metadata/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source |
 
 ## One-time submission (status: MR opened 2026-10-22)
@@ -63,6 +64,17 @@ The first pipeline run (2026-10-22) failed on three jobs, all formatting:
   `metadata/<appid>/` (exactly like `a2dp.Vol/gradle.patch`). A patch in the
   wrong tree fails the build with `Can't open patch file … : No such file or
   directory`.
+- **The v1.2.0 toolchain pin is a second F-Droid-only patch.**
+  Upstream (v1.2.0+, scar tissue from a dead foojay redirect on the GitHub
+  ubuntu runner) pins `jvmToolchain(17)` + `kotlin.jvm.toolchain=17`
+  (`auto-download=false`). Pre-v1.2.0 tags have no pin and compile fine on
+  the fdroid builder's daemon JVM; v1.2.0+ then dies with `Cannot find a
+  Java installation … matching {languageVersion=17}` because the foojay
+  plugin has been stripped and no local JDK 17 exists. So v1.2.0/v1.2.1 get
+  `remove-java-toolchain-pin.patch` (drops the pin in
+  `android/app/build.gradle.kts` and `android/gradle.properties`) **on top
+  of** the signing-guard patch. Upstream CI is untouched: it keeps the pin
+  and installs JDK 17.
 
 Before pushing any change to the fork, run locally (the pipeline uses the
 Debian-trixie `fdroidserver` package; any recent fdroidserver gets you most of

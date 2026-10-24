@@ -107,6 +107,7 @@ Builds:
     commit: v1.2.0
     patch:
       - disable-release-signing-guard.patch
+      - remove-java-toolchain-pin.patch
     output: build/app/outputs/flutter-apk/app-release.apk
     srclibs:
       - flutter@stable
@@ -130,6 +131,7 @@ Builds:
     commit: v1.2.1
     patch:
       - disable-release-signing-guard.patch
+      - remove-java-toolchain-pin.patch
     output: build/app/outputs/flutter-apk/app-release.apk
     srclibs:
       - flutter@stable
