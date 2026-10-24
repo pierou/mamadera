@@ -1,0 +1,7 @@
+Back up what matters 📬
+• Custom reminders tied to any care; switch off the presets you don't need
+• Pick the exact date and time when adding an event
+• Stool texture tracking on diaper changes
+• Export everything as a JSON file and restore it anytime — manual, on-device, no cloud, no account
+• Spanish speakers get native terms, dates and release notes
+• Fixes: notes kept when editing health entries, clean recovery after a data reset
