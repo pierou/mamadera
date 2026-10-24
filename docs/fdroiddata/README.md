@@ -55,8 +55,32 @@ three things. All three are policy/style, none contested the app:
 *Gotcha to remember:* the MR description embedded screenshot URLs from
 `raw.githubusercontent.com/pierou/mamadera/develop/metadata/…`. Moving to
 fastlane 404s those, and a broken image in the abstract reads as a missing
-screenshot. Pin them to the **immutable tag** (`/raw/v1.2.1/…`), which never
-moves and matches the only version being built.
+screenshot. Pin them to a **commit SHA**, which never moves.
+
+### The tag predates its own metadata — the trap behind "create fastlane in repo"
+
+fdroidserver ingests descriptions, changelogs and screenshots from the source
+**at the commit it builds** (`update.py` scans
+`build/<appid>/fastlane/metadata/android/<locale>`, and a root `metadata/` too).
+Tag `v1.2.1` was cut *before* PR #45 added the metadata tree, so
+`git ls-tree v1.2.1` has no `metadata/` and no `fastlane/` at all — a
+`Builds` entry pinned to that tag produces a **bare listing**: name + category,
+no description, no changelog, no screenshots. `fdroid lint` does not catch it;
+only looking at the listing does.
+
+`develop` is not the fix either: it is three refactoring commits past the
+release (144-file canonical reformat, domain-free-of-Flutter, screenshot
+campaign) — building it would publish **unreleased code under a released
+versionCode**. The pin is therefore:
+
+- branch `fdroid-metadata-v1.2.1` @ `5fcd9b1` = tag `v1.2.1` + the fastlane
+  tree **and nothing else** (`git diff v1.2.1 <sha> -- lib/ android/ pubspec.yaml`
+  is empty, so the APK *is* the released 1.2.1 / versionCode 11), and
+- `commit: 5fcd9b1…` in fdroiddata, screenshot URLs in the MR abstract pinned
+  to the same SHA.
+
+Once a tag that carries `fastlane/metadata/android/` ships (v1.2.2 onward), go
+back to `commit: vX.Y.Z` and delete the branch.
 
 ## fdroiddata formatting — what fails the pipeline
 
@@ -110,6 +134,9 @@ fdroid lint com.pvjio.mamadera
 
 ## Per-release upkeep (every stable tag)
 
+- **Make sure the tag contains `fastlane/metadata/android/`.** Metadata added
+  on `develop` after a tag is cut is invisible to the build of that tag (see
+  the trap above) — the fastlane tree must be merged before the tag, not after.
 - `Builds:` — **replace** the previous entry with the new release (the
   pre-merge rule is one entry only; keep it that way, it is also what the
   builders prefer): `versionName`/`versionCode` straight from the tagged
