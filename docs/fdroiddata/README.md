@@ -6,17 +6,14 @@ holds two kinds of files that live in *different* repositories:
 | File | Goes to |
 |------|---------|
 | `com.pvjio.mamadera.yml` | fork of https://gitlab.com/fdroid/fdroiddata → `metadata/` |
-| `disable-release-signing-guard.patch` | same fork → `metadata/com.pvjio.mamadera/` (per-app dir — **not** the legacy 1.x `patches/` tree, which no longer exists on master; `patch:` entries resolve against `metadata/<appid>/`, cf. `a2dp.Vol`) |
-| `remove-java-toolchain-pin.patch` | same per-app dir | v1.2.0+ only — see scanner/build notes below |
-| (the `metadata/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source |
+| (the `fastlane/metadata/android/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source, in **fastlane layout** (required by the New App checklist — a plain `metadata/` dir happens to be read too, but it is not accepted for inclusion) |
 
 ## One-time submission (status: MR opened 2026-10-22)
 
 1. The stable tag `v1.1.0` was added at `3780a25` (the `v1.1.0-rc.2` commit —
    v1.1.0 shipped from that RC; there was never a stable tag). All six
    `Builds` entries reference pushed tags only.
-2. Fork `fdroiddata` (GitLab), add `metadata/com.pvjio.mamadera.yml` and
-   `metadata/com.pvjio.mamadera/disable-release-signing-guard.patch`, open a MR
+2. Fork `fdroiddata` (GitLab), add `metadata/com.pvjio.mamadera.yml`, open a MR
    labelled **"New App"**. The fdroiddata pipeline builds, scans and signs.
    **Done:** MR [!53740](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53740)
    opened 2026-10-22 from fork `pvjacquier/fdroiddata`, branch
@@ -25,6 +22,65 @@ holds two kinds of files that live in *different* repositories:
 3. This app has **no network transport at all** (offline-only mandate), so the
    scanner should report no `AntiFeatures` and no licence hits beyond the
    FOSS Flutter/Dart ecosystem.
+
+## Review round (2026-10-24) — what a maintainer asked for
+
+`seekme-seekyou` reviewed !53740 after six green source builds and asked for
+three things. All three are policy/style, none contested the app:
+
+1. **No patch files.** The house idiom for Flutter is `sed` in `prebuild:`
+   (1175 apps on master strip foojay that way; ~470 delete `keystore`/`signingConfig`
+   blocks with sed). Both patches were folded into three one-line seds and
+   `metadata/com.pvjio.mamadera/` was deleted. For reference the two facts the
+   patches encoded, now as seds:
+   - `sed -i -e 's/releaseBuildRequested && !hasReleaseSigning/false/' android/app/build.gradle.kts`
+     — upstream deliberately throws when a release build has no keystore (so we
+     never ship debug-signed); F-Droid re-signs, so the guard is off there only.
+   - `sed -i -e '/Pin the compile toolchain/,/^}/d' android/app/build.gradle.kts`
+     + `sed -i -e '/kotlin.jvm.toolchain/d' -e '/java.installations.auto-download/d' android/gradle.properties`
+     — v1.2.0+ pins `jvmToolchain(17)` with `auto-download=false`; once foojay
+     is stripped nothing can satisfy that pin (`Cannot find a Java installation
+     … {languageVersion=17}`), while pre-v1.2.0 tags have no pin and build on
+     the builder's daemon JVM. Delete the range, not just the inner line — the
+     comment header goes with it. `^kotlin {` alone would leave it orphaned.
+2. **Only the latest version before merge** — the New App checklist says it
+   verbatim ("Only the latest versions should be kept in the metadata before
+   it's merged"), and pointed at `templates/build-flutter.yml`. The six
+   `Builds` entries (1.0.0→1.2.1) collapse to one: **1.2.1 / 11**. Nothing is
+   lost: the app was never on F-Droid, and the older tags stay tag-exact in
+   the app repo. `rm:` grew to cover every leftover template platform dir
+   (`ios linux macos web windows` — all five exist in this repo).
+3. **fastlane in the repo** — see the table above: `fastlane/metadata/android/`.
+
+*Gotcha to remember:* the MR description embedded screenshot URLs from
+`raw.githubusercontent.com/pierou/mamadera/develop/metadata/…`. Moving to
+fastlane 404s those, and a broken image in the abstract reads as a missing
+screenshot. Pin them to a **commit SHA**, which never moves.
+
+### The tag predates its own metadata — the trap behind "create fastlane in repo"
+
+fdroidserver ingests descriptions, changelogs and screenshots from the source
+**at the commit it builds** (`update.py` scans
+`build/<appid>/fastlane/metadata/android/<locale>`, and a root `metadata/` too).
+Tag `v1.2.1` was cut *before* PR #45 added the metadata tree, so
+`git ls-tree v1.2.1` has no `metadata/` and no `fastlane/` at all — a
+`Builds` entry pinned to that tag produces a **bare listing**: name + category,
+no description, no changelog, no screenshots. `fdroid lint` does not catch it;
+only looking at the listing does.
+
+`develop` is not the fix either: it is three refactoring commits past the
+release (144-file canonical reformat, domain-free-of-Flutter, screenshot
+campaign) — building it would publish **unreleased code under a released
+versionCode**. The pin is therefore:
+
+- branch `fdroid-metadata-v1.2.1` @ `5fcd9b1` = tag `v1.2.1` + the fastlane
+  tree **and nothing else** (`git diff v1.2.1 <sha> -- lib/ android/ pubspec.yaml`
+  is empty, so the APK *is* the released 1.2.1 / versionCode 11), and
+- `commit: 5fcd9b1…` in fdroiddata, screenshot URLs in the MR abstract pinned
+  to the same SHA.
+
+Once a tag that carries `fastlane/metadata/android/` ships (v1.2.2 onward), go
+back to `commit: vX.Y.Z` and delete the branch.
 
 ## fdroiddata formatting — what fails the pipeline
 
@@ -63,18 +119,8 @@ The first pipeline run (2026-10-22) failed on three jobs, all formatting:
   fdroidserver does not look there: it resolves `patch:` entries against
   `metadata/<appid>/` (exactly like `a2dp.Vol/gradle.patch`). A patch in the
   wrong tree fails the build with `Can't open patch file … : No such file or
-  directory`.
-- **The v1.2.0 toolchain pin is a second F-Droid-only patch.**
-  Upstream (v1.2.0+, scar tissue from a dead foojay redirect on the GitHub
-  ubuntu runner) pins `jvmToolchain(17)` + `kotlin.jvm.toolchain=17`
-  (`auto-download=false`). Pre-v1.2.0 tags have no pin and compile fine on
-  the fdroid builder's daemon JVM; v1.2.0+ then dies with `Cannot find a
-  Java installation … matching {languageVersion=17}` because the foojay
-  plugin has been stripped and no local JDK 17 exists. So v1.2.0/v1.2.1 get
-  `remove-java-toolchain-pin.patch` (drops the pin in
-  `android/app/build.gradle.kts` and `android/gradle.properties`) **on top
-  of** the signing-guard patch. Upstream CI is untouched: it keeps the pin
-  and installs JDK 17.
+  directory`. Kept as a fact — this app no longer ships patches at all (see
+  the review round above), fdroiddata maintainers prefer sed.
 
 Before pushing any change to the fork, run locally (the pipeline uses the
 Debian-trixie `fdroidserver` package; any recent fdroidserver gets you most of
@@ -88,24 +134,32 @@ fdroid lint com.pvjio.mamadera
 
 ## Per-release upkeep (every stable tag)
 
-- `Builds:` — new entry: `versionName`/`versionCode` straight from the tagged
+- **Make sure the tag contains `fastlane/metadata/android/`.** Metadata added
+  on `develop` after a tag is cut is invisible to the build of that tag (see
+  the trap above) — the fastlane tree must be merged before the tag, not after.
+- `Builds:` — **replace** the previous entry with the new release (the
+  pre-merge rule is one entry only; keep it that way, it is also what the
+  builders prefer): `versionName`/`versionCode` straight from the tagged
   `pubspec.yaml` (`X.Y.Z+N`; N is monotonic across RCs — never renumber),
-  `commit: vX.Y.Z`, same prebuild/build/output block, `patch:` if the
-  signing guard exists in that tag (it does in every tag ≥ v1.1.0). Keep the
-  entry in canonical key order (`versionName`, `versionCode`, `commit`,
-  `patch`, `output`, `srclibs`, `rm`, `prebuild`, `scanignore`, `scandelete`,
-  `build`) — the `rewritemeta` job above is the check.
+  `commit: vX.Y.Z`, and the same prebuild/build/output block. The three seds
+  belong in every new entry — the signing guard is in every tag ≥ v1.1.0 and
+  the toolchain pin in every tag ≥ v1.2.0. Keep the entry in canonical key
+  order (`versionName`, `versionCode`, `commit`, `output`, `srclibs`, `rm`,
+  `prebuild`, `scandelete`, `build`) — the `rewritemeta` job above is the check.
 - `CurrentVersion` / `CurrentVersionCode` — bump to the new release (the block
   lives at the **end** of the file, after `Builds:`).
-- `metadata/<locale>/changelogs/<N>.txt` — one file per **versionCode**
-  (not per versionName), ≤ 500 chars per locale; reuse the store "What's new"
-  blocks (they are already counted against Play's 500-char limit).
-- `metadata/<locale>/short_description.txt` (≤ 80 chars) and
+- `fastlane/metadata/android/<locale>/changelogs/<N>.txt` — one file per
+  **versionCode** (not per versionName), ≤ 500 chars per locale; reuse the store
+  "What's new" blocks (they are already counted against Play's 500-char limit).
+- `fastlane/metadata/android/<locale>/short_description.txt` (≤ 80 chars) and
   `full_description.txt` — keep in sync with `store/source/<locale>/`
   (en) and the aligned `store/v<N>/fields/play-<locale>-*.txt`.
-- `metadata/en-US/images/` — refresh `icon.png` (512×512, downsample of the
-  iOS marketing icon) and `phoneScreenshots/` when screens change
-  (`screenshots/android/` is the verified en set).
+- `fastlane/metadata/android/en-US/images/` — refresh `icon.png` (512×512,
+  downsample of the iOS marketing icon) and `phoneScreenshots/` when screens
+  change (`screenshots/android/` is the verified en set). Locale lives in the
+  directory here, so filenames stay `1.png`/`2.png`/`3.png` — the
+  locale-in-filename rule applies to the *capture* dirs under `screenshots/`,
+  not to fastlane.
 
 The auto-update check (`UpdateCheckMode: Tags` + `UpdateCheckData` on
 `pubspec.yaml`) then picks up the new tag without touching this file — as
