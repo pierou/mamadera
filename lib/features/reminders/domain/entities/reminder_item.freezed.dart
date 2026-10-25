@@ -19,28 +19,27 @@ mixin _$ReminderItem {
   ReminderFrequency get frequency;
   TrackingType get trackingType;
 
-  /// Related care (a subtype of the [trackingType] domain), when the...
-  /// The reminder is set based on a specific event that is recorded.
+  /// Related care (a subtype of the [trackingType] domain) when the
+  /// reminder is settled by a specific recorded event.
   ///
-  /// `null`: A standalone reminder for a medical procedure – its completion is not yet determined.
-  /// by the user, and never inferred from an event (invariant D2).
+  /// `null`: a standalone reminder — its completion is decided by the user
+  /// and never inferred from an event (invariant D2).
   String? get subtypeValue;
 
-  /// Baby, the owner of the recall, when applicable.
+  /// The baby that owns this reminder, when applicable.
   ///
-  /// `null` in the presets: the handover is managed by the line.
-  /// The `baby_id` is always used as the base, and never derived from the item itself.
+  /// `null` in the presets: the scope is supplied by the row. The
+  /// `baby_id` is always used as the scope and never derived from the
+  /// item itself.
   String? get babyId;
 
-  /// Here's what triggers this reminder:
-  /// - [completionFromEvents]: an event that triggers completion.
-  /// [trackingType] with [subtypeValue] (its validity date applies to the...).
-  /// completion);
-  /// - `[completionManual]`: a line from the `reminder_completions` table.
-  /// written by the user — without [subtypeValue], nothing else.
-  /// It can be adjusted (D2 invariant).
+  /// What settles this reminder:
+  /// - [completionFromEvents]: a [trackingType] event with [subtypeValue]
+  ///   (its due date applies to the completion);
+  /// - [completionManual]: a `reminder_completions` row written by the
+  ///   user — nothing else settles it (invariant D2).
   ///
-  /// `null` se lit comme [completionFromEvents].
+  /// `null` is read as [completionFromEvents].
   String? get completionSource;
 
   /// Create a copy of ReminderItem
@@ -384,30 +383,29 @@ class _ReminderItem implements ReminderItem {
   @override
   final TrackingType trackingType;
 
-  /// Related care (a subtype of the [trackingType] domain), when the...
-  /// The reminder is set based on a specific event that is recorded.
+  /// Related care (a subtype of the [trackingType] domain) when the
+  /// reminder is settled by a specific recorded event.
   ///
-  /// `null`: A standalone reminder for a medical procedure – its completion is not yet determined.
-  /// by the user, and never inferred from an event (invariant D2).
+  /// `null`: a standalone reminder — its completion is decided by the user
+  /// and never inferred from an event (invariant D2).
   @override
   final String? subtypeValue;
 
-  /// Baby, the owner of the recall, when applicable.
+  /// The baby that owns this reminder, when applicable.
   ///
-  /// `null` in the presets: the handover is managed by the line.
-  /// The `baby_id` is always used as the base, and never derived from the item itself.
+  /// `null` in the presets: the scope is supplied by the row. The
+  /// `baby_id` is always used as the scope and never derived from the
+  /// item itself.
   @override
   final String? babyId;
 
-  /// Here's what triggers this reminder:
-  /// - [completionFromEvents]: an event that triggers completion.
-  /// [trackingType] with [subtypeValue] (its validity date applies to the...).
-  /// completion);
-  /// - `[completionManual]`: a line from the `reminder_completions` table.
-  /// written by the user — without [subtypeValue], nothing else.
-  /// It can be adjusted (D2 invariant).
+  /// What settles this reminder:
+  /// - [completionFromEvents]: a [trackingType] event with [subtypeValue]
+  ///   (its due date applies to the completion);
+  /// - [completionManual]: a `reminder_completions` row written by the
+  ///   user — nothing else settles it (invariant D2).
   ///
-  /// `null` se lit comme [completionFromEvents].
+  /// `null` is read as [completionFromEvents].
   @override
   final String? completionSource;
 
