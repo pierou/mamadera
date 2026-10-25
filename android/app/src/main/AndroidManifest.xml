@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Roadmap item 12: reminder notifications. Requested at runtime, only when
+         the user opts in (settings → System notifications) — never at launch.
+         No REQUEST_IGNORE_BATTERY_OPTIMIZATIONS: exact alarms are Doze-exempt. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Exact-alarm scheduling for reminder notifications (API 33+, reminder-class
+         exemption). -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
     <application
         android:label="Mamadera"
         android:name="${applicationName}"
