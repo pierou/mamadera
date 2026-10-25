@@ -35,12 +35,12 @@ class TrackingEvents extends Table {
 
   /// Unit of [quantity] — `ml` | `min` | `g`. Schema v12.
   ///
-  /// NOT NULL, **without a DEFAULT value on the Drift side**, intentionally: with a default value, a...
-  /// The `TrackingEventsCompanion.insert` function incorrectly writes "ml" next to a...
-  /// a nap in minutes, and that is exactly the false health figure this
-  /// column exists to prevent. Without a default, the insert compiles only if
-  /// The calling function names the unit. The `DEFAULT 'ml'` value in the `ALTER TABLE` statement refers to...
-  /// As for migration, it remains: it serves to populate the lines that have already been written.
+  /// NOT NULL with **no Drift-side default**, on purpose: a default would let
+  /// an insert silently write `ml` next to a nap recorded in minutes — exactly
+  /// the false health figure this column exists to prevent. Without a default,
+  /// `TrackingEventsCompanion.insert` only compiles when the caller names the
+  /// unit. The `DEFAULT 'ml'` in the v12 `ALTER TABLE` statement is migration
+  /// backfill only: it populates the rows that already existed on disk.
   TextColumn get unit => text()();
 }
 
@@ -66,32 +66,35 @@ class ReminderSettings extends Table {
   Set<Column> get primaryKey => {babyId, itemId};
 }
 
-/// Reminders created by the user, in addition to the four pre-programmed settings.
+/// Reminders created by the user, in addition to the four preset reminders.
 ///
-/// A single line should describe *when* to make a claim, never *what has already been done*: the completion.
-/// is deducted from `tracking_events` (type `sante` + `subtype_value`), as with...
-/// the presets. `label` is a free-text field for the parent to fill in; it is never...
-/// translated, and therefore does not pass through any ARB (Automatic Resource Binding) key.
+/// A row records *when* something is due, never *what was done*: completion is
+/// derived the same way as for presets — either from `tracking_events`
+/// (`type = 'sante'` + `subtype_value`) when [completionSource] is
+/// `from_events`, or from `reminder_completions` when it is `manual` (invariant D2).
+/// `label` is free text written by the parent: it is never translated and never
+/// routed through an ARB key.
 ///
-/// `enabled` is **not** used here: a personalized reminder follows the same table structure.
-/// `reminder_settings`: These are the preset settings (identified by the key `custom_<id>`), and they should be...
-/// There is only one shutdown mechanism within the application.
+/// There is no `enabled` column here: custom reminders are switched off through
+/// the same `reminder_settings` table as the presets, under the key
+/// `custom_<id>` — one shutdown mechanism for both kinds.
 class CustomReminders extends Table {
   IntColumn get id => integer().autoIncrement()();
 
-  /// NOT NULL, `''` = reminder created without a profile, visible only without a profile.
-  /// (The lines inherited from v10, where the table was not scoped, remain.)
-  /// restorable: the import relies on the column, not on this transport mechanism.
+  /// NOT NULL, `''` = reminder created without a baby profile, visible only in
+  /// the profileless scope. Rows inherited from v10 (before the table was
+  /// scoped) keep this value and stay restorable: the import relies on the
+  /// column, not on any transport mechanism.
   TextColumn get babyId =>
       text().withDefault(const Constant(db_const.sharedBabyId))();
   TextColumn get label => text().withLength(min: 1, max: 60)();
 
-  /// Null = reminder **sent separately**: no related care, manual completion (Day 2).
-  /// Value of `HealthSubtype` (`nasal_cleaning`, `umbilical_cleaning`, etc.): care.
-  /// whose absence in the `tracking_events` data triggers a reminder.
+  /// `null` = detached reminder: no related care, completed manually only.
+  /// Otherwise a `HealthSubtype` value (`nasal_cleaning`, `umbilical_cleaning`,
+  /// …): the absence of that care in `tracking_events` makes the reminder due.
   TextColumn get subtypeValue => text().nullable()();
 
-  /// `daily` | `weekly` | `monthly` | `every_n_days` — voir [CustomReminder].
+  /// `daily` | `weekly` | `monthly` | `every_n_days` — see [CustomReminder].
   TextColumn get frequency => text()();
 
   /// Only applicable for `every_n_days`:  The duration of the cycle in days.
@@ -102,13 +105,13 @@ class CustomReminders extends Table {
       text().withDefault(const Constant(db_const.completionFromEvents))();
 }
 
-/// Growth measurements (weight, height, temperature) — version 11.
+/// Growth measurements (weight, height, temperature) — added in version 11.
 ///
-/// The `value` is **AES-GCM encrypted** data (`iv:ciphertext` in base64), not a real number:
-/// The confidentiality agreement (`AGENTS.md`) classifies weight as personal data.
-/// sensible; temperature and size belong to the same category (data types).
-/// data privacy (GDPR). The "en-clair" data only exists during the JSON export process, which is...
-/// clearly, by design – like the `notes`.
+/// [value] is **AES-GCM encrypted** data (`iv:ciphertext` in base64), not a
+/// real number: the privacy mandate (`AGENTS.md`) classifies weight as
+/// sensitive personal data, and temperature and length belong to the same
+/// category. Plaintext only ever exists in memory on the read path and in the
+/// manual JSON export — the same treatment as `notes`.
 class Measurements extends Table {
   IntColumn get id => integer().autoIncrement()();
 
@@ -122,17 +125,37 @@ class Measurements extends Table {
       text().nullable()(); // encrypted, same pipeline as events.
 }
 
-/// Manual completion of a reminder (`completion_source = 'manual'`, D2).
+/// Manual completions of reminders (`completion_source = 'manual'`, invariant D2).
 ///
-/// Journal with append-only functionality: one line per "Done" entry. Reading is...
-/// `MAX(completed_at)`, which makes the structure identical to `getLastCompleted`.
-/// Regarding events.
+/// Append-only journal: one row per "done" tap. Reading is `MAX(completed_at)`
+/// per baby and item, which mirrors how `getLastCompleted` reads tracking
+/// events — a manual completion and an event completion are structurally
+/// identical from the reminder's point of view.
 class ReminderCompletions extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get babyId =>
       text().withDefault(const Constant(db_const.sharedBabyId))();
   TextColumn get itemId => text()();
   DateTimeColumn get completedAt => dateTime()();
+}
+
+/// App-level key/value settings, not scoped to any baby.
+///
+/// Added in schema v13 (roadmap item 12) to hold the notification
+/// preferences: the opt-in flag and the preferred time of day (keys in
+/// [db_const]). Deliberately no baby dimension and no `''` sentinel: these
+/// rows describe the whole installation.
+class AppSettings extends Table {
+  /// Setting key — the valid values are the `settingsKey*` constants in
+  /// [db_const].
+  TextColumn get key => text()();
+
+  /// Setting value, always a string: `'0'`/`'1'` for the opt-in flag,
+  /// `'HH:mm'` for the time of day.
+  TextColumn get value => text()();
+
+  @override
+  Set<Column> get primaryKey => {key};
 }
 
 @DriftDatabase(tables: [
@@ -143,12 +166,13 @@ class ReminderCompletions extends Table {
   CustomReminders,
   Measurements,
   ReminderCompletions,
+  AppSettings,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   /// SQL indexes are automatically created during the database initialization process.
   @override
@@ -338,21 +362,24 @@ class AppDatabase extends _$AppDatabase {
           if (from < 12) {
             await m.database.customStatement(
                 "ALTER TABLE tracking_events ADD COLUMN unit TEXT NOT NULL DEFAULT 'ml'");
-            // The defect already covers the combinations `miam` + `natural` and "miam" + `artificial`."
-            // `sante` et `caca` (quantity y est NULL) : deux UPDATE suffisent.
+            // The backfill covers every combination where `quantity` is
+            // non-null: `dodo` → minutes, `miam` + `solid` → grams, and the
+            // remaining rows keep the ALTER's default (`ml`). `sante` and
+            // `caca` rows have NULL quantity, so two UPDATEs suffice.
             await m.database.customStatement(
                 "UPDATE tracking_events SET unit = 'min' WHERE type = 'dodo'");
             await m.database
                 .customStatement("UPDATE tracking_events SET unit = 'g' "
                     "WHERE type = 'miam' AND subtype = 'solid'");
 
-            // Re-allocation of lines `''`: the "installation" sentinel.
-            // "Without profile" (fix leak v1.2.0) does not apply to any real baby.
-            // On an install with **one single** baby, the state written before
-            // The isolation is undeniably his; to reassign it to someone else would be...
-            // Save the content (including personalized reminders). Zero or...
-            // multiple babies: it's impossible to tell, the lines remain unclear.
-            // profile and invisible (decision dated October 4, 2026).
+            // Reassign the `''` ("installation without profile") sentinel rows
+            // to the single baby where ownership is unambiguous (fix for the
+            // v1.2.0 cross-baby leak). On a one-baby install, the pre-isolation
+            // state was unambiguously that baby's — keeping it in the
+            // profileless scope would save nothing and reassigning it to
+            // someone else would destroy it. With zero or multiple babies the
+            // ownership cannot be told: the rows stay under `''`, profileless
+            // and invisible (decision of 2026-10-04).
             final babies = await m.database
                 .customSelect('SELECT COUNT(*) AS n FROM baby_profiles')
                 .getSingle();
@@ -374,6 +401,14 @@ class AppDatabase extends _$AppDatabase {
                 );
               }
             }
+          }
+
+          // v12 → v13: `app_settings` table (roadmap item 12) — app-level
+          // notification preferences (opt-in flag + preferred time of day).
+          // Purely additive: one CREATE TABLE, no rekey, no data movement,
+          // no sentinel (the table has no baby dimension).
+          if (from < 13) {
+            await m.createTable(appSettings);
           }
         },
       );
@@ -434,12 +469,12 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
-  /// Returns the active profile (where `is_active` is true).
+  /// Returns the active profile (the row where `is_active` is true), or null.
   ///
-  /// Sort the data first by `birth_date` and then by `id`. If two rows have the same values for these fields, they will be grouped together.
-  /// active (bug reported before the `setActiveProfile` transaction), the...
-  /// The returned profile is always the same, rather than the first one that was generated.
-  /// SQLite.
+  /// Rows are ordered by `birth_date` then `id`, so if two rows ever both
+  /// claim active (a bug fixed by the `setActiveProfile` transaction), the
+  /// same row is returned every time instead of whichever SQLite happens to
+  /// yield first.
   Future<BabyProfile?> getActiveBabyProfile() async {
     final profiles = await (select(babyProfiles)
           ..where((t) => t.isActive.equals(true))
@@ -465,38 +500,38 @@ class AppDatabase extends _$AppDatabase {
     return deleted > 0;
   }
 
-  /// Remove all tracking events associated with [babyId].
-  /// Returns the number of rows deleted.
+  /// Removes all tracking events belonging to [babyId]; returns the number of
+  /// rows deleted.
   ///
-  /// To be called within the same transaction as [deleteBabyProfile]: no keys required.
-  /// foreign elements or cascading effects in the system; that's the only thing that prevents it.
-  /// The events that survivors experience after the loss of their baby.
+  /// Must run inside the same transaction as [deleteBabyProfile]: the schema
+  /// has no foreign keys or cascades, so this call is the only thing that
+  /// prevents the baby's events from surviving the deletion.
   Future<int> deleteTrackingEventsByBabyId(String babyId) =>
       (delete(trackingEvents)..where((t) => t.babyId.equals(babyId))).go();
 
-  /// Remove all measures associated with [babyId].
-  /// Returns the number of rows deleted.
+  /// Removes all measurements belonging to [babyId]; returns the number of
+  /// rows deleted.
   ///
-  /// Do not include measurements that do not have a profile (`baby_id` is NULL) or those belonging to...
-  /// other babies: `WHERE baby_id = ?` does not select them.
+  /// Profileless measurements (`baby_id` is NULL) and other babies' rows are
+  /// left untouched — `WHERE baby_id = ?` selects neither.
   Future<int> deleteMeasurementsByBabyId(String babyId) =>
       (delete(measurements)..where((t) => t.babyId.equals(babyId))).go();
 
-  /// Remove all manually added details associated with [babyId] (all...).
-  /// (item keys). Returns the number of rows deleted.
+  /// Removes all manual completion rows for [babyId] (every item key);
+  /// returns the number of rows deleted.
   ///
-  /// The lines monitored by the sentinel `''` belong to the installation.
-  /// without a profile and can survive the deletion of a profile.
+  /// Rows under the `''` sentinel belong to the installation without a
+  /// profile and deliberately survive a profile deletion.
   Future<int> deleteReminderCompletionsByBabyId(String babyId) =>
       (delete(reminderCompletions)..where((t) => t.babyId.equals(babyId))).go();
 
-  /// Remove all reminder settings associated with [babyId] (all...).
-  /// (item keys). Returns the number of rows deleted.
+  /// Removes all reminder-settings rows for [babyId] (every item key);
+  /// returns the number of rows deleted.
   Future<int> deleteReminderSettingsByBabyId(String babyId) =>
       (delete(reminderSettings)..where((t) => t.babyId.equals(babyId))).go();
 
-  /// Remove all "ignore today" settings associated with [babyId] (all...).
-  /// (item keys). Returns the number of rows deleted.
+  /// Removes all dismissal ("ignore") rows for [babyId] (every item key);
+  /// returns the number of rows deleted.
   Future<int> deleteReminderDismissalsByBabyId(String babyId) =>
       (delete(reminderDismissals)..where((t) => t.babyId.equals(babyId))).go();
 
@@ -527,29 +562,28 @@ class AppDatabase extends _$AppDatabase {
   Future<List<CustomReminder>> getAllCustomReminders() =>
       (select(customReminders)..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
 
-  /// Returns all rows from the `measurements` table (without any filtering, exporting in M4 format).
+  /// Returns every row of the `measurements` table (unfiltered — used by the
+  /// export).
   Future<List<Measurement>> getAllMeasurements() => select(measurements).get();
 
-  /// Returns all rows from the `reminder_completions` table (without any filtering).
-  /// export M4).
+  /// Returns every row of the `reminder_completions` table (unfiltered — used
+  /// by the export).
   Future<List<ReminderCompletion>> getAllReminderCompletions() =>
       select(reminderCompletions).get();
 
-  /// Remove the settings where the item key is part of the [itemIds] list.
-  /// Regardless of the baby. Used for cleaning the `custom_<id>` keys.
-  /// orphaned when a personalized reminder is deleted.
+  /// Removes the settings rows whose item key is in [itemIds], for every
+  /// baby. Used to clean up the `custom_<id>` keys orphaned when a custom
+  /// reminder is deleted.
   Future<int> deleteReminderSettingsByItemIds(List<String> itemIds) =>
       (delete(reminderSettings)..where((t) => t.itemId.isIn(itemIds))).go();
 
-  /// Remove the "ignore today" entries where the item's key is part of the specified set.
-  /// [itemIds], regardless of the baby (same use as...).
-  /// [deleteReminderSettingsByItemIds]).
+  /// Removes the dismissal rows whose item key is in [itemIds], for every
+  /// baby (same cleanup as [deleteReminderSettingsByItemIds]).
   Future<int> deleteReminderDismissalsByItemIds(List<String> itemIds) =>
       (delete(reminderDismissals)..where((t) => t.itemId.isIn(itemIds))).go();
 
-  /// Remove any achievements where the item key is part of the [itemIds] list.
-  /// Regardless of the baby (same usage as...).
-  /// [deleteReminderSettingsByItemIds]).
+  /// Removes the completion rows whose item key is in [itemIds], for every
+  /// baby (same cleanup as [deleteReminderSettingsByItemIds]).
   Future<int> deleteReminderCompletionsByItemIds(List<String> itemIds) =>
       (delete(reminderCompletions)..where((t) => t.itemId.isIn(itemIds))).go();
 }

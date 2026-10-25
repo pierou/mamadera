@@ -18,8 +18,8 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 12 (v12 puts a unit on every tracked quantity)', () {
-      expect(db.schemaVersion, equals(12));
+    test('schemaVersion is 13 (v13 adds app-level settings)', () {
+      expect(db.schemaVersion, equals(13));
     });
   });
 

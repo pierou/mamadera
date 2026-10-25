@@ -19,26 +19,26 @@ mixin _$ReminderItem {
   ReminderFrequency get frequency;
   TrackingType get trackingType;
 
-  /// Soin lié (sous-type du domaine de [trackingType]), quand le
-  /// rappel se règle d'après un événement saisi.
+  /// Related care (a subtype of the [trackingType] domain), when the...
+  /// The reminder is set based on a specific event that is recorded.
   ///
-  /// `null` : rappel détaché d'un soin — sa complétion n'est décidée que
-  /// par l'utilisateur, jamais déduite d'un événement (invariant D2).
+  /// `null`: A standalone reminder for a medical procedure – its completion is not yet determined.
+  /// by the user, and never inferred from an event (invariant D2).
   String? get subtypeValue;
 
-  /// Bébé propriétaire du rappel, quand il existe.
+  /// Baby, the owner of the recall, when applicable.
   ///
-  /// `null` sur les préréglages : le portage est porté par la ligne de
-  /// base (`reminder_settings.baby_id`), jamais par l'item lui-même.
+  /// `null` in the presets: the handover is managed by the line.
+  /// The `baby_id` is always used as the base, and never derived from the item itself.
   String? get babyId;
 
-  /// Ce qui règle ce rappel :
-  /// - [completionFromEvents] : un événement de
-  ///   [trackingType] portant [subtypeValue] (sa date vaut pour la
-  ///   complétion) ;
-  /// - [completionManual] : une ligne de `reminder_completions`
-  ///   écrite par l'utilisateur — sans [subtypeValue], rien d'autre ne
-  ///   peut le régler (invariant D2).
+  /// Here's what triggers this reminder:
+  /// - [completionFromEvents]: an event that triggers completion.
+  /// [trackingType] with [subtypeValue] (its validity date applies to the...).
+  /// completion);
+  /// - `[completionManual]`: a line from the `reminder_completions` table.
+  /// written by the user — without [subtypeValue], nothing else.
+  /// It can be adjusted (D2 invariant).
   ///
   /// `null` se lit comme [completionFromEvents].
   String? get completionSource;
@@ -384,28 +384,28 @@ class _ReminderItem implements ReminderItem {
   @override
   final TrackingType trackingType;
 
-  /// Soin lié (sous-type du domaine de [trackingType]), quand le
-  /// rappel se règle d'après un événement saisi.
+  /// Related care (a subtype of the [trackingType] domain), when the...
+  /// The reminder is set based on a specific event that is recorded.
   ///
-  /// `null` : rappel détaché d'un soin — sa complétion n'est décidée que
-  /// par l'utilisateur, jamais déduite d'un événement (invariant D2).
+  /// `null`: A standalone reminder for a medical procedure – its completion is not yet determined.
+  /// by the user, and never inferred from an event (invariant D2).
   @override
   final String? subtypeValue;
 
-  /// Bébé propriétaire du rappel, quand il existe.
+  /// Baby, the owner of the recall, when applicable.
   ///
-  /// `null` sur les préréglages : le portage est porté par la ligne de
-  /// base (`reminder_settings.baby_id`), jamais par l'item lui-même.
+  /// `null` in the presets: the handover is managed by the line.
+  /// The `baby_id` is always used as the base, and never derived from the item itself.
   @override
   final String? babyId;
 
-  /// Ce qui règle ce rappel :
-  /// - [completionFromEvents] : un événement de
-  ///   [trackingType] portant [subtypeValue] (sa date vaut pour la
-  ///   complétion) ;
-  /// - [completionManual] : une ligne de `reminder_completions`
-  ///   écrite par l'utilisateur — sans [subtypeValue], rien d'autre ne
-  ///   peut le régler (invariant D2).
+  /// Here's what triggers this reminder:
+  /// - [completionFromEvents]: an event that triggers completion.
+  /// [trackingType] with [subtypeValue] (its validity date applies to the...).
+  /// completion);
+  /// - `[completionManual]`: a line from the `reminder_completions` table.
+  /// written by the user — without [subtypeValue], nothing else.
+  /// It can be adjusted (D2 invariant).
   ///
   /// `null` se lit comme [completionFromEvents].
   @override

@@ -294,8 +294,8 @@ class UpdateResult implements EditResult {
   final double? duration;
   final double? quantity;
 
-  /// Unité du nombre porté, telle qu'éditée (toggle ml/min au sein, ou
-  /// changement de sous-type passant la ligne en grammes).
+  /// Unit of flow rate displayed, as configured (toggle between ml/min within the settings, or...).
+  /// change of subtype (expressed in grams).
   final QuantityUnit? unit;
   final String? notes;
   final FeedingSubtype? subtype;
