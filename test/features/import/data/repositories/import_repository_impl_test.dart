@@ -42,6 +42,7 @@ Map<String, dynamic> validDocument({
   List<dynamic>? reminderDismissals,
   List<dynamic>? measurements,
   List<dynamic>? reminderCompletions,
+  List<dynamic>? appSettings,
   Map<String, dynamic>? counts,
   int formatVersion = 2,
   int schemaVersion = 10,
@@ -101,6 +102,7 @@ Map<String, dynamic> validDocument({
       ];
   final measureRows = measurements ?? const <dynamic>[];
   final completionRows = reminderCompletions ?? const <dynamic>[];
+  final settingRows = appSettings ?? const <dynamic>[];
   return <String, dynamic>{
     'exportFormatVersion': formatVersion,
     'generator': generator ?? 'mamadera',
@@ -116,6 +118,7 @@ Map<String, dynamic> validDocument({
           'reminderDismissals': dismissals.length,
           'measurements': measureRows.length,
           'reminderCompletions': completionRows.length,
+          'appSettings': settingRows.length,
         },
     'babyProfiles': profiles,
     'trackingEvents': events,
@@ -124,8 +127,15 @@ Map<String, dynamic> validDocument({
     'reminderDismissals': dismissals,
     'measurements': measureRows,
     'reminderCompletions': completionRows,
+    'appSettings': settingRows,
   };
 }
+
+/// The preferences a format-4 document carries: opted in, nudged at 20:00.
+const List<Map<String, String>> _nightNotifications = [
+  {'key': 'notification_time_of_day', 'value': '20:00'},
+  {'key': 'notifications_opt_in', 'value': '1'},
+];
 
 /// A document in **format 1**: this is how the app used to format documents before version 4. No [further information].
 /// sections `measurements`/`reminderCompletions`, no corresponding keys.
@@ -235,6 +245,7 @@ Future<Map<String, int>> _allCounts(AppDatabase database) async => {
       'measurements': (await database.getAllMeasurements()).length,
       'reminderCompletions':
           (await database.getAllReminderCompletions()).length,
+      'appSettings': (await database.getAllAppSettings()).length,
     };
 
 void main() {
@@ -298,10 +309,10 @@ void main() {
     });
 
     test('rejects a format version it does not know', () async {
-      // Version 3 (v12) is the format of this build; only versions 4 and above fall under a different category.
-      // future application, the design of which will be impossible to predict.
+      // Version 4 (v1.3.0, `appSettings`) is the format of this build; only 5
+      // and above belong to a future app whose design cannot be guessed at.
       await expectRejected(
-        document: validDocument(formatVersion: 4),
+        document: validDocument(formatVersion: 5),
         reason: ImportRejectionReason.newerFormatVersion,
       );
     });
@@ -962,6 +973,126 @@ void main() {
       expect((await database.getAllTrackingEvents()).length, 3);
     });
 
+    group('appSettings (format 4, item 12)', () {
+      test('restores the opt-in and the time of day', () async {
+        final parsed = await repository.parseExport(_jsonOf(
+          validDocument(formatVersion: 4, appSettings: _nightNotifications),
+        ));
+        expect(parsed.appSettings, hasLength(2));
+
+        final counts = await repository.restore(parsed);
+
+        expect(counts.appSettings, 2);
+        final stored = {
+          for (final row in await database.getAllAppSettings())
+            row.key: row.value,
+        };
+        expect(stored, {
+          'notifications_opt_in': '1',
+          'notification_time_of_day': '20:00',
+        });
+      });
+
+      test('a restore replaces preferences instead of merging them', () async {
+        // The parent opted in on the old phone and turned it off on this one:
+        // restoring must not resurrect an opt-in the current install refused.
+        await repository.restore(await repository.parseExport(_jsonOf(
+          validDocument(formatVersion: 4, appSettings: _nightNotifications),
+        )));
+        expect((await database.getAllAppSettings()), hasLength(2));
+
+        await repository.restore(await repository.parseExport(_jsonOf(
+          validDocument(formatVersion: 4, appSettings: const [
+            {'key': 'notifications_opt_in', 'value': '0'},
+          ]),
+        )));
+
+        final rows = await database.getAllAppSettings();
+        expect(rows, hasLength(1));
+        expect(rows.single.key, 'notifications_opt_in');
+        expect(rows.single.value, '0');
+      });
+
+      test('a format-3 document restores with no preference rows', () async {
+        // The backup predates item 12: absent means empty, never "missing
+        // table" — refusing it would make every pre-1.3.0 backup useless.
+        final parsed = await repository
+            .parseExport(_jsonOf(validDocument(formatVersion: 3)));
+
+        expect(parsed.appSettings, isEmpty);
+        final counts = await repository.restore(parsed);
+        expect(counts.appSettings, 0);
+      });
+
+      test('rejects a key this build has no value format for', () async {
+        await expectRejected(
+          document: validDocument(formatVersion: 4, appSettings: const [
+            {'key': 'theme', 'value': 'dark'},
+          ]),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'appSettings',
+        );
+      });
+
+      test('rejects a notification time that is not HH:mm', () async {
+        // '8:00' would parse as hour 8 minute 0 and *look* right; '0830'
+        // parses as the integer 830 and schedules a time that does not exist.
+        for (final value in const ['8:00', '0830', '24:00', '09:5', '']) {
+          await expectRejected(
+            document: validDocument(formatVersion: 4, appSettings: [
+              {'key': 'notification_time_of_day', 'value': value},
+            ]),
+            reason: ImportRejectionReason.invalidRow,
+            section: 'appSettings',
+          );
+        }
+      });
+
+      test('rejects an opt-in that is neither 0 nor 1', () async {
+        await expectRejected(
+          document: validDocument(formatVersion: 4, appSettings: const [
+            {'key': 'notifications_opt_in', 'value': 'true'},
+          ]),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'appSettings',
+        );
+      });
+
+      test('rejects the same key twice', () async {
+        // `key` is the primary key; a duplicate means the last write would win
+        // silently, which is precisely what a backup must not do.
+        await expectRejected(
+          document: validDocument(formatVersion: 4, appSettings: const [
+            {'key': 'notifications_opt_in', 'value': '1'},
+            {'key': 'notifications_opt_in', 'value': '0'},
+          ]),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'appSettings',
+        );
+      });
+
+      test('rejects a declared count that disagrees with the rows', () async {
+        await expectRejected(
+          document: validDocument(
+            formatVersion: 4,
+            appSettings: _nightNotifications,
+            counts: <String, dynamic>{
+              'babyProfiles': 1,
+              'trackingEvents': 1,
+              'customReminders': 1,
+              'reminderSettings': 1,
+              'reminderDismissals': 1,
+              'measurements': 0,
+              'reminderCompletions': 0,
+              'appSettings': 9,
+            },
+          ),
+          reason: ImportRejectionReason.countsMismatch,
+          section: 'appSettings',
+        );
+      });
+    });
+
     test('notes are stored as ciphertext again, decrypting to the file text',
         () async {
       final parsed = await repository.parseExport(_jsonOf(validDocument()));
@@ -1314,6 +1445,20 @@ Future<void> _seedRichDatabase(
           babyId: const Value('baby_1'),
           itemId: 'custom_5',
           completedAt: timestamp,
+        ),
+      );
+  // The notification preferences (format 4, item 12): exported plaintext,
+  // restored plaintext, and part of the byte-for-byte round trip.
+  await database.into(database.appSettings).insert(
+        AppSettingsCompanion.insert(
+          key: 'notifications_opt_in',
+          value: '1',
+        ),
+      );
+  await database.into(database.appSettings).insert(
+        AppSettingsCompanion.insert(
+          key: 'notification_time_of_day',
+          value: '20:00',
         ),
       );
 }

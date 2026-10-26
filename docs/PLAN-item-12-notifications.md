@@ -83,7 +83,7 @@ commands you ran and their output tail, and anything you could not do.
 | `schemaVersion => 12`; tables: `BabyProfiles`, `TrackingEvents`, `ReminderDismissals`, `ReminderSettings`, `CustomReminders`, `Measurements`, `ReminderCompletions` | `lib/data/local/app_db.dart:47-136,151`; DDL reference `lib/data/local/schema.sql` |
 | **No `app_settings` table exists** — there is nowhere to persist the opt-in today | grep of `app_db.dart` |
 | Every reminder table keys on `baby_id TEXT NOT NULL` with the `''` sentinel `db_const.sharedBabyId` | `app_db.dart:47-136`, `db_constants.dart` |
-| Export writes `exportFormatVersion: 3` (literal), sections `babyProfiles`, `trackingEvents`, `customReminders`, `reminderSettings`, `reminderDismissals`, `measurements`, `reminderCompletions` + counts | `export_repository_impl.dart:49,76,84-128` |
+| Export writes `exportFormatVersion: 3` (literal), sections `babyProfiles`, `trackingEvents`, `customReminders`, `reminderSettings`, `reminderDismissals`, `measurements`, `reminderCompletions` + counts | `export_repository_impl.dart:49,76,84-128` — *baseline at plan time; M7 moved this to 4 with an `appSettings` section* |
 | Import supports exactly `_supportedFormatVersion = 3`; strict per-section row validation; replace-only restore in one transaction with a fixed delete order | `import_repository_impl.dart:19,83-116,641-642` |
 | Presets: `vitamine_d` (Daily), `vitamine_k` (Monthly(birth day) via `buildForBaby`, CustomInterval(30) fallback without profile), `eye_cleaning` (Daily), `face_cleaning` (Daily) | `reminder_item.dart` (`ReminderItemPresets`) |
 | Custom reminder ids: `'custom_<autoIncrement id>'`; weekly is **hardwired `dayOfWeek: 1`** (Monday) by the current form | `custom_reminder.dart:61,114`, `reminders_repository_impl.dart:277-290` |
@@ -627,6 +627,32 @@ must be green — nothing references the plugin yet); `cd android && ./gradlew :
    strings), delete-all + insert inside the restore transaction.
 3. Update the existing export/import test fixtures (a v3 fixture gains an `appSettings` section;
    the format-version ladder tests gain the v3 ⇒ "older app" and v4 ⇒ accepted branches).
+
+**M7 implementation notes (deliberate deviations, and one defect found).**
+
+- `AppDatabase.getAllAppSettings()` **orders by key**. The other export getters keep table order;
+  this one sorts, because `app_settings` rows are updated in place, so table order changes after an
+  `UPDATE` and two exports of an unchanged database would not be byte-identical.
+- The importer keeps a **closed set of keys** (`_knownSettingKeys`) and rejects an unknown key with
+  `invalidRow`. `app_settings` is a generic key/value table, so a hand-edited file can name anything;
+  a key this build does not know has no value format to check, which makes it unverifiable rather than
+  harmless. A future format adds its key and its validator in the same change that bumps the version.
+- `appSettings` is **`optional: true`** on import: a pre-1.3.0 backup carries no such section, and
+  refusing it because it predates the feature would brick every restore taken before it. Absent means
+  empty, and the app then falls back to `notifications_opt_in` off / 09:00 — exactly the pre-item-12
+  behaviour.
+- The opt-in is restored **as written**, even onto a phone where the OS permission is missing: the
+  backup is the owner's stated intent. The next sync runs the D8 de-opt and the switch stops lying.
+  `ExportCounts.appSettings` and `ImportCounts.appSettings` are **required**, not defaulted to 0 —
+  the compiler is the thing that remembers the next table.
+- **Defect found by the test, not by the author.** The importer first owned
+  `RegExp(r'^[0-2][0-9]:[0-5][0-9]$')` and that pattern accepts `24:00`: the digit class behind
+  `[0-2]` allows `4`. Validation moved to one domain predicate, `isValidNotificationTime`
+  (`domain/services/notification_time.dart`), used by the importer for the refusal and by
+  `parseNotificationTime` for the fallback — one definition of a valid time, three callers. The test
+  asserting `['8:00', '0830', '24:00', '09:5', '']` are all rejected is what caught it.
+- The import fixture takes an `appSettings` parameter and `_seedRichDatabase` seeds both rows, so the
+  existing **byte-for-byte round-trip** test now covers the preferences without being edited.
 
 **Verify:** analyze + `flutter test test/features/export/ test/features/import/`. Commit:
 `feat(export): appSettings section, export format v4`.

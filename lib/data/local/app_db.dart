@@ -571,6 +571,15 @@ class AppDatabase extends _$AppDatabase {
   Future<List<ReminderCompletion>> getAllReminderCompletions() =>
       select(reminderCompletions).get();
 
+  /// Returns every row of the `app_settings` table, ordered by key.
+  ///
+  /// Unfiltered and explicitely sorted (used by the export): the table is a
+  /// two-row key/value store, so a document that ordered its rows by table
+  /// order would differ between two runs of the same database after an
+  /// `UPDATE`, and a backup should be byte-comparable with itself.
+  Future<List<AppSetting>> getAllAppSettings() =>
+      (select(appSettings)..orderBy([(t) => OrderingTerm.asc(t.key)])).get();
+
   /// Removes the settings rows whose item key is in [itemIds], for every
   /// baby. Used to clean up the `custom_<id>` keys orphaned when a custom
   /// reminder is deleted.

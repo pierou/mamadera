@@ -434,11 +434,11 @@ void main() {
 
     testWidgets('exportFormatVersion plus récente : message dédié',
         (tester) async {
-      // Format 3 (v12, with a `unit` field for each event) is the format used in this build:
-      // It's number 4 that represents the unknown of the future.
+      // Format 4 (v1.3.0, `appSettings`) is this build's own format: 5 is the
+      // unknown of the future.
       await _pumpDialog(
         tester,
-        readBackup: () async => _jsonOf(validDocument(formatVersion: 4)),
+        readBackup: () async => _jsonOf(validDocument(formatVersion: 5)),
       );
 
       await expectResult(tester, find.textContaining('version plus récente'));
