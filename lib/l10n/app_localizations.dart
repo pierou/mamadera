@@ -496,6 +496,24 @@ abstract class AppLocalizations {
   /// **'Visage'**
   String get reminderFaceCleaning;
 
+  /// No description provided for @reminderNotificationTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'{care}'**
+  String reminderNotificationTitle(Object care);
+
+  /// No description provided for @reminderNotificationBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'{baby} : c\'est l\'heure de {care}.'**
+  String reminderNotificationBody(Object baby, Object care);
+
+  /// No description provided for @reminderNotificationBodyNoProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'C\'est l\'heure de {care}.'**
+  String reminderNotificationBodyNoProfile(Object care);
+
   /// No description provided for @reminderSettingsTile.
   ///
   /// In fr, this message translates to:

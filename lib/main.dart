@@ -13,6 +13,7 @@ import 'core/router.dart';
 import 'core/services/encryption_service.dart';
 import 'core/services/locale_service.dart';
 import 'core/theme.dart';
+import 'core/widgets/lifecycle_sync.dart';
 import 'l10n/app_localizations.dart';
 
 Locale? _resolveLocale(AsyncValue<LocalePreference> localeState) {
@@ -65,6 +66,18 @@ class MyApp extends ConsumerWidget {
     final locale = _resolveLocale(ref.watch(localeProvider));
     final themeMode = _resolveThemeMode(ref);
 
+    // The app's single WidgetsBindingObserver: first-frame + resumed
+    // notification reconciliation (plan §3.1, M5).
+    return LifecycleSyncWidget(
+      child: _buildRouterApp(ref: ref, locale: locale, themeMode: themeMode),
+    );
+  }
+
+  Widget _buildRouterApp({
+    required WidgetRef ref,
+    required Locale? locale,
+    required ThemeMode themeMode,
+  }) {
     return MaterialApp.router(
       title: 'Mamadera',
       locale: locale,

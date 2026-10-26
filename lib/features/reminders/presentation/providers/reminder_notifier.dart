@@ -8,6 +8,7 @@ import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../domain/entities/reminder_item.dart';
 import '../../domain/entities/reminders_state.dart';
 import 'reminder_providers.dart';
+import 'reminder_sync_notifier.dart';
 
 /// Default polling interval for checking due reminders.
 const Duration _defaultPollInterval = Duration(minutes: 5);
@@ -23,10 +24,10 @@ class RemindersNotifier
     extends AsyncNotifier<Map<TrackingType, List<ReminderStatus>>> {
   RemindersNotifier({this.pollInterval = _defaultPollInterval});
 
-  /// Intervalle entre deux sondages de rappels dus.
+  /// Interval between due-reminder polls.
   ///
-  /// Injectable for testing purposes (over a short period); the production run continues.
-  /// cinq minutes.
+  /// Injectable for tests (which use short intervals); production keeps the
+  /// five-minute cadence.
   final Duration pollInterval;
 
   Timer? _pollTimer;
@@ -44,15 +45,11 @@ class RemindersNotifier
     // Clean up timer when the provider is disposed (no watchers).
     ref.onDispose(_stopPolling);
 
-    // Reactive dependence on the service: when the settings chain →
-    // activated reminders → service adjusts (toggle in Settings, creation).
-    // Through a custom "recall" or "reset" process, this provider re-evaluates itself.
-    // With the rebuilt service, and the reception area receives the new configuration without...
-    // Wait for the five-minute scan to complete. Do not press any buttons.
-    // simultaneous deactivation on the display side: during a...
-    // concurrent reconstruction, transient service reading.
-    // `autoDispose` could deliver the old list and turn off the indicator.
-    // survived (item 5 of the plan).
+    // Reactive dependency on the service: when the settings chain
+    // (enabled reminders → service) shifts — a toggle in Settings, a custom
+    // reminder created or removed, a database reset — this provider
+    // re-evaluates with the rebuilt service and the home screen picks up the
+    // new configuration without waiting for the next five-minute poll.
     await ref.watch(remindersServiceProvider.future);
 
     return _checkDue();
@@ -68,9 +65,12 @@ class RemindersNotifier
     _pollTimer = null;
   }
 
-  /// Periodic tick — re-evaluates due reminders and updates state.
+  /// Periodic tick — re-evaluates due reminders, updates state, and re-runs
+  /// the notification reconciliation (the OS schedule must track the in-app
+  /// state: completions and dismissals change the next due instants).
   Future<void> _tick() async {
     state = await AsyncValue.guard(_checkDue);
+    unawaited(ref.read(reminderSyncNotifierProvider.notifier).syncNow());
   }
 
   /// Query the service for due reminders, then group into per-[TrackingType] [ReminderStatus].
@@ -84,13 +84,12 @@ class RemindersNotifier
     if (!ref.mounted) return {};
     final repository = await ref.read(remindersRepositoryProvider.future);
     if (!ref.mounted) return {};
-    // Active baby, inactive during the transient charging phase or when [something] is active.
-    // Profile-less installation. Reading `.value` (no waiting): one.
-    // The switch triggers an asynchronous loading state for the provider, and `null` is then read from it.
-    // porting without a profile – no possibility of leakage (the characters `''` `''`` are not...).
-    // They only contain the base state (without any specific profile), and the `build()` function monitors the same.
-    // provider, therefore, the resolution is reviving this method specifically designed for babies.
-    // The incoming item is being processed. The actions ([markDone], [snooze]) are pending.
+    // Active baby, or the profileless scope during a transient loading phase
+    // or before onboarding. Reading `.value` (no await): switching profiles
+    // puts the provider into an async loading state and `.value` is then
+    // null — which is exactly the profileless porting scope, and cannot leak
+    // between babies: `build()` watches the same provider, so this method
+    // only ever runs for the baby the screen is displaying.
     final babyId = ref.read(activeBabyProvider).value?.id;
     final result = await service.checkDue(babyId: babyId);
 
@@ -144,17 +143,18 @@ class RemindersNotifier
     if (ref.mounted) state = result;
   }
 
-  /// Fact (D1): The action of the line for a detached recall – the only way.
-  /// of settling it. Writes the manual journal scoped to the active baby, then
-  /// Re-evaluate locally to ensure the line can be laid without waiting for the survey to be completed.
-  /// of five minutes. For a reminder related to a treatment, the treatment event itself...
-  /// Rule (D2 invariant): The button does not create a manual log.
-  /// It simply involves reassessing the situation.
+  /// Complete a reminder row (D1).
+  ///
+  /// For a detached reminder this is the *only* way it settles: write the
+  /// manual log scoped to the active baby, then re-evaluate locally so the
+  /// row clears without waiting for the five-minute poll. For a
+  /// treatment-linked reminder the treatment event itself settles it (D2
+  /// invariant): the button creates no manual log, it only re-evaluates.
   Future<void> markDone(ReminderItem item) async {
     if (item.completionSource == completionManual) {
-      // Expected resolution, not `.value`: a delay during the transition.
-      // The profile would write the journal entry using single quotes (`''`) instead of the active "baby" format, and with...
-      // In version 10, that line `''` would then be visible to **everyone**.
+      // Awaited `.future`, not `.value`: a transition delay must not write
+      // the log with the profileless sentinel (`''`) instead of the active
+      // baby — in the v10 schema that row would have been visible to *all*
       // babies.
       final profile = await ref.read(activeBabyProvider.future);
       if (!ref.mounted) return;
@@ -162,18 +162,20 @@ class RemindersNotifier
       await repository.recordCompletion(item.id, babyId: profile?.id);
     }
     await refresh();
+    unawaited(ref.read(reminderSyncNotifierProvider.notifier).syncNow());
   }
 
-  /// Ignore (D3): This option removes the parent field's reminder from the window.
-  /// (Default service: 24 hours), initially focused on active infants, then reassessed.
-  /// locally. One baby never notices another baby being ignored.
+  /// Dismiss (D3): keep this reminder out of the dismissal window
+  /// (service default: 24 hours) for the active baby, then re-evaluate
+  /// locally. One baby's dismissal never affects another's.
   Future<void> snooze(ReminderItem item) async {
-    // [markDone]: The unresolved issue remains, overshadowed by the resolved issue of the baby's care; it will never be addressed.
-    // under `''` due to a temporary reading.
+    // Same awaited-profile rule as [markDone]: a transient read must not
+    // record the dismissal under `''`.
     final profile = await ref.read(activeBabyProvider.future);
     if (!ref.mounted) return;
     final repository = await ref.read(remindersRepositoryProvider.future);
     await repository.dismissReminder(item.id, babyId: profile?.id);
     await refresh();
+    unawaited(ref.read(reminderSyncNotifierProvider.notifier).syncNow());
   }
 }

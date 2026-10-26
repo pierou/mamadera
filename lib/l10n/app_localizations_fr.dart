@@ -234,6 +234,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reminderFaceCleaning => 'Visage';
 
   @override
+  String reminderNotificationTitle(Object care) {
+    return '$care';
+  }
+
+  @override
+  String reminderNotificationBody(Object baby, Object care) {
+    return '$baby : c\'est l\'heure de $care.';
+  }
+
+  @override
+  String reminderNotificationBodyNoProfile(Object care) {
+    return 'C\'est l\'heure de $care.';
+  }
+
+  @override
   String get reminderSettingsTile => 'Choisir les rappels affichés';
 
   @override

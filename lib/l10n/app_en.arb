@@ -147,6 +147,25 @@
   "reminderVitaminK": "Vit. K",
   "reminderEyeCleaning": "Eyes",
   "reminderFaceCleaning": "Face",
+  "reminderNotificationTitle": "{care}",
+  "@reminderNotificationTitle": {
+    "placeholders": {
+      "care": {}
+    }
+  },
+  "reminderNotificationBody": "{baby}: time for {care}.",
+  "@reminderNotificationBody": {
+    "placeholders": {
+      "baby": {},
+      "care": {}
+    }
+  },
+  "reminderNotificationBodyNoProfile": "Time for {care}.",
+  "@reminderNotificationBodyNoProfile": {
+    "placeholders": {
+      "care": {}
+    }
+  },
   "reminderSettingsTile": "Choose which reminders to show",
   "reminderSettingsTitle": "Reminders",
   "reminderSettingsError": "Failed to load reminders",

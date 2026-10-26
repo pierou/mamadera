@@ -74,6 +74,29 @@ DateTime _suppressedUntil(
   return suppressed;
 }
 
+/// Identifies the **due period** [item] is currently in, as a local calendar
+/// day (the time of day is stripped — a period is a day/week/month boundary,
+/// not an instant).
+/// The scheduler remembers catch-up nudges against this key (D3): two syncs
+/// inside the same period must produce the same key, so an overdue item is
+/// nudged once and not every 5-minute tick, while every *later* period of the
+/// same item still gets its own nudge. Deriving it from the natural candidate
+/// (not from `now`) is what makes that true for weekly and monthly items.
+DateTime duePeriodStart(
+  ReminderItem item, {
+  required DateTime now,
+  DateTime? lastCompleted,
+}) {
+  final candidate = _naturalCandidate(
+    item.frequency,
+    now: now,
+    lastCompleted: lastCompleted,
+    preferredHour: 0,
+    preferredMinute: 0,
+  );
+  return DateTime(candidate.year, candidate.month, candidate.day);
+}
+
 /// The next moment [frequency] would fire if nothing were suppressed (step 1
 /// of the §3.4 two-step contract).
 DateTime _naturalCandidate(
@@ -90,13 +113,13 @@ DateTime _naturalCandidate(
         // The ISO week (Monday→Sunday) strictly after lastCompleted's week, or
         // the current week when never completed — the same week-keying isDue
         // uses, so the scheduler and the pill can never disagree about weeks.
-        final dueWeek =
-            lastCompleted == null ? weekIndex(now) : weekIndex(lastCompleted) + 1;
+        final dueWeek = lastCompleted == null
+            ? weekIndex(now)
+            : weekIndex(lastCompleted) + 1;
         final mondayOfNow =
             DateTime(now.year, now.month, now.day - (now.weekday - 1));
-        final monday =
-            DateTime(mondayOfNow.year, mondayOfNow.month,
-                mondayOfNow.day + 7 * (dueWeek - weekIndex(now)));
+        final monday = DateTime(mondayOfNow.year, mondayOfNow.month,
+            mondayOfNow.day + 7 * (dueWeek - weekIndex(now)));
         return _at(
           monday.year,
           monday.month,
@@ -147,10 +170,10 @@ DateTime _advancePeriod(
   required int preferredMinute,
 }) =>
     frequency.map(
-      daily: (_) =>
-          _at(from.year, from.month, from.day + 1, preferredHour, preferredMinute),
-      weekly: (_) =>
-          _at(from.year, from.month, from.day + 7, preferredHour, preferredMinute),
+      daily: (_) => _at(
+          from.year, from.month, from.day + 1, preferredHour, preferredMinute),
+      weekly: (_) => _at(
+          from.year, from.month, from.day + 7, preferredHour, preferredMinute),
       monthly: (freq) {
         final nextMonth = DateTime(from.year, from.month + 1);
         return _at(
@@ -163,10 +186,10 @@ DateTime _advancePeriod(
       },
       customInterval: (freq) => lastCompleted == null
           ? // Snoozed before it ever completed: fire as soon as the snooze
-            // window closes — exactly like the pill, not n days later.
-            suppressedUntil
-          : _at(from.year, from.month, from.day + freq.days,
-              preferredHour, preferredMinute),
+          // window closes — exactly like the pill, not n days later.
+          suppressedUntil
+          : _at(from.year, from.month, from.day + freq.days, preferredHour,
+              preferredMinute),
     );
 
 /// [hour]:[minute] on the given calendar day. If the instant does not exist

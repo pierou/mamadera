@@ -136,9 +136,9 @@ this section and the affected milestones.
 |---|---|---|
 | D1 | **One app-level preferred time** (`notification_time_of_day`, default `09:00`), user-settable via a plain `showTimePicker` row. A midnight fire for "Vitamin D" is bad UX; a per-reminder time is UI surface we don't need. | §10.2 said "scheduling model aligned with the poll or per-due-time local schedules" — per-due-time with a preferred time-of-day is the only variant that fires at a humane hour. |
 | D2 | **Reconciliation model: the DB is the source of truth; OS schedules are a derived cache.** One `ReminderScheduler.sync()` = diff the new plan against the previous plan: cancel dropped ids, (re)schedule changed ones, **skip unchanged ones** (steady-state 5-min poll with many babies ⇒ zero plugin calls). Called: on app start, on app resume, on every 5-min poll tick, and after every mutation (toggle, create/edit/delete custom, `markDone`, `snooze`, **add/delete a baby profile** — baby *switch* is no longer a trigger, D6). | Scheduled local notifications are lost or stale across app updates (iOS), OS-level permission revocations, and clock changes. Re-deriving from the DB on every resume is cheap (bounded number of ids) and makes all of those non-bugs. |
-| D3 | **Catch-up, once per process.** If an item is already due at sync time (due window open, not suppressed), schedule a short 60 s notification instead of waiting for the next day's preferred time. Guarded by an in-memory `Set<String>` keyed `'$scope::$itemKey'` in the scheduler: a catch-up is scheduled at most once per item per scope per process — the 5-min poll must never re-arm it (an item still due keeps returning "now" from `nextDueAt`, so without the guard every tick would re-nudge). No escalation. | A parent who closed the app all morning must hear about the missed vitamin D — but one nudge, not a barrage. Several *distinct* items due at once each fire once (information, not a barrage — no staggering); what is banned is repeating the *same* item. Cost of the guard: an app restart within the same due window can nudge once more — bounded, documented (R12). |
+| D3 | **Catch-up, once per process.** If an item is already due at sync time (due window open, not suppressed), schedule a short 60 s notification instead of waiting for the next day's preferred time. Guarded by an in-memory `Map<String, int>` keyed `'$scope::$itemKey::$periodDay'` in the scheduler, where `$periodDay` is the day returned by `duePeriodStart` (§3.4) — **the period, not the day of the nudge**: a daily item that stays overdue keeps returning "now" from `nextDueAt`, so a key without the period would either re-nudge every 5-minute tick or, once forgotten, never nudge again; keyed on the period it nudges once today and again tomorrow. No escalation. | A parent who closed the app all morning must hear about the missed vitamin D — but one nudge, not a barrage. Several *distinct* items due at once each fire once (information, not a barrage — no staggering); what is banned is repeating the *same* item. Cost of the guard: an app restart within the same due window can nudge once more — bounded, documented (R12). |
 | D4 | **Storage: new `app_settings(key TEXT NOT NULL, value TEXT NOT NULL)` table**, schema v13 (pure `CREATE TABLE`, additive, no rebuild/rekey). Keys: `notifications_opt_in` (`'0'`/`'1'`), `notification_time_of_day` (`'HH:mm'`, missing ⇒ `09:00`). | There is no general settings table today (verified §1). A two-row key/value table is the smallest surface; it is future-proof for the next preference without another migration. |
-| D5 | **Notification ids are plan indices: `1..N`** over the enumeration in §3.5 (profiles in `getAllProfiles()` name order; per profile: preset slots in fixed order, then customs by dbId ascending; sentinel scope when profileless). With D2's diff, ids only need to be **deterministic within the current state** — a baby rename shifts the order once and triggers one harmless cancel/reschedule burst (R11). | Trap 2 still applies: no `hashCode`. A per-baby arithmetic scheme (`100 × babyOrdinal + slot`) collides with the custom range (`1000 + dbId`) as soon as there are ≥ 10 babies — enumeration removes the arithmetic. |
+| D5 | **Notification ids are plan indices: `1..N`** over the enumeration in §3.5 **for the scheduled entries** (profiles in `getAllProfiles()` name order; per profile: preset slots in fixed order, then customs by dbId ascending; sentinel scope when profileless). Catch-up nudges take ids from a separate band (`catchUpIdBase = 10000`, allocated monotonically and held in `_catchUpArmed`) — see §3.2 for why sharing the index space was unsound. With D2's diff, ids only need to be **deterministic within the current state** — a baby rename shifts the order once and triggers one harmless reschedule burst (R11). | Trap 2 still applies: no `hashCode`. A per-baby arithmetic scheme (`100 × babyOrdinal + slot`) collides with the custom range (`1000 + dbId`) as soon as there are ≥ 10 babies — enumeration removes the arithmetic, and the catch-up band sits above all of it. |
 | D6 | **All babies (owner decision 2026-10-25).** `sync()` covers **every** baby profile, each with its own item set: presets built for **that** profile (vitamin K's monthly day = its own birth day), its own custom reminders, its own settings/completions/dismissals — all reads scoped per baby exactly like `RemindersService.checkDue` does today. The profileless `''` scope is scheduled **only when no profile exists** (mirroring the in-app visibility rule). Baby switching is no longer a sync trigger; **adding or deleting a profile is**. | The reminder state is already per-baby in the DB (v11 re-key, §1); scoping notifications to the active baby would silently miss siblings. The body carries the baby's name (§5), so any baby's notification is unambiguous. |
 | D7 | **One fixed channel** `reminders` (default importance, sound on, no badge), default tap = open app at root. No sound/channel UI, no deep link. | KISS; store-review surface is the constraint, not capability. |
 | D8 | **Opt-in semantics.** Switch defaults OFF. ON ⇒ `ensurePermission()` (runtime request on Android 13+ / iOS; no-op grant below Android 13) ⇒ persist `notifications_opt_in='1'` ⇒ `sync()`. Denied ⇒ switch stays OFF, inline hint shown, nothing persisted as ON. OFF ⇒ persist `'0'` + `cancelAll()`. On start/resume: if app-opt-in is ON but the OS permission is now denied (user revoked in system settings) ⇒ `cancelAll()` + persist `'0'` (the switch silently reflects reality). | AGENTS.md: explicit consent, never at launch. |
@@ -174,6 +174,7 @@ abstract class LocalNotificationService {
   Future<bool> ensurePermission();                      // D8 request; true if granted
   Future<bool> get permissionGranted;                   // query only, never prompts
   Future<bool> get exactAlarmsAllowed;                  // Android 33+: canScheduleExactNotifications(); true elsewhere
+  bool get ready;                                       // init succeeded; false ⇒ schedule/cancel are silent no-ops (R13)
   Future<void> scheduleAt({required int id, required String title, required String body, required DateTime at});
   Future<void> scheduleIn({required int id, required String title, required String body, required Duration delay}); // catch-up (D3); near-future scheduleAt — the plugin has no zonedTimer (§3.6)
   Future<void> cancel(int id);
@@ -207,20 +208,32 @@ DateTime nextDueAt(
 class ReminderScheduler {
   ReminderScheduler({
     required RemindersRepository repository,
-    required AppSettingsRepository settings,
     required LocalNotificationService notifications,
+    // (no AppSettingsRepository — opt-in/time are read by the notifier, which owns the D8
+    // de-opt persistence, and passed in as values on each sync call)
   });
 
-  // D2/D3 private state: what the OS currently has, and which catch-ups this
-  // process already armed.
-  final Map<int, _PlanEntry> _plan = {};   // id → entry actually submitted last sync
-  final Set<String> _catchUpDone = {};     // D3 guard keys '$scope::$itemKey'
+  // D2/D3 private state: what the OS currently has scheduled, and which
+  // catch-up nudges this process already armed (D3).
+  final Map<int, _PlanEntry> _plan = {};   // plan index → entry submitted last sync
+  final Map<String, int> _catchUpArmed = {}; // '$scope::$item::$periodDay' → os id
+  int _catchUpSeq = catchUpIdBase;          // monotonic, never recycled in-process
 
-  /// The diff key is (kind, at, title, body) — **content is part of the identity**:
-  /// a plan-index reshuffle (baby rename/add/delete, R11) can keep an id with
-  /// different title/body, and a diff on (id, at) alone would skip it and leave a
-  /// stale name in the OS notification center.
-  typedef _PlanEntry = ({int kind, DateTime at, String title, String body});
+  /// Catch-up nudges take ids from a band above every plan index the notifier
+  /// can produce (`catchUpIdBase = 10000`). Implemented this way because the
+  /// first draft shared one id space and that was **unsound**: a rename or an
+  /// added baby reshuffles the indices, so a nudge that had already fired (or
+  /// was 60 s out) landed on an id a different baby's schedule then took over
+  /// — either cancelled out of the shade or silently replaced. In its own
+  /// band a nudge is fire-and-forget: never re-armed (D3), never displaced,
+  /// cancelled only when its own due period closes.
+  static const int _catchUpIdBase = catchUpIdBase;
+
+  /// The diff key is (at, title, body) at a plan index — **content is part of
+  /// the identity**: a plan-index reshuffle (baby rename/add/delete, R11) can
+  /// put different title/body at an id, and a diff on (id, at) alone would
+  /// skip it and leave a stale name in the OS notification center.
+  typedef _PlanEntry = ({DateTime at, String title, String body});
 
   /// Reconciles the OS schedule with the DB for **every** baby (D6). Returns the
   /// number of notifications left pending.
@@ -228,9 +241,11 @@ class ReminderScheduler {
   /// scheduled instead. [title]/[body] are content closures supplied by the
   /// presentation layer (l10n + baby name are UI concerns; the domain stays pure);
   /// the `BabyProfile?` argument is `null` for the profileless scope.
-  /// Internally per D2/D3/D5: build the plan (ids 1..N), diff against the previous
-  /// plan, cancel dropped ids, reschedule changed ones, skip unchanged; a catch-up
-  /// entry is scheduled at most once per (scope, item) per process.
+  /// Internally per D2/D3/D5: build the plan (scheduled entries take indices
+  /// 1..N, catch-ups take sticky ids from the `catchUpIdBase` band), diff
+  /// against the previous plan, cancel dropped ids, reschedule changed ones,
+  /// skip unchanged; a catch-up is armed at most once per
+  /// (scope, item, **due period**) per process.
   Future<int> sync({
     required List<BabyProfile> babies,
     required bool notificationsOptIn,
@@ -285,6 +300,19 @@ class ReminderSyncNotifier extends Notifier<void> {
   /// (`Future<void>? _inFlight`); a coalesced call loses nothing, the next tick reconciles.
   /// Awaits `service.init()` (idempotent, §3.6) **before** `scheduler.sync()` — tz data
   /// and the channel must exist before any schedule/cancel reaches the plugin.
+  ///
+  /// **Never throws.** A background reconciliation must not break the tap that
+  /// triggered it: recording a feeding, dismissing a reminder and deleting a baby
+  /// always succeed; a failed sync is logged and the next tick retries. This also
+  /// keeps the plugin and the database out of the tests that exercise only the
+  /// mutation (`reminder_notifier_test` would otherwise drag in `path_provider`
+  /// through `appSettingsRepositoryProvider` → `databaseProvider`).
+  ///
+  /// The stored `HH:mm` is parsed **strictly** (`_parseTimeOfDay`): 2 parts, hour
+  /// 0..23, minute 0..59, else `defaultNotificationTime`. `'0830'` parses as the
+  /// integer 830 and an hour of 830 does not fail — it silently schedules a
+  /// wall-clock time that does not exist. The settings UI cannot write that; a
+  /// hand-edited or corrupted row can, and the schedule must not inherit it.
   Future<void> syncNow();
 }
 ```
@@ -300,7 +328,7 @@ class ReminderSyncNotifier extends Notifier<void> {
 | `lib/features/reminders/presentation/providers/reminder_settings_notifier.dart` | `setEnabled` ⇒ after the write, `ref.read(reminderSyncNotifierProvider.notifier).syncNow()`; fix corrupted docstrings | M5 |
 | `lib/features/reminders/presentation/providers/custom_reminders_notifier.dart` | `create`/`edit`/`remove` ⇒ `syncNow()` inside `_refreshAfterWrite`; fix corrupted docstrings | M5 |
 | `lib/features/reminders/presentation/providers/reminder_notifier.dart` | `_tick` (the 5-min poll) ⇒ `syncNow()` after the state update; `markDone`/`snooze` ⇒ `syncNow()` after `refresh()`; fix corrupted docstrings | M5 |
-| `lib/features/baby/presentation/providers/baby_profile_providers.dart` | + `babyProfilesProvider` — a `FutureProvider<List<BabyProfile>>` on `getAllProfiles()` (the only new provider in the baby feature) | M5 |
+| — (no new baby-feature provider) | the sync notifier reads the **existing** `babyProfileListProvider` in `lib/core/providers/active_baby_provider.dart` (a `FutureProvider<List<BabyProfile>>` on `getAllProfiles()`); this row originally proposed a duplicate `babyProfilesProvider`, which the M5 step 5 supersedes | M5 |
 | `lib/features/home/presentation/widgets/onboarding_dialog.dart` | after `insertProfile` (L213) ⇒ `syncNow()` (D6: a new baby starts scheduling immediately) | M5 |
 | `lib/features/menu/presentation/widgets/baby_profile_section.dart` | after `insertProfile` (L281) and `deleteProfile` (L449) ⇒ `syncNow()` | M5 |
 | `lib/main.dart` (`MyApp`) | Wrap the routed child in `LifecycleSyncWidget` (the single `WidgetsBindingObserver`; on `resumed` + first frame ⇒ `syncNow()`) | M5 |
@@ -350,6 +378,13 @@ Reuse the private helpers from `reminder_frequency.dart` (`_isSameDay`, `_weekIn
 internal use-site; the weekly/monthly index math must stay single-sourced, or the scheduler and
 `isDue` will drift.
 
+`duePeriodStart(item, {now, lastCompleted})` (public, same file) returns the **calendar day** of
+the natural candidate, time-of-day stripped. It exists for D3: the catch-up guard needs the
+identity of the *due period*, and only the natural candidate carries it — `nextDueAt` collapses an
+overdue item to `now`, which is the same value for every item at every tick. Day granularity is
+what makes it right for all four variants: a daily item has a period per day, a weekly item one
+per target weekday, a monthly item one per birth day, a custom interval one per n-day boundary.
+
 **Test matrix for M3** (every row is a test; use fixed instants, round numbers, DST pairs where
 marked): daily — never done (fires at T today; T already passed ⇒ catch-up); done today (fires
 tomorrow T); snoozed yesterday (window still open ⇒ tomorrow T); snoozed 25 h ago (window closed
@@ -365,6 +400,10 @@ crash, drift ≤ 1 h) and falls back (T fires once, at the first occurrence).
 
 ### 3.5 `ReminderScheduler.sync()` — exact steps (M5)
 
+0. If `!notifications.ready` ⇒ return 0, **touching nothing** (R13): `init()` failed in this
+   process, so the OS holds no schedules we know about; clearing `_plan` here would make the
+   next healthy sync see a clean slate and resubmit everything (fine), but skipping is simpler
+   and the notifier retries `init()` before every sync, so the next tick picks up.
 1. If `!notificationsOptIn` ⇒ `cancelAll()`, clear `_plan` and `_catchUpDone`, return 0.
    (The D8 de-opt path lands here too: the notifier persists `'0'` *before* calling sync,
    so step 1 does the cancelling.)
@@ -388,19 +427,28 @@ crash, drift ≤ 1 h) and falls back (T fires once, at the first occurrence).
    entry = `(planIndex, kind: at | catchUp, at: …, title: title(item, profile), body: body(item, profile))`.
    `planIndex` increments from 1 over the **kept** entries (D5) — `catchUp` when
    `nextDueAt <= now`.
-5. **Diff against `_plan`** (the entries actually submitted at the last sync): id in `_plan`
-   but not in the new plan ⇒ `cancel(id)`; id in both, same kind, same `at`, **same
-   title, same body** ⇒ skip (steady-state tick costs zero plugin calls — D2); same id
-   with any of kind/at/title/body changed ⇒ re-submit with the new content (the plugin
-   replaces the pending entry **by id** on both platforms — no explicit cancel needed;
-   a content change at an unchanged time is exactly the R11 rename case); new id ⇒
-   submit: catchUp entry with key `'$scope::$itemKey' ∉ _catchUpDone` ⇒ `scheduleIn(60 s)`
-   + add the key to `_catchUpDone`; catchUp already in `_catchUpDone` ⇒ **do not submit**
-   (D3: no re-arming); else `scheduleAt(at)`.
-6. Store the newly submitted entries in `_plan`; return their count.
+5. **Diff against `_plan`** (the scheduled entries actually submitted at the last sync).
+   *Scheduled* entries only — a catch-up nudge is not in `_plan`, it is in
+   `_catchUpArmed` keyed `'$scope::$itemKey::$periodDay'` with its own id:
+   - id in `_plan` but not in the new plan ⇒ `cancel(id)`;
+   - id in both, same `at`, **same title, same body** ⇒ skip (steady-state tick costs
+     zero plugin calls — D2); same id with at/title/body changed ⇒ re-submit with the
+     new content (the plugin replaces the pending entry **by id** on both platforms —
+     no explicit cancel needed; a content change at an unchanged time is exactly the
+     R11 rename case); new id ⇒ `scheduleAt(at)`;
+   - catchUp, key ∉ `_catchUpArmed` ⇒ take a fresh id from the band, `scheduleIn(60 s)`,
+     record `key → id`;
+   - catchUp, key ∈ `_catchUpArmed` ⇒ **touch nothing**: no re-arm (D3) *and no
+     cancel* — cancelling would wipe a notification the user has not tapped yet on the
+     next 5-minute tick. This is the half the first draft got wrong.
+6. Cancel the nudges whose key has disappeared (completed, dismissed, disabled, or gone
+   with its baby) and forget those keys, so a **later** period of the same item can
+   nudge again — without the forget, one nudge would silence that item for the life of
+   the process. Store the newly submitted entries in `_plan` and the live nudges in
+   `_catchUpArmed`; return `_plan.length + _catchUpArmed.length`.
 
-The 60 s delay is a `zonedTimer` (inexact is fine for catch-up — it is already late).
-`_catchUpDone` is per-process (D3): an app restart within the same due window can nudge
+The 60 s delay is a near-future `scheduleAt` (`scheduleIn`) — inexact is fine for catch-up, it is already late.
+`_catchUpArmed` is per-process (D3): an app restart within the same due window can nudge
 once more — bounded (R12). The key uses `(scope, itemKey)`, **not** the plan index, so a
 baby rename (which reshuffles indices) cannot re-arm a catch-up.
 
@@ -489,7 +537,7 @@ must be green — nothing references the plugin yet); `cd android && ./gradlew :
 
 1. Interface (§3.2) in domain; impl (§3.6) in data with constructor-injected plugin.
 2. `flutter_local_notification_service_test.dart`: fake plugin records
-   `initialize`/`request*`/`zonedSchedule`/`zonedTimer`/`cancel`/`cancelAll` calls; assert the
+   `initialize`/`request*`/`zonedSchedule`/`cancel`/`cancelAll` calls; assert the
    exact-vs-inexact mode switch on `exactAlarmsAllowed`, the permission paths (Android 13+ vs < 13
    vs iOS), that `init()` is idempotent, and that a failing `init()` ⇒ logged no-ops until
    re-init (R13).
@@ -512,17 +560,24 @@ must be green — nothing references the plugin yet); `cd android && ./gradlew :
    title, not the old one, for a surviving id** (Flash-Next review blocker) — no orphans
    (R11); adding a baby schedules its items, deleting one cancels them; two `syncNow()`
    in flight at once ⇒ a single `scheduler.sync()` (the in-flight guard).
-2. `reminder_sync_notifier.dart` (§3.2): `syncNow()` reading app_settings + `babyProfilesProvider`;
-   title/body closures from `AppLocalizations` (active locale) + the scope's profile (`{baby}` +
-   `{care}` placeholders, §6; `null` profile ⇒ `reminderNotificationBodyNoProfile`); the D8 de-opt
+2. `reminder_sync_notifier.dart` (§3.2): `syncNow()` reading app_settings + the **existing**
+   `babyProfileListProvider` (`lib/core/providers/active_baby_provider.dart` — no new provider is
+   created; the plan's `babyProfilesProvider` name is satisfied by it); title/body closures from
+   `AppLocalizations` (active locale via `localeProvider`) + the scope's profile (`{baby}` +
+   `{care}` placeholders, §5; `null` profile ⇒ `reminderNotificationBodyNoProfile`); the D8 de-opt
    check (opt-in ON + `permissionGranted` false ⇒ persist `'0'`, then sync — step 1 cancels).
+   M5 also adds the three notification-content l10n keys (§5, marked M5) because the closures need
+   them before any UI exists.
 3. Hooks (§3.3): `setEnabled`, `create`/`edit`/`remove`, `markDone`/`snooze`, the poll `_tick`,
    onboarding `insertProfile`, menu `insertProfile` + `deleteProfile`. No baby-switch hook (D6).
 4. `lifecycle_sync.dart` + `MyApp` wiring: first-frame + `AppLifecycleState.resumed` ⇒ `syncNow()`.
    This is the app's only `WidgetsBindingObserver` — the class dartdoc must say so (roadmap §0
    verified there were none).
-5. Providers: `reminderSyncNotifierProvider`, `babyProfilesProvider` (§3.3), and a `FutureProvider`
-   for the `FlutterLocalNotificationService` (the plugin instance is process-lived).
+5. Providers: `reminderSyncNotifierProvider`, `localNotificationServiceProvider` (a
+   `FutureProvider` for the process-lived `FlutterLocalNotificationService`),
+   `reminderSchedulerProvider` (a `FutureProvider` composing repository + service), and the
+   `appSettingsRepositoryProvider` (the M2 impl needed its wiring; the notifier is the first
+   consumer). `babyProfilesProvider` is the existing `babyProfileListProvider` (step 2).
 
 **Verify:** analyze + `flutter test test/features/reminders/`. Commit:
 `feat(reminders): reconciliation scheduler wiring OS notifications to reminder state`.
@@ -584,7 +639,7 @@ must be green — nothing references the plugin yet); `cd android && ./gradlew :
 
 ---
 
-## 5. l10n key table (M6 — en is canonical; fr/es aligned to existing terminology, produced via `tg-translate` per the store-prose discipline and checked against `app_<locale>.arb` for the existing `reminder*` terms)
+## 5. l10n key table (en is canonical; fr/es aligned to existing terminology, produced via `tg-translate` per the store-prose discipline and checked against `app_<locale>.arb` for the existing `reminder*` terms. Milestone: the three `reminderNotification*` content keys are added in **M5** — the scheduler's title/body closures need them before any UI exists; the UI keys + the `reminderSettingsDescription` rewrite are **M6**)
 
 | Key | en | fr | es | Notes |
 |---|---|---|---|---|
@@ -609,10 +664,10 @@ must be green — nothing references the plugin yet); `cd android && ./gradlew :
 | R6 | App foreground when a catch-up fires | The pill **and** the notification are both visible — accepted (D7); suppressing foreground notifications is complexity we don't need. |
 | R7 | iOS 64-pending-notification cap | Scheduled set = enabled items per baby (4 presets + customs, bounded by what a parent creates; realistically < 20). Cap is not a practical constraint; the diff-based reschedule keeps it fresh. |
 | R8 | Multiple babies | D6: **all** babies — each scope's settings/completions/dismissals are independent (the DB has been per-baby since v11); the body carries the name (§5), so any baby's notification is unambiguous; disabling a preset for one baby does not touch the others. |
-| R9 | `timezone` data vs device tz on iOS/Android | `tz.local` after `initializeTimeZones()`; the plugin ships IANA data. No user-facing tz picker (out of scope). |
+| R9 | `timezone` data vs device tz on iOS/Android | Schedules are submitted as the exact instant expressed in the **UTC** zone (`tz.getLocation('UTC')`, M4) — the channel carries wall-clock + zone name, so UTC preserves the instant without ever discovering the device IANA zone (the device zone is unreachable from pure Dart). `tz.initializeTimeZones()` still runs in `init()`. No user-facing tz picker (out of scope). |
 | R10 | Corrupted docstrings copied into new files by habit | §0 hard rule: rewritten in the touched files; M5/M6 diffs are the check point. |
-| R11 | Baby added / renamed / deleted | Add/delete ⇒ the M5 `syncNow()` hooks re-schedule immediately; rename ⇒ a one-time plan-index shuffle (D5) ⇒ the content-aware diff (§3.5 step 5) re-submits every entry whose title/body moved — no orphans, **no stale name** (content is part of the diff key, `_PlanEntry`). |
-| R12 | Restart within the same due window | `_catchUpDone` is in-memory: at most **one** duplicate catch-up nudge per restart, per item. Bounded; deliberately not persisted (persisting it would need a new table — rejected). |
+| R11 | Baby added / renamed / deleted | Add/delete ⇒ the M5 `syncNow()` hooks re-schedule immediately; rename ⇒ a one-time plan-index shuffle (D5) ⇒ the content-aware diff (§3.5 step 5) re-submits every entry whose title/body moved — no orphans, **no stale name** (content is part of the diff key, `_PlanEntry`). A live catch-up nudge is not reshuffled at all: its id is sticky in its own band (D3/D5), so its text can never be overwritten by another baby's schedule. A nudge *already shown* keeps the name it was posted with until the user dismisses it — the OS gives no way to rewrite a delivered notification, and re-posting one would violate D3. |
+| R12 | Restart within the same due window | `_catchUpArmed` is in-memory: at most **one** duplicate catch-up nudge per restart, per item. Bounded; deliberately not persisted (persisting it would need a new table — rejected). |
 | R13 | `tz.initializeTimeZones()` throws (time-zone asset failure) | Service goes unhealthy: logged no-ops, sync returns 0, next tick/resume retries `init()` (M4). No crash, no half-scheduled plan (§3.6). |
 
 ## 7. What this plan is **not**

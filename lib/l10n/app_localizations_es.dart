@@ -233,6 +233,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reminderFaceCleaning => 'Rostro';
 
   @override
+  String reminderNotificationTitle(Object care) {
+    return '$care';
+  }
+
+  @override
+  String reminderNotificationBody(Object baby, Object care) {
+    return '$baby: hora de $care.';
+  }
+
+  @override
+  String reminderNotificationBodyNoProfile(Object care) {
+    return 'Hora de $care.';
+  }
+
+  @override
   String get reminderSettingsTile => 'Elige qué recordatorios se muestran';
 
   @override

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +8,7 @@ import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/show_feedback.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
+import '../../../../features/reminders/presentation/providers/reminder_sync_notifier.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/domain/entities/baby_profile.dart';
 
@@ -283,6 +285,11 @@ class BabyProfileSection extends ConsumerWidget {
                   ref.invalidate(babyProfileListProvider);
                   await ref.read(activeBabyProvider.notifier).refresh();
                   await ref.read(anyBabyExistsProvider.notifier).refresh();
+                  // D6: a new baby starts being scheduled immediately — its
+                  // presets join the OS plan on this very sync.
+                  unawaited(ref
+                      .read(reminderSyncNotifierProvider.notifier)
+                      .syncNow());
 
                   if (dialogContext.mounted) Navigator.pop(dialogContext);
                   if (dialogContext.mounted) {
@@ -450,6 +457,11 @@ class BabyProfileSection extends ConsumerWidget {
 
         // Invalidate the list provider so the menu UI rebuilds with updated data.
         ref.invalidate(babyProfileListProvider);
+
+        // D6: the deleted baby's entries are stale — reconcile now so the OS
+        // plan (and the profileless fallback, if this was the last baby)
+        // tracks the profile list without waiting for the next tick.
+        unawaited(ref.read(reminderSyncNotifierProvider.notifier).syncNow());
 
         if (isActive) {
           // If we deleted the active baby, activate the first other profile if exists.

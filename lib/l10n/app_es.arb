@@ -147,6 +147,25 @@
   "reminderVitaminK": "Vit. K",
   "reminderEyeCleaning": "Ojos",
   "reminderFaceCleaning": "Rostro",
+  "reminderNotificationTitle": "{care}",
+  "@reminderNotificationTitle": {
+    "placeholders": {
+      "care": {}
+    }
+  },
+  "reminderNotificationBody": "{baby}: hora de {care}.",
+  "@reminderNotificationBody": {
+    "placeholders": {
+      "baby": {},
+      "care": {}
+    }
+  },
+  "reminderNotificationBodyNoProfile": "Hora de {care}.",
+  "@reminderNotificationBodyNoProfile": {
+    "placeholders": {
+      "care": {}
+    }
+  },
   "reminderSettingsTile": "Elige qué recordatorios se muestran",
   "reminderSettingsTitle": "Recordatorios",
   "reminderSettingsError": "No se pudieron cargar los recordatorios",

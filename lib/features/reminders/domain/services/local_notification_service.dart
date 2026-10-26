@@ -20,6 +20,12 @@ abstract class LocalNotificationService {
   /// revoking the permission in system settings (D8).
   Future<bool> get permissionGranted;
 
+  /// Whether [init] has succeeded at least once (M5): `false` ⇒ [scheduleAt],
+  /// [scheduleIn], [cancel] and [cancelAll] are silent no-ops, and the sync
+  /// cycle must return 0 without recording a plan (R13). The sync cycle owns
+  /// the retry — the service itself never re-runs [init] on a call.
+  bool get ready;
+
   /// Android 33+: `canScheduleExactNotifications()`; every other
   /// platform/version ⇒ `true`. When `false`, scheduling falls back to
   /// inexact (batches may drift; start/resume reconciliation repairs).

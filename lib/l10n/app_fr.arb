@@ -147,6 +147,25 @@
   "reminderVitaminK": "Vit. K",
   "reminderEyeCleaning": "Yeux",
   "reminderFaceCleaning": "Visage",
+  "reminderNotificationTitle": "{care}",
+  "@reminderNotificationTitle": {
+    "placeholders": {
+      "care": {}
+    }
+  },
+  "reminderNotificationBody": "{baby} : c'est l'heure de {care}.",
+  "@reminderNotificationBody": {
+    "placeholders": {
+      "baby": {},
+      "care": {}
+    }
+  },
+  "reminderNotificationBodyNoProfile": "C'est l'heure de {care}.",
+  "@reminderNotificationBodyNoProfile": {
+    "placeholders": {
+      "care": {}
+    }
+  },
   "reminderSettingsTile": "Choisir les rappels affichés",
   "reminderSettingsTitle": "Rappels",
   "reminderSettingsError": "Échec du chargement des rappels",

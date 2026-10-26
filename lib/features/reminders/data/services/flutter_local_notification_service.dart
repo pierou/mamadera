@@ -25,7 +25,7 @@ const String _channelDescription = 'Care reminders';
 class FlutterLocalNotificationService implements LocalNotificationService {
   /// Creates the service. [plugin] defaults to the shared plugin singleton.
   FlutterLocalNotificationService({FlutterLocalNotificationsPlugin? plugin})
-    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+      : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   final FlutterLocalNotificationsPlugin _plugin;
   final Logger _logger = appLogger();
@@ -69,13 +69,14 @@ class FlutterLocalNotificationService implements LocalNotificationService {
   }
 
   @override
+  bool get ready => _initialized;
+
+  @override
   Future<bool> ensurePermission() async {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        final android =
-            _plugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin
-            >();
+        final android = _plugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
         if (android == null) return false;
         final granted = await android.requestNotificationsPermission();
         if (granted != null) return granted;
@@ -85,15 +86,14 @@ class FlutterLocalNotificationService implements LocalNotificationService {
         return (await android.areNotificationsEnabled()) ?? false;
       case TargetPlatform.iOS:
         final ios = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin
-        >();
+            IOSFlutterLocalNotificationsPlugin>();
         if (ios == null) return false;
         return (await ios.requestPermissions(
-          alert: true,
-          sound: true,
-          badge: false,
-        )) ??
-          false;
+              alert: true,
+              sound: true,
+              badge: false,
+            )) ??
+            false;
       default:
         // Mobile-only in v1.3.0.
         return false;
@@ -104,16 +104,13 @@ class FlutterLocalNotificationService implements LocalNotificationService {
   Future<bool> get permissionGranted async {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        final android =
-            _plugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin
-            >();
+        final android = _plugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
         if (android == null) return false;
         return (await android.areNotificationsEnabled()) == true;
       case TargetPlatform.iOS:
         final ios = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin
-        >();
+            IOSFlutterLocalNotificationsPlugin>();
         if (ios == null) return false;
         final status = await ios.checkPermissions();
         return status?.isEnabled ?? false;
@@ -125,10 +122,8 @@ class FlutterLocalNotificationService implements LocalNotificationService {
   @override
   Future<bool> get exactAlarmsAllowed async {
     if (defaultTargetPlatform != TargetPlatform.android) return true;
-    final android =
-        _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
     if (android == null) return false;
     return (await android.canScheduleExactNotifications()) == true;
   }
@@ -189,7 +184,9 @@ class FlutterLocalNotificationService implements LocalNotificationService {
   bool _ready() => _initialized;
 
   Future<AndroidScheduleMode> _scheduleMode() async {
-    if (await exactAlarmsAllowed) return AndroidScheduleMode.exactAllowWhileIdle;
+    if (await exactAlarmsAllowed) {
+      return AndroidScheduleMode.exactAllowWhileIdle;
+    }
     if (!_inexactWarned) {
       _inexactWarned = true;
       _logger.w(
@@ -201,10 +198,8 @@ class FlutterLocalNotificationService implements LocalNotificationService {
 
   Future<void> _ensureAndroidChannel() async {
     if (defaultTargetPlatform != TargetPlatform.android) return;
-    final android =
-        _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
     if (android == null) return;
     await android.createNotificationChannel(
       const AndroidNotificationChannel(
@@ -219,11 +214,11 @@ class FlutterLocalNotificationService implements LocalNotificationService {
   }
 
   NotificationDetails _notificationDetails() => const NotificationDetails(
-    android: AndroidNotificationDetails(
-      _channelId,
-      _channelName,
-      channelDescription: _channelDescription,
-    ),
-    iOS: DarwinNotificationDetails(),
-  );
+        android: AndroidNotificationDetails(
+          _channelId,
+          _channelName,
+          channelDescription: _channelDescription,
+        ),
+        iOS: DarwinNotificationDetails(),
+      );
 }
