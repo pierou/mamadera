@@ -259,7 +259,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get reminderSettingsDescription =>
-      'Bandeaux affichés sur l\'accueil tant que le soin n\'a pas été saisi. Aucune notification système n\'est envoyée : tout reste sur cet appareil.';
+      'Bandeaux affichés sur l\'accueil tant que le soin n\'a pas été saisi, et — si vous les activez — notifications système. Tout reste sur cet appareil.';
+
+  @override
+  String get reminderNotificationsSectionTitle => 'Notifications système';
+
+  @override
+  String get reminderNotificationsOptIn => 'Me notifier quand un rappel est dû';
+
+  @override
+  String get reminderNotificationsTimeLabel => 'Heure de notification';
+
+  @override
+  String get reminderNotificationsPermissionDenied =>
+      'Les notifications sont désactivées dans les réglages du système. Activez-les là-bas pour recevoir les notifications de rappel.';
 
   @override
   String get reminderFrequencyDaily => 'Tous les jours';

@@ -298,8 +298,8 @@ void main() {
       final count = await h.sync();
       expect(count, 8);
       expect(h.notifications.cancelAllCount, 1);
-      expect(h.notifications.scheduledIn,
-          [catchUpIdBase + 1, catchUpIdBase + 2]);
+      expect(
+          h.notifications.scheduledIn, [catchUpIdBase + 1, catchUpIdBase + 2]);
     });
 
     test('unchanged state ⇒ zero plugin calls (steady tick)', () async {

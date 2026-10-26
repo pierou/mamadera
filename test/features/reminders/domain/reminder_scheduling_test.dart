@@ -29,7 +29,9 @@ void main() {
       final now = DateTime(2026, 7, 15, 7, 0);
       expect(
         nextDueAt(_item(Daily()),
-            now: now, dismissalWindow: _window, preferredHour: _h,
+            now: now,
+            dismissalWindow: _window,
+            preferredHour: _h,
             preferredMinute: _m),
         DateTime(2026, 7, 15, 8, 0),
       );
@@ -39,7 +41,9 @@ void main() {
       final now = DateTime(2026, 7, 15, 9, 0);
       expect(
         nextDueAt(_item(Daily()),
-            now: now, dismissalWindow: _window, preferredHour: _h,
+            now: now,
+            dismissalWindow: _window,
+            preferredHour: _h,
             preferredMinute: _m),
         now,
       );
@@ -115,7 +119,9 @@ void main() {
       final now = DateTime(2026, 7, 15, 7, 0); // Wednesday
       expect(
         nextDueAt(_item(Weekly(dayOfWeek: 5)),
-            now: now, dismissalWindow: _window, preferredHour: _h,
+            now: now,
+            dismissalWindow: _window,
+            preferredHour: _h,
             preferredMinute: _m),
         DateTime(2026, 7, 17, 8, 0), // Friday
       );
@@ -125,7 +131,9 @@ void main() {
       final now = DateTime(2026, 7, 15, 9, 0); // Wednesday, T=08:00 passed
       expect(
         nextDueAt(_item(Weekly(dayOfWeek: 3)),
-            now: now, dismissalWindow: _window, preferredHour: _h,
+            now: now,
+            dismissalWindow: _window,
+            preferredHour: _h,
             preferredMinute: _m),
         now,
       );
@@ -170,7 +178,9 @@ void main() {
       final now = DateTime(2026, 2, 10, 9, 0);
       expect(
         nextDueAt(_item(Monthly(dayOfMonth: 31)),
-            now: now, dismissalWindow: _window, preferredHour: _h,
+            now: now,
+            dismissalWindow: _window,
+            preferredHour: _h,
             preferredMinute: _m),
         DateTime(2026, 2, 28, 8, 0),
       );
@@ -191,8 +201,7 @@ void main() {
       );
     });
 
-    test('done on the 31st with dayOfMonth 15: fires next month the 15th',
-        () {
+    test('done on the 31st with dayOfMonth 15: fires next month the 15th', () {
       final now = DateTime(2026, 6, 10, 9, 0);
       expect(
         nextDueAt(
@@ -213,7 +222,9 @@ void main() {
       final now = DateTime(2026, 7, 15, 9, 0);
       expect(
         nextDueAt(_item(CustomInterval(days: 7)),
-            now: now, dismissalWindow: _window, preferredHour: _h,
+            now: now,
+            dismissalWindow: _window,
+            preferredHour: _h,
             preferredMinute: _m),
         now,
       );
@@ -295,7 +306,8 @@ void main() {
       return null;
     }
 
-    test('spring-forward T inside the skipped hour: next valid instant, '
+    test(
+        'spring-forward T inside the skipped hour: next valid instant, '
         'no crash, drift ≤ 1 h', () {
       final day = transitionDay(true);
       if (day == null) return; // host zone has no DST
@@ -323,8 +335,7 @@ void main() {
       expect(result.isAfter(now), isTrue);
     });
 
-    test('fall-back T on the repeated hour: fires once, deterministically',
-        () {
+    test('fall-back T on the repeated hour: fires once, deterministically', () {
       final day = transitionDay(false);
       if (day == null) return; // host zone has no DST
       // now at 01:00 on the repeated hour (first occurrence), so T at 01:30

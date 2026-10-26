@@ -595,6 +595,28 @@ must be green — nothing references the plugin yet); `cd android && ./gradlew :
    the notification-service provider with a fake), OFF ⇒ `cancelAll`, time change ⇒ reschedule,
    denied hint shown/hidden.
 
+**M6 implementation notes (deliberate deviations).**
+
+- The section **trails** the two reminder lists. `ListView` builds lazily, so a block inserted near the
+  top pushes the preset rows out of the build tree — and twenty existing widget tests assert those rows
+  by text. Both placements were run: leading passes the new tests and breaks the old ones.
+- `notificationSettingsProvider`, `NotificationPreferences` and `NotificationSettingsNotifier` live **in
+  `reminder_sync_notifier.dart`**, not in a file of their own. The de-opt inside `_run()` must
+  `ref.invalidate(notificationSettingsProvider)` — otherwise a parent who revokes the permission in
+  system settings and comes straight back to the open settings screen sees a switch that is a lie, which
+  is exactly what D8 forbids — and two files importing each other for that one call is a cycle for
+  nothing.
+- The `HH:mm` codec is its own domain file, `domain/services/notification_time.dart`:
+  `parseNotificationTime` (strict, falls back to the default), `formatNotificationTime` (zero-padded —
+  never `8:7`) and `notificationTimeDefaults()` **derived from** `defaultNotificationTime`, so there is
+  no second hard-coded 09:00 to drift.
+- Widget tests that assert scheduling or the de-opt **mount `LifecycleSyncWidget`**: `syncNow()` runs
+  there, not in the screen, so without it a stored `'1'` schedules nothing and a `cancelAll()` assertion
+  proves nothing. Assertions run on the **fake OS through the real scheduler**.
+- Those tests assert notification **content and count, never ids**: past the preferred hour every item is
+  a catch-up and lands in the sticky `catchUpIdBase` band (D5), so `scheduled[1]` depends on the wall
+  clock the test happens to run at. The same four titles either way.
+
 **Verify:** analyze + `flutter test test/features/reminders/presentation/`. Commit:
 `feat(reminders): notification opt-in and time-of-day in settings (+ l10n en/fr/es)`.
 

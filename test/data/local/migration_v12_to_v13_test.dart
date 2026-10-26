@@ -160,12 +160,11 @@ void main() {
     expect(db.schemaVersion, 13);
 
     // The new table exists, is empty, and has the expected shape.
-    final info = await db
-        .customSelect("PRAGMA table_info('app_settings')")
-        .get();
+    final info =
+        await db.customSelect("PRAGMA table_info('app_settings')").get();
     expect(info, hasLength(2));
-    expect(info.map((r) => r.read<String>('name')),
-        containsAll(['key', 'value']));
+    expect(
+        info.map((r) => r.read<String>('name')), containsAll(['key', 'value']));
     expect((await db.select(db.appSettings).get()), isEmpty);
 
     // All seven v12 tables keep exactly the rows that were seeded.
@@ -182,9 +181,7 @@ void main() {
     final events = await db.select(db.trackingEvents).get();
     expect(events.map((e) => e.unit), containsAll(['ml', 'min', 'ml']));
     final settings = await db.select(db.reminderSettings).get();
-    expect(
-        settings.map((s) => s.babyId),
-        containsAll(['', 'baby-AAA']),
+    expect(settings.map((s) => s.babyId), containsAll(['', 'baby-AAA']),
         reason: 'the sentinel row must survive the migration');
     final profileless = await db
         .customSelect(
@@ -193,9 +190,8 @@ void main() {
     expect(profileless.read<int>('n'), 1);
 
     // The table is usable right after the migration.
-    await db
-        .into(db.appSettings)
-        .insert(AppSettingsCompanion.insert(key: 'notifications_opt_in', value: '1'));
+    await db.into(db.appSettings).insert(
+        AppSettingsCompanion.insert(key: 'notifications_opt_in', value: '1'));
     final row = await db
         .customSelect(
             "SELECT value FROM app_settings WHERE key = 'notifications_opt_in'")

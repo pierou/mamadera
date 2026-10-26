@@ -535,8 +535,32 @@ abstract class AppLocalizations {
   /// No description provided for @reminderSettingsDescription.
   ///
   /// In fr, this message translates to:
-  /// **'Bandeaux affichés sur l\'accueil tant que le soin n\'a pas été saisi. Aucune notification système n\'est envoyée : tout reste sur cet appareil.'**
+  /// **'Bandeaux affichés sur l\'accueil tant que le soin n\'a pas été saisi, et — si vous les activez — notifications système. Tout reste sur cet appareil.'**
   String get reminderSettingsDescription;
+
+  /// No description provided for @reminderNotificationsSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications système'**
+  String get reminderNotificationsSectionTitle;
+
+  /// No description provided for @reminderNotificationsOptIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Me notifier quand un rappel est dû'**
+  String get reminderNotificationsOptIn;
+
+  /// No description provided for @reminderNotificationsTimeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure de notification'**
+  String get reminderNotificationsTimeLabel;
+
+  /// No description provided for @reminderNotificationsPermissionDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les notifications sont désactivées dans les réglages du système. Activez-les là-bas pour recevoir les notifications de rappel.'**
+  String get reminderNotificationsPermissionDenied;
 
   /// No description provided for @reminderFrequencyDaily.
   ///

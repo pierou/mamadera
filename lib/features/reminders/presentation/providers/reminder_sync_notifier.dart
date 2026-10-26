@@ -14,6 +14,7 @@ import '../../data/services/flutter_local_notification_service.dart';
 import '../../domain/entities/reminder_item.dart';
 import '../../domain/repositories/app_settings_repository.dart';
 import '../../domain/services/local_notification_service.dart';
+import '../../domain/services/notification_time.dart';
 import '../../domain/services/reminder_scheduler.dart';
 import 'reminder_providers.dart';
 
@@ -93,12 +94,15 @@ class ReminderSyncNotifier extends Notifier<void> {
       // truth; the sync below then does the cancelAll.
       await settings.set(settingsKeyNotificationsOptIn, '0');
       optIn = false;
+      // The settings screen may be open right now, showing a switch that is
+      // about to be a lie. Re-read it so it reflects the revocation (D8).
+      ref.invalidate(notificationSettingsProvider);
     }
 
     final time = (await settings.get(settingsKeyNotificationTime)) ??
         defaultNotificationTime;
     final (hour: preferredHour, minute: preferredMinute) =
-        _parseTimeOfDay(time);
+        parseNotificationTime(time);
 
     // D6: every baby profile, name ascending (the repository's order).
     final babies = await ref.read(babyProfileListProvider.future);
@@ -122,38 +126,6 @@ class ReminderSyncNotifier extends Notifier<void> {
             ),
     );
   }
-}
-
-/// Parses the stored `HH:mm` preference, falling back to
-/// [defaultNotificationTime] on anything malformed.
-///
-/// The strictness is deliberate: `'0830'` parses as the integer 830, and an
-/// hour of 830 does not fail — it silently schedules a notification for a
-/// wall-clock time that does not exist. The settings UI cannot write that, but
-/// a hand-edited or corrupted row can, and the schedule must not inherit it.
-({int hour, int minute}) _parseTimeOfDay(String stored) {
-  final fallback = defaultNotificationTime.split(':');
-  final parts = stored.split(':');
-  if (parts.length != 2) {
-    return (
-      hour: int.parse(fallback.first),
-      minute: int.parse(fallback.last),
-    );
-  }
-  final hour = int.tryParse(parts.first);
-  final minute = int.tryParse(parts.last);
-  if (hour == null ||
-      minute == null ||
-      hour < 0 ||
-      hour > 23 ||
-      minute < 0 ||
-      minute > 59) {
-    return (
-      hour: int.parse(fallback.first),
-      minute: int.parse(fallback.last),
-    );
-  }
-  return (hour: hour, minute: minute);
 }
 
 /// The preset ids: these display the localized *health* label in notification
@@ -187,4 +159,137 @@ String _careLabel(AppLocalizations l10n, ReminderItem item) {
     }
   }
   return item.labelKey;
+}
+
+/// What the “System notifications” section shows: the persisted opt-in, the
+/// persisted preferred time of day, and whether the OS permission is currently
+/// missing.
+///
+/// `permissionDenied` is transient UI state, not a stored value: it is set
+/// when the user flips the switch on and the OS refuses. The opt-in stays
+/// `false` then — nothing is persisted as ON that the OS would not honour (D8).
+@immutable
+class NotificationPreferences {
+  const NotificationPreferences({
+    required this.optIn,
+    required this.hour,
+    required this.minute,
+    this.permissionDenied = false,
+  });
+
+  /// The stored `notifications_opt_in` flag, already reconciled with the OS.
+  final bool optIn;
+
+  /// The stored `notification_time_of_day`, split for display.
+  final int hour;
+  final int minute;
+
+  /// `true` ⇒ show the “turn them on in system settings” hint.
+  final bool permissionDenied;
+
+  /// `HH:mm` for the time row.
+  String get timeLabel => formatNotificationTime(hour: hour, minute: minute);
+
+  NotificationPreferences copyWith({
+    bool? optIn,
+    int? hour,
+    int? minute,
+    bool? permissionDenied,
+  }) =>
+      NotificationPreferences(
+        optIn: optIn ?? this.optIn,
+        hour: hour ?? this.hour,
+        minute: minute ?? this.minute,
+        permissionDenied: permissionDenied ?? this.permissionDenied,
+      );
+}
+
+/// The settings screen’s view of the notification preferences (M6).
+///
+/// Sits in this file with the sync notifier on purpose: the de-opt path
+/// inside [ReminderSyncNotifier] invalidates it, and two files importing each
+/// other for that would be a cycle for nothing.
+///
+/// Owns the D8 write path: the opt-in is persisted **only** after the OS has
+/// granted the permission, and every accepted change ends with a `syncNow()`
+/// so the OS plan tracks the switch instead of waiting for the next tick.
+final notificationSettingsProvider = AsyncNotifierProvider<
+    NotificationSettingsNotifier, NotificationPreferences>(
+  NotificationSettingsNotifier.new,
+);
+
+class NotificationSettingsNotifier
+    extends AsyncNotifier<NotificationPreferences> {
+  @override
+  Future<NotificationPreferences> build() async {
+    final settings = await ref.watch(appSettingsRepositoryProvider.future);
+    final optIn = (await settings.get(settingsKeyNotificationsOptIn)) == '1';
+    final time = (await settings.get(settingsKeyNotificationTime)) ??
+        defaultNotificationTime;
+    final (hour: hour, minute: minute) = parseNotificationTime(time);
+    return NotificationPreferences(optIn: optIn, hour: hour, minute: minute);
+  }
+
+  /// D8: returns `true` when the switch ended up ON.
+  ///
+  /// Turning it on asks the OS first; a refusal persists nothing and only
+  /// sets [NotificationPreferences.permissionDenied]. Turning it off persists
+  /// `'0'` and cancels every pending notification (the sync does the cancelling).
+  Future<bool> setOptIn({required bool wanted}) async {
+    final settings = await ref.read(appSettingsRepositoryProvider.future);
+    if (!wanted) {
+      await settings.set(settingsKeyNotificationsOptIn, '0');
+      await ref.read(reminderSyncNotifierProvider.notifier).syncNow();
+      _publish(optIn: false, permissionDenied: false);
+      return false;
+    }
+
+    final notifications =
+        await ref.read(localNotificationServiceProvider.future);
+    if (!await notifications.ensurePermission()) {
+      _publish(optIn: false, permissionDenied: true);
+      return false;
+    }
+
+    await settings.set(settingsKeyNotificationsOptIn, '1');
+    await ref.read(reminderSyncNotifierProvider.notifier).syncNow();
+    _publish(optIn: true, permissionDenied: false);
+    return true;
+  }
+
+  /// Persists the preferred time of day (`HH:mm`) and reconciles immediately.
+  Future<void> setTime({required int hour, required int minute}) async {
+    final settings = await ref.read(appSettingsRepositoryProvider.future);
+    await settings.set(
+      settingsKeyNotificationTime,
+      formatNotificationTime(hour: hour, minute: minute),
+    );
+    await ref.read(reminderSyncNotifierProvider.notifier).syncNow();
+    _publish(hour: hour, minute: minute);
+  }
+
+  /// Re-emits the current preferences with the given fields replaced. Always
+  /// [AsyncData]: the screen is already on screen and a reload would flicker
+  /// the whole reminder list to show a spinner for a switch.
+  void _publish({
+    bool? optIn,
+    int? hour,
+    int? minute,
+    bool? permissionDenied,
+  }) {
+    final current = state.value ??
+        NotificationPreferences(
+          optIn: false,
+          hour: notificationTimeDefaults().hour,
+          minute: notificationTimeDefaults().minute,
+        );
+    state = AsyncData(
+      current.copyWith(
+        optIn: optIn,
+        hour: hour,
+        minute: minute,
+        permissionDenied: permissionDenied,
+      ),
+    );
+  }
 }

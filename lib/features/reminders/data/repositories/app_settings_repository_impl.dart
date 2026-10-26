@@ -29,9 +29,7 @@ class AppSettingsRepositoryImpl implements AppSettingsRepository {
   @override
   Future<void> set(String key, String value) async {
     try {
-      await database
-          .into(database.appSettings)
-          .insert(
+      await database.into(database.appSettings).insert(
             db_app.AppSettingsCompanion.insert(key: key, value: value),
             onConflict: DoUpdate(
               (_) => db_app.AppSettingsCompanion.custom(
