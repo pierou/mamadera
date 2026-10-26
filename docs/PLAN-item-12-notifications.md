@@ -175,7 +175,7 @@ abstract class LocalNotificationService {
   Future<bool> get permissionGranted;                   // query only, never prompts
   Future<bool> get exactAlarmsAllowed;                  // Android 33+: canScheduleExactNotifications(); true elsewhere
   Future<void> scheduleAt({required int id, required String title, required String body, required DateTime at});
-  Future<void> scheduleIn({required int id, required String title, required String body, required Duration delay}); // zonedTimer, catch-up (D3)
+  Future<void> scheduleIn({required int id, required String title, required String body, required Duration delay}); // catch-up (D3); near-future scheduleAt — the plugin has no zonedTimer (§3.6)
   Future<void> cancel(int id);
   Future<void> cancelAll();
 }
@@ -419,11 +419,18 @@ baby rename (which reshuffles indices) cannot re-arm a catch-up.
   `requestPermissions(alert: true, sound: true, badge: false)`.
 - `exactAlarmsAllowed` (Android 33+): `canScheduleExactNotifications()`; other platforms/versions
   ⇒ `true`. `scheduleAt` uses
-  `AndroidScheduleMode.exactAllowWhileIdle` when allowed, else `allowWhileIdle` (log **one** line
+  `AndroidScheduleMode.exactAllowWhileIdle` when allowed, else `inexactAllowWhileIdle` (log **one** line
   via `logger`, D7-adjacent: inexact can drift tens of minutes — acceptable, and start/resume
   reconciliation repairs it).
-- `scheduleAt`: `zonedSchedule(id, title, body, tz.TZDateTime.from(at, tz.local), details: …)`;
-  `scheduleIn`: `zonedTimer(60, id, title, body, details: …)`. Tap: default launch (no payload —
+- `scheduleAt`: `zonedSchedule(id, title, body, tz.TZDateTime.from(at, tz.getLocation('UTC')), details: …)` — the
+  channel carries *wall-clock + zone name* (Android: `ZonedDateTime.parse` +
+  `ZoneId.of`; iOS: `dateFormatter` + `NSTimeZone timeZoneWithName:`), so the instant is preserved by
+  expressing it in UTC: the device's IANA zone is never discoverable from pure Dart (no
+  `tz.setLocalLocation` needed, no offset-matching guess). Verified 2026-10-26 against 22.3.3 +
+  timezone 0.11.2 (`toMap()` sends `location.name`);
+  `scheduleIn`: **`zonedTimer` does not exist in `flutter_local_notifications` 22.x** (verified
+  2026-10-26 against 22.3.3) — the D3 catch-up is implemented as
+  `scheduleAt(at: now + 60s)`, the same one-shot primitive. Tap: default launch (no payload —
   nothing to pass, D7).
 - Constructor-inject the `FlutterLocalNotificationsPlugin` instance (default `FlutterLocalNotificationsPlugin()`)
   so M4 tests drive a **fake** that records calls — no method-channel mocking.
