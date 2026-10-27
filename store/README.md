@@ -45,15 +45,22 @@ which would put unreviewed human words back into a machine-made pipeline.
 
 | package | state |
 |---|---|
-| [`v1.2.1/`](v1.2.1/README.md) | **current** — 1.2.1+11, tag `v1.2.1` |
+| [`v1.3.0/`](v1.3.0/) | **current** — 1.3.0+1, not yet built on device: `check.py` is red on the 24 Play screenshots until `make store-shots VERSION=1.3.0` runs |
+| [`v1.2.1/`](v1.2.1/README.md) | archived — 1.2.1+11, tag `v1.2.1`, **published**; kept and still checked, because it is the record of what went live |
 
 Before uploading, always:
 
 ```bash
-python3 store/v1.2.1/check.py        # limits + note consistency + screenshot inventory
-python3 store/v1.2.1/check.py --write  # regenerate Apple "What's New" from assets/patch_notes
+python3 store/v1.3.0/check.py        # limits + note consistency + screenshot inventory
+python3 store/v1.3.0/check.py --write  # regenerate Apple "What's New" from assets/patch_notes
 make store-prose                     # (next release) TranslateGemma fr/es from source/en/
 ```
+
+Each `check.py` is **generated** by `scripts/build_store_package.py` and pins the version it
+was built for; the checks themselves live once, in `scripts/store_check.py`. The pin is the
+point: when 1.3.0 was bumped, the v1.2.1 checker — which used to read `pubspec.yaml` — began
+demanding 1.3.0's patch notes from 1.2.1's published text and raised three blockers on files
+that had not changed and must not change. A released listing does not track the working tree.
 
 Older releases have no package directory here: 1.0.x–1.2.0 were submitted with the copy in
 `docs/app-store-setup.md` and `docs/google-play-setup.md`, which still hold that (older)

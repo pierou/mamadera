@@ -219,8 +219,11 @@ integration-driver: pub-get
 #   store-package        copy canonical text + Apple notes, report every field length
 #   store-prose          the same, plus TranslateGemma en→fr/es (raw output archived under
 #                        machine/, then term-aligned to lib/l10n/app_<locale>.arb)
-#   store-check          enforce the consoles' character limits, note consistency, screenshot
-#                        inventory — runs in `make ci`, needs no device
+#   store-check          require a package for the pubspec version, then check every
+#                        store/v*/ against the version ITS shim pins — limits, note
+#                        consistency, screenshot inventory. Archived packages stay checked:
+#                        they are the record of what was published. Runs in `make ci`,
+#                        needs no device.
 #   store-shots        recapture the Play screenshots for fr/es/en (emulator required)
 #
 # TranslateGemma runs on the box, which has ONE model slot: never run `make store-prose`
@@ -232,11 +235,17 @@ store-prose:
 	@python3 scripts/build_store_package.py --translate
 
 store-check:
-	@found=0; for check in store/v*/check.py; do \
-		[ -e "$$check" ] || continue; found=1; \
-		echo "── $$check"; python3 "$$check" || exit 1; \
+	@ver=$$(awk '/^version:/{print $$2; exit}' pubspec.yaml | cut -d'+' -f1); \
+	if [ ! -f "store/v$$ver/check.py" ]; then \
+		echo "no store/v$$ver/ — the package for THIS version was never built"; \
+		echo "run: make store-prose  (TranslateGemma, box) or make store-package"; \
+		exit 1; \
+	fi; \
+	status=0; \
+	for check in store/v*/check.py; do \
+		[ -e "$$check" ] || continue; python3 "$$check" || status=1; \
 	done; \
-	[ "$$found" = "1" ] || { echo "no store/v*/check.py — run: python3 scripts/build_store_package.py"; exit 1; }
+	exit $$status
 
 store-shots:
 	@bash store/v$(VERSION)/capture.sh
