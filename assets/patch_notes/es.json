@@ -124,5 +124,19 @@
       "- Uniformización del mensaje de valor fuera de rango en la ficha de edición (« entre 200 y 20000 g », y no « 200.0 »)",
       ""
     ]
+  },
+  "1.3.0": {
+    "releaseDate": "2026-10-26",
+    "title": "Novedades de Mamadera 1.3.0",
+    "items": [
+      "### Nuevas funcionalidades",
+      "- Adición de las notificaciones del sistema cuando un recordatorio está pendiente, incluso con la aplicación cerrada — desactivadas hasta que las actives en Recordatorios",
+      "- Ajuste de tu hora de notificación en Recordatorios, aplicada a todos los recordatorios",
+      "- Adición de una notificación por bebé: cada mensaje lleva el nombre del bebé, dos bebés ya no se confunden",
+      "- Recuperación de las preferencias de notificación al restaurar una copia de seguridad, que ya no vuelve a pedirlas",
+      "### Mejoras",
+      "- Sigue sin haber nada que enviar: las notificaciones se generan en el dispositivo, y la exportación manual por la ventana para compartir que tú abres sigue siendo el único camino de salida",
+      ""
+    ]
   }
 }

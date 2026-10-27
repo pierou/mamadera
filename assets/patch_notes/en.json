@@ -124,5 +124,19 @@
       "- Consistent out-of-range message in the measurement edit sheet (\"between 200 and 20000 g\", not \"200.0\")",
       ""
     ]
+  },
+  "1.3.0": {
+    "releaseDate": "2026-10-26",
+    "title": "What's New in Mamadera 1.3.0",
+    "items": [
+      "### New features",
+      "- System notifications when a reminder is due, even with the app closed — and off until you turn them on, in Reminders",
+      "- Your own notification time, chosen in Reminders and applied to every reminder",
+      "- One notification per baby: each message carries the baby's name, so two babies never look like one",
+      "- Notification preferences now live inside the backup, so a restored phone keeps them instead of asking again",
+      "### Improvements",
+      "- Still nothing to send: notifications are assembled on the device, and the manual export through the share sheet you open remains the only way your data leaves it",
+      ""
+    ]
   }
 }

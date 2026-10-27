@@ -1,4 +1,5 @@
-• Growth measurements now show in History — edit or delete them there
-• Breastfeeding logged in minutes or ml, your choice
-• Out-of-range values are refused, with the range shown
-• Fixes: English dates, doubled chart units, small-screen layout
+• Notifications when a reminder is due, even with the app closed — only if you switch them on
+• A notification time you choose, for every reminder
+• One notification per baby, each with the baby's name
+• Preferences now live inside your backup
+• Still no account, no analytics, nothing leaving the device

@@ -1,0 +1,5 @@
+• Notificaciones cuando se acerca la fecha de un recordatorio, incluso si la aplicación está cerrada, siempre y cuando las haya activado.
+• Un horario de notificación que usted elija, para cada recordatorio.
+• Una notificación por bebé, cada una con el nombre del bebé.
+• Las preferencias ahora se guardan en su copia de seguridad.
+• Sigue sin necesidad de cuenta, sin análisis de datos, y nada se envía fuera del dispositivo.
