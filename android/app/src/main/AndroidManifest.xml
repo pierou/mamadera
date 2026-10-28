@@ -32,6 +32,13 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Roadmap item 12: the flutter_local_notifications plugin delivers its
+             exact-alarm broadcasts to this receiver. The plugin's own manifest does
+             NOT declare it — the app must, or scheduled notifications silently never
+             fire (the alarm is armed and consumed, but nothing posts). -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
