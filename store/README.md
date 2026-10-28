@@ -45,7 +45,7 @@ which would put unreviewed human words back into a machine-made pipeline.
 
 | package | state |
 |---|---|
-| [`v1.3.0/`](v1.3.0/) | **current** — 1.3.0+12, not yet built on device: `check.py` is red on the 24 Play screenshots until `make store-shots VERSION=1.3.0` runs |
+| [`v1.3.0/`](v1.3.0/) | **current** — 1.3.0+12, built and passed the M8 device gate (Android, Pixel_10_Pro + Small_Phone); `check.py` green on the 24 Play screenshots (captured via `make store-shots VERSION=1.3.0`); ASC shots still WARN-only until knowingly uploaded |
 | [`v1.2.1/`](v1.2.1/README.md) | archived — 1.2.1+11, tag `v1.2.1`, **published**; kept and still checked, because it is the record of what went live |
 
 Before uploading, always:
