@@ -1,4 +1,4 @@
-# PLAN — Item 12: background-capable reminder notifications (`1.3.0+1`, drift schema v13, export format v4)
+# PLAN — Item 12: background-capable reminder notifications (`1.3.0+12`, drift schema v13, export format v4)
 
 Status: **OPEN — v1.3.0 candidate**. Owner decisions recorded 2026-10-25:
 1. **Background-capable** scheduling (local OS notifications via `flutter_local_notifications` +
@@ -321,7 +321,7 @@ class ReminderSyncNotifier extends Notifier<void> {
 
 | File | Change | Milestone |
 |---|---|---|
-| `pubspec.yaml` | + `flutter_local_notifications: ^22.3.2`, + `timezone: ^0.11.2` (with a comment: local-only, no network — the §10.2 privacy note); version bump to `1.3.0+1` at M8 | M1 / M8 |
+| `pubspec.yaml` | + `flutter_local_notifications: ^22.3.2`, + `timezone: ^0.11.2` (with a comment: local-only, no network — the §10.2 privacy note); version bump to `1.3.0+12` at M8 (build number is the global monotonic counter — last release was `1.2.1+11`, so the next is `+12`, **not** `+1`; a reset fails the on-device upgrade and the store) | M1 / M8 |
 | `android/app/src/main/AndroidManifest.xml` | `<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>` + `<uses-permission android:name="android.permission.USE_EXACT_ALARM"/>` (reminder-class exemption, API 33+; comment: no `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, out of scope) | M1 |
 | `lib/data/local/app_db.dart` | + `AppSettings` table; `schemaVersion` 12 → 13; `onUpgrade` additive `CREATE TABLE` branch; schema.sql regenerated to match | M2 |
 | `lib/data/local/db_constants.dart` | + key constants `settingsKeyNotificationsOptIn = 'notifications_opt_in'`, `settingsKeyNotificationTime = 'notification_time_of_day'`, `defaultNotificationTime = '09:00'` (rewrite the corrupted docstrings in this file — see §0) | M2 |
@@ -659,7 +659,7 @@ must be green — nothing references the plugin yet); `cd android && ./gradlew :
 
 ### M8 — Version, notes, full gate, release evidence
 
-1. `pubspec.yaml` ⇒ `1.3.0+1`; `AppConfig.version` ⇒ `'1.3.0'`.
+1. `pubspec.yaml` ⇒ `1.3.0+12` (build number continues the global counter from `1.2.1+11`); `AppConfig.version` ⇒ `'1.3.0'`.
 2. Patch notes `1.3.0` entries in the three JSONs (fr/es **noun form**); one item per user-visible
    change (notifications opt-in, time of day, everything-stays-on-device sentence).
 3. `make ci` (full pipeline: lint, tests, coverage ≥ 80, store-check).
@@ -667,7 +667,7 @@ must be green — nothing references the plugin yet); `cd android && ./gradlew :
    - install the `1.2.1+11` build on `Small_Phone` (Android) and a standard iPhone (iOS
      simulator), seed **two** baby profiles (different birth days ⇒ different vitamin K monthly
      targets, D6) + sante events + one custom reminder per baby;
-   - install the `1.3.0+1` build over it: migration v12→v13 ran, old data visible, `app_settings`
+   - install the `1.3.0+12` build over it: migration v12→v13 ran, old data visible, `app_settings`
      empty;
    - flip the opt-in ON (grant permission), set the time to now+3 min, **force-stop the app**
      (Android: `adb shell am force-stop com.pvjio.mamadera`; iOS: terminate), wait, screenshot

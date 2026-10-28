@@ -45,7 +45,7 @@ which would put unreviewed human words back into a machine-made pipeline.
 
 | package | state |
 |---|---|
-| [`v1.3.0/`](v1.3.0/) | **current** — 1.3.0+1, not yet built on device: `check.py` is red on the 24 Play screenshots until `make store-shots VERSION=1.3.0` runs |
+| [`v1.3.0/`](v1.3.0/) | **current** — 1.3.0+12, not yet built on device: `check.py` is red on the 24 Play screenshots until `make store-shots VERSION=1.3.0` runs |
 | [`v1.2.1/`](v1.2.1/README.md) | archived — 1.2.1+11, tag `v1.2.1`, **published**; kept and still checked, because it is the record of what went live |
 
 Before uploading, always:
