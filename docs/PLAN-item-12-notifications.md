@@ -1,6 +1,10 @@
 # PLAN — Item 12: background-capable reminder notifications (`1.3.0+12`, drift schema v13, export format v4)
 
-Status: **OPEN — v1.3.0 candidate**. Owner decisions recorded 2026-10-25:
+Status: **DONE — M1–M8 complete, gate passed 2026-10-30** (evidence:
+`docs/release-evidence/v1.3.0/` — Android Pixel `1.2.1+11 → 1.3.0+12` migration +
+background fire + R11 + export format 4; iOS iPhone 17 simulator (iOS 26.5) migration +
+terminated-state fire (10 delivered, per-baby French bodies, banner captured) + R11 + export).
+Owner decisions recorded 2026-10-25:
 1. **Background-capable** scheduling (local OS notifications via `flutter_local_notifications` +
    `timezone`), not poll-only.
 2. **Bucket: v1.3.0** — "quite big" (two new dependencies, a permission flow, a migration, an
@@ -684,6 +688,15 @@ must be green — nothing references the plugin yet); `cd android && ./gradlew :
    [!53740](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53740) has merged by then, push it
    as a follow-up MR, otherwise it rides the same MR.
 7. Commit: `chore: v1.3.0 version bump, patch notes, release evidence`.
+
+**Execution record (2026-10-30):** gate passed on both platforms; evidence under
+`docs/release-evidence/v1.3.0/`. Two simulator gotchas cost an evening and must not recur:
+`flutter test` (integration_test) and `flutter build ios --simulator` write the **same**
+`build/ios/iphonesimulator/Runner.app` artifact — a test run silently overwrites the production
+build, and the resulting app never calls `runApp` (blank screen, no sync, no schedules). Always
+`rm -rf build/ios && flutter build ios --simulator` immediately before the production install,
+with no `flutter test` in between. Second: the fire lands on the **top of the minute**
+(00:21:00.000 for a 00:21 setting), so banner screenshots go at fire+1 s / +4 s / +7 s.
 
 ---
 
