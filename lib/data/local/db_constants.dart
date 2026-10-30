@@ -95,16 +95,3 @@ const Set<String> allCompletionSourceValues = {
 /// (the v10 "all babies" sharing that leaked settings and dismissals across
 /// babies is what the isolation of v11/v12 fixed).
 const String sharedBabyId = '';
-
-// ── App settings keys (`app_settings.key`, schema v13) ──────────────────
-
-/// Opt-in flag for system notifications: `'1'` = enabled, `'0'` (or a
-/// missing row) = disabled. A missing row always reads as disabled.
-const String settingsKeyNotificationsOptIn = 'notifications_opt_in';
-
-/// Preferred time of day for reminder notifications, `'HH:mm'` (24-hour,
-/// device-local). A missing row reads as [defaultNotificationTime].
-const String settingsKeyNotificationTime = 'notification_time_of_day';
-
-/// Default value of [settingsKeyNotificationTime] when no row exists.
-const String defaultNotificationTime = '09:00';

@@ -6,7 +6,6 @@ import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/services/app_logger.dart';
-import '../../../../data/local/db_constants.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../data/repositories/app_settings_repository_impl.dart';

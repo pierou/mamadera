@@ -740,3 +740,13 @@ with no `flutter test` in between. Second: the fire lands on the **top of the mi
 - Not the F-Droid pipeline (M8.6 is a two-line follow-up to the existing runbook in
   `docs/fdroiddata/README.md`).
 - Not a fix for the blocked fr→en comment pass — only the bounded rewrite in touched files (§0).
+
+Gate footnote (2026-10-30, post-PR): the push tripped the CI `architecture ratchet` and
+`check-complexity` steps — both run under `make gate` (the documented CI mirror), not under
+`make ci` (the fast subset). The M8 "full gate" is **`make gate`**. Fixes: the `settingsKey*`
+constants moved to the reminders domain contract (a presentation file had reached into
+`data/local` for them), the lifecycle-observer widget moved from `core/` into the reminders
+feature that it exclusively serves (`ReminderLifecycleSyncWidget`), and `import_repository_impl`
+was split by `part` (field-extraction helpers + two restore insert loops lifted out of
+`restore`, which lizard had pushed past length 150). All back to baseline: ratchet 4/2/0/0/0,
+complexity 3 warnings (cap 3), `make gate` green, 1483 tests.

@@ -13,7 +13,7 @@ import 'core/router.dart';
 import 'core/services/encryption_service.dart';
 import 'core/services/locale_service.dart';
 import 'core/theme.dart';
-import 'core/widgets/lifecycle_sync.dart';
+import 'features/reminders/presentation/widgets/reminder_lifecycle_sync.dart';
 import 'l10n/app_localizations.dart';
 
 Locale? _resolveLocale(AsyncValue<LocalePreference> localeState) {
@@ -68,7 +68,7 @@ class MyApp extends ConsumerWidget {
 
     // The app's single WidgetsBindingObserver: first-frame + resumed
     // notification reconciliation (plan §3.1, M5).
-    return LifecycleSyncWidget(
+    return ReminderLifecycleSyncWidget(
       child: _buildRouterApp(ref: ref, locale: locale, themeMode: themeMode),
     );
   }

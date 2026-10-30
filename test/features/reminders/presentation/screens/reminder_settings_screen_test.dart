@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
 import 'package:mamadera/core/providers/locale_provider.dart';
-import 'package:mamadera/core/widgets/lifecycle_sync.dart';
 import 'package:mamadera/core/services/locale_service.dart';
 import 'package:mamadera/data/local/db_constants.dart';
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
@@ -12,6 +11,7 @@ import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.d
 import 'package:mamadera/features/reminders/domain/repositories/app_settings_repository.dart';
 import 'package:mamadera/features/reminders/domain/services/local_notification_service.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
+import 'package:mamadera/features/reminders/presentation/widgets/reminder_lifecycle_sync.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_sync_notifier.dart';
 import 'package:mamadera/features/reminders/presentation/screens/reminder_settings_screen.dart';
 import 'package:mamadera/features/reminders/presentation/widgets/custom_reminder_tile.dart';
@@ -151,8 +151,8 @@ void main() {
   late _FakeNotificationService fakeNotifications;
   late _FakeAppSettings fakeSettings;
 
-  /// [withLifecycle] mounts the real `LifecycleSyncWidget` — the start-up and
-  /// resume reconciliation, which is where the D8 de-opt lives.
+  /// [withLifecycle] mounts the real `ReminderLifecycleSyncWidget` — the
+  /// start-up and resume reconciliation, which is where the D8 de-opt lives.
   Future<void> pumpScreen(WidgetTester tester,
       {bool withLifecycle = false}) async {
     await tester.pumpWidget(
@@ -181,7 +181,8 @@ void main() {
             GlobalCupertinoLocalizations.delegate,
           ],
           home: withLifecycle
-              ? const LifecycleSyncWidget(child: ReminderSettingsScreen())
+              ? const ReminderLifecycleSyncWidget(
+                  child: ReminderSettingsScreen())
               : const ReminderSettingsScreen(),
         ),
       ),

@@ -6,7 +6,12 @@
 /// valid time is. They must not each own a regex.
 library;
 
-import '../../../../data/local/db_constants.dart';
+/// Default value of `settingsKeyNotificationTime` when no row exists.
+///
+/// Owned by this file because this is where the default is consumed (the
+/// parse fallback); the settings key itself lives with the repository
+/// contract.
+const String defaultNotificationTime = '09:00';
 
 /// The default time of day, read from [defaultNotificationTime].
 ///

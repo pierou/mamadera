@@ -2,8 +2,8 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/data/local/app_db.dart';
-import 'package:mamadera/data/local/db_constants.dart';
 import 'package:mamadera/features/reminders/data/repositories/app_settings_repository_impl.dart';
+import 'package:mamadera/features/reminders/domain/repositories/app_settings_repository.dart';
 
 void main() {
   group('AppSettingsRepositoryImpl', () {

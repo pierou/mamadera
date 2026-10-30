@@ -13,8 +13,12 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 // The reminders feature owns these settings; the importer validates them with
 // the same rule the scheduler reads them with, not with a regex of its own
 // (precedent: baby/data imports reminders/domain/entities).
+import '../../../reminders/domain/repositories/app_settings_repository.dart';
 import '../../../reminders/domain/services/notification_time.dart';
 import '../../domain/repositories/import_repository.dart';
+
+part 'import_repository_field_extraction.dart';
+part 'import_repository_restore_inserts.dart';
 
 /// Newest format version this build can restore.
 ///
@@ -44,8 +48,8 @@ const int _oldestFormatVersion = 1;
 /// unverifiable rather than harmless. Adding a setting means adding its key and
 /// its validator here, in the change that adds it.
 const Set<String> _knownSettingKeys = {
-  db_const.settingsKeyNotificationsOptIn,
-  db_const.settingsKeyNotificationTime,
+  settingsKeyNotificationsOptIn,
+  settingsKeyNotificationTime,
 };
 
 /// `generator` value written by documents this app exports.
@@ -477,8 +481,8 @@ ImportedAppSetting _parseAppSetting(
         section: section);
   }
   final valid = switch (key) {
-    db_const.settingsKeyNotificationsOptIn => value == '0' || value == '1',
-    db_const.settingsKeyNotificationTime => isValidNotificationTime(value),
+    settingsKeyNotificationsOptIn => value == '0' || value == '1',
+    settingsKeyNotificationTime => isValidNotificationTime(value),
     _ => false,
   };
   if (!valid) {
@@ -522,161 +526,17 @@ QuantityUnit _resolveEventUnit({
   return unit;
 }
 
-// ── Field extraction ─────────────────────────────────────────────────────
-//
-// Explicit helpers rather than `as` casts everywhere: the analyzer runs with
-// strict-casts/strict-raw-types, and every rejection must name its section so
-// the parent gets "the file is malformed" and not a Dart type message.
-
-String _requiredString(Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value is! String || value.isEmpty) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return value;
-}
-
-String? _optionalString(Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value == null) return null;
-  if (value is! String) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return value;
-}
-
-int _requiredInt(Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value is! int) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return value;
-}
-
-int? _optionalPositiveInt(
-    Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value == null) return null;
-  if (value is! int || value < 1) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return value;
-}
-
-double? _optionalFiniteDouble(
-    Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value == null) return null;
-  if (value is! num) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  final converted = value.toDouble();
-  if (!converted.isFinite) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return converted;
-}
-
-bool _boolWithTrueDefault(
-    Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value == null) return true;
-  if (value is! bool) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return value;
-}
-
-/// Instant stored as epoch SECONDS, with the ISO twin as fallback.
-DateTime _seconds(
-    Map<String, dynamic> row, String epochKey, String isoKey, String section) {
-  final epoch = row[epochKey];
-  if (epoch is int) {
-    return _checkRange(
-        DateTime.fromMillisecondsSinceEpoch(epoch * 1000, isUtc: true),
-        section);
-  }
-  if (epoch == null) {
-    final iso = row[isoKey];
-    if (iso is String) {
-      final parsed = DateTime.tryParse(iso);
-      if (parsed != null) return _checkRange(parsed, section);
-    }
-  }
-  throw ImportFormatException(ImportRejectionReason.invalidRow,
-      section: section);
-}
-
-/// Instant stored as epoch MILLISECONDS (`baby_profiles.birth_date`), with the
-/// ISO twin as fallback.
-int _milliseconds(
-    Map<String, dynamic> row, String epochKey, String isoKey, String section) {
-  final epoch = row[epochKey];
-  if (epoch is int) {
-    _checkRange(
-        DateTime.fromMillisecondsSinceEpoch(epoch, isUtc: true), section);
-    return epoch;
-  }
-  if (epoch == null) {
-    final iso = row[isoKey];
-    if (iso is String) {
-      final parsed = DateTime.tryParse(iso);
-      if (parsed != null) {
-        _checkRange(parsed, section);
-        return parsed.millisecondsSinceEpoch;
-      }
-    }
-  }
-  throw ImportFormatException(ImportRejectionReason.invalidRow,
-      section: section);
-}
-
-/// Rejects instants outside 1990-2100: a wrong unit (milliseconds where seconds
-/// were expected, a hand-edited value) lands there, and restoring it would put
-/// a baby event in 1970 with nothing raised to notice.
-DateTime _checkRange(DateTime moment, String section) {
-  final utc = moment.toUtc();
-  if (utc.isBefore(_plausibleMin) || !utc.isBefore(_plausibleMax)) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return moment;
-}
-
-void _requireUnique(Object id, Set<Object> seen, String section) {
-  if (!seen.add(id)) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-}
-
-/// Deterministic `(birthDate, id)` ordering, the same one
-/// `AppDatabase.getActiveBabyProfile` uses to pick the active profile.
-ImportedBabyProfile _firstByBirthDateThenId(
-    List<ImportedBabyProfile> profiles) {
-  var first = profiles.first;
-  for (final candidate in profiles) {
-    final earlier = candidate.birthDateEpochMs < first.birthDateEpochMs ||
-        (candidate.birthDateEpochMs == first.birthDateEpochMs &&
-            candidate.id.compareTo(first.id) < 0);
-    if (earlier) first = candidate;
-  }
-  return first;
-}
-
 /// Concrete implementation of [ImportRepository].
 ///
 /// The parse half is pure and runs off the UI isolate; the restore half is the
 /// only code in this feature that writes, and it writes inside one transaction.
 /// Only counts and timings are ever logged — never a name, a note, a label or a
 /// file path (same rule the export repository follows).
+///
+/// The row field-extraction helpers (`_requiredString` and friends) live in
+/// `import_repository_field_extraction.dart` — a `part` of this library, so
+/// they stay private to it while keeping this file inside the 800-line
+/// architecture budget.
 class ImportRepositoryImpl implements ImportRepository {
   const ImportRepositoryImpl({
     required this.database,
@@ -820,24 +680,9 @@ class ImportRepositoryImpl implements ImportRepository {
             );
       }
 
-      for (final completion in parsed.reminderCompletions) {
-        await database.into(database.reminderCompletions).insert(
-              db_app.ReminderCompletionsCompanion.insert(
-                babyId: Value(completion.babyId),
-                itemId: completion.itemId,
-                completedAt: completion.completedAt,
-              ),
-            );
-      }
+      await _insertReminderCompletions(database, parsed.reminderCompletions);
 
-      for (final setting in parsed.appSettings) {
-        await database.into(database.appSettings).insert(
-              db_app.AppSettingsCompanion.insert(
-                key: setting.key,
-                value: setting.value,
-              ),
-            );
-      }
+      await _insertAppSettings(database, parsed.appSettings);
 
       await _promoteActiveProfile(parsed.babyProfiles);
     });
