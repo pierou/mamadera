@@ -1,0 +1,5 @@
+• Des notifications lorsque le rappel est imminent, même lorsque l'application est fermée – uniquement si vous les activez.
+• Un horaire de notification que vous choisissez, pour chaque rappel.
+• Une notification par bébé, avec le nom de chaque bébé.
+• Les préférences sont désormais intégrées à votre sauvegarde.
+• Toujours aucun compte, aucune analyse, et aucune donnée ne quitte l'appareil.

@@ -102,7 +102,7 @@ void main() {
       expect(dismissals.first.read<String>('baby_id'), babyId);
 
       final userVersion = await db.customSelect('PRAGMA user_version').get();
-      expect(userVersion.first.read<int>('user_version'), 12);
+      expect(userVersion.first.read<int>('user_version'), 13);
 
       // An index that is missing after a migration is invisible to the user and can be costly.
       // Perform a full table scan on every recall query, every time.
@@ -129,7 +129,7 @@ void main() {
       expect(events.length, 4,
           reason: 'ouvrir deux fois ne doit ni dupliquer ni perdre de lignes');
       final version = await second.customSelect('PRAGMA user_version').get();
-      expect(version.first.read<int>('user_version'), 12);
+      expect(version.first.read<int>('user_version'), 13);
       await second.close();
     });
   });

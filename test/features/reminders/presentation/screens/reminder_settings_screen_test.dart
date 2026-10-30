@@ -3,10 +3,16 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
+import 'package:mamadera/core/providers/locale_provider.dart';
+import 'package:mamadera/core/services/locale_service.dart';
 import 'package:mamadera/data/local/db_constants.dart';
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
+import 'package:mamadera/features/reminders/domain/repositories/app_settings_repository.dart';
+import 'package:mamadera/features/reminders/domain/services/local_notification_service.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
+import 'package:mamadera/features/reminders/presentation/widgets/reminder_lifecycle_sync.dart';
+import 'package:mamadera/features/reminders/presentation/providers/reminder_sync_notifier.dart';
 import 'package:mamadera/features/reminders/presentation/screens/reminder_settings_screen.dart';
 import 'package:mamadera/features/reminders/presentation/widgets/custom_reminder_tile.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
@@ -48,16 +54,122 @@ bool _isOn(WidgetTester tester, String label) => tester
     ))
     .value;
 
+/// Records what the scheduler asks the OS to do; hands out a fixed answer to
+/// the permission request (D8).
+class _FakeNotificationService implements LocalNotificationService {
+  /// Answer handed to `ensurePermission()` / `permissionGranted`.
+  bool granted = true;
+  int ensurePermissionCalls = 0;
+  int cancelAllCount = 0;
+  int initCalls = 0;
+
+  /// `id → (title, body, at)` — what is pending in the OS.
+  final Map<int, (String title, String body, DateTime at)> scheduled = {};
+  final List<int> scheduledIn = [];
+  final List<int> cancelled = [];
+
+  @override
+  Future<void> init() async => initCalls++;
+
+  @override
+  bool get ready => true;
+
+  @override
+  Future<bool> ensurePermission() async {
+    ensurePermissionCalls++;
+    return granted;
+  }
+
+  @override
+  Future<bool> get permissionGranted async => granted;
+
+  @override
+  Future<bool> get exactAlarmsAllowed async => true;
+
+  @override
+  Future<void> scheduleAt({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime at,
+  }) async {
+    scheduled[id] = (title, body, at);
+  }
+
+  @override
+  Future<void> scheduleIn({
+    required int id,
+    required String title,
+    required String body,
+    required Duration delay,
+  }) async {
+    scheduledIn.add(id);
+    scheduled[id] = (title, body, DateTime.now().add(delay));
+  }
+
+  @override
+  Future<void> cancel(int id) async {
+    cancelled.add(id);
+    scheduled.remove(id);
+  }
+
+  @override
+  Future<void> cancelAll() async {
+    cancelAllCount++;
+    scheduled.clear();
+  }
+}
+
+/// In-memory stand-in for the `app_settings` table (schema v13).
+class _FakeAppSettings implements AppSettingsRepository {
+  final Map<String, String> values = {};
+
+  @override
+  Future<String?> get(String key) async => values[key];
+
+  @override
+  Future<void> set(String key, String value) async {
+    values[key] = value;
+  }
+
+  @override
+  Future<void> deleteAll() async => values.clear();
+
+  @override
+  Future<Map<String, String>> getAll() async => Map.of(values);
+}
+
+/// Deterministic locale for the notification content (no path_provider here).
+class _FrLocaleNotifier extends LocaleNotifier {
+  @override
+  Future<LocalePreference> build() async =>
+      const LocalePreference(languageCode: 'fr', isManualOverride: true);
+}
+
 void main() {
   late MockRemindersRepository mockReminders;
+  late _FakeNotificationService fakeNotifications;
+  late _FakeAppSettings fakeSettings;
 
-  Future<void> pumpScreen(WidgetTester tester) async {
+  /// [withLifecycle] mounts the real `ReminderLifecycleSyncWidget` — the
+  /// start-up and resume reconciliation, which is where the D8 de-opt lives.
+  Future<void> pumpScreen(WidgetTester tester,
+      {bool withLifecycle = false}) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           remindersRepositoryProvider
               .overrideWith((ref) async => mockReminders),
           activeBabyProvider.overrideWith(() => _ActiveBabyStub(_baby)),
+          // The section under test writes through these; the real ones would
+          // reach the plugin and the database. The scheduler stays real, so
+          // "opt out ⇒ cancelAll" is asserted on what actually reaches the OS.
+          appSettingsRepositoryProvider
+              .overrideWith((ref) async => fakeSettings),
+          localNotificationServiceProvider
+              .overrideWith((ref) async => fakeNotifications),
+          babyProfileListProvider.overrideWith((ref) async => [_baby]),
+          localeProvider.overrideWith(_FrLocaleNotifier.new),
         ],
         child: MaterialApp(
           locale: const Locale('fr'),
@@ -68,7 +180,10 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: const ReminderSettingsScreen(),
+          home: withLifecycle
+              ? const ReminderLifecycleSyncWidget(
+                  child: ReminderSettingsScreen())
+              : const ReminderSettingsScreen(),
         ),
       ),
     );
@@ -77,6 +192,8 @@ void main() {
 
   setUp(() {
     mockReminders = MockRemindersRepository();
+    fakeNotifications = _FakeNotificationService();
+    fakeSettings = _FakeAppSettings();
   });
 
   group('ReminderSettingsScreen', () {
@@ -87,8 +204,9 @@ void main() {
       expect(find.text('Rappels'), findsOneWidget);
       expect(
         find.text(
-          "Bandeaux affichés sur l'accueil tant que le soin n'a pas été saisi. "
-          'Aucune notification système n\'est envoyée : tout reste sur cet appareil.',
+          "Bandeaux affichés sur l'accueil tant que le soin n'a pas été saisi, "
+          'et — si vous les activez — notifications système. '
+          'Tout reste sur cet appareil.',
         ),
         findsOneWidget,
       );
@@ -114,7 +232,8 @@ void main() {
         (tester) async {
       await pumpScreen(tester);
 
-      expect(find.byType(SwitchListTile), findsNWidgets(4));
+      // 4 presets + the "System notifications" opt-in (M6).
+      expect(find.byType(SwitchListTile), findsNWidgets(5));
       for (final label in [
         'Vitamine D',
         'Vitamine K',
@@ -179,7 +298,8 @@ void main() {
 
       await pumpScreen(tester);
 
-      expect(find.byType(SwitchListTile), findsNWidgets(4));
+      // 4 presets + the "System notifications" opt-in (M6).
+      expect(find.byType(SwitchListTile), findsNWidgets(5));
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
   });
@@ -485,6 +605,203 @@ void main() {
       // half.
       expect(mockReminders.customRemindersById, hasLength(1));
       expect(find.byType(CustomReminderTile), findsOneWidget);
+    });
+  });
+
+  group('System notifications section (M6, D8)', () {
+    final optInLabel = 'Me notifier quand un rappel est dû';
+
+    // The section trails the list, so its switch is below the fold at rest.
+    // `scrollUntilVisible` is this file's idiom for reaching a lower row.
+    Future<void> revealOptIn(WidgetTester tester) async {
+      await tester.scrollUntilVisible(
+        _switchFor(optInLabel),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> toggleOptIn(WidgetTester tester) async {
+      await revealOptIn(tester);
+      await tester.tap(_switchFor(optInLabel));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('renders OFF by default and never asks before the switch',
+        (tester) async {
+      await pumpScreen(tester);
+
+      await revealOptIn(tester);
+      expect(find.text('Notifications système'), findsOneWidget);
+      expect(_isOn(tester, optInLabel), isFalse);
+      // AGENTS.md: the permission is asked for at the switch, never at launch.
+      expect(fakeNotifications.ensurePermissionCalls, 0);
+      expect(fakeNotifications.scheduled, isEmpty);
+      await revealOptIn(tester);
+      expect(find.text('Les notifications sont désactivées dans les réglages'),
+          findsNothing);
+    });
+
+    testWidgets('the time row is dead while the switch is off', (tester) async {
+      await pumpScreen(tester);
+
+      await revealOptIn(tester);
+      final row = tester.widget<ListTile>(
+        find.ancestor(
+          of: find.text('Heure de notification'),
+          matching: find.byType(ListTile),
+        ),
+      );
+      expect(row.enabled, isFalse);
+      expect(find.widgetWithText(ListTile, '09:00'), findsOneWidget);
+    });
+
+    testWidgets('ON asks the OS, persists 1 on grant and schedules now',
+        (tester) async {
+      await pumpScreen(tester);
+      await toggleOptIn(tester);
+
+      expect(fakeNotifications.ensurePermissionCalls, 1);
+      expect(fakeSettings.values[settingsKeyNotificationsOptIn], '1');
+      expect(_isOn(tester, optInLabel), isTrue);
+      // Léa's four presets are all pending. Asserted by content, not by id:
+      // past the preferred hour every item is a catch-up, and catch-ups live
+      // in their own id band (D5), so the ids depend on the wall clock.
+      expect(fakeNotifications.scheduled, hasLength(4));
+      expect(
+        fakeNotifications.scheduled.values.map((e) => e.$1).toSet(),
+        {
+          'Vitamine D',
+          'Vitamine K',
+          'Nettoyage des yeux',
+          'Nettoyage du visage',
+        },
+      );
+      expect(fakeNotifications.cancelAllCount, 0);
+    });
+
+    testWidgets('denied keeps the switch off, stores nothing, shows the hint',
+        (tester) async {
+      fakeNotifications.granted = false;
+      await pumpScreen(tester);
+      await toggleOptIn(tester);
+
+      expect(fakeNotifications.ensurePermissionCalls, 1);
+      // Nothing persisted as ON that the OS would not honour (D8).
+      expect(fakeSettings.values[settingsKeyNotificationsOptIn], isNull);
+      expect(fakeNotifications.scheduled, isEmpty);
+      expect(
+        find.text('Les notifications sont désactivées dans les réglages du '
+            'système. Activez-les là-bas pour recevoir les notifications de '
+            'rappel.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+        'stored ON with the permission revoked reads OFF after the start-up '
+        'sync (D8 de-opt)', (tester) async {
+      // The parent opted in weeks ago and has since revoked the permission in
+      // system settings. The de-opt belongs to the start-up/resume sync, so
+      // this mounts the lifecycle observer the app really runs.
+      fakeSettings.values[settingsKeyNotificationsOptIn] = '1';
+      fakeNotifications.granted = false;
+
+      await pumpScreen(tester, withLifecycle: true);
+
+      // No tap: the first frame's sync did the work. Tapping here would be a
+      // fresh opt-in and would ask the OS, which is not what this asserts.
+      expect(fakeSettings.values[settingsKeyNotificationsOptIn], '0');
+      expect(_isOn(tester, optInLabel), isFalse);
+      // Reflecting reality is not the same as re-asking: no prompt here.
+      expect(fakeNotifications.ensurePermissionCalls, 0);
+      // And nothing is left ringing: the schedule is empty, not merely unstored.
+      expect(fakeNotifications.cancelAllCount, 1);
+      expect(fakeNotifications.scheduled, isEmpty);
+    });
+
+    testWidgets('turning it off persists 0 and cancels every notification',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationsOptIn] = '1';
+      // With the lifecycle observer, so the start-up sync really schedules the
+      // four entries this test then expects cancelAll() to clear.
+      await pumpScreen(tester, withLifecycle: true);
+
+      await revealOptIn(tester);
+      expect(_isOn(tester, optInLabel), isTrue);
+      expect(fakeNotifications.scheduled, hasLength(4));
+
+      await tester.tap(_switchFor(optInLabel));
+      await tester.pumpAndSettle();
+
+      expect(fakeSettings.values[settingsKeyNotificationsOptIn], '0');
+      // Asserted on the fake OS, through the real scheduler.
+      expect(fakeNotifications.cancelAllCount, 1);
+      expect(fakeNotifications.scheduled, isEmpty);
+    });
+
+    testWidgets('the stored time is displayed, and the row wakes up',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationsOptIn] = '1';
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      await pumpScreen(tester);
+      await revealOptIn(tester);
+
+      final row = tester.widget<ListTile>(
+        find.ancestor(
+          of: find.text('Heure de notification'),
+          matching: find.byType(ListTile),
+        ),
+      );
+      expect(row.enabled, isTrue);
+      expect(find.widgetWithText(ListTile, '20:30'), findsOneWidget);
+    });
+  });
+
+  group('setTime (M6)', () {
+    test('persists zero-padded HH:mm and reconciles through the sync cycle',
+        () async {
+      fakeSettings.values[settingsKeyNotificationsOptIn] = '1';
+      final container = ProviderContainer(
+        overrides: [
+          remindersRepositoryProvider
+              .overrideWith((ref) async => mockReminders),
+          appSettingsRepositoryProvider
+              .overrideWith((ref) async => fakeSettings),
+          localNotificationServiceProvider
+              .overrideWith((ref) async => fakeNotifications),
+          babyProfileListProvider.overrideWith((ref) async => [_baby]),
+          localeProvider.overrideWith(_FrLocaleNotifier.new),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(notificationSettingsProvider.future);
+      await container.read(reminderSyncNotifierProvider.notifier).syncNow();
+      final initCalls = fakeNotifications.initCalls;
+      expect(fakeNotifications.scheduled, hasLength(4));
+
+      await container
+          .read(notificationSettingsProvider.notifier)
+          .setTime(hour: 20, minute: 7);
+
+      // The storage contract of this layer: zero-padded HH:mm, never '8:7'.
+      expect(fakeSettings.values[settingsKeyNotificationTime], '20:07');
+      expect(fakeSettings.values[settingsKeyNotificationsOptIn], '1');
+      // The UI state the row reads back.
+      expect(
+        container.read(notificationSettingsProvider).requireValue.timeLabel,
+        '20:07',
+      );
+      // A reconciliation ran, and it left exactly four items pending — never
+      // eight (the plugin replaces a pending entry by id; nothing stacks).
+      expect(fakeNotifications.initCalls, greaterThan(initCalls));
+      expect(fakeNotifications.scheduled, hasLength(4));
+      expect(
+        fakeNotifications.scheduled.values.map((e) => e.$1).toSet(),
+        hasLength(4),
+      );
     });
   });
 }

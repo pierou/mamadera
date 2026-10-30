@@ -90,7 +90,7 @@ void main() {
     expect(events.first.color, equals('jaune_moutarde'));
     expect(events.first.texture, equals(null));
     // The file has been updated to the current version, not just to version 9.
-    expect(db.schemaVersion, equals(12));
+    expect(db.schemaVersion, equals(13));
   });
 
   test('a diaper saved after the upgrade can store a texture', () async {

@@ -10,18 +10,24 @@ import '../../../../shared/utils/health_label_resolver.dart';
 import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_item.dart';
 import '../providers/reminder_providers.dart';
+import '../providers/reminder_sync_notifier.dart';
 import '../widgets/custom_reminder_form_sheet.dart';
 import '../widgets/custom_reminder_tile.dart';
 import '../widgets/reminder_frequency_label.dart';
 
-/// Settings screen → Reminders: The parent disables the reminders that are not relevant to them.
-/// (Vitamin K after birth, discontinuation of treatment based on medical advice, etc.) and add the following:
-/// siens.
+/// Settings screen → Reminders: the parent turns off the reminders that do not
+/// apply to them (vitamin K after the neonatal period, a care stopped on
+/// medical advice…) and adds their own.
 ///
-/// A muted reminder is not deleted; it simply stops sounding, but remains listed here.
-/// It can be restarted, and its completion history is preserved. Nothing else.
-/// automatic notifications are not sent outside of the app—reminders are.
-/// Banners displayed on the homepage, never system notifications.
+/// A turned-off reminder is not deleted: it stops being due, stays listed
+/// here, and keeps its completion history.
+///
+/// Two delivery surfaces, both on-device: the Home banners (always) and —
+/// only if the parent turns them on in the “System notifications” section —
+/// OS notifications scheduled by `ReminderScheduler` (item 12, D8). The
+/// permission is asked for at that switch, never at launch, and turning the
+/// switch off cancels every pending notification. Nothing leaves the device
+/// either way.
 class ReminderSettingsScreen extends ConsumerWidget {
   const ReminderSettingsScreen({super.key});
 
@@ -38,9 +44,9 @@ class ReminderSettingsScreen extends ConsumerWidget {
       ),
       body: Builder(
         builder: (context) {
-          // Three sources, one screen: display one section while the...
-          // Some still turn, allowing the parent to guess if "nothing is here."
-          // It means "nothing to adjust" or "not yet charged."
+          // Three sources, one screen: keep showing the spinner until all
+          // three have answered, so the parent never has to guess whether an
+          // empty list means "nothing configured" or "still loading".
           if (presetsAsync.isLoading ||
               settingsAsync.isLoading ||
               customAsync.isLoading) {
@@ -149,15 +155,14 @@ class _ReminderList extends ConsumerWidget {
           title: Text(context.l.reminderCustomAdd),
           onTap: () => _openForm(context, ref),
         ),
+        const _SystemNotificationsSection(),
       ],
     );
   }
 
-  /// Key for the `reminder_settings` of a custom reminder.
-  ///
-  /// Set by [CustomReminderTile.keyOf]: the written message from the switch.
-  /// By default, the "tile" and "lue" elements in this list will appear on the same line.
-  /// Not due to a coincidental match between two copied sequences.
+  /// Key for the `reminder_settings` row of a custom reminder — the same key
+  /// the tile writes, so the switch in the list and the switch on the tile can
+  /// never disagree (`CustomReminderTile.keyOf`).
   String _settingsKey(CustomReminder reminder) =>
       CustomReminderTile.keyOf(reminder);
 
@@ -175,10 +180,10 @@ class _ReminderList extends ConsumerWidget {
     }
   }
 
-  /// Open the form and write down whatever it says.
+  /// Opens the form and writes what it returns.
   ///
-  /// The leaf never touches the base: create here instead of on the leaf.
-  /// It only allows for one possible exit, the one that alerts reception.
+  /// The sheet never touches the database: creation and edit happen here, so
+  /// there is exactly one write path for a custom reminder.
   Future<void> _openForm(
     BuildContext context,
     WidgetRef ref, {
@@ -192,10 +197,10 @@ class _ReminderList extends ConsumerWidget {
     if (draft == null) return;
 
     final notifier = ref.read(customRemindersProvider.notifier);
-    // The try/catch block is not merely decorative; without it, a failed write operation (e.g., to storage) will...
-    // (full, excessively long queue) goes into a future that no one expects – plant.
-    // In debug mode, it's silent; in release mode, it's quiet, and the parent sees the panel close.
-    // without anything appearing on the list.
+    // The try/catch is not decorative: without it a failed write (a full
+    // disk, a constraint violation) lands in a future nobody awaits — silent
+    // in release, and the parent would see the sheet close with nothing in
+    // the list.
     try {
       if (existing == null) {
         await notifier.create(draft);
@@ -217,8 +222,8 @@ class _ReminderList extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(dialogContext.l.reminderCustomDeleteConfirm),
-        // The parent may be afraid of losing their data: this is the time to...
-        // To say no, the subsequent events remain unchanged.
+        // Say plainly that only the reminder goes: the events already
+        // logged stay untouched.
         content: Text(dialogContext.l.reminderCustomDeleteWarning),
         actions: [
           TextButton(
@@ -244,23 +249,104 @@ class _ReminderList extends ConsumerWidget {
       await ref.read(customRemindersProvider.notifier).remove(id);
     } on Object {
       if (!context.mounted) return;
-      // Without this safeguard, the screen would display an empty row, while the line...
-      // It's still in the base, and I would tighten it again at the next opening.
+      // Without this the screen would show a row that is gone from the list
+      // but still in the database, reappearing at the next opening.
       showError(context, context.l.reminderCustomDeleteError);
     }
   }
 
-  /// Use the full name of the treatment rather than the abbreviation on the pill ("Vitamin D").
-  /// and not "Vit. D") : here, we're setting a reminder, not reading something quickly.
-  /// slightly above a button.
+  /// The care's full name rather than the Home abbreviation ("Vitamin D", not
+  /// "Vit. D"): this is a setting being chosen, not a label scanned above a
+  /// button. Items with no health subtype fall back to their `labelKey`.
   String _presetLabel(BuildContext context, ReminderItem item) {
     final subtypeValue = item.subtypeValue;
     if (subtypeValue != null) {
       final subtype = HealthSubtype.byValue(subtypeValue);
       if (subtype != null) return resolveHealthLabel(context, subtype);
     }
-    // Invitation for a reminder without a specific subtype (the current presets include...).
-    // all as one): it falls back to the key instead of crashing.
     return item.labelKey;
+  }
+}
+
+/// The “System notifications” section (item 12, D8), trailing the reminder
+/// lists — the app-level channel that delivers whatever is switched on above.
+///
+/// The switch is the consent moment: flipping it on is what asks the OS for
+/// the permission, and the switch stays off if the answer is no — with the hint
+/// that says where to turn it on. The time row is live only when the switch is
+/// on, because a time for notifications that will never arrive is noise.
+class _SystemNotificationsSection extends ConsumerWidget {
+  const _SystemNotificationsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final prefsAsync = ref.watch(notificationSettingsProvider);
+
+    return prefsAsync.when(
+      // Nothing on screen until the settings row is read: a half-rendered
+      // consent switch is worse than none.
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (prefs) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: AppTheme.spacingXxl),
+            child: Text(
+              context.l.reminderNotificationsSectionTitle,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingSm),
+          SwitchListTile(
+            // Accessible content: the switch is read with its label.
+            title: Text(context.l.reminderNotificationsOptIn),
+            value: prefs.optIn,
+            onChanged: (wanted) => ref
+                .read(notificationSettingsProvider.notifier)
+                .setOptIn(wanted: wanted),
+          ),
+          if (prefs.permissionDenied)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.spacingMd,
+                0,
+                AppTheme.spacingMd,
+                AppTheme.spacingSm,
+              ),
+              child: Text(
+                context.l.reminderNotificationsPermissionDenied,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+              ),
+            ),
+          ListTile(
+            leading: const Icon(Icons.schedule),
+            title: Text(context.l.reminderNotificationsTimeLabel),
+            subtitle: Text(prefs.timeLabel),
+            enabled: prefs.optIn,
+            onTap: () => _pickTime(context, ref, prefs),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickTime(
+    BuildContext context,
+    WidgetRef ref,
+    NotificationPreferences prefs,
+  ) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: prefs.hour, minute: prefs.minute),
+    );
+    if (picked == null) return;
+    await ref
+        .read(notificationSettingsProvider.notifier)
+        .setTime(hour: picked.hour, minute: picked.minute);
   }
 }

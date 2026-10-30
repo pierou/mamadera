@@ -10,21 +10,47 @@ import '../../../../data/local/app_db.dart' as db_app;
 import '../../../../data/local/db_constants.dart' as db_const;
 import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
+// The reminders feature owns these settings; the importer validates them with
+// the same rule the scheduler reads them with, not with a regex of its own
+// (precedent: baby/data imports reminders/domain/entities).
+import '../../../reminders/domain/repositories/app_settings_repository.dart';
+import '../../../reminders/domain/services/notification_time.dart';
 import '../../domain/repositories/import_repository.dart';
+
+part 'import_repository_field_extraction.dart';
+part 'import_repository_restore_inserts.dart';
 
 /// Newest format version this build can restore.
 ///
 /// The exporter owns this number; anything above it belongs to a future app and
-/// must not be guessed at. 3 (v12) adds `unit` to every event row.
-const int _supportedFormatVersion = 3;
+/// must not be guessed at. 3 (v1.2.x) adds `unit` to every event row; 4
+/// (v1.3.0, item 12) adds the `appSettings` section.
+///
+/// Bumped in the same change as `ExportRepositoryImpl._exportFormatVersion`:
+/// an importer that lags its own exporter refuses the backups this very build
+/// writes.
+const int _supportedFormatVersion = 4;
 
 /// Oldest document format this build can still restore.
 ///
-/// A format-1 backup (pre-M4) must keep restoring: it may omit the two new
-/// sections and the `babyId` fields, and both absences are marked as "shared/".
-/// "Empty." Only the upper limit is a wall—format 3 belongs to the future.
-/// app.
+/// A format-1 backup (pre-M4) must keep restoring: it may omit the
+/// `measurements` and `reminderCompletions` sections and the `babyId` fields,
+/// and both absences mean "shared" or "empty" — never "missing table". Only the
+/// upper limit is a wall; formats above [_supportedFormatVersion] belong to a
+/// future app.
 const int _oldestFormatVersion = 1;
+
+/// The `app_settings` keys this build understands, and the value each accepts.
+///
+/// A closed set, like the rest of this importer. `app_settings` is a generic
+/// key/value table, so a hand-edited file could name any key at all — and a
+/// key this build does not know has no value format to check, which makes it
+/// unverifiable rather than harmless. Adding a setting means adding its key and
+/// its validator here, in the change that adds it.
+const Set<String> _knownSettingKeys = {
+  settingsKeyNotificationsOptIn,
+  settingsKeyNotificationTime,
+};
 
 /// `generator` value written by documents this app exports.
 const String _generatorName = 'mamadera';
@@ -79,6 +105,9 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
   final dismissalKeys = <Object>{};
   final measurementIds = <int>{};
   final completionKeys = <Object>{};
+  // Setting names: `key` is the primary key, so a repeated one is a duplicate
+  // row and the last write would silently win.
+  final settingNames = <Object>{};
 
   final babyProfiles = _section<ImportedBabyProfile>(
       document, 'babyProfiles', (row) => _parseProfile(row, profileIds));
@@ -96,6 +125,9 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
   final reminderCompletions = _section<ImportedReminderCompletion>(document,
       'reminderCompletions', (row) => _parseCompletion(row, completionKeys),
       optional: true);
+  final appSettings = _section<ImportedAppSetting>(
+      document, 'appSettings', (row) => _parseAppSetting(row, settingNames),
+      optional: true);
 
   _validateCounts(document, {
     'babyProfiles': babyProfiles.length,
@@ -105,6 +137,7 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
     'reminderDismissals': reminderDismissals.length,
     'measurements': measurements.length,
     'reminderCompletions': reminderCompletions.length,
+    'appSettings': appSettings.length,
   });
 
   final parsed = ParsedExport(
@@ -115,6 +148,7 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
     reminderDismissals: reminderDismissals,
     measurements: measurements,
     reminderCompletions: reminderCompletions,
+    appSettings: appSettings,
   );
   if (parsed.hasNoRestorableData) {
     throw const ImportFormatException(ImportRejectionReason.emptyFile);
@@ -153,12 +187,14 @@ void _validateHeader(Map<String, dynamic> document, int schemaVersion) {
   }
 }
 
-/// Reads one of the seven table sections and maps its rows with [parseRow].
+/// Reads one of the eight table sections and maps its rows with [parseRow].
 ///
-/// [optional] marks the two format-2 sections (`measurements`,
-/// `reminderCompletions`): a format-1 backup does not carry them, and
-/// "Absent" should be interpreted as "empty" – never as "missing table." The five...
-/// historical sections are always mandatory.
+/// [optional] marks the sections newer formats may omit: `measurements` and
+/// `reminderCompletions` (absent from a format-1 backup) and `appSettings`
+/// (absent from anything before format 4). Absent means **empty**, never
+/// "missing table" — refusing an old backup because it predates a feature
+/// would brick every restore taken before it. The five historical sections are
+/// always mandatory.
 List<T> _section<T>(
   Map<String, dynamic> document,
   String key,
@@ -420,6 +456,42 @@ ImportedReminderCompletion _parseCompletion(
   );
 }
 
+/// One `app_settings` row: a known key, and a value that key accepts.
+///
+/// The time is checked with `isValidNotificationTime` — the very predicate the
+/// scheduler relies on for the same string. This importer once owned its own
+/// `^[0-2][0-9]:[0-5][0-9]$` and that pattern accepts `24:00`, because the
+/// digit class behind `[0-2]` allows 4.
+///
+/// The opt-in is restored as written, even on a device where the OS permission
+/// is missing — a backup is the owner's stated intent, and refusing a file
+/// because of the phone it landed on would make the backup useless. The next
+/// sync cycle runs the D8 de-opt (`notifications_opt_in` back to `'0'`) and the
+/// switch stops lying; the intent survives the revocation, so re-granting the
+/// permission does not need re-toggling anything but that switch.
+ImportedAppSetting _parseAppSetting(
+    Map<String, dynamic> row, Set<Object> seenKeys) {
+  const section = 'appSettings';
+  final key = _requiredString(row, 'key', section);
+  final value = _requiredString(row, 'value', section);
+  _requireUnique(key, seenKeys, section);
+
+  if (!_knownSettingKeys.contains(key)) {
+    throw const ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
+  final valid = switch (key) {
+    settingsKeyNotificationsOptIn => value == '0' || value == '1',
+    settingsKeyNotificationTime => isValidNotificationTime(value),
+    _ => false,
+  };
+  if (!valid) {
+    throw const ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
+  return ImportedAppSetting(key: key, value: value);
+}
+
 /// Unit of an event row in the restore document.
 ///
 /// Absent means a format-1/2 file: the row takes the unit the parent saw on
@@ -454,161 +526,17 @@ QuantityUnit _resolveEventUnit({
   return unit;
 }
 
-// ── Field extraction ─────────────────────────────────────────────────────
-//
-// Explicit helpers rather than `as` casts everywhere: the analyzer runs with
-// strict-casts/strict-raw-types, and every rejection must name its section so
-// the parent gets "the file is malformed" and not a Dart type message.
-
-String _requiredString(Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value is! String || value.isEmpty) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return value;
-}
-
-String? _optionalString(Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value == null) return null;
-  if (value is! String) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return value;
-}
-
-int _requiredInt(Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value is! int) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return value;
-}
-
-int? _optionalPositiveInt(
-    Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value == null) return null;
-  if (value is! int || value < 1) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return value;
-}
-
-double? _optionalFiniteDouble(
-    Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value == null) return null;
-  if (value is! num) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  final converted = value.toDouble();
-  if (!converted.isFinite) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return converted;
-}
-
-bool _boolWithTrueDefault(
-    Map<String, dynamic> row, String key, String section) {
-  final value = row[key];
-  if (value == null) return true;
-  if (value is! bool) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return value;
-}
-
-/// Instant stored as epoch SECONDS, with the ISO twin as fallback.
-DateTime _seconds(
-    Map<String, dynamic> row, String epochKey, String isoKey, String section) {
-  final epoch = row[epochKey];
-  if (epoch is int) {
-    return _checkRange(
-        DateTime.fromMillisecondsSinceEpoch(epoch * 1000, isUtc: true),
-        section);
-  }
-  if (epoch == null) {
-    final iso = row[isoKey];
-    if (iso is String) {
-      final parsed = DateTime.tryParse(iso);
-      if (parsed != null) return _checkRange(parsed, section);
-    }
-  }
-  throw ImportFormatException(ImportRejectionReason.invalidRow,
-      section: section);
-}
-
-/// Instant stored as epoch MILLISECONDS (`baby_profiles.birth_date`), with the
-/// ISO twin as fallback.
-int _milliseconds(
-    Map<String, dynamic> row, String epochKey, String isoKey, String section) {
-  final epoch = row[epochKey];
-  if (epoch is int) {
-    _checkRange(
-        DateTime.fromMillisecondsSinceEpoch(epoch, isUtc: true), section);
-    return epoch;
-  }
-  if (epoch == null) {
-    final iso = row[isoKey];
-    if (iso is String) {
-      final parsed = DateTime.tryParse(iso);
-      if (parsed != null) {
-        _checkRange(parsed, section);
-        return parsed.millisecondsSinceEpoch;
-      }
-    }
-  }
-  throw ImportFormatException(ImportRejectionReason.invalidRow,
-      section: section);
-}
-
-/// Rejects instants outside 1990-2100: a wrong unit (milliseconds where seconds
-/// were expected, a hand-edited value) lands there, and restoring it would put
-/// a baby event in 1970 with nothing raised to notice.
-DateTime _checkRange(DateTime moment, String section) {
-  final utc = moment.toUtc();
-  if (utc.isBefore(_plausibleMin) || !utc.isBefore(_plausibleMax)) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return moment;
-}
-
-void _requireUnique(Object id, Set<Object> seen, String section) {
-  if (!seen.add(id)) {
-    throw ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-}
-
-/// Deterministic `(birthDate, id)` ordering, the same one
-/// `AppDatabase.getActiveBabyProfile` uses to pick the active profile.
-ImportedBabyProfile _firstByBirthDateThenId(
-    List<ImportedBabyProfile> profiles) {
-  var first = profiles.first;
-  for (final candidate in profiles) {
-    final earlier = candidate.birthDateEpochMs < first.birthDateEpochMs ||
-        (candidate.birthDateEpochMs == first.birthDateEpochMs &&
-            candidate.id.compareTo(first.id) < 0);
-    if (earlier) first = candidate;
-  }
-  return first;
-}
-
 /// Concrete implementation of [ImportRepository].
 ///
 /// The parse half is pure and runs off the UI isolate; the restore half is the
 /// only code in this feature that writes, and it writes inside one transaction.
 /// Only counts and timings are ever logged — never a name, a note, a label or a
 /// file path (same rule the export repository follows).
+///
+/// The row field-extraction helpers (`_requiredString` and friends) live in
+/// `import_repository_field_extraction.dart` — a `part` of this library, so
+/// they stay private to it while keeping this file inside the 800-line
+/// architecture budget.
 class ImportRepositoryImpl implements ImportRepository {
   const ImportRepositoryImpl({
     required this.database,
@@ -641,6 +569,9 @@ class ImportRepositoryImpl implements ImportRepository {
       await database.delete(database.customReminders).go();
       await database.delete(database.reminderSettings).go();
       await database.delete(database.reminderDismissals).go();
+      // Last, and only here: a restore replaces preferences too, so an
+      // opt-in the parent turned off before restoring must not survive it.
+      await database.delete(database.appSettings).go();
 
       for (final profile in parsed.babyProfiles) {
         await database.insertBabyProfile(db_app.BabyProfilesCompanion.insert(
@@ -749,15 +680,9 @@ class ImportRepositoryImpl implements ImportRepository {
             );
       }
 
-      for (final completion in parsed.reminderCompletions) {
-        await database.into(database.reminderCompletions).insert(
-              db_app.ReminderCompletionsCompanion.insert(
-                babyId: Value(completion.babyId),
-                itemId: completion.itemId,
-                completedAt: completion.completedAt,
-              ),
-            );
-      }
+      await _insertReminderCompletions(database, parsed.reminderCompletions);
+
+      await _insertAppSettings(database, parsed.appSettings);
 
       await _promoteActiveProfile(parsed.babyProfiles);
     });
@@ -772,6 +697,7 @@ class ImportRepositoryImpl implements ImportRepository {
       'dismissals=${parsed.reminderDismissals.length} '
       'measurements=${parsed.measurements.length} '
       'completions=${parsed.reminderCompletions.length} '
+      'appSettings=${parsed.appSettings.length} '
       'in ${stopwatch.elapsedMilliseconds} ms',
     );
     return parsed.counts;

@@ -90,7 +90,7 @@ void main() {
       }
 
       final version = await db.customSelect('PRAGMA user_version').get();
-      expect(version.first.read<int>('user_version'), 12);
+      expect(version.first.read<int>('user_version'), 13);
 
       final babies = await db.select(db.babyProfiles).get();
       expect(babies.length, 1);

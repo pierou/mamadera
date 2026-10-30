@@ -44,7 +44,7 @@ void main() {
       final connection = LazyDatabase(NativeDatabase.memory);
       final db = AppDatabase(connection);
 
-      expect(db.schemaVersion, equals(12));
+      expect(db.schemaVersion, equals(13));
 
       await db.close();
     });

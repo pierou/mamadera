@@ -1,0 +1,40 @@
+Passage de porte iOS v1.3.0 — iPhone 17 (simulateur iOS 26.5), 2026-10-30
+============================================================================
+
+Chaîne d'évidence (toutes les étapes de la porte M8.4 côté iOS) :
+
+1. Seed 1.2.1+11 (two babies : Nora + Léa, jours de naissance distincts,
+   événements sante, 1 rappel custom par bébé) → install de 1.3.0+12 par
+  -dessus → migration v12→v13 vérifiée à chaque armement :
+   « ARM MIGRATION OK: v13, 2 babies, 12 events, 2 custom reminders ».
+2. Opt-in activé : la case à cocher déclenche le prompt système
+   (« Autoriser les notifications de Mamadera ? ») ; accord donné →
+   `isEnabled=true` persistant (vérifié par probe dédiée).
+3. Production : build `flutter build ios --simulator` installé via
+   `simctl install`, app lancée, **10 requests ajoutés** par le process de
+   production (« Added notification request: [ hasError: 0 ] », voir
+   04-production-log-requests-added.txt), app TERMINATED 2 min avant l'heure.
+4. Tir à 00:28:00 (top de minute — l'heure réglée est une heure de l'horloge,
+   pas un instant) :
+   - 10 notifications délivrées (DeliveredNotifications.plist : 10 entrées,
+     dump dans 03-delivered-notifications-plist-dump.txt) — 5 par bébé :
+     Nora : Bain / Nettoyage du visage / Nettoyage des yeux / Vitamine D /
+     Vitamine K ; Léa : Nettoyage du visage / Nettoyage des yeux / Vitamine D /
+     Vitamine K / Portage. Corps en français, nom du bébé dans le corps (D6).
+   - Bandes visuelles : 01 (Léa, Vitamine D) et 02 (regroupement iOS :
+     « Vous avez 6 nouvelles notifications Mamadera »).
+5. R11 (suppression d'un bébé ⇒ annulation de ses entrées pending) :
+   10 pending → suppression de Léa → resync → 5 pending, seules les entrées de
+   Nora restent dans la liste OS (test gate_cancel, « CANCEL OK »).
+6. Export : format 4, section `appSettings` présente avec les deux clés
+   (`notifications_opt_in=1`, `notification_time_of_day=00:28`).
+
+Pièges rencontrés (pour la prochaine fois) :
+- `flutter test` (integration_test) et `flutter build ios --simulator`
+  écrivent le MÊME artefact `build/ios/iphonesimulator/Runner.app` : lancer
+  un test après un build production rend l'artefact de test. Entre le build
+  de production et son `simctl install`, ne plus lancer `flutter test`.
+  Procédure qui a marché : `rm -rf build/ios && flutter build ios
+  --simulator` juste avant l'install.
+- La notification tire au TOP de la minute (00:21:00.000, pas 00:21:31) :
+  les captures de bande se font fire+1s/+4s/+7s, pas fire+30s.

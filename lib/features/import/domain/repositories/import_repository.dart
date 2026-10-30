@@ -22,6 +22,7 @@ class ImportCounts {
     required this.reminderDismissals,
     required this.measurements,
     required this.reminderCompletions,
+    required this.appSettings,
   });
 
   /// Number of rows in `baby_profiles`.
@@ -44,6 +45,9 @@ class ImportCounts {
 
   /// Number of rows in `reminder_completions` (M4).
   final int reminderCompletions;
+
+  /// Number of rows in `app_settings` (format 4, item 12).
+  final int appSettings;
 }
 
 /// A `baby_profiles` row as read from a backup document.
@@ -282,7 +286,23 @@ class ImportedReminderCompletion {
   final DateTime completedAt;
 }
 
-/// A validated backup document: seven typed row lists, nothing else.
+/// One restored row of `app_settings` (format 4, item 12).
+///
+/// Both fields are already validated against the closed set of keys this build
+/// knows and the value format each key accepts — the section carries no
+/// timestamps and nothing encrypted at rest, so it is the one section that is
+/// plain text end to end.
+class ImportedAppSetting {
+  const ImportedAppSetting({required this.key, required this.value});
+
+  /// Setting key, e.g. `notifications_opt_in`.
+  final String key;
+
+  /// Stored value: `'0'`/`'1'` for a flag, `'HH:mm'` for the time of day.
+  final String value;
+}
+
+/// A validated backup document: eight typed row lists, nothing else.
 ///
 /// Produced by [ImportRepository.parseExport] and consumed by
 /// [ImportRepository.restore]. Deliberately contains only primitives,
@@ -296,6 +316,7 @@ class ParsedExport {
     required this.reminderDismissals,
     this.measurements = const [],
     this.reminderCompletions = const [],
+    this.appSettings = const [],
   });
 
   /// Profiles to restore.
@@ -319,6 +340,13 @@ class ParsedExport {
   /// Manual reminder completions to restore (format-2 files only).
   final List<ImportedReminderCompletion> reminderCompletions;
 
+  /// App-level preferences to restore (format-4 files only).
+  ///
+  /// Optional by design: a format-3 backup simply has no such section, and the
+  /// app then falls back to the stored defaults (opt-in off, 09:00) — the
+  /// same way it did before item 12 existed.
+  final List<ImportedAppSetting> appSettings;
+
   /// Row counts for the confirmation summary and the success message.
   ImportCounts get counts => ImportCounts(
         babyProfiles: babyProfiles.length,
@@ -328,6 +356,7 @@ class ParsedExport {
         reminderDismissals: reminderDismissals.length,
         measurements: measurements.length,
         reminderCompletions: reminderCompletions.length,
+        appSettings: appSettings.length,
       );
 
   /// True when the file holds nothing worth restoring.

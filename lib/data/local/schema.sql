@@ -1,5 +1,5 @@
 -- Mamadera Database Schema
--- Version: 11
+-- Version: 13
 -- Generated reference from lib/data/local/app_db.dart — do not edit directly.
 -- Source of truth is app_db.dart (Drift table definitions).
 --
@@ -17,6 +17,11 @@
 --        NULL); rebuilt `custom_reminders` (baby_id, nullable subtype_value,
 --        completion_source); created `measurements` and `reminder_completions`
 --        with two indexes
+--   v12: Added `tracking_events.unit` (NOT NULL, backfilled ml/min/g from
+--        type+subtype); reassigned the '' sentinel rows to the single baby
+--        where ownership is unambiguous
+--   v13: Added `app_settings` (app-level key/value settings for the
+--        notification preferences — item 12)
 
 -- ── Baby Profiles ────────────────────────────────────────────────
 
@@ -40,7 +45,8 @@ CREATE TABLE tracking_events (
     color       TEXT,                             -- couleur de la selle ou pipi (see tracking_enums.dart)
     texture     TEXT,                             -- stool texture: aqueuse|grumeleuse|pateuse|moulee|dure (see tracking_enums.dart)
     baby_id     TEXT,                             -- nullable FK to baby_profiles(id), backward compatible
-    quantity    REAL                              -- volume in ml (feeding) or minutes (sleep)
+    quantity    REAL,                            -- volume in ml (feeding) or minutes (sleep)
+    unit        TEXT    NOT NULL                  -- v12: 'ml' | 'min' | 'g' (the unit of quantity)
 );
 
 CREATE INDEX idx_tracking_events_type ON tracking_events(type);
@@ -101,3 +107,18 @@ CREATE TABLE reminder_completions (
 );
 
 CREATE INDEX idx_reminder_completions_baby_item ON reminder_completions(baby_id, item_id, completed_at DESC);
+
+CREATE INDEX idx_reminder_dismissals_baby_item ON reminder_dismissals(baby_id, item_id);
+
+CREATE INDEX idx_reminder_settings_baby_item ON reminder_settings(baby_id, item_id);
+
+CREATE INDEX idx_custom_reminders_baby_id ON custom_reminders(baby_id);
+
+CREATE INDEX idx_custom_reminders_label ON custom_reminders(label);
+
+-- ── App Settings (v13) ─────────────────────────────────────────
+
+CREATE TABLE app_settings (
+    key         TEXT    PRIMARY KEY NOT NULL,     -- 'notifications_opt_in' | 'notification_time_of_day'
+    value       TEXT    NOT NULL                  -- '0'/'1' for the opt-in flag, 'HH:mm' for the time of day
+);

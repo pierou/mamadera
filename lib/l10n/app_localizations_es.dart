@@ -233,6 +233,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reminderFaceCleaning => 'Rostro';
 
   @override
+  String reminderNotificationTitle(Object care) {
+    return '$care';
+  }
+
+  @override
+  String reminderNotificationBody(Object baby, Object care) {
+    return '$baby: hora de $care.';
+  }
+
+  @override
+  String reminderNotificationBodyNoProfile(Object care) {
+    return 'Hora de $care.';
+  }
+
+  @override
   String get reminderSettingsTile => 'Elige qué recordatorios se muestran';
 
   @override
@@ -243,7 +258,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get reminderSettingsDescription =>
-      'Avisos en la pantalla de inicio hasta que registres el cuidado. No se envía ninguna notificación del sistema: todo se queda en este dispositivo.';
+      'Avisos en la pantalla de inicio hasta que registres el cuidado y, si los activas, notificaciones del sistema. Todo se queda en este dispositivo.';
+
+  @override
+  String get reminderNotificationsSectionTitle => 'Notificaciones del sistema';
+
+  @override
+  String get reminderNotificationsOptIn =>
+      'Avisarme cuando un recordatorio esté pendiente';
+
+  @override
+  String get reminderNotificationsTimeLabel => 'Hora de la notificación';
+
+  @override
+  String get reminderNotificationsPermissionDenied =>
+      'Las notificaciones están desactivadas en la configuración del sistema. Actívalas allí para recibir las notificaciones de recordatorio.';
 
   @override
   String get reminderFrequencyDaily => 'Todos los días';

@@ -4,12 +4,18 @@ import '../entities/reminder_item.dart';
 import '../entities/reminders_state.dart';
 import '../repositories/reminders_repository.dart';
 
+/// The window during which a dismissal ("ignore") silences a reminder, shared
+/// by the in-app pill ([RemindersService]) and the OS scheduler
+/// (`ReminderScheduler`) — one constant, so a snoozed reminder can never be
+/// silent in one and loud in the other.
+const Duration defaultDismissalWindow = Duration(hours: 24);
+
 /// Pure business logic for determining which reminders are due.
 class RemindersService {
   RemindersService({
     required this.items,
     required this.repository,
-    this.dismissalWindow = const Duration(hours: 24),
+    this.dismissalWindow = defaultDismissalWindow,
   });
 
   final List<ReminderItem> items;

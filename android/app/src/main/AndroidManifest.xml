@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Roadmap item 12: reminder notifications. Requested at runtime, only when
+         the user opts in (settings → System notifications) — never at launch.
+         No REQUEST_IGNORE_BATTERY_OPTIMIZATIONS: exact alarms are Doze-exempt. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Exact-alarm scheduling for reminder notifications (API 33+, reminder-class
+         exemption). -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
     <application
         android:label="Mamadera"
         android:name="${applicationName}"
@@ -25,6 +32,13 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Roadmap item 12: the flutter_local_notifications plugin delivers its
+             exact-alarm broadcasts to this receiver. The plugin's own manifest does
+             NOT declare it — the app must, or scheduled notifications silently never
+             fire (the alarm is armed and consumed, but nothing posts). -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

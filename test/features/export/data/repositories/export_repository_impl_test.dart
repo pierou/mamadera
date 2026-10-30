@@ -99,6 +99,20 @@ void main() {
               intervalDays: const Value(3),
             ),
           );
+      // Notification preferences (item 12): plaintext key/value, no mapper,
+      // no baby dimension — the whole installation opted in at 20:00.
+      await database.into(database.appSettings).insert(
+            AppSettingsCompanion.insert(
+              key: 'notifications_opt_in',
+              value: '1',
+            ),
+          );
+      await database.into(database.appSettings).insert(
+            AppSettingsCompanion.insert(
+              key: 'notification_time_of_day',
+              value: '20:00',
+            ),
+          );
       // Loose recall (M4): No related care, manual completion.
       await database.into(database.customReminders).insert(
             CustomRemindersCompanion.insert(
@@ -220,10 +234,12 @@ void main() {
         final doc = jsonDecode(await repository.buildExportJson())
             as Map<String, dynamic>;
 
-        // Format 3 (v12): Each event has its own `unit`. Format 2 (M4).
-        // It added the two new sections and the `babyId` fields; a...
-        // The reader for this build only accepts values above 3, and no values below 3.
-        expect(doc['exportFormatVersion'], 3);
+        // Format 4 (v1.3.0, item 12) adds `appSettings`. Format 3 (v1.2.x)
+        // gave every event its own `unit`; format 2 (M4) added the two new
+        // sections and the `babyId` fields. This build writes 4 and its own
+        // importer must accept 4 — the assertion that catches a version bump
+        // that forgot `ImportRepositoryImpl._supportedFormatVersion`.
+        expect(doc['exportFormatVersion'], 4);
         expect(doc['generator'], 'mamadera');
         // Informational: Tracks the actual version of the schema, not a mock-up.
         // export contract (a schema change should not break this test).
@@ -521,6 +537,56 @@ void main() {
       });
     });
 
+    group('appSettings (format 4, item 12)', () {
+      test('exports both preferences as plaintext pairs', () async {
+        await seedFullDatabase();
+
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final rows = (doc['appSettings'] as List).cast<Map<String, dynamic>>();
+
+        expect(rows, hasLength(2));
+        expect(
+          rows.map((row) => row['key']).toList(),
+          // Sorted by key: two exports of an unchanged database are identical.
+          ['notification_time_of_day', 'notifications_opt_in'],
+        );
+        expect(rows.first['value'], '20:00');
+        // Nothing here is encrypted at rest, so nothing arrives as ciphertext.
+        for (final row in rows) {
+          expect(row['value'], isNot(startsWith('enc:')));
+        }
+      });
+
+      test('counts the section in both the header and counts()', () async {
+        await seedFullDatabase();
+
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        expect((doc['counts'] as Map)['appSettings'], 2);
+        expect((doc['appSettings'] as List), hasLength(2));
+        expect((await repository.counts()).appSettings, 2);
+      });
+
+      test('an opt-out exports 0 — the refusal is the thing being backed up',
+          () async {
+        await database.into(database.appSettings).insert(
+              AppSettingsCompanion.insert(
+                key: 'notifications_opt_in',
+                value: '0',
+              ),
+            );
+
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final rows = (doc['appSettings'] as List).cast<Map<String, dynamic>>();
+
+        // A parent who said no must not be migrated to yes by a restore.
+        expect(rows.single['key'], 'notifications_opt_in');
+        expect(rows.single['value'], '0');
+      });
+    });
+
     group('base vide', () {
       test('counts tous à zéro et JSON valide', () async {
         final counts = await repository.counts();
@@ -532,6 +598,7 @@ void main() {
         expect(counts.reminderDismissals, 0);
         expect(counts.measurements, 0);
         expect(counts.reminderCompletions, 0);
+        expect(counts.appSettings, 0);
         expect(counts.isEmpty, isTrue);
 
         final doc = jsonDecode(await repository.buildExportJson())
@@ -550,6 +617,7 @@ void main() {
         expect((doc['customReminders'] as List), isEmpty);
         expect((doc['measurements'] as List), isEmpty);
         expect((doc['reminderCompletions'] as List), isEmpty);
+        expect((doc['appSettings'] as List), isEmpty);
       });
     });
   });
