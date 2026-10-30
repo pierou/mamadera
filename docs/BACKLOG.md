@@ -646,10 +646,12 @@ not a display bug: it waits for a separate change, with its own review.
 
 ## B14 — "Custom reminders should make notifications"
 
-**Status:** open (owner request, 2026-10-30: « custom reminder should make notifications ») ·
-**Verification says the mechanism already exists in unreleased 1.3.0** — this ticket is
-release-verify first, design only if the intent is narrower · **Cost:** zero if verification
-closes it; medium (schema + export bump) if per-reminder times are the intent
+**Status:** ~~open~~ **closed by the owner, 2026-10-30** — mechanism shipped in `1.3.0+12`;
+the owner is running the real-device verification the same evening. Body kept as the decision
+record: the per-custom-time design below stays an unbuilt idea, written down so it is not
+re-derived. If the device pass shows silence (OEM banner settings are a real suspect), reopen
+with the device model — the simulator/emulator gate evidence stands either way · **Cost:**
+nil as shipped; medium (schema + export bump) if per-reminder times are ever wanted
 **Found:** owner request 2026-10-30; state verified in `develop` (1.3.0+12) the same evening.
 **Files:** `lib/features/reminders/domain/services/reminder_scheduler.dart:241-257`
 (`_itemsForScope` — presets then customs), `:113-121` (enabled filter — a custom with no
@@ -697,6 +699,62 @@ notification time of its own per custom reminder**, it is a model change, not a 
 - Do not treat « no notification the hour it was created » as a bug to fix by firing at creation
   time: D3 catch-up already decides when a just-created reminder is genuinely due; double-firing
   at creation + at the tick is the nag the plan's diff model exists to prevent.
+
+---
+
+## B17 — Creation must be felt under the finger: a haptic contract
+
+**Status:** open (owner request, 2026-10-30: « Haptic feedback on creation ») · **Cost:** small —
+one helper already exists; the gap is coverage and one magnitude decision · **Risk:** low, additive
+**Found:** owner request 2026-10-30; coverage verified in `develop` the same evening.
+**Files:** `lib/core/widgets/show_feedback.dart:14` (the **only** `HapticFeedback` call in `lib/`
+— `lightImpact()` fired when the success snackbar appears; `:25` documents the standing decision
+*no haptics for errors*), `lib/features/home/presentation/screens/home_screen.dart:213-306` (the
+four event-creation paths all end in `showFeedback` → haptic ✓),
+`lib/features/growth/presentation/widgets/measurement_button.dart:155` (measurement save pops a
+value → `showFeedback` ✓), `lib/features/menu/presentation/widgets/baby_profile_section.dart:296`
+(baby added ✓), `lib/features/reminders/presentation/` (**zero** `showFeedback`/`HapticFeedback`
+mentions — verified: custom-reminder creation and the reminder pill's Done/Snooze are
+visually-only), `lib/features/home/presentation/widgets/track_button.dart` (0 — no press-time
+tactile at all).
+
+### The fact
+Haptics exist exactly once in the app: `lightImpact()` as a side effect of the success snackbar.
+Coverage is therefore *incidental, not a contract*: events, measurements and babies land with a
+snackbar and so inherit a haptic; **custom-reminder creation** — and reminder Done/Snooze taps —
+complete silently to the finger. And the 2×2 tracking grid gives no touch confirmation either
+(Flutter buttons do not vibrate by themselves). What the parent asked for — creation felt as it
+happens — is half-true by accident.
+
+Two distinct moments are conflated in the request, and the ticket separates them:
+- **confirm-on-insert** (the ticket's core): one tactile tick when the record actually lands;
+- **press feedback** (explicit option, plan decision): a touch tick when the track button goes
+down, before any insert — Material's button-haptic pattern; it changes the feel of every tap on
+the home screen and must not be folded in silently.
+
+### To do
+1. Write the contract down: *every successful insert of a record gives exactly one haptic at
+   commit* — events ✓, measurements ✓, baby ✓ exist; **custom-reminder creation: fill the gap**
+   (form sheet success path → the existing `showFeedback` or a bare `HapticFeedback` call —
+   decision at the plan: a snackbar there is arguably wanted anyway, « « Crème » ajouté » ).
+2. Reminder pill **Done/Snooze**: decide deliberately — they are controls tapped several times a
+   day; a subtle tick on Done (a completion is a creation, `reminder_completions`) is defensible,
+   Snooze maybe nothing. Measure on device before shipping either.
+3. Magnitude: `lightImpact` on a 3 a.m. one-handed hold may be imperceptible; try
+   `mediumImpact` for creation confirmations — one line in the helper, felt everywhere, so it is
+   a decision not a tweak.
+4. **Real-device verification only**: emulators and simulators do not vibrate — no screenshot
+   proves a haptic. The PR record must name the device felt, per the AGENTS.md gate rule.
+
+### Do not
+- Do not add haptics for **errors** — the decision is written in `show_feedback.dart:25` and
+  survives this ticket.
+- Do not add the `VIBRATE` permission: Flutter's `HapticFeedback` needs none, none is in the
+  manifest today, and minimal-permissions is charter, not taste.
+- Do not haptic every wheel tick, keystroke or sheet drag — creation means the insert; per-frame
+  feedback is battery noise on the smallest devices.
+- Do not bundle press-feedback (§option) with confirm-on-insert in one unannounced diff — it
+  changes the feel of every home tap and deserves its own sign-off.
 
 ---
 
