@@ -641,3 +641,160 @@ not a display bug: it waits for a separate change, with its own review.
 - Do not make this change **silently** in a sweep PR: it is a data
   semantics decision, it deserves its own ticket (this one) and its own review, even if the diff
   is small.
+
+---
+
+## B14 — "Custom reminders should make notifications"
+
+**Status:** open (owner request, 2026-10-30: « custom reminder should make notifications ») ·
+**Verification says the mechanism already exists in unreleased 1.3.0** — this ticket is
+release-verify first, design only if the intent is narrower · **Cost:** zero if verification
+closes it; medium (schema + export bump) if per-reminder times are the intent
+**Found:** owner request 2026-10-30; state verified in `develop` (1.3.0+12) the same evening.
+**Files:** `lib/features/reminders/domain/services/reminder_scheduler.dart:241-257`
+(`_itemsForScope` — presets then customs), `:113-121` (enabled filter — a custom with no
+`reminder_settings` row is scheduled),
+`lib/features/reminders/presentation/providers/reminder_sync_notifier.dart:130-160`
+(`_careLabel` — a custom's free-text label passes through untranslated),
+`lib/features/reminders/presentation/providers/custom_reminders_notifier.dart:82` (create/edit →
+`syncNow()` hook).
+
+### The fact
+**In `develop` (v1.3.0+12, merged via PR #50, not yet released), custom reminders *do* make
+system notifications.** `_itemsForScope` appends every custom of the scope after the four presets;
+the enabled filter skips only an explicit `false` row, so a freshly created custom is scheduled by
+the very next `syncNow()`; the notification body carries the parent's label verbatim. Device-proof:
+the M8 gate shows exactly the two seeded customs firing — « Nora : c'est l'heure de Bain. »,
+« Léa : c'est l'heure de Portage. » (`docs/release-evidence/v1.3.0/iphone_17/`, app terminated,
+10 delivered). **On the released build (v1.2.1) there are no system notifications at all** — that
+release predates item 12 entirely. If the request comes from a phone running v1.2.1, shipping
+v1.3.0 closes it.
+
+### The gap that genuinely remains (the likely intent — confirm with the owner)
+Every notification — presets *and* customs — fires at the **one global time**
+(`notification_time_of_day`). A custom like « crème nombril, toutes les 8 h » rings at 09:00
+whatever the routine says; and a custom created after that hour is silent until tomorrow's tick
+(correct per D3, but it *feels* broken at the moment of creation). If the request means **a
+notification time of its own per custom reminder**, it is a model change, not a schedule tweak:
+- `custom_reminders` gains a nullable time column (schema v14) — `null` = inherit the global hour;
+- export format **v5** + importer acceptance in the same change (AGENTS.md: the two features move
+  together), `parseNotificationTime` as the single validator (the importer already reuses it);
+- the plan key must fold the per-item time (content-aware diff, `_PlanEntry`) or an edited time
+  leaves a stale schedule behind;
+- form sheet: an optional time row on the custom-reminder form, fr/en/es l10n.
+
+### To do
+1. After v1.3.0 ships: verify on the owner's real device (real OEM banners differ from the
+   simulator's — this behaviour has *device* evidence only from the gate's emulator/simulator).
+2. Ask the owner whether « make notifications » meant *at all* (closed by shipping) or *their own
+   time* (the model change above — then it is a planned milestone, not a patch).
+
+### Do not
+- Do not add a per-custom time column before the owner confirms that is the intent — one migration
+  per guessed requirement is how schema debt compounds (B1's record).
+- Do not deliver anything via network transport (FCM/APNs-remote) to « make notifications
+  reliable »: local scheduling only, charter non-negotiable.
+- Do not treat « no notification the hour it was created » as a bug to fix by firing at creation
+  time: D3 catch-up already decides when a just-created reminder is genuinely due; double-firing
+  at creation + at the tick is the nag the plan's diff model exists to prevent.
+
+---
+
+## B15 — Validation of a reminder or notification should create the action
+
+**Status:** open (owner request, 2026-10-30: « Create action from reminder or notification
+validation ») · **Cost:** medium (payload + response handler + one decision about D2) · **Risk:**
+low, additive — nothing existing changes semantics
+**Found:** owner request 2026-10-30; verified same evening — **today the tap is inert**.
+**Files:** `lib/features/reminders/domain/services/reminder_scheduler.dart` (submits title/body,
+no payload), `lib/features/reminders/data/services/flutter_local_notification_service.dart`,
+`lib/features/reminders/presentation/providers/reminder_notifier.dart:153-166` (`markDone`),
+`lib/main.dart` (no response handler anywhere — verified: zero hits for
+`onDidReceiveNotificationResponse`/`getNotificationAppLaunchDetails` in `lib/`).
+
+### The fact
+A 3 a.m. parent who taps « Vitamine D — c'est l'heure » from the banner gets: the app, open,
+home screen, nothing recorded. Two deliberate v1.3.0 choices add up to that dead end:
+1. Scheduled notifications carry **no payload** (the scheduler was scoped to title/body — the
+   identity of the firing item is not delivered), and **no response handler exists anywhere**
+   (nothing to receive a tap even if the payload were there).
+2. `markDone` on a treatment-linked item creates **no record** (D2: only the real health event
+   settles it, by design — the pill button just re-evaluates). Only detached customs get a
+   `reminder_completions` row.
+So « validate from the notification » has no path at all: tap cannot confirm what tap cannot
+identify, and confirming a preset is defined as *not* creating anything.
+
+### To do
+1. **Payload at schedule time**: `babyId` + the stable `item.id` (`vitamine_d`, `custom_7` —
+   never the plan-index/OS id, which is a derived cache and reshuffles with the plan, D2/D5).
+   Both values are already plaintext elsewhere (the body carries the name); the payload stays
+   local — notifications never leave the device.
+2. **Response handler** in the service + `main.dart`: foreground
+   (`onDidReceiveNotificationResponse`) and Android background
+   (`onDidReceiveNotificationResponse` + background handler; iOS category actions) — verify the
+   cold-start semantics of `flutter_local_notifications` 22.x per platform before choosing what
+   a tap-on-killed-app does; do not assume it fires.
+3. **The action it creates — one decision, then the same path everywhere:**
+   - detached/manual custom → `markDone` (`reminder_completions` row) — the semantics already exist;
+   - treatment-linked item → open the app **on the matching health sub-type sheet, pre-filled**
+     (parent taps the confirm that is already the product's one honest way to record the care) —
+     or create the health event directly. Recommendation at the plan: **deep-link, not
+     auto-create** — an auto-created event would make the app author health records the parent
+     never entered through the care flow, and a mistap on a banner becomes a record in the
+     paediatrician's export.
+4. Either way, after validation: the current notification is settled until the next due (D3
+   dismissal/completion discipline) — no re-fire tonight.
+5. Scope discipline unchanged: `await ref.read(activeBabyProvider.future)`, never a transient
+   `.value` (the `''` carry-over trap).
+
+### Do not
+- Do not treat a bare notification **tap** as completion of a treatment reminder — tap is
+  attention, validation is a press on an explicit « Done » / the health sheet's confirm.
+- Do not put the plan index or OS notification id in the payload; identity = `babyId` + `item.id`.
+- No new permission, no network, no remote push — same charter as B14.
+- Do not touch `sync()`'s diff model: the payload rides the existing submission path.
+
+---
+
+## B16 — No note when creating a feeding
+
+**Status:** open (owner request, 2026-10-30: « Write note on food creation ») · **Cost:** small —
+one optional field in one dialog; the storage, encryption and export paths already exist
+**Found:** owner request 2026-10-30; verified same evening.
+**Files:** `lib/features/home/presentation/widgets/feeding_tracking_dialog.dart` (zero note
+mentions), `lib/features/home/presentation/providers/track_notifier.dart:34` (`track()` already
+accepts `notes`), `lib/features/home/data/repositories/tracking_repository_impl.dart:66` (encrypts
+`notes` before insert), `lib/data/local/app_db.dart:24` (`notes TEXT NULL`, encrypted at rest),
+`lib/features/history/presentation/widgets/edit_event_dialog.dart` (today's only feeding-note
+editor), `lib/features/home/presentation/screens/home_screen.dart:167-263` (the four `track()`
+call sites — none passes `notes`).
+
+### The fact
+The note **already exists end to end** — column, encryption at insert, decryption through
+`tracking_event_mapper` on export, rendering on the history tile — except at the one moment it is
+worth anything: **creation**. None of the four creation dialogs exposes it (verified: 0 note
+mentions in the feeding, health, waste and duration dialogs), so the parent who wants « refused
+the left breast, fussy » must remember, later, to find the row in Historique and open the edit
+dialog. At 3 a.m. the note is lost, and the app's whole note feature is reachable only from the
+history screen. The request names food specifically; the same gap exists for the other three
+types — **this ticket is feeding only** (the owner asked for feeding).
+
+### To do
+1. One optional field in `feeding_tracking_dialog.dart` — collapsed or single-line, disabled
+   parent-side default is fine (empty field must insert `NULL`, not `''`); pass it through
+   `track(notes: …)`; encryption is the repository's job (already is) — never encrypt in the UI.
+2. `Small_Phone` release-gate screenshots, both themes: keyboard inside a dialog is exactly the
+   layout overflow unit tests cannot see (AGENTS.md gate rule 2).
+3. l10n: one placeholder key in the three arbs (fr « Note (facultatif) » style, term-aligned with
+   the edit dialog's existing note label — reuse it if one exists).
+4. Tests: empty note → `NULL` row; note round-trips through `track()` → history tile renders it;
+   feeding note survives export/import (the `notes` column is already in the format-4 contract —
+   **no version bump**).
+
+### Do not
+- Do not bump the export format: `notes` is already exported (decrypted, via the mapper) for every
+  event type; creation-time input changes the entry point, not the contract.
+- Do not silently widen the ticket to sleep/waste/health in the same PR without the owner asking;
+  if they do want all four, it is the same diff four times and a bigger emulator pass.
+- Do not render the feeding note anywhere it was not rendered before (history tile only) — the
+  privacy surface of the note does not grow.
