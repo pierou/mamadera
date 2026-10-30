@@ -234,7 +234,11 @@ jobs:
 
   # 4. 🍎 Build iOS (MacOS)
   build-ios:
-    runs-on: macos-14
+    # macos-14 retired 2026-11-02 (brownouts since July; it cancelled this
+    # job outright on 2026-10-30, runner never assigned — actions/runner-images#13518).
+    # macos-15 is the migration target GitHub prescribes; Xcode 16.x is fine
+    # for `flutter build ios --no-codesign`.
+    runs-on: macos-15
     needs: lint-test
     steps:
       - name: Checkout
