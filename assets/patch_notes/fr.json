@@ -135,6 +135,7 @@
       "- Ajout d'une notification par enfant : chaque message porte le prénom de l'enfant, deux enfants ne se confondent plus",
       "- Reprise des préférences de notification lors de la restauration d'une sauvegarde, qui ne demande plus rien à nouveau",
       "### Améliorations",
+      "- Affichage complet du type d'alimentation sur les boutons (Lait maternel, Lait artificiel, Solide) dans les trois langues, et meilleure lisibilité du bouton sélectionné",
       "- Toujours rien à envoyer : les notifications sont fabriquées sur l'appareil, et l'export manuel par la feuille de partage que vous ouvrez reste le seul chemin de sortie",
       ""
     ]

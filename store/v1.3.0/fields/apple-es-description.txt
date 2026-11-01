@@ -2,7 +2,7 @@ Realice un seguimiento de las tomas de leche, el sueño, los pañales y las ruti
 
 ¿QUÉ PUEDE HACER?
 • Registrar las tomas de leche materna y de biberón, los alimentos sólidos en gramos, los periodos de sueño y los cambios de pañal, incluyendo la consistencia de las heces.
-• Registrar el peso, la altura y la temperatura: los valores se encriptan en el dispositivo y se muestran en el historial, junto con cada otro evento.
+• Registrar el peso, la altura y la temperatura: los valores se encriptan en el dispositivo y se muestran en el historial, junto con todos los demás eventos.
 • Editar o eliminar una medición directamente desde el historial.
 • Seguir las rutinas de salud (vitamina D y K) con recordatorios integrados, y crear recordatorios personalizados vinculados a cualquier cuidado.
 • Mantener los recordatorios independientes para cada uno de sus bebés.

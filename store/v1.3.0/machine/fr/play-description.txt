@@ -5,7 +5,7 @@ Fonctionnalités :
 • Poids, taille et température – les valeurs sont cryptées sur l'appareil.
 • Les mesures de croissance apparaissent dans votre historique, à côté de chaque autre événement, et peuvent être modifiées ou supprimées directement.
 • Historique des changements de couches, avec indication de la consistance des selles.
-• Rappels pour les routines de santé (vitamine D/K) – ainsi que vos propres rappels personnalisés liés à tout type de soin.
+• Rappels pour les routines de santé (vitamines D/K) – ainsi que vos propres rappels personnalisés liés à tout type de soin.
 • Les rappels sont gérés indépendamment pour chaque enfant.
 • Enregistrez un événement avec sa date et son heure exactes, même a posteriori.
 • Plusieurs profils de bébé.

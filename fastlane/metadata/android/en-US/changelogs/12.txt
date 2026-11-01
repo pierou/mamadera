@@ -1,0 +1,6 @@
+* System notifications when a reminder is due, even with the app closed — off until you switch them on in Reminders
+* Your own notification time, applied to every reminder
+* One notification per baby: each message carries the baby's name
+* Notification preferences now live inside the backup, so a restored phone keeps them
+* Feeding types now show their full name — Breast milk, Formula, Solid — in every language
+* Still nothing to send: the manual export through the share sheet remains the only way data leaves the device

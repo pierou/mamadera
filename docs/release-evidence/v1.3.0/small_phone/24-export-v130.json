@@ -1,0 +1,90 @@
+{
+  "exportFormatVersion": 4,
+  "generator": "mamadera",
+  "appVersion": "1.3.0",
+  "databaseSchemaVersion": 13,
+  "exportedAt": "2026-11-01T09:53:26.958652Z",
+  "counts": {
+    "babyProfiles": 1,
+    "trackingEvents": 3,
+    "customReminders": 0,
+    "reminderSettings": 0,
+    "reminderDismissals": 0,
+    "measurements": 1,
+    "reminderCompletions": 0,
+    "appSettings": 0
+  },
+  "babyProfiles": [
+    {
+      "id": "1793496947662",
+      "name": "Nora",
+      "birthDateEpochMs": 1793496935175,
+      "birthDateUtc": "2026-11-01T01:35:35.175Z",
+      "isActive": false
+    }
+  ],
+  "trackingEvents": [
+    {
+      "id": 1,
+      "type": "miam",
+      "timestampEpochSeconds": 1793497036,
+      "timestampUtc": "2026-11-01T01:37:16.000Z",
+      "durationMinutes": null,
+      "subtype": "natural",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": null,
+      "quantity": 5.0,
+      "unit": "min"
+    },
+    {
+      "id": 2,
+      "type": "miam",
+      "timestampEpochSeconds": 1793497167,
+      "timestampUtc": "2026-11-01T01:39:27.000Z",
+      "durationMinutes": null,
+      "subtype": "natural",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": null,
+      "quantity": 3.0,
+      "unit": "min"
+    },
+    {
+      "id": 3,
+      "type": "dodo",
+      "timestampEpochSeconds": 1793493614,
+      "timestampUtc": "2026-11-01T00:40:14.000Z",
+      "durationMinutes": 60.0,
+      "subtype": null,
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": null,
+      "quantity": 60.0,
+      "unit": "min"
+    }
+  ],
+  "customReminders": [],
+  "reminderSettings": [],
+  "reminderDismissals": [],
+  "measurements": [
+    {
+      "id": 1,
+      "babyId": null,
+      "kind": "poids",
+      "value": "3510.0",
+      "unit": "g",
+      "recordedAtEpochSeconds": 1793526709,
+      "recordedAtUtc": "2026-11-01T09:51:49.000Z",
+      "notes": null
+    }
+  ],
+  "appSettings": [],
+  "reminderCompletions": []
+}

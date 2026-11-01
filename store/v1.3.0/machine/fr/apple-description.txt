@@ -13,4 +13,4 @@ CE QUE VOUS POUVEZ FAIRE
 LA CONFIDENTIALITÉ AU CŒUR DE LA CONCEPTION
 Mamadera est conçu pour la confidentialité : les notes et les mesures sensibles sont chiffrées, l'application ne demande aucune autorisation inutile, et rien n'est jamais téléchargé. La seule façon pour les données de quitter l'appareil est l'exportation au format JSON que vous initiez vous-même, puis via la fonction de partage de votre appareil. L'application est gratuite, open source et sous licence MIT.
 
-Idéale pour les parents qui accordent de l'importance à leur vie privée – et pour les nouveau-nés qui méritent la leur.
+Idéale pour les parents qui accordent de l'importance à leur confidentialité – et pour les nouveau-nés qui méritent la leur.

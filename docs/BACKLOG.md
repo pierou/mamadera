@@ -141,7 +141,8 @@ promise. No code, no dependency, no spike until that sentence changes — see `A
 
 ## B4 — Insufficient contrast: the yellow (day) and the brown (night)
 
-**Status:** open, v1.2.1 candidate · **Priority:** real accessibility · **Cost:** colour choice + verification pass
+**Status:** open, v1.3.1 candidate — **measured 2026-11-01: 4 of 8 button×theme pairs fail AA**,
+not the 2 this ticket names · **Priority:** real accessibility · **Cost:** colour choice + verification pass
 **Found:** 2026-10-04, by eye on Android (light) and iOS (dark) captures
 
 ### The problem, seen and not guessed
@@ -150,6 +151,57 @@ readable.
 - **Dark mode:** the « Couche » button is dark brown on a dark background — barely readable.
 Both are **already in production** (the theme did not change on this branch). This is not a matter
 of taste, it is a parent reading the screen one-handed, half asleep, at 3 h, on a dimmed screen.
+
+### Measured, 2026-11-01 — the ticket understates it
+
+Computed from the palette (`lib/core/theme.dart:35-38`) composited through
+`lib/features/home/presentation/widgets/track_button.dart:173-214`: the label is painted with the
+**accent itself** (`:210`) on a card made of the same accent at 8 % / 2 % over the scaffold colour.
+The structural fix below is therefore already proven elsewhere: the selected feeding chip, painted
+`onSecondary` (white) on `miam` at 20 %, measured **1.05:1** and **15.29:1** after pinning the
+label to `onSurface`.
+
+| Button label | light | dark | verdict |
+|---|---|---|---|
+| `miam` Feeding | **1.17:1** | 8.64:1 | fails in light |
+| `sante` Health | **2.04:1** | 5.08:1 | fails in light |
+| `dodo` Sleep | **2.28:1** | 4.57:1 | fails in light |
+| `caca` Diaper | 7.56:1 | **1.43:1** | fails in dark |
+
+The failure is visible in the project's own release evidence:
+`docs/release-evidence/v1.3.0/pixel_10_pro/06-home-nora-after-migration.png` — "Feeding" and
+"Weight" are pale yellow on pale cream and nearly disappear, and the M8 gate **passed with that on
+screen**.
+
+**Item 1 is now paid — sampled from a device capture, 2026-11-01.** From
+`docs/release-evidence/v1.3.0/small_phone/25-home-v121-before-upgrade.png` (Small_Phone, 720×1280,
+French, light mode): label = darkest pixel in the glyph box, card = median of an empty patch of the
+same card.
+
+| Label | pixel-sampled | computed above | note |
+|---|---|---|---|
+| Nourriture (`miam`) | **1.15:1** | 1.17:1 | label samples as `rgb(255,224,130)` on `rgb(246,241,225)` |
+| Santé (`sante`) | **1.89:1** | 2.04:1 | |
+| Dodo (`dodo`) | **2.07:1** | 2.28:1 | |
+| Couche (`caca`) | 6.47:1 (passes) | 7.56:1 | the control: a passing pair measures clearly above 3:1, so the method is sound |
+
+The computed table was right within ~10 %, and `22-home-v130-after-upgrade-b4-wash.png` is
+pixel-identical in these regions — the wash ships in v1.3.0 exactly as it shipped in v1.2.1.
+The quantity readout is the same defect in another place: « 3 min » in
+`20-edit-dialog-v130-fr-chips.png` is the accent painted as text on white.
+
+**And one more instance, measured in the store artefact (2026-11-01).** The recaptured
+`store/v1.3.0/screenshots/play/fr/fr-feeding_dialog.png` puts the **unit segmented control** in the
+same dialog: selected « Minutes » is white on `rgb(183,231,255)` = **1.32:1**. Same frame, the
+selected feeding chip that this release fixed measures **1.01:1 → 15.88:1**, so the tool agrees
+with the fix. B4's scope is therefore: identity buttons, `+N` pills, quantity readout, **and the
+segmented toggles**.
+
+Measurements are repeatable, not folklore: **`scripts/wcag_sample.py`** (added 2026-11-01, stdlib
+only — it decodes PNG itself because there is no PIL here and `sips` cannot read a pixel).
+`scripts/wcag_sample.py <png> --find blue,yellow,green,bluetxt,brown` auto-locates the accent
+widgets and prints the pair + the AA verdict; explicit boxes take `--extreme light|dark` when the
+text colour is known.
 
 ### Candidates, with the ratio to measure — not to guess
 WCAG AA rule: **4,5:1** for normal text, **3:1** for large text (≥ 24 px / bold ≥ 18,7 px).
@@ -160,6 +212,7 @@ Button titles are large, but the pills (« Vit. D ») and the values (« 3 510 g
 |---|---|---|
 | `miam` (yellow, light) | too pale on a light background | dark amber `#B26A00`, or saturated yellow `#E0A400` **with dark brown text** on top |
 | `couche` (brown, dark) | too dark on a dark background | terracotta `#C97B5A`, or clay `#D08B6A` |
+| segmented control, selected segment (`Minutes`, `Millilitres`) | **1.32:1**, white on `rgb(183,231,255)`, measured in the Play frame | a text colour on the tint, or a dark label on the light tint — same structural fix |
 | structural alternative | — | keep the tints, but make the **label** a guaranteed-contrast text colour (dark on light background, light on dark background), and reserve the tint for the background and the icon |
 
 The structural alternative is probably the right one: it keeps the visual identity (the four
@@ -167,8 +220,9 @@ colours that distinguish care/feeding/nappy/sleep) without asking a pastel tint 
 the readability of the text.
 
 ### To do before touching the colours
-1. Measure the real ratio of the current pairs (capture excerpt + WCAG calculator) and note the
-   numbers — a colour sheet without ratios is an opinion.
+1. ~~Measure the real ratio of the current pairs~~ **done 2026-11-01**, table above (device sample,
+   `small_phone/00-note.txt` §4). Still owed: the same sample in **dark** mode, which so far exists
+   only as a computation.
 2. Choose one pair per theme, verify 4,5:1 on the labels and the pills in **both**
    themes, on the smallest device.
 3. Do not change an identity colour lightly: these four tints are the app's
@@ -416,6 +470,11 @@ concerned.
 **Cost:** large, mechanical (~5–8 h) · **Risk:** low if the discipline is kept
 **Counted:** 2026-10-06 — 945 lines of comments in `lib/` (56 files), 800 in `test/` (71 files),
    count on comment lines containing accented characters, generated files excluded.
+**Recount 2026-11-01 — `lib/` is done.** 2 accented comment lines remain and both are legitimate:
+   `lib/shared/domain/entities/tracking_event.dart:116` quotes the DB value `pâteux`, and
+   `lib/shared/widgets/option_chip_row.dart:21` contains a `×`. What is left is the test tree:
+   **17 lines in 5 files** under `test/`, **4 lines in 2 files** under `integration_test/`. The
+   ~5–8 h estimate is stale; the CI guard proposed in step 4 is now cheaper than the sweep.
 
 ### The fact
 The code carries `//` and `///` comments in French through `lib/` and `test/` (user-facing
@@ -856,3 +915,63 @@ types — **this ticket is feeding only** (the owner asked for feeding).
   if they do want all four, it is the same diff four times and a bigger emulator pass.
 - Do not render the feeding note anywhere it was not rendered before (history tile only) — the
   privacy surface of the note does not grow.
+
+---
+
+## B18 — The baby's age is hardcoded English, and the month arithmetic is wrong
+
+**Status:** open, v1.3.1 candidate · **Severity:** visible-in-French defect (not cosmetic: it is the
+one line in the Menu that switches language with the rest of the screen and doesn't)
+· **Cost:** ~10 lines, no migration, no export bump — the three ARB keys already exist
+**Found:** 2026-11-01, on the Small_Phone device pass (`v1.2.1+11 → v1.3.0+12`), French UI
+
+### The defect, seen on hardware
+
+Menu → the baby card subtitle reads **« Nora — 0 days old »** with the whole rest of the screen in
+French. Not a guess: `uiautomator` reports the same in `content-desc`
+(`docs/release-evidence/v1.3.0/small_phone/00-note.txt` §5, screenshot 22).
+
+**It is also in the store artefacts.** The seeded fixture baby reads « Léa — **3 months old** » in
+the menu screenshot of *every* listing locale — English in Spanish, at all four App Store sizes and
+in Play. That is 12 uploadable files carrying an untranslated string (verified pixel-level in
+`store/v1.3.0/screenshots/asc/es/1284x2778/es-menu.png`, 2026-11-01), which is why this ticket is a
+v1.3.1 candidate rather than polish.
+
+### Why it happens
+
+`lib/features/menu/presentation/widgets/baby_profile_section.dart:491-504` (`_formatBirthdate`,
+called from `:106`) builds the string from literals:
+
+```dart
+return '$days ${days == 1 ? 'day' : 'days'} old';     // :498
+return '$months ${months == 1 ? 'month' : 'months'} old';
+return '$age ${age == 1 ? 'year' : 'years'} old';
+```
+
+Meanwhile `daysOld` / `monthsOld` / `yearsOld` are defined in **all three** ARBs
+(`app_en.arb:439/441/443`, `app_fr.arb` and `app_es.arb` at the same lines: « jours », « mois »,
+« ans » / « días », « meses », « años ») and are referenced by **nothing** in `lib/` — only by the
+generated delegates. The strings were prepared for this line in an earlier release and never wired.
+
+### The second defect in the same six lines
+
+Months are `now.month - birthDate.month` and years `now.year - birthDate.year`, both ignoring the
+day of month: a baby born 31 January reads as **2 months old on 1 March**, and a baby born
+1 December reads as 1 year old on 30 November. Age for a newborn app must be anniversary-based.
+
+### How to fix it (verified mapping, don't re-derive)
+
+The ARB values are asymmetric **on purpose** and the interpolation still works in all three
+locales, because `en` carries the whole phrase while `fr`/`es` carry the unit noun:
+`'$n ${locale.daysOld}'` → "5 days old" / « 5 jours » / "5 días". So: anniversary arithmetic
+(month/year rolled back when `now.day < birth.day` or the month hasn't completed), then
+`'$n ${locale.daysOld|monthsOld|yearsOld}'`.
+
+### Do not
+- Do not add new ARB keys — these three exist and are unused.
+- Do not touch `measurements`/`tracking_events` display code: this is the Menu baby card only
+  (`_formatBirthdate` has exactly one caller, `:106`).
+- Numbering note: **B18 is simply the next free number.** B14-B17 landed with PR #52 (merged
+  2026-10-30) while this branch was in flight; the first draft of this ticket, written before that
+  merge, claimed B14 was unopened and B15-B17 were roadmap placeholders. It was wrong, and the
+  conflict resolved into the upstream numbering.
