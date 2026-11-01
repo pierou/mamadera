@@ -33,6 +33,10 @@ length-checked, so a 106-character keyword list fails here instead of at upload.
 - [ ] `store/v<version>/` built from `store/source/en/` (nothing hand-written inside it)
 - [ ] `store/v<version>/machine/<locale>/` present — proof the fr/es prose is TranslateGemma output
 - [ ] `make store-check` passes (ASC WARN lines are decisions, not accidents: read them)
+- [ ] FR/ES prose read by a human before submission — machine output is the floor, not the
+      ceiling. The Apple "What's New" renders from `assets/patch_notes/<locale>.json` (reviewed,
+      human-owned): fix wording there and re-run `make store-package`; `store/v*/machine/` stays
+      raw (it is the traceability evidence) and `fields/` is regenerated, never hand-edited
 
 ---
 
