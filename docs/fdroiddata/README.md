@@ -31,11 +31,29 @@ trimmed `rm:` list built instead of raising. `fdroid lint`, `fdroid rewritemeta`
 `checkupdates` green too. Note these pipelines are cited by **global id**, not
 iid — `3015561025` here, `2985018099` for the 1.2.1 review round.
 
-As of this push **no maintainer question is outstanding on !53740**: both asks
-from the 2026-10-24 round (correct the Flutter build block, put fastlane in the
-repo) were addressed then, the newest human note in the thread is ours, and the
-`waiting-on-response` label has no origin event in the API — it reads as stale
-from that round rather than as a new request.
+Where the ball sits, read off all 14 notes rather than inferred: **all three of
+their asks are answered; our two questions are unanswered.** The review of
+2026-10-24 arrived as **two notes but three requests** — sed instead of patch
+files, latest version only, fastlane in the repo (enumerated in the review round
+below) — and all three were done that day. Our own reply of 2026-10-24 19:34
+closed by asking them two things, and nothing has answered them since:
+
+- universal `app-release.apk` (current) or `--split-per-abi` with one block per ABI?
+- should the `sudo:` + upstream-path block for reproducible builds go in now, or as
+  a follow-up once the app is included?
+
+So `waiting-on-response` is plausibly accurate rather than stale — it can be the
+unanswered side of that exchange. The next note to the reviewer should re-raise
+both questions; they are the only content that can move the MR past "green but
+silently waiting".
+
+**The error that nearly deleted those questions:** reading notes through the API
+and truncating bodies at 800 characters, then concluding absence from the truncated
+view — which produced a doc commit claiming `--split-per-abi` "has no source in the
+MR" when it sits verbatim in our own note, and an edit removing the auditor's
+accurate parenthetical. Rule: grep full note bodies for the term before ever
+writing that something is absent from a thread (`per_page=100` does not truncate the
+payload — printing does).
 
 ### The MR abstract had to be corrected, not just re-pinned
 
