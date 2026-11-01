@@ -57,9 +57,9 @@ void main() {
   });
 
   group('formatDate — EN locale', () {
-    // Les attentes de ce groupe ont épinglé le bug pendant un cycle
-    // (`hh:aa` rendait le marqueur AM/PM à la place des minutes) : elles ne
-    // doivent pas être « corrigées » en arrière.
+    // The expectations of this group pinned the bug for one cycle
+    // (`hh:aa` rendered the AM/PM marker instead of the minutes): they
+    // must not be "fixed" backwards.
     testWidgets('renvoie format MM/dd/yyyy hh:mm a (12h)', (tester) async {
       final context = await pumpWithContext(tester, const Locale('en'));
       final date = DateTime(2024, 6, 15, 10, 30);
@@ -86,8 +86,8 @@ void main() {
 
     testWidgets('les minutes ne disparaissent jamais', (tester) async {
       final context = await pumpWithContext(tester, const Locale('en'));
-      // 21:04 et 21:59 doivent se distinguer à l'écran : c'est le seul
-      // intérêt de la ligne d'un suivi de fièvre.
+      // 21:04 and 21:59 must read differently on screen: that is the whole
+      // point of minutes in a fever tracker.
       expect(formatDate(context, DateTime(2026, 10, 8, 21, 4)),
           '10/08/2026 09:04 PM');
       expect(formatDate(context, DateTime(2026, 10, 8, 21, 59)),
@@ -96,8 +96,8 @@ void main() {
   });
 
   group('formatDate — les trois locales sur une date fixe', () {
-    // Un seul horodatage, trois locales, trois sorties épinglées : le motif
-    // ne peut plus pourrir dans une seule branche sans casser ce test.
+    // One timestamp, three locales, three pinned outputs: the defect can
+    // no longer rot in a single branch without breaking this test.
     final date = DateTime(2026, 10, 8, 19, 43);
 
     testWidgets('fr', (tester) async {
