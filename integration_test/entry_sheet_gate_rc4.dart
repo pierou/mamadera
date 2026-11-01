@@ -14,7 +14,7 @@
 /// one, with a prior measurement seeded, plus the manual entry path
 /// (record a measurement, then export and inspect the JSON).
 ///
-/// ## Lancement
+/// ## Run
 ///
 /// Both targets use `flutter test` (not `flutter drive` — see the rc.2 gate
 /// header for why):
