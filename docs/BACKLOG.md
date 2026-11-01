@@ -141,7 +141,8 @@ promise. No code, no dependency, no spike until that sentence changes — see `A
 
 ## B4 — Insufficient contrast: the yellow (day) and the brown (night)
 
-**Status:** open, v1.2.1 candidate · **Priority:** real accessibility · **Cost:** colour choice + verification pass
+**Status:** open, v1.3.1 candidate — **measured 2026-11-01: 4 of 8 button×theme pairs fail AA**,
+not the 2 this ticket names · **Priority:** real accessibility · **Cost:** colour choice + verification pass
 **Found:** 2026-10-04, by eye on Android (light) and iOS (dark) captures
 
 ### The problem, seen and not guessed
@@ -150,6 +151,30 @@ readable.
 - **Dark mode:** the « Couche » button is dark brown on a dark background — barely readable.
 Both are **already in production** (the theme did not change on this branch). This is not a matter
 of taste, it is a parent reading the screen one-handed, half asleep, at 3 h, on a dimmed screen.
+
+### Measured, 2026-11-01 — the ticket understates it
+
+Computed from the palette (`lib/core/theme.dart:35-38`) composited through
+`lib/features/home/presentation/widgets/track_button.dart:173-214`: the label is painted with the
+**accent itself** (`:210`) on a card made of the same accent at 8 % / 2 % over the scaffold colour.
+The structural fix below is therefore already proven elsewhere: the selected feeding chip, painted
+`onSecondary` (white) on `miam` at 20 %, measured **1.05:1** and **15.29:1** after pinning the
+label to `onSurface`.
+
+| Button label | light | dark | verdict |
+|---|---|---|---|
+| `miam` Feeding | **1.17:1** | 8.64:1 | fails in light |
+| `sante` Health | **2.04:1** | 5.08:1 | fails in light |
+| `dodo` Sleep | **2.28:1** | 4.57:1 | fails in light |
+| `caca` Diaper | 7.56:1 | **1.43:1** | fails in dark |
+
+The failure is visible in the project's own release evidence:
+`docs/release-evidence/v1.3.0/pixel_10_pro/06-home-nora-after-migration.png` — "Feeding" and
+"Weight" are pale yellow on pale cream and nearly disappear, and the M8 gate **passed with that on
+screen**.
+
+Still owed, item 1 below: these are computed from constants and widget alphas, not sampled from a
+capture. No pixel sample exists yet.
 
 ### Candidates, with the ratio to measure — not to guess
 WCAG AA rule: **4,5:1** for normal text, **3:1** for large text (≥ 24 px / bold ≥ 18,7 px).
@@ -416,6 +441,11 @@ concerned.
 **Cost:** large, mechanical (~5–8 h) · **Risk:** low if the discipline is kept
 **Counted:** 2026-10-06 — 945 lines of comments in `lib/` (56 files), 800 in `test/` (71 files),
    count on comment lines containing accented characters, generated files excluded.
+**Recount 2026-11-01 — `lib/` is done.** 2 accented comment lines remain and both are legitimate:
+   `lib/shared/domain/entities/tracking_event.dart:116` quotes the DB value `pâteux`, and
+   `lib/shared/widgets/option_chip_row.dart:21` contains a `×`. What is left is the test tree:
+   **17 lines in 5 files** under `test/`, **4 lines in 2 files** under `integration_test/`. The
+   ~5–8 h estimate is stale; the CI guard proposed in step 4 is now cheaper than the sweep.
 
 ### The fact
 The code carries `//` and `///` comments in French through `lib/` and `test/` (user-facing
