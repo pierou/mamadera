@@ -148,9 +148,9 @@ the tree any more).
 | fastlane tree in this repo, present **at the release tag** | ✅ v1.3.0 (this was the v1.2.1 blocker) |
 | `com.pvjio.mamadera.yml` canonical + lint-clean under the pipeline's fdroidserver | ✅ 2026-11-01, one `Builds` entry 1.3.0 / 12, `commit: v1.3.0` |
 | Fork fdroiddata (GitLab), MR labelled **New App** | ✅ MR [!53740](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53740), opened 2026-10-22 |
-| Push the v1.3.0 recipe to the MR branch | ☐ **human go-ahead — the push runs the public pipeline** |
-| Re-pin the MR abstract screenshots to `v1.3.0` | ☐ |
-| Maintainer review → merge | ☐ (~2–6 weeks; two build-block questions outstanding, see the fdroiddata README) |
+| Push the v1.3.0 recipe to the MR branch | ✅ 2026-11-01 — pipeline `3015561025` green on all 9 jobs, **`fdroid build` succeeded (508 s)** |
+| Re-pin the MR abstract screenshots to `v1.3.0` | ✅ 2026-11-01 — and the abstract itself needed correcting: it still claimed "no permissions" and six `Builds` entries, both false since v1.3.0 (`docs/fdroiddata/README.md`) |
+| Maintainer review → merge | ☐ (~2–6 weeks. No question outstanding: both 2026-10-24 asks were answered and the newest human note is ours — `waiting-on-response` looks stale) |
 | Delete branch `fdroid-metadata-v1.2.1` | ☐ **after** the merge — see `docs/AUDIT-2026-10-21.md` addendum |
 
 **Note:** F-Droid builds from source on its own builders and re-signs the APK —
