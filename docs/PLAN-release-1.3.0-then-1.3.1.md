@@ -54,7 +54,7 @@ is monotonic per *release*, not per commit (`docs/PLAN-item-12-notifications.md:
 | `lint` (`--fatal-infos --fatal-warnings`) | green |
 | `test` + `check-coverage` | green, 88 % vs 80 % floor |
 | `check-architecture`, `check-complexity` | green |
-| `format-check` | advisory only (`Makefile:41-48` never fails); the tree is largely unformatted — 144/257 files per `docs/AUDIT-2026-10-19.md:285`, owner decision pending |
+| `format-check` | **advisory locally, hard in CI** — `Makefile:41-48` checks the exit code and then prints ⚠️ and exits 0, so `make gate` is green on an unformatted file; `ci.yml` runs the same command with `--set-exit-if-changed` as a failing step. Verified 2026-11-01: CI scope = **276 files, 0 changed**, so the tree *is* formatted and the `AUDIT-2026-10-19.md:285` figure (144/257 unformatted) is stale. Run `make format` before pushing |
 | `store-check` | green for `v1.3.0`; **ASC WARN lines are a decision, not an accident**: `asc/fr/<size>` are empty because only bare-named captures exist under `screenshots/ios/asc/<size>/` |
 | `audit-trivy`, `audit-gitleaks` | run in `gate`; no-op if the tool is absent |
 | Chip-label fix | **committed** `5bec57b` — `OptionChipRow` + both dialogs + regression tests |
