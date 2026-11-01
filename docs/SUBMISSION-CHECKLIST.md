@@ -26,7 +26,7 @@ make store-prose     # TranslateGemma en→fr/es, raw archived under machine/, t
 make store-check     # consoles' limits + note consistency + screenshot inventory
 ```
 
-Output: [`store/v<version>/`](../store/v1.2.1/README.md) — one paste-ready file per console
+Output: [`store/v<version>/`](../store/v1.3.0/) — one paste-ready file per console
 field per language, plus the screenshots per device slot. Every field the consoles accept is
 length-checked, so a 106-character keyword list fails here instead of at upload.
 
@@ -86,27 +86,44 @@ Follow → [`docs/app-store-setup.md`](app-store-setup.md)
 
 ### 🤖 Step C — Google Play Store (Android)
 
-**Status 2026-09-29 — v1.1.0 is live on Google Play** (shipped 2026-09-15, updated from 1.0.1):
-account, app entry, data safety, IARC, listing ×3, graphics and the
-internal→production track are done. **1.1.1 is a routine update:** signed AAB
-from the `v1.1.1` tag (Actions, production keystore) → internal testing →
-production. The 1.0.1→1.1.x upgrade test (schema → v10) and the restore
-round-trip from `RELEASE-PLAN-v1.1.0.md` Phase 5 were the gating checks.
+**Status — the one-time Play setup is done (recorded 2026-09-29):** account,
+app entry, data safety, IARC, listing ×3, graphics and the internal→production
+track exist; 1.1.0 was in production as of that date (shipped 2026-09-15,
+updated from 1.0.1).
+
+**Which version is live is not recorded in this repo, and this file is not the
+place that gets decided.** `v1.2.0`, `v1.2.1` and `v1.3.0` have been tagged
+since that note and nothing here records a Play upload of any of them —
+`docs/PLAN-release-1.3.0-then-1.3.1.md` §6.1 keeps it as an open question on
+purpose, because the answer decides version numbering. Read the Play Console.
 
 Follow → [`docs/google-play-setup.md`](google-play-setup.md)
 
+**One-time (done):**
+
 | Task | Status |
 |------|--------|
-| Create developer account ($25 one-time fee) | ☐ |
-| Create app entry (`com.pvjio.mamadera`) | ☐ |
-| Complete Data Safety section ("No data collected") | ☐ |
-| Complete IARC questionnaire (Everyone rating expected) | ☐ |
-| Fill store listing + localizations × 3 languages — **from `store/v1.2.1/fields/`** + `release-notes/play-<locale>.txt` (the v1.1.0 copy in `docs/google-play-setup.md` Step 6 is superseded) | ☐ |
-| Upload feature graphic (1024×500), app icon (512×512), screenshots (≥3) | ☐ |
-| Build & sign AAB locally OR use CI artifacts | ☐ |
+| Create developer account ($25 one-time fee) | ✅ 2026-09-29 |
+| Create app entry (`com.pvjio.mamadera`) | ✅ 2026-09-29 |
+| Complete Data Safety section ("No data collected") | ✅ 2026-09-29 |
+| Complete IARC questionnaire (Everyone rating expected) | ✅ 2026-09-29 |
+| Set privacy policy URL | ✅ 2026-09-29 |
+
+**Every release (this is the part that repeats):**
+
+| Task | Status |
+|------|--------|
+| Fill store listing + localizations × 3 languages — **from `store/v1.3.0/fields/`** + `release-notes/play-<locale>.txt` (the v1.1.0 copy in `docs/google-play-setup.md` Step 6 is superseded) | ☐ |
+| Upload feature graphic (1024×500), app icon (512×512), screenshots (≥3) — `store/v1.3.0/screenshots/`, recaptured 2026-11-01 | ☐ |
+| Signed AAB from the release tag (Actions, production keystore) — CI run 41353557027 built `v1.3.0` | ☐ |
 | Upload to Internal Testing track first | ☐ |
 | Complete internal testing → move to Production | ☐ |
-| Set privacy policy URL | ☐ |
+
+The gating checks that were learned the hard way, and that a green CI cannot
+replace: the upgrade test on a device still holding the **previous** schema, and
+the export/restore round-trip (`RELEASE-PLAN-v1.1.0.md` Phase 5 — schema → v10
+at the time; v1.3.0 is schema v13 / backup format v4). See the release gate in
+AGENTS.md.
 
 **Expected timeline:** First review takes 2–5 business days. Closed testing requires minimum 14 days for new developers (may be exempt).
 
@@ -114,18 +131,31 @@ Follow → [`docs/google-play-setup.md`](google-play-setup.md)
 
 ### 🦊 Step D — F-Droid
 
-Follow → [`docs/fdroiddata/com.pvjio.mamadera.yml`](fdroiddata/com.pvjio.mamadera.yml)
+Follow → [`docs/fdroiddata/README.md`](fdroiddata/README.md) — that README is
+the working record: pipeline history, the maintainer review round, what fails
+the build, and how to run the pipeline's own tools locally.
+
+The previous version of this table described a **GitHub** fork, a `meta/`
+directory, a PR titled "New package: Mamadera" and a
+`.f-droid/description/en-US/mamadera.md` file attached to it. None of that is
+how the submission works: fdroiddata is on **GitLab**, the directory is
+`metadata/`, and the listing text comes from the **`fastlane/metadata/android/`
+tree in this repo at the commit F-Droid builds** (`.f-droid/` does not exist in
+the tree any more).
 
 | Task | Status |
 |------|--------|
-| Review & customize the YAML metadata (maintainer email, version info) | ☐ |
-| Fork [f-droid/fdroiddata](https://github.com/f-droid/fdroiddata) on GitHub | ☐ |
-| Copy `com.pvjio.mamadera.yml` to their `meta/` directory in your fork | ☐ |
-| Open Pull Request against upstream fdroiddata with title "New package: Mamadera" | ☐ |
-| Attach the F-Droid description file (`.f-droid/description/en-US/mamadera.md`) content in PR comment | ☐ |
-| Wait for maintainer review & build verification (~2–6 weeks) | ☐ |
+| fastlane tree in this repo, present **at the release tag** | ✅ v1.3.0 (this was the v1.2.1 blocker) |
+| `com.pvjio.mamadera.yml` canonical + lint-clean under the pipeline's fdroidserver | ✅ 2026-11-01, one `Builds` entry 1.3.0 / 12, `commit: v1.3.0` |
+| Fork fdroiddata (GitLab), MR labelled **New App** | ✅ MR [!53740](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53740), opened 2026-10-22 |
+| Push the v1.3.0 recipe to the MR branch | ☐ **human go-ahead — the push runs the public pipeline** |
+| Re-pin the MR abstract screenshots to `v1.3.0` | ☐ |
+| Maintainer review → merge | ☐ (~2–6 weeks; two build-block questions outstanding, see the fdroiddata README) |
+| Delete branch `fdroid-metadata-v1.2.1` | ☐ **after** the merge — see `docs/AUDIT-2026-10-21.md` addendum |
 
-**Note:** F-Droid builds from source on their own infrastructure. They'll verify the APK is reproducible and free of non-free dependencies.
+**Note:** F-Droid builds from source on its own builders and re-signs the APK —
+we upload nothing. The recipe *is* the deliverable, which is why a formatting
+detail like `fdroid rewritemeta` ownership decides whether the app is listed.
 
 ---
 
