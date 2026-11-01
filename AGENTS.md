@@ -106,6 +106,18 @@ class TrackingRepositoryImpl implements TrackingRepository {
 - …and to the import in `lib/features/import/` (section validation, row contract, insert inside the restore transaction): a table exported but not imported turns a *restore* into data loss, so the two features move together
 - Any field added to or removed from the export document must bump `exportFormatVersion` in `ExportRepositoryImpl` **and** the supported version in `ImportRepositoryImpl`. The importer also refuses a document whose `databaseSchemaVersion` exceeds `AppDatabase.schemaVersion` — that guard only catches what a forgotten version bump would otherwise drop silently
 
+## 🌍 Language: the tree is English, French is the product (added 2026-11-01)
+
+English wherever code is read: **comments, test and `group()` descriptions, commit subjects,
+docs**. FR/ES live only where they are the product — `lib/l10n/*.arb` and the generated
+localizations, `assets/patch_notes/{fr,es}.json`, `assets/terms/terms_{fr,es}.md`, the `store/**`
+and `fastlane/**` FR/ES deliverables — and as direct quotes of on-screen strings inside English
+prose (in « » or backticks). A French test name is a French string in CI output and in agent
+search: English. Fixture values (`miam`, `pâteux`, baby names) are what the app renders, not
+prose — they stay. Rule of thumb: an English-only reader must never need French to read, run, or
+debug the tree. Measured history: `docs/AUDIT-2026-11-01-language.md`, BACKLOG B10 (closed
+2026-11-01) / B19 / B20.
+
 ## 🛠️ Build & Test Commands
 
 All commands available via [`Makefile`](Makefile):

@@ -466,7 +466,8 @@ concerned.
 
 ## B10 — Code comments are in French: ~1 750 lines to anglicise
 
-**Status:** open (owner request, 2026-10-06: « tous les commentaires de code en anglais ») ·
+**Status:** closed 2026-11-01 by the language sweep (`docs/AUDIT-2026-11-01-language.md`) — ships
+   with v1.3.0; archive to BACKLOG-RESOLVED.md on ship ·
 **Cost:** large, mechanical (~5–8 h) · **Risk:** low if the discipline is kept
 **Counted:** 2026-10-06 — 945 lines of comments in `lib/` (56 files), 800 in `test/` (71 files),
    count on comment lines containing accented characters, generated files excluded.
@@ -475,6 +476,14 @@ concerned.
    `lib/shared/widgets/option_chip_row.dart:21` contains a `×`. What is left is the test tree:
    **17 lines in 5 files** under `test/`, **4 lines in 2 files** under `integration_test/`. The
    ~5–8 h estimate is stale; the CI guard proposed in step 4 is now cheaper than the sweep.
+**Closed 2026-11-01 — comment prose is 0.** The residual 17 were mostly fixtures and quotes
+   (Aimée/Béa names, FR UI strings inside English comments — legitimate); the last French prose,
+   the comment block in `test/core/l10n/date_localization_test.dart`, is translated. Two escapes
+   of the machine pass were also found and rewritten: the mangled `pickers_gate_rc2.dart` header
+   (« toute la plage » had been rendered as "The entire beach") and two leftover `## Lancement`
+   headings — audit §2.3. The surface this ticket never covered, the test **descriptions**
+   (378 in 50 files), is now **B19**; the step-4 guard is **B20**. Original owner request,
+   2026-10-06: « tous les commentaires de code en anglais ».
 
 ### The fact
 The code carries `//` and `///` comments in French through `lib/` and `test/` (user-facing
@@ -975,3 +984,67 @@ locales, because `en` carries the whole phrase while `fr`/`es` carry the unit no
   2026-10-30) while this branch was in flight; the first draft of this ticket, written before that
   merge, claimed B14 was unopened and B15-B17 were roadmap placeholders. It was wrong, and the
   conflict resolved into the upstream numbering.
+
+---
+
+## B19 — Test descriptions are in French: 378 `test()`/`group()` names to anglicise
+
+**Status:** open (found 2026-11-01 by `docs/AUDIT-2026-11-01-language.md`, the surface B10 never
+covered) · **Cost:** 2–4 h, mechanical, fan-out eligible · **Risk:** low if the diff discipline holds
+**Counted:** 2026-11-01 — 378 first-argument strings of `test(`/`testWidgets(`/`group(` carrying
+accented French, in 50 files (worst: `history_tile_test.dart` 23, `encryption_service_test.dart`
+20, `edit_event_dialog_test.dart` 19). Reproduce with the scanner snippet in the audit appendix.
+
+### The fact
+B10 translated comment prose; the test **names** were never in scope, so they still print French
+in `flutter test` output — exactly the surface B10's rationale cites for anglicisation (agent
+search, RAG, a second reader). The names are the only French an English-only CI viewer sees.
+
+### To do
+1. Translate the first-argument string only. A name keeps its whole claim — no summarising
+   (B10 rule). `flutter test` green before and after; the diff contains no expectation line.
+2. Fan-out eligible — packs per directory (`box-coder`/`fast-coder`), diff review stays human.
+3. A name quoting an on-screen French string keeps the quote French inside an English name —
+   `'filterSante → "Santé"'` is already the correct form.
+
+### Do not
+- Do not touch fixture values (`miam`, `pâteux`, `Bébé Test`, baby names) or expected strings —
+  they are what the app renders, not prose.
+- Do not fold this into a functional PR (the rule that kept B10 reviewable).
+
+---
+
+## B20 — CI language guard: accent + word-list check on comment lines (B10 step 4)
+
+**Status:** open (extracted when B10 closed, 2026-11-01) · **Cost:** ~1 h · **Risk:** low
+**Precedent:** rollout like format-check (dfcf9b8) — advisory locally, hard in CI.
+
+### To do
+1. Script + Makefile target + `ci.yml` step: comment lines (`//`, `///`, `#`) containing accented
+   French in `lib/ test/ integration_test/ scripts/`, generated files (`*.g.dart`,
+   `*.freezed.dart`, `lib/l10n/`) excluded.
+2. The check must also carry a **small accent-free French word list** (`sieste`, `plage`,
+   `lungueur`-class misses): the rc.2 gate header proved a pass can leave accent-free French
+   *and* mangled English (audit §2.3) — accents alone are necessary, not sufficient.
+3. Explicit allowlist with one reason per line: `lib/shared/domain/entities/tracking_event.dart:116`
+   (quotes the DB value `pâteux`), `lib/shared/widgets/option_chip_row.dart:21` (a `×`), FR UI
+   quotes in gate comments (`entry_sheet_gate_rc4.dart`).
+4. Wire into the `make gate` mirror so local and CI cannot drift (AUDIT-2026-10-21 lesson).
+
+---
+
+## B21 — In-app patch notes 1.0.0 are developer jargon in all three locales
+
+**Status:** open (found 2026-11-01 by audit §3.2) · **Cost:** ~1 h · **Risk:** low, content only
+
+### The fact
+`assets/patch_notes/*.json` `1.0.0` is a commit-message digest that the What's New screen shows
+to parents and that `make store-package` renders into the store whats-new, in all three locales:
+« Mise à jour de l'enumération FeedingSubtype… », "Implementation of anyBabyExistsProvider…",
+"Actualización del enumerado FeedingSubtype…". The fr/es are faithful; the EN source was never
+written for a parent. `1.0.1`–`1.3.0` read as user prose in all three locales (verified 2026-11-01).
+
+### To do
+Rewrite `1.0.0` (and tidy `1.0.1`) EN in parent language first — it is the source — then re-derive
+fr/es in the noun form AGENTS.md mandates, human-read, and `make store-package` follows. Factual
+claims stay intact; the entry is history the app shows, so wording may change, events may not.
