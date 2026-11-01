@@ -1,44 +1,43 @@
 // ignore_for_file: avoid_print
-/// Control panel v1.2.1-rc.2: Only one slider per input field.
+/// Control panel v1.2.1-rc.2: one slider per input, nothing else.
 ///
-/// ## Why this file exists.
+/// ## Why this file exists
 ///
-/// The "rough/precise" pair (BACKLOG B2) was introduced in version 1.2.1.
-/// The `QuantityPickerInline` shared widget: a single parameter, with five display elements.
-/// touched by a stroke - new grip, edition of a grip, edition of a...
-/// siesta, new measure, edit a measure. Open on a device, the...
-/// The document posed the question, "Which of the two should I move?" without providing an answer.
-/// respond; therefore, the pair is removed (docs/BACKLOG.md B2).
+/// The coarse/fine slider pair (BACKLOG B2) shipped during the 1.2.1 cycle and was
+/// withdrawn on 2026-10-13: across the five input surfaces (new/edit feeding, nap,
+/// weight, temperature), two grips posed the question "which of the two should I
+/// move?" without providing an answer — so the pair is removed
+/// (docs/BACKLOG-RESOLVED.md B2).
 ///
-/// This file provides visual and numerical proof of the withdrawal. For each...
-/// on the surface, it checks that there is **exactly one** `Slider` element, and that it covers...
-/// **The entire** beach (and not just a recentered window), and the labels.
-/// The "Rough" / "Precise" (French) options have been removed, but the plus/minus buttons are still present.
-/// and that no rendering errors (specifically, `RenderFlex` overflow errors) are raised.
-/// The overflow is silent in unit tests that report their own results.
-/// viewport, but it's not displayed on a real screen.
+/// This file is the visual and numeric proof of the withdrawal. On each surface it
+/// checks that there is **exactly one** `Slider`, that it covers **the whole range**
+/// (and not a re-centred window), that the « Brut » / « Précis » labels are gone while
+/// the ± buttons and the keyboard field carry the exact input, and that no rendering
+/// error — `RenderFlex` overflows in particular — is raised. Overflow is silent in
+/// unit tests that bump their own viewport; it is not silent on a real screen.
 ///
-/// Final test: the complete manual control scheme – use the cursor to aim, and +/- to adjust.
-/// quantum, keyboard for entering the exact value – then the document is exported and inspected.
-/// It's transmitted byte by byte. It's the same document that the sharing panel receives.
-/// A backup that omits a section is a faulty backup, and nothing...
-/// It displays the signal on the screen.
+/// Last case: the complete manual entry path — aim with the slider, nudge with ±,
+/// type the exact value on the keyboard — then the export is inspected byte by byte.
+/// It is the same document the share sheet receives: a backup that silently omits a
+/// section is a broken backup, and nothing announces it on screen.
 ///
-/// ## Lancement
+/// ## Run
 ///
-/// Both platforms use `flutter test` (while `flutter drive` raises...).
-/// "Binding is already initialized" on target `integration_test`):
+/// Both platforms use `flutter test` (not `flutter drive` — it raises "Binding is
+/// already initialized" on the `integration_test` target; the 8-case results live in
+/// docs/RELEASE-GATE-v1.2.1-rc.2.md):
 ///
 /// ```bash
-/// # iOS - Simulator started.
-/// flutter test integration_test/pickers_gate_rc2.dart -d <udid>
+/// # iOS — Simulator started.
+/// flutter test integration_test/pickers_gate_rc2.dart --no-uninstall -d <udid>
 /// # Android — AVD Small_Phone, 360x640 dp, the narrowest target device.
-/// flutter test integration_test/pickers_gate_rc2.dart -d emulator-5554
+/// flutter test integration_test/pickers_gate_rc2.dart --no-uninstall -d emulator-5554
 /// ```
 ///
-/// PNG files are stored in the app's **Documents** directory (using the `path_provider` package).
-/// (Relative path raises `errno 30` on iOS), then exits the sandbox:
-/// iOS uses the container's host path, while Android uses...
+/// `--no-uninstall` matters: a plain run uninstalls the app in teardown and takes the
+/// captures with it. PNG files are written to the app's **Documents** directory via
+/// `path_provider` (a relative path raises `errno 30` on iOS), then extracted from
+/// the sandbox: iOS through the simulator container's host path, Android through
 /// `adb exec-out run-as <app> cat .../Documents/gate/08_historique.png`.
 library;
 
