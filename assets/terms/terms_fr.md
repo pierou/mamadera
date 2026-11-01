@@ -10,7 +10,7 @@ En téléchargeant, installant ou utilisant l'application mobile **Mamadera** (l
 
 Mamadera est une application personnelle de suivi nouveau-né qui aide les parents et les aidants à consigner et surveiller :
 - Les heures et durées d'alimentation
-- Les patterns de sommeil
+- Les rythmes de sommeil
 - Les changements de couches
 - Les routines de santé et soins
 - Les mesures de croissance
@@ -49,7 +49,7 @@ Vous êtes responsable de :
 
 ## 5. Avertissement Médical
 
-**Mamadera n'est pas un dispositif médical.** L'Application est destinée à vous aider à suivre les routines et patterns de votre bébé à des fins personnelles uniquement. Elle **ne remplace pas un avis, un diagnostic ou un traitement médical professionnel**.
+**Mamadera n'est pas un dispositif médical.** L'Application est destinée à vous aider à suivre les routines et les rythmes de votre bébé à des fins personnelles uniquement. Elle **ne remplace pas un avis, un diagnostic ou un traitement médical professionnel**.
 
 Consultez toujours votre pédiatre ou un autre professionnel de santé qualifié pour toute question concernant la santé de votre bébé. Ne négligez jamais un avis médical professionnel ou ne différer sa recherche en raison des informations fournies par cette Application.
 
@@ -78,7 +78,7 @@ L'APPLICATION EST FOURNIE « EN L'ÉTAT » ET « DISPONIBLE » SANS GARANTIE D'A
 DANS LA MESURE MAXIMALE PERMISE PAR LA LOI, EN AUCUN CAS MAMADERA OU SES CONTRIBUTEURS NE PEUVENT ÊTRE TENUS RESPONSABLES DE TOUT DOMMAGE INDIRECT, ACCESSOIRE, SPÉCIAL, CONSÉCUTIF OU PUNITIF, INCLUANT SANS S'Y LIMITER :
 - LA PERTE DE PROFITS, DE DONNÉES, D'UTILISATION OU D'AUTRES PERTES IMMATÉRIELLES
 - LA PERTE OU LA CORRUPTION DE DONNÉES (BIEN QUE NOUS NE COLLECTIONS PAS DE DONNÉES, DES PROBLÈMES LOCAUX PEUVENT SURVENIR)
-- DES DOMMAGES RÉSULTANT DE LA FIANCE AUX DONNÉES SAISIES DANS L'APPLICATION
+- DES DOMMAGES RÉSULTANT DE LA CONFIANCE ACCORDÉE AUX DONNÉES SAISIES DANS L'APPLICATION
 
 ## 11. Recommandation de Sauvegarde
 
@@ -105,4 +105,4 @@ Pour toute question concernant ces Conditions Générales, veuillez nous contact
 
 ---
 
-**En appuyant sur "J'accepte" ci-dessous, vous confirmez avoir lu, compris et accepté d'être lié par ces Conditions Générales d'Utilisation.**
+**En appuyant sur « J'accepte » ci-dessous, vous confirmez avoir lu, compris et accepté d'être lié par ces Conditions Générales d'Utilisation.**
