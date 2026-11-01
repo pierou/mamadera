@@ -148,9 +148,11 @@ chip label **1.05:1 → 15.29:1** (white on `miam` 20 % → `onSurface` on the s
 ### Cut from v1.3.1
 
 B3 sync (blocked on a **written** privacy-mandate change, `BACKLOG.md:130`) · B8 growth chart
-(feature + dependency privacy audit) · B15/B16/B17 (features; PR #52 still open; B16 touches the
-feeding dialog, so schedule it right after) · all clinical content (IMNCI colours, fever
-threshold, percentiles — partner-gated per `docs/research/`) · **replacing** the four identity
+(feature + dependency privacy audit) · **B15/B16/B17** — the three open feature tickets PR #52
+landed on `develop` (merged 2026-10-30, while this branch was in flight); B14 shipped its mechanism
+in `1.3.0+12` and is closed by the owner. B16 (a note when creating a feeding) touches the very
+dialog this release changed, so schedule it immediately after · all clinical content (IMNCI colours,
+fever threshold, percentiles — partner-gated per `docs/research/`) · **replacing** the four identity
 tints (only the label colour changes; `BACKLOG.md` warns an unmeasured change breaks two others).
 
 ---
