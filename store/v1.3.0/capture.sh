@@ -22,6 +22,15 @@
 # directory keeps the English set its README documents.
 set -euo pipefail
 
+# If a `flutter drive` below appears to hang with NO output at all: it is not hung, it is silent.
+# Verified 2026-11-01 on Flutter 3.44.8 with stdout redirected (no TTY) — 0 bytes, 0 % CPU, and it
+# holds ~/flutter/bin/cache/lockfile so every later flutter command queues behind it. With
+# `--verbose` the same run finished in ~90 s. Run the script behind a shim instead of editing it:
+#     mkdir -p /tmp/flshim && printf '#!/bin/bash\nexec ~/flutter/bin/flutter "$@" --verbose\n' \
+#       > /tmp/flshim/flutter && chmod +x /tmp/flshim/flutter
+#     PATH=/tmp/flshim:$PATH VERSION=<v> bash store/v<v>/capture.sh <serial>
+# and `pkill -f flutter_tools` first if a previous attempt was interrupted.
+
 cd "$(dirname "$0")/../.."
 VERSION="${VERSION:-$(grep -m1 '^version:' pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)}"
 PKG="store/v${VERSION}"
