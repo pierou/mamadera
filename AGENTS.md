@@ -158,6 +158,34 @@ Then run `make lint` to verify no unresolved imports remain.
 - Required files: [`CONTRIBUTING.md`](.github/CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](.github/CODE_OF_CONDUCT.md), [`SECURITY.md`](.github/SECURITY.md)
 - Commit messages: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `security:`)
 
+## 🔀 Branch flow: never commit directly to `develop` (added 2026-11-01)
+
+Work happens on a **branch named for the feature or the version**, then `develop` takes it by PR,
+then `develop` → `main` by PR. `develop` is an integration branch: it is what CI publishes from and
+what the next branch is cut from, so a commit made directly on it has no review, no PR record, and
+no place to be dropped if the version slips.
+
+```
+release/v1.3.0  or  feat/<item>  or  docs/<topic>  or  fix/<topic>
+        │  PR → develop        (this is where review happens)
+        ▼
+     develop
+        │  PR → main           (release cut: tag, store packages, F-Droid metadata)
+        ▼
+       main
+```
+
+- Branch off the **current `develop` tip** for anything destined for the next release
+  (`git switch -c release/v1.3.1` after `git switch develop && git pull --ff-only`).
+- One PR per concern: a tooling fix that is useful without the release gets its own branch
+  (`fix/asc-campaign-locale`), not a commit inside the release branch.
+- Never `git commit` with `develop` checked out; never `git push` to `develop` or `main` directly.
+- If work did land on `develop` and is unpushed, fix it locally — `git branch <name>` at the wrong
+  tip, then `git reset --hard origin/develop` on `develop` — do not rewrite pushed history.
+- `.github/CONTRIBUTING.md:37` tells external contributors to branch from `main`; that is the
+  OSS-facing instruction for forks. **It is not the maintainer flow above**, and tags/releases are
+  cut from `develop` through `main`.
+
 ## 🧪 Release Gate: emulator pass before EVERY PR (non negotiable, added 2026-10-03)
 
 **Every PR is preceded by an emulator pass.** No exceptions for "small" changes, no exceptions for

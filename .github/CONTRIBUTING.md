@@ -38,6 +38,11 @@ Feature suggestions are welcome! Please ensure:
    ```bash
    git checkout -b feature/amazing-feature
    ```
+   > Maintainers do the same thing one level up: a branch named for the feature or the version
+   > (`feat/…`, `fix/…`, `release/v1.3.1`), then a pull request into **`develop`**, then
+   > `develop` → `main` when a release is cut. Nobody commits to `develop` directly — see
+   > [`AGENTS.md`](../AGENTS.md) “Branch flow”. As an outside contributor you may keep branching
+   > from `main`; maintainers will land it through `develop`.
 3. Make your changes
 4. Add tests (minimum 80% coverage for `domain/` and `data/`)
 5. Update documentation if needed
