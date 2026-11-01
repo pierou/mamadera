@@ -716,6 +716,12 @@ Menu → the baby card subtitle reads **« Nora — 0 days old »** with the who
 French. Not a guess: `uiautomator` reports the same in `content-desc`
 (`docs/release-evidence/v1.3.0/small_phone/00-note.txt` §5, screenshot 22).
 
+**It is also in the store artefacts.** The seeded fixture baby reads « Léa — **3 months old** » in
+the menu screenshot of *every* listing locale — English in Spanish, at all four App Store sizes and
+in Play. That is 12 uploadable files carrying an untranslated string (verified pixel-level in
+`store/v1.3.0/screenshots/asc/es/1284x2778/es-menu.png`, 2026-11-01), which is why this ticket is a
+v1.3.1 candidate rather than polish.
+
 ### Why it happens
 
 `lib/features/menu/presentation/widgets/baby_profile_section.dart:491-504` (`_formatBirthdate`,

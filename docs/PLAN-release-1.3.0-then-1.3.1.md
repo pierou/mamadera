@@ -60,6 +60,7 @@ is monotonic per *release*, not per commit (`docs/PLAN-item-12-notifications.md:
 | Chip-label fix | **committed** `5bec57b` — `OptionChipRow` + both dialogs + regression tests |
 | Patch notes `1.3.0` | done in `eca8c1d` (fr/es noun form), `release-notes/` re-rendered via `make store-package` |
 | Play screenshots | **recaptured 2026-11-01** on `Pixel_10_Pro` via `store/v1.3.0/capture.sh`: fr ✓ es ✓ en ✓, 8/8 per locale at 1280×2856, locale-prefixed, `check.py` → **PACKAGE OK**. The feeding frames now show the fixed selector in all three languages. `asc/*` (iOS) still empty = the pre-existing WARN, simulator pipeline not run |
+| App Store screenshots | **recaptured 2026-11-01** via the new `screenshots/ios/asc/campaign_asc.sh`: fr ✓ es ✓ en ✓, 28 files each (7 screens × 4 sizes), cross-locale md5 check passes, `check.py` → **PACKAGE OK** with no ASC WARN. Getting there fixed two silent defects in the iOS pipeline (§3a.6) |
 | Emulator pass (AGENTS.md, non-negotiable) | **Small_Phone leg done 2026-11-01** — migration with old data, all touched screens, manual entry + export inspected. Evidence: `docs/release-evidence/v1.3.0/small_phone/` (§3a). Normal-size leg: `pixel_10_pro/` from 2026-10-30, pre-fix |
 | `make gate` | **green end-to-end 2026-11-01**, exit 0 (version-sync, lint, 1500 tests, architecture + complexity ratchets, 88 % coverage, store-check, trivy, gitleaks) |
 | F-Droid | `docs/fdroiddata/com.pvjio.mamadera.yml` stops at `versionName: 1.2.1 / versionCode: 11` — the `1.3.0 / 12` entry and its changelog are missing |
@@ -93,6 +94,17 @@ Driven over adb only (`input tap` + `uiautomator dump` + `exec-out screencap`), 
    `store/v1.3.0/capture.sh` unmodified behind a `--verbose` shim — `flutter drive` is *silent*
    without it on this Mac (§6.2). Measured in the artefact: selected chip **1.01:1 → 15.88:1**;
    unit toggle **1.32:1**, untouched and still failing → added to B4.
+6. **App Store frames, and two silent defects they exposed.** The iOS driver had not *compiled*
+   since `9420097` (2026-10-18): it had grown `import 'dart:ui'` + `lookupAppLocalizations`, but a
+   driver script is compiled by plain `dart` on the host, so the CFE died in its FFI use-site
+   transformer before the app launched. With that fixed, the second defect surfaced —
+   `--dart-define` reaches the **app**, never the driver process, so `_localeCode` stayed at `fr` on
+   every `es`/`en` run: the app rendered Spanish, the driver looked for « Annuler », timed out two
+   frames in, and `postprocess.sh` renamed the mixture into `asc/es/` and `asc/en/`. Evidence:
+   `es-menu.png` and `en-menu.png` had been byte-identical to `fr-menu.png` (md5 `7dd766f2`).
+   `screenshots/ios/asc/campaign_asc.sh` now interleaves drive → verify 14/14 raws refreshed →
+   postprocess → copy per locale, then md5-compares locales and fails if two are the same pixels —
+   the check `check.py` could never do, since it verifies only `asc/fr`.
 
 ---
 

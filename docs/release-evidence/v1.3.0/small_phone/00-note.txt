@@ -126,3 +126,36 @@ a one-line shim (`/tmp/flshim/flutter` = real flutter + `--verbose`) in front of
 
 Only `asc/*` (App Store, simulator pipeline) stays empty — the pre-existing WARN, needs the
 iPhone 17 simulator run.
+
+## 8. The App Store frames — two defects, and the campaign that fixed them
+
+`store/v1.3.0/check.py` had been printing `WARN asc/<locale>/<size> — empty` and the
+`screenshots/ios/asc/` set on disk dated from 21 Oct. Recapturing them exposed two real defects,
+both silent, both now fixed:
+
+**a) The iOS driver had not compiled since `9420097` (2026-10-18).** `test_driver/asc_screenshots.dart`
+grew `import 'dart:ui'` + `lookupAppLocalizations(...)`, but a driver script is compiled by plain
+`dart` on the host, where `dart:ui` does not exist. The CFE died in its FFI use-site transformer
+(`type 'InvalidType' is not a subtype of type 'FunctionType' in type cast`) before the app even
+launched. Replaced with the per-locale const maps this file already uses for the back-tooltip, for
+exactly this reason — its own comment says "the driver cannot reach that delegate".
+
+**b) `--dart-define` never reached the driver.** It is handed to the target app, not to the driver
+process. So `_localeCode` stayed at its default `fr` on every `es`/`en` run: the app rendered
+Spanish, the driver looked for « Annuler », `scrollIntoView` timed out two frames in, and `raw/`
+ended up holding one Spanish frame and five French ones — which `postprocess.sh` then resized,
+renamed and reported as "ready to upload". Verified: `es-menu.png` and `en-menu.png` were byte
+identical to `fr-menu.png` (md5 `7dd766f2`), i.e. the App Store sets had been French under Spanish
+and English filenames. The driver now reads `APP_LOCALE` from the environment as well and throws if
+the two channels disagree.
+
+`screenshots/ios/asc/campaign_asc.sh` (new) is the interleaved loop the pipeline needed:
+drive → verify **14/14** raws refreshed → postprocess → copy with the locale prefix, per locale,
+then a cross-locale md5 check that fails loudly if two locales are the same pixels. `check.py` only
+verifies `asc/fr`, so nothing in the old pipeline could have noticed (b). Result: fr ✓ es ✓ en ✓,
+28 files each (7 screens × 4 sizes), "all locale sets are distinct", `PACKAGE OK` with no ASC WARN.
+Spot-checked at pixel level: `es-menu.png` now reads « Menú / Bebés / Idioma / Tema / Inicio ».
+
+B18 is visible in these artefacts too — « Léa — 3 months old » in a Spanish screenshot, in every
+locale's menu frame, at all four sizes. That is 12 Play/ASC uploadables carrying an untranslated
+string, which raises its priority for v1.3.1.
