@@ -57,13 +57,42 @@ is monotonic per *release*, not per commit (`docs/PLAN-item-12-notifications.md:
 | `format-check` | advisory only (`Makefile:41-48` never fails); the tree is largely unformatted — 144/257 files per `docs/AUDIT-2026-10-19.md:285`, owner decision pending |
 | `store-check` | green for `v1.3.0`; **ASC WARN lines are a decision, not an accident**: `asc/fr/<size>` are empty because only bare-named captures exist under `screenshots/ios/asc/<size>/` |
 | `audit-trivy`, `audit-gitleaks` | run in `gate`; no-op if the tool is absent |
-| Chip-label fix | in tree (uncommitted at time of writing) — **commit before tagging** |
-| Patch notes `1.3.0` | exists in `assets/patch_notes/{en,fr,es}.json`; needs one more item for the selector fix (fr/es **noun form**), then `make store-package` to re-render `release-notes/` |
-| Play screenshots | exist 8×3 per locale; **feeding frames must be recaptured** after the fix (`make store-shots VERSION=1.3.0`) |
-| Emulator pass (AGENTS.md, non-negotiable) | **required again** — the code changes, so the 2026-10-30 evidence no longer covers the binary |
+| Chip-label fix | **committed** `5bec57b` — `OptionChipRow` + both dialogs + regression tests |
+| Patch notes `1.3.0` | done in `eca8c1d` (fr/es noun form), `release-notes/` re-rendered via `make store-package` |
+| Play screenshots | **recaptured 2026-11-01** on `Pixel_10_Pro` via `store/v1.3.0/capture.sh`: fr ✓ es ✓ en ✓, 8/8 per locale at 1280×2856, locale-prefixed, `check.py` → **PACKAGE OK**. The feeding frames now show the fixed selector in all three languages. `asc/*` (iOS) still empty = the pre-existing WARN, simulator pipeline not run |
+| Emulator pass (AGENTS.md, non-negotiable) | **Small_Phone leg done 2026-11-01** — migration with old data, all touched screens, manual entry + export inspected. Evidence: `docs/release-evidence/v1.3.0/small_phone/` (§3a). Normal-size leg: `pixel_10_pro/` from 2026-10-30, pre-fix |
+| `make gate` | **green end-to-end 2026-11-01**, exit 0 (version-sync, lint, 1500 tests, architecture + complexity ratchets, 88 % coverage, store-check, trivy, gitleaks) |
 | F-Droid | `docs/fdroiddata/com.pvjio.mamadera.yml` stops at `versionName: 1.2.1 / versionCode: 11` — the `1.3.0 / 12` entry and its changelog are missing |
 | Tag + GitHub release + move "Latest" off v1.1.0 | **not done**; push/publish stays with the owner |
 | Console uploads (Play track, ASC metadata + screenshots) | human only |
+
+### 3a. The Small_Phone leg, what it actually proved (2026-11-01, `small_phone/00-note.txt`)
+
+Driven over adb only (`input tap` + `uiautomator dump` + `exec-out screencap`), on a wiped
+`Small_Phone` AVD — the smallest target AGENTS.md names, which no evidence existed for until now.
+
+1. **Migration, on a device that had old data.** v1.2.1+11 installed, profile "Nora" created, 3
+   events logged through the UI, DB pulled: `user_version` 12, 1 profile / 3 events / 0 measurements.
+   Installed v1.3.0+12 over it. After: `user_version` **13**, `app_settings` table created, all 3
+   events present with subtype/quantity/unit intact and visible in History and on the tiles.
+   A fresh install cannot prove any of this.
+2. **The fix on hardware, before/after in French** — « ✓ 🥛…a… / ☕ Lait A… » on v1.2.1 vs
+   « ✓ Lait Maternel / ☕ Lait Artificiel / Solide » on v1.3.0 (screenshots 18, 19), plus the edit
+   dialog (20). Worth noting: `uiautomator` reported the **full** label on the broken build too —
+   semantics never showed the truncation, only pixels did, so no semantics-based test could have
+   caught it.
+3. **Manual path + export.** Feeding + sleep (old build), weight (new build), then
+   *Exporter mes données* → share sheet → JSON pulled out of `cache/` (24): `exportFormatVersion 4`,
+   `databaseSchemaVersion 13`, all eight sections present, counts matching the DB row-for-row —
+   including the `appSettings` section this release added. Weight is ciphertext in the DB and
+   `"3510.0"` in the export, so at-rest encryption and the sanctioned plaintext exit both hold.
+4. **Two findings that only hardware gave** — B4 pixel-sampled (⇒ §6.2 closed) and the hardcoded
+   English baby age (new ticket **B18**, `BACKLOG.md`). It also cleared one suspicion: no `+N` pill
+   on the tiles despite 3 events today, identical on both builds → not a v1.3.0 regression.
+5. **Play frames recaptured afterwards**, on `Pixel_10_Pro` (1280×2856), all three locales, using
+   `store/v1.3.0/capture.sh` unmodified behind a `--verbose` shim — `flutter drive` is *silent*
+   without it on this Mac (§6.2). Measured in the artefact: selected chip **1.01:1 → 15.88:1**;
+   unit toggle **1.32:1**, untouched and still failing → added to B4.
 
 ---
 
@@ -101,7 +130,8 @@ chip label **1.05:1 → 15.29:1** (white on `miam` 20 % → `onSurface` on the s
 | Waste-type chip row | `edit_event_dialog.dart:415-421` is the last `Row`+`Expanded` selector. **Does not clip** — its `Text` has no ellipsis, so it soft-wraps; chips are 48 dp tall (= 2 lines) at 320/360/393 dp. Polish, not data loss. `:460-500` already use `Wrap` | one line, `OptionChipRow` exists |
 | **B6 — Vitamin D default** | `reminder_providers.dart:87` still `settings[item.id] ?? true`; zero `enabledByDefault` in `lib/`; owner decision **A** (new default only, no migration) dates 2026-10-06 and was never built. Visible in the release evidence: the "Vit. D" pill is on | small: one field + fallback + 3 arb strings. Wording constraint: never "the app now follows the WHO" |
 | B11 — language-change snackbar | `menu_screen.dart:240-242`, verbatim the documented bug; `lookupAppLocalizations` already exists | trivial, fix written in the doc |
-| B12 — reminders below the fold | `home_screen.dart` Column: grid `:351` → measurements `:398` → reminders `:401`; the Pixel evidence screenshot shows none without scrolling | trivial reorder + **owner decision: hide the section when empty, or keep "Rien à faire"** |
+| B18 — baby age hardcoded English | `baby_profile_section.dart:491-504`, seen on device in French; ARB keys exist in all 3 locales and are unused | ~10 lines + the anniversary arithmetic the same lines lack; no migration, no export bump |
+| B12 — reminders below the fold | `home_screen.dart` Column: grid `:351` → measurements `:398` → reminders `:401`; now seen on the small device too (« Rappels à faire » at the very bottom edge of `small_phone/22-…png`) | trivial reorder + **owner decision: hide the section when empty, or keep "Rien à faire"** |
 
 ### Cut from v1.3.1
 
@@ -125,9 +155,12 @@ Found while planning; each measured in this session.
   `integration_test/`: **4 lines in 2 files**. So the remaining work is test-tree polish, not the
   "~5–8 h" in the ticket, and the CI guard the ticket proposes is now nearly free to add.
 - **Roadmap §10 item 14** (± stepper buttons) shipped: `quantity_picker_inline.dart:220-221`.
-- **Roadmap §10 item 18** (unlocalized baby age) is obsolete: `daysOld`/`monthsOld` are generated
-  and **used nowhere** in `lib/features/` — the header shows the name only
-  (`home_screen.dart:332-336`). The keys are dead.
+- **Roadmap §10 item 18** (unlocalized baby age) — I called this obsolete and **I was wrong**;
+  corrected 2026-11-01 after the device pass. The observation was right (`daysOld`/`monthsOld` are
+  generated and used nowhere in `lib/`) but the conclusion inverted: the header is not the place,
+  the **Menu baby card** is — `baby_profile_section.dart:491-504` hardcodes '"$days days old"', so
+  a French UI shows « 0 days old » on a real device. Dead keys + live defect ⇒ they are dead
+  *because the wiring was never written*. Opened as **B18**.
 - **B9 stays real**: the AppBar title is a plain `Text` (`home_screen.dart:332-336`) and inert.
 - Closed testing wording in `docs/SUBMISSION-CHECKLIST.md` still says "v1.1.0 is live on Google
   Play" and describes 1.1.1 as the routine update — stale by two releases.
@@ -138,8 +171,17 @@ Found while planning; each measured in this session.
 
 1. **Play Console and App Store Connect state** — nothing in the repo records an upload of
    `1.3.0+12`. Decides v1.3.0-vs-v1.3.1 numbering. Check the console before tagging.
-2. B4 ratios are **computed from the theme constants**, not sampled from a screenshot
-   (no PIL on this Mac; `sips` cannot read pixels). Confirm on device before choosing colours.
+2. ~~B4 ratios are computed, not sampled~~ **sampled 2026-11-01** — light mode on a device
+   (1.15 / 1.89 / 2.07 / 6.47:1 against 1.17 / 2.04 / 2.28 / 7.56 computed) and the segmented
+   toggle in the store frame at **1.32:1**. Tool: `scripts/wcag_sample.py`. Still open: the same
+   sample in **dark** mode, which so far exists only as a computation.
+   `flutter drive` was never broken: on this Mac, Flutter 3.44.8, with stdout redirected it emits
+   **nothing** and looks hung (0 bytes, 0 % CPU, holding the SDK lock while it waits). With
+   `--verbose` the same command finished 8 frames in ~90 s. Use
+   `PATH=/tmp/flshim:$PATH VERSION=1.3.0 bash store/v1.3.0/capture.sh <serial>` with
+   `flshim/flutter` = `exec ~/flutter/bin/flutter "$@" --verbose`, and kill orphaned
+   `flutter_tools` processes before retrying — they hold the lock and freeze every later flutter
+   command.
 3. F-Droid publish status for 1.2.1 (`docs/AUDIT-2026-10-21.md:60` records PR #48/#49 merged,
    publish unrecorded).
 4. `docs/RELEASE-PROCESS.md` still absent (`AUDIT-2026-10-21.md:194`, G2) — this file is a plan

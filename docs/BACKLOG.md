@@ -173,8 +173,35 @@ The failure is visible in the project's own release evidence:
 "Weight" are pale yellow on pale cream and nearly disappear, and the M8 gate **passed with that on
 screen**.
 
-Still owed, item 1 below: these are computed from constants and widget alphas, not sampled from a
-capture. No pixel sample exists yet.
+**Item 1 is now paid — sampled from a device capture, 2026-11-01.** From
+`docs/release-evidence/v1.3.0/small_phone/25-home-v121-before-upgrade.png` (Small_Phone, 720×1280,
+French, light mode): label = darkest pixel in the glyph box, card = median of an empty patch of the
+same card.
+
+| Label | pixel-sampled | computed above | note |
+|---|---|---|---|
+| Nourriture (`miam`) | **1.15:1** | 1.17:1 | label samples as `rgb(255,224,130)` on `rgb(246,241,225)` |
+| Santé (`sante`) | **1.89:1** | 2.04:1 | |
+| Dodo (`dodo`) | **2.07:1** | 2.28:1 | |
+| Couche (`caca`) | 6.47:1 (passes) | 7.56:1 | the control: a passing pair measures clearly above 3:1, so the method is sound |
+
+The computed table was right within ~10 %, and `22-home-v130-after-upgrade-b4-wash.png` is
+pixel-identical in these regions — the wash ships in v1.3.0 exactly as it shipped in v1.2.1.
+The quantity readout is the same defect in another place: « 3 min » in
+`20-edit-dialog-v130-fr-chips.png` is the accent painted as text on white.
+
+**And one more instance, measured in the store artefact (2026-11-01).** The recaptured
+`store/v1.3.0/screenshots/play/fr/fr-feeding_dialog.png` puts the **unit segmented control** in the
+same dialog: selected « Minutes » is white on `rgb(183,231,255)` = **1.32:1**. Same frame, the
+selected feeding chip that this release fixed measures **1.01:1 → 15.88:1**, so the tool agrees
+with the fix. B4's scope is therefore: identity buttons, `+N` pills, quantity readout, **and the
+segmented toggles**.
+
+Measurements are repeatable, not folklore: **`scripts/wcag_sample.py`** (added 2026-11-01, stdlib
+only — it decodes PNG itself because there is no PIL here and `sips` cannot read a pixel).
+`scripts/wcag_sample.py <png> --find blue,yellow,green,bluetxt,brown` auto-locates the accent
+widgets and prints the pair + the AA verdict; explicit boxes take `--extreme light|dark` when the
+text colour is known.
 
 ### Candidates, with the ratio to measure — not to guess
 WCAG AA rule: **4,5:1** for normal text, **3:1** for large text (≥ 24 px / bold ≥ 18,7 px).
@@ -185,6 +212,7 @@ Button titles are large, but the pills (« Vit. D ») and the values (« 3 510 g
 |---|---|---|
 | `miam` (yellow, light) | too pale on a light background | dark amber `#B26A00`, or saturated yellow `#E0A400` **with dark brown text** on top |
 | `couche` (brown, dark) | too dark on a dark background | terracotta `#C97B5A`, or clay `#D08B6A` |
+| segmented control, selected segment (`Minutes`, `Millilitres`) | **1.32:1**, white on `rgb(183,231,255)`, measured in the Play frame | a text colour on the tint, or a dark label on the light tint — same structural fix |
 | structural alternative | — | keep the tints, but make the **label** a guaranteed-contrast text colour (dark on light background, light on dark background), and reserve the tint for the background and the icon |
 
 The structural alternative is probably the right one: it keeps the visual identity (the four
@@ -192,8 +220,9 @@ colours that distinguish care/feeding/nappy/sleep) without asking a pastel tint 
 the readability of the text.
 
 ### To do before touching the colours
-1. Measure the real ratio of the current pairs (capture excerpt + WCAG calculator) and note the
-   numbers — a colour sheet without ratios is an opinion.
+1. ~~Measure the real ratio of the current pairs~~ **done 2026-11-01**, table above (device sample,
+   `small_phone/00-note.txt` §4). Still owed: the same sample in **dark** mode, which so far exists
+   only as a computation.
 2. Choose one pair per theme, verify 4,5:1 on the labels and the pills in **both**
    themes, on the smallest device.
 3. Do not change an identity colour lightly: these four tints are the app's
@@ -671,3 +700,56 @@ not a display bug: it waits for a separate change, with its own review.
 - Do not make this change **silently** in a sweep PR: it is a data
   semantics decision, it deserves its own ticket (this one) and its own review, even if the diff
   is small.
+
+---
+
+## B18 — The baby's age is hardcoded English, and the month arithmetic is wrong
+
+**Status:** open, v1.3.1 candidate · **Severity:** visible-in-French defect (not cosmetic: it is the
+one line in the Menu that switches language with the rest of the screen and doesn't)
+· **Cost:** ~10 lines, no migration, no export bump — the three ARB keys already exist
+**Found:** 2026-11-01, on the Small_Phone device pass (`v1.2.1+11 → v1.3.0+12`), French UI
+
+### The defect, seen on hardware
+
+Menu → the baby card subtitle reads **« Nora — 0 days old »** with the whole rest of the screen in
+French. Not a guess: `uiautomator` reports the same in `content-desc`
+(`docs/release-evidence/v1.3.0/small_phone/00-note.txt` §5, screenshot 22).
+
+### Why it happens
+
+`lib/features/menu/presentation/widgets/baby_profile_section.dart:491-504` (`_formatBirthdate`,
+called from `:106`) builds the string from literals:
+
+```dart
+return '$days ${days == 1 ? 'day' : 'days'} old';     // :498
+return '$months ${months == 1 ? 'month' : 'months'} old';
+return '$age ${age == 1 ? 'year' : 'years'} old';
+```
+
+Meanwhile `daysOld` / `monthsOld` / `yearsOld` are defined in **all three** ARBs
+(`app_en.arb:439/441/443`, `app_fr.arb` and `app_es.arb` at the same lines: « jours », « mois »,
+« ans » / « días », « meses », « años ») and are referenced by **nothing** in `lib/` — only by the
+generated delegates. The strings were prepared for this line in an earlier release and never wired.
+
+### The second defect in the same six lines
+
+Months are `now.month - birthDate.month` and years `now.year - birthDate.year`, both ignoring the
+day of month: a baby born 31 January reads as **2 months old on 1 March**, and a baby born
+1 December reads as 1 year old on 30 November. Age for a newborn app must be anniversary-based.
+
+### How to fix it (verified mapping, don't re-derive)
+
+The ARB values are asymmetric **on purpose** and the interpolation still works in all three
+locales, because `en` carries the whole phrase while `fr`/`es` carry the unit noun:
+`'$n ${locale.daysOld}'` → "5 days old" / « 5 jours » / "5 días". So: anniversary arithmetic
+(month/year rolled back when `now.day < birth.day` or the month hasn't completed), then
+`'$n ${locale.daysOld|monthsOld|yearsOld}'`.
+
+### Do not
+- Do not add new ARB keys — these three exist and are unused.
+- Do not touch `measurements`/`tracking_events` display code: this is the Menu baby card only
+  (`_formatBirthdate` has exactly one caller, `:106`).
+- Numbering note: this is B18, not B14 — B14 was never opened and **B15/B16/B17 are already spoken
+  for** by the roadmap items referenced in
+  [`PLAN-release-1.3.0-then-1.3.1.md`](PLAN-release-1.3.0-then-1.3.1.md).
