@@ -17,10 +17,8 @@
 library;
 
 import 'dart:io' as io;
-import 'dart:ui' show Locale;
 
 import 'package:flutter_driver/flutter_driver.dart';
-import 'package:mamadera/l10n/app_localizations.dart';
 
 /// Locale of this run — **must** be the same `--dart-define=APP_LOCALE=<code>`
 /// the target (`lib/asc_driver_main.dart`) pins, default `fr`.
@@ -30,10 +28,47 @@ import 'package:mamadera/l10n/app_localizations.dart';
 /// to carry are exactly what broke the first `fr`-only assumption: an `en` or `es`
 /// run cannot find a tile whose label it guessed wrong. The Android pipeline hit the
 /// same wall on 2026-10-18 (`scrollUntilVisible`, tile « Croissance »).
-const _localeCode = String.fromEnvironment('APP_LOCALE', defaultValue: 'fr');
+///
+/// **Read the host environment first.** `--dart-define` is handed to the *target
+/// app*; it is not injected into the driver script, which `flutter drive` runs as a
+/// plain `dart` process. So `String.fromEnvironment` here silently stayed at its
+/// default `fr` on every `es` and `en` run: the app rendered Spanish, the driver
+/// looked for « Annuler », and `scrollIntoView` timed out two screenshots in —
+/// leaving `raw/` with one Spanish frame and five French ones, which
+/// `postprocess.sh` then resized and renamed as if the run had succeeded. Measured
+/// 2026-11-01. Invoke it as:
+///
+///     APP_LOCALE=es flutter drive --target=lib/asc_driver_main.dart \
+///       --driver=test_driver/asc_screenshots.dart -d "iPhone 17" \
+///       --dart-define=APP_LOCALE=es
+///
+/// Both channels: env for this script, dart-define for the app. A disagreement
+/// between the two is a wrong run, so it throws instead of shipping mixed frames.
+final String _localeCode = _resolveLocale();
+
+String _resolveLocale() {
+  final env = io.Platform.environment['APP_LOCALE'];
+  const fromDefine = String.fromEnvironment('APP_LOCALE', defaultValue: '');
+  if (env != null && fromDefine.isNotEmpty && env != fromDefine) {
+    throw StateError('APP_LOCALE mismatch: driver env=$env, app --dart-define=$fromDefine');
+  }
+  return env ?? (fromDefine.isNotEmpty ? fromDefine : 'fr');
+}
 
 /// App strings, in the locale the target renders. `cancel` dismisses every sheet.
-final _s = lookupAppLocalizations(const Locale(_localeCode));
+///
+/// **Plain maps, not `lookupAppLocalizations`.** A driver script is compiled by `dart` on the
+/// host (`flutter drive` runs it as `dart test_driver/<file>.dart`), where `dart:ui` does not
+/// exist and `app_localizations.dart` pulls in `flutter/material.dart`. Importing either made
+/// the CFE die inside the FFI use-site transformer — `type 'InvalidType' is not a subtype of
+/// type 'FunctionType' in type cast` — which is what broke every iOS capture run since
+/// `9420097` (2026-10-18); the raws on disk predate that commit. Values read from
+/// `lib/l10n/app_<locale>.arb` on 2026-11-01, not guessed — the same convention as
+/// [_backTooltipByLocale] below, whose comment already says the driver cannot reach the delegate.
+const _cancelByLocale = {'fr': 'Annuler', 'es': 'Cancelar', 'en': 'Cancel'};
+const _growthTileByLocale = {'fr': 'Croissance', 'es': 'Crecimiento', 'en': 'Growth'};
+
+String get _cancel => _cancelByLocale[_localeCode] ?? 'Cancel';
 
 /// `backButtonTooltip` of the AppBar back button, from **GlobalMaterialLocalizations**
 /// (read from the SDK's `material_{fr,es,en}.arb`, 2026-10-18 — not guessed). The
@@ -63,7 +98,7 @@ const _trackCaca = 'track-caca';
 /// elements` on an ambiguous finder — so the match is scoped to the ListTile.
 final _growthTile = find.descendant(
   of: find.byType('ListTile'),
-  matching: find.text(_s.growthMenuTile),
+  matching: find.text(_growthTileByLocale[_localeCode] ?? 'Growth'),
 );
 
 /// Tooltip of the AppBar back button — localized by GlobalMaterialLocalizations
@@ -146,7 +181,7 @@ Future<void> capture(FlutterDriver driver, String name) async {
 }
 
 /// Taps the tracked-event button on Home, captures the opened bottom sheet,
-/// then dismisses it via its cancel button (`_s.cancel`, locale-aware).
+/// then dismisses it via its cancel button (`_cancel`, locale-aware).
 Future<void> sheetShot(
   FlutterDriver driver,
   String trackKey,
@@ -185,18 +220,18 @@ Future<void> sheetShot(
   // the sheet content down using its (always visible) title as the drag
   // anchor, but only when the button is actually not tappable.
   try {
-    await driver.waitForTappable(find.text(_s.cancel),
+    await driver.waitForTappable(find.text(_cancel),
         timeout: const Duration(seconds: 2));
   } on Object {
     // The cancel button sits below the fold inside the sheet's scroll view:
     // Scrollable.ensureVisible scrolls the sheet to it.
-    await driver.scrollIntoView(find.text(_s.cancel),
+    await driver.scrollIntoView(find.text(_cancel),
         timeout: const Duration(seconds: 10));
-    await driver.waitForTappable(find.text(_s.cancel),
+    await driver.waitForTappable(find.text(_cancel),
         timeout: const Duration(seconds: 5));
     await sleep(400);
   }
-  await driver.tap(find.text(_s.cancel), timeout: const Duration(seconds: 10));
+  await driver.tap(find.text(_cancel), timeout: const Duration(seconds: 10));
   await sleep(900);
   await driver.waitFor(find.byValueKey(_trackMiam),
       timeout: const Duration(seconds: 10)); // sheet is gone, home grid back

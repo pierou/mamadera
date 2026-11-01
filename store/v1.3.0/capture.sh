@@ -109,10 +109,14 @@ if [ -n "$failed" ]; then
 fi
 
 echo
-echo "App Store shots come from the simulator, then copy them in locale-prefixed:"
-echo "  flutter drive --target=lib/asc_driver_main.dart --driver=test_driver/asc_screenshots.dart \\"
-echo "    -d 'iPhone 17' --dart-define=APP_LOCALE=fr          # then es, then en"
-echo "  bash screenshots/ios/asc/postprocess.sh"
-echo "  VERSION=$VERSION bash store/v$VERSION/capture.sh --asc-only"
+echo "App Store shots: run the campaign script, NOT --asc-only."
+echo "  bash screenshots/ios/asc/campaign_asc.sh          # fr, es, en; VERSION=<v> to choose the package"
+echo
+echo "--asc-only copies screenshots/ios/asc/<size>/ once per locale, and those directories hold"
+echo "whichever locale ran LAST — so it produces three identical sets under three prefixes. That is"
+echo "exactly what shipped: asc/es and asc/en were byte-identical to asc/fr until 2026-11-01. The"
+echo "campaign script interleaves drive -> verify 14/14 raws -> postprocess -> copy per locale, and"
+echo "fails loudly if two locales turn out to be the same pixels."
+python3 "$PKG/check.py"
 echo
 python3 "$PKG/check.py"
