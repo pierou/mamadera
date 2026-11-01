@@ -1,0 +1,15 @@
+=== Background fire at 04:20:00 (app in HOME/background) ===
+App was backgrounded at RTC 04:14:22; process CACHED (curProcState=19); fast unfreeze loop ran.
+
+--- exact-alarm delivery chain (from /tmp/gate-logcat6.txt) ---
+10-28 04:20:00.014 D/ActivityManager(  646): sync unfroze 29830 com.pvjio.mamadera for 3
+10-28 04:20:00.400 D/RingtonePlayer( 1098): playAsync(uri=content://settings/system/notification_sound, user=UserHandle{0})
+10-28 04:20:00.400 D/RingtonePlayer( 1098): play uri=content://settings/system/notification_sound
+10-28 04:20:00.411 V/NotificationHistory(  646): Attempted to add notif for locked/gone/disabled user 0
+10-28 04:20:00.681 W/NotifRow( 1098): cancelAppearDrawing childKey: 0|com.pvjio.mamadera|5|null|10231 wasDrawing:false
+10-28 04:20:00.817 W/.pvjio.mamadera(29830): Suspending all threads took: 5.494ms
+10-28 04:20:00.927 V/NotificationHistory(  646): Attempted to add notif for locked/gone/disabled user 0
+10-28 04:20:00.987 V/NotificationHistory(  646): Attempted to add notif for locked/gone/disabled user 0
+
+--- alarms consumed (6 -> 0 at 04:20:00) ---
+polling showed pending=6 through 04:19:45, FIRED at RTC 04:20:00

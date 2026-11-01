@@ -54,7 +54,8 @@ void main() {
     // weekdays and a rolling 7-day window, so a weekly reminder fired EVERY day.
     test('is not due on a different day of the same week', () {
       final weekly = const Weekly(dayOfWeek: 1); // Monday
-      final now = DateTime(2025, 3, 19); // Wed, two days after Monday completion
+      final now =
+          DateTime(2025, 3, 19); // Wed, two days after Monday completion
       expect(weekly.isDue(now, DateTime(2025, 3, 17)), isFalse);
     });
 
@@ -79,7 +80,8 @@ void main() {
 
     test('is due in the new week across a month boundary', () {
       final weekly = const Weekly(dayOfWeek: 1);
-      final now = DateTime(2025, 4, 7); // Mon 07 Apr — first day of the next week
+      final now =
+          DateTime(2025, 4, 7); // Mon 07 Apr — first day of the next week
       expect(weekly.isDue(now, DateTime(2025, 3, 31)), isTrue);
     });
 
@@ -92,7 +94,8 @@ void main() {
 
     test('is due in the new week across a year boundary', () {
       final weekly = const Weekly(dayOfWeek: 1);
-      final now = DateTime(2026, 1, 5); // Monday — first day of the next ISO week
+      final now =
+          DateTime(2026, 1, 5); // Monday — first day of the next ISO week
       expect(weekly.isDue(now, DateTime(2025, 12, 30)), isTrue);
     });
 
@@ -120,66 +123,82 @@ void main() {
 
     test('is not due within same month', () {
       final monthly = const Monthly(dayOfMonth: 15);
-      expect(monthly.isDue(DateTime(2025, 3, 20), DateTime(2025, 3, 15)), isFalse);
+      expect(
+          monthly.isDue(DateTime(2025, 3, 20), DateTime(2025, 3, 15)), isFalse);
     });
 
     // Regression: dayOfMonth used to be ignored entirely — any new month fired.
     test('is not due in a new month before the configured day', () {
       final monthly = const Monthly(dayOfMonth: 15);
-      expect(monthly.isDue(DateTime(2025, 4, 1), DateTime(2025, 3, 15)), isFalse);
-      expect(monthly.isDue(DateTime(2025, 4, 14), DateTime(2025, 3, 15)), isFalse);
+      expect(
+          monthly.isDue(DateTime(2025, 4, 1), DateTime(2025, 3, 15)), isFalse);
+      expect(
+          monthly.isDue(DateTime(2025, 4, 14), DateTime(2025, 3, 15)), isFalse);
     });
 
     test('is due in a new month on the configured day', () {
       final monthly = const Monthly(dayOfMonth: 15);
-      expect(monthly.isDue(DateTime(2025, 4, 15), DateTime(2025, 3, 15)), isTrue);
+      expect(
+          monthly.isDue(DateTime(2025, 4, 15), DateTime(2025, 3, 15)), isTrue);
     });
 
     test('is due in a new month after the configured day', () {
       final monthly = const Monthly(dayOfMonth: 15);
-      expect(monthly.isDue(DateTime(2025, 4, 20), DateTime(2025, 3, 15)), isTrue);
+      expect(
+          monthly.isDue(DateTime(2025, 4, 20), DateTime(2025, 3, 15)), isTrue);
     });
 
-    test('is not due before the configured day even if last month was earlier', () {
+    test('is not due before the configured day even if last month was earlier',
+        () {
       final monthly = const Monthly(dayOfMonth: 20);
-      expect(monthly.isDue(DateTime(2025, 3, 10), DateTime(2025, 2, 20)), isFalse);
+      expect(
+          monthly.isDue(DateTime(2025, 3, 10), DateTime(2025, 2, 20)), isFalse);
     });
 
     test('is due when year changes', () {
       final monthly = const Monthly(dayOfMonth: 1);
-      expect(monthly.isDue(DateTime(2026, 1, 1), DateTime(2025, 12, 31)), isTrue);
+      expect(
+          monthly.isDue(DateTime(2026, 1, 1), DateTime(2025, 12, 31)), isTrue);
     });
 
     test('is due across a year boundary with a late configured day', () {
       // Month index must be monotonic: 2026-01 is later than 2025-12 even though
       // `now.month` (1) is numerically smaller than `lastCompleted.month` (12).
       final monthly = const Monthly(dayOfMonth: 15);
-      expect(monthly.isDue(DateTime(2026, 1, 20), DateTime(2025, 12, 20)), isTrue);
+      expect(
+          monthly.isDue(DateTime(2026, 1, 20), DateTime(2025, 12, 20)), isTrue);
     });
 
     test('is not due across a year boundary before the configured day', () {
       final monthly = const Monthly(dayOfMonth: 15);
-      expect(monthly.isDue(DateTime(2026, 1, 10), DateTime(2025, 12, 20)), isFalse);
+      expect(monthly.isDue(DateTime(2026, 1, 10), DateTime(2025, 12, 20)),
+          isFalse);
     });
 
     test('clamps dayOfMonth 31 to a 28-day month', () {
       final monthly = const Monthly(dayOfMonth: 31);
       // February 2025 has 28 days → the 31st is scheduled on the last day.
-      expect(monthly.isDue(DateTime(2025, 2, 27), DateTime(2025, 1, 31)), isFalse);
-      expect(monthly.isDue(DateTime(2025, 2, 28), DateTime(2025, 1, 31)), isTrue);
+      expect(
+          monthly.isDue(DateTime(2025, 2, 27), DateTime(2025, 1, 31)), isFalse);
+      expect(
+          monthly.isDue(DateTime(2025, 2, 28), DateTime(2025, 1, 31)), isTrue);
     });
 
     test('clamps dayOfMonth 31 to a leap February', () {
       final monthly = const Monthly(dayOfMonth: 31);
       // February 2024 has 29 days.
-      expect(monthly.isDue(DateTime(2024, 2, 28), DateTime(2024, 1, 31)), isFalse);
-      expect(monthly.isDue(DateTime(2024, 2, 29), DateTime(2024, 1, 31)), isTrue);
+      expect(
+          monthly.isDue(DateTime(2024, 2, 28), DateTime(2024, 1, 31)), isFalse);
+      expect(
+          monthly.isDue(DateTime(2024, 2, 29), DateTime(2024, 1, 31)), isTrue);
     });
 
     test('clamps dayOfMonth 31 to a 30-day month', () {
       final monthly = const Monthly(dayOfMonth: 31);
-      expect(monthly.isDue(DateTime(2025, 4, 29), DateTime(2025, 1, 31)), isFalse);
-      expect(monthly.isDue(DateTime(2025, 4, 30), DateTime(2025, 1, 31)), isTrue);
+      expect(
+          monthly.isDue(DateTime(2025, 4, 29), DateTime(2025, 1, 31)), isFalse);
+      expect(
+          monthly.isDue(DateTime(2025, 4, 30), DateTime(2025, 1, 31)), isTrue);
     });
   });
 
@@ -192,23 +211,27 @@ void main() {
     test('is not due within interval period', () {
       final custom = const CustomInterval(days: 7);
       // Completed yesterday — less than 7 days ago
-      expect(custom.isDue(DateTime(2025, 3, 16), DateTime(2025, 3, 15)), isFalse);
+      expect(
+          custom.isDue(DateTime(2025, 3, 16), DateTime(2025, 3, 15)), isFalse);
     });
 
     test('is due after interval period', () {
       final custom = const CustomInterval(days: 7);
       // Completed exactly 7 days ago
-      expect(custom.isDue(DateTime(2025, 3, 22), DateTime(2025, 3, 15)), isTrue);
+      expect(
+          custom.isDue(DateTime(2025, 3, 22), DateTime(2025, 3, 15)), isTrue);
     });
 
     test('is due after interval period with custom days', () {
       final custom = const CustomInterval(days: 14);
-      expect(custom.isDue(DateTime(2025, 3, 29), DateTime(2025, 3, 15)), isTrue);
+      expect(
+          custom.isDue(DateTime(2025, 3, 29), DateTime(2025, 3, 15)), isTrue);
     });
 
     test('is not due before interval period with custom days', () {
       final custom = const CustomInterval(days: 14);
-      expect(custom.isDue(DateTime(2025, 3, 28), DateTime(2025, 3, 15)), isFalse);
+      expect(
+          custom.isDue(DateTime(2025, 3, 28), DateTime(2025, 3, 15)), isFalse);
     });
   });
 

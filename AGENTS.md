@@ -106,6 +106,18 @@ class TrackingRepositoryImpl implements TrackingRepository {
 - …and to the import in `lib/features/import/` (section validation, row contract, insert inside the restore transaction): a table exported but not imported turns a *restore* into data loss, so the two features move together
 - Any field added to or removed from the export document must bump `exportFormatVersion` in `ExportRepositoryImpl` **and** the supported version in `ImportRepositoryImpl`. The importer also refuses a document whose `databaseSchemaVersion` exceeds `AppDatabase.schemaVersion` — that guard only catches what a forgotten version bump would otherwise drop silently
 
+## 🌍 Language: the tree is English, French is the product (added 2026-11-01)
+
+English wherever code is read: **comments, test and `group()` descriptions, commit subjects,
+docs**. FR/ES live only where they are the product — `lib/l10n/*.arb` and the generated
+localizations, `assets/patch_notes/{fr,es}.json`, `assets/terms/terms_{fr,es}.md`, the `store/**`
+and `fastlane/**` FR/ES deliverables — and as direct quotes of on-screen strings inside English
+prose (in « » or backticks). A French test name is a French string in CI output and in agent
+search: English. Fixture values (`miam`, `pâteux`, baby names) are what the app renders, not
+prose — they stay. Rule of thumb: an English-only reader must never need French to read, run, or
+debug the tree. Measured history: `docs/AUDIT-2026-11-01-language.md`, BACKLOG B10 (closed
+2026-11-01) / B19 / B20.
+
 ## 🛠️ Build & Test Commands
 
 All commands available via [`Makefile`](Makefile):
@@ -117,7 +129,11 @@ All commands available via [`Makefile`](Makefile):
 | `make lint` | Run `flutter analyze --fatal-infos --fatal-warnings` |
 | `make test` | Run all tests with coverage (`--coverage`) |
 | `make check-coverage` | Verify ≥ 80% line coverage (uses `lcov`) |
-| `make ci` | Full pipeline: pub-get → lint → test → coverage check |
+| `make ci` | Full pipeline: pub-get → lint → test → coverage check → store-check |
+| `make store-package` | Build `store/v<version>/` from `store/source/en/` (no network) |
+| `make store-prose` | Same + TranslateGemma fr/es, raw output archived under `machine/` |
+| `make store-check` | Consoles' character limits, note consistency, screenshot inventory |
+| `make store-shots` VERSION=1.2.2 | Recapture Play screenshots for fr/es/en (emulator) |
 | `make build-android` | Build release APK |
 | `make clean` | Clean build artifacts |
 | `make audit-trivy` | Security scan dependencies with Trivy (HIGH/CRITICAL) |
@@ -151,8 +167,36 @@ Then run `make lint` to verify no unresolved imports remain.
 ## 🌍 Open Source & Contribution
 
 - **License**: MIT ([LICENSE](.github/LICENSE))
-- Required files: [`CONTRIBUTING.md`](CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), [`SECURITY.md`](.github/SECURITY.md)
+- Required files: [`CONTRIBUTING.md`](.github/CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](.github/CODE_OF_CONDUCT.md), [`SECURITY.md`](.github/SECURITY.md)
 - Commit messages: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `security:`)
+
+## 🔀 Branch flow: never commit directly to `develop` (added 2026-11-01)
+
+Work happens on a **branch named for the feature or the version**, then `develop` takes it by PR,
+then `develop` → `main` by PR. `develop` is an integration branch: it is what CI publishes from and
+what the next branch is cut from, so a commit made directly on it has no review, no PR record, and
+no place to be dropped if the version slips.
+
+```
+release/v1.3.0  or  feat/<item>  or  docs/<topic>  or  fix/<topic>
+        │  PR → develop        (this is where review happens)
+        ▼
+     develop
+        │  PR → main           (release cut: tag, store packages, F-Droid metadata)
+        ▼
+       main
+```
+
+- Branch off the **current `develop` tip** for anything destined for the next release
+  (`git switch -c release/v1.3.1` after `git switch develop && git pull --ff-only`).
+- One PR per concern: a tooling fix that is useful without the release gets its own branch
+  (`fix/asc-campaign-locale`), not a commit inside the release branch.
+- Never `git commit` with `develop` checked out; never `git push` to `develop` or `main` directly.
+- If work did land on `develop` and is unpushed, fix it locally — `git branch <name>` at the wrong
+  tip, then `git reset --hard origin/develop` on `develop` — do not rewrite pushed history.
+- `.github/CONTRIBUTING.md:37` tells external contributors to branch from `main`; that is the
+  OSS-facing instruction for forks. **It is not the maintainer flow above**, and tags/releases are
+  cut from `develop` through `main`.
 
 ## 🧪 Release Gate: emulator pass before EVERY PR (non negotiable, added 2026-10-03)
 
@@ -174,6 +218,27 @@ The pass, in order:
 3. **The manual entry path**: record a feeding, a sleep, a measurement, then export and inspect the
    JSON. An export that silently omits a section is a broken backup and no test catches it if the
    fixture only contains what the test writes.
+
+4. **The store package** (`make store-check`, no device needed): the publish deliverable is
+   built, not hand-written — `python3 scripts/build_store_package.py [--translate]` assembles
+   `store/v<version>/` from `store/source/en/`, and
+   `scripts/build_store_package.py --translate` produces the French and Spanish prose with
+   **TranslateGemma** (`tg-translate`, box). Raw model output is archived under
+   `store/v<version>/machine/<locale>/` and then term-aligned to `lib/l10n/app_<locale>.arb`;
+   brand names, subtitles and ASO keywords are **never** machine-translated (they are per-locale
+   editorial values in `store/source/<locale>/`). Two reasons this is scripted rather than
+   remembered, both learned in v1.2.1: a hand-written French listing promised « tétées » while
+   the app's own button says **Nourriture**, and the model rendered "nothing is ever uploaded"
+   as « rien n'est jamais **téléchargé** » — which in French means *downloaded*, a weaker claim
+   in the one sentence that carries the privacy promise. Over-length fields are fixed by
+   shortening `store/source/en/`, never by trimming the translation.
+   Box has one model slot: do not run `make store-prose` while a `box-*` subagent is queued.
+   **Screenshot filenames carry the locale** — `fr-home.png`, `es-history.png`, not `home.png`.
+   The capture directories are overwritten by every run and hold whichever language ran last with
+   no marker at all, and a French screenshot dropped into the English listing is indistinguishable
+   from a correct one in the console, in a zip, and to a reviewer. The folder is not the record:
+   the filename is. `store/v<x>/check.py` fails the package on a bare name;
+   `/usr/bin/python3 screenshots/android/verify_android.py --locale=fr` verifies an upload set.
 
 Available targets: `flutter emulators` (Android: `Pixel_10_Pro`, `Small_Phone`, `ci_test`) and
 `xcrun simctl list devices available` (iOS). Record in the PR description which pass was run, on

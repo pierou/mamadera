@@ -25,7 +25,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: const MyApp(),
         ),
@@ -34,11 +35,13 @@ void main() {
       expect(find.byType(MaterialApp), findsOneWidget);
     });
 
-    testWidgets('theme uses AppTheme with sante as primary color', (tester) async {
+    testWidgets('theme uses AppTheme with sante as primary color',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: const MyApp(),
         ),
@@ -53,7 +56,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: const MyApp(),
         ),
@@ -71,7 +75,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: const MyApp(),
         ),
@@ -87,14 +92,16 @@ void main() {
   });
 
   group('encryption provider override in main', () {
-    testWidgets('MyApp builds with encryption service override', (tester) async {
+    testWidgets('MyApp builds with encryption service override',
+        (tester) async {
       final encryption = EncryptionService();
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             encryptionServiceProvider.overrideWith((ref) async => encryption),
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: const MyApp(),
         ),

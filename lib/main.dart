@@ -13,6 +13,7 @@ import 'core/router.dart';
 import 'core/services/encryption_service.dart';
 import 'core/services/locale_service.dart';
 import 'core/theme.dart';
+import 'features/reminders/presentation/widgets/reminder_lifecycle_sync.dart';
 import 'l10n/app_localizations.dart';
 
 Locale? _resolveLocale(AsyncValue<LocalePreference> localeState) {
@@ -36,13 +37,15 @@ Future<EncryptionService> _initializeEncryption() async {
   final encryption = EncryptionService();
   await encryption.initialize();
   if (encryption.isUsingMemoryFallback) {
-    Logger().w('⚠️ Mode fallback: clé volatile en mémoire (pas de keyring disponible).');
+    Logger().w(
+        '⚠️ Mode fallback: clé volatile en mémoire (pas de keyring disponible).');
   }
   return encryption;
 }
 
 void main() async {
-  FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
+  FlutterNativeSplash.preserve(
+      widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
 
   final encryption = await _initializeEncryption();
   runApp(
@@ -63,10 +66,26 @@ class MyApp extends ConsumerWidget {
     final locale = _resolveLocale(ref.watch(localeProvider));
     final themeMode = _resolveThemeMode(ref);
 
+    // The app's single WidgetsBindingObserver: first-frame + resumed
+    // notification reconciliation (plan §3.1, M5).
+    return ReminderLifecycleSyncWidget(
+      child: _buildRouterApp(ref: ref, locale: locale, themeMode: themeMode),
+    );
+  }
+
+  Widget _buildRouterApp({
+    required WidgetRef ref,
+    required Locale? locale,
+    required ThemeMode themeMode,
+  }) {
     return MaterialApp.router(
       title: 'Mamadera',
       locale: locale,
-      supportedLocales: const [ui.Locale('fr'), ui.Locale('en'), ui.Locale('es')],
+      supportedLocales: const [
+        ui.Locale('fr'),
+        ui.Locale('en'),
+        ui.Locale('es')
+      ],
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -94,4 +113,3 @@ class MyApp extends ConsumerWidget {
     );
   }
 }
-

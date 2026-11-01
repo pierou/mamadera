@@ -11,7 +11,8 @@ import 'terms_content.dart';
 /// On accept, sets `termsAccepted = true` via the provider and calls [onAccepted].
 class TermsAcceptanceDialog extends ConsumerWidget {
   const TermsAcceptanceDialog({
-    required this.onAccepted, super.key,
+    required this.onAccepted,
+    super.key,
   });
 
   /// Callback invoked after the user accepts the terms.

@@ -1,0 +1,4 @@
+• Les mesures de croissance s'affichent désormais dans l'historique ; vous pouvez les modifier ou les supprimer à partir de cet endroit.
+• Vous pouvez enregistrer les séances d'allaitement en minutes ou en millilitres, selon votre préférence.
+• Les valeurs hors plage sont refusées, et la plage autorisée est affichée.
+• Corrections : dates en anglais, unités de graphique dupliquées, mise en page pour écrans de petite taille.

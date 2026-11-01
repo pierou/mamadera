@@ -27,10 +27,12 @@ void main() {
   Future<Directory> _resolveTempDir() async => tempDir;
 
   setUp(() async {
-    final uniqueName = 'menu_repo_test_${DateTime.now().millisecondsSinceEpoch}';
-    tempDir = await Directory('${Directory.systemTemp.path}/$uniqueName').create(
-          recursive: true,
-        );
+    final uniqueName =
+        'menu_repo_test_${DateTime.now().millisecondsSinceEpoch}';
+    tempDir =
+        await Directory('${Directory.systemTemp.path}/$uniqueName').create(
+      recursive: true,
+    );
 
     localeService = LocaleService(directoryResolver: _resolveTempDir);
     themeService = ThemeService(directoryResolver: _resolveTempDir);
@@ -195,8 +197,8 @@ void main() {
 
         // Insert an event to ensure DB file is created on disk
         await db.insertEvent(
-          drift.TrackingEventsCompanion(unit: const Value('ml'),
-            
+          drift.TrackingEventsCompanion(
+            unit: const Value('ml'),
             type: const Value(_typeMiam),
             timestamp: Value(DateTime.now()),
           ),
@@ -231,8 +233,8 @@ void main() {
       // Create and close a real database first
       final db = await createAppDatabase(directoryPath: tempDir.path);
       await db.insertEvent(
-        drift.TrackingEventsCompanion(unit: const Value('ml'),
-          
+        drift.TrackingEventsCompanion(
+          unit: const Value('ml'),
           type: const Value(_typeMiam),
           timestamp: Value(DateTime.now()),
         ),

@@ -1,0 +1,16 @@
+Suivez les repas, le sommeil, les couches et les routines de santé de votre bébé – toutes ces informations sont stockées localement sur votre appareil, avec chiffrement. Pas de cloud, pas de télémétrie, pas de suivi.
+
+CE QUE VOUS POUVEZ FAIRE
+• Enregistrez les tétées au sein et les biberons, les aliments solides en grammes, les périodes de sommeil et les changements de couches – y compris la consistance des selles.
+• Enregistrez le poids, la taille et la température : les valeurs sont chiffrées sur l'appareil et peuvent être consultées dans l'historique, aux côtés de tous les autres événements.
+• Modifiez ou supprimez une mesure directement depuis l'historique.
+• Suivez les routines de santé (vitamines D et K) avec des rappels intégrés, et créez des rappels personnalisés liés à n'importe quel soin.
+• Gérez des rappels indépendants pour chacun de vos bébés.
+• Enregistrez un événement avec sa date et son heure exactes, même a posteriori.
+• Créez des profils distincts pour chacun de vos bébés.
+• Exportez toutes vos données sous forme d'un seul fichier JSON et restaurez-les à tout moment – entièrement sur l'appareil, sans compte ni cloud requis.
+
+LA CONFIDENTIALITÉ AU CŒUR DE LA CONCEPTION
+Mamadera est conçu pour la confidentialité : les notes et les mesures sensibles sont chiffrées, l'application ne demande aucune autorisation inutile, et rien n'est jamais téléchargé. La seule façon pour les données de quitter l'appareil est l'exportation au format JSON que vous initiez vous-même, puis via la fonction de partage de votre appareil. L'application est gratuite, open source et sous licence MIT.
+
+Idéale pour les parents qui accordent de l'importance à leur vie privée – et pour les nouveau-nés qui méritent la leur.

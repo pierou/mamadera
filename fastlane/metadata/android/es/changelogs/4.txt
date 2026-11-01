@@ -1,0 +1,7 @@
+Lo importante, a salvo 📬
+• Recordatorios personalizados por cuidado, con desactivación de los predefinidos
+• Elección de fecha y hora al añadir un evento
+• Seguimiento de la textura de las heces en los cambios de pañal
+• Exportación de todos los datos en JSON y restauración desde copia exportada — 100 % en el dispositivo, sin nube
+• Texto en español: términos, fechas y notas de la versión
+• Correcciones: notas conservadas al editar entradas de salud y recuperación tras borrar los datos

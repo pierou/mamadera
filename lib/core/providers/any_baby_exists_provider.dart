@@ -5,7 +5,8 @@ import '../../features/baby/presentation/providers/baby_profile_providers.dart';
 /// Provider that checks whether any baby profile exists in the database.
 ///
 /// Used by the onboarding logic to decide whether to show the "add baby" dialog.
-final anyBabyExistsProvider = AsyncNotifierProvider<AnyBabyExistsNotifier, bool>(
+final anyBabyExistsProvider =
+    AsyncNotifierProvider<AnyBabyExistsNotifier, bool>(
   AnyBabyExistsNotifier.new,
 );
 

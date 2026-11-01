@@ -1,0 +1,23 @@
+Nouveautés de Mamadera 1.2.1
+
+Nouvelles fonctionnalités
+- Unification de la frise d'historique : les mesures de croissance s'y lisent à côté des événements, triées par horodatage
+- Modification et suppression d'une mesure directement depuis l'historique
+
+Améliorations
+- Saisie de l'allaitement au sein : quantité réglée en minutes par défaut, bascule ml / min
+- Remise à zéro de la quantité à chaque changement d'unité, annoncée par un message visible
+- Refus d'enregistrer une mesure hors plage, avec la plage attendue affichée
+- Curseur de réglage unique sur toutes les fiches de saisie, les boutons +/- et le champ clavier gardant la valeur exacte
+- Suppression de l'étiquette « Dernière : » devant la dernière mesure : la valeur s'affiche directement sur la fiche de saisie
+
+Corrections
+- Minutes manquantes dans les dates anglaises (« 07:PM ») : elles s'affichent à nouveau
+- Unité en double sur la trajectoire de croissance (« 6,18 kg g ») supprimée
+- Correction du débordement de la date anglaise dans l'historique sur les petits écrans (date et heure sur deux lignes)
+- Suppression du doublon Quantité/Durée sur la tuile sommeil de l'historique
+- Séparateur décimal des quantités conforme à la langue choisie
+- Correction du point de départ du curseur et des boutons +/- d'une mesure : ils partent de la dernière mesure du type, non de sa valeur par défaut
+- Actualisation immédiate de la dernière valeur sur l'accueil après enregistrement d'une mesure, et après correction ou suppression depuis l'historique
+- Correction du débordement des boutons Enregistrer / Supprimer de la fiche de modification d'une mesure sur petit écran
+- Uniformisation du message de valeur hors plage dans la fiche de modification (« entre 200 et 20000 g », et non « 200.0 »)

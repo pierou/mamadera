@@ -46,7 +46,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -66,7 +67,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -87,7 +89,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -108,11 +111,13 @@ void main() {
       expect(accepted, isTrue);
     });
 
-    testWidgets('calls acceptTerms on provider before callback', (tester) async {
+    testWidgets('calls acceptTerms on provider before callback',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -139,7 +144,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -156,16 +162,19 @@ void main() {
       // (Center widget) rather than SingleChildScrollView. Verify that:
       // - Either a scroll view exists (if asset loads)
       // - Or at minimum the content area has proper structure (Expanded + TermsContent)
-      final hasScroll = find.byType(SingleChildScrollView).evaluate().isNotEmpty;
+      final hasScroll =
+          find.byType(SingleChildScrollView).evaluate().isNotEmpty;
       final hasCenteredError = find.byType(Center).evaluate().isNotEmpty;
       expect(hasScroll || hasCenteredError, isTrue);
     });
 
-    testWidgets('accept button has correct styling with rounded border radius', (tester) async {
+    testWidgets('accept button has correct styling with rounded border radius',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -177,17 +186,20 @@ void main() {
 
       await tester.pump(const Duration(seconds: 2));
 
-      final button = tester.widget<ElevatedButton>(find.byKey(const ValueKey('terms-accept-button')));
+      final button = tester.widget<ElevatedButton>(
+          find.byKey(const ValueKey('terms-accept-button')));
       // Elevation is a WidgetStateMapper in Material 3 — resolve for default state
       final elevation = button.style?.elevation?.resolve(const {});
-      expect(elevation, closeTo(0.0, 0.01)); // Minimal/no elevation in default state
+      expect(elevation,
+          closeTo(0.0, 0.01)); // Minimal/no elevation in default state
     });
 
     testWidgets('button text has correct font size and weight', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -199,7 +211,8 @@ void main() {
 
       await tester.pump(const Duration(seconds: 2));
 
-      final button = tester.widget<ElevatedButton>(find.byKey(const ValueKey('terms-accept-button')));
+      final button = tester.widget<ElevatedButton>(
+          find.byKey(const ValueKey('terms-accept-button')));
       expect(button.child, isA<Text>());
 
       final text = button.child as Text;
@@ -211,7 +224,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -221,26 +235,28 @@ void main() {
         ),
       );
 
-      // Initial pump for FutureBuilder asset loading  
+      // Initial pump for FutureBuilder asset loading
       await tester.pump(const Duration(seconds: 2));
 
       final buttonFinder = find.byKey(const ValueKey('terms-accept-button'));
-      
+
       // Button should be present and enabled
       expect(buttonFinder, findsOneWidget);
-      
+
       // Verify the widget tree has Padding wrapping the SizedBox/button area
       expect(find.byType(Padding), findsWidgets);
 
       final button = tester.widget<ElevatedButton>(buttonFinder);
-      expect(button.onPressed, isNotNull); // Button should be enabled (not null onPressed)
+      expect(button.onPressed,
+          isNotNull); // Button should be enabled (not null onPressed)
     });
 
     testWidgets('respects safe area top only (not bottom)', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -256,11 +272,13 @@ void main() {
       expect(safeArea.top, isTrue); // Top padding enabled for status bar/notch
     });
 
-    testWidgets('renders Column layout with content and button', (tester) async {
+    testWidgets('renders Column layout with content and button',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -282,7 +300,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            appPreferencesProvider.overrideWith(_TestAppPreferencesNotifier.new),
+            appPreferencesProvider
+                .overrideWith(_TestAppPreferencesNotifier.new),
           ],
           child: MaterialApp(
             localizationsDelegates: localizationDelegates,
@@ -299,17 +318,21 @@ void main() {
       final button = find.byKey(const ValueKey('terms-accept-button'));
       await tester.tap(button);
       await tester.pump(); // Process tap
-      await tester.pump(const Duration(milliseconds: 10)); // Microtask queue (Future.delayed(Duration.zero))
-      await tester.pump(const Duration(milliseconds: 50)); // acceptTerms completion
+      await tester.pump(const Duration(
+          milliseconds: 10)); // Microtask queue (Future.delayed(Duration.zero))
+      await tester
+          .pump(const Duration(milliseconds: 50)); // acceptTerms completion
 
-      expect(acceptCount, greaterThanOrEqualTo(0)); // Button tapped without crash
-      
+      expect(
+          acceptCount, greaterThanOrEqualTo(0)); // Button tapped without crash
+
       // Second tap - verify button remains functional after first acceptance
       await tester.tap(button);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 60));
 
-      expect(acceptCount, greaterThanOrEqualTo(1)); // At least one callback fired
+      expect(
+          acceptCount, greaterThanOrEqualTo(1)); // At least one callback fired
     });
   });
 }

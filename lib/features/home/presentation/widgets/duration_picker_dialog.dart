@@ -43,18 +43,19 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
   /// The moment the nap is recorded as starting: the pinned choice if there is
   /// one, otherwise "now minus the duration just entered". Recomputing on every
   /// rebuild is deliberate — it keeps the row honest with the slider.
-  DateTime get _effectiveStart => _pinnedStart ??
+  DateTime get _effectiveStart =>
+      _pinnedStart ??
       DateTime.now().subtract(Duration(minutes: _selectedMinutes.round()));
 
   /// A stepper motor stage: clamped to the ends of the slider, and inactive (no-op) if it is.
   /// already working on it (safety mechanism for sustained firing).
   void _nudgeMinutes(int direction) {
-    final atBound = direction > 0
-        ? _selectedMinutes >= 480
-        : _selectedMinutes <= 0;
+    final atBound =
+        direction > 0 ? _selectedMinutes >= 480 : _selectedMinutes <= 0;
     if (atBound) return;
     setState(() {
-      _selectedMinutes = (_selectedMinutes + direction * _stepMinutes).clamp(0.0, 480.0);
+      _selectedMinutes =
+          (_selectedMinutes + direction * _stepMinutes).clamp(0.0, 480.0);
     });
   }
 
@@ -62,8 +63,8 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
   void _startRepeat(int direction) {
     _stopRepeat();
     _nudgeMinutes(direction);
-    _repeatTimer =
-        Timer.periodic(const Duration(milliseconds: 120), (_) => _nudgeMinutes(direction));
+    _repeatTimer = Timer.periodic(
+        const Duration(milliseconds: 120), (_) => _nudgeMinutes(direction));
   }
 
   void _stopRepeat() {
@@ -99,7 +100,9 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: Icon(
-            direction > 0 ? Icons.add_circle_outline : Icons.remove_circle_outline,
+            direction > 0
+                ? Icons.add_circle_outline
+                : Icons.remove_circle_outline,
             color: atBound
                 ? Theme.of(context).disabledColor
                 : Theme.of(context).colorScheme.primary,
@@ -142,7 +145,10 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
           children: [
             Text(
               context.l.durationPickerTitle,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 32),
             Center(
@@ -158,10 +164,11 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
                     _buildStepButton(-1),
                     Text(
                       _formatDuration(_selectedMinutes),
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                            fontSize: 56,
-                            color: AppTheme.dodo,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                fontSize: 56,
+                                color: AppTheme.dodo,
+                              ),
                     ),
                     _buildStepButton(1),
                   ],
@@ -187,12 +194,10 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
               ),
             ),
             const SizedBox(height: 24),
-
             EventDateTimeField(
               value: _effectiveStart,
               onChanged: (date) => setState(() => _pinnedStart = date),
             ),
-
             const SizedBox(height: 24),
             DialogActionButtons(
               onCancelPressed: () => Navigator.pop(context),

@@ -52,7 +52,8 @@ void main() {
   }
 
   group('EventDateTimeField', () {
-    testWidgets('affiche le titre par défaut et la date formatée', (tester) async {
+    testWidgets('affiche le titre par défaut et la date formatée',
+        (tester) async {
       await pumpField(tester, value: DateTime(2026, 3, 14, 8, 5));
 
       expect(find.text('Date et heure'), findsOneWidget);
@@ -60,7 +61,8 @@ void main() {
       expect(find.byIcon(Icons.calendar_today), findsOneWidget);
     });
 
-    testWidgets('le titre personnalisé remplace le titre par défaut', (tester) async {
+    testWidgets('le titre personnalisé remplace le titre par défaut',
+        (tester) async {
       await pumpField(
         tester,
         value: DateTime(2026, 3, 14, 8, 5),
@@ -100,14 +102,15 @@ void main() {
         matching: find.text('20'),
       ));
       await tester.pumpAndSettle();
-      await tapText(tester, 'OK');       // → time selector
+      await tapText(tester, 'OK'); // → time selector
       expect(find.byType(TimePickerDialog), findsOneWidget);
       await tapText(tester, 'Annuler');
 
       expect(selected, DateTime(2026, 3, 20, 8, 5));
     });
 
-    testWidgets('valider l’heure notifie le jour choisi avec cette heure', (tester) async {
+    testWidgets('valider l’heure notifie le jour choisi avec cette heure',
+        (tester) async {
       await pumpField(tester, value: DateTime(2026, 3, 14, 8, 5));
 
       await openPicker(tester);

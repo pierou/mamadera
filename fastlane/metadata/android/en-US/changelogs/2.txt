@@ -1,0 +1,3 @@
+Maintenance release:
+• Language selection now refreshes the app right after the change
+• Theme mode toggle now applies without a restart

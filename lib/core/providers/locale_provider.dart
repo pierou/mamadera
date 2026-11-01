@@ -54,9 +54,11 @@ class LocaleNotifier extends AsyncNotifier<LocalePreference> {
   }
 
   /// Gets the current locale preference synchronously, or a safe default.
-  LocalePreference _current() => state.whenOrNull(
+  LocalePreference _current() =>
+      state.whenOrNull(
         data: (pref) => pref,
-      ) ?? const LocalePreference(
+      ) ??
+      const LocalePreference(
         languageCode: 'fr',
         isManualOverride: false,
       );

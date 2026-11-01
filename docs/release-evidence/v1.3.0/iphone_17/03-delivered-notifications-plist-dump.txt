@@ -1,0 +1,2963 @@
+{
+  "$archiver" => "NSKeyedArchiver"
+  "$objects" => [
+    0 => "$null"
+    1 => {
+      "$class" => <CFKeyedArchiverUID 0x101546740 [0x1fb1e1308]>{value = 884}
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x101546500 [0x1fb1e1308]>{value = 2}
+        1 => <CFKeyedArchiverUID 0x101546620 [0x1fb1e1308]>{value = 110}
+        2 => <CFKeyedArchiverUID 0x101546640 [0x1fb1e1308]>{value = 198}
+        3 => <CFKeyedArchiverUID 0x101546660 [0x1fb1e1308]>{value = 284}
+        4 => <CFKeyedArchiverUID 0x101546680 [0x1fb1e1308]>{value = 370}
+        5 => <CFKeyedArchiverUID 0x1015466a0 [0x1fb1e1308]>{value = 456}
+        6 => <CFKeyedArchiverUID 0x1015466c0 [0x1fb1e1308]>{value = 542}
+        7 => <CFKeyedArchiverUID 0x1015466e0 [0x1fb1e1308]>{value = 627}
+        8 => <CFKeyedArchiverUID 0x101546700 [0x1fb1e1308]>{value = 714}
+        9 => <CFKeyedArchiverUID 0x101546720 [0x1fb1e1308]>{value = 798}
+      ]
+    }
+    2 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018940 [0x1fb1e1308]>{value = 109}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x101548420 [0x1fb1e1308]>{value = 3}
+        1 => <CFKeyedArchiverUID 0x101548440 [0x1fb1e1308]>{value = 4}
+        2 => <CFKeyedArchiverUID 0x101548460 [0x1fb1e1308]>{value = 5}
+        3 => <CFKeyedArchiverUID 0x101548480 [0x1fb1e1308]>{value = 6}
+        4 => <CFKeyedArchiverUID 0x1015484a0 [0x1fb1e1308]>{value = 7}
+        5 => <CFKeyedArchiverUID 0x1015484c0 [0x1fb1e1308]>{value = 8}
+        6 => <CFKeyedArchiverUID 0x1015484e0 [0x1fb1e1308]>{value = 9}
+        7 => <CFKeyedArchiverUID 0x101548500 [0x1fb1e1308]>{value = 10}
+        8 => <CFKeyedArchiverUID 0x101548520 [0x1fb1e1308]>{value = 11}
+        9 => <CFKeyedArchiverUID 0x101548540 [0x1fb1e1308]>{value = 12}
+        10 => <CFKeyedArchiverUID 0x77f018000 [0x1fb1e1308]>{value = 13}
+        11 => <CFKeyedArchiverUID 0x77f018020 [0x1fb1e1308]>{value = 14}
+        12 => <CFKeyedArchiverUID 0x77f018040 [0x1fb1e1308]>{value = 15}
+        13 => <CFKeyedArchiverUID 0x77f018060 [0x1fb1e1308]>{value = 16}
+        14 => <CFKeyedArchiverUID 0x77f018080 [0x1fb1e1308]>{value = 17}
+        15 => <CFKeyedArchiverUID 0x77f0180a0 [0x1fb1e1308]>{value = 18}
+        16 => <CFKeyedArchiverUID 0x77f0180c0 [0x1fb1e1308]>{value = 19}
+        17 => <CFKeyedArchiverUID 0x77f0180e0 [0x1fb1e1308]>{value = 20}
+        18 => <CFKeyedArchiverUID 0x77f018100 [0x1fb1e1308]>{value = 21}
+        19 => <CFKeyedArchiverUID 0x77f018120 [0x1fb1e1308]>{value = 22}
+        20 => <CFKeyedArchiverUID 0x77f018140 [0x1fb1e1308]>{value = 23}
+        21 => <CFKeyedArchiverUID 0x77f018160 [0x1fb1e1308]>{value = 24}
+        22 => <CFKeyedArchiverUID 0x77f018180 [0x1fb1e1308]>{value = 25}
+        23 => <CFKeyedArchiverUID 0x77f0181a0 [0x1fb1e1308]>{value = 26}
+        24 => <CFKeyedArchiverUID 0x77f0181c0 [0x1fb1e1308]>{value = 27}
+        25 => <CFKeyedArchiverUID 0x77f0181e0 [0x1fb1e1308]>{value = 28}
+        26 => <CFKeyedArchiverUID 0x77f018200 [0x1fb1e1308]>{value = 29}
+        27 => <CFKeyedArchiverUID 0x77f018220 [0x1fb1e1308]>{value = 30}
+        28 => <CFKeyedArchiverUID 0x77f018240 [0x1fb1e1308]>{value = 31}
+        29 => <CFKeyedArchiverUID 0x77f018260 [0x1fb1e1308]>{value = 32}
+        30 => <CFKeyedArchiverUID 0x77f018280 [0x1fb1e1308]>{value = 33}
+        31 => <CFKeyedArchiverUID 0x77f0182a0 [0x1fb1e1308]>{value = 34}
+        32 => <CFKeyedArchiverUID 0x77f0182c0 [0x1fb1e1308]>{value = 35}
+        33 => <CFKeyedArchiverUID 0x77f0182e0 [0x1fb1e1308]>{value = 36}
+        34 => <CFKeyedArchiverUID 0x77f018300 [0x1fb1e1308]>{value = 37}
+        35 => <CFKeyedArchiverUID 0x77f018320 [0x1fb1e1308]>{value = 38}
+        36 => <CFKeyedArchiverUID 0x77f018340 [0x1fb1e1308]>{value = 39}
+        37 => <CFKeyedArchiverUID 0x77f018360 [0x1fb1e1308]>{value = 40}
+        38 => <CFKeyedArchiverUID 0x77f018380 [0x1fb1e1308]>{value = 41}
+        39 => <CFKeyedArchiverUID 0x77f0183a0 [0x1fb1e1308]>{value = 42}
+        40 => <CFKeyedArchiverUID 0x77f0183c0 [0x1fb1e1308]>{value = 43}
+        41 => <CFKeyedArchiverUID 0x77f0183e0 [0x1fb1e1308]>{value = 44}
+        42 => <CFKeyedArchiverUID 0x77f018400 [0x1fb1e1308]>{value = 45}
+        43 => <CFKeyedArchiverUID 0x77f018420 [0x1fb1e1308]>{value = 46}
+        44 => <CFKeyedArchiverUID 0x77f018440 [0x1fb1e1308]>{value = 47}
+        45 => <CFKeyedArchiverUID 0x77f018460 [0x1fb1e1308]>{value = 48}
+        46 => <CFKeyedArchiverUID 0x77f018480 [0x1fb1e1308]>{value = 49}
+        47 => <CFKeyedArchiverUID 0x77f0184a0 [0x1fb1e1308]>{value = 50}
+        48 => <CFKeyedArchiverUID 0x77f0184c0 [0x1fb1e1308]>{value = 51}
+        49 => <CFKeyedArchiverUID 0x77f0184e0 [0x1fb1e1308]>{value = 52}
+        50 => <CFKeyedArchiverUID 0x77f018500 [0x1fb1e1308]>{value = 53}
+        51 => <CFKeyedArchiverUID 0x77f018520 [0x1fb1e1308]>{value = 54}
+        52 => <CFKeyedArchiverUID 0x77f018540 [0x1fb1e1308]>{value = 55}
+        53 => <CFKeyedArchiverUID 0x77f018560 [0x1fb1e1308]>{value = 56}
+        54 => <CFKeyedArchiverUID 0x77f018580 [0x1fb1e1308]>{value = 57}
+        55 => <CFKeyedArchiverUID 0x77f0185a0 [0x1fb1e1308]>{value = 58}
+        56 => <CFKeyedArchiverUID 0x77f0185c0 [0x1fb1e1308]>{value = 59}
+        57 => <CFKeyedArchiverUID 0x77f0185e0 [0x1fb1e1308]>{value = 60}
+        58 => <CFKeyedArchiverUID 0x77f018600 [0x1fb1e1308]>{value = 61}
+        59 => <CFKeyedArchiverUID 0x77f018620 [0x1fb1e1308]>{value = 62}
+        60 => <CFKeyedArchiverUID 0x77f018640 [0x1fb1e1308]>{value = 63}
+        61 => <CFKeyedArchiverUID 0x77f018660 [0x1fb1e1308]>{value = 64}
+        62 => <CFKeyedArchiverUID 0x77f018680 [0x1fb1e1308]>{value = 65}
+        63 => <CFKeyedArchiverUID 0x77f0186a0 [0x1fb1e1308]>{value = 66}
+        64 => <CFKeyedArchiverUID 0x77f0186c0 [0x1fb1e1308]>{value = 67}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        1 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        2 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f018740 [0x1fb1e1308]>{value = 71}
+        5 => <CFKeyedArchiverUID 0x77f018760 [0x1fb1e1308]>{value = 77}
+        6 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        7 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        8 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        9 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        10 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        11 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        12 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        13 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        14 => <CFKeyedArchiverUID 0x77f0187a0 [0x1fb1e1308]>{value = 80}
+        15 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        16 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        17 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        18 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        19 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        20 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        21 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        22 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        23 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        24 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        25 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        26 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        27 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        28 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        29 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        30 => <CFKeyedArchiverUID 0x77f018800 [0x1fb1e1308]>{value = 83}
+        31 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        32 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        33 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        34 => <CFKeyedArchiverUID 0x77f018820 [0x1fb1e1308]>{value = 84}
+        35 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        36 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        37 => <CFKeyedArchiverUID 0x77f018840 [0x1fb1e1308]>{value = 85}
+        38 => <CFKeyedArchiverUID 0x77f018860 [0x1fb1e1308]>{value = 86}
+        39 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        40 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        41 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        42 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        43 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        44 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        45 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        46 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        47 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        48 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        49 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        50 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        51 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        52 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        53 => <CFKeyedArchiverUID 0x77f018880 [0x1fb1e1308]>{value = 87}
+        54 => <CFKeyedArchiverUID 0x77f0188a0 [0x1fb1e1308]>{value = 88}
+        55 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        56 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        57 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        58 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        59 => <CFKeyedArchiverUID 0x77f0188c0 [0x1fb1e1308]>{value = 99}
+        60 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        61 => <CFKeyedArchiverUID 0x77f0188e0 [0x1fb1e1308]>{value = 100}
+        62 => <CFKeyedArchiverUID 0x77f018900 [0x1fb1e1308]>{value = 107}
+        63 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        64 => <CFKeyedArchiverUID 0x77f018920 [0x1fb1e1308]>{value = 108}
+      ]
+    }
+    3 => "ShouldSuppressScreenLightUp"
+    4 => "ShouldSuppressSyncDismissalWhenRemoved"
+    5 => "InterruptionLevel"
+    6 => "UNNotificationNotificationCenterDestination"
+    7 => "TriggerDateComponents"
+    8 => "RequestDate"
+    9 => "ScreenCaptureProhibited"
+    10 => "ShouldPreventNotificationDismissalAfterDefaultAction"
+    11 => "RevisionNumber"
+    12 => "ShouldIgnoreDowntime"
+    13 => "TriggerTimeInterval"
+    14 => "IconShouldSuppressMask"
+    15 => "ShouldPresentAlert"
+    16 => "ShouldPlaySound"
+    17 => "ToneAlertType"
+    18 => "ShouldIgnoreAccessibilityDisabledVibrationSetting"
+    19 => "ShouldUseRequestIdentifierForDismissalSync"
+    20 => "CommunicationContextCapabilities"
+    21 => "SoundShouldRepeat"
+    22 => "ShouldHideDate"
+    23 => "CommunicationContextReplyToCurrentUser"
+    24 => "UNNotificationLockScreenDestination"
+    25 => "AppNotificationSummaryArgument"
+    26 => "PipelineState"
+    27 => "IsHighlight"
+    28 => "CommunicationContextMentionsCurrentUser"
+    29 => "TriggerRepeatInterval"
+    30 => "SoundMaximumDuration"
+    31 => "UNNotificationDefaultDestinations"
+    32 => "RealertCount"
+    33 => "AppNotificationIdentifier"
+    34 => "CommunicationContextBusinessCorrespondence"
+    35 => "ShouldPreemptPresentedNotification"
+    36 => "ShouldBackgroundDefaultAction"
+    37 => "NotificationType"
+    38 => "ToneMediaLibraryItemIdentifier"
+    39 => "ShouldAuthenticateDefaultAction"
+    40 => "PresentationOptions"
+    41 => "AppNotificationTitle"
+    42 => "PriorityStatus"
+    43 => "CommunicationContextRecipientCount"
+    44 => "ShouldIgnoreDoNotDisturb"
+    45 => "AppNotificationSummaryArgumentCount"
+    46 => "UNNotificationShouldShowSubordinateIcon"
+    47 => "CommunicationContextNotifyRecipientAnyway"
+    48 => "UNNotificationRelevanceScore"
+    49 => "BadgeApplicationIcon"
+    50 => "SummaryStatus"
+    51 => "Footer"
+    52 => "Header"
+    53 => "UNNotificationAlertDestination"
+    54 => "HasDefaultActionKey"
+    55 => "UNNotificationCarPlayDestination"
+    56 => "UNNotificationTriggerType"
+    57 => "UNNotificationUserInfo"
+    58 => "CriticalAlertSound"
+    59 => "ShouldDisplayActionsInline"
+    60 => "TriggerRepeats"
+    61 => "SoundShouldIgnoreRingerSwitch"
+    62 => "AppNotificationCreationDate"
+    63 => "ShouldHideTime"
+    64 => "EventBehavior"
+    65 => "SchemaVersion"
+    66 => "CommunicationContextSystemImage"
+    67 => "AppNotificationMessage"
+    68 => false
+    69 => 1
+    70 => true
+    71 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018960 [0x1fb1e1308]>{value = 76}
+      "NS.day" => 29
+      "NS.hour" => 23
+      "NS.leapMonth" => 0
+      "NS.minute" => 21
+      "NS.month" => 10
+      "NS.repeatedDay" => false
+      "NS.second" => 0
+      "NS.timezone" => <CFKeyedArchiverUID 0x77f018980 [0x1fb1e1308]>{value = 72}
+      "NS.year" => 2026
+    }
+    72 => {
+      "$class" => <CFKeyedArchiverUID 0x77f0189e0 [0x1fb1e1308]>{value = 75}
+      "NS.data" => <CFKeyedArchiverUID 0x77f0189c0 [0x1fb1e1308]>{value = 74}
+      "NS.name" => <CFKeyedArchiverUID 0x77f0189a0 [0x1fb1e1308]>{value = 73}
+    }
+    73 => "GMT"
+    74 => {length = 114, bytes = 0x545a6966320000000000000000000000 ... 54000a474d54300a}
+    75 => {
+      "$classes" => [
+        0 => "NSTimeZone"
+        1 => "NSObject"
+      ]
+      "$classname" => "NSTimeZone"
+    }
+    76 => {
+      "$classes" => [
+        0 => "NSDateComponents"
+        1 => "NSObject"
+      ]
+      "$classname" => "NSDateComponents"
+    }
+    77 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008763.829607
+    }
+    78 => {
+      "$classes" => [
+        0 => "NSDate"
+        1 => "NSObject"
+      ]
+      "$classname" => "NSDate"
+    }
+    79 => 0
+    80 => 17
+    81 => 0
+    82 => ""
+    83 => "7"
+    84 => "UNNotificationContentTypeDefault"
+    85 => 27
+    86 => "Bain"
+    87 => "Calendar"
+    88 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018b60 [0x1fb1e1308]>{value = 98}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f018a40 [0x1fb1e1308]>{value = 89}
+        1 => <CFKeyedArchiverUID 0x77f018a60 [0x1fb1e1308]>{value = 90}
+        2 => <CFKeyedArchiverUID 0x77f018a80 [0x1fb1e1308]>{value = 91}
+        3 => <CFKeyedArchiverUID 0x77f018aa0 [0x1fb1e1308]>{value = 92}
+        4 => <CFKeyedArchiverUID 0x77f018ac0 [0x1fb1e1308]>{value = 93}
+        5 => <CFKeyedArchiverUID 0x77f018ae0 [0x1fb1e1308]>{value = 94}
+        6 => <CFKeyedArchiverUID 0x77f018b00 [0x1fb1e1308]>{value = 95}
+        7 => <CFKeyedArchiverUID 0x77f018b20 [0x1fb1e1308]>{value = 96}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        1 => <CFKeyedArchiverUID 0x77f018b40 [0x1fb1e1308]>{value = 97}
+        2 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f018860 [0x1fb1e1308]>{value = 86}
+        5 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        6 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        7 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+      ]
+    }
+    89 => "presentAlert"
+    90 => "NotificationId"
+    91 => "presentBadge"
+    92 => "presentBanner"
+    93 => "title"
+    94 => "presentSound"
+    95 => "payload"
+    96 => "presentList"
+    97 => 7
+    98 => {
+      "$classes" => [
+        0 => "NSDictionary"
+        1 => "NSObject"
+      ]
+      "$classname" => "NSDictionary"
+    }
+    99 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008860
+    }
+    100 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018bc0 [0x1fb1e1308]>{value = 106}
+      "activeModeUUID" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "eventDetails" => <CFKeyedArchiverUID 0x77f018ba0 [0x1fb1e1308]>{value = 101}
+      "intelligentBehavior" => 0
+      "interruptionSuppression" => 0
+      "resolutionReason" => 2
+    }
+    101 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018c20 [0x1fb1e1308]>{value = 105}
+      "behavior" => 0
+      "body" => <CFKeyedArchiverUID 0x77f018be0 [0x1fb1e1308]>{value = 104}
+      "bundleIdentifier" => <CFKeyedArchiverUID 0x77f018c00 [0x1fb1e1308]>{value = 102}
+      "filterCriteria" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "forwardingBehavior" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "identifier" => <CFKeyedArchiverUID 0x77f018800 [0x1fb1e1308]>{value = 83}
+      "notifyAnyway" => false
+      "platform" => 0
+      "sender" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "shouldAdjustEventBehaviorForMirroring" => false
+      "subtitle" => <CFKeyedArchiverUID 0x77f018860 [0x1fb1e1308]>{value = 86}
+      "threadIdentifier" => <CFKeyedArchiverUID 0x77f018c40 [0x1fb1e1308]>{value = 103}
+      "title" => <CFKeyedArchiverUID 0x77f018860 [0x1fb1e1308]>{value = 86}
+      "type" => 0
+      "urgency" => 0
+    }
+    102 => "com.pvjio.mamadera"
+    103 => ""
+    104 => "Nora : c'est l'heure de Bain."
+    105 => {
+      "$classes" => [
+        0 => "DNDClientEventDetails"
+        1 => "NSObject"
+      ]
+      "$classname" => "DNDClientEventDetails"
+    }
+    106 => {
+      "$classes" => [
+        0 => "DNDClientEventBehavior"
+        1 => "NSObject"
+      ]
+      "$classname" => "DNDClientEventBehavior"
+    }
+    107 => 11
+    108 => "Nora : c'est l'heure de Bain."
+    109 => {
+      "$classes" => [
+        0 => "NSMutableDictionary"
+        1 => "NSDictionary"
+        2 => "NSObject"
+      ]
+      "$classname" => "NSMutableDictionary"
+    }
+    110 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018940 [0x1fb1e1308]>{value = 109}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f018c60 [0x1fb1e1308]>{value = 111}
+        1 => <CFKeyedArchiverUID 0x77f018c80 [0x1fb1e1308]>{value = 112}
+        2 => <CFKeyedArchiverUID 0x77f018ca0 [0x1fb1e1308]>{value = 113}
+        3 => <CFKeyedArchiverUID 0x77f018cc0 [0x1fb1e1308]>{value = 114}
+        4 => <CFKeyedArchiverUID 0x77f018ce0 [0x1fb1e1308]>{value = 115}
+        5 => <CFKeyedArchiverUID 0x77f018d00 [0x1fb1e1308]>{value = 116}
+        6 => <CFKeyedArchiverUID 0x77f018d20 [0x1fb1e1308]>{value = 117}
+        7 => <CFKeyedArchiverUID 0x77f018d40 [0x1fb1e1308]>{value = 118}
+        8 => <CFKeyedArchiverUID 0x77f018d60 [0x1fb1e1308]>{value = 119}
+        9 => <CFKeyedArchiverUID 0x77f018d80 [0x1fb1e1308]>{value = 120}
+        10 => <CFKeyedArchiverUID 0x77f018da0 [0x1fb1e1308]>{value = 121}
+        11 => <CFKeyedArchiverUID 0x77f018dc0 [0x1fb1e1308]>{value = 122}
+        12 => <CFKeyedArchiverUID 0x77f018de0 [0x1fb1e1308]>{value = 123}
+        13 => <CFKeyedArchiverUID 0x77f018e00 [0x1fb1e1308]>{value = 124}
+        14 => <CFKeyedArchiverUID 0x77f018e20 [0x1fb1e1308]>{value = 125}
+        15 => <CFKeyedArchiverUID 0x77f018e40 [0x1fb1e1308]>{value = 126}
+        16 => <CFKeyedArchiverUID 0x77f018e60 [0x1fb1e1308]>{value = 127}
+        17 => <CFKeyedArchiverUID 0x77f018e80 [0x1fb1e1308]>{value = 128}
+        18 => <CFKeyedArchiverUID 0x77f018ea0 [0x1fb1e1308]>{value = 129}
+        19 => <CFKeyedArchiverUID 0x77f018ec0 [0x1fb1e1308]>{value = 130}
+        20 => <CFKeyedArchiverUID 0x77f018ee0 [0x1fb1e1308]>{value = 131}
+        21 => <CFKeyedArchiverUID 0x77f018f00 [0x1fb1e1308]>{value = 132}
+        22 => <CFKeyedArchiverUID 0x77f018f20 [0x1fb1e1308]>{value = 133}
+        23 => <CFKeyedArchiverUID 0x77f018f40 [0x1fb1e1308]>{value = 134}
+        24 => <CFKeyedArchiverUID 0x77f018f60 [0x1fb1e1308]>{value = 135}
+        25 => <CFKeyedArchiverUID 0x77f018f80 [0x1fb1e1308]>{value = 136}
+        26 => <CFKeyedArchiverUID 0x77f018fa0 [0x1fb1e1308]>{value = 137}
+        27 => <CFKeyedArchiverUID 0x77f018fc0 [0x1fb1e1308]>{value = 138}
+        28 => <CFKeyedArchiverUID 0x77f018fe0 [0x1fb1e1308]>{value = 139}
+        29 => <CFKeyedArchiverUID 0x77f019000 [0x1fb1e1308]>{value = 140}
+        30 => <CFKeyedArchiverUID 0x77f019020 [0x1fb1e1308]>{value = 141}
+        31 => <CFKeyedArchiverUID 0x77f019040 [0x1fb1e1308]>{value = 142}
+        32 => <CFKeyedArchiverUID 0x77f019060 [0x1fb1e1308]>{value = 143}
+        33 => <CFKeyedArchiverUID 0x77f019080 [0x1fb1e1308]>{value = 144}
+        34 => <CFKeyedArchiverUID 0x77f0190a0 [0x1fb1e1308]>{value = 145}
+        35 => <CFKeyedArchiverUID 0x77f0190c0 [0x1fb1e1308]>{value = 146}
+        36 => <CFKeyedArchiverUID 0x77f0190e0 [0x1fb1e1308]>{value = 147}
+        37 => <CFKeyedArchiverUID 0x77f019100 [0x1fb1e1308]>{value = 148}
+        38 => <CFKeyedArchiverUID 0x77f019120 [0x1fb1e1308]>{value = 149}
+        39 => <CFKeyedArchiverUID 0x77f019140 [0x1fb1e1308]>{value = 150}
+        40 => <CFKeyedArchiverUID 0x77f019160 [0x1fb1e1308]>{value = 151}
+        41 => <CFKeyedArchiverUID 0x77f019180 [0x1fb1e1308]>{value = 152}
+        42 => <CFKeyedArchiverUID 0x77f0191a0 [0x1fb1e1308]>{value = 153}
+        43 => <CFKeyedArchiverUID 0x77f0191c0 [0x1fb1e1308]>{value = 154}
+        44 => <CFKeyedArchiverUID 0x77f0191e0 [0x1fb1e1308]>{value = 155}
+        45 => <CFKeyedArchiverUID 0x77f019200 [0x1fb1e1308]>{value = 156}
+        46 => <CFKeyedArchiverUID 0x77f019220 [0x1fb1e1308]>{value = 157}
+        47 => <CFKeyedArchiverUID 0x77f019240 [0x1fb1e1308]>{value = 158}
+        48 => <CFKeyedArchiverUID 0x77f019260 [0x1fb1e1308]>{value = 159}
+        49 => <CFKeyedArchiverUID 0x77f019280 [0x1fb1e1308]>{value = 160}
+        50 => <CFKeyedArchiverUID 0x77f0192a0 [0x1fb1e1308]>{value = 161}
+        51 => <CFKeyedArchiverUID 0x77f0192c0 [0x1fb1e1308]>{value = 162}
+        52 => <CFKeyedArchiverUID 0x77f0192e0 [0x1fb1e1308]>{value = 163}
+        53 => <CFKeyedArchiverUID 0x77f019300 [0x1fb1e1308]>{value = 164}
+        54 => <CFKeyedArchiverUID 0x77f019320 [0x1fb1e1308]>{value = 165}
+        55 => <CFKeyedArchiverUID 0x77f019340 [0x1fb1e1308]>{value = 166}
+        56 => <CFKeyedArchiverUID 0x77f019360 [0x1fb1e1308]>{value = 167}
+        57 => <CFKeyedArchiverUID 0x77f019380 [0x1fb1e1308]>{value = 168}
+        58 => <CFKeyedArchiverUID 0x77f0193a0 [0x1fb1e1308]>{value = 169}
+        59 => <CFKeyedArchiverUID 0x77f0193c0 [0x1fb1e1308]>{value = 170}
+        60 => <CFKeyedArchiverUID 0x77f0193e0 [0x1fb1e1308]>{value = 171}
+        61 => <CFKeyedArchiverUID 0x77f019400 [0x1fb1e1308]>{value = 172}
+        62 => <CFKeyedArchiverUID 0x77f019420 [0x1fb1e1308]>{value = 173}
+        63 => <CFKeyedArchiverUID 0x77f019440 [0x1fb1e1308]>{value = 174}
+        64 => <CFKeyedArchiverUID 0x77f019460 [0x1fb1e1308]>{value = 175}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        1 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        2 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f019480 [0x1fb1e1308]>{value = 176}
+        5 => <CFKeyedArchiverUID 0x77f0194a0 [0x1fb1e1308]>{value = 179}
+        6 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        7 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        8 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        9 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        10 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        11 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        12 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        13 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        14 => <CFKeyedArchiverUID 0x77f0187a0 [0x1fb1e1308]>{value = 80}
+        15 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        16 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        17 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        18 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        19 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        20 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        21 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        22 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        23 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        24 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        25 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        26 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        27 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        28 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        29 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        30 => <CFKeyedArchiverUID 0x77f0194c0 [0x1fb1e1308]>{value = 180}
+        31 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        32 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        33 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        34 => <CFKeyedArchiverUID 0x77f0194e0 [0x1fb1e1308]>{value = 181}
+        35 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        36 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        37 => <CFKeyedArchiverUID 0x77f018840 [0x1fb1e1308]>{value = 85}
+        38 => <CFKeyedArchiverUID 0x77f019500 [0x1fb1e1308]>{value = 182}
+        39 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        40 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        41 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        42 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        43 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        44 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        45 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        46 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        47 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        48 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        49 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        50 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        51 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        52 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        53 => <CFKeyedArchiverUID 0x77f018880 [0x1fb1e1308]>{value = 87}
+        54 => <CFKeyedArchiverUID 0x77f019520 [0x1fb1e1308]>{value = 183}
+        55 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        56 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        57 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        58 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        59 => <CFKeyedArchiverUID 0x77f0188c0 [0x1fb1e1308]>{value = 99}
+        60 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        61 => <CFKeyedArchiverUID 0x77f019540 [0x1fb1e1308]>{value = 192}
+        62 => <CFKeyedArchiverUID 0x77f018900 [0x1fb1e1308]>{value = 107}
+        63 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        64 => <CFKeyedArchiverUID 0x77f019560 [0x1fb1e1308]>{value = 197}
+      ]
+    }
+    111 => "ShouldSuppressScreenLightUp"
+    112 => "ShouldSuppressSyncDismissalWhenRemoved"
+    113 => "InterruptionLevel"
+    114 => "UNNotificationNotificationCenterDestination"
+    115 => "TriggerDateComponents"
+    116 => "RequestDate"
+    117 => "ScreenCaptureProhibited"
+    118 => "ShouldPreventNotificationDismissalAfterDefaultAction"
+    119 => "RevisionNumber"
+    120 => "ShouldIgnoreDowntime"
+    121 => "TriggerTimeInterval"
+    122 => "IconShouldSuppressMask"
+    123 => "ShouldPresentAlert"
+    124 => "ShouldPlaySound"
+    125 => "ToneAlertType"
+    126 => "ShouldIgnoreAccessibilityDisabledVibrationSetting"
+    127 => "ShouldUseRequestIdentifierForDismissalSync"
+    128 => "CommunicationContextCapabilities"
+    129 => "SoundShouldRepeat"
+    130 => "ShouldHideDate"
+    131 => "CommunicationContextReplyToCurrentUser"
+    132 => "UNNotificationLockScreenDestination"
+    133 => "AppNotificationSummaryArgument"
+    134 => "PipelineState"
+    135 => "IsHighlight"
+    136 => "CommunicationContextMentionsCurrentUser"
+    137 => "TriggerRepeatInterval"
+    138 => "SoundMaximumDuration"
+    139 => "UNNotificationDefaultDestinations"
+    140 => "RealertCount"
+    141 => "AppNotificationIdentifier"
+    142 => "CommunicationContextBusinessCorrespondence"
+    143 => "ShouldPreemptPresentedNotification"
+    144 => "ShouldBackgroundDefaultAction"
+    145 => "NotificationType"
+    146 => "ToneMediaLibraryItemIdentifier"
+    147 => "ShouldAuthenticateDefaultAction"
+    148 => "PresentationOptions"
+    149 => "AppNotificationTitle"
+    150 => "PriorityStatus"
+    151 => "CommunicationContextRecipientCount"
+    152 => "ShouldIgnoreDoNotDisturb"
+    153 => "AppNotificationSummaryArgumentCount"
+    154 => "UNNotificationShouldShowSubordinateIcon"
+    155 => "CommunicationContextNotifyRecipientAnyway"
+    156 => "UNNotificationRelevanceScore"
+    157 => "BadgeApplicationIcon"
+    158 => "SummaryStatus"
+    159 => "Footer"
+    160 => "Header"
+    161 => "UNNotificationAlertDestination"
+    162 => "HasDefaultActionKey"
+    163 => "UNNotificationCarPlayDestination"
+    164 => "UNNotificationTriggerType"
+    165 => "UNNotificationUserInfo"
+    166 => "CriticalAlertSound"
+    167 => "ShouldDisplayActionsInline"
+    168 => "TriggerRepeats"
+    169 => "SoundShouldIgnoreRingerSwitch"
+    170 => "AppNotificationCreationDate"
+    171 => "ShouldHideTime"
+    172 => "EventBehavior"
+    173 => "SchemaVersion"
+    174 => "CommunicationContextSystemImage"
+    175 => "AppNotificationMessage"
+    176 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018960 [0x1fb1e1308]>{value = 76}
+      "NS.day" => 29
+      "NS.hour" => 23
+      "NS.leapMonth" => 0
+      "NS.minute" => 21
+      "NS.month" => 10
+      "NS.repeatedDay" => false
+      "NS.second" => 0
+      "NS.timezone" => <CFKeyedArchiverUID 0x77f019580 [0x1fb1e1308]>{value = 177}
+      "NS.year" => 2026
+    }
+    177 => {
+      "$class" => <CFKeyedArchiverUID 0x77f0189e0 [0x1fb1e1308]>{value = 75}
+      "NS.data" => <CFKeyedArchiverUID 0x77f0195a0 [0x1fb1e1308]>{value = 178}
+      "NS.name" => <CFKeyedArchiverUID 0x77f0189a0 [0x1fb1e1308]>{value = 73}
+    }
+    178 => {length = 114, bytes = 0x545a6966320000000000000000000000 ... 54000a474d54300a}
+    179 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008763.820347
+    }
+    180 => "6"
+    181 => "UNNotificationContentTypeDefault"
+    182 => "Nettoyage du visage"
+    183 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018b60 [0x1fb1e1308]>{value = 98}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f0195e0 [0x1fb1e1308]>{value = 184}
+        1 => <CFKeyedArchiverUID 0x77f019600 [0x1fb1e1308]>{value = 185}
+        2 => <CFKeyedArchiverUID 0x77f019620 [0x1fb1e1308]>{value = 186}
+        3 => <CFKeyedArchiverUID 0x77f019640 [0x1fb1e1308]>{value = 187}
+        4 => <CFKeyedArchiverUID 0x77f018ac0 [0x1fb1e1308]>{value = 93}
+        5 => <CFKeyedArchiverUID 0x77f019660 [0x1fb1e1308]>{value = 188}
+        6 => <CFKeyedArchiverUID 0x77f018b00 [0x1fb1e1308]>{value = 95}
+        7 => <CFKeyedArchiverUID 0x77f019680 [0x1fb1e1308]>{value = 189}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        1 => <CFKeyedArchiverUID 0x77f0196a0 [0x1fb1e1308]>{value = 190}
+        2 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f0196c0 [0x1fb1e1308]>{value = 191}
+        5 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        6 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        7 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+      ]
+    }
+    184 => "presentAlert"
+    185 => "NotificationId"
+    186 => "presentBadge"
+    187 => "presentBanner"
+    188 => "presentSound"
+    189 => "presentList"
+    190 => 6
+    191 => "Nettoyage du visage"
+    192 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018bc0 [0x1fb1e1308]>{value = 106}
+      "activeModeUUID" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "eventDetails" => <CFKeyedArchiverUID 0x77f0196e0 [0x1fb1e1308]>{value = 193}
+      "intelligentBehavior" => 0
+      "interruptionSuppression" => 0
+      "resolutionReason" => 2
+    }
+    193 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018c20 [0x1fb1e1308]>{value = 105}
+      "behavior" => 0
+      "body" => <CFKeyedArchiverUID 0x77f019700 [0x1fb1e1308]>{value = 196}
+      "bundleIdentifier" => <CFKeyedArchiverUID 0x77f019740 [0x1fb1e1308]>{value = 194}
+      "filterCriteria" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "forwardingBehavior" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "identifier" => <CFKeyedArchiverUID 0x77f0194c0 [0x1fb1e1308]>{value = 180}
+      "notifyAnyway" => false
+      "platform" => 0
+      "sender" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "shouldAdjustEventBehaviorForMirroring" => false
+      "subtitle" => <CFKeyedArchiverUID 0x77f019720 [0x1fb1e1308]>{value = 195}
+      "threadIdentifier" => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+      "title" => <CFKeyedArchiverUID 0x77f019720 [0x1fb1e1308]>{value = 195}
+      "type" => 0
+      "urgency" => 0
+    }
+    194 => "com.pvjio.mamadera"
+    195 => "Nettoyage du visage"
+    196 => "Nora : c'est l'heure de Nettoyage du visage."
+    197 => "Nora : c'est l'heure de Nettoyage du visage."
+    198 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018940 [0x1fb1e1308]>{value = 109}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f019760 [0x1fb1e1308]>{value = 199}
+        1 => <CFKeyedArchiverUID 0x77f019780 [0x1fb1e1308]>{value = 200}
+        2 => <CFKeyedArchiverUID 0x77f0197a0 [0x1fb1e1308]>{value = 201}
+        3 => <CFKeyedArchiverUID 0x77f0197c0 [0x1fb1e1308]>{value = 202}
+        4 => <CFKeyedArchiverUID 0x77f0197e0 [0x1fb1e1308]>{value = 203}
+        5 => <CFKeyedArchiverUID 0x77f019800 [0x1fb1e1308]>{value = 204}
+        6 => <CFKeyedArchiverUID 0x77f019820 [0x1fb1e1308]>{value = 205}
+        7 => <CFKeyedArchiverUID 0x77f019840 [0x1fb1e1308]>{value = 206}
+        8 => <CFKeyedArchiverUID 0x77f019860 [0x1fb1e1308]>{value = 207}
+        9 => <CFKeyedArchiverUID 0x77f019880 [0x1fb1e1308]>{value = 208}
+        10 => <CFKeyedArchiverUID 0x77f0198a0 [0x1fb1e1308]>{value = 209}
+        11 => <CFKeyedArchiverUID 0x77f0198c0 [0x1fb1e1308]>{value = 210}
+        12 => <CFKeyedArchiverUID 0x77f0198e0 [0x1fb1e1308]>{value = 211}
+        13 => <CFKeyedArchiverUID 0x77f019900 [0x1fb1e1308]>{value = 212}
+        14 => <CFKeyedArchiverUID 0x77f019920 [0x1fb1e1308]>{value = 213}
+        15 => <CFKeyedArchiverUID 0x77f019940 [0x1fb1e1308]>{value = 214}
+        16 => <CFKeyedArchiverUID 0x77f019960 [0x1fb1e1308]>{value = 215}
+        17 => <CFKeyedArchiverUID 0x77f019980 [0x1fb1e1308]>{value = 216}
+        18 => <CFKeyedArchiverUID 0x77f0199a0 [0x1fb1e1308]>{value = 217}
+        19 => <CFKeyedArchiverUID 0x77f0199c0 [0x1fb1e1308]>{value = 218}
+        20 => <CFKeyedArchiverUID 0x77f0199e0 [0x1fb1e1308]>{value = 219}
+        21 => <CFKeyedArchiverUID 0x77f019a00 [0x1fb1e1308]>{value = 220}
+        22 => <CFKeyedArchiverUID 0x77f019a20 [0x1fb1e1308]>{value = 221}
+        23 => <CFKeyedArchiverUID 0x77f019a40 [0x1fb1e1308]>{value = 222}
+        24 => <CFKeyedArchiverUID 0x77f019a60 [0x1fb1e1308]>{value = 223}
+        25 => <CFKeyedArchiverUID 0x77f019a80 [0x1fb1e1308]>{value = 224}
+        26 => <CFKeyedArchiverUID 0x77f019aa0 [0x1fb1e1308]>{value = 225}
+        27 => <CFKeyedArchiverUID 0x77f019ac0 [0x1fb1e1308]>{value = 226}
+        28 => <CFKeyedArchiverUID 0x77f019ae0 [0x1fb1e1308]>{value = 227}
+        29 => <CFKeyedArchiverUID 0x77f019b00 [0x1fb1e1308]>{value = 228}
+        30 => <CFKeyedArchiverUID 0x77f019b20 [0x1fb1e1308]>{value = 229}
+        31 => <CFKeyedArchiverUID 0x77f019b40 [0x1fb1e1308]>{value = 230}
+        32 => <CFKeyedArchiverUID 0x77f019b60 [0x1fb1e1308]>{value = 231}
+        33 => <CFKeyedArchiverUID 0x77f019b80 [0x1fb1e1308]>{value = 232}
+        34 => <CFKeyedArchiverUID 0x77f019ba0 [0x1fb1e1308]>{value = 233}
+        35 => <CFKeyedArchiverUID 0x77f019bc0 [0x1fb1e1308]>{value = 234}
+        36 => <CFKeyedArchiverUID 0x77f019be0 [0x1fb1e1308]>{value = 235}
+        37 => <CFKeyedArchiverUID 0x77f019c00 [0x1fb1e1308]>{value = 236}
+        38 => <CFKeyedArchiverUID 0x77f019c20 [0x1fb1e1308]>{value = 237}
+        39 => <CFKeyedArchiverUID 0x77f019c40 [0x1fb1e1308]>{value = 238}
+        40 => <CFKeyedArchiverUID 0x77f019c60 [0x1fb1e1308]>{value = 239}
+        41 => <CFKeyedArchiverUID 0x77f019c80 [0x1fb1e1308]>{value = 240}
+        42 => <CFKeyedArchiverUID 0x77f019ca0 [0x1fb1e1308]>{value = 241}
+        43 => <CFKeyedArchiverUID 0x77f019cc0 [0x1fb1e1308]>{value = 242}
+        44 => <CFKeyedArchiverUID 0x77f019ce0 [0x1fb1e1308]>{value = 243}
+        45 => <CFKeyedArchiverUID 0x77f019d00 [0x1fb1e1308]>{value = 244}
+        46 => <CFKeyedArchiverUID 0x77f019d20 [0x1fb1e1308]>{value = 245}
+        47 => <CFKeyedArchiverUID 0x77f019d40 [0x1fb1e1308]>{value = 246}
+        48 => <CFKeyedArchiverUID 0x77f019260 [0x1fb1e1308]>{value = 159}
+        49 => <CFKeyedArchiverUID 0x77f019280 [0x1fb1e1308]>{value = 160}
+        50 => <CFKeyedArchiverUID 0x77f019d60 [0x1fb1e1308]>{value = 247}
+        51 => <CFKeyedArchiverUID 0x77f019d80 [0x1fb1e1308]>{value = 248}
+        52 => <CFKeyedArchiverUID 0x77f019da0 [0x1fb1e1308]>{value = 249}
+        53 => <CFKeyedArchiverUID 0x77f019dc0 [0x1fb1e1308]>{value = 250}
+        54 => <CFKeyedArchiverUID 0x77f019de0 [0x1fb1e1308]>{value = 251}
+        55 => <CFKeyedArchiverUID 0x77f019e00 [0x1fb1e1308]>{value = 252}
+        56 => <CFKeyedArchiverUID 0x77f019e20 [0x1fb1e1308]>{value = 253}
+        57 => <CFKeyedArchiverUID 0x77f019e40 [0x1fb1e1308]>{value = 254}
+        58 => <CFKeyedArchiverUID 0x77f019e60 [0x1fb1e1308]>{value = 255}
+        59 => <CFKeyedArchiverUID 0x77f019e80 [0x1fb1e1308]>{value = 256}
+        60 => <CFKeyedArchiverUID 0x77f019ea0 [0x1fb1e1308]>{value = 257}
+        61 => <CFKeyedArchiverUID 0x77f019ec0 [0x1fb1e1308]>{value = 258}
+        62 => <CFKeyedArchiverUID 0x77f019ee0 [0x1fb1e1308]>{value = 259}
+        63 => <CFKeyedArchiverUID 0x77f019f00 [0x1fb1e1308]>{value = 260}
+        64 => <CFKeyedArchiverUID 0x77f019f20 [0x1fb1e1308]>{value = 261}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        1 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        2 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f019f40 [0x1fb1e1308]>{value = 262}
+        5 => <CFKeyedArchiverUID 0x77f019f60 [0x1fb1e1308]>{value = 265}
+        6 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        7 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        8 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        9 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        10 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        11 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        12 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        13 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        14 => <CFKeyedArchiverUID 0x77f0187a0 [0x1fb1e1308]>{value = 80}
+        15 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        16 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        17 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        18 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        19 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        20 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        21 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        22 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        23 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        24 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        25 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        26 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        27 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        28 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        29 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        30 => <CFKeyedArchiverUID 0x77f019f80 [0x1fb1e1308]>{value = 266}
+        31 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        32 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        33 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        34 => <CFKeyedArchiverUID 0x77f019fa0 [0x1fb1e1308]>{value = 267}
+        35 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        36 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        37 => <CFKeyedArchiverUID 0x77f018840 [0x1fb1e1308]>{value = 85}
+        38 => <CFKeyedArchiverUID 0x77f019fc0 [0x1fb1e1308]>{value = 268}
+        39 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        40 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        41 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        42 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        43 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        44 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        45 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        46 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        47 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        48 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        49 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        50 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        51 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        52 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        53 => <CFKeyedArchiverUID 0x77f018880 [0x1fb1e1308]>{value = 87}
+        54 => <CFKeyedArchiverUID 0x77f019fe0 [0x1fb1e1308]>{value = 269}
+        55 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        56 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        57 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        58 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        59 => <CFKeyedArchiverUID 0x77f0188c0 [0x1fb1e1308]>{value = 99}
+        60 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        61 => <CFKeyedArchiverUID 0x77f01a000 [0x1fb1e1308]>{value = 278}
+        62 => <CFKeyedArchiverUID 0x77f018900 [0x1fb1e1308]>{value = 107}
+        63 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        64 => <CFKeyedArchiverUID 0x77f01a020 [0x1fb1e1308]>{value = 283}
+      ]
+    }
+    199 => "ShouldSuppressScreenLightUp"
+    200 => "ShouldSuppressSyncDismissalWhenRemoved"
+    201 => "InterruptionLevel"
+    202 => "UNNotificationNotificationCenterDestination"
+    203 => "TriggerDateComponents"
+    204 => "RequestDate"
+    205 => "ScreenCaptureProhibited"
+    206 => "ShouldPreventNotificationDismissalAfterDefaultAction"
+    207 => "RevisionNumber"
+    208 => "ShouldIgnoreDowntime"
+    209 => "TriggerTimeInterval"
+    210 => "IconShouldSuppressMask"
+    211 => "ShouldPresentAlert"
+    212 => "ShouldPlaySound"
+    213 => "ToneAlertType"
+    214 => "ShouldIgnoreAccessibilityDisabledVibrationSetting"
+    215 => "ShouldUseRequestIdentifierForDismissalSync"
+    216 => "CommunicationContextCapabilities"
+    217 => "SoundShouldRepeat"
+    218 => "ShouldHideDate"
+    219 => "CommunicationContextReplyToCurrentUser"
+    220 => "UNNotificationLockScreenDestination"
+    221 => "AppNotificationSummaryArgument"
+    222 => "PipelineState"
+    223 => "IsHighlight"
+    224 => "CommunicationContextMentionsCurrentUser"
+    225 => "TriggerRepeatInterval"
+    226 => "SoundMaximumDuration"
+    227 => "UNNotificationDefaultDestinations"
+    228 => "RealertCount"
+    229 => "AppNotificationIdentifier"
+    230 => "CommunicationContextBusinessCorrespondence"
+    231 => "ShouldPreemptPresentedNotification"
+    232 => "ShouldBackgroundDefaultAction"
+    233 => "NotificationType"
+    234 => "ToneMediaLibraryItemIdentifier"
+    235 => "ShouldAuthenticateDefaultAction"
+    236 => "PresentationOptions"
+    237 => "AppNotificationTitle"
+    238 => "PriorityStatus"
+    239 => "CommunicationContextRecipientCount"
+    240 => "ShouldIgnoreDoNotDisturb"
+    241 => "AppNotificationSummaryArgumentCount"
+    242 => "UNNotificationShouldShowSubordinateIcon"
+    243 => "CommunicationContextNotifyRecipientAnyway"
+    244 => "UNNotificationRelevanceScore"
+    245 => "BadgeApplicationIcon"
+    246 => "SummaryStatus"
+    247 => "UNNotificationAlertDestination"
+    248 => "HasDefaultActionKey"
+    249 => "UNNotificationCarPlayDestination"
+    250 => "UNNotificationTriggerType"
+    251 => "UNNotificationUserInfo"
+    252 => "CriticalAlertSound"
+    253 => "ShouldDisplayActionsInline"
+    254 => "TriggerRepeats"
+    255 => "SoundShouldIgnoreRingerSwitch"
+    256 => "AppNotificationCreationDate"
+    257 => "ShouldHideTime"
+    258 => "EventBehavior"
+    259 => "SchemaVersion"
+    260 => "CommunicationContextSystemImage"
+    261 => "AppNotificationMessage"
+    262 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018960 [0x1fb1e1308]>{value = 76}
+      "NS.day" => 29
+      "NS.hour" => 23
+      "NS.leapMonth" => 0
+      "NS.minute" => 21
+      "NS.month" => 10
+      "NS.repeatedDay" => false
+      "NS.second" => 0
+      "NS.timezone" => <CFKeyedArchiverUID 0x77f01a040 [0x1fb1e1308]>{value = 263}
+      "NS.year" => 2026
+    }
+    263 => {
+      "$class" => <CFKeyedArchiverUID 0x77f0189e0 [0x1fb1e1308]>{value = 75}
+      "NS.data" => <CFKeyedArchiverUID 0x77f01a060 [0x1fb1e1308]>{value = 264}
+      "NS.name" => <CFKeyedArchiverUID 0x77f0189a0 [0x1fb1e1308]>{value = 73}
+    }
+    264 => {length = 114, bytes = 0x545a6966320000000000000000000000 ... 54000a474d54300a}
+    265 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008763.809863
+    }
+    266 => "5"
+    267 => "UNNotificationContentTypeDefault"
+    268 => "Nettoyage des yeux"
+    269 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018b60 [0x1fb1e1308]>{value = 98}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f01a0a0 [0x1fb1e1308]>{value = 270}
+        1 => <CFKeyedArchiverUID 0x77f01a0c0 [0x1fb1e1308]>{value = 271}
+        2 => <CFKeyedArchiverUID 0x77f01a0e0 [0x1fb1e1308]>{value = 272}
+        3 => <CFKeyedArchiverUID 0x77f01a100 [0x1fb1e1308]>{value = 273}
+        4 => <CFKeyedArchiverUID 0x77f018ac0 [0x1fb1e1308]>{value = 93}
+        5 => <CFKeyedArchiverUID 0x77f01a120 [0x1fb1e1308]>{value = 274}
+        6 => <CFKeyedArchiverUID 0x77f018b00 [0x1fb1e1308]>{value = 95}
+        7 => <CFKeyedArchiverUID 0x77f01a140 [0x1fb1e1308]>{value = 275}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        1 => <CFKeyedArchiverUID 0x77f01a160 [0x1fb1e1308]>{value = 276}
+        2 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f01a180 [0x1fb1e1308]>{value = 277}
+        5 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        6 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        7 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+      ]
+    }
+    270 => "presentAlert"
+    271 => "NotificationId"
+    272 => "presentBadge"
+    273 => "presentBanner"
+    274 => "presentSound"
+    275 => "presentList"
+    276 => 5
+    277 => "Nettoyage des yeux"
+    278 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018bc0 [0x1fb1e1308]>{value = 106}
+      "activeModeUUID" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "eventDetails" => <CFKeyedArchiverUID 0x77f01a1a0 [0x1fb1e1308]>{value = 279}
+      "intelligentBehavior" => 0
+      "interruptionSuppression" => 0
+      "resolutionReason" => 2
+    }
+    279 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018c20 [0x1fb1e1308]>{value = 105}
+      "behavior" => 0
+      "body" => <CFKeyedArchiverUID 0x77f01a1c0 [0x1fb1e1308]>{value = 282}
+      "bundleIdentifier" => <CFKeyedArchiverUID 0x77f01a200 [0x1fb1e1308]>{value = 280}
+      "filterCriteria" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "forwardingBehavior" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "identifier" => <CFKeyedArchiverUID 0x77f019f80 [0x1fb1e1308]>{value = 266}
+      "notifyAnyway" => false
+      "platform" => 0
+      "sender" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "shouldAdjustEventBehaviorForMirroring" => false
+      "subtitle" => <CFKeyedArchiverUID 0x77f01a1e0 [0x1fb1e1308]>{value = 281}
+      "threadIdentifier" => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+      "title" => <CFKeyedArchiverUID 0x77f01a1e0 [0x1fb1e1308]>{value = 281}
+      "type" => 0
+      "urgency" => 0
+    }
+    280 => "com.pvjio.mamadera"
+    281 => "Nettoyage des yeux"
+    282 => "Nora : c'est l'heure de Nettoyage des yeux."
+    283 => "Nora : c'est l'heure de Nettoyage des yeux."
+    284 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018940 [0x1fb1e1308]>{value = 109}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f01a220 [0x1fb1e1308]>{value = 285}
+        1 => <CFKeyedArchiverUID 0x77f01a240 [0x1fb1e1308]>{value = 286}
+        2 => <CFKeyedArchiverUID 0x77f01a260 [0x1fb1e1308]>{value = 287}
+        3 => <CFKeyedArchiverUID 0x77f01a280 [0x1fb1e1308]>{value = 288}
+        4 => <CFKeyedArchiverUID 0x77f01a2a0 [0x1fb1e1308]>{value = 289}
+        5 => <CFKeyedArchiverUID 0x77f01a2c0 [0x1fb1e1308]>{value = 290}
+        6 => <CFKeyedArchiverUID 0x77f01a2e0 [0x1fb1e1308]>{value = 291}
+        7 => <CFKeyedArchiverUID 0x77f01a300 [0x1fb1e1308]>{value = 292}
+        8 => <CFKeyedArchiverUID 0x77f01a320 [0x1fb1e1308]>{value = 293}
+        9 => <CFKeyedArchiverUID 0x77f01a340 [0x1fb1e1308]>{value = 294}
+        10 => <CFKeyedArchiverUID 0x77f01a360 [0x1fb1e1308]>{value = 295}
+        11 => <CFKeyedArchiverUID 0x77f01a380 [0x1fb1e1308]>{value = 296}
+        12 => <CFKeyedArchiverUID 0x77f01a3a0 [0x1fb1e1308]>{value = 297}
+        13 => <CFKeyedArchiverUID 0x77f01a3c0 [0x1fb1e1308]>{value = 298}
+        14 => <CFKeyedArchiverUID 0x77f01a3e0 [0x1fb1e1308]>{value = 299}
+        15 => <CFKeyedArchiverUID 0x77f01a400 [0x1fb1e1308]>{value = 300}
+        16 => <CFKeyedArchiverUID 0x77f01a420 [0x1fb1e1308]>{value = 301}
+        17 => <CFKeyedArchiverUID 0x77f01a440 [0x1fb1e1308]>{value = 302}
+        18 => <CFKeyedArchiverUID 0x77f01a460 [0x1fb1e1308]>{value = 303}
+        19 => <CFKeyedArchiverUID 0x77f01a480 [0x1fb1e1308]>{value = 304}
+        20 => <CFKeyedArchiverUID 0x77f01a4a0 [0x1fb1e1308]>{value = 305}
+        21 => <CFKeyedArchiverUID 0x77f01a4c0 [0x1fb1e1308]>{value = 306}
+        22 => <CFKeyedArchiverUID 0x77f01a4e0 [0x1fb1e1308]>{value = 307}
+        23 => <CFKeyedArchiverUID 0x77f01a500 [0x1fb1e1308]>{value = 308}
+        24 => <CFKeyedArchiverUID 0x77f01a520 [0x1fb1e1308]>{value = 309}
+        25 => <CFKeyedArchiverUID 0x77f01a540 [0x1fb1e1308]>{value = 310}
+        26 => <CFKeyedArchiverUID 0x77f01a560 [0x1fb1e1308]>{value = 311}
+        27 => <CFKeyedArchiverUID 0x77f01a580 [0x1fb1e1308]>{value = 312}
+        28 => <CFKeyedArchiverUID 0x77f01a5a0 [0x1fb1e1308]>{value = 313}
+        29 => <CFKeyedArchiverUID 0x77f01a5c0 [0x1fb1e1308]>{value = 314}
+        30 => <CFKeyedArchiverUID 0x77f01a5e0 [0x1fb1e1308]>{value = 315}
+        31 => <CFKeyedArchiverUID 0x77f01a600 [0x1fb1e1308]>{value = 316}
+        32 => <CFKeyedArchiverUID 0x77f01a620 [0x1fb1e1308]>{value = 317}
+        33 => <CFKeyedArchiverUID 0x77f01a640 [0x1fb1e1308]>{value = 318}
+        34 => <CFKeyedArchiverUID 0x77f01a660 [0x1fb1e1308]>{value = 319}
+        35 => <CFKeyedArchiverUID 0x77f01a680 [0x1fb1e1308]>{value = 320}
+        36 => <CFKeyedArchiverUID 0x77f01a6a0 [0x1fb1e1308]>{value = 321}
+        37 => <CFKeyedArchiverUID 0x77f01a6c0 [0x1fb1e1308]>{value = 322}
+        38 => <CFKeyedArchiverUID 0x77f01a6e0 [0x1fb1e1308]>{value = 323}
+        39 => <CFKeyedArchiverUID 0x77f01a700 [0x1fb1e1308]>{value = 324}
+        40 => <CFKeyedArchiverUID 0x77f01a720 [0x1fb1e1308]>{value = 325}
+        41 => <CFKeyedArchiverUID 0x77f01a740 [0x1fb1e1308]>{value = 326}
+        42 => <CFKeyedArchiverUID 0x77f01a760 [0x1fb1e1308]>{value = 327}
+        43 => <CFKeyedArchiverUID 0x77f01a780 [0x1fb1e1308]>{value = 328}
+        44 => <CFKeyedArchiverUID 0x77f01a7a0 [0x1fb1e1308]>{value = 329}
+        45 => <CFKeyedArchiverUID 0x77f01a7c0 [0x1fb1e1308]>{value = 330}
+        46 => <CFKeyedArchiverUID 0x77f01a7e0 [0x1fb1e1308]>{value = 331}
+        47 => <CFKeyedArchiverUID 0x77f01a800 [0x1fb1e1308]>{value = 332}
+        48 => <CFKeyedArchiverUID 0x77f019260 [0x1fb1e1308]>{value = 159}
+        49 => <CFKeyedArchiverUID 0x77f019280 [0x1fb1e1308]>{value = 160}
+        50 => <CFKeyedArchiverUID 0x77f01a820 [0x1fb1e1308]>{value = 333}
+        51 => <CFKeyedArchiverUID 0x77f01a840 [0x1fb1e1308]>{value = 334}
+        52 => <CFKeyedArchiverUID 0x77f01a860 [0x1fb1e1308]>{value = 335}
+        53 => <CFKeyedArchiverUID 0x77f01a880 [0x1fb1e1308]>{value = 336}
+        54 => <CFKeyedArchiverUID 0x77f01a8a0 [0x1fb1e1308]>{value = 337}
+        55 => <CFKeyedArchiverUID 0x77f01a8c0 [0x1fb1e1308]>{value = 338}
+        56 => <CFKeyedArchiverUID 0x77f01a8e0 [0x1fb1e1308]>{value = 339}
+        57 => <CFKeyedArchiverUID 0x77f01a900 [0x1fb1e1308]>{value = 340}
+        58 => <CFKeyedArchiverUID 0x77f01a920 [0x1fb1e1308]>{value = 341}
+        59 => <CFKeyedArchiverUID 0x77f01a940 [0x1fb1e1308]>{value = 342}
+        60 => <CFKeyedArchiverUID 0x77f01a960 [0x1fb1e1308]>{value = 343}
+        61 => <CFKeyedArchiverUID 0x77f01a980 [0x1fb1e1308]>{value = 344}
+        62 => <CFKeyedArchiverUID 0x77f01a9a0 [0x1fb1e1308]>{value = 345}
+        63 => <CFKeyedArchiverUID 0x77f01a9c0 [0x1fb1e1308]>{value = 346}
+        64 => <CFKeyedArchiverUID 0x77f01a9e0 [0x1fb1e1308]>{value = 347}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        1 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        2 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f01aa00 [0x1fb1e1308]>{value = 348}
+        5 => <CFKeyedArchiverUID 0x77f01aa20 [0x1fb1e1308]>{value = 351}
+        6 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        7 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        8 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        9 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        10 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        11 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        12 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        13 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        14 => <CFKeyedArchiverUID 0x77f0187a0 [0x1fb1e1308]>{value = 80}
+        15 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        16 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        17 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        18 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        19 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        20 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        21 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        22 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        23 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        24 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        25 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        26 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        27 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        28 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        29 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        30 => <CFKeyedArchiverUID 0x77f01aa40 [0x1fb1e1308]>{value = 352}
+        31 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        32 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        33 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        34 => <CFKeyedArchiverUID 0x77f01aa60 [0x1fb1e1308]>{value = 353}
+        35 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        36 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        37 => <CFKeyedArchiverUID 0x77f018840 [0x1fb1e1308]>{value = 85}
+        38 => <CFKeyedArchiverUID 0x77f01aa80 [0x1fb1e1308]>{value = 354}
+        39 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        40 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        41 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        42 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        43 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        44 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        45 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        46 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        47 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        48 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        49 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        50 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        51 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        52 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        53 => <CFKeyedArchiverUID 0x77f018880 [0x1fb1e1308]>{value = 87}
+        54 => <CFKeyedArchiverUID 0x77f01aaa0 [0x1fb1e1308]>{value = 355}
+        55 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        56 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        57 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        58 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        59 => <CFKeyedArchiverUID 0x77f0188c0 [0x1fb1e1308]>{value = 99}
+        60 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        61 => <CFKeyedArchiverUID 0x77f01aac0 [0x1fb1e1308]>{value = 364}
+        62 => <CFKeyedArchiverUID 0x77f018900 [0x1fb1e1308]>{value = 107}
+        63 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        64 => <CFKeyedArchiverUID 0x77f01aae0 [0x1fb1e1308]>{value = 369}
+      ]
+    }
+    285 => "ShouldSuppressScreenLightUp"
+    286 => "ShouldSuppressSyncDismissalWhenRemoved"
+    287 => "InterruptionLevel"
+    288 => "UNNotificationNotificationCenterDestination"
+    289 => "TriggerDateComponents"
+    290 => "RequestDate"
+    291 => "ScreenCaptureProhibited"
+    292 => "ShouldPreventNotificationDismissalAfterDefaultAction"
+    293 => "RevisionNumber"
+    294 => "ShouldIgnoreDowntime"
+    295 => "TriggerTimeInterval"
+    296 => "IconShouldSuppressMask"
+    297 => "ShouldPresentAlert"
+    298 => "ShouldPlaySound"
+    299 => "ToneAlertType"
+    300 => "ShouldIgnoreAccessibilityDisabledVibrationSetting"
+    301 => "ShouldUseRequestIdentifierForDismissalSync"
+    302 => "CommunicationContextCapabilities"
+    303 => "SoundShouldRepeat"
+    304 => "ShouldHideDate"
+    305 => "CommunicationContextReplyToCurrentUser"
+    306 => "UNNotificationLockScreenDestination"
+    307 => "AppNotificationSummaryArgument"
+    308 => "PipelineState"
+    309 => "IsHighlight"
+    310 => "CommunicationContextMentionsCurrentUser"
+    311 => "TriggerRepeatInterval"
+    312 => "SoundMaximumDuration"
+    313 => "UNNotificationDefaultDestinations"
+    314 => "RealertCount"
+    315 => "AppNotificationIdentifier"
+    316 => "CommunicationContextBusinessCorrespondence"
+    317 => "ShouldPreemptPresentedNotification"
+    318 => "ShouldBackgroundDefaultAction"
+    319 => "NotificationType"
+    320 => "ToneMediaLibraryItemIdentifier"
+    321 => "ShouldAuthenticateDefaultAction"
+    322 => "PresentationOptions"
+    323 => "AppNotificationTitle"
+    324 => "PriorityStatus"
+    325 => "CommunicationContextRecipientCount"
+    326 => "ShouldIgnoreDoNotDisturb"
+    327 => "AppNotificationSummaryArgumentCount"
+    328 => "UNNotificationShouldShowSubordinateIcon"
+    329 => "CommunicationContextNotifyRecipientAnyway"
+    330 => "UNNotificationRelevanceScore"
+    331 => "BadgeApplicationIcon"
+    332 => "SummaryStatus"
+    333 => "UNNotificationAlertDestination"
+    334 => "HasDefaultActionKey"
+    335 => "UNNotificationCarPlayDestination"
+    336 => "UNNotificationTriggerType"
+    337 => "UNNotificationUserInfo"
+    338 => "CriticalAlertSound"
+    339 => "ShouldDisplayActionsInline"
+    340 => "TriggerRepeats"
+    341 => "SoundShouldIgnoreRingerSwitch"
+    342 => "AppNotificationCreationDate"
+    343 => "ShouldHideTime"
+    344 => "EventBehavior"
+    345 => "SchemaVersion"
+    346 => "CommunicationContextSystemImage"
+    347 => "AppNotificationMessage"
+    348 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018960 [0x1fb1e1308]>{value = 76}
+      "NS.day" => 29
+      "NS.hour" => 23
+      "NS.leapMonth" => 0
+      "NS.minute" => 21
+      "NS.month" => 10
+      "NS.repeatedDay" => false
+      "NS.second" => 0
+      "NS.timezone" => <CFKeyedArchiverUID 0x77f01ab00 [0x1fb1e1308]>{value = 349}
+      "NS.year" => 2026
+    }
+    349 => {
+      "$class" => <CFKeyedArchiverUID 0x77f0189e0 [0x1fb1e1308]>{value = 75}
+      "NS.data" => <CFKeyedArchiverUID 0x77f01ab20 [0x1fb1e1308]>{value = 350}
+      "NS.name" => <CFKeyedArchiverUID 0x77f0189a0 [0x1fb1e1308]>{value = 73}
+    }
+    350 => {length = 114, bytes = 0x545a6966320000000000000000000000 ... 54000a474d54300a}
+    351 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008763.7860759
+    }
+    352 => "4"
+    353 => "UNNotificationContentTypeDefault"
+    354 => "Vitamine D"
+    355 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018b60 [0x1fb1e1308]>{value = 98}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f01ab60 [0x1fb1e1308]>{value = 356}
+        1 => <CFKeyedArchiverUID 0x77f01ab80 [0x1fb1e1308]>{value = 357}
+        2 => <CFKeyedArchiverUID 0x77f01aba0 [0x1fb1e1308]>{value = 358}
+        3 => <CFKeyedArchiverUID 0x77f01abc0 [0x1fb1e1308]>{value = 359}
+        4 => <CFKeyedArchiverUID 0x77f018ac0 [0x1fb1e1308]>{value = 93}
+        5 => <CFKeyedArchiverUID 0x77f01abe0 [0x1fb1e1308]>{value = 360}
+        6 => <CFKeyedArchiverUID 0x77f018b00 [0x1fb1e1308]>{value = 95}
+        7 => <CFKeyedArchiverUID 0x77f01ac00 [0x1fb1e1308]>{value = 361}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        1 => <CFKeyedArchiverUID 0x77f01ac20 [0x1fb1e1308]>{value = 362}
+        2 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f01ac40 [0x1fb1e1308]>{value = 363}
+        5 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        6 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        7 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+      ]
+    }
+    356 => "presentAlert"
+    357 => "NotificationId"
+    358 => "presentBadge"
+    359 => "presentBanner"
+    360 => "presentSound"
+    361 => "presentList"
+    362 => 4
+    363 => "Vitamine D"
+    364 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018bc0 [0x1fb1e1308]>{value = 106}
+      "activeModeUUID" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "eventDetails" => <CFKeyedArchiverUID 0x77f01ac60 [0x1fb1e1308]>{value = 365}
+      "intelligentBehavior" => 0
+      "interruptionSuppression" => 0
+      "resolutionReason" => 2
+    }
+    365 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018c20 [0x1fb1e1308]>{value = 105}
+      "behavior" => 0
+      "body" => <CFKeyedArchiverUID 0x77f01ac80 [0x1fb1e1308]>{value = 368}
+      "bundleIdentifier" => <CFKeyedArchiverUID 0x77f01acc0 [0x1fb1e1308]>{value = 366}
+      "filterCriteria" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "forwardingBehavior" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "identifier" => <CFKeyedArchiverUID 0x77f01aa40 [0x1fb1e1308]>{value = 352}
+      "notifyAnyway" => false
+      "platform" => 0
+      "sender" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "shouldAdjustEventBehaviorForMirroring" => false
+      "subtitle" => <CFKeyedArchiverUID 0x77f01aca0 [0x1fb1e1308]>{value = 367}
+      "threadIdentifier" => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+      "title" => <CFKeyedArchiverUID 0x77f01aca0 [0x1fb1e1308]>{value = 367}
+      "type" => 0
+      "urgency" => 0
+    }
+    366 => "com.pvjio.mamadera"
+    367 => "Vitamine D"
+    368 => "Nora : c'est l'heure de Vitamine D."
+    369 => "Nora : c'est l'heure de Vitamine D."
+    370 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018940 [0x1fb1e1308]>{value = 109}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f01ace0 [0x1fb1e1308]>{value = 371}
+        1 => <CFKeyedArchiverUID 0x77f01ad00 [0x1fb1e1308]>{value = 372}
+        2 => <CFKeyedArchiverUID 0x77f01ad20 [0x1fb1e1308]>{value = 373}
+        3 => <CFKeyedArchiverUID 0x77f01ad40 [0x1fb1e1308]>{value = 374}
+        4 => <CFKeyedArchiverUID 0x77f01ad60 [0x1fb1e1308]>{value = 375}
+        5 => <CFKeyedArchiverUID 0x77f01ad80 [0x1fb1e1308]>{value = 376}
+        6 => <CFKeyedArchiverUID 0x77f01ada0 [0x1fb1e1308]>{value = 377}
+        7 => <CFKeyedArchiverUID 0x77f01adc0 [0x1fb1e1308]>{value = 378}
+        8 => <CFKeyedArchiverUID 0x77f01ade0 [0x1fb1e1308]>{value = 379}
+        9 => <CFKeyedArchiverUID 0x77f01ae00 [0x1fb1e1308]>{value = 380}
+        10 => <CFKeyedArchiverUID 0x77f01ae20 [0x1fb1e1308]>{value = 381}
+        11 => <CFKeyedArchiverUID 0x77f01ae40 [0x1fb1e1308]>{value = 382}
+        12 => <CFKeyedArchiverUID 0x77f01ae60 [0x1fb1e1308]>{value = 383}
+        13 => <CFKeyedArchiverUID 0x77f01ae80 [0x1fb1e1308]>{value = 384}
+        14 => <CFKeyedArchiverUID 0x77f01aea0 [0x1fb1e1308]>{value = 385}
+        15 => <CFKeyedArchiverUID 0x77f01aec0 [0x1fb1e1308]>{value = 386}
+        16 => <CFKeyedArchiverUID 0x77f01aee0 [0x1fb1e1308]>{value = 387}
+        17 => <CFKeyedArchiverUID 0x77f01af00 [0x1fb1e1308]>{value = 388}
+        18 => <CFKeyedArchiverUID 0x77f01af20 [0x1fb1e1308]>{value = 389}
+        19 => <CFKeyedArchiverUID 0x77f01af40 [0x1fb1e1308]>{value = 390}
+        20 => <CFKeyedArchiverUID 0x77f01af60 [0x1fb1e1308]>{value = 391}
+        21 => <CFKeyedArchiverUID 0x77f01af80 [0x1fb1e1308]>{value = 392}
+        22 => <CFKeyedArchiverUID 0x77f01afa0 [0x1fb1e1308]>{value = 393}
+        23 => <CFKeyedArchiverUID 0x77f01afc0 [0x1fb1e1308]>{value = 394}
+        24 => <CFKeyedArchiverUID 0x77f01afe0 [0x1fb1e1308]>{value = 395}
+        25 => <CFKeyedArchiverUID 0x77f01b000 [0x1fb1e1308]>{value = 396}
+        26 => <CFKeyedArchiverUID 0x77f01b020 [0x1fb1e1308]>{value = 397}
+        27 => <CFKeyedArchiverUID 0x77f01b040 [0x1fb1e1308]>{value = 398}
+        28 => <CFKeyedArchiverUID 0x77f01b060 [0x1fb1e1308]>{value = 399}
+        29 => <CFKeyedArchiverUID 0x77f01b080 [0x1fb1e1308]>{value = 400}
+        30 => <CFKeyedArchiverUID 0x77f01b0a0 [0x1fb1e1308]>{value = 401}
+        31 => <CFKeyedArchiverUID 0x77f01b0c0 [0x1fb1e1308]>{value = 402}
+        32 => <CFKeyedArchiverUID 0x77f01b0e0 [0x1fb1e1308]>{value = 403}
+        33 => <CFKeyedArchiverUID 0x77f01b100 [0x1fb1e1308]>{value = 404}
+        34 => <CFKeyedArchiverUID 0x77f01b120 [0x1fb1e1308]>{value = 405}
+        35 => <CFKeyedArchiverUID 0x77f01b140 [0x1fb1e1308]>{value = 406}
+        36 => <CFKeyedArchiverUID 0x77f01b160 [0x1fb1e1308]>{value = 407}
+        37 => <CFKeyedArchiverUID 0x77f01b180 [0x1fb1e1308]>{value = 408}
+        38 => <CFKeyedArchiverUID 0x77f01b1a0 [0x1fb1e1308]>{value = 409}
+        39 => <CFKeyedArchiverUID 0x77f01b1c0 [0x1fb1e1308]>{value = 410}
+        40 => <CFKeyedArchiverUID 0x77f01b1e0 [0x1fb1e1308]>{value = 411}
+        41 => <CFKeyedArchiverUID 0x77f01b200 [0x1fb1e1308]>{value = 412}
+        42 => <CFKeyedArchiverUID 0x77f01b220 [0x1fb1e1308]>{value = 413}
+        43 => <CFKeyedArchiverUID 0x77f01b240 [0x1fb1e1308]>{value = 414}
+        44 => <CFKeyedArchiverUID 0x77f01b260 [0x1fb1e1308]>{value = 415}
+        45 => <CFKeyedArchiverUID 0x77f01b280 [0x1fb1e1308]>{value = 416}
+        46 => <CFKeyedArchiverUID 0x77f01b2a0 [0x1fb1e1308]>{value = 417}
+        47 => <CFKeyedArchiverUID 0x77f01b2c0 [0x1fb1e1308]>{value = 418}
+        48 => <CFKeyedArchiverUID 0x77f019260 [0x1fb1e1308]>{value = 159}
+        49 => <CFKeyedArchiverUID 0x77f019280 [0x1fb1e1308]>{value = 160}
+        50 => <CFKeyedArchiverUID 0x77f01b2e0 [0x1fb1e1308]>{value = 419}
+        51 => <CFKeyedArchiverUID 0x77f01b300 [0x1fb1e1308]>{value = 420}
+        52 => <CFKeyedArchiverUID 0x77f01b320 [0x1fb1e1308]>{value = 421}
+        53 => <CFKeyedArchiverUID 0x77f01b340 [0x1fb1e1308]>{value = 422}
+        54 => <CFKeyedArchiverUID 0x77f01b360 [0x1fb1e1308]>{value = 423}
+        55 => <CFKeyedArchiverUID 0x77f01b380 [0x1fb1e1308]>{value = 424}
+        56 => <CFKeyedArchiverUID 0x77f01b3a0 [0x1fb1e1308]>{value = 425}
+        57 => <CFKeyedArchiverUID 0x77f01b3c0 [0x1fb1e1308]>{value = 426}
+        58 => <CFKeyedArchiverUID 0x77f01b3e0 [0x1fb1e1308]>{value = 427}
+        59 => <CFKeyedArchiverUID 0x77f01b400 [0x1fb1e1308]>{value = 428}
+        60 => <CFKeyedArchiverUID 0x77f01b420 [0x1fb1e1308]>{value = 429}
+        61 => <CFKeyedArchiverUID 0x77f01b440 [0x1fb1e1308]>{value = 430}
+        62 => <CFKeyedArchiverUID 0x77f01b460 [0x1fb1e1308]>{value = 431}
+        63 => <CFKeyedArchiverUID 0x77f01b480 [0x1fb1e1308]>{value = 432}
+        64 => <CFKeyedArchiverUID 0x77f01b4a0 [0x1fb1e1308]>{value = 433}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        1 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        2 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f01b4c0 [0x1fb1e1308]>{value = 434}
+        5 => <CFKeyedArchiverUID 0x77f01b4e0 [0x1fb1e1308]>{value = 437}
+        6 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        7 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        8 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        9 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        10 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        11 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        12 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        13 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        14 => <CFKeyedArchiverUID 0x77f0187a0 [0x1fb1e1308]>{value = 80}
+        15 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        16 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        17 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        18 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        19 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        20 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        21 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        22 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        23 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        24 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        25 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        26 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        27 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        28 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        29 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        30 => <CFKeyedArchiverUID 0x77f01b500 [0x1fb1e1308]>{value = 438}
+        31 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        32 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        33 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        34 => <CFKeyedArchiverUID 0x77f01b520 [0x1fb1e1308]>{value = 439}
+        35 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        36 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        37 => <CFKeyedArchiverUID 0x77f018840 [0x1fb1e1308]>{value = 85}
+        38 => <CFKeyedArchiverUID 0x77f01b540 [0x1fb1e1308]>{value = 440}
+        39 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        40 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        41 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        42 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        43 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        44 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        45 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        46 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        47 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        48 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        49 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        50 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        51 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        52 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        53 => <CFKeyedArchiverUID 0x77f018880 [0x1fb1e1308]>{value = 87}
+        54 => <CFKeyedArchiverUID 0x77f01b560 [0x1fb1e1308]>{value = 441}
+        55 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        56 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        57 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        58 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        59 => <CFKeyedArchiverUID 0x77f0188c0 [0x1fb1e1308]>{value = 99}
+        60 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        61 => <CFKeyedArchiverUID 0x77f01b580 [0x1fb1e1308]>{value = 450}
+        62 => <CFKeyedArchiverUID 0x77f018900 [0x1fb1e1308]>{value = 107}
+        63 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        64 => <CFKeyedArchiverUID 0x77f01b5a0 [0x1fb1e1308]>{value = 455}
+      ]
+    }
+    371 => "ShouldSuppressScreenLightUp"
+    372 => "ShouldSuppressSyncDismissalWhenRemoved"
+    373 => "InterruptionLevel"
+    374 => "UNNotificationNotificationCenterDestination"
+    375 => "TriggerDateComponents"
+    376 => "RequestDate"
+    377 => "ScreenCaptureProhibited"
+    378 => "ShouldPreventNotificationDismissalAfterDefaultAction"
+    379 => "RevisionNumber"
+    380 => "ShouldIgnoreDowntime"
+    381 => "TriggerTimeInterval"
+    382 => "IconShouldSuppressMask"
+    383 => "ShouldPresentAlert"
+    384 => "ShouldPlaySound"
+    385 => "ToneAlertType"
+    386 => "ShouldIgnoreAccessibilityDisabledVibrationSetting"
+    387 => "ShouldUseRequestIdentifierForDismissalSync"
+    388 => "CommunicationContextCapabilities"
+    389 => "SoundShouldRepeat"
+    390 => "ShouldHideDate"
+    391 => "CommunicationContextReplyToCurrentUser"
+    392 => "UNNotificationLockScreenDestination"
+    393 => "AppNotificationSummaryArgument"
+    394 => "PipelineState"
+    395 => "IsHighlight"
+    396 => "CommunicationContextMentionsCurrentUser"
+    397 => "TriggerRepeatInterval"
+    398 => "SoundMaximumDuration"
+    399 => "UNNotificationDefaultDestinations"
+    400 => "RealertCount"
+    401 => "AppNotificationIdentifier"
+    402 => "CommunicationContextBusinessCorrespondence"
+    403 => "ShouldPreemptPresentedNotification"
+    404 => "ShouldBackgroundDefaultAction"
+    405 => "NotificationType"
+    406 => "ToneMediaLibraryItemIdentifier"
+    407 => "ShouldAuthenticateDefaultAction"
+    408 => "PresentationOptions"
+    409 => "AppNotificationTitle"
+    410 => "PriorityStatus"
+    411 => "CommunicationContextRecipientCount"
+    412 => "ShouldIgnoreDoNotDisturb"
+    413 => "AppNotificationSummaryArgumentCount"
+    414 => "UNNotificationShouldShowSubordinateIcon"
+    415 => "CommunicationContextNotifyRecipientAnyway"
+    416 => "UNNotificationRelevanceScore"
+    417 => "BadgeApplicationIcon"
+    418 => "SummaryStatus"
+    419 => "UNNotificationAlertDestination"
+    420 => "HasDefaultActionKey"
+    421 => "UNNotificationCarPlayDestination"
+    422 => "UNNotificationTriggerType"
+    423 => "UNNotificationUserInfo"
+    424 => "CriticalAlertSound"
+    425 => "ShouldDisplayActionsInline"
+    426 => "TriggerRepeats"
+    427 => "SoundShouldIgnoreRingerSwitch"
+    428 => "AppNotificationCreationDate"
+    429 => "ShouldHideTime"
+    430 => "EventBehavior"
+    431 => "SchemaVersion"
+    432 => "CommunicationContextSystemImage"
+    433 => "AppNotificationMessage"
+    434 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018960 [0x1fb1e1308]>{value = 76}
+      "NS.day" => 29
+      "NS.hour" => 23
+      "NS.leapMonth" => 0
+      "NS.minute" => 21
+      "NS.month" => 10
+      "NS.repeatedDay" => false
+      "NS.second" => 0
+      "NS.timezone" => <CFKeyedArchiverUID 0x77f01b5c0 [0x1fb1e1308]>{value = 435}
+      "NS.year" => 2026
+    }
+    435 => {
+      "$class" => <CFKeyedArchiverUID 0x77f0189e0 [0x1fb1e1308]>{value = 75}
+      "NS.data" => <CFKeyedArchiverUID 0x77f01b5e0 [0x1fb1e1308]>{value = 436}
+      "NS.name" => <CFKeyedArchiverUID 0x77f0189a0 [0x1fb1e1308]>{value = 73}
+    }
+    436 => {length = 114, bytes = 0x545a6966320000000000000000000000 ... 54000a474d54300a}
+    437 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008763.759394
+    }
+    438 => "3"
+    439 => "UNNotificationContentTypeDefault"
+    440 => "Nettoyage du visage"
+    441 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018b60 [0x1fb1e1308]>{value = 98}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f01b620 [0x1fb1e1308]>{value = 442}
+        1 => <CFKeyedArchiverUID 0x77f01b640 [0x1fb1e1308]>{value = 443}
+        2 => <CFKeyedArchiverUID 0x77f01b660 [0x1fb1e1308]>{value = 444}
+        3 => <CFKeyedArchiverUID 0x77f01b680 [0x1fb1e1308]>{value = 445}
+        4 => <CFKeyedArchiverUID 0x77f018ac0 [0x1fb1e1308]>{value = 93}
+        5 => <CFKeyedArchiverUID 0x77f01b6a0 [0x1fb1e1308]>{value = 446}
+        6 => <CFKeyedArchiverUID 0x77f018b00 [0x1fb1e1308]>{value = 95}
+        7 => <CFKeyedArchiverUID 0x77f01b6c0 [0x1fb1e1308]>{value = 447}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        1 => <CFKeyedArchiverUID 0x77f01b6e0 [0x1fb1e1308]>{value = 448}
+        2 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f01b700 [0x1fb1e1308]>{value = 449}
+        5 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        6 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        7 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+      ]
+    }
+    442 => "presentAlert"
+    443 => "NotificationId"
+    444 => "presentBadge"
+    445 => "presentBanner"
+    446 => "presentSound"
+    447 => "presentList"
+    448 => 3
+    449 => "Nettoyage du visage"
+    450 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018bc0 [0x1fb1e1308]>{value = 106}
+      "activeModeUUID" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "eventDetails" => <CFKeyedArchiverUID 0x77f01b720 [0x1fb1e1308]>{value = 451}
+      "intelligentBehavior" => 0
+      "interruptionSuppression" => 0
+      "resolutionReason" => 2
+    }
+    451 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018c20 [0x1fb1e1308]>{value = 105}
+      "behavior" => 0
+      "body" => <CFKeyedArchiverUID 0x77f01b740 [0x1fb1e1308]>{value = 454}
+      "bundleIdentifier" => <CFKeyedArchiverUID 0x77f01b780 [0x1fb1e1308]>{value = 452}
+      "filterCriteria" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "forwardingBehavior" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "identifier" => <CFKeyedArchiverUID 0x77f01b500 [0x1fb1e1308]>{value = 438}
+      "notifyAnyway" => false
+      "platform" => 0
+      "sender" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "shouldAdjustEventBehaviorForMirroring" => false
+      "subtitle" => <CFKeyedArchiverUID 0x77f01b760 [0x1fb1e1308]>{value = 453}
+      "threadIdentifier" => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+      "title" => <CFKeyedArchiverUID 0x77f01b760 [0x1fb1e1308]>{value = 453}
+      "type" => 0
+      "urgency" => 0
+    }
+    452 => "com.pvjio.mamadera"
+    453 => "Nettoyage du visage"
+    454 => "Léa : c'est l'heure de Nettoyage du visage."
+    455 => "Léa : c'est l'heure de Nettoyage du visage."
+    456 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018940 [0x1fb1e1308]>{value = 109}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f01b7a0 [0x1fb1e1308]>{value = 457}
+        1 => <CFKeyedArchiverUID 0x77f01b7c0 [0x1fb1e1308]>{value = 458}
+        2 => <CFKeyedArchiverUID 0x77f01b7e0 [0x1fb1e1308]>{value = 459}
+        3 => <CFKeyedArchiverUID 0x77f01b800 [0x1fb1e1308]>{value = 460}
+        4 => <CFKeyedArchiverUID 0x77f01b820 [0x1fb1e1308]>{value = 461}
+        5 => <CFKeyedArchiverUID 0x77f01b840 [0x1fb1e1308]>{value = 462}
+        6 => <CFKeyedArchiverUID 0x77f01b860 [0x1fb1e1308]>{value = 463}
+        7 => <CFKeyedArchiverUID 0x77f01b880 [0x1fb1e1308]>{value = 464}
+        8 => <CFKeyedArchiverUID 0x77f01b8a0 [0x1fb1e1308]>{value = 465}
+        9 => <CFKeyedArchiverUID 0x77f01b8c0 [0x1fb1e1308]>{value = 466}
+        10 => <CFKeyedArchiverUID 0x77f01b8e0 [0x1fb1e1308]>{value = 467}
+        11 => <CFKeyedArchiverUID 0x77f01b900 [0x1fb1e1308]>{value = 468}
+        12 => <CFKeyedArchiverUID 0x77f01b920 [0x1fb1e1308]>{value = 469}
+        13 => <CFKeyedArchiverUID 0x77f01b940 [0x1fb1e1308]>{value = 470}
+        14 => <CFKeyedArchiverUID 0x77f01b960 [0x1fb1e1308]>{value = 471}
+        15 => <CFKeyedArchiverUID 0x77f01b980 [0x1fb1e1308]>{value = 472}
+        16 => <CFKeyedArchiverUID 0x77f01b9a0 [0x1fb1e1308]>{value = 473}
+        17 => <CFKeyedArchiverUID 0x77f01b9c0 [0x1fb1e1308]>{value = 474}
+        18 => <CFKeyedArchiverUID 0x77f01b9e0 [0x1fb1e1308]>{value = 475}
+        19 => <CFKeyedArchiverUID 0x77f01ba00 [0x1fb1e1308]>{value = 476}
+        20 => <CFKeyedArchiverUID 0x77f01ba20 [0x1fb1e1308]>{value = 477}
+        21 => <CFKeyedArchiverUID 0x77f01ba40 [0x1fb1e1308]>{value = 478}
+        22 => <CFKeyedArchiverUID 0x77f01ba60 [0x1fb1e1308]>{value = 479}
+        23 => <CFKeyedArchiverUID 0x77f01ba80 [0x1fb1e1308]>{value = 480}
+        24 => <CFKeyedArchiverUID 0x77f01baa0 [0x1fb1e1308]>{value = 481}
+        25 => <CFKeyedArchiverUID 0x77f01bac0 [0x1fb1e1308]>{value = 482}
+        26 => <CFKeyedArchiverUID 0x77f01bae0 [0x1fb1e1308]>{value = 483}
+        27 => <CFKeyedArchiverUID 0x77f01bb00 [0x1fb1e1308]>{value = 484}
+        28 => <CFKeyedArchiverUID 0x77f01bb20 [0x1fb1e1308]>{value = 485}
+        29 => <CFKeyedArchiverUID 0x77f01bb40 [0x1fb1e1308]>{value = 486}
+        30 => <CFKeyedArchiverUID 0x77f01bb60 [0x1fb1e1308]>{value = 487}
+        31 => <CFKeyedArchiverUID 0x77f01bb80 [0x1fb1e1308]>{value = 488}
+        32 => <CFKeyedArchiverUID 0x77f01bba0 [0x1fb1e1308]>{value = 489}
+        33 => <CFKeyedArchiverUID 0x77f01bbc0 [0x1fb1e1308]>{value = 490}
+        34 => <CFKeyedArchiverUID 0x77f01bbe0 [0x1fb1e1308]>{value = 491}
+        35 => <CFKeyedArchiverUID 0x77f01bc00 [0x1fb1e1308]>{value = 492}
+        36 => <CFKeyedArchiverUID 0x77f01bc20 [0x1fb1e1308]>{value = 493}
+        37 => <CFKeyedArchiverUID 0x77f01bc40 [0x1fb1e1308]>{value = 494}
+        38 => <CFKeyedArchiverUID 0x77f01bc60 [0x1fb1e1308]>{value = 495}
+        39 => <CFKeyedArchiverUID 0x77f01bc80 [0x1fb1e1308]>{value = 496}
+        40 => <CFKeyedArchiverUID 0x77f01bca0 [0x1fb1e1308]>{value = 497}
+        41 => <CFKeyedArchiverUID 0x77f01bcc0 [0x1fb1e1308]>{value = 498}
+        42 => <CFKeyedArchiverUID 0x77f01bce0 [0x1fb1e1308]>{value = 499}
+        43 => <CFKeyedArchiverUID 0x77f01bd00 [0x1fb1e1308]>{value = 500}
+        44 => <CFKeyedArchiverUID 0x77f01bd20 [0x1fb1e1308]>{value = 501}
+        45 => <CFKeyedArchiverUID 0x77f01bd40 [0x1fb1e1308]>{value = 502}
+        46 => <CFKeyedArchiverUID 0x77f01bd60 [0x1fb1e1308]>{value = 503}
+        47 => <CFKeyedArchiverUID 0x77f01bd80 [0x1fb1e1308]>{value = 504}
+        48 => <CFKeyedArchiverUID 0x77f019260 [0x1fb1e1308]>{value = 159}
+        49 => <CFKeyedArchiverUID 0x77f019280 [0x1fb1e1308]>{value = 160}
+        50 => <CFKeyedArchiverUID 0x77f01bda0 [0x1fb1e1308]>{value = 505}
+        51 => <CFKeyedArchiverUID 0x77f01bdc0 [0x1fb1e1308]>{value = 506}
+        52 => <CFKeyedArchiverUID 0x77f01bde0 [0x1fb1e1308]>{value = 507}
+        53 => <CFKeyedArchiverUID 0x77f01be00 [0x1fb1e1308]>{value = 508}
+        54 => <CFKeyedArchiverUID 0x77f01be20 [0x1fb1e1308]>{value = 509}
+        55 => <CFKeyedArchiverUID 0x77f01be40 [0x1fb1e1308]>{value = 510}
+        56 => <CFKeyedArchiverUID 0x77f01be60 [0x1fb1e1308]>{value = 511}
+        57 => <CFKeyedArchiverUID 0x77f01be80 [0x1fb1e1308]>{value = 512}
+        58 => <CFKeyedArchiverUID 0x77f01bea0 [0x1fb1e1308]>{value = 513}
+        59 => <CFKeyedArchiverUID 0x77f01bec0 [0x1fb1e1308]>{value = 514}
+        60 => <CFKeyedArchiverUID 0x77f01bee0 [0x1fb1e1308]>{value = 515}
+        61 => <CFKeyedArchiverUID 0x77f01bf00 [0x1fb1e1308]>{value = 516}
+        62 => <CFKeyedArchiverUID 0x77f01bf20 [0x1fb1e1308]>{value = 517}
+        63 => <CFKeyedArchiverUID 0x77f01bf40 [0x1fb1e1308]>{value = 518}
+        64 => <CFKeyedArchiverUID 0x77f01bf60 [0x1fb1e1308]>{value = 519}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        1 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        2 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f01bf80 [0x1fb1e1308]>{value = 520}
+        5 => <CFKeyedArchiverUID 0x77f01bfa0 [0x1fb1e1308]>{value = 523}
+        6 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        7 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        8 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        9 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        10 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        11 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        12 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        13 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        14 => <CFKeyedArchiverUID 0x77f0187a0 [0x1fb1e1308]>{value = 80}
+        15 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        16 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        17 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        18 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        19 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        20 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        21 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        22 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        23 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        24 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        25 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        26 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        27 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        28 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        29 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        30 => <CFKeyedArchiverUID 0x77f01bfc0 [0x1fb1e1308]>{value = 524}
+        31 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        32 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        33 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        34 => <CFKeyedArchiverUID 0x77f01bfe0 [0x1fb1e1308]>{value = 525}
+        35 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        36 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        37 => <CFKeyedArchiverUID 0x77f018840 [0x1fb1e1308]>{value = 85}
+        38 => <CFKeyedArchiverUID 0x77f01c000 [0x1fb1e1308]>{value = 526}
+        39 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        40 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        41 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        42 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        43 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        44 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        45 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        46 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        47 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        48 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        49 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        50 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        51 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        52 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        53 => <CFKeyedArchiverUID 0x77f018880 [0x1fb1e1308]>{value = 87}
+        54 => <CFKeyedArchiverUID 0x77f020000 [0x1fb1e1308]>{value = 527}
+        55 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        56 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        57 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        58 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        59 => <CFKeyedArchiverUID 0x77f0188c0 [0x1fb1e1308]>{value = 99}
+        60 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        61 => <CFKeyedArchiverUID 0x77f020020 [0x1fb1e1308]>{value = 536}
+        62 => <CFKeyedArchiverUID 0x77f018900 [0x1fb1e1308]>{value = 107}
+        63 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        64 => <CFKeyedArchiverUID 0x77f020040 [0x1fb1e1308]>{value = 541}
+      ]
+    }
+    457 => "ShouldSuppressScreenLightUp"
+    458 => "ShouldSuppressSyncDismissalWhenRemoved"
+    459 => "InterruptionLevel"
+    460 => "UNNotificationNotificationCenterDestination"
+    461 => "TriggerDateComponents"
+    462 => "RequestDate"
+    463 => "ScreenCaptureProhibited"
+    464 => "ShouldPreventNotificationDismissalAfterDefaultAction"
+    465 => "RevisionNumber"
+    466 => "ShouldIgnoreDowntime"
+    467 => "TriggerTimeInterval"
+    468 => "IconShouldSuppressMask"
+    469 => "ShouldPresentAlert"
+    470 => "ShouldPlaySound"
+    471 => "ToneAlertType"
+    472 => "ShouldIgnoreAccessibilityDisabledVibrationSetting"
+    473 => "ShouldUseRequestIdentifierForDismissalSync"
+    474 => "CommunicationContextCapabilities"
+    475 => "SoundShouldRepeat"
+    476 => "ShouldHideDate"
+    477 => "CommunicationContextReplyToCurrentUser"
+    478 => "UNNotificationLockScreenDestination"
+    479 => "AppNotificationSummaryArgument"
+    480 => "PipelineState"
+    481 => "IsHighlight"
+    482 => "CommunicationContextMentionsCurrentUser"
+    483 => "TriggerRepeatInterval"
+    484 => "SoundMaximumDuration"
+    485 => "UNNotificationDefaultDestinations"
+    486 => "RealertCount"
+    487 => "AppNotificationIdentifier"
+    488 => "CommunicationContextBusinessCorrespondence"
+    489 => "ShouldPreemptPresentedNotification"
+    490 => "ShouldBackgroundDefaultAction"
+    491 => "NotificationType"
+    492 => "ToneMediaLibraryItemIdentifier"
+    493 => "ShouldAuthenticateDefaultAction"
+    494 => "PresentationOptions"
+    495 => "AppNotificationTitle"
+    496 => "PriorityStatus"
+    497 => "CommunicationContextRecipientCount"
+    498 => "ShouldIgnoreDoNotDisturb"
+    499 => "AppNotificationSummaryArgumentCount"
+    500 => "UNNotificationShouldShowSubordinateIcon"
+    501 => "CommunicationContextNotifyRecipientAnyway"
+    502 => "UNNotificationRelevanceScore"
+    503 => "BadgeApplicationIcon"
+    504 => "SummaryStatus"
+    505 => "UNNotificationAlertDestination"
+    506 => "HasDefaultActionKey"
+    507 => "UNNotificationCarPlayDestination"
+    508 => "UNNotificationTriggerType"
+    509 => "UNNotificationUserInfo"
+    510 => "CriticalAlertSound"
+    511 => "ShouldDisplayActionsInline"
+    512 => "TriggerRepeats"
+    513 => "SoundShouldIgnoreRingerSwitch"
+    514 => "AppNotificationCreationDate"
+    515 => "ShouldHideTime"
+    516 => "EventBehavior"
+    517 => "SchemaVersion"
+    518 => "CommunicationContextSystemImage"
+    519 => "AppNotificationMessage"
+    520 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018960 [0x1fb1e1308]>{value = 76}
+      "NS.day" => 29
+      "NS.hour" => 23
+      "NS.leapMonth" => 0
+      "NS.minute" => 21
+      "NS.month" => 10
+      "NS.repeatedDay" => false
+      "NS.second" => 0
+      "NS.timezone" => <CFKeyedArchiverUID 0x77f020060 [0x1fb1e1308]>{value = 521}
+      "NS.year" => 2026
+    }
+    521 => {
+      "$class" => <CFKeyedArchiverUID 0x77f0189e0 [0x1fb1e1308]>{value = 75}
+      "NS.data" => <CFKeyedArchiverUID 0x77f020080 [0x1fb1e1308]>{value = 522}
+      "NS.name" => <CFKeyedArchiverUID 0x77f0189a0 [0x1fb1e1308]>{value = 73}
+    }
+    522 => {length = 114, bytes = 0x545a6966320000000000000000000000 ... 54000a474d54300a}
+    523 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008763.747337
+    }
+    524 => "2"
+    525 => "UNNotificationContentTypeDefault"
+    526 => "Nettoyage des yeux"
+    527 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018b60 [0x1fb1e1308]>{value = 98}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f0200c0 [0x1fb1e1308]>{value = 528}
+        1 => <CFKeyedArchiverUID 0x77f0200e0 [0x1fb1e1308]>{value = 529}
+        2 => <CFKeyedArchiverUID 0x77f020100 [0x1fb1e1308]>{value = 530}
+        3 => <CFKeyedArchiverUID 0x77f020120 [0x1fb1e1308]>{value = 531}
+        4 => <CFKeyedArchiverUID 0x77f018ac0 [0x1fb1e1308]>{value = 93}
+        5 => <CFKeyedArchiverUID 0x77f020140 [0x1fb1e1308]>{value = 532}
+        6 => <CFKeyedArchiverUID 0x77f018b00 [0x1fb1e1308]>{value = 95}
+        7 => <CFKeyedArchiverUID 0x77f020160 [0x1fb1e1308]>{value = 533}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        1 => <CFKeyedArchiverUID 0x77f020180 [0x1fb1e1308]>{value = 534}
+        2 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f0201a0 [0x1fb1e1308]>{value = 535}
+        5 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        6 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        7 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+      ]
+    }
+    528 => "presentAlert"
+    529 => "NotificationId"
+    530 => "presentBadge"
+    531 => "presentBanner"
+    532 => "presentSound"
+    533 => "presentList"
+    534 => 2
+    535 => "Nettoyage des yeux"
+    536 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018bc0 [0x1fb1e1308]>{value = 106}
+      "activeModeUUID" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "eventDetails" => <CFKeyedArchiverUID 0x77f0201c0 [0x1fb1e1308]>{value = 537}
+      "intelligentBehavior" => 0
+      "interruptionSuppression" => 0
+      "resolutionReason" => 2
+    }
+    537 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018c20 [0x1fb1e1308]>{value = 105}
+      "behavior" => 0
+      "body" => <CFKeyedArchiverUID 0x77f0201e0 [0x1fb1e1308]>{value = 540}
+      "bundleIdentifier" => <CFKeyedArchiverUID 0x77f020220 [0x1fb1e1308]>{value = 538}
+      "filterCriteria" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "forwardingBehavior" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "identifier" => <CFKeyedArchiverUID 0x77f01bfc0 [0x1fb1e1308]>{value = 524}
+      "notifyAnyway" => false
+      "platform" => 0
+      "sender" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "shouldAdjustEventBehaviorForMirroring" => false
+      "subtitle" => <CFKeyedArchiverUID 0x77f020200 [0x1fb1e1308]>{value = 539}
+      "threadIdentifier" => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+      "title" => <CFKeyedArchiverUID 0x77f020200 [0x1fb1e1308]>{value = 539}
+      "type" => 0
+      "urgency" => 0
+    }
+    538 => "com.pvjio.mamadera"
+    539 => "Nettoyage des yeux"
+    540 => "Léa : c'est l'heure de Nettoyage des yeux."
+    541 => "Léa : c'est l'heure de Nettoyage des yeux."
+    542 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018940 [0x1fb1e1308]>{value = 109}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f020240 [0x1fb1e1308]>{value = 543}
+        1 => <CFKeyedArchiverUID 0x77f020260 [0x1fb1e1308]>{value = 544}
+        2 => <CFKeyedArchiverUID 0x77f020280 [0x1fb1e1308]>{value = 545}
+        3 => <CFKeyedArchiverUID 0x77f0202a0 [0x1fb1e1308]>{value = 546}
+        4 => <CFKeyedArchiverUID 0x77f0202c0 [0x1fb1e1308]>{value = 547}
+        5 => <CFKeyedArchiverUID 0x77f0202e0 [0x1fb1e1308]>{value = 548}
+        6 => <CFKeyedArchiverUID 0x77f020300 [0x1fb1e1308]>{value = 549}
+        7 => <CFKeyedArchiverUID 0x77f020320 [0x1fb1e1308]>{value = 550}
+        8 => <CFKeyedArchiverUID 0x77f020340 [0x1fb1e1308]>{value = 551}
+        9 => <CFKeyedArchiverUID 0x77f020360 [0x1fb1e1308]>{value = 552}
+        10 => <CFKeyedArchiverUID 0x77f020380 [0x1fb1e1308]>{value = 553}
+        11 => <CFKeyedArchiverUID 0x77f0203a0 [0x1fb1e1308]>{value = 554}
+        12 => <CFKeyedArchiverUID 0x77f0203c0 [0x1fb1e1308]>{value = 555}
+        13 => <CFKeyedArchiverUID 0x77f0203e0 [0x1fb1e1308]>{value = 556}
+        14 => <CFKeyedArchiverUID 0x77f020400 [0x1fb1e1308]>{value = 557}
+        15 => <CFKeyedArchiverUID 0x77f020420 [0x1fb1e1308]>{value = 558}
+        16 => <CFKeyedArchiverUID 0x77f020440 [0x1fb1e1308]>{value = 559}
+        17 => <CFKeyedArchiverUID 0x77f020460 [0x1fb1e1308]>{value = 560}
+        18 => <CFKeyedArchiverUID 0x77f020480 [0x1fb1e1308]>{value = 561}
+        19 => <CFKeyedArchiverUID 0x77f0204a0 [0x1fb1e1308]>{value = 562}
+        20 => <CFKeyedArchiverUID 0x77f0204c0 [0x1fb1e1308]>{value = 563}
+        21 => <CFKeyedArchiverUID 0x77f0204e0 [0x1fb1e1308]>{value = 564}
+        22 => <CFKeyedArchiverUID 0x77f020500 [0x1fb1e1308]>{value = 565}
+        23 => <CFKeyedArchiverUID 0x77f020520 [0x1fb1e1308]>{value = 566}
+        24 => <CFKeyedArchiverUID 0x77f020540 [0x1fb1e1308]>{value = 567}
+        25 => <CFKeyedArchiverUID 0x77f020560 [0x1fb1e1308]>{value = 568}
+        26 => <CFKeyedArchiverUID 0x77f020580 [0x1fb1e1308]>{value = 569}
+        27 => <CFKeyedArchiverUID 0x77f0205a0 [0x1fb1e1308]>{value = 570}
+        28 => <CFKeyedArchiverUID 0x77f0205c0 [0x1fb1e1308]>{value = 571}
+        29 => <CFKeyedArchiverUID 0x77f0205e0 [0x1fb1e1308]>{value = 572}
+        30 => <CFKeyedArchiverUID 0x77f020600 [0x1fb1e1308]>{value = 573}
+        31 => <CFKeyedArchiverUID 0x77f020620 [0x1fb1e1308]>{value = 574}
+        32 => <CFKeyedArchiverUID 0x77f020640 [0x1fb1e1308]>{value = 575}
+        33 => <CFKeyedArchiverUID 0x77f020660 [0x1fb1e1308]>{value = 576}
+        34 => <CFKeyedArchiverUID 0x77f020680 [0x1fb1e1308]>{value = 577}
+        35 => <CFKeyedArchiverUID 0x77f0206a0 [0x1fb1e1308]>{value = 578}
+        36 => <CFKeyedArchiverUID 0x77f0206c0 [0x1fb1e1308]>{value = 579}
+        37 => <CFKeyedArchiverUID 0x77f0206e0 [0x1fb1e1308]>{value = 580}
+        38 => <CFKeyedArchiverUID 0x77f020700 [0x1fb1e1308]>{value = 581}
+        39 => <CFKeyedArchiverUID 0x77f020720 [0x1fb1e1308]>{value = 582}
+        40 => <CFKeyedArchiverUID 0x77f020740 [0x1fb1e1308]>{value = 583}
+        41 => <CFKeyedArchiverUID 0x77f020760 [0x1fb1e1308]>{value = 584}
+        42 => <CFKeyedArchiverUID 0x77f020780 [0x1fb1e1308]>{value = 585}
+        43 => <CFKeyedArchiverUID 0x77f0207a0 [0x1fb1e1308]>{value = 586}
+        44 => <CFKeyedArchiverUID 0x77f0207c0 [0x1fb1e1308]>{value = 587}
+        45 => <CFKeyedArchiverUID 0x77f0207e0 [0x1fb1e1308]>{value = 588}
+        46 => <CFKeyedArchiverUID 0x77f020800 [0x1fb1e1308]>{value = 589}
+        47 => <CFKeyedArchiverUID 0x77f020820 [0x1fb1e1308]>{value = 590}
+        48 => <CFKeyedArchiverUID 0x77f019260 [0x1fb1e1308]>{value = 159}
+        49 => <CFKeyedArchiverUID 0x77f019280 [0x1fb1e1308]>{value = 160}
+        50 => <CFKeyedArchiverUID 0x77f020840 [0x1fb1e1308]>{value = 591}
+        51 => <CFKeyedArchiverUID 0x77f020860 [0x1fb1e1308]>{value = 592}
+        52 => <CFKeyedArchiverUID 0x77f020880 [0x1fb1e1308]>{value = 593}
+        53 => <CFKeyedArchiverUID 0x77f0208a0 [0x1fb1e1308]>{value = 594}
+        54 => <CFKeyedArchiverUID 0x77f0208c0 [0x1fb1e1308]>{value = 595}
+        55 => <CFKeyedArchiverUID 0x77f0208e0 [0x1fb1e1308]>{value = 596}
+        56 => <CFKeyedArchiverUID 0x77f020900 [0x1fb1e1308]>{value = 597}
+        57 => <CFKeyedArchiverUID 0x77f020920 [0x1fb1e1308]>{value = 598}
+        58 => <CFKeyedArchiverUID 0x77f020940 [0x1fb1e1308]>{value = 599}
+        59 => <CFKeyedArchiverUID 0x77f020960 [0x1fb1e1308]>{value = 600}
+        60 => <CFKeyedArchiverUID 0x77f020980 [0x1fb1e1308]>{value = 601}
+        61 => <CFKeyedArchiverUID 0x77f0209a0 [0x1fb1e1308]>{value = 602}
+        62 => <CFKeyedArchiverUID 0x77f0209c0 [0x1fb1e1308]>{value = 603}
+        63 => <CFKeyedArchiverUID 0x77f0209e0 [0x1fb1e1308]>{value = 604}
+        64 => <CFKeyedArchiverUID 0x77f020a00 [0x1fb1e1308]>{value = 605}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        1 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        2 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f020a20 [0x1fb1e1308]>{value = 606}
+        5 => <CFKeyedArchiverUID 0x77f020a40 [0x1fb1e1308]>{value = 609}
+        6 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        7 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        8 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        9 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        10 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        11 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        12 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        13 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        14 => <CFKeyedArchiverUID 0x77f0187a0 [0x1fb1e1308]>{value = 80}
+        15 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        16 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        17 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        18 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        19 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        20 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        21 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        22 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        23 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        24 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        25 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        26 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        27 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        28 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        29 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        30 => <CFKeyedArchiverUID 0x77f020a60 [0x1fb1e1308]>{value = 610}
+        31 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        32 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        33 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        34 => <CFKeyedArchiverUID 0x77f020a80 [0x1fb1e1308]>{value = 611}
+        35 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        36 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        37 => <CFKeyedArchiverUID 0x77f018840 [0x1fb1e1308]>{value = 85}
+        38 => <CFKeyedArchiverUID 0x77f020aa0 [0x1fb1e1308]>{value = 612}
+        39 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        40 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        41 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        42 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        43 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        44 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        45 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        46 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        47 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        48 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        49 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        50 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        51 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        52 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        53 => <CFKeyedArchiverUID 0x77f018880 [0x1fb1e1308]>{value = 87}
+        54 => <CFKeyedArchiverUID 0x77f020ac0 [0x1fb1e1308]>{value = 613}
+        55 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        56 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        57 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        58 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        59 => <CFKeyedArchiverUID 0x77f0188c0 [0x1fb1e1308]>{value = 99}
+        60 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        61 => <CFKeyedArchiverUID 0x77f020ae0 [0x1fb1e1308]>{value = 621}
+        62 => <CFKeyedArchiverUID 0x77f018900 [0x1fb1e1308]>{value = 107}
+        63 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        64 => <CFKeyedArchiverUID 0x77f020b00 [0x1fb1e1308]>{value = 626}
+      ]
+    }
+    543 => "ShouldSuppressScreenLightUp"
+    544 => "ShouldSuppressSyncDismissalWhenRemoved"
+    545 => "InterruptionLevel"
+    546 => "UNNotificationNotificationCenterDestination"
+    547 => "TriggerDateComponents"
+    548 => "RequestDate"
+    549 => "ScreenCaptureProhibited"
+    550 => "ShouldPreventNotificationDismissalAfterDefaultAction"
+    551 => "RevisionNumber"
+    552 => "ShouldIgnoreDowntime"
+    553 => "TriggerTimeInterval"
+    554 => "IconShouldSuppressMask"
+    555 => "ShouldPresentAlert"
+    556 => "ShouldPlaySound"
+    557 => "ToneAlertType"
+    558 => "ShouldIgnoreAccessibilityDisabledVibrationSetting"
+    559 => "ShouldUseRequestIdentifierForDismissalSync"
+    560 => "CommunicationContextCapabilities"
+    561 => "SoundShouldRepeat"
+    562 => "ShouldHideDate"
+    563 => "CommunicationContextReplyToCurrentUser"
+    564 => "UNNotificationLockScreenDestination"
+    565 => "AppNotificationSummaryArgument"
+    566 => "PipelineState"
+    567 => "IsHighlight"
+    568 => "CommunicationContextMentionsCurrentUser"
+    569 => "TriggerRepeatInterval"
+    570 => "SoundMaximumDuration"
+    571 => "UNNotificationDefaultDestinations"
+    572 => "RealertCount"
+    573 => "AppNotificationIdentifier"
+    574 => "CommunicationContextBusinessCorrespondence"
+    575 => "ShouldPreemptPresentedNotification"
+    576 => "ShouldBackgroundDefaultAction"
+    577 => "NotificationType"
+    578 => "ToneMediaLibraryItemIdentifier"
+    579 => "ShouldAuthenticateDefaultAction"
+    580 => "PresentationOptions"
+    581 => "AppNotificationTitle"
+    582 => "PriorityStatus"
+    583 => "CommunicationContextRecipientCount"
+    584 => "ShouldIgnoreDoNotDisturb"
+    585 => "AppNotificationSummaryArgumentCount"
+    586 => "UNNotificationShouldShowSubordinateIcon"
+    587 => "CommunicationContextNotifyRecipientAnyway"
+    588 => "UNNotificationRelevanceScore"
+    589 => "BadgeApplicationIcon"
+    590 => "SummaryStatus"
+    591 => "UNNotificationAlertDestination"
+    592 => "HasDefaultActionKey"
+    593 => "UNNotificationCarPlayDestination"
+    594 => "UNNotificationTriggerType"
+    595 => "UNNotificationUserInfo"
+    596 => "CriticalAlertSound"
+    597 => "ShouldDisplayActionsInline"
+    598 => "TriggerRepeats"
+    599 => "SoundShouldIgnoreRingerSwitch"
+    600 => "AppNotificationCreationDate"
+    601 => "ShouldHideTime"
+    602 => "EventBehavior"
+    603 => "SchemaVersion"
+    604 => "CommunicationContextSystemImage"
+    605 => "AppNotificationMessage"
+    606 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018960 [0x1fb1e1308]>{value = 76}
+      "NS.day" => 29
+      "NS.hour" => 23
+      "NS.leapMonth" => 0
+      "NS.minute" => 21
+      "NS.month" => 10
+      "NS.repeatedDay" => false
+      "NS.second" => 0
+      "NS.timezone" => <CFKeyedArchiverUID 0x77f020b20 [0x1fb1e1308]>{value = 607}
+      "NS.year" => 2026
+    }
+    607 => {
+      "$class" => <CFKeyedArchiverUID 0x77f0189e0 [0x1fb1e1308]>{value = 75}
+      "NS.data" => <CFKeyedArchiverUID 0x77f020b40 [0x1fb1e1308]>{value = 608}
+      "NS.name" => <CFKeyedArchiverUID 0x77f0189a0 [0x1fb1e1308]>{value = 73}
+    }
+    608 => {length = 114, bytes = 0x545a6966320000000000000000000000 ... 54000a474d54300a}
+    609 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008763.638394
+    }
+    610 => "1"
+    611 => "UNNotificationContentTypeDefault"
+    612 => "Vitamine D"
+    613 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018b60 [0x1fb1e1308]>{value = 98}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f020b80 [0x1fb1e1308]>{value = 614}
+        1 => <CFKeyedArchiverUID 0x77f020ba0 [0x1fb1e1308]>{value = 615}
+        2 => <CFKeyedArchiverUID 0x77f020bc0 [0x1fb1e1308]>{value = 616}
+        3 => <CFKeyedArchiverUID 0x77f020be0 [0x1fb1e1308]>{value = 617}
+        4 => <CFKeyedArchiverUID 0x77f018ac0 [0x1fb1e1308]>{value = 93}
+        5 => <CFKeyedArchiverUID 0x77f020c00 [0x1fb1e1308]>{value = 618}
+        6 => <CFKeyedArchiverUID 0x77f018b00 [0x1fb1e1308]>{value = 95}
+        7 => <CFKeyedArchiverUID 0x77f020c20 [0x1fb1e1308]>{value = 619}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        1 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        2 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f020c40 [0x1fb1e1308]>{value = 620}
+        5 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        6 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        7 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+      ]
+    }
+    614 => "presentAlert"
+    615 => "NotificationId"
+    616 => "presentBadge"
+    617 => "presentBanner"
+    618 => "presentSound"
+    619 => "presentList"
+    620 => "Vitamine D"
+    621 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018bc0 [0x1fb1e1308]>{value = 106}
+      "activeModeUUID" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "eventDetails" => <CFKeyedArchiverUID 0x77f020c60 [0x1fb1e1308]>{value = 622}
+      "intelligentBehavior" => 0
+      "interruptionSuppression" => 0
+      "resolutionReason" => 2
+    }
+    622 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018c20 [0x1fb1e1308]>{value = 105}
+      "behavior" => 0
+      "body" => <CFKeyedArchiverUID 0x77f020c80 [0x1fb1e1308]>{value = 625}
+      "bundleIdentifier" => <CFKeyedArchiverUID 0x77f020cc0 [0x1fb1e1308]>{value = 623}
+      "filterCriteria" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "forwardingBehavior" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "identifier" => <CFKeyedArchiverUID 0x77f020a60 [0x1fb1e1308]>{value = 610}
+      "notifyAnyway" => false
+      "platform" => 0
+      "sender" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "shouldAdjustEventBehaviorForMirroring" => false
+      "subtitle" => <CFKeyedArchiverUID 0x77f020ca0 [0x1fb1e1308]>{value = 624}
+      "threadIdentifier" => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+      "title" => <CFKeyedArchiverUID 0x77f020ca0 [0x1fb1e1308]>{value = 624}
+      "type" => 0
+      "urgency" => 0
+    }
+    623 => "com.pvjio.mamadera"
+    624 => "Vitamine D"
+    625 => "Léa : c'est l'heure de Vitamine D."
+    626 => "Léa : c'est l'heure de Vitamine D."
+    627 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018940 [0x1fb1e1308]>{value = 109}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f020ce0 [0x1fb1e1308]>{value = 628}
+        1 => <CFKeyedArchiverUID 0x77f020d00 [0x1fb1e1308]>{value = 629}
+        2 => <CFKeyedArchiverUID 0x77f020d20 [0x1fb1e1308]>{value = 630}
+        3 => <CFKeyedArchiverUID 0x77f020d40 [0x1fb1e1308]>{value = 631}
+        4 => <CFKeyedArchiverUID 0x77f020d60 [0x1fb1e1308]>{value = 632}
+        5 => <CFKeyedArchiverUID 0x77f020d80 [0x1fb1e1308]>{value = 633}
+        6 => <CFKeyedArchiverUID 0x77f020da0 [0x1fb1e1308]>{value = 634}
+        7 => <CFKeyedArchiverUID 0x77f020dc0 [0x1fb1e1308]>{value = 635}
+        8 => <CFKeyedArchiverUID 0x77f020de0 [0x1fb1e1308]>{value = 636}
+        9 => <CFKeyedArchiverUID 0x77f020e00 [0x1fb1e1308]>{value = 637}
+        10 => <CFKeyedArchiverUID 0x77f020e20 [0x1fb1e1308]>{value = 638}
+        11 => <CFKeyedArchiverUID 0x77f020e40 [0x1fb1e1308]>{value = 639}
+        12 => <CFKeyedArchiverUID 0x77f020e60 [0x1fb1e1308]>{value = 640}
+        13 => <CFKeyedArchiverUID 0x77f020e80 [0x1fb1e1308]>{value = 641}
+        14 => <CFKeyedArchiverUID 0x77f020ea0 [0x1fb1e1308]>{value = 642}
+        15 => <CFKeyedArchiverUID 0x77f020ec0 [0x1fb1e1308]>{value = 643}
+        16 => <CFKeyedArchiverUID 0x77f020ee0 [0x1fb1e1308]>{value = 644}
+        17 => <CFKeyedArchiverUID 0x77f020f00 [0x1fb1e1308]>{value = 645}
+        18 => <CFKeyedArchiverUID 0x77f020f20 [0x1fb1e1308]>{value = 646}
+        19 => <CFKeyedArchiverUID 0x77f020f40 [0x1fb1e1308]>{value = 647}
+        20 => <CFKeyedArchiverUID 0x77f020f60 [0x1fb1e1308]>{value = 648}
+        21 => <CFKeyedArchiverUID 0x77f020f80 [0x1fb1e1308]>{value = 649}
+        22 => <CFKeyedArchiverUID 0x77f020fa0 [0x1fb1e1308]>{value = 650}
+        23 => <CFKeyedArchiverUID 0x77f020fc0 [0x1fb1e1308]>{value = 651}
+        24 => <CFKeyedArchiverUID 0x77f020fe0 [0x1fb1e1308]>{value = 652}
+        25 => <CFKeyedArchiverUID 0x77f021000 [0x1fb1e1308]>{value = 653}
+        26 => <CFKeyedArchiverUID 0x77f021020 [0x1fb1e1308]>{value = 654}
+        27 => <CFKeyedArchiverUID 0x77f021040 [0x1fb1e1308]>{value = 655}
+        28 => <CFKeyedArchiverUID 0x77f021060 [0x1fb1e1308]>{value = 656}
+        29 => <CFKeyedArchiverUID 0x77f021080 [0x1fb1e1308]>{value = 657}
+        30 => <CFKeyedArchiverUID 0x77f0210a0 [0x1fb1e1308]>{value = 658}
+        31 => <CFKeyedArchiverUID 0x77f0210c0 [0x1fb1e1308]>{value = 659}
+        32 => <CFKeyedArchiverUID 0x77f0210e0 [0x1fb1e1308]>{value = 660}
+        33 => <CFKeyedArchiverUID 0x77f021100 [0x1fb1e1308]>{value = 661}
+        34 => <CFKeyedArchiverUID 0x77f021120 [0x1fb1e1308]>{value = 662}
+        35 => <CFKeyedArchiverUID 0x77f021140 [0x1fb1e1308]>{value = 663}
+        36 => <CFKeyedArchiverUID 0x77f021160 [0x1fb1e1308]>{value = 664}
+        37 => <CFKeyedArchiverUID 0x77f021180 [0x1fb1e1308]>{value = 665}
+        38 => <CFKeyedArchiverUID 0x77f0211a0 [0x1fb1e1308]>{value = 666}
+        39 => <CFKeyedArchiverUID 0x77f0211c0 [0x1fb1e1308]>{value = 667}
+        40 => <CFKeyedArchiverUID 0x77f0211e0 [0x1fb1e1308]>{value = 668}
+        41 => <CFKeyedArchiverUID 0x77f021200 [0x1fb1e1308]>{value = 669}
+        42 => <CFKeyedArchiverUID 0x77f021220 [0x1fb1e1308]>{value = 670}
+        43 => <CFKeyedArchiverUID 0x77f021240 [0x1fb1e1308]>{value = 671}
+        44 => <CFKeyedArchiverUID 0x77f021260 [0x1fb1e1308]>{value = 672}
+        45 => <CFKeyedArchiverUID 0x77f021280 [0x1fb1e1308]>{value = 673}
+        46 => <CFKeyedArchiverUID 0x77f0212a0 [0x1fb1e1308]>{value = 674}
+        47 => <CFKeyedArchiverUID 0x77f0212c0 [0x1fb1e1308]>{value = 675}
+        48 => <CFKeyedArchiverUID 0x77f019260 [0x1fb1e1308]>{value = 159}
+        49 => <CFKeyedArchiverUID 0x77f019280 [0x1fb1e1308]>{value = 160}
+        50 => <CFKeyedArchiverUID 0x77f0212e0 [0x1fb1e1308]>{value = 676}
+        51 => <CFKeyedArchiverUID 0x77f021300 [0x1fb1e1308]>{value = 677}
+        52 => <CFKeyedArchiverUID 0x77f021320 [0x1fb1e1308]>{value = 678}
+        53 => <CFKeyedArchiverUID 0x77f021340 [0x1fb1e1308]>{value = 679}
+        54 => <CFKeyedArchiverUID 0x77f021360 [0x1fb1e1308]>{value = 680}
+        55 => <CFKeyedArchiverUID 0x77f021380 [0x1fb1e1308]>{value = 681}
+        56 => <CFKeyedArchiverUID 0x77f0213a0 [0x1fb1e1308]>{value = 682}
+        57 => <CFKeyedArchiverUID 0x77f0213c0 [0x1fb1e1308]>{value = 683}
+        58 => <CFKeyedArchiverUID 0x77f0213e0 [0x1fb1e1308]>{value = 684}
+        59 => <CFKeyedArchiverUID 0x77f021400 [0x1fb1e1308]>{value = 685}
+        60 => <CFKeyedArchiverUID 0x77f021420 [0x1fb1e1308]>{value = 686}
+        61 => <CFKeyedArchiverUID 0x77f021440 [0x1fb1e1308]>{value = 687}
+        62 => <CFKeyedArchiverUID 0x77f021460 [0x1fb1e1308]>{value = 688}
+        63 => <CFKeyedArchiverUID 0x77f021480 [0x1fb1e1308]>{value = 689}
+        64 => <CFKeyedArchiverUID 0x77f0214a0 [0x1fb1e1308]>{value = 690}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        1 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        2 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f0214c0 [0x1fb1e1308]>{value = 691}
+        5 => <CFKeyedArchiverUID 0x77f0214e0 [0x1fb1e1308]>{value = 694}
+        6 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        7 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        8 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        9 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        10 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        11 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        12 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        13 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        14 => <CFKeyedArchiverUID 0x77f0187a0 [0x1fb1e1308]>{value = 80}
+        15 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        16 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        17 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        18 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        19 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        20 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        21 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        22 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        23 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        24 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        25 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        26 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        27 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        28 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        29 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        30 => <CFKeyedArchiverUID 0x77f021500 [0x1fb1e1308]>{value = 695}
+        31 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        32 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        33 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        34 => <CFKeyedArchiverUID 0x77f021520 [0x1fb1e1308]>{value = 696}
+        35 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        36 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        37 => <CFKeyedArchiverUID 0x77f018840 [0x1fb1e1308]>{value = 85}
+        38 => <CFKeyedArchiverUID 0x77f021540 [0x1fb1e1308]>{value = 697}
+        39 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        40 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        41 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        42 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        43 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        44 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        45 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        46 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        47 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        48 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        49 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        50 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        51 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        52 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        53 => <CFKeyedArchiverUID 0x77f018880 [0x1fb1e1308]>{value = 87}
+        54 => <CFKeyedArchiverUID 0x77f021560 [0x1fb1e1308]>{value = 698}
+        55 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        56 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        57 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        58 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        59 => <CFKeyedArchiverUID 0x77f021580 [0x1fb1e1308]>{value = 707}
+        60 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        61 => <CFKeyedArchiverUID 0x77f0215a0 [0x1fb1e1308]>{value = 708}
+        62 => <CFKeyedArchiverUID 0x77f018900 [0x1fb1e1308]>{value = 107}
+        63 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        64 => <CFKeyedArchiverUID 0x77f0215c0 [0x1fb1e1308]>{value = 713}
+      ]
+    }
+    628 => "ShouldSuppressScreenLightUp"
+    629 => "ShouldSuppressSyncDismissalWhenRemoved"
+    630 => "InterruptionLevel"
+    631 => "UNNotificationNotificationCenterDestination"
+    632 => "TriggerDateComponents"
+    633 => "RequestDate"
+    634 => "ScreenCaptureProhibited"
+    635 => "ShouldPreventNotificationDismissalAfterDefaultAction"
+    636 => "RevisionNumber"
+    637 => "ShouldIgnoreDowntime"
+    638 => "TriggerTimeInterval"
+    639 => "IconShouldSuppressMask"
+    640 => "ShouldPresentAlert"
+    641 => "ShouldPlaySound"
+    642 => "ToneAlertType"
+    643 => "ShouldIgnoreAccessibilityDisabledVibrationSetting"
+    644 => "ShouldUseRequestIdentifierForDismissalSync"
+    645 => "CommunicationContextCapabilities"
+    646 => "SoundShouldRepeat"
+    647 => "ShouldHideDate"
+    648 => "CommunicationContextReplyToCurrentUser"
+    649 => "UNNotificationLockScreenDestination"
+    650 => "AppNotificationSummaryArgument"
+    651 => "PipelineState"
+    652 => "IsHighlight"
+    653 => "CommunicationContextMentionsCurrentUser"
+    654 => "TriggerRepeatInterval"
+    655 => "SoundMaximumDuration"
+    656 => "UNNotificationDefaultDestinations"
+    657 => "RealertCount"
+    658 => "AppNotificationIdentifier"
+    659 => "CommunicationContextBusinessCorrespondence"
+    660 => "ShouldPreemptPresentedNotification"
+    661 => "ShouldBackgroundDefaultAction"
+    662 => "NotificationType"
+    663 => "ToneMediaLibraryItemIdentifier"
+    664 => "ShouldAuthenticateDefaultAction"
+    665 => "PresentationOptions"
+    666 => "AppNotificationTitle"
+    667 => "PriorityStatus"
+    668 => "CommunicationContextRecipientCount"
+    669 => "ShouldIgnoreDoNotDisturb"
+    670 => "AppNotificationSummaryArgumentCount"
+    671 => "UNNotificationShouldShowSubordinateIcon"
+    672 => "CommunicationContextNotifyRecipientAnyway"
+    673 => "UNNotificationRelevanceScore"
+    674 => "BadgeApplicationIcon"
+    675 => "SummaryStatus"
+    676 => "UNNotificationAlertDestination"
+    677 => "HasDefaultActionKey"
+    678 => "UNNotificationCarPlayDestination"
+    679 => "UNNotificationTriggerType"
+    680 => "UNNotificationUserInfo"
+    681 => "CriticalAlertSound"
+    682 => "ShouldDisplayActionsInline"
+    683 => "TriggerRepeats"
+    684 => "SoundShouldIgnoreRingerSwitch"
+    685 => "AppNotificationCreationDate"
+    686 => "ShouldHideTime"
+    687 => "EventBehavior"
+    688 => "SchemaVersion"
+    689 => "CommunicationContextSystemImage"
+    690 => "AppNotificationMessage"
+    691 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018960 [0x1fb1e1308]>{value = 76}
+      "NS.day" => 29
+      "NS.hour" => 23
+      "NS.leapMonth" => 0
+      "NS.minute" => 20
+      "NS.month" => 10
+      "NS.repeatedDay" => false
+      "NS.second" => 23
+      "NS.timezone" => <CFKeyedArchiverUID 0x77f0215e0 [0x1fb1e1308]>{value = 692}
+      "NS.year" => 2026
+    }
+    692 => {
+      "$class" => <CFKeyedArchiverUID 0x77f0189e0 [0x1fb1e1308]>{value = 75}
+      "NS.data" => <CFKeyedArchiverUID 0x77f021600 [0x1fb1e1308]>{value = 693}
+      "NS.name" => <CFKeyedArchiverUID 0x77f0189a0 [0x1fb1e1308]>{value = 73}
+    }
+    693 => {length = 114, bytes = 0x545a6966320000000000000000000000 ... 54000a474d54300a}
+    694 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008763.795998
+    }
+    695 => "10003"
+    696 => "UNNotificationContentTypeDefault"
+    697 => "Vitamine K"
+    698 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018b60 [0x1fb1e1308]>{value = 98}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f021640 [0x1fb1e1308]>{value = 699}
+        1 => <CFKeyedArchiverUID 0x77f021660 [0x1fb1e1308]>{value = 700}
+        2 => <CFKeyedArchiverUID 0x77f021680 [0x1fb1e1308]>{value = 701}
+        3 => <CFKeyedArchiverUID 0x77f0216a0 [0x1fb1e1308]>{value = 702}
+        4 => <CFKeyedArchiverUID 0x77f018ac0 [0x1fb1e1308]>{value = 93}
+        5 => <CFKeyedArchiverUID 0x77f0216c0 [0x1fb1e1308]>{value = 703}
+        6 => <CFKeyedArchiverUID 0x77f018b00 [0x1fb1e1308]>{value = 95}
+        7 => <CFKeyedArchiverUID 0x77f0216e0 [0x1fb1e1308]>{value = 704}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        1 => <CFKeyedArchiverUID 0x77f021700 [0x1fb1e1308]>{value = 705}
+        2 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f021720 [0x1fb1e1308]>{value = 706}
+        5 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        6 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        7 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+      ]
+    }
+    699 => "presentAlert"
+    700 => "NotificationId"
+    701 => "presentBadge"
+    702 => "presentBanner"
+    703 => "presentSound"
+    704 => "presentList"
+    705 => 10003
+    706 => "Vitamine K"
+    707 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008823
+    }
+    708 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018bc0 [0x1fb1e1308]>{value = 106}
+      "activeModeUUID" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "eventDetails" => <CFKeyedArchiverUID 0x77f021740 [0x1fb1e1308]>{value = 709}
+      "intelligentBehavior" => 0
+      "interruptionSuppression" => 0
+      "resolutionReason" => 2
+    }
+    709 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018c20 [0x1fb1e1308]>{value = 105}
+      "behavior" => 0
+      "body" => <CFKeyedArchiverUID 0x77f021760 [0x1fb1e1308]>{value = 712}
+      "bundleIdentifier" => <CFKeyedArchiverUID 0x77f0217a0 [0x1fb1e1308]>{value = 710}
+      "filterCriteria" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "forwardingBehavior" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "identifier" => <CFKeyedArchiverUID 0x77f021500 [0x1fb1e1308]>{value = 695}
+      "notifyAnyway" => false
+      "platform" => 0
+      "sender" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "shouldAdjustEventBehaviorForMirroring" => false
+      "subtitle" => <CFKeyedArchiverUID 0x77f021780 [0x1fb1e1308]>{value = 711}
+      "threadIdentifier" => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+      "title" => <CFKeyedArchiverUID 0x77f021780 [0x1fb1e1308]>{value = 711}
+      "type" => 0
+      "urgency" => 0
+    }
+    710 => "com.pvjio.mamadera"
+    711 => "Vitamine K"
+    712 => "Nora : c'est l'heure de Vitamine K."
+    713 => "Nora : c'est l'heure de Vitamine K."
+    714 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018940 [0x1fb1e1308]>{value = 109}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f0217c0 [0x1fb1e1308]>{value = 715}
+        1 => <CFKeyedArchiverUID 0x77f0217e0 [0x1fb1e1308]>{value = 716}
+        2 => <CFKeyedArchiverUID 0x77f021800 [0x1fb1e1308]>{value = 717}
+        3 => <CFKeyedArchiverUID 0x77f021820 [0x1fb1e1308]>{value = 718}
+        4 => <CFKeyedArchiverUID 0x77f021840 [0x1fb1e1308]>{value = 719}
+        5 => <CFKeyedArchiverUID 0x77f021860 [0x1fb1e1308]>{value = 720}
+        6 => <CFKeyedArchiverUID 0x77f021880 [0x1fb1e1308]>{value = 721}
+        7 => <CFKeyedArchiverUID 0x77f0218a0 [0x1fb1e1308]>{value = 722}
+        8 => <CFKeyedArchiverUID 0x77f0218c0 [0x1fb1e1308]>{value = 723}
+        9 => <CFKeyedArchiverUID 0x77f0218e0 [0x1fb1e1308]>{value = 724}
+        10 => <CFKeyedArchiverUID 0x77f021900 [0x1fb1e1308]>{value = 725}
+        11 => <CFKeyedArchiverUID 0x77f021920 [0x1fb1e1308]>{value = 726}
+        12 => <CFKeyedArchiverUID 0x77f021940 [0x1fb1e1308]>{value = 727}
+        13 => <CFKeyedArchiverUID 0x77f021960 [0x1fb1e1308]>{value = 728}
+        14 => <CFKeyedArchiverUID 0x77f021980 [0x1fb1e1308]>{value = 729}
+        15 => <CFKeyedArchiverUID 0x77f0219a0 [0x1fb1e1308]>{value = 730}
+        16 => <CFKeyedArchiverUID 0x77f0219c0 [0x1fb1e1308]>{value = 731}
+        17 => <CFKeyedArchiverUID 0x77f0219e0 [0x1fb1e1308]>{value = 732}
+        18 => <CFKeyedArchiverUID 0x77f021a00 [0x1fb1e1308]>{value = 733}
+        19 => <CFKeyedArchiverUID 0x77f021a20 [0x1fb1e1308]>{value = 734}
+        20 => <CFKeyedArchiverUID 0x77f021a40 [0x1fb1e1308]>{value = 735}
+        21 => <CFKeyedArchiverUID 0x77f021a60 [0x1fb1e1308]>{value = 736}
+        22 => <CFKeyedArchiverUID 0x77f021a80 [0x1fb1e1308]>{value = 737}
+        23 => <CFKeyedArchiverUID 0x77f021aa0 [0x1fb1e1308]>{value = 738}
+        24 => <CFKeyedArchiverUID 0x77f021ac0 [0x1fb1e1308]>{value = 739}
+        25 => <CFKeyedArchiverUID 0x77f021ae0 [0x1fb1e1308]>{value = 740}
+        26 => <CFKeyedArchiverUID 0x77f021b00 [0x1fb1e1308]>{value = 741}
+        27 => <CFKeyedArchiverUID 0x77f021b20 [0x1fb1e1308]>{value = 742}
+        28 => <CFKeyedArchiverUID 0x77f021b40 [0x1fb1e1308]>{value = 743}
+        29 => <CFKeyedArchiverUID 0x77f021b60 [0x1fb1e1308]>{value = 744}
+        30 => <CFKeyedArchiverUID 0x77f021b80 [0x1fb1e1308]>{value = 745}
+        31 => <CFKeyedArchiverUID 0x77f021ba0 [0x1fb1e1308]>{value = 746}
+        32 => <CFKeyedArchiverUID 0x77f021bc0 [0x1fb1e1308]>{value = 747}
+        33 => <CFKeyedArchiverUID 0x77f021be0 [0x1fb1e1308]>{value = 748}
+        34 => <CFKeyedArchiverUID 0x77f021c00 [0x1fb1e1308]>{value = 749}
+        35 => <CFKeyedArchiverUID 0x77f021c20 [0x1fb1e1308]>{value = 750}
+        36 => <CFKeyedArchiverUID 0x77f021c40 [0x1fb1e1308]>{value = 751}
+        37 => <CFKeyedArchiverUID 0x77f021c60 [0x1fb1e1308]>{value = 752}
+        38 => <CFKeyedArchiverUID 0x77f021c80 [0x1fb1e1308]>{value = 753}
+        39 => <CFKeyedArchiverUID 0x77f021ca0 [0x1fb1e1308]>{value = 754}
+        40 => <CFKeyedArchiverUID 0x77f021cc0 [0x1fb1e1308]>{value = 755}
+        41 => <CFKeyedArchiverUID 0x77f021ce0 [0x1fb1e1308]>{value = 756}
+        42 => <CFKeyedArchiverUID 0x77f021d00 [0x1fb1e1308]>{value = 757}
+        43 => <CFKeyedArchiverUID 0x77f021d20 [0x1fb1e1308]>{value = 758}
+        44 => <CFKeyedArchiverUID 0x77f021d40 [0x1fb1e1308]>{value = 759}
+        45 => <CFKeyedArchiverUID 0x77f021d60 [0x1fb1e1308]>{value = 760}
+        46 => <CFKeyedArchiverUID 0x77f021d80 [0x1fb1e1308]>{value = 761}
+        47 => <CFKeyedArchiverUID 0x77f021da0 [0x1fb1e1308]>{value = 762}
+        48 => <CFKeyedArchiverUID 0x77f019260 [0x1fb1e1308]>{value = 159}
+        49 => <CFKeyedArchiverUID 0x77f019280 [0x1fb1e1308]>{value = 160}
+        50 => <CFKeyedArchiverUID 0x77f021dc0 [0x1fb1e1308]>{value = 763}
+        51 => <CFKeyedArchiverUID 0x77f021de0 [0x1fb1e1308]>{value = 764}
+        52 => <CFKeyedArchiverUID 0x77f021e00 [0x1fb1e1308]>{value = 765}
+        53 => <CFKeyedArchiverUID 0x77f021e20 [0x1fb1e1308]>{value = 766}
+        54 => <CFKeyedArchiverUID 0x77f021e40 [0x1fb1e1308]>{value = 767}
+        55 => <CFKeyedArchiverUID 0x77f021e60 [0x1fb1e1308]>{value = 768}
+        56 => <CFKeyedArchiverUID 0x77f021e80 [0x1fb1e1308]>{value = 769}
+        57 => <CFKeyedArchiverUID 0x77f021ea0 [0x1fb1e1308]>{value = 770}
+        58 => <CFKeyedArchiverUID 0x77f021ec0 [0x1fb1e1308]>{value = 771}
+        59 => <CFKeyedArchiverUID 0x77f021ee0 [0x1fb1e1308]>{value = 772}
+        60 => <CFKeyedArchiverUID 0x77f021f00 [0x1fb1e1308]>{value = 773}
+        61 => <CFKeyedArchiverUID 0x77f021f20 [0x1fb1e1308]>{value = 774}
+        62 => <CFKeyedArchiverUID 0x77f021f40 [0x1fb1e1308]>{value = 775}
+        63 => <CFKeyedArchiverUID 0x77f021f60 [0x1fb1e1308]>{value = 776}
+        64 => <CFKeyedArchiverUID 0x77f021f80 [0x1fb1e1308]>{value = 777}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        1 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        2 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f021fa0 [0x1fb1e1308]>{value = 778}
+        5 => <CFKeyedArchiverUID 0x77f021fc0 [0x1fb1e1308]>{value = 781}
+        6 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        7 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        8 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        9 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        10 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        11 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        12 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        13 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        14 => <CFKeyedArchiverUID 0x77f0187a0 [0x1fb1e1308]>{value = 80}
+        15 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        16 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        17 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        18 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        19 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        20 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        21 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        22 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        23 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        24 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        25 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        26 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        27 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        28 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        29 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        30 => <CFKeyedArchiverUID 0x77f021fe0 [0x1fb1e1308]>{value = 782}
+        31 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        32 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        33 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        34 => <CFKeyedArchiverUID 0x77f022000 [0x1fb1e1308]>{value = 783}
+        35 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        36 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        37 => <CFKeyedArchiverUID 0x77f018840 [0x1fb1e1308]>{value = 85}
+        38 => <CFKeyedArchiverUID 0x77f022020 [0x1fb1e1308]>{value = 784}
+        39 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        40 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        41 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        42 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        43 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        44 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        45 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        46 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        47 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        48 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        49 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        50 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        51 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        52 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        53 => <CFKeyedArchiverUID 0x77f018880 [0x1fb1e1308]>{value = 87}
+        54 => <CFKeyedArchiverUID 0x77f022040 [0x1fb1e1308]>{value = 785}
+        55 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        56 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        57 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        58 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        59 => <CFKeyedArchiverUID 0x77f021580 [0x1fb1e1308]>{value = 707}
+        60 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        61 => <CFKeyedArchiverUID 0x77f022060 [0x1fb1e1308]>{value = 793}
+        62 => <CFKeyedArchiverUID 0x77f018900 [0x1fb1e1308]>{value = 107}
+        63 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        64 => <CFKeyedArchiverUID 0x77f022080 [0x1fb1e1308]>{value = 797}
+      ]
+    }
+    715 => "ShouldSuppressScreenLightUp"
+    716 => "ShouldSuppressSyncDismissalWhenRemoved"
+    717 => "InterruptionLevel"
+    718 => "UNNotificationNotificationCenterDestination"
+    719 => "TriggerDateComponents"
+    720 => "RequestDate"
+    721 => "ScreenCaptureProhibited"
+    722 => "ShouldPreventNotificationDismissalAfterDefaultAction"
+    723 => "RevisionNumber"
+    724 => "ShouldIgnoreDowntime"
+    725 => "TriggerTimeInterval"
+    726 => "IconShouldSuppressMask"
+    727 => "ShouldPresentAlert"
+    728 => "ShouldPlaySound"
+    729 => "ToneAlertType"
+    730 => "ShouldIgnoreAccessibilityDisabledVibrationSetting"
+    731 => "ShouldUseRequestIdentifierForDismissalSync"
+    732 => "CommunicationContextCapabilities"
+    733 => "SoundShouldRepeat"
+    734 => "ShouldHideDate"
+    735 => "CommunicationContextReplyToCurrentUser"
+    736 => "UNNotificationLockScreenDestination"
+    737 => "AppNotificationSummaryArgument"
+    738 => "PipelineState"
+    739 => "IsHighlight"
+    740 => "CommunicationContextMentionsCurrentUser"
+    741 => "TriggerRepeatInterval"
+    742 => "SoundMaximumDuration"
+    743 => "UNNotificationDefaultDestinations"
+    744 => "RealertCount"
+    745 => "AppNotificationIdentifier"
+    746 => "CommunicationContextBusinessCorrespondence"
+    747 => "ShouldPreemptPresentedNotification"
+    748 => "ShouldBackgroundDefaultAction"
+    749 => "NotificationType"
+    750 => "ToneMediaLibraryItemIdentifier"
+    751 => "ShouldAuthenticateDefaultAction"
+    752 => "PresentationOptions"
+    753 => "AppNotificationTitle"
+    754 => "PriorityStatus"
+    755 => "CommunicationContextRecipientCount"
+    756 => "ShouldIgnoreDoNotDisturb"
+    757 => "AppNotificationSummaryArgumentCount"
+    758 => "UNNotificationShouldShowSubordinateIcon"
+    759 => "CommunicationContextNotifyRecipientAnyway"
+    760 => "UNNotificationRelevanceScore"
+    761 => "BadgeApplicationIcon"
+    762 => "SummaryStatus"
+    763 => "UNNotificationAlertDestination"
+    764 => "HasDefaultActionKey"
+    765 => "UNNotificationCarPlayDestination"
+    766 => "UNNotificationTriggerType"
+    767 => "UNNotificationUserInfo"
+    768 => "CriticalAlertSound"
+    769 => "ShouldDisplayActionsInline"
+    770 => "TriggerRepeats"
+    771 => "SoundShouldIgnoreRingerSwitch"
+    772 => "AppNotificationCreationDate"
+    773 => "ShouldHideTime"
+    774 => "EventBehavior"
+    775 => "SchemaVersion"
+    776 => "CommunicationContextSystemImage"
+    777 => "AppNotificationMessage"
+    778 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018960 [0x1fb1e1308]>{value = 76}
+      "NS.day" => 29
+      "NS.hour" => 23
+      "NS.leapMonth" => 0
+      "NS.minute" => 20
+      "NS.month" => 10
+      "NS.repeatedDay" => false
+      "NS.second" => 23
+      "NS.timezone" => <CFKeyedArchiverUID 0x77f0220a0 [0x1fb1e1308]>{value = 779}
+      "NS.year" => 2026
+    }
+    779 => {
+      "$class" => <CFKeyedArchiverUID 0x77f0189e0 [0x1fb1e1308]>{value = 75}
+      "NS.data" => <CFKeyedArchiverUID 0x77f0220c0 [0x1fb1e1308]>{value = 780}
+      "NS.name" => <CFKeyedArchiverUID 0x77f0189a0 [0x1fb1e1308]>{value = 73}
+    }
+    780 => {length = 114, bytes = 0x545a6966320000000000000000000000 ... 54000a474d54300a}
+    781 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008763.771798
+    }
+    782 => "10002"
+    783 => "UNNotificationContentTypeDefault"
+    784 => "Portage"
+    785 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018b60 [0x1fb1e1308]>{value = 98}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f022100 [0x1fb1e1308]>{value = 786}
+        1 => <CFKeyedArchiverUID 0x77f022120 [0x1fb1e1308]>{value = 787}
+        2 => <CFKeyedArchiverUID 0x77f022140 [0x1fb1e1308]>{value = 788}
+        3 => <CFKeyedArchiverUID 0x77f022160 [0x1fb1e1308]>{value = 789}
+        4 => <CFKeyedArchiverUID 0x77f018ac0 [0x1fb1e1308]>{value = 93}
+        5 => <CFKeyedArchiverUID 0x77f022180 [0x1fb1e1308]>{value = 790}
+        6 => <CFKeyedArchiverUID 0x77f018b00 [0x1fb1e1308]>{value = 95}
+        7 => <CFKeyedArchiverUID 0x77f0221a0 [0x1fb1e1308]>{value = 791}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        1 => <CFKeyedArchiverUID 0x77f0221c0 [0x1fb1e1308]>{value = 792}
+        2 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f022020 [0x1fb1e1308]>{value = 784}
+        5 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        6 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        7 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+      ]
+    }
+    786 => "presentAlert"
+    787 => "NotificationId"
+    788 => "presentBadge"
+    789 => "presentBanner"
+    790 => "presentSound"
+    791 => "presentList"
+    792 => 10002
+    793 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018bc0 [0x1fb1e1308]>{value = 106}
+      "activeModeUUID" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "eventDetails" => <CFKeyedArchiverUID 0x77f0221e0 [0x1fb1e1308]>{value = 794}
+      "intelligentBehavior" => 0
+      "interruptionSuppression" => 0
+      "resolutionReason" => 2
+    }
+    794 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018c20 [0x1fb1e1308]>{value = 105}
+      "behavior" => 0
+      "body" => <CFKeyedArchiverUID 0x77f022200 [0x1fb1e1308]>{value = 796}
+      "bundleIdentifier" => <CFKeyedArchiverUID 0x77f022220 [0x1fb1e1308]>{value = 795}
+      "filterCriteria" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "forwardingBehavior" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "identifier" => <CFKeyedArchiverUID 0x77f021fe0 [0x1fb1e1308]>{value = 782}
+      "notifyAnyway" => false
+      "platform" => 0
+      "sender" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "shouldAdjustEventBehaviorForMirroring" => false
+      "subtitle" => <CFKeyedArchiverUID 0x77f022020 [0x1fb1e1308]>{value = 784}
+      "threadIdentifier" => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+      "title" => <CFKeyedArchiverUID 0x77f022020 [0x1fb1e1308]>{value = 784}
+      "type" => 0
+      "urgency" => 0
+    }
+    795 => "com.pvjio.mamadera"
+    796 => "Léa : c'est l'heure de Portage."
+    797 => "Léa : c'est l'heure de Portage."
+    798 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018940 [0x1fb1e1308]>{value = 109}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f022240 [0x1fb1e1308]>{value = 799}
+        1 => <CFKeyedArchiverUID 0x77f022260 [0x1fb1e1308]>{value = 800}
+        2 => <CFKeyedArchiverUID 0x77f022280 [0x1fb1e1308]>{value = 801}
+        3 => <CFKeyedArchiverUID 0x77f0222a0 [0x1fb1e1308]>{value = 802}
+        4 => <CFKeyedArchiverUID 0x77f0222c0 [0x1fb1e1308]>{value = 803}
+        5 => <CFKeyedArchiverUID 0x77f0222e0 [0x1fb1e1308]>{value = 804}
+        6 => <CFKeyedArchiverUID 0x77f022300 [0x1fb1e1308]>{value = 805}
+        7 => <CFKeyedArchiverUID 0x77f022320 [0x1fb1e1308]>{value = 806}
+        8 => <CFKeyedArchiverUID 0x77f022340 [0x1fb1e1308]>{value = 807}
+        9 => <CFKeyedArchiverUID 0x77f022360 [0x1fb1e1308]>{value = 808}
+        10 => <CFKeyedArchiverUID 0x77f022380 [0x1fb1e1308]>{value = 809}
+        11 => <CFKeyedArchiverUID 0x77f0223a0 [0x1fb1e1308]>{value = 810}
+        12 => <CFKeyedArchiverUID 0x77f0223c0 [0x1fb1e1308]>{value = 811}
+        13 => <CFKeyedArchiverUID 0x77f0223e0 [0x1fb1e1308]>{value = 812}
+        14 => <CFKeyedArchiverUID 0x77f022400 [0x1fb1e1308]>{value = 813}
+        15 => <CFKeyedArchiverUID 0x77f022420 [0x1fb1e1308]>{value = 814}
+        16 => <CFKeyedArchiverUID 0x77f022440 [0x1fb1e1308]>{value = 815}
+        17 => <CFKeyedArchiverUID 0x77f022460 [0x1fb1e1308]>{value = 816}
+        18 => <CFKeyedArchiverUID 0x77f022480 [0x1fb1e1308]>{value = 817}
+        19 => <CFKeyedArchiverUID 0x77f0224a0 [0x1fb1e1308]>{value = 818}
+        20 => <CFKeyedArchiverUID 0x77f0224c0 [0x1fb1e1308]>{value = 819}
+        21 => <CFKeyedArchiverUID 0x77f0224e0 [0x1fb1e1308]>{value = 820}
+        22 => <CFKeyedArchiverUID 0x77f022500 [0x1fb1e1308]>{value = 821}
+        23 => <CFKeyedArchiverUID 0x77f022520 [0x1fb1e1308]>{value = 822}
+        24 => <CFKeyedArchiverUID 0x77f022540 [0x1fb1e1308]>{value = 823}
+        25 => <CFKeyedArchiverUID 0x77f022560 [0x1fb1e1308]>{value = 824}
+        26 => <CFKeyedArchiverUID 0x77f022580 [0x1fb1e1308]>{value = 825}
+        27 => <CFKeyedArchiverUID 0x77f0225a0 [0x1fb1e1308]>{value = 826}
+        28 => <CFKeyedArchiverUID 0x77f0225c0 [0x1fb1e1308]>{value = 827}
+        29 => <CFKeyedArchiverUID 0x77f0225e0 [0x1fb1e1308]>{value = 828}
+        30 => <CFKeyedArchiverUID 0x77f022600 [0x1fb1e1308]>{value = 829}
+        31 => <CFKeyedArchiverUID 0x77f022620 [0x1fb1e1308]>{value = 830}
+        32 => <CFKeyedArchiverUID 0x77f022640 [0x1fb1e1308]>{value = 831}
+        33 => <CFKeyedArchiverUID 0x77f022660 [0x1fb1e1308]>{value = 832}
+        34 => <CFKeyedArchiverUID 0x77f022680 [0x1fb1e1308]>{value = 833}
+        35 => <CFKeyedArchiverUID 0x77f0226a0 [0x1fb1e1308]>{value = 834}
+        36 => <CFKeyedArchiverUID 0x77f0226c0 [0x1fb1e1308]>{value = 835}
+        37 => <CFKeyedArchiverUID 0x77f0226e0 [0x1fb1e1308]>{value = 836}
+        38 => <CFKeyedArchiverUID 0x77f022700 [0x1fb1e1308]>{value = 837}
+        39 => <CFKeyedArchiverUID 0x77f022720 [0x1fb1e1308]>{value = 838}
+        40 => <CFKeyedArchiverUID 0x77f022740 [0x1fb1e1308]>{value = 839}
+        41 => <CFKeyedArchiverUID 0x77f022760 [0x1fb1e1308]>{value = 840}
+        42 => <CFKeyedArchiverUID 0x77f022780 [0x1fb1e1308]>{value = 841}
+        43 => <CFKeyedArchiverUID 0x77f0227a0 [0x1fb1e1308]>{value = 842}
+        44 => <CFKeyedArchiverUID 0x77f0227c0 [0x1fb1e1308]>{value = 843}
+        45 => <CFKeyedArchiverUID 0x77f0227e0 [0x1fb1e1308]>{value = 844}
+        46 => <CFKeyedArchiverUID 0x77f022800 [0x1fb1e1308]>{value = 845}
+        47 => <CFKeyedArchiverUID 0x77f022820 [0x1fb1e1308]>{value = 846}
+        48 => <CFKeyedArchiverUID 0x77f019260 [0x1fb1e1308]>{value = 159}
+        49 => <CFKeyedArchiverUID 0x77f019280 [0x1fb1e1308]>{value = 160}
+        50 => <CFKeyedArchiverUID 0x77f022840 [0x1fb1e1308]>{value = 847}
+        51 => <CFKeyedArchiverUID 0x77f022860 [0x1fb1e1308]>{value = 848}
+        52 => <CFKeyedArchiverUID 0x77f022880 [0x1fb1e1308]>{value = 849}
+        53 => <CFKeyedArchiverUID 0x77f0228a0 [0x1fb1e1308]>{value = 850}
+        54 => <CFKeyedArchiverUID 0x77f0228c0 [0x1fb1e1308]>{value = 851}
+        55 => <CFKeyedArchiverUID 0x77f0228e0 [0x1fb1e1308]>{value = 852}
+        56 => <CFKeyedArchiverUID 0x77f022900 [0x1fb1e1308]>{value = 853}
+        57 => <CFKeyedArchiverUID 0x77f022920 [0x1fb1e1308]>{value = 854}
+        58 => <CFKeyedArchiverUID 0x77f022940 [0x1fb1e1308]>{value = 855}
+        59 => <CFKeyedArchiverUID 0x77f022960 [0x1fb1e1308]>{value = 856}
+        60 => <CFKeyedArchiverUID 0x77f022980 [0x1fb1e1308]>{value = 857}
+        61 => <CFKeyedArchiverUID 0x77f0229a0 [0x1fb1e1308]>{value = 858}
+        62 => <CFKeyedArchiverUID 0x77f0229c0 [0x1fb1e1308]>{value = 859}
+        63 => <CFKeyedArchiverUID 0x77f0229e0 [0x1fb1e1308]>{value = 860}
+        64 => <CFKeyedArchiverUID 0x77f022a00 [0x1fb1e1308]>{value = 861}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        1 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        2 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f022a20 [0x1fb1e1308]>{value = 862}
+        5 => <CFKeyedArchiverUID 0x77f022a40 [0x1fb1e1308]>{value = 865}
+        6 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        7 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        8 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        9 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        10 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        11 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        12 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        13 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        14 => <CFKeyedArchiverUID 0x77f0187a0 [0x1fb1e1308]>{value = 80}
+        15 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        16 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        17 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        18 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        19 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        20 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        21 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        22 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        23 => <CFKeyedArchiverUID 0x77f018700 [0x1fb1e1308]>{value = 69}
+        24 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        25 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        26 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        27 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        28 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        29 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        30 => <CFKeyedArchiverUID 0x77f022a60 [0x1fb1e1308]>{value = 866}
+        31 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        32 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        33 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        34 => <CFKeyedArchiverUID 0x77f022a80 [0x1fb1e1308]>{value = 867}
+        35 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        36 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        37 => <CFKeyedArchiverUID 0x77f018840 [0x1fb1e1308]>{value = 85}
+        38 => <CFKeyedArchiverUID 0x77f022aa0 [0x1fb1e1308]>{value = 868}
+        39 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        40 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        41 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        42 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        43 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        44 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        45 => <CFKeyedArchiverUID 0x77f018780 [0x1fb1e1308]>{value = 79}
+        46 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        47 => <CFKeyedArchiverUID 0x77f0187c0 [0x1fb1e1308]>{value = 81}
+        48 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        49 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        50 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        51 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        52 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        53 => <CFKeyedArchiverUID 0x77f018880 [0x1fb1e1308]>{value = 87}
+        54 => <CFKeyedArchiverUID 0x77f022ac0 [0x1fb1e1308]>{value = 869}
+        55 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        56 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        57 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        58 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        59 => <CFKeyedArchiverUID 0x77f021580 [0x1fb1e1308]>{value = 707}
+        60 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        61 => <CFKeyedArchiverUID 0x77f022ae0 [0x1fb1e1308]>{value = 878}
+        62 => <CFKeyedArchiverUID 0x77f018900 [0x1fb1e1308]>{value = 107}
+        63 => <CFKeyedArchiverUID 0x77f0186e0 [0x1fb1e1308]>{value = 68}
+        64 => <CFKeyedArchiverUID 0x77f022b00 [0x1fb1e1308]>{value = 883}
+      ]
+    }
+    799 => "ShouldSuppressScreenLightUp"
+    800 => "ShouldSuppressSyncDismissalWhenRemoved"
+    801 => "InterruptionLevel"
+    802 => "UNNotificationNotificationCenterDestination"
+    803 => "TriggerDateComponents"
+    804 => "RequestDate"
+    805 => "ScreenCaptureProhibited"
+    806 => "ShouldPreventNotificationDismissalAfterDefaultAction"
+    807 => "RevisionNumber"
+    808 => "ShouldIgnoreDowntime"
+    809 => "TriggerTimeInterval"
+    810 => "IconShouldSuppressMask"
+    811 => "ShouldPresentAlert"
+    812 => "ShouldPlaySound"
+    813 => "ToneAlertType"
+    814 => "ShouldIgnoreAccessibilityDisabledVibrationSetting"
+    815 => "ShouldUseRequestIdentifierForDismissalSync"
+    816 => "CommunicationContextCapabilities"
+    817 => "SoundShouldRepeat"
+    818 => "ShouldHideDate"
+    819 => "CommunicationContextReplyToCurrentUser"
+    820 => "UNNotificationLockScreenDestination"
+    821 => "AppNotificationSummaryArgument"
+    822 => "PipelineState"
+    823 => "IsHighlight"
+    824 => "CommunicationContextMentionsCurrentUser"
+    825 => "TriggerRepeatInterval"
+    826 => "SoundMaximumDuration"
+    827 => "UNNotificationDefaultDestinations"
+    828 => "RealertCount"
+    829 => "AppNotificationIdentifier"
+    830 => "CommunicationContextBusinessCorrespondence"
+    831 => "ShouldPreemptPresentedNotification"
+    832 => "ShouldBackgroundDefaultAction"
+    833 => "NotificationType"
+    834 => "ToneMediaLibraryItemIdentifier"
+    835 => "ShouldAuthenticateDefaultAction"
+    836 => "PresentationOptions"
+    837 => "AppNotificationTitle"
+    838 => "PriorityStatus"
+    839 => "CommunicationContextRecipientCount"
+    840 => "ShouldIgnoreDoNotDisturb"
+    841 => "AppNotificationSummaryArgumentCount"
+    842 => "UNNotificationShouldShowSubordinateIcon"
+    843 => "CommunicationContextNotifyRecipientAnyway"
+    844 => "UNNotificationRelevanceScore"
+    845 => "BadgeApplicationIcon"
+    846 => "SummaryStatus"
+    847 => "UNNotificationAlertDestination"
+    848 => "HasDefaultActionKey"
+    849 => "UNNotificationCarPlayDestination"
+    850 => "UNNotificationTriggerType"
+    851 => "UNNotificationUserInfo"
+    852 => "CriticalAlertSound"
+    853 => "ShouldDisplayActionsInline"
+    854 => "TriggerRepeats"
+    855 => "SoundShouldIgnoreRingerSwitch"
+    856 => "AppNotificationCreationDate"
+    857 => "ShouldHideTime"
+    858 => "EventBehavior"
+    859 => "SchemaVersion"
+    860 => "CommunicationContextSystemImage"
+    861 => "AppNotificationMessage"
+    862 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018960 [0x1fb1e1308]>{value = 76}
+      "NS.day" => 29
+      "NS.hour" => 23
+      "NS.leapMonth" => 0
+      "NS.minute" => 20
+      "NS.month" => 10
+      "NS.repeatedDay" => false
+      "NS.second" => 23
+      "NS.timezone" => <CFKeyedArchiverUID 0x77f022b20 [0x1fb1e1308]>{value = 863}
+      "NS.year" => 2026
+    }
+    863 => {
+      "$class" => <CFKeyedArchiverUID 0x77f0189e0 [0x1fb1e1308]>{value = 75}
+      "NS.data" => <CFKeyedArchiverUID 0x77f022b40 [0x1fb1e1308]>{value = 864}
+      "NS.name" => <CFKeyedArchiverUID 0x77f0189a0 [0x1fb1e1308]>{value = 73}
+    }
+    864 => {length = 114, bytes = 0x545a6966320000000000000000000000 ... 54000a474d54300a}
+    865 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018a20 [0x1fb1e1308]>{value = 78}
+      "NS.time" => 815008763.728014
+    }
+    866 => "10001"
+    867 => "UNNotificationContentTypeDefault"
+    868 => "Vitamine K"
+    869 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018b60 [0x1fb1e1308]>{value = 98}
+      "NS.keys" => [
+        0 => <CFKeyedArchiverUID 0x77f022b80 [0x1fb1e1308]>{value = 870}
+        1 => <CFKeyedArchiverUID 0x77f022ba0 [0x1fb1e1308]>{value = 871}
+        2 => <CFKeyedArchiverUID 0x77f022bc0 [0x1fb1e1308]>{value = 872}
+        3 => <CFKeyedArchiverUID 0x77f022be0 [0x1fb1e1308]>{value = 873}
+        4 => <CFKeyedArchiverUID 0x77f018ac0 [0x1fb1e1308]>{value = 93}
+        5 => <CFKeyedArchiverUID 0x77f022c00 [0x1fb1e1308]>{value = 874}
+        6 => <CFKeyedArchiverUID 0x77f018b00 [0x1fb1e1308]>{value = 95}
+        7 => <CFKeyedArchiverUID 0x77f022c20 [0x1fb1e1308]>{value = 875}
+      ]
+      "NS.objects" => [
+        0 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        1 => <CFKeyedArchiverUID 0x77f022c40 [0x1fb1e1308]>{value = 876}
+        2 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        3 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        4 => <CFKeyedArchiverUID 0x77f022c60 [0x1fb1e1308]>{value = 877}
+        5 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+        6 => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+        7 => <CFKeyedArchiverUID 0x77f018720 [0x1fb1e1308]>{value = 70}
+      ]
+    }
+    870 => "presentAlert"
+    871 => "NotificationId"
+    872 => "presentBadge"
+    873 => "presentBanner"
+    874 => "presentSound"
+    875 => "presentList"
+    876 => 10001
+    877 => "Vitamine K"
+    878 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018bc0 [0x1fb1e1308]>{value = 106}
+      "activeModeUUID" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "eventDetails" => <CFKeyedArchiverUID 0x77f022c80 [0x1fb1e1308]>{value = 879}
+      "intelligentBehavior" => 0
+      "interruptionSuppression" => 0
+      "resolutionReason" => 2
+    }
+    879 => {
+      "$class" => <CFKeyedArchiverUID 0x77f018c20 [0x1fb1e1308]>{value = 105}
+      "behavior" => 0
+      "body" => <CFKeyedArchiverUID 0x77f022ca0 [0x1fb1e1308]>{value = 882}
+      "bundleIdentifier" => <CFKeyedArchiverUID 0x77f022ce0 [0x1fb1e1308]>{value = 880}
+      "filterCriteria" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "forwardingBehavior" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "identifier" => <CFKeyedArchiverUID 0x77f022a60 [0x1fb1e1308]>{value = 866}
+      "notifyAnyway" => false
+      "platform" => 0
+      "sender" => <CFKeyedArchiverUID 0x77f018b80 [0x1fb1e1308]>{value = 0}
+      "shouldAdjustEventBehaviorForMirroring" => false
+      "subtitle" => <CFKeyedArchiverUID 0x77f022cc0 [0x1fb1e1308]>{value = 881}
+      "threadIdentifier" => <CFKeyedArchiverUID 0x77f0187e0 [0x1fb1e1308]>{value = 82}
+      "title" => <CFKeyedArchiverUID 0x77f022cc0 [0x1fb1e1308]>{value = 881}
+      "type" => 0
+      "urgency" => 0
+    }
+    880 => "com.pvjio.mamadera"
+    881 => "Vitamine K"
+    882 => "Léa : c'est l'heure de Vitamine K."
+    883 => "Léa : c'est l'heure de Vitamine K."
+    884 => {
+      "$classes" => [
+        0 => "NSArray"
+        1 => "NSObject"
+      ]
+      "$classname" => "NSArray"
+    }
+  ]
+  "$top" => {
+    "root" => <CFKeyedArchiverUID 0x1015464c0 [0x1fb1e1308]>{value = 1}
+  }
+  "$version" => 100000
+}

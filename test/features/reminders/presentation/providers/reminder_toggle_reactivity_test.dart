@@ -48,14 +48,15 @@ void main() {
   ProviderContainer buildContainer({Duration? pollInterval}) =>
       ProviderContainer(
         overrides: [
-          remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
+          remindersRepositoryProvider
+              .overrideWith((ref) async => mockReminders),
           activeBabyProvider.overrideWith(() => _ActiveBabyStub(_baby)),
           // Each reevaluation reviews [dynamicGate], which can be kept running.
           // waiting for the simulation to reach a point where a chain is still in flight at the moment the switch is activated.
           dynamicRemindersProvider.overrideWith((ref) => dynamicGate),
           if (pollInterval != null)
-            reminderNotifierProvider
-                .overrideWith(() => RemindersNotifier(pollInterval: pollInterval)),
+            reminderNotifierProvider.overrideWith(
+                () => RemindersNotifier(pollInterval: pollInterval)),
         ],
       );
 
@@ -66,17 +67,17 @@ void main() {
       c.listen(reminderNotifierProvider, (_, __) {});
 
   /// Let the stream of providers empty into the main event loop.
-  Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 200));
+  Future<void> settle() =>
+      Future<void>.delayed(const Duration(milliseconds: 200));
 
   setUp(() {
     mockReminders = MockRemindersRepository();
-    dynamicGate = Future.value([
-      ReminderItemPresets.vitaminD,
-      ReminderItemPresets.eyeCleaning
-    ]);
+    dynamicGate = Future.value(
+        [ReminderItemPresets.vitaminD, ReminderItemPresets.eyeCleaning]);
   });
 
-  test('un rappel éteint disparaît de l’accueil quand la chaîne se cale après le toggle',
+  test(
+      'un rappel éteint disparaît de l’accueil quand la chaîne se cale après le toggle',
       () async {
     final container = buildContainer();
     addTearDown(container.dispose);
@@ -99,10 +100,8 @@ void main() {
 
     // Let the chain finish: the dynamic list doesn't change, it's the only thing that does.
     // l’extinction est nouvelle.
-    hold.complete([
-      ReminderItemPresets.vitaminD,
-      ReminderItemPresets.eyeCleaning
-    ]);
+    hold.complete(
+        [ReminderItemPresets.vitaminD, ReminderItemPresets.eyeCleaning]);
     await settle();
 
     final after = container.read(reminderNotifierProvider).value;
@@ -110,14 +109,14 @@ void main() {
         isNot(contains(ReminderItemPresets.eyeCleaning.id)),
         reason:
             'la pastille du rappel éteint doit partir sans attendre le tick');
-    expect(
-        after?[TrackingType.sante]?.map((s) => s.item.id),
+    expect(after?[TrackingType.sante]?.map((s) => s.item.id),
         contains(ReminderItemPresets.vitaminD.id));
   });
 
   test('le sondage périodique survit à une reconstruction par invalidation',
       () async {
-    final container = buildContainer(pollInterval: const Duration(milliseconds: 200));
+    final container =
+        buildContainer(pollInterval: const Duration(milliseconds: 200));
     addTearDown(container.dispose);
     watchPills(container);
 

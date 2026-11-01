@@ -116,7 +116,8 @@ void main() {
       expect(loaded.isManualOverride, true);
     });
 
-    test('should load with default values when JSON has missing fields', () async {
+    test('should load with default values when JSON has missing fields',
+        () async {
       // path_provider gives us a real temp directory in tests
       final file = File('${tempDir.path}/.mamadera_locale.json');
       await file.writeAsString(jsonEncode({'languageCode': 'de'}));
@@ -250,12 +251,14 @@ void main() {
     });
 
     test('should handle multiple save-load cycles', () async {
-      const pref1 = LocalePreference(languageCode: 'fr', isManualOverride: false);
+      const pref1 =
+          LocalePreference(languageCode: 'fr', isManualOverride: false);
       await service.save(pref1);
       var loaded = await service.load();
       expect(loaded!.languageCode, 'fr');
 
-      const pref2 = LocalePreference(languageCode: 'en', isManualOverride: true);
+      const pref2 =
+          LocalePreference(languageCode: 'en', isManualOverride: true);
       await service.save(pref2);
       loaded = await service.load();
       expect(loaded!.languageCode, 'en');

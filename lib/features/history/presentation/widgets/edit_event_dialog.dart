@@ -9,9 +9,10 @@ import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
-import '../../../../shared/domain/entities/tracking_icons.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../../../shared/utils/stool_texture_label_resolver.dart';
+import '../../../../shared/widgets/option_chip_row.dart';
+import '../../../../shared/widgets/tracking_icons.dart';
 import '../../../home/presentation/widgets/quantity_picker_inline.dart';
 
 part 'edit_event_dialog.freezed.dart';
@@ -341,11 +342,11 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
   /// of a new event (ml 0-300 per 10, min 0-120 per 1, g 0-1000).
   /// (5) When editing a value, the range should not change.
   ({double min, double max, int divisions, double step}) get _pickerSpec =>
-          switch (_unit) {
-            QuantityUnit.ml => (min: 0, max: 300, divisions: 30, step: 10),
-            QuantityUnit.min => (min: 0, max: 120, divisions: 120, step: 1),
-            QuantityUnit.g => (min: 0, max: 1000, divisions: 200, step: 5),
-          };
+      switch (_unit) {
+        QuantityUnit.ml => (min: 0, max: 300, divisions: 30, step: 10),
+        QuantityUnit.min => (min: 0, max: 120, divisions: 120, step: 1),
+        QuantityUnit.g => (min: 0, max: 1000, divisions: 200, step: 5),
+      };
 
   /// A unit of a subtype, fixed and not considered `natural`."
   static QuantityUnit _unitFor(FeedingSubtype subtype) => switch (subtype) {
@@ -385,37 +386,19 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
     return [
       const SizedBox(height: 20),
       _buildSectionTitle(context.l.feedingSubtypeLabel),
-      Row(
-        children: FeedingSubtype.values.map((subtype) {
-          final isSelected = _subtype == subtype;
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: FilterChip(
-                label: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(subtype.icon, size: 18),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        _getSubtypeLabel(subtype),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                selected: isSelected,
-                onSelected: (_) => _selectSubtype(subtype),
-              ),
-            ),
-          );
-        }).toList(),
+      OptionChipRow<FeedingSubtype>(
+        options: FeedingSubtype.values,
+        selected: _subtype,
+        onSelected: _selectSubtype,
+        labelOf: _subtypeLabel,
+        iconOf: (FeedingSubtype subtype) => subtype.icon,
       ),
     ];
   }
 
-  String _getSubtypeLabel(FeedingSubtype subtype) {
+  /// Localized label of a subtype, for the selector chips. Full words only —
+  /// the chips size themselves to the label, so nothing is ever abbreviated.
+  String _subtypeLabel(BuildContext context, FeedingSubtype subtype) {
     return switch (subtype) {
       FeedingSubtype.natural => context.l.feedingSubtypeNatural,
       FeedingSubtype.artificial => context.l.feedingSubtypeArtificial,

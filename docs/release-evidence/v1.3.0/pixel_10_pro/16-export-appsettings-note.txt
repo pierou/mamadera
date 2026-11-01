@@ -1,0 +1,9 @@
+=== M7 on-device export verification (format v4) ===
+File: cache/mamadera-export-20261028-044654.json (1457 bytes), pulled via run-as.
+exportFormatVersion=4, databaseSchemaVersion=13
+appSettings present with live values:
+  notifications_opt_in = 1   (opt-in was flipped ON for the notification gate)
+  notification_time_of_day = 04:20  (the time set for the background fire test)
+counts.appSettings = 2
+
+Confirms the M7 export includes the appSettings section end-to-end.

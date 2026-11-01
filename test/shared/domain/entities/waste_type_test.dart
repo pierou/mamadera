@@ -39,7 +39,7 @@ void main() {
       expect(WasteType.fromDbValue(null), isNull);
     });
 
-    test('"'' (vide) → null', () {
+    test('"' ' (vide) → null', () {
       expect(WasteType.fromDbValue(''), isNull);
     });
 
@@ -57,7 +57,7 @@ void main() {
       );
     });
 
-    test('"'' (vide) → WasteType.caca par défaut', () {
+    test('"' ' (vide) → WasteType.caca par défaut', () {
       expect(
         WasteType.fromDbValueOrDefault(''),
         equals(WasteType.caca),

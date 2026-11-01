@@ -1,16 +1,19 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart' show getApplicationDocumentsDirectory;
+import 'package:path_provider/path_provider.dart'
+    show getApplicationDocumentsDirectory;
 
 import '../config/app_config.dart';
 import '../services/app_preferences_service.dart';
 
 /// Singleton instance shared across all consumers.
-final appPreferencesServiceProvider = Provider((ref) => AppPreferencesService());
+final appPreferencesServiceProvider =
+    Provider((ref) => AppPreferencesService());
 
 /// Current app preferences state backed by [AppPreferencesService].
-final appPreferencesProvider = AsyncNotifierProvider<AppPreferencesNotifier, AppPreferences>(
+final appPreferencesProvider =
+    AsyncNotifierProvider<AppPreferencesNotifier, AppPreferences>(
   AppPreferencesNotifier.new,
 );
 
@@ -41,7 +44,8 @@ class AppPreferencesNotifier extends AsyncNotifier<AppPreferences> {
     );
   }
 
-  Future<AppPreferences?> _loadWithFallback(AppPreferencesService service) async {
+  Future<AppPreferences?> _loadWithFallback(
+      AppPreferencesService service) async {
     try {
       return await service.load();
     } catch (_) {
@@ -49,7 +53,9 @@ class AppPreferencesNotifier extends AsyncNotifier<AppPreferences> {
     }
   }
 
-  AppPreferences _current() => state.asData?.value ?? const AppPreferences(
+  AppPreferences _current() =>
+      state.asData?.value ??
+      const AppPreferences(
         appVersion: AppConfig.version,
         termsAccepted: false,
         patchNotesOptOut: false,

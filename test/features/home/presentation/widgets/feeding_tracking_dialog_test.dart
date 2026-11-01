@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/features/home/presentation/widgets/quantity_picker_inline.dart';
 import 'package:mamadera/features/home/presentation/widgets/feeding_tracking_dialog.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
@@ -86,7 +88,8 @@ void main() {
       expect(find.byType(QuantityPickerInline), findsOneWidget);
     });
 
-    testWidgets('natural s\'ouvre en minutes : la quantité par défaut est 0 min',
+    testWidgets(
+        'natural s\'ouvre en minutes : la quantité par défaut est 0 min',
         (tester) async {
       // The default unit for `natural` is `min` (this is a proprietary decision).
       // (October 3, 2026): The duration of breastfeeding is timed, and the amount of formula given in a bottle is measured.
@@ -153,8 +156,7 @@ void main() {
       expect(pickerMl.unit, equals('ml'));
       expect(pickerMl.max, equals(300));
       expect(find.text('0 ml'), findsOneWidget);
-      expect(
-          find.text('Unité modifiée : la quantité a été remise à 0.'),
+      expect(find.text('Unité modifiée : la quantité a été remise à 0.'),
           findsOneWidget);
     });
 
@@ -332,5 +334,59 @@ void main() {
       expect(find.text('Registrar Alimentación'), findsOneWidget);
       expect(find.text('Leche Materna'), findsOneWidget);
     });
+  });
+
+  // Regression. The three subtype chips sat in a `Row` of `Expanded` children,
+  // one text line each, so a label got `screen / 3` minus the chip chrome: every
+  // locale lost two of the three names ("Lait Maternel" -> "Lait…", and English
+  // "Breast milk" too). `find.text` matched the widget whatever it painted, so
+  // the suite stayed green on a screen nobody could read. Assertions here are
+  // made on the rendered paragraph, not on the widget tree.
+  group('subtype selector readability', () {
+    const Map<String, List<String>> labelsByLocale = <String, List<String>>{
+      'fr': <String>['Lait Maternel', 'Lait Artificiel', 'Solide'],
+      'en': <String>['Breast milk', 'Formula', 'Solid'],
+      'es': <String>['Leche Materna', 'Fórmula Infantil', 'Sólido'],
+    };
+
+    for (final String code in labelsByLocale.keys) {
+      for (final double width in <double>[320, 360, 393]) {
+        testWidgets('no subtype label is truncated: $code at $width dp',
+            (tester) async {
+          tester.view.devicePixelRatio = 1.0;
+          tester.view.physicalSize = Size(width, 1200);
+          addTearDown(tester.view.reset);
+
+          await tester.pumpWidget(
+            ProviderScope(
+              child: MaterialApp(
+                theme: AppTheme.lightTheme,
+                locale: Locale(code),
+                supportedLocales: const [
+                  Locale('fr'),
+                  Locale('en'),
+                  Locale('es'),
+                ],
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                home: const Scaffold(body: FeedingTrackingDialog()),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          for (final String label in labelsByLocale[code]!) {
+            final RenderParagraph paragraph =
+                tester.renderObject<RenderParagraph>(find.text(label));
+            expect(paragraph.didExceedMaxLines, isFalse,
+                reason: '"$label" was cut short at $width dp in $code');
+          }
+        });
+      }
+    }
   });
 }

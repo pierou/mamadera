@@ -50,7 +50,8 @@ class _QuantityPickerDialogState extends State<QuantityPickerDialog> {
   void initState() {
     super.initState();
     _selectedValue = widget.initialValue;
-    _textController = TextEditingController(text: widget.initialValue.toInt().toString());
+    _textController =
+        TextEditingController(text: widget.initialValue.toInt().toString());
   }
 
   @override
@@ -90,7 +91,10 @@ class _QuantityPickerDialogState extends State<QuantityPickerDialog> {
           children: [
             Text(
               '${context.l.quantityPickerTitle} (${widget.unit})',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 32),
             Center(
@@ -127,8 +131,10 @@ class _QuantityPickerDialogState extends State<QuantityPickerDialog> {
               textAlign: TextAlign.center,
               decoration: InputDecoration(
                 hintText: widget.unit,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 suffixText: widget.unit,
               ),
               onChanged: _onTextChanged,

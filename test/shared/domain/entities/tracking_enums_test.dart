@@ -27,13 +27,17 @@ void main() {
     });
 
     test('fromDbValue returns correct enum for new values', () {
-      expect(FeedingSubtype.fromDbValue('natural'), equals(FeedingSubtype.natural));
-      expect(FeedingSubtype.fromDbValue('artificial'), equals(FeedingSubtype.artificial));
+      expect(FeedingSubtype.fromDbValue('natural'),
+          equals(FeedingSubtype.natural));
+      expect(FeedingSubtype.fromDbValue('artificial'),
+          equals(FeedingSubtype.artificial));
     });
 
     test('fromDbValue returns correct enum for legacy values', () {
-      expect(FeedingSubtype.fromDbValue('sein'), equals(FeedingSubtype.natural));
-      expect(FeedingSubtype.fromDbValue('bib'), equals(FeedingSubtype.artificial));
+      expect(
+          FeedingSubtype.fromDbValue('sein'), equals(FeedingSubtype.natural));
+      expect(
+          FeedingSubtype.fromDbValue('bib'), equals(FeedingSubtype.artificial));
     });
 
     test('fromDbValue returns solid for "solid"', () {
@@ -113,7 +117,8 @@ void main() {
     test('fromDbValueOrDefault returns correct value for valid input', () {
       expect(WasteType.fromDbValueOrDefault('pipi'), equals(WasteType.pipi));
       expect(WasteType.fromDbValueOrDefault('caca'), equals(WasteType.caca));
-      expect(WasteType.fromDbValueOrDefault('les_deux'), equals(WasteType.lesDeux));
+      expect(WasteType.fromDbValueOrDefault('les_deux'),
+          equals(WasteType.lesDeux));
     });
   });
 
@@ -123,8 +128,10 @@ void main() {
     });
 
     test('byValue returns correct enum for valid values', () {
-      expect(HealthSubtype.byValue('nettoyage_yeux'), equals(HealthSubtype.nettoyageYeux));
-      expect(HealthSubtype.byValue('nettoyage_nez'), equals(HealthSubtype.nettoyageNez));
+      expect(HealthSubtype.byValue('nettoyage_yeux'),
+          equals(HealthSubtype.nettoyageYeux));
+      expect(HealthSubtype.byValue('nettoyage_nez'),
+          equals(HealthSubtype.nettoyageNez));
     });
 
     test('byValue returns null for unknown value', () {

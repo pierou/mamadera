@@ -1,0 +1,14 @@
+# English-only gate (docs/language-policy.md lives in bagent — the policy is estate-wide, the
+# engine lives in one place so the French vocabulary it protects is maintained once).
+# v1 is --warn: it reports and never blocks. Flip this entry to `check` (drop --warn) once
+# `check --warn` has been silent here for 30 days. Exemptions are `# lang:fr` inline with a
+# reason, or a PROTECTED_PATH_RE rule citing the file — never a change to detection.
+repos:
+  - repo: local
+    hooks:
+      - id: language-gate
+        name: english-only (our voice)
+        entry: python3 /Users/pvjacquier/bagent/ops/lang-audit.py check --warn /Users/pvjacquier/DEV/mamadera
+        language: system
+        pass_filenames: false
+        always_run: true

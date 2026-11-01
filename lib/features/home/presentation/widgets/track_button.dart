@@ -136,7 +136,8 @@ class _TrackButtonContent extends StatelessWidget {
   /// The order of appearance is determined by the notifier (first the pre-set options, then the customized ones).
   /// (creation order): bounded by `take`, it remains stable even after a reconstruction.
   /// On the other hand, the indicators don't activate with every five-minute check.
-  ({List<ReminderStatus> visible, int hidden}) _visiblePills(List<ReminderStatus> items) {
+  ({List<ReminderStatus> visible, int hidden}) _visiblePills(
+      List<ReminderStatus> items) {
     if (items.length <= _maxVisiblePills) {
       return (visible: items, hidden: 0);
     }
@@ -174,7 +175,8 @@ class _TrackButtonContent extends StatelessWidget {
             color.withValues(alpha: 0.02),
           ],
         ),
-        borderRadius: const BorderRadius.all(Radius.circular(AppTheme.shapeCardRadius)),
+        borderRadius:
+            const BorderRadius.all(Radius.circular(AppTheme.shapeCardRadius)),
         border: Border.all(color: color.withValues(alpha: 0.6), width: 2),
         boxShadow: [
           BoxShadow(
@@ -197,9 +199,7 @@ class _TrackButtonContent extends StatelessWidget {
               ),
             if (icon != null) const SizedBox(height: AppTheme.spacingSm),
             Expanded(
-              flex: icon != null
-                  ? (hasPending ? 2 : 3)
-                  : (hasPending ? 3 : 4),
+              flex: icon != null ? (hasPending ? 2 : 3) : (hasPending ? 3 : 4),
               // Single line + scaleDown: a long label (FR "Nourriture") is
               // shrunk to fit instead of wrapping into an orphaned fragment.
               child: FittedBox(
@@ -207,15 +207,15 @@ class _TrackButtonContent extends StatelessWidget {
                 child: Text(
                   label,
                   style: theme.textTheme.headlineLarge?.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            color: color.withValues(alpha: 0.3),
-                            blurRadius: 4,
-                          ),
-                        ],
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(
+                        color: color.withValues(alpha: 0.3),
+                        blurRadius: 4,
                       ),
+                    ],
+                  ),
                   textAlign: TextAlign.center,
                   maxLines: 1,
                 ),
@@ -231,7 +231,8 @@ class _TrackButtonContent extends StatelessWidget {
                     alignment: WrapAlignment.center,
                     children: [
                       for (final status in pills.visible)
-                        ReminderPill(label: pillLabelBuilder(this.context, status)),
+                        ReminderPill(
+                            label: pillLabelBuilder(this.context, status)),
                       if (pills.hidden > 0)
                         ReminderPill(label: '+${pills.hidden}'),
                     ],

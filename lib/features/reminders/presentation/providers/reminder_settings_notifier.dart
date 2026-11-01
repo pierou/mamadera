@@ -1,13 +1,16 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers/active_baby_provider.dart';
 import 'reminder_providers.dart';
+import 'reminder_sync_notifier.dart';
 
-/// Status (enabled/disabled) of the preset reminders, in the format `item_id → enabled`.
+/// Status (enabled/disabled) of the reminders, as a map `item_id → enabled`.
 ///
-/// A missing key indicates "never touched," therefore it is **enabled**: the shutdown is...
-/// An opt-out option, not a subscription. A parent who never uses this...
-/// The screen continues to display information about Vitamin D, Vitamin K, eye care, and facial care products.
+/// A missing key means "never touched", which is **enabled**: disabling is an
+/// opt-out, not a subscription. A parent who never opens this screen still
+/// sees Vitamin D, Vitamin K, eye and face care — the switches only hide what
+/// is already there.
 final reminderSettingsProvider =
     AsyncNotifierProvider<ReminderSettingsNotifier, Map<String, bool>>(
   ReminderSettingsNotifier.new,
@@ -16,23 +19,24 @@ final reminderSettingsProvider =
 class ReminderSettingsNotifier extends AsyncNotifier<Map<String, bool>> {
   @override
   Future<Map<String, bool>> build() async {
-    // ref.watch: After resetting the system from the menu, this...
-    // The provider is being rebuilt and is re-reading an empty `reminder_settings` table.
-    // The adjustment is made for each baby individually: the displayed value corresponds to the settings for the currently active profile, and...
-    // sharing (`''`) until a profile exists — a baby's transition.
-    // Therefore, please reload the switches on the page.
+    // ref.watch: a system reset from the menu rebuilds this provider against
+    // the now-empty `reminder_settings` table, and switching babies must
+    // re-read the other baby's row (or the profileless `''` scope until a
+    // profile exists) — so the switches always reflect the current scope.
     final profile = await ref.watch(activeBabyProvider.future);
     final repository = await ref.watch(remindersRepositoryProvider.future);
     return repository.getEnabledByItemId(babyId: profile?.id);
   }
 
-  /// It saves the selected option and then updates the local state – the switch will not...
-  /// Don't blink, you don't have time to re-examine the data.
+  /// Persist the toggle and update local state — the switch does not flicker
+  /// waiting for a round trip to re-read the data.
   ///
-  /// The welcome message automatically updates: the reminder notification system.
-  /// It reactively depends on the settings chain: settings → reminders activated → service.
-  /// (see [RemindersNotifier.build]), therefore, the deactivation of a reminder.
-  /// It propagates to all the pills without invalidating them all at once.
+  /// The home pills update on their own: the reminders service reactively
+  /// depends on this provider through the settings → enabled-reminders →
+  /// service chain (see [RemindersNotifier.build]), so a disabled reminder
+  /// disappears from the pills without this method invalidating anything.
+  /// The OS schedule is re-reconciled too: a disabled item must stop
+  /// producing notifications (D2).
   Future<void> setEnabled(String itemId, {required bool enabled}) async {
     final profile = await ref.read(activeBabyProvider.future);
     final repository = await ref.read(remindersRepositoryProvider.future);
@@ -40,5 +44,6 @@ class ReminderSettingsNotifier extends AsyncNotifier<Map<String, bool>> {
 
     final current = state.value ?? const <String, bool>{};
     state = AsyncData({...current, itemId: enabled});
+    unawaited(ref.read(reminderSyncNotifierProvider.notifier).syncNow());
   }
 }

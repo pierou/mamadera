@@ -34,7 +34,8 @@ void main() {
       expect(result, isA<RemindersAllCompleted>());
     });
 
-    test('returns RemindersDue when a reminder has no last completed date', () async {
+    test('returns RemindersDue when a reminder has no last completed date',
+        () async {
       // Never completed.
       mockRepo.lastCompletedByItem['vitamin_d'] = null;
       service = RemindersService(items: [vitaminDItem], repository: mockRepo);
@@ -48,7 +49,8 @@ void main() {
     });
 
     test('returns RemindersDue when last completed was yesterday', () async {
-      mockRepo.lastCompletedByItem['vitamin_d'] = DateTime.now().subtract(const Duration(days: 1));
+      mockRepo.lastCompletedByItem['vitamin_d'] =
+          DateTime.now().subtract(const Duration(days: 1));
       service = RemindersService(items: [vitaminDItem], repository: mockRepo);
 
       final result = await service.checkDue();
@@ -93,7 +95,9 @@ void main() {
       expect(result, isA<RemindersDue>());
     });
 
-    test('un événement du bon type ne règle pas un rappel manuel (invariant D2)', () async {
+    test(
+        'un événement du bon type ne règle pas un rappel manuel (invariant D2)',
+        () async {
       service = RemindersService(items: [pedicureItem], repository: mockRepo);
 
       // The service should not even query the events; it should simply receive a "health" status.
@@ -105,7 +109,8 @@ void main() {
       expect(mockRepo.completedLookupCount, 0);
     });
 
-    test("recordCompletion règle le rappel manuel jusqu'au jour suivant", () async {
+    test("recordCompletion règle le rappel manuel jusqu'au jour suivant",
+        () async {
       service = RemindersService(items: [pedicureItem], repository: mockRepo);
       final at = DateTime.now();
 
@@ -114,12 +119,15 @@ void main() {
       expect(settled, isA<RemindersAllCompleted>());
 
       // The following day, it becomes due again.
-      mockRepo.manualCompletedByItem['pedicure'] = at.subtract(const Duration(days: 1));
+      mockRepo.manualCompletedByItem['pedicure'] =
+          at.subtract(const Duration(days: 1));
       final dueAgain = await service.checkDue();
       expect(dueAgain, isA<RemindersDue>());
     });
 
-    test('une complétion manuelle ne règle jamais un rappel piloté par événements', () async {
+    test(
+        'une complétion manuelle ne règle jamais un rappel piloté par événements',
+        () async {
       // The converse of implication: the manual is only read.
       // for the `manual` items.
       mockRepo.manualCompletedByItem['vitamin_d'] = DateTime.now();
@@ -131,7 +139,8 @@ void main() {
       expect(mockRepo.lastManualCompletedBabyId, isNull);
     });
 
-    test('le portage actif est transmis aux lectures manuelles et aux ignorés', () async {
+    test('le portage actif est transmis aux lectures manuelles et aux ignorés',
+        () async {
       service = RemindersService(items: [pedicureItem], repository: mockRepo);
 
       await service.checkDue(babyId: 'baby_a');

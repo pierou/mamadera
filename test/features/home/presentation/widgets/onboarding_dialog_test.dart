@@ -157,7 +157,8 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('a profile restored during typing is not answered with an insert',
+    testWidgets(
+        'a profile restored during typing is not answered with an insert',
         (tester) async {
       await pumpDialog(tester);
       expect(find.byType(OnboardingDialog), findsOneWidget);
@@ -176,7 +177,8 @@ void main() {
       expect(find.byType(OnboardingDialog), findsNothing);
     });
 
-    testWidgets('the sheet closes by itself once a profile exists', (tester) async {
+    testWidgets('the sheet closes by itself once a profile exists',
+        (tester) async {
       await pumpDialog(tester);
       expect(find.byType(OnboardingDialog), findsOneWidget);
 
@@ -189,7 +191,8 @@ void main() {
       expect(repo.inserted, isEmpty);
     });
 
-    testWidgets('invalidation — what the restore actually does — closes the sheet too',
+    testWidgets(
+        'invalidation — what the restore actually does — closes the sheet too',
         (tester) async {
       await pumpDialog(tester);
       expect(find.byType(OnboardingDialog), findsOneWidget);
@@ -205,7 +208,8 @@ void main() {
       expect(repo.inserted, isEmpty);
     });
 
-    testWidgets('without a restore, saving still creates the profile', (tester) async {
+    testWidgets('without a restore, saving still creates the profile',
+        (tester) async {
       await pumpDialog(tester);
 
       await tester.enterText(find.byType(TextField), 'Lou');

@@ -169,10 +169,13 @@ void main() {
         expect(encryption.isEncrypted('not:base64!!!'), isFalse);
       });
 
-      test('accepte un format iv:ciphertext valide (même si non généré par ce service)', () {
+      test(
+          'accepte un format iv:ciphertext valide (même si non généré par ce service)',
+          () {
         // Two strings of reasonable length, encoded in base64.
         const fakeIv = 'QUJDREVGR0hJSktMTU5PUFFSUVQ='; // ABCDEFGHIJKLMNOPQRST
-        const fakeCipher = 'YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo='; // abcdefghijklmnopqrstuvwxyz
+        const fakeCipher =
+            'YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo='; // abcdefghijklmnopqrstuvwxyz
 
         expect(encryption.isEncrypted('$fakeIv:$fakeCipher'), isTrue);
       });
@@ -183,7 +186,9 @@ void main() {
         await encryption.initialize();
       });
 
-      test('retourne null pour un format avec moins de 2 segments (pas de deux-points)', () {
+      test(
+          'retourne null pour un format avec moins de 2 segments (pas de deux-points)',
+          () {
         expect(encryption.decrypt('single_segment'), isNull);
       });
 
@@ -193,7 +198,8 @@ void main() {
         final encrypted = encryption.encrypt(plainText);
 
         // Inject a colon into the cipher part to simulate edge case
-        final withExtraColon = '${encrypted.split(':')[0]}:${encrypted.split(':').last}:extra:parts';
+        final withExtraColon =
+            '${encrypted.split(':')[0]}:${encrypted.split(':').last}:extra:parts';
 
         // Should still decrypt correctly (rejoin logic) or return null gracefully
         // In practice, this will fail decryption but should NOT throw
@@ -232,7 +238,7 @@ void main() {
 
       test('rotateKey fonctionne en mode mémoire (fallback)', () async {
         memoryEncryption.encrypt('test rotate');
-        
+
         await memoryEncryption.rotateKey();
 
         // The new key is different – decryption works with the new key.
@@ -260,9 +266,9 @@ void main() {
         when(mockStorage.read(key: 'mamadera_master_key')).thenAnswer(
           (_) async => null,
         );
-	    when(
-      mockStorage.write(key: anyNamed('key'), value: anyNamed('value')),
-	).thenAnswer((_) async {});
+        when(
+          mockStorage.write(key: anyNamed('key'), value: anyNamed('value')),
+        ).thenAnswer((_) async {});
 
         newKeyEncryption = EncryptionService(mockStorage);
       });
@@ -274,9 +280,9 @@ void main() {
           mockStorage.read(key: 'mamadera_master_key'),
         ).called(1);
         // A new key has been written (verify if any call was made).
-	        verify(
-      mockStorage.write(key: anyNamed('key'), value: anyNamed('value')),
-	).called(1);
+        verify(
+          mockStorage.write(key: anyNamed('key'), value: anyNamed('value')),
+        ).called(1);
       });
 
       test('la clé générée est utilisable pour encrypter/déchiffrer', () async {
@@ -289,4 +295,3 @@ void main() {
     });
   });
 }
-

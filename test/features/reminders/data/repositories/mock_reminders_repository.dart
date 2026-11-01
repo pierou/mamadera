@@ -72,7 +72,8 @@ class MockRemindersRepository implements RemindersRepository {
   int _nextCustomId = 1;
 
   @override
-  Future<DateTime?> getLastCompleted(ReminderItem reminder, {String? babyId}) async {
+  Future<DateTime?> getLastCompleted(ReminderItem reminder,
+      {String? babyId}) async {
     lastCompletedBabyId = babyId;
     completedLookupCount++;
     lookedUpItemIds.add(reminder.id);
@@ -83,7 +84,8 @@ class MockRemindersRepository implements RemindersRepository {
   }
 
   @override
-  Future<DateTime?> getLastManualCompletion(String itemId, {String? babyId}) async {
+  Future<DateTime?> getLastManualCompletion(String itemId,
+      {String? babyId}) async {
     lastManualCompletedBabyId = babyId;
     lookedUpItemIds.add(itemId);
     return manualCompletedByItem[itemId];
@@ -96,14 +98,16 @@ class MockRemindersRepository implements RemindersRepository {
   }
 
   @override
-  Future<void> recordCompletion(String itemId, {String? babyId, DateTime? at}) async {
+  Future<void> recordCompletion(String itemId,
+      {String? babyId, DateTime? at}) async {
     recordCompletionCallCount++;
     lastRecordCompletionBabyId = babyId;
     manualCompletedByItem[itemId] = at ?? DateTime.now();
   }
 
   @override
-  Future<void> dismissReminder(String itemId, {String? babyId, DateTime? at}) async {
+  Future<void> dismissReminder(String itemId,
+      {String? babyId, DateTime? at}) async {
     dismissCallCount++;
     lastDismissBabyId = babyId;
     dismissedById[itemId] = at ?? DateTime.now();
@@ -116,7 +120,8 @@ class MockRemindersRepository implements RemindersRepository {
   }
 
   @override
-  Future<void> setEnabled(String itemId, {required bool enabled, String? babyId}) async {
+  Future<void> setEnabled(String itemId,
+      {required bool enabled, String? babyId}) async {
     setEnabledCallCount++;
     lastEnabledBabyId = babyId;
     enabledById[itemId] = enabled;
@@ -129,7 +134,8 @@ class MockRemindersRepository implements RemindersRepository {
   }
 
   @override
-  Future<int> insertCustomReminder(CustomReminder reminder, {String? babyId}) async {
+  Future<int> insertCustomReminder(CustomReminder reminder,
+      {String? babyId}) async {
     insertCustomCallCount++;
     if (failCustomWrites) throw StateError('stockage refusé');
     final id = _nextCustomId++;
@@ -138,7 +144,8 @@ class MockRemindersRepository implements RemindersRepository {
   }
 
   @override
-  Future<void> updateCustomReminder(CustomReminder reminder, {String? babyId}) async {
+  Future<void> updateCustomReminder(CustomReminder reminder,
+      {String? babyId}) async {
     editCustomCallCount++;
     if (failCustomWrites) throw StateError('stockage refusé');
     final id = reminder.id;
@@ -181,7 +188,8 @@ class ScopedDismissalRemindersRepository extends MockRemindersRepository {
   }
 
   @override
-  Future<void> dismissReminder(String itemId, {String? babyId, DateTime? at}) async {
+  Future<void> dismissReminder(String itemId,
+      {String? babyId, DateTime? at}) async {
     dismissCallCount++;
     lastDismissBabyId = babyId;
     _dismissedByKey['$itemId@${babyId ?? 'all'}'] = at ?? DateTime.now();

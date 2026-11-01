@@ -11,20 +11,20 @@ void main() {
   group('WasteDialog', () {
     // Helper to manage the dialog and wait for the rendering to complete.
     Future<void> pumpDialog(WidgetTester tester) => tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(
-          locale: Locale('fr'),
-          supportedLocales: [Locale('fr')],
-          localizationsDelegates: [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          home: Scaffold(body: WasteDialog()),
-        ),
-      ),
-    );
+          const ProviderScope(
+            child: MaterialApp(
+              locale: Locale('fr'),
+              supportedLocales: [Locale('fr')],
+              localizationsDelegates: [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              home: Scaffold(body: WasteDialog()),
+            ),
+          ),
+        );
 
     testWidgets('affiche les 3 types de selle', (tester) async {
       await pumpDialog(tester);
@@ -45,7 +45,8 @@ void main() {
       expect(find.text('Couleur du pipi'), findsNothing);
     });
 
-    testWidgets('sélectionner pipi montre la section couleur pipi', (tester) async {
+    testWidgets('sélectionner pipi montre la section couleur pipi',
+        (tester) async {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
@@ -100,7 +101,8 @@ void main() {
       expect(find.text('Confirmer'), findsOneWidget);
     });
 
-    testWidgets('sélectionner une couleur pipi la met en état selected', (tester) async {
+    testWidgets('sélectionner une couleur pipi la met en état selected',
+        (tester) async {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
@@ -119,7 +121,8 @@ void main() {
       expect(find.text('Jaune clair'), findsOneWidget);
     });
 
-    testWidgets('sélectionner une couleur caca la met en état selected', (tester) async {
+    testWidgets('sélectionner une couleur caca la met en état selected',
+        (tester) async {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
@@ -134,13 +137,21 @@ void main() {
     });
 
     // ── Consistance des selles ────────────────────────────────────
-    testWidgets('les 5 crans de texture sont proposés pour un caca', (tester) async {
+    testWidgets('les 5 crans de texture sont proposés pour un caca',
+        (tester) async {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
       expect(find.text('Texture du caca'), findsOneWidget);
-      for (final label in ['Aqueuse', 'Grumeleuse', 'Pâteuse', 'Moulée', 'Dure']) {
-        expect(find.text(label), findsOneWidget, reason: 'crans manquants : $label');
+      for (final label in [
+        'Aqueuse',
+        'Grumeleuse',
+        'Pâteuse',
+        'Moulée',
+        'Dure'
+      ]) {
+        expect(find.text(label), findsOneWidget,
+            reason: 'crans manquants : $label');
       }
     });
 
@@ -174,7 +185,8 @@ void main() {
       expect(chips.selectedTexture, isNull);
     });
 
-    testWidgets('sélectionner une texture la transmet au state', (tester) async {
+    testWidgets('sélectionner une texture la transmet au state',
+        (tester) async {
       await pumpDialog(tester);
       await tester.pumpAndSettle();
 
@@ -267,7 +279,9 @@ void main() {
       expect(color!.value, 'jaune_clair');
     });
 
-    test('findPipiColorFromDbValue retourne le premier par défaut si valeur inconnue', () {
+    test(
+        'findPipiColorFromDbValue retourne le premier par défaut si valeur inconnue',
+        () {
       final color = findPipiColorFromDbValue('inconnu');
       expect(color.value, 'incolore'); // default to first
     });
@@ -284,7 +298,9 @@ void main() {
       expect(color!.value, 'meconium');
     });
 
-    test('findCacaColorFromDbValue retourne jaune_moutarde par défaut si valeur inconnue', () {
+    test(
+        'findCacaColorFromDbValue retourne jaune_moutarde par défaut si valeur inconnue',
+        () {
       final color = findCacaColorFromDbValue('inconnu');
       expect(color.value, 'jaune_moutarde'); // default to index 2
     });

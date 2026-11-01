@@ -40,14 +40,17 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('renders Scaffold with AppBar showing feedback title', (tester) async {
+    testWidgets('renders Scaffold with AppBar showing feedback title',
+        (tester) async {
       await pumpFeedbackTest(tester);
 
       expect(find.byType(Scaffold), findsOneWidget);
-      expect(find.textContaining('Feedback'), findsOneWidget); // Title from localization
+      expect(find.textContaining('Feedback'),
+          findsOneWidget); // Title from localization
     });
 
-    testWidgets('shows type selector with bug and idea options', (tester) async {
+    testWidgets('shows type selector with bug and idea options',
+        (tester) async {
       await pumpFeedbackTest(tester);
 
       // Type selector has 2 GestureDetectors (bug + idea tiles)
@@ -59,56 +62,64 @@ void main() {
       expect(find.byIcon(Icons.lightbulb_outline), findsOneWidget);
     });
 
-    testWidgets('renders two TextFormField widgets for title and description', (tester) async {
+    testWidgets('renders two TextFormField widgets for title and description',
+        (tester) async {
       await pumpFeedbackTest(tester);
 
       expect(find.byType(TextFormField), findsNWidgets(2));
     });
 
-    testWidgets('submit buttons are disabled when fields are empty', (tester) async {
+    testWidgets('submit buttons are disabled when fields are empty',
+        (tester) async {
       await pumpFeedbackTest(tester);
 
       // GitHub submit button should be disabled
       final filledButtons = find.byType(FilledButton).evaluate();
       expect(filledButtons.length, 1);
-      
+
       final githubButton = filledButtons.first.widget as FilledButton;
       expect(githubButton.onPressed, isNull);
 
-      // Email submit button should also be disabled  
+      // Email submit button should also be disabled
       final outlinedButtons = find.byType(OutlinedButton).evaluate();
       expect(outlinedButtons.length, 1);
-      
+
       final emailButton = outlinedButtons.first.widget as OutlinedButton;
       expect(emailButton.onPressed, isNull);
     });
 
-    testWidgets('submit buttons become enabled after filling required fields', (tester) async {
+    testWidgets('submit buttons become enabled after filling required fields',
+        (tester) async {
       await pumpFeedbackTest(tester);
 
       // Fill in title field
-      await tester.enterText(find.byType(TextFormField).first, 'Test bug report');
+      await tester.enterText(
+          find.byType(TextFormField).first, 'Test bug report');
       await tester.pumpAndSettle();
 
       // Fill in description field
-      await tester.enterText(find.byType(TextFormField).last, 'Detailed description of the bug');
+      await tester.enterText(
+          find.byType(TextFormField).last, 'Detailed description of the bug');
       await tester.pumpAndSettle();
 
       // GitHub button should now be enabled
-      final githubButton = tester.widget<FilledButton>(find.byType(FilledButton));
+      final githubButton =
+          tester.widget<FilledButton>(find.byType(FilledButton));
       expect(githubButton.onPressed, isNotNull);
 
       // Email button should also be enabled
-      final emailButton = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
+      final emailButton =
+          tester.widget<OutlinedButton>(find.byType(OutlinedButton));
       expect(emailButton.onPressed, isNotNull);
     });
 
-    testWidgets('shows validation error on empty submit attempt', (tester) async {
+    testWidgets('shows validation error on empty submit attempt',
+        (tester) async {
       await pumpFeedbackTest(tester);
 
       // Both TextFormFields should be present with error state initially false
       expect(find.byType(TextFormField), findsNWidgets(2));
-      
+
       // Submit buttons are rendered but disabled when fields are empty
       final githubButton = find.byIcon(Icons.code);
       final emailButton = find.byIcon(Icons.email_outlined);
@@ -122,7 +133,7 @@ void main() {
       // Type in title field — should clear any error state via onChanged callback
       await tester.enterText(find.byType(TextFormField).first, 'Bug report');
       await tester.pumpAndSettle();
-      
+
       expect(find.text('Bug report'), findsOneWidget);
     });
 
@@ -149,7 +160,8 @@ void main() {
       );
     });
 
-    testWidgets('renders scrollable content with SingleChildScrollView', (tester) async {
+    testWidgets('renders scrollable content with SingleChildScrollView',
+        (tester) async {
       await pumpFeedbackTest(tester);
 
       expect(find.byType(SingleChildScrollView), findsOneWidget);
@@ -201,10 +213,11 @@ void main() {
       expect(find.byIcon(Icons.email_outlined), findsOneWidget);
     });
 
-    testWidgets('GitHub hint text is displayed below submit button', (tester) async {
+    testWidgets('GitHub hint text is displayed below submit button',
+        (tester) async {
       await pumpFeedbackTest(tester);
 
-      // The Padding widget contains the GitHub hint text  
+      // The Padding widget contains the GitHub hint text
       final paddings = find.byType(Padding).evaluate();
       expect(paddings.isNotEmpty, isTrue);
     });

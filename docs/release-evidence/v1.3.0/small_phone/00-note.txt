@@ -1,0 +1,161 @@
+Small_Phone device pass — v1.2.1+11 -> v1.3.0+12 — 2026-11-01
+
+Device: AVD `Small_Phone`, emulator-5554, Android 17, 720x1280 (the smallest target named by
+AGENTS.md "Release Gate"). Everything below was driven over adb only (`input tap`,
+`uiautomator dump`, `exec-out screencap`) because the flutter tool could not reach the device
+this session — see "Tooling" at the bottom. The app was installed with `adb install`, the same
+APK `flutter build apk --debug` produced from the tagged-tree state.
+
+## 1. Migration path, on a device that had old data  (gate item 1 — PASSED)
+
+Executed in this order:
+
+1. `pm clear` → install **v1.2.1+11** (`/tmp/mam121` worktree at tag v1.2.1) → accept privacy
+   screen → Menu → *Ajouter un bébé* → "Nora".
+2. Log real events through the UI on the old build: 2 × Nourriture (Lait Maternel, 5 min and
+   3 min) and 1 × Sommeil (60 min).
+3. Pull the DB — `run-as com.pvjio.mamadera cat .../app_flutter/mamadera.db`:
+   `pragma user_version` = **12**, `baby_profiles` = 1, `tracking_events` = 3,
+   `measurements` = 0.
+4. `adb install -r` **v1.3.0+12** over it (no clear, data kept).
+5. Relaunch. What's New banner renders 1.3.0 in French. DB after: `user_version` = **13**,
+   `app_settings` table now exists (0 rows), `baby_profiles` = 1, `tracking_events` = 3 with
+   subtypes and quantities intact (`miam|natural|5.0|min`, `miam|natural|3.0|min`,
+   `dodo||60.0|min`).
+6. History tab shows all of it: 2 × "Lait Maternel — Quantité : 3 min / 5 min", "Durée: 60 min"
+   (screenshot 21). Home shows the same. Old data is visible *and* correct.
+7. Add one measurement on the new build (Poids 3,51 kg) → `measurements` = 1 → home tile reads
+   "Poids 3,51 kg" and History lists it.
+
+The v12 → v13 migration was therefore executed on a database that had v12 rows, which a fresh
+install cannot prove.
+
+## 2. Manual path + export  (gate item 3 — PASSED)
+
+Menu → *Exporter mes données* → consent dialog (the "rien n'est envoyé automatiquement"
+wording renders correctly) → *Exporter* → Android share sheet with
+`mamadera-export-20261101-105326.json` (screenshot 23). Pulled from
+`/data/data/com.pvjio.mamadera/cache/` and inspected (24-export-v130.json):
+
+    exportFormatVersion 4 · appVersion "1.3.0" · databaseSchemaVersion 13
+    counts: babyProfiles 1, trackingEvents 3, measurements 1,
+            customReminders 0, reminderSettings 0, reminderDismissals 0,
+            reminderCompletions 0, appSettings 0
+
+All eight sections present, counts match the DB row-for-row, so nothing is silently omitted —
+including `appSettings`, the table this release added. The weight is stored encrypted
+(`uE4DTGQ2gIhr468T:dAE41ctVIAhYVk/OutxrrTmeKBr55Q==` in `measurements.value`) and comes out of
+the export as `"value": "3510.0"` — encryption at rest and the documented plaintext exit both
+behave as specified.
+
+## 3. The fix, on hardware  (gate item 2 — PASSED)
+
+French, small screen, same dialog, before and after:
+
+- 18-feeding-dialog-v121-fr-CLIPPED.png — v1.2.1: « ✓ 🥛…a… », « ☕ Lait A… ». The selected
+  chip's label is white on pale cream. This is the bug, reproduced on a device.
+- 19-feeding-dialog-v130-fr-fixed.png — v1.3.0: « ✓ Lait Maternel », « ☕ Lait Artificiel »,
+  « Solide » wrapped to a second line, dark label on the cream fill.
+- 20-edit-dialog-v130-fr-chips.png — the History edit dialog, same widget: chips measured
+  276 px / 271 px / 187 px wide at their content, third one wrapped. Nothing clipped.
+
+Note: `uiautomator` reports the FULL label ("Lait Maternel") in `content-desc` on both builds —
+accessibility never revealed the truncation, only the pixels did. A test that asserts on
+semantics cannot catch this class of bug.
+
+## 4. B4 confirmed by pixel sample (closes B4's to-do #1)
+
+Sampled out of 25-home-v121-before-upgrade.png / 22-home-v130-after-upgrade-b4-wash.png (the
+two are pixel-identical in these regions, so the wash is pre-existing, not introduced here).
+Label = darkest pixel in the glyph box; card = median of an empty patch of the same card.
+
+| Light mode, Small_Phone | pixel-sampled | computed from theme constants |
+|---|---|---|
+| Nourriture (`miam`) | **1.15:1** | 1.17:1 |
+| Santé (`sante`)     | **1.89:1** | 2.04:1 |
+| Dodo (`dodo`)       | **2.07:1** | 2.28:1 |
+| Couche (`caca`)     | 6.47:1 (passes) | 7.56:1 |
+
+The prediction was right within ~10 % and the passing control confirms the method. The quantity
+readout is the same defect elsewhere: « 3 min » in screenshot 20 is the accent as text on white,
+and « Rappels à faire » sits at the very bottom edge of 22, i.e. below the fold (B12, seen).
+
+## 5. New finding — the baby age is hardcoded English
+
+Menu → the baby card reads **« Nora — 0 days old »** in the French UI (visible in 22, and in the
+`content-desc` dump). `lib/features/menu/presentation/widgets/baby_profile_section.dart:491-504`
+builds it with string literals ('$days ${days == 1 ? 'day' : 'days'} old'), while
+`daysOld`/`monthsOld`/`yearsOld` exist in all three ARBs (`app_fr.arb:439` = "jours") and are
+referenced by **nothing** in `lib/`. The same six lines also compute months as
+`now.month - birthDate.month`, which ignores the day of month (a baby born 31 Jan reads as
+2 months old on 1 Mar). Tracked as B18.
+
+Also seen and ruled out: the home tiles show no "+N" pill despite 3 events today — identical on
+v1.2.1 and v1.3.0 (screenshots 25 vs 22), so it is not a 1.3.0 regression.
+
+## 6. Measured in the upload artefact itself (with `scripts/wcag_sample.py`, added here)
+
+The Play frames were recaptured after this pass (see §7), which made it possible to measure the
+same widget in the *artefact that gets uploaded*, before and after:
+
+| Widget, `fr-feeding_dialog.png` | before (v1.2.1 layout) | after (v1.3.0) |
+|---|---|---|
+| Selected feeding chip label, white on the cream fill | **1.01:1** | **15.88:1** (label is `onSurface`) |
+| Unit segmented control, selected « Minutes », white on light blue | 1.32:1 | 1.32:1 — **untouched by this fix, still fails** |
+
+The second row is a new B4 instance found by accident: the accent-as-text defect also covers the
+unit toggle and the quantity readout, not just the four identity buttons and the pills. It is
+measurable now with `scripts/wcag_sample.py <png> --find blue` (stdlib only; `sips` cannot read a
+pixel, so the script decodes PNG itself).
+
+## 7. Tooling — `flutter drive` needs `--verbose` here, that is all
+
+Earlier today `flutter drive` and `flutter test integration_test -d emulator-5554` looked hung:
+0 bytes of output, 0 % CPU, holding `~/flutter/bin/cache/lockfile`, and every later flutter
+command queued behind it (even `flutter devices` printed nothing for 45 s). Orphaned
+`flutter_tools` processes from those stalls had to be killed twice.
+
+**It was not hung — it is silent.** The same command with `--verbose` completed the whole fr
+capture in ~90 s (8 frames, driver saved them, `verify_android.py` passed). Reproduced twice with
+stdout redirected to a file, so: on this Mac, on Flutter 3.44.8, `flutter drive` writes nothing and
+makes no progress signal without `--verbose`. Every v1.3.0 Play frame was therefore recaptured via
+a one-line shim (`/tmp/flshim/flutter` = real flutter + `--verbose`) in front of `PATH`, running
+`store/v1.3.0/capture.sh` unchanged on `Pixel_10_Pro` (emulator-5556, 1280×2856):
+
+    fr ✓ es ✓ en ✓  →  8/8 per locale at 1280x2856, locale-prefixed, PACKAGE OK
+
+Only `asc/*` (App Store, simulator pipeline) stays empty — the pre-existing WARN, needs the
+iPhone 17 simulator run.
+
+## 8. The App Store frames — two defects, and the campaign that fixed them
+
+`store/v1.3.0/check.py` had been printing `WARN asc/<locale>/<size> — empty` and the
+`screenshots/ios/asc/` set on disk dated from 21 Oct. Recapturing them exposed two real defects,
+both silent, both now fixed:
+
+**a) The iOS driver had not compiled since `9420097` (2026-10-18).** `test_driver/asc_screenshots.dart`
+grew `import 'dart:ui'` + `lookupAppLocalizations(...)`, but a driver script is compiled by plain
+`dart` on the host, where `dart:ui` does not exist. The CFE died in its FFI use-site transformer
+(`type 'InvalidType' is not a subtype of type 'FunctionType' in type cast`) before the app even
+launched. Replaced with the per-locale const maps this file already uses for the back-tooltip, for
+exactly this reason — its own comment says "the driver cannot reach that delegate".
+
+**b) `--dart-define` never reached the driver.** It is handed to the target app, not to the driver
+process. So `_localeCode` stayed at its default `fr` on every `es`/`en` run: the app rendered
+Spanish, the driver looked for « Annuler », `scrollIntoView` timed out two frames in, and `raw/`
+ended up holding one Spanish frame and five French ones — which `postprocess.sh` then resized,
+renamed and reported as "ready to upload". Verified: `es-menu.png` and `en-menu.png` were byte
+identical to `fr-menu.png` (md5 `7dd766f2`), i.e. the App Store sets had been French under Spanish
+and English filenames. The driver now reads `APP_LOCALE` from the environment as well and throws if
+the two channels disagree.
+
+`screenshots/ios/asc/campaign_asc.sh` (new) is the interleaved loop the pipeline needed:
+drive → verify **14/14** raws refreshed → postprocess → copy with the locale prefix, per locale,
+then a cross-locale md5 check that fails loudly if two locales are the same pixels. `check.py` only
+verifies `asc/fr`, so nothing in the old pipeline could have noticed (b). Result: fr ✓ es ✓ en ✓,
+28 files each (7 screens × 4 sizes), "all locale sets are distinct", `PACKAGE OK` with no ASC WARN.
+Spot-checked at pixel level: `es-menu.png` now reads « Menú / Bebés / Idioma / Tema / Inicio ».
+
+B18 is visible in these artefacts too — « Léa — 3 months old » in a Spanish screenshot, in every
+locale's menu frame, at all four sizes. That is 12 Play/ASC uploadables carrying an untranslated
+string, which raises its priority for v1.3.1.

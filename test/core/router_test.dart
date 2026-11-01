@@ -125,17 +125,20 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
             ],
           ),
@@ -182,7 +185,8 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
             ],
           ),
@@ -227,17 +231,20 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHistory()),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubMenu()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubMenu()),
               ),
             ],
           ),
@@ -296,7 +303,8 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
             ],
           ),
@@ -348,7 +356,8 @@ void main() {
       expect(find.text("Retour à l'accueil"), findsOneWidget);
     });
 
-    testWidgets('navigation flow between routes works correctly', (tester) async {
+    testWidgets('navigation flow between routes works correctly',
+        (tester) async {
       final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: AppRoute.home.path,
@@ -366,17 +375,20 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHistory()),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubMenu()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubMenu()),
               ),
             ],
           ),
@@ -435,17 +447,20 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHistory()),
               ),
               GoRoute(
                 path: AppRoute.menu.path,
                 name: 'menu',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubMenu()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubMenu()),
               ),
             ],
           ),
@@ -469,25 +484,29 @@ void main() {
       await tester.pumpAndSettle();
 
       // Home is index 0
-      var nav = tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar).first);
+      var nav = tester
+          .widget<BottomNavigationBar>(find.byType(BottomNavigationBar).first);
       expect(nav.currentIndex, 0);
 
       // Navigate to history (index 1)
       testRouter.go(AppRoute.history.path);
       await tester.pumpAndSettle();
 
-      nav = tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar).first);
+      nav = tester
+          .widget<BottomNavigationBar>(find.byType(BottomNavigationBar).first);
       expect(nav.currentIndex, 1);
 
       // Navigate to menu (index 2)
       testRouter.go(AppRoute.menu.path);
       await tester.pumpAndSettle();
 
-      nav = tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar).first);
+      nav = tester
+          .widget<BottomNavigationBar>(find.byType(BottomNavigationBar).first);
       expect(nav.currentIndex, 2);
     });
 
-    testWidgets('dismisses modal bottom sheet when switching tabs', (tester) async {
+    testWidgets('dismisses modal bottom sheet when switching tabs',
+        (tester) async {
       final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: AppRoute.home.path,
@@ -512,7 +531,8 @@ void main() {
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHistory()),
               ),
             ],
           ),
@@ -551,7 +571,8 @@ void main() {
       expect(find.text('History Screen'), findsOneWidget);
     });
 
-    testWidgets('pops all overlay routes when location changes', (tester) async {
+    testWidgets('pops all overlay routes when location changes',
+        (tester) async {
       final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: AppRoute.home.path,
@@ -569,12 +590,14 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHistory()),
               ),
             ],
           ),
@@ -606,7 +629,8 @@ void main() {
       expect(find.text('Home Screen'), findsNothing);
     });
 
-    testWidgets('error page shows return button that navigates to home', (tester) async {
+    testWidgets('error page shows return button that navigates to home',
+        (tester) async {
       final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: '/nonexistent',
@@ -622,7 +646,8 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
             ],
           ),
@@ -696,7 +721,8 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
             ],
           ),
@@ -763,7 +789,8 @@ void main() {
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHome()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHome()),
               ),
             ],
           ),
@@ -815,7 +842,9 @@ void main() {
       expect(icon.size, 64);
     });
 
-    testWidgets('ShellRoute overlay dismissal on tab switch with multiple overlays', (tester) async {
+    testWidgets(
+        'ShellRoute overlay dismissal on tab switch with multiple overlays',
+        (tester) async {
       final navigatorKey = GlobalKey<NavigatorState>();
       final testRouter = GoRouter(
         initialLocation: AppRoute.home.path,
@@ -823,17 +852,20 @@ void main() {
         routes: [
           ShellRoute(
             navigatorKey: navigatorKey,
-            builder: (context, state, child) => AppShell(navigatorKey: navigatorKey, child: child),
+            builder: (context, state, child) =>
+                AppShell(navigatorKey: navigatorKey, child: child),
             routes: [
               GoRoute(
                 path: AppRoute.home.path,
                 name: 'home',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubWithBottomSheet()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubWithBottomSheet()),
               ),
               GoRoute(
                 path: AppRoute.history.path,
                 name: 'history',
-                pageBuilder: (context, state) => MaterialPage(child: const _StubHistory()),
+                pageBuilder: (context, state) =>
+                    MaterialPage(child: const _StubHistory()),
               ),
             ],
           ),
@@ -875,19 +907,22 @@ void main() {
 class _StubHome extends StatelessWidget {
   const _StubHome();
   @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Home Screen')));
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text('Home Screen')));
 }
 
 class _StubHistory extends StatelessWidget {
   const _StubHistory();
   @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('History Screen')));
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text('History Screen')));
 }
 
 class _StubMenu extends StatelessWidget {
   const _StubMenu();
   @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Menu Screen')));
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text('Menu Screen')));
 }
 
 /// Stub widget that shows a modal bottom sheet when tapped.

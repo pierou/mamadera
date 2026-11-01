@@ -1,0 +1,6 @@
+• Notifications when it's time for a reminder, even with the app closed — only if you switch them on
+• Your own notification time, for all reminders
+• One notification per baby, with its name
+• Preferences now live in your backup
+• Feeding types now show their full name, in every language
+• Still no account, no analytics, nothing leaving the device

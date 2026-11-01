@@ -381,7 +381,8 @@ void main() {
 
       final slider = tester.widget<Slider>(find.byType(Slider));
       expect(slider.min, 33, reason: 'borne basse de la température');
-      expect(slider.max, 42, reason: 'le curseur ne se coupe plus sur une fenêtre');
+      expect(slider.max, 42,
+          reason: 'le curseur ne se coupe plus sur une fenêtre');
       expect(slider.divisions, 90);
 
       await tester.tap(find.byIcon(Icons.add_circle_outline));

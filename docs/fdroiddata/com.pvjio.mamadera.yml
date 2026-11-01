@@ -1,43 +1,83 @@
-# F-Droid metadata for mamadera
-# Submit this file to: https://github.com/f-droid/fdroiddata/tree/master/meta
-Package: com.pvjio.mamadera
-Name: Mamadera
-RepoURL: https://github.com/pierou/mamadera
-IssueTracker: https://github.com/pierou/mamadera/issues
-SourceCode: https://github.com/pierou/mamadera
-WebSite: https://github.com/pierou/mamadera#readme
+Categories:
+  - Health Manager
 License: MIT
+AuthorName: Pierre-Vincent Jacquier
+AuthorEmail: pvjacquier@users.noreply.github.com
+WebSite: https://github.com/pierou/mamadera
+SourceCode: https://github.com/pierou/mamadera
+IssueTracker: https://github.com/pierou/mamadera/issues
+Changelog: https://github.com/pierou/mamadera/releases
 
-AutoUpdateMode: Version v\d+\.\d+\.\d+
-UpdateCheckMode: Tags
-Version: 1.0.1, 1.0.0
-Releases:
-  1.0.1: 2
-  1.0.0: 1
+AutoName: Mamadera
 
-Categories: Health & Fitness
-Summary: Privacy-first newborn tracking app (feedings, sleep, diapers)
-Description: Mamadera is a privacy-first newborn tracking app for parents who want to log their baby's feedings, sleep, diaper changes, and health routines — without any cloud dependency or telemetry. All data stays on your device; sensitive notes are encrypted at rest.
-
-MaintainerName: Pierre-Vincent Jacquier <pvjacquier@users.noreply.github.com>
-# Replace the email above with your actual contact if desired
+RepoType: git
+Repo: https://github.com/pierou/mamadera
 
 Builds:
-  - versionName: "1.0.1"
-    versionCode: 2
-    date: "2026-08-16"
-    sdkVersions: android-36
-    gradleCommand: assembleRelease
-    output: app/build/outputs/apk/release/app-release.apk
+  - versionName: 1.2.1
+    versionCode: 11
+    commit: 5fcd9b1bfed571c530cfc928026f0f9ae8ea2390
+    output: build/app/outputs/flutter-apk/app-release.apk
+    srclibs:
+      - flutter@stable
+    rm:
+      - ios
+      - linux
+      - macos
+      - web
+      - windows
+    prebuild:
+      - "flutterVersion=$(sed -n -E \"s/.*flutter-version: '([0-9][0-9.]*)'.*/\\1/p\"\
+        \ .github/workflows/ci.yml | head -1)\ngit -C $$flutter$$ checkout -f \"${flutterVersion:-3.44.8}\""
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - $$flutter$$/bin/flutter config --no-analytics
+      - $$flutter$$/bin/flutter pub get --enforce-lockfile
+      - sed -i -e '/foojay/d' android/settings.gradle.kts
+      - sed -i -e 's/releaseBuildRequested && !hasReleaseSigning/false/' android/app/build.gradle.kts
+      - sed -i -e '/Pin the compile toolchain/,/^}/d' android/app/build.gradle.kts
+      - sed -i -e '/kotlin.jvm.toolchain/d' -e '/java.installations.auto-download/d'
+        android/gradle.properties
+    scandelete:
+      - .pub-cache
+    build:
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - $$flutter$$/bin/flutter build apk --release
 
-  - versionName: "1.0.0"
-    versionCode: 1
-    date: "2026-08-09"
-    sdkVersions: android-36
-    gradleCommand: assembleRelease
-    output: app/build/outputs/apk/release/app-release.apk
+  # v1.3.0 — reminder notifications (opt-in), schema v13, backup format v4, and the
+  # feeding-type chips that now show their full label. `commit:` names the tag rather
+  # than a sha because this file is part of the release commit the tag points at: a sha
+  # here could only be written by a second commit after tagging.
+  - versionName: 1.3.0
+    versionCode: 12
+    commit: v1.3.0
+    output: build/app/outputs/flutter-apk/app-release.apk
+    srclibs:
+      - flutter@stable
+    rm:
+      - ios
+      - linux
+      - macos
+      - web
+      - windows
+    prebuild:
+      - "flutterVersion=$(sed -n -E \"s/.*flutter-version: '([0-9][0-9.]*)'.*/\\1/p\"\
+        \ .github/workflows/ci.yml | head -1)\ngit -C $$flutter$$ checkout -f \"${flutterVersion:-3.44.8}\""
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - $$flutter$$/bin/flutter config --no-analytics
+      - $$flutter$$/bin/flutter pub get --enforce-lockfile
+      - sed -i -e '/foojay/d' android/settings.gradle.kts
+      - sed -i -e 's/releaseBuildRequested && !hasReleaseSigning/false/' android/app/build.gradle.kts
+      - sed -i -e '/Pin the compile toolchain/,/^}/d' android/app/build.gradle.kts
+      - sed -i -e '/kotlin.jvm.toolchain/d' -e '/java.installations.auto-download/d'
+        android/gradle.properties
+    scandelete:
+      - .pub-cache
+    build:
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - $$flutter$$/bin/flutter build apk --release
 
-# Note on F-Droid CI: this repository keeps per-language store descriptions
-# under .f-droid/description/. Enrollment in the F-Droid CI service
-# (.f-droid/CI.yml + CIUrl in this file) is pending — see
-# https://f-droid.org/docs/ for the current developer CI requirements.
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
+UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
+CurrentVersion: 1.3.0
+CurrentVersionCode: 12

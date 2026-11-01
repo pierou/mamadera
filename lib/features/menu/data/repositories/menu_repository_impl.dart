@@ -12,8 +12,8 @@ class MenuRepositoryImpl implements MenuRepository {
     required this.themeService,
     required Future<AppDatabase> databaseFuture,
     String? directoryPath,
-  }) : _databaseFuture = databaseFuture,
-       _directoryPath = directoryPath;
+  })  : _databaseFuture = databaseFuture,
+        _directoryPath = directoryPath;
 
   final LocaleService localeService;
   final ThemeService themeService;
@@ -35,10 +35,11 @@ class MenuRepositoryImpl implements MenuRepository {
   @override
   Future<void> setLanguage(String languageCode) async {
     if (!getSupportedLanguages().contains(languageCode)) return;
-    final current = (await localeService.load()) ?? const LocalePreference(
-      languageCode: 'fr',
-      isManualOverride: false,
-    );
+    final current = (await localeService.load()) ??
+        const LocalePreference(
+          languageCode: 'fr',
+          isManualOverride: false,
+        );
     final updated = current.copyWith(
       languageCode: languageCode,
       isManualOverride: true,

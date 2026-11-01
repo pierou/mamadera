@@ -1,0 +1,23 @@
+What's New in Mamadera 1.2.1
+
+New features
+- Unified history timeline: growth measurements appear alongside events, sorted by time
+- Edit or delete a measurement directly from history
+
+Improvements
+- Breastfeeding entry defaults to minutes, with an ml/min toggle
+- Quantity resets to zero on every unit change, with a visible message
+- Out-of-range growth values refuse to save, showing the expected range
+- Single slider on every entry form, with the +/- buttons and the text field setting the exact value
+- Dropped the "Last:" label in front of your previous measurement — the value is shown directly on the entry form
+
+Fixes
+- Missing minutes in English dates ("07:PM") now display
+- Dropped the doubled unit on the growth trajectory ("6.18 kg g")
+- English dates in history no longer overflow on small screens (date and time on two lines)
+- Sleep entries in history show the duration once, without the duplicated quantity
+- Decimal separator in quantity fields now follows the chosen language
+- The measurement slider and the +/- buttons now start from your last measurement, not from the type's default value
+- The home screen now shows a measurement as soon as it is saved, and follows a correction or deletion made in history
+- Fixed the Save / Delete buttons overflowing the measurement edit sheet on small screens
+- Consistent out-of-range message in the measurement edit sheet ("between 200 and 20000 g", not "200.0")

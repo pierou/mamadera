@@ -482,12 +482,12 @@ class TrackingEvent extends DataClass implements Insertable<TrackingEvent> {
 
   /// Unit of [quantity] — `ml` | `min` | `g`. Schema v12.
   ///
-  /// NOT NULL **sans DEFAULT côté Drift**, délibérément : avec un défaut, un
-  /// `TrackingEventsCompanion.insert` distrait écrirait « ml » à côté d'une
-  /// sieste en minutes, et c'est exactement le chiffre de santé faux que cette
-  /// colonne existe pour empêcher. Sans défaut, l'insertion ne compile que si
-  /// l'appelant nomme l'unité. Le `DEFAULT 'ml'` de l'`ALTER TABLE` de la
-  /// migration reste, lui : il sert à peupler les lignes déjà écrites.
+  /// NOT NULL with **no Drift-side default**, on purpose: a default would let
+  /// an insert silently write `ml` next to a nap recorded in minutes — exactly
+  /// the false health figure this column exists to prevent. Without a default,
+  /// `TrackingEventsCompanion.insert` only compiles when the caller names the
+  /// unit. The `DEFAULT 'ml'` in the v12 `ALTER TABLE` statement is migration
+  /// backfill only: it populates the rows that already existed on disk.
   final String unit;
   const TrackingEvent(
       {required this.id,
@@ -931,7 +931,7 @@ class $ReminderDismissalsTable extends ReminderDismissals
 
 class ReminderDismissal extends DataClass
     implements Insertable<ReminderDismissal> {
-  /// NOT NULL, `''` = installation sans profil (sentinelle [db_const.sharedBabyId]).
+  /// NOT NULL, `''` = installation without a profile (sentinel [db_const.sharedBabyId]).
   final String babyId;
   final String itemId;
   final DateTime dismissedAt;
@@ -1165,7 +1165,7 @@ class $ReminderSettingsTable extends ReminderSettings
 }
 
 class ReminderSetting extends DataClass implements Insertable<ReminderSetting> {
-  /// NOT NULL, `''` = installation sans profil (sentinelle [db_const.sharedBabyId]).
+  /// NOT NULL, `''` = installation without a profile (sentinel [db_const.sharedBabyId]).
   final String babyId;
   final String itemId;
   final bool enabled;
@@ -1465,24 +1465,25 @@ class $CustomRemindersTable extends CustomReminders
 class CustomReminder extends DataClass implements Insertable<CustomReminder> {
   final int id;
 
-  /// NOT NULL, `''` = rappel créé sans profil, visible sans profil seulement
-  /// (les lignes héritées de v10, où la table n'était pas scopée, restent
-  /// restaurables : l'import s'appuie sur la colonne, pas sur ce portage).
+  /// NOT NULL, `''` = reminder created without a baby profile, visible only in
+  /// the profileless scope. Rows inherited from v10 (before the table was
+  /// scoped) keep this value and stay restorable: the import relies on the
+  /// column, not on any transport mechanism.
   final String babyId;
   final String label;
 
-  /// Null = rappel **détaché** : aucun soin lié, achèvement manuel (D2).
-  /// Valeur de `HealthSubtype` (`nettoyage_nez`, `nettoyage_nombril`, …) : le soin
-  /// dont l'absence dans `tracking_events` rend le rappel dû.
+  /// `null` = detached reminder: no related care, completed manually only.
+  /// Otherwise a `HealthSubtype` value (`nasal_cleaning`, `umbilical_cleaning`,
+  /// …): the absence of that care in `tracking_events` makes the reminder due.
   final String? subtypeValue;
 
-  /// `daily` | `weekly` | `monthly` | `every_n_days` — voir [CustomReminder].
+  /// `daily` | `weekly` | `monthly` | `every_n_days` — see [CustomReminder].
   final String frequency;
 
-  /// Seulement pour `every_n_days` : longueur du roulement en jours.
+  /// Only applicable for `every_n_days`:  The duration of the cycle in days.
   final int? intervalDays;
 
-  /// `'from_events'` | `'manual'` — qui décide que le rappel est fait (D2).
+  /// `'from_events'` | `'manual'` — which determines whether the reminder is triggered automatically (D2).
   final String completionSource;
   const CustomReminder(
       {required this.id,
@@ -1858,7 +1859,7 @@ class $MeasurementsTable extends Measurements
 class Measurement extends DataClass implements Insertable<Measurement> {
   final int id;
 
-  /// Nullable, comme `tracking_events.baby_id` : un suivi sans profil reste lisible.
+  /// Nullable, like `tracking_events.baby_id`: tracking without a profile remains readable.
   final String? babyId;
   final String kind;
   final String value;
@@ -2360,6 +2361,201 @@ class ReminderCompletionsCompanion extends UpdateCompanion<ReminderCompletion> {
   }
 }
 
+class $AppSettingsTable extends AppSettings
+    with TableInfo<$AppSettingsTable, AppSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AppSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _keyMeta = const VerificationMeta('key');
+  @override
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+      'key', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+      'value', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [key, value];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'app_settings';
+  @override
+  VerificationContext validateIntegrity(Insertable<AppSetting> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('key')) {
+      context.handle(
+          _keyMeta, key.isAcceptableOrUnknown(data['key']!, _keyMeta));
+    } else if (isInserting) {
+      context.missing(_keyMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+          _valueMeta, value.isAcceptableOrUnknown(data['value']!, _valueMeta));
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {key};
+  @override
+  AppSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppSetting(
+      key: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}key'])!,
+      value: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}value'])!,
+    );
+  }
+
+  @override
+  $AppSettingsTable createAlias(String alias) {
+    return $AppSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class AppSetting extends DataClass implements Insertable<AppSetting> {
+  /// Setting key — the valid values are the `settingsKey*` constants in
+  /// [db_const].
+  final String key;
+
+  /// Setting value, always a string: `'0'`/`'1'` for the opt-in flag,
+  /// `'HH:mm'` for the time of day.
+  final String value;
+  const AppSetting({required this.key, required this.value});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['key'] = Variable<String>(key);
+    map['value'] = Variable<String>(value);
+    return map;
+  }
+
+  AppSettingsCompanion toCompanion(bool nullToAbsent) {
+    return AppSettingsCompanion(
+      key: Value(key),
+      value: Value(value),
+    );
+  }
+
+  factory AppSetting.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppSetting(
+      key: serializer.fromJson<String>(json['key']),
+      value: serializer.fromJson<String>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'key': serializer.toJson<String>(key),
+      'value': serializer.toJson<String>(value),
+    };
+  }
+
+  AppSetting copyWith({String? key, String? value}) => AppSetting(
+        key: key ?? this.key,
+        value: value ?? this.value,
+      );
+  AppSetting copyWithCompanion(AppSettingsCompanion data) {
+    return AppSetting(
+      key: data.key.present ? data.key.value : this.key,
+      value: data.value.present ? data.value.value : this.value,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSetting(')
+          ..write('key: $key, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(key, value);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppSetting &&
+          other.key == this.key &&
+          other.value == this.value);
+}
+
+class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
+  final Value<String> key;
+  final Value<String> value;
+  final Value<int> rowid;
+  const AppSettingsCompanion({
+    this.key = const Value.absent(),
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AppSettingsCompanion.insert({
+    required String key,
+    required String value,
+    this.rowid = const Value.absent(),
+  })  : key = Value(key),
+        value = Value(value);
+  static Insertable<AppSetting> custom({
+    Expression<String>? key,
+    Expression<String>? value,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (key != null) 'key': key,
+      if (value != null) 'value': value,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AppSettingsCompanion copyWith(
+      {Value<String>? key, Value<String>? value, Value<int>? rowid}) {
+    return AppSettingsCompanion(
+      key: key ?? this.key,
+      value: value ?? this.value,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSettingsCompanion(')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2374,6 +2570,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MeasurementsTable measurements = $MeasurementsTable(this);
   late final $ReminderCompletionsTable reminderCompletions =
       $ReminderCompletionsTable(this);
+  late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2385,7 +2582,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         reminderSettings,
         customReminders,
         measurements,
-        reminderCompletions
+        reminderCompletions,
+        appSettings
       ];
 }
 
@@ -3665,6 +3863,128 @@ typedef $$ReminderCompletionsTableProcessedTableManager = ProcessedTableManager<
     ),
     ReminderCompletion,
     PrefetchHooks Function()>;
+typedef $$AppSettingsTableCreateCompanionBuilder = AppSettingsCompanion
+    Function({
+  required String key,
+  required String value,
+  Value<int> rowid,
+});
+typedef $$AppSettingsTableUpdateCompanionBuilder = AppSettingsCompanion
+    Function({
+  Value<String> key,
+  Value<String> value,
+  Value<int> rowid,
+});
+
+class $$AppSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get key => $composableBuilder(
+      column: $table.key, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnFilters(column));
+}
+
+class $$AppSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get key => $composableBuilder(
+      column: $table.key, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnOrderings(column));
+}
+
+class $$AppSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+}
+
+class $$AppSettingsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $AppSettingsTable,
+    AppSetting,
+    $$AppSettingsTableFilterComposer,
+    $$AppSettingsTableOrderingComposer,
+    $$AppSettingsTableAnnotationComposer,
+    $$AppSettingsTableCreateCompanionBuilder,
+    $$AppSettingsTableUpdateCompanionBuilder,
+    (AppSetting, BaseReferences<_$AppDatabase, $AppSettingsTable, AppSetting>),
+    AppSetting,
+    PrefetchHooks Function()> {
+  $$AppSettingsTableTableManager(_$AppDatabase db, $AppSettingsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AppSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AppSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AppSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> key = const Value.absent(),
+            Value<String> value = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AppSettingsCompanion(
+            key: key,
+            value: value,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String key,
+            required String value,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AppSettingsCompanion.insert(
+            key: key,
+            value: value,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$AppSettingsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $AppSettingsTable,
+    AppSetting,
+    $$AppSettingsTableFilterComposer,
+    $$AppSettingsTableOrderingComposer,
+    $$AppSettingsTableAnnotationComposer,
+    $$AppSettingsTableCreateCompanionBuilder,
+    $$AppSettingsTableUpdateCompanionBuilder,
+    (AppSetting, BaseReferences<_$AppDatabase, $AppSettingsTable, AppSetting>),
+    AppSetting,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3683,4 +4003,6 @@ class $AppDatabaseManager {
       $$MeasurementsTableTableManager(_db, _db.measurements);
   $$ReminderCompletionsTableTableManager get reminderCompletions =>
       $$ReminderCompletionsTableTableManager(_db, _db.reminderCompletions);
+  $$AppSettingsTableTableManager get appSettings =>
+      $$AppSettingsTableTableManager(_db, _db.appSettings);
 }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/utils/health_label_resolver.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
-import '../../../../shared/domain/entities/tracking_icons.dart';
+import '../../../../shared/utils/health_label_resolver.dart';
+import '../../../../shared/widgets/tracking_icons.dart';
 
 /// Widget to display the subtypes of healthcare services.
 ///
@@ -38,7 +38,10 @@ class _HealthSubtypeDialogState extends State<HealthSubtypeDialog> {
           children: [
             Text(
               context.l.healthSubtypeDialogTitle,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
 
@@ -52,7 +55,8 @@ class _HealthSubtypeDialogState extends State<HealthSubtypeDialog> {
                 ),
                 title: Text(resolveHealthLabel(context, subtype)),
                 trailing: selectedType == subtype
-                    ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+                    ? Icon(Icons.check_circle,
+                        color: Theme.of(context).colorScheme.primary)
                     : null,
                 onTap: () {
                   setState(() => _selectedType = subtype);
@@ -82,7 +86,8 @@ class _HealthSubtypeDialogState extends State<HealthSubtypeDialog> {
                   }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(context.l.healthSubtypeRequiredError)),
+                    SnackBar(
+                        content: Text(context.l.healthSubtypeRequiredError)),
                   );
                 }
               },

@@ -11,8 +11,7 @@ class MockBabyProfileRepository implements BabyProfileRepository {
 
   @override
   Future<List<BabyProfile>> getAllProfiles() async {
-    return _profiles.values.toList()
-      ..sort((a, b) => b.id.compareTo(a.id));
+    return _profiles.values.toList()..sort((a, b) => b.id.compareTo(a.id));
   }
 
   @override
@@ -28,7 +27,8 @@ class MockBabyProfileRepository implements BabyProfileRepository {
   }
 
   @override
-  Future<BabyProfile?> updateProfile(String id, {String? name, DateTime? birthDate}) async {
+  Future<BabyProfile?> updateProfile(String id,
+      {String? name, DateTime? birthDate}) async {
     final existing = _profiles[id];
     if (existing == null) return null;
     final updated = BabyProfile(
@@ -67,8 +67,10 @@ void main() {
       });
 
       test('retourne tous les profils insérés', () async {
-        final profile1 = BabyProfile(id: 'p1', name: 'Léo', birthDate: DateTime(2024, 1, 15));
-        final profile2 = BabyProfile(id: 'p2', name: 'Emma', birthDate: DateTime(2024, 6, 20));
+        final profile1 = BabyProfile(
+            id: 'p1', name: 'Léo', birthDate: DateTime(2024, 1, 15));
+        final profile2 = BabyProfile(
+            id: 'p2', name: 'Emma', birthDate: DateTime(2024, 6, 20));
         await repository.insertProfile(profile1);
         await repository.insertProfile(profile2);
 
@@ -77,9 +79,12 @@ void main() {
         expect(result.map((p) => p.id), unorderedEquals(['p1', 'p2']));
       });
 
-      test('retourne les profils triés par ID (plus récent en premier)', () async {
-        await repository.insertProfile(BabyProfile(id: 'a1', name: 'A', birthDate: DateTime(2024, 1, 1)));
-        await repository.insertProfile(BabyProfile(id: 'a2', name: 'B', birthDate: DateTime(2024, 1, 2)));
+      test('retourne les profils triés par ID (plus récent en premier)',
+          () async {
+        await repository.insertProfile(
+            BabyProfile(id: 'a1', name: 'A', birthDate: DateTime(2024, 1, 1)));
+        await repository.insertProfile(
+            BabyProfile(id: 'a2', name: 'B', birthDate: DateTime(2024, 1, 2)));
 
         final result = await repository.getAllProfiles();
         expect(result.first.id, 'a2');
@@ -89,13 +94,18 @@ void main() {
 
     group('getActiveProfile', () {
       test('retourne null quand aucun profil actif', () async {
-        await repository.insertProfile(BabyProfile(id: 'p1', name: 'Léo', birthDate: DateTime(2024, 1, 1)));
+        await repository.insertProfile(BabyProfile(
+            id: 'p1', name: 'Léo', birthDate: DateTime(2024, 1, 1)));
         final result = await repository.getActiveProfile();
         expect(result, isNull);
       });
 
       test('retourne le profil actif après setActiveProfile', () async {
-        final profile = BabyProfile(id: 'p1', name: 'Léo', birthDate: DateTime(2024, 1, 1), isActive: true);
+        final profile = BabyProfile(
+            id: 'p1',
+            name: 'Léo',
+            birthDate: DateTime(2024, 1, 1),
+            isActive: true);
         await repository.insertProfile(profile);
         await repository.setActiveProfile('p1');
 
@@ -114,7 +124,8 @@ void main() {
 
     group('insertProfile', () {
       test('insère un profil et retourne son ID', () async {
-        final profile = BabyProfile(id: 'new-id', name: 'Nouveau', birthDate: DateTime(2024, 3, 10));
+        final profile = BabyProfile(
+            id: 'new-id', name: 'Nouveau', birthDate: DateTime(2024, 3, 10));
         final id = await repository.insertProfile(profile);
 
         expect(id, 'new-id');
@@ -124,8 +135,10 @@ void main() {
       });
 
       test('écrase un profil avec le même ID', () async {
-        final p1 = BabyProfile(id: 'p1', name: 'Original', birthDate: DateTime(2024, 1, 1));
-        final p2 = BabyProfile(id: 'p1', name: 'Mis à jour', birthDate: DateTime(2024, 1, 1));
+        final p1 = BabyProfile(
+            id: 'p1', name: 'Original', birthDate: DateTime(2024, 1, 1));
+        final p2 = BabyProfile(
+            id: 'p1', name: 'Mis à jour', birthDate: DateTime(2024, 1, 1));
         await repository.insertProfile(p1);
         await repository.insertProfile(p2);
 
@@ -137,7 +150,8 @@ void main() {
 
     group('updateProfile', () {
       test('met à jour le nom et retourne le profil mis à jour', () async {
-        await repository.insertProfile(BabyProfile(id: 'p1', name: 'Original', birthDate: DateTime(2024, 1, 1)));
+        await repository.insertProfile(BabyProfile(
+            id: 'p1', name: 'Original', birthDate: DateTime(2024, 1, 1)));
         final updated = await repository.updateProfile('p1', name: 'Updated');
 
         expect(updated, isNotNull);
@@ -146,20 +160,24 @@ void main() {
       });
 
       test('met à jour la date de naissance', () async {
-        await repository.insertProfile(BabyProfile(id: 'p1', name: 'Test', birthDate: DateTime(2024, 1, 1)));
-        final updated = await repository.updateProfile('p1', birthDate: DateTime(2025, 6, 15));
+        await repository.insertProfile(BabyProfile(
+            id: 'p1', name: 'Test', birthDate: DateTime(2024, 1, 1)));
+        final updated = await repository.updateProfile('p1',
+            birthDate: DateTime(2025, 6, 15));
 
         expect(updated!.birthDate, DateTime(2025, 6, 15));
         expect(updated.name, 'Test');
       });
 
       test('retourne null pour un ID inexistant', () async {
-        final updated = await repository.updateProfile('non_existent', name: 'Ghost');
+        final updated =
+            await repository.updateProfile('non_existent', name: 'Ghost');
         expect(updated, isNull);
       });
 
       test('ne modifie pas les champs non spécifiés', () async {
-        await repository.insertProfile(BabyProfile(id: 'p1', name: 'Original', birthDate: DateTime(2024, 1, 1)));
+        await repository.insertProfile(BabyProfile(
+            id: 'p1', name: 'Original', birthDate: DateTime(2024, 1, 1)));
         final updated = await repository.updateProfile('p1', name: 'NewName');
 
         expect(updated!.name, 'NewName');
@@ -169,7 +187,8 @@ void main() {
 
     group('deleteProfile', () {
       test('supprime un profil existant et retourne true', () async {
-        await repository.insertProfile(BabyProfile(id: 'p1', name: 'À supprimer', birthDate: DateTime(2024, 1, 1)));
+        await repository.insertProfile(BabyProfile(
+            id: 'p1', name: 'À supprimer', birthDate: DateTime(2024, 1, 1)));
         final result = await repository.deleteProfile('p1');
 
         expect(result, isTrue);
@@ -185,8 +204,10 @@ void main() {
 
     group('setActiveProfile', () {
       test('active un profil et le retourne via getActiveProfile', () async {
-        await repository.insertProfile(BabyProfile(id: 'p1', name: 'A', birthDate: DateTime(2024, 1, 1)));
-        await repository.insertProfile(BabyProfile(id: 'p2', name: 'B', birthDate: DateTime(2024, 1, 2)));
+        await repository.insertProfile(
+            BabyProfile(id: 'p1', name: 'A', birthDate: DateTime(2024, 1, 1)));
+        await repository.insertProfile(
+            BabyProfile(id: 'p2', name: 'B', birthDate: DateTime(2024, 1, 2)));
         await repository.setActiveProfile('p2');
 
         final active = await repository.getActiveProfile();
@@ -195,8 +216,10 @@ void main() {
       });
 
       test('met à jour le profil actif quand appelé plusieurs fois', () async {
-        await repository.insertProfile(BabyProfile(id: 'p1', name: 'A', birthDate: DateTime(2024, 1, 1)));
-        await repository.insertProfile(BabyProfile(id: 'p2', name: 'B', birthDate: DateTime(2024, 1, 2)));
+        await repository.insertProfile(
+            BabyProfile(id: 'p1', name: 'A', birthDate: DateTime(2024, 1, 1)));
+        await repository.insertProfile(
+            BabyProfile(id: 'p2', name: 'B', birthDate: DateTime(2024, 1, 2)));
         await repository.setActiveProfile('p1');
         await repository.setActiveProfile('p2');
 
@@ -206,14 +229,17 @@ void main() {
     });
 
     group('contrat complet', () {
-      test('cycle complet: insert → update → setActive → read → delete', () async {
+      test('cycle complet: insert → update → setActive → read → delete',
+          () async {
         // Insert
-        final profile = BabyProfile(id: 'cycle-1', name: 'Cycle', birthDate: DateTime(2024, 5, 10));
+        final profile = BabyProfile(
+            id: 'cycle-1', name: 'Cycle', birthDate: DateTime(2024, 5, 10));
         await repository.insertProfile(profile);
         expect((await repository.getAllProfiles()), hasLength(1));
 
         // Update
-        final updated = await repository.updateProfile('cycle-1', name: 'Cycle Updated');
+        final updated =
+            await repository.updateProfile('cycle-1', name: 'Cycle Updated');
         expect(updated!.name, 'Cycle Updated');
 
         // Activate

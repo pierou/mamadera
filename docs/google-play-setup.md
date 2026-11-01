@@ -87,6 +87,13 @@ Under **Release → Managed open testing** (or Production), select all countries
 
 ## Step 6 — Store Listings
 
+> ⚠️ **SUPERSEDED for v1.2.1+.** v1.1.0 copy, kept as history. Paste from
+> `store/v<version>/fields/` (`play-<locale>-short.txt`, `play-<locale>-description.txt`) and
+> `store/v<version>/release-notes/play-<locale>.txt` — built from `store/source/en/`, French
+> and Spanish translated by TranslateGemma and term-aligned to the ARB, every field
+> length-checked by `make store-check`. The v1.1.0 text below predates growth tracking entirely:
+> it never mentions weight, height or temperature, which shipped in v1.2.0.
+
 > v1.1.0 listing copy. Full descriptions are plain text in fenced blocks —
 > copy them verbatim (Play does not render HTML; an earlier revision of this
 > doc used `<br>` tags which would have shipped literally).
@@ -123,8 +130,8 @@ Go to **Store presence → Localizations** → Add French:
 
 | Field | Content |
 |-------|---------|
-| **Title** (19/30) | Mamadera Suivi Bébé |
-| **Short description** (71/80) | Suivi bébé 100% privé : tétées, sommeil, couches — hors-ligne & chiffré |
+| **Title** (19/30) | `Mamadera Suivi Bébé` |
+| **Short description** (71/80) | `Suivi bébé 100% privé : tétées, sommeil, couches — hors-ligne & chiffré` |
 
 **Full description:**
 
@@ -148,8 +155,8 @@ Mamadera est open source sous licence MIT. Les données de votre bébé ne quitt
 
 | Field | Content |
 |-------|---------|
-| **Title** (25/30) | Mamadera Seguimiento Bebé |
-| **Short description** (72/80) | Seguimiento privado de bebé: tomas, sueño, pañales — sin nube ni rastreo |
+| **Title** (25/30) | `Mamadera Seguimiento Bebé` |
+| **Short description** (72/80) | `Seguimiento privado de bebé: tomas, sueño, pañales — sin nube ni rastreo` |
 
 **Full description:**
 
@@ -182,6 +189,13 @@ Mamadera es de código abierto bajo licencia MIT. Los datos de tu bebé nunca sa
 | **App icon** | 512 × 512 px PNG | Use existing app icon (32 dp, no transparency) |
 
 ### Capturing Screenshots
+
+> **Every uploaded screenshot is named `<locale>-<screen>.png`** (`fr-home.png`,
+> `es-history.png`, `en-growth.png`). The capture folder is overwritten by the next run and
+> says nothing once a file leaves it; the filename is what travels. `make store-check` fails
+> a package with a bare name, and
+> `/usr/bin/python3 screenshots/android/verify_android.py --locale=fr` verifies the upload set
+> (size, ribbon, names) for one language.
 
 Eight store screens (home, history, menu, the four tracking bottom sheets,
 and the growth screen — `/growth`, added in v1.2.0) are captured automatically
@@ -271,7 +285,7 @@ If this is a simple utility app and you complete Internal testing successfully, 
 Google Play **requires** a publicly accessible privacy policy. Use:
 
 ```
-https://raw.githubusercontent.com/pvjio/mamadera/main/.github/PRIVACY.md
+https://raw.githubusercontent.com/pierou/mamadera/main/.github/PRIVACY.md
 ```
 
 Or host a nicely formatted version on GitHub Pages or Netlify. Set it in **Setup → App content → Privacy policy**.

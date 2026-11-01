@@ -1,131 +1,131 @@
-# BUG — Android ne dépasse jamais le splash ( Small_Phone, 360×640 dp )
+# BUG — Android never gets past the splash ( Small_Phone, 360×640 dp )
 
-**Statut:** **CLOSED — cause trouvée : `android:theme="@style/LaunchTheme"` absent du manifeste.**
-Ni une régression de la branche, ni une famine mémoire. Voir `BUG-baby-name-under-status-bar.md`. · **Ouvert:** 2026-10-04 · **Plateforme:** Android ( deux émulateurs )
-**Build:** app-debug.apk de la branche `feat/v1.2.0-growth-and-baby-scoped-reminders` (95 835 048 octets), installé avec `install -r -g` → Success.
+**Status:** **CLOSED — cause found: `android:theme="@style/LaunchTheme"` missing from the manifest.**
+Neither a branch regression, nor a memory starvation. See `BUG-baby-name-under-status-bar.md`. · **Opened:** 2026-10-04 · **Platform:** Android ( two emulators )
+**Build:** app-debug.apk of the branch `feat/v1.2.0-growth-and-baby-scoped-reminders` (95 835 048 bytes), installed with `install -r -g` → Success.
 
-## Fait établi, pas supposé
-- `am start -W -n com.pvjio.mamadera/.MainActivity` → **`Status: timeout`** : l'activité ne signale
-  jamais son premier rendu. Ce n'est pas une écran lent, c'est un premier rendu qui n'arrive pas.
-- Le processus **vit** (pid 6346), le moteur Flutter démarre, la surface est créée en 720x1280, les
-  viewport metrics sont envoyés — puis plus rien que des **"Skipped N frames"** (64, 116, 34, 57).
-  Aucune exception, aucun FATAL, aucun crash dans le buffer `crash`.
-- `FlutterRenderer: Width is zero. 0,0` apparaît deux fois au démarrage, avant la création de surface.
-- Les mêmes écrans **réussissent** sous `flutter test integration_test` sur ce même émulateur
-  (rendering_validation_test.dart + feeding_tracking_flow_test.dart → tous passés). Donc le widget
-  tree sait rendre sur cet appareil : la différence est le lanceur, pas le rendu.
-- `FlutterSecureStorage` a complété sa migration sans erreur lors d'une exécution précédente
-  (pid 4902, 17:52) — "Data migration completed successfully". Le keystroke n'est donc pas
-  prouvé coupable ; c'est un suspect, pas un verdict.
-- iOS (iPhone 17, même build) : aucunsplash hang, tous les écrans rendus et vérifiés visuellement.
+## Fact established, not assumed
+- `am start -W -n com.pvjio.mamadera/.MainActivity` → **`Status: timeout`** : the activity never
+  reports its first render. This is not a slow screen, it is a first render that does not arrive.
+- The process **lives** (pid 6346), the Flutter engine starts, the surface is created at 720x1280, the
+  viewport metrics are sent — then nothing but **"Skipped N frames"** (64, 116, 34, 57).
+  No exception, no FATAL, no crash in the `crash` buffer.
+- `FlutterRenderer: Width is zero. 0,0` appears twice at startup, before the surface creation.
+- The same screens **succeed** under `flutter test integration_test` on this same emulator
+  (rendering_validation_test.dart + feeding_tracking_flow_test.dart → all passed). So the widget
+  tree knows how to render on this device: the difference is the launcher, not the rendering.
+- `FlutterSecureStorage` completed its migration without error in a previous run
+  (pid 4902, 17:52) — "Data migration completed successfully". The key-store is therefore not
+  proven guilty; it is a suspect, not a verdict.
+- iOS (iPhone 17, same build): no splash hang, all screens rendered and verified visually.
 
-## Ce que la passe a manqué
-Le parcours manuel (biberon en ml, solide en g, poids, export JSON inspecté) et l'écran de
-consentement tapé pour de vrai n'ont **pas** été faits : l'app ne quitte pas le splash.
+## What the pass missed
+The manual walkthrough (bottle in ml, solid food in g, weight, exported JSON inspected) and the
+consent screen really tapped were **not** done: the app does not leave the splash.
 
-## Prochain diagnostic, dans cet ordre
-1. `am start -W` sur `Pixel_10_Pro` (même build) : si ça démarre, le problème est lié à la
-   configuration de Small_Phone (résolution/densité/API), pas au code applicatif.
-2. `logcat` filtré sur le pid courant, en cherchant la **dernière** ligne avant le silence — pour
-   savoir si le blocage est avant `runApp`, dans un canal plugin, ou dans la main de Dart.
-3. `flutter run --verbose -d emulator-5554` : le handshake engine↔app est visible, contrairement
-   a `am start`.
-4. Ne pas masquer le symptome (pas de splash timeout, pas de `postFrameCallback\) de contournement)
-   avant d'avoir la cause : un splash qui ne finit jamais sur un device Android livré est un
-   utilisateur perdu, pas un détail cosmetique.
+## Next diagnostics, in this order
+1. `am start -W` on `Pixel_10_Pro` (same build): if it starts, the problem is tied to the
+   Small_Phone configuration (resolution/density/API), not to the application code.
+2. `logcat` filtered on the current pid, looking for the **last** line before the silence — to
+   know whether the block is before `runApp`, in a plugin channel, or in the Dart main.
+3. `flutter run --verbose -d emulator-5554`: the engine↔app handshake is visible, unlike
+   `am start`.
+4. Do not mask the symptom (no splash timeout, no `postFrameCallback` workaround)
+   before having the cause: a splash that never ends on a shipped Android device is a
+   lost user, not a cosmetic detail.
 
-## Preuves conservées
+## Evidence preserved
 `/tmp/sp.png` `/tmp/sp2.png` `/tmp/sp3.png` `/tmp/small_home.png` `/tmp/clean.png` (splash)
-`/tmp/name.jpg` (iOS, domicile avec le prénom) · journal: `/tmp/integ.log` `/tmp/emu.log`
+`/tmp/name.jpg` (iOS, home with the first name) · logs: `/tmp/integ.log` `/tmp/emu.log`
 
-## A/B décisif — c'est notre branche, pas l'émulateur
-Même émulateur (emulator-5556, Pixel_10_Pro), même appareil de build, deux APK :
+## Decisive A/B — it is our branch, not the emulator
+Same emulator (emulator-5556, Pixel_10_Pro), same build machine, two APKs:
 
-| build | \`am start -W\` | premier rendu | écran vu |
+| build | \`am start -W\` | first render | screen seen |
 |---|---|---|---|
-| **v1.1.1 (main)** | **\`Status: ok\`** | **TotalTime 4021 ms** | Conditions affichées, bouton « I Accept » rendu |
-| **v1.2.0 (cette branche)** | **\`Status: timeout\`** | jamais | splash natif, écran clair, aucun contenu Flutter |
+| **v1.1.1 (main)** | **\`Status: ok\`** | **TotalTime 4021 ms** | Terms displayed, « I Accept » button rendered |
+| **v1.2.0 (this branch)** | **\`Status: timeout\`** | never | native splash, light screen, no Flutter content |
 
-Reproduit sur \`Small_Phone\` (360×640 dp) **et** \`Pixel_10_Pro\` : ce n'est pas une configuration
-d'écran. Et la version publiée fonctionne sur le même appareil : **c'est une régression introduite
-par cette branche.**
+Reproduced on \`Small_Phone\` (360×640 dp) **and** \`Pixel_10_Pro\`: this is not a screen
+configuration. And the released version works on the same device: **it is a regression introduced
+by this branch.**
 
-## Ce que cela implique pour la vérification iOS (honnêteté, pas une note en bas de page)
-La passe iOS a été faite avec **une base v10 plantée puis migrée** : elle prouve la montée
-v10 → v11 et le rendu, elle ne prouve **pas** un \`onCreate\` v11 depuis une installation vraiment
-fraîche. Le tout premier lancement iOS de v1.2.0 a bien affiché les conditions — mais la base est
-en \`LazyDatabase\` : elle n'est créée qu'au premier accès, donc après consentement. **Aucune
-plateforme n'a encore exercé \`onCreate\` v11 jusqu'au bout.** Le suspect n°1 est donc un chemin
-d'initialisation bloquant avant le premier rendu Android — la piste principale étant l'init du
-stockage sécurisé / du service de chiffrement invoqué au démarrage, que les tests d'intégration
-court-circuitent.
+## What this implies for the iOS verification (honesty, not a footnote)
+The iOS pass was done with **a v10 database planted then migrated**: it proves the upgrade
+v10 → v11 and the rendering, it does **not** prove a fresh \`onCreate\` v11 from a truly
+fresh install. The very first iOS launch of v1.2.0 did display the terms — but the database is
+in \`LazyDatabase\`: it is created only on first access, so after consent. **No
+platform has yet exercised \`onCreate\` v11 to the end.** Suspect n°1 is therefore a blocking
+initialization path before the first Android render — the main lead being the init of the
+secure storage / the encryption service invoked at startup, which the integration tests
+short-circuit.
 
-## Prochain diagnostic, dans cet ordre
-1. \`flutter run --verbose -d emulator-5556\` sur la branche : le handshake engine↔app est visible,
-   contrairement a \`am start\` — on verra où ça bloque.
-2. \`logcat\` filtré sur le pid courant, chasser la **dernière** ligne avant le silence, en cherchant
+## Next diagnostics, in this order
+1. \`flutter run --verbose -d emulator-5556\` on the branch: the engine↔app handshake is visible,
+   unlike \`am start\` — we will see where it blocks.
+2. \`logcat\` filtered on the current pid, chase the **last** line before the silence, looking for
    \`FlutterSecureStorage\`, \`EncryptionService\`, \`drift\`, \`SQLite\`.
-3. Bisecter la branche : \`git revert\` provisoire de M5 (module croissance) puis M1 (schéma v11)
-   sur une branche jetable, pour encadrer la régression par commit.
-4. Vérifier un \`onCreate\` v11 depuis une installation réellement fraîche, sur **les deux**
-   plateformes, avant toute ouverture de PR.
+3. Bisect the branch: provisional \`git revert\` of M5 (growth module) then M1 (schema v11)
+   on a throwaway branch, to bracket the regression by commit.
+4. Verify a fresh \`onCreate\` v11 from a truly fresh install, on **both**
+   platforms, before any PR opening.
 
-Ne pas masquer le symptôme (pas de timeout de splash, pas de \`postFrameCallback\` de contournement)
-avant d'avoir la cause.
+Do not mask the symptom (no splash timeout, no \`postFrameCallback\` workaround)
+before having the cause.
 
-## Clarification de la méthode (mes erreurs, notées pour qu'on ne les répète pas)
-- Les captures de 708 Ko et 37 Ko étaient **le launcher Android**, pas l'app : le fond d'écran
-  riche explique la taille. Une capture n'est un fait qu'après avoir été regardée ET identifiée.
-- `am start -W` → `Status: timeout` ne prouve pas la mort du process : l'app était vivante et
-  `topResumedActivity` était bien `com.pvjio.mamadera/.MainActivity`.
-- Ce qui est établi, par convergence et non par un seul signal : process vivant, activity au
-  premier plan, `crash` buffer vide, aucune ligne `AndroidRuntime`/`F DEBUG`/`MissingPlugin`,
-  et l'écran reste le **splash natif** (fond clair, alors que l'app vérifiée est sombre) pendant
-  des minutes. Donc : **le premier rendu Flutter ne remplace jamais le splash.**
-- La règle manquante dès le départ : comparer la taille des captures ne dit rien. `dumpsys` pour
-  savoir quelle activity est au premier plan, puis regarder l'image, puis conclure.
+## Clarification of the method (my errors, noted so they are not repeated)
+- The 708 Ko and 37 Ko captures were **the Android launcher**, not the app: the rich wallpaper
+  explains the size. A capture is a fact only after having been looked at AND identified.
+- `am start -W` → `Status: timeout` does not prove the process death: the app was alive and
+  `topResumedActivity` was indeed `com.pvjio.mamadera/.MainActivity`.
+- What is established, by convergence and not by a single signal: living process, activity in
+  the foreground, empty `crash` buffer, no `AndroidRuntime`/`F DEBUG`/`MissingPlugin` line,
+  and the screen stays the **native splash** (light background, while the verified app is dark) for
+  minutes. Therefore: **the first Flutter render never replaces the splash.**
+- The rule missing from the start: comparing capture sizes tells nothing. `dumpsys` to
+  know which activity is in the foreground, then look at the image, then conclude.
 
-## Clôture — ma conclusion était fausse
-Un autre poste (même dépôt, même HEAD `a112d5a`, même Flutter, images émulateur identiques) construit
-l'APK de la branche et lance :
+## Closure — my conclusion was wrong
+Another workstation (same repo, same HEAD `a112d5a`, same Flutter, identical emulator images) builds
+the branch APK and runs:
 
-| lancement | résultat |
+| launch | result |
 |---|---|
-| `install -r` + prefs (consentement accepté) | \`Status: ok\`, TotalTime **1756 ms** → **écran « Nouveautés de Mamadera 1.2.0 » rendu** |
-| `pm clear` (installation fraîche, sans consentement) | \`Status: ok\`, TotalTime **1920 ms** → **Conditions rendues, bouton « I Accept »** |
-| tap « I Accept » | **domicile rendu** avec la dialogue d'ajout de bébé → **un \`onCreate\` v11 frais s'exécute sans blocage** |
-| \`logcat -s flutter:* ActivityManager:*\` pendant 60 s | aucune erreur Flutter, aucun \`MissingPlugin\`, aucun crash |
+| `install -r` + prefs (consent accepted) | \`Status: ok\`, TotalTime **1756 ms** → **« Nouveautés de Mamadera 1.2.0 » screen rendered** |
+| `pm clear` (fresh install, no consent) | \`Status: ok\`, TotalTime **1920 ms** → **Terms rendered, « I Accept » button** |
+| tap « I Accept » | **home rendered** with the baby add dialog → **a fresh \`onCreate\` v11 runs without blocking** |
+| \`logcat -s flutter:* ActivityManager:*\` for 60 s | no Flutter error, no \`MissingPlugin\`, no crash |
 
-Il n'y a **donc pas de régression de code.** La cause est l'hôte d'origine : le limiteur mémoire du
-Mac affame ou redémarre qemu. Les symptômes collent exactement à un thread de rendu affamé plutôt
-qu'à un Dart bloqué — rafales de « Skipped N frames » (un vrai blocage avant \`runApp\` ne produirait
-pas de sauts d'images, il n'y aurait pas de boucle d'images du tout), \`FlutterRenderer: Width is
-zero\`, moteur vivant sans premier rendu, et les tests d'intégration verts sur ce même émulateur.
+So there is **no code regression.** The cause is the original host: the memory limiter of the
+Mac starves or restarts qemu. The symptoms fit exactly a starved render thread rather
+than a blocked Dart — bursts of « Skipped N frames » (a true block before \`runApp\` would not produce
+frame drops, there would be no frame loop at all), \`FlutterRenderer: Width is
+zero\`, engine alive without first render, and integration tests green on this same emulator.
 
-**Ce que mon A/B n'était pas : un A/B.** Comparer 1.1.1 et 1.2.0 sur le même émulateur *après*
-plusieurs builds lourds sur un poste déjà sous pression mémoire ne compare pas deux builds, ça
-compare deux états de l'hôte. Leçon à garder : un A/B ne vaut que si l'environnement est tenu
-constant, et « ça marche sur une autre machine » est une donnée qui doit venir avant une conclusion,
-pas après.
+**What my A/B was not: an A/B.** Comparing 1.1.1 and 1.2.0 on the same emulator *after*
+several heavy builds on a workstation already under memory pressure does not compare two builds, it
+compares two states of the host. Lesson to keep: an A/B only holds if the environment is held
+constant, and « ça marche sur une autre machine » is a datum that must come before a conclusion,
+not after.
 
-## Ce que cette clôture valide au passage (et qui n'avait jamais été vérifié)
-- **\`onCreate\` v11 depuis une installation réellement fraîche**, exécuté et rendu — le point que la
-  passe iOS (base plantée et migrée) ne prouvait pas.
-- **L'écran des notes de version 1.2.0 rendu pour de vrai** sur l'appareil.
+## What this closure validates in passing (and which had never been verified)
+- **\`onCreate\` v11 from a truly fresh install**, executed and rendered — the point that the
+  iOS pass (planted and migrated database) did not prove.
+- **The 1.2.0 patch notes screen really rendered** on the device.
 
-## Reste ouvert
-Le parcours manuel (biberon en ml, tétée en min, solide en g, poids) et l'inspection du JSON exporté.
+## Still open
+The manual walkthrough (bottle in ml, breastfeed in min, solid food in g, weight) and the inspection of the exported JSON.
 
-## Cause réelle (trouvée, pas devinée)
-`MainActivity` n'avait pas `android:theme="@style/LaunchTheme"` (`Theme.Light.NoTitleBar`). Sans lui,
-Android monte une ActionBar native « Mamadera » et garde le thème clair par défaut : ce que j'ai pris
-pour un splash bloqué était **l'app rendue derrière la barre native**, sur fond clair. Le splash
-bouteille appartenait au thème par défaut. Le prénom, posé en haut du corps scrollable, tombait à
-`y=32` — sous la barre système.
+## Actual cause (found, not guessed)
+`MainActivity` did not have `android:theme="@style/LaunchTheme"` (`Theme.Light.NoTitleBar`). Without it,
+Android mounts a native ActionBar « Mamadera » and keeps the light theme by default: what I took
+for a blocked splash was **the app rendered behind the native bar**, on a light background. The splash
+hang belonged to the default theme. The first name, set at the top of the scrollable body, fell at
+`y=32` — under the system bar.
 
-**Ce que j'ai affirmé à tort, dans l'ordre :** (1) « régression de la branche » — non, `main` a le
-même manifeste ; (2) « le limiteur mémoire du Mac affame qemu » — non plus, c'était le thème ;
-(3) des captures du launcher et une capture derrière l'ActionBar lues comme des preuves. Chaque
-conclusion tenait sur un seul signal au lieu de la convergence. La règle qui manque : identifier
-l'écran (dumpsys + regard) avant d'interpréter, et faire l'A/B sur **deux machines** avant de
-conclure à une régression.
+**What I wrongly asserted, in order:** (1) « branch regression » — no, `main` has the
+same manifest; (2) « the Mac's memory limiter starves qemu » — no longer, it was the theme;
+(3) captures of the launcher and a capture behind the ActionBar read as evidence. Each
+conclusion rested on a single signal instead of the convergence. The missing rule: identify
+the screen (dumpsys + look) before interpreting, and do the A/B on **two machines** before
+concluding a regression.

@@ -64,7 +64,8 @@ const _testPrefsNotAccepted = AppPreferences(
 );
 
 /// English locale preference for consistent test output.
-const _testLocaleEn = LocalePreference(languageCode: 'en', isManualOverride: false);
+const _testLocaleEn =
+    LocalePreference(languageCode: 'en', isManualOverride: false);
 
 /// Test notifier that returns *accepted* terms immediately.
 /// Sets state synchronously so the redirect callback sees data right away.
@@ -155,7 +156,8 @@ Future<void> pumpMamadera(
 
   // In-memory DB for isolation (when requested)
   if (useInMemoryDb) {
-    overrides.add(databaseProvider.overrideWith((ref) async => createInMemoryDb()));
+    overrides
+        .add(databaseProvider.overrideWith((ref) async => createInMemoryDb()));
   }
 
   // Skip baby onboarding dialog by default in most tests
@@ -183,10 +185,12 @@ Finder findByKey(String key) => find.byKey(ValueKey(key));
 
 /// Verifies that a widget with the given key exists and is unique.
 void expectUnique(WidgetTester tester, String key) {
-  expect(findByKey(key), findsOneWidget, reason: 'Expected exactly one widget with key "$key"');
+  expect(findByKey(key), findsOneWidget,
+      reason: 'Expected exactly one widget with key "$key"');
 }
 
 /// Verifies that a widget with the given key does not exist.
 void expectAbsent(String key) {
-  expect(findByKey(key), findsNothing, reason: 'Expected no widget with key "$key"');
+  expect(findByKey(key), findsNothing,
+      reason: 'Expected no widget with key "$key"');
 }

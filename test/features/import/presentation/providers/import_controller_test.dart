@@ -118,6 +118,7 @@ class _ScriptedImportRepository extends ImportRepository {
     reminderDismissals: 1,
     measurements: 1,
     reminderCompletions: 1,
+    appSettings: 0,
   );
 
   int parseCalls = 0;

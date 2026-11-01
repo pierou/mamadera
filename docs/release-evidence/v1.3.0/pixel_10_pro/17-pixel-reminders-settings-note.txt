@@ -1,0 +1,40 @@
+M8 gate completeness — Reminders settings screen, normal device (Pixel_10_Pro)
+================================================================================
+Date:        2026-10-28
+Device:      emulator-5554 (AVD Pixel_10_Pro), 1280x2856, density 480
+Capture:     /tmp/gate-evidence/17-pixel-reminders-settings.png (1280x2856, verified via sips)
+Paired:      Small_Phone captures 09/10/11 (same screen, same state)
+
+App under capture:
+  feat/item-12-notifications @ 1c49496 (clean tree), pubspec 1.3.0+12.
+  Built as the flutter drive integration-test APK (DEBUG, banner suppressed via
+  WidgetsApp.debugAllowBannerOverride = false — the same suppression the
+  accepted store-capture harness uses, verified red-free by the pipeline).
+
+Why flutter drive instead of touch navigation:
+  The Pixel_10_Pro AVD accumulated 11 phantom virtio_input_multi_touch devices
+  (event1..event11; a healthy emulator has one) after repeated kill/relaunch
+  cycles. `adb shell input tap x y` routed taps to arbitrary devices, so the
+  same coordinate opened different elements on repeated attempts (Menu tab
+  tap -> diaper sheet / care-type sheet / Growth), and state dumps flapped
+  between Growth / shell / launcher. Keyevents (BACK/HOME) still worked. The
+  capture was therefore done with widget-level navigation — no touch:
+    pump app (seeded in-memory DB)
+    -> tap TestKeys.menuTab
+    -> scroll "Choose which reminders to show" into view, tap tile
+    -> scroll "System notifications" section into view
+    -> binding.takeScreenshot
+  This exercises the exact same route (/reminder-settings) and layout as a
+  user tap; only the input path differs.
+
+Screen state (mirrors the opted-in Small_Phone state, evidence 09-11):
+  Seeded fixture baby Léa (87 days), app_settings rows
+    notifications_opt_in = '1'
+    notification_time_of_day = '09:30'
+  so the System notifications section renders with the opt-in switch ON and
+  the Notification time row enabled at 9:30 AM.
+
+Result: test "reminders_settings_pixel.png" passed (All tests passed),
+screenshot saved by the driver at 1280x2856. Throwaway driver file
+(integration_test/pixel_reminder_settings_capture.dart) deleted afterwards;
+working tree clean.

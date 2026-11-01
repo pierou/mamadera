@@ -49,15 +49,13 @@ void main() {
           measurementNotifierProvider
               .overrideWith(() => _NoMeasurementsNotifier()),
           activeBabyProvider.overrideWith(() => babyNotifier),
-          anyBabyExistsProvider
-              .overrideWith(() => _BabyExistsNotifier()),
+          anyBabyExistsProvider.overrideWith(() => _BabyExistsNotifier()),
           // The recall section fills up without a base: it's a memory-based system.
           // Notify without polling timer (same recipe as the harness).
           // principal).
           remindersRepositoryProvider
               .overrideWith((ref) async => MockRemindersRepository()),
-          reminderNotifierProvider
-              .overrideWith(NoPollRemindersNotifier.new),
+          reminderNotifierProvider.overrideWith(NoPollRemindersNotifier.new),
         ],
         child: MaterialApp(
           locale: const Locale('fr'),

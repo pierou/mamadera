@@ -47,9 +47,11 @@ class ThemeNotifier extends AsyncNotifier<ThemePreference> {
   }
 
   /// Gets the current theme preference synchronously, or a safe default.
-  ThemePreference _current() => state.whenOrNull(
+  ThemePreference _current() =>
+      state.whenOrNull(
         data: (pref) => pref,
-      ) ?? const ThemePreference(mode: 'system');
+      ) ??
+      const ThemePreference(mode: 'system');
 
   /// Sets the theme mode and persists to disk.
   Future<void> setMode(String mode) async {

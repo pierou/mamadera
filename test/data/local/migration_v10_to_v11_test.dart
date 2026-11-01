@@ -119,8 +119,8 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    // v12 is now available: the file has been updated to the latest version.
-    expect(db.schemaVersion, equals(12));
+    // The file has been updated to the latest version.
+    expect(db.schemaVersion, equals(13));
 
     await db.into(db.measurements).insert(
           MeasurementsCompanion.insert(

@@ -31,7 +31,8 @@ void main() {
 
   ProviderContainer buildContainer() => ProviderContainer(
         overrides: [
-          remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
+          remindersRepositoryProvider
+              .overrideWith((ref) async => mockReminders),
           activeBabyProvider.overrideWith(() => _ActiveBabyStub(_baby)),
         ],
       );
@@ -53,7 +54,8 @@ void main() {
   });
 
   group('reminderSettingsProvider', () {
-    test('starts empty on a fresh install: nothing has been switched off', () async {
+    test('starts empty on a fresh install: nothing has been switched off',
+        () async {
       expect(await container.read(reminderSettingsProvider.future), isEmpty);
     });
 
@@ -71,16 +73,20 @@ void main() {
     test('keeps every preset when the parent never opted out', () async {
       final items = await container.read(enabledRemindersProvider.future);
 
-      expect(items.map((item) => item.id), ReminderItemPresets.buildForBaby(_baby).map((item) => item.id));
+      expect(items.map((item) => item.id),
+          ReminderItemPresets.buildForBaby(_baby).map((item) => item.id));
     });
 
-    test('drops the reminders that were switched off, keeps the others', () async {
+    test('drops the reminders that were switched off, keeps the others',
+        () async {
       mockReminders.enabledById[ReminderItemPresets.vitaminD.id] = false;
 
       final items = await container.read(enabledRemindersProvider.future);
 
-      expect(items.map((item) => item.id), isNot(contains(ReminderItemPresets.vitaminD.id)));
-      expect(items.map((item) => item.id), contains(ReminderItemPresets.vitaminK.id));
+      expect(items.map((item) => item.id),
+          isNot(contains(ReminderItemPresets.vitaminD.id)));
+      expect(items.map((item) => item.id),
+          contains(ReminderItemPresets.vitaminK.id));
     });
 
     test('a stored enabled: true keeps the reminder', () async {
@@ -88,7 +94,8 @@ void main() {
 
       final items = await container.read(enabledRemindersProvider.future);
 
-      expect(items.map((item) => item.id), contains(ReminderItemPresets.vitaminD.id));
+      expect(items.map((item) => item.id),
+          contains(ReminderItemPresets.vitaminD.id));
     });
 
     test('an unknown item id in the settings table changes nothing', () async {
@@ -111,7 +118,8 @@ void main() {
   });
 
   group('ReminderSettingsNotifier.setEnabled', () {
-    test('writes through to the repository and updates state at once', () async {
+    test('writes through to the repository and updates state at once',
+        () async {
       await container.read(reminderSettingsProvider.future);
       final notifier = container.read(reminderSettingsProvider.notifier);
 
@@ -120,7 +128,8 @@ void main() {
         enabled: false,
       );
 
-      expect(mockReminders.enabledById[ReminderItemPresets.vitaminD.id], isFalse);
+      expect(
+          mockReminders.enabledById[ReminderItemPresets.vitaminD.id], isFalse);
       expect(mockReminders.setEnabledCallCount, 1);
       // No back-tracking: the switch must not move backward by even a single frame.
       expect(
@@ -137,7 +146,8 @@ void main() {
           .read(reminderSettingsProvider.notifier)
           .setEnabled(ReminderItemPresets.vitaminD.id, enabled: true);
 
-      expect(mockReminders.enabledById[ReminderItemPresets.vitaminD.id], isTrue);
+      expect(
+          mockReminders.enabledById[ReminderItemPresets.vitaminD.id], isTrue);
     });
   });
 
@@ -166,8 +176,10 @@ void main() {
 
       await container.read(reminderNotifierProvider.future);
 
-      expect(mockReminders.lookedUpItemIds, isNot(contains(ReminderItemPresets.vitaminK.id)));
-      expect(mockReminders.lookedUpItemIds, contains(ReminderItemPresets.vitaminD.id));
+      expect(mockReminders.lookedUpItemIds,
+          isNot(contains(ReminderItemPresets.vitaminK.id)));
+      expect(mockReminders.lookedUpItemIds,
+          contains(ReminderItemPresets.vitaminD.id));
     });
 
     test('switching everything off clears the home screen', () async {
@@ -202,10 +214,12 @@ void main() {
       expect(await container.read(customReminderItemsProvider.future), isEmpty);
     });
 
-    test('a stored reminder reaches the home list under a stable key', () async {
+    test('a stored reminder reaches the home list under a stable key',
+        () async {
       storeCream();
 
-      final item = (await container.read(customReminderItemsProvider.future)).single;
+      final item =
+          (await container.read(customReminderItemsProvider.future)).single;
 
       // The key is the line identifier, not the label: the parent can...
       // Rename the reminder without losing its expiration date, deletion status, or priority level.
@@ -215,7 +229,8 @@ void main() {
       expect(item.trackingType, TrackingType.sante);
     });
 
-    test('a monthly reminder rings on the birth day of the active baby', () async {
+    test('a monthly reminder rings on the birth day of the active baby',
+        () async {
       // The day does not belong to the recall; like vitamin K, it follows [a certain process/pathway].
       // The baby is active, and switching to a different baby postpones the reminder associated with the first baby.
       storeCream(label: 'Bilan du mois');
@@ -225,14 +240,17 @@ void main() {
         frequency: const ReminderFrequency.monthly(dayOfMonth: 1),
       );
 
-      final item = (await container.read(customReminderItemsProvider.future)).single;
+      final item =
+          (await container.read(customReminderItemsProvider.future)).single;
 
-      expect(item.frequency, ReminderFrequency.monthly(dayOfMonth: _baby.birthDate.day));
+      expect(item.frequency,
+          ReminderFrequency.monthly(dayOfMonth: _baby.birthDate.day));
     });
 
     test('they join the presets instead of replacing them', () async {
       storeCream();
-      final presetIds = ReminderItemPresets.buildForBaby(_baby).map((i) => i.id);
+      final presetIds =
+          ReminderItemPresets.buildForBaby(_baby).map((i) => i.id);
 
       final items = await container.read(enabledRemindersProvider.future);
 
@@ -277,7 +295,8 @@ void main() {
       expect(container.read(customRemindersProvider).value, hasLength(1));
 
       final after = await container.read(reminderNotifierProvider.future);
-      expect(after[TrackingType.sante]?.map((s) => s.item.id), contains('custom_1'));
+      expect(after[TrackingType.sante]?.map((s) => s.item.id),
+          contains('custom_1'));
     });
 
     test('renaming keeps the settings key, so a disabled reminder stays off',
@@ -287,7 +306,7 @@ void main() {
 
       await container
           .read(customRemindersProvider.notifier)
-          .edit(cream(id: 1, label: 'Crème du soir')); 
+          .edit(cream(id: 1, label: 'Crème du soir'));
 
       final items = await container.read(enabledRemindersProvider.future);
       expect(items.map((i) => i.id), isNot(contains('custom_1')));
@@ -311,11 +330,13 @@ void main() {
       expect(container.read(customRemindersProvider).value, isEmpty);
     });
 
-    test('logging the linked care retires the pill, like a preset would', () async {
+    test('logging the linked care retires the pill, like a preset would',
+        () async {
       storeCream();
       watchPills(container);
       final before = await container.read(reminderNotifierProvider.future);
-      expect(before[TrackingType.sante]?.map((s) => s.item.id), contains('custom_1'));
+      expect(before[TrackingType.sante]?.map((s) => s.item.id),
+          contains('custom_1'));
 
       // The mock object serves as a substitute for the event table; it represents the care associated with.
       // The event was recorded just now. The "welcome" component, on the other hand, calls the `refresh()` function afterward.

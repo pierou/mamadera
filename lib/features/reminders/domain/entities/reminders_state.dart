@@ -18,6 +18,7 @@ abstract class ReminderStatus with _$ReminderStatus {
 /// Sealed state for the reminders system.
 @freezed
 sealed class RemindersState with _$RemindersState {
-  const factory RemindersState.due({required List<ReminderStatus> items}) = RemindersDue;
+  const factory RemindersState.due({required List<ReminderStatus> items}) =
+      RemindersDue;
   const factory RemindersState.allCompleted() = RemindersAllCompleted;
 }

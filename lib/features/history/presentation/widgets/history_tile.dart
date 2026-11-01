@@ -6,9 +6,9 @@ import '../../../../core/theme.dart';
 import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
-import '../../../../shared/domain/entities/tracking_icons.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../../shared/utils/stool_texture_label_resolver.dart';
+import '../../../../shared/widgets/tracking_icons.dart';
 
 /// Tile displaying an event in the history.
 class HistoryTile extends StatelessWidget {
@@ -20,7 +20,7 @@ class HistoryTile extends StatelessWidget {
   });
 
   final TrackingEvent event;
-  final String time;   // formatted as dd/MM/yyyy HH:mm.
+  final String time; // formatted as dd/MM/yyyy HH:mm.
   final VoidCallback? onTap;
 
   String _typeLabel(BuildContext context) {

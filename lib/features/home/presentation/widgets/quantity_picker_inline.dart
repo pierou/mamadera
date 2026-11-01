@@ -318,7 +318,7 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
         Center(
           child: widget.step == null
               ? headerText
-              :               // `scaleDown`: visual identity that maintains its integrity even when scaled down, and...
+              : // `scaleDown`: visual identity that maintains its integrity even when scaled down, and...
               // shrink instead of overflow when the sheet is narrow.
               FittedBox(
                   fit: BoxFit.scaleDown,

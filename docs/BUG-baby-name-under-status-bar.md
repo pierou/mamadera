@@ -1,46 +1,46 @@
-# BUG — le prénom du bébé est sous la barre d'état (Android), invisible
+# BUG — baby name is under the status bar (Android), invisible
 
-**Statut:** **CORRIGÉ** (manifeste + prénom déplacé dans le `AppBar`) · **Plateforme:** Android
-**Cause racine :** `android:theme="@style/LaunchTheme"` absent sur `MainActivity`. `LaunchTheme` est
-`Theme.Light.NoTitleBar` ; sans lui, Android dresse une ActionBar native « Mamadera » ET laisse le
-thème clair par défaut. Ce sont bien cette barre native et ce fond clair vus dans les captures — je
-les avais pris pour l'app bar Flutter et pour un splash bloqué.
+**Status:** **FIXED** (manifest + name moved into the `AppBar`) · **Platform:** Android
+**Root cause:** `android:theme="@style/LaunchTheme"` missing on `MainActivity`. `LaunchTheme` is
+`Theme.Light.NoTitleBar`; without it, Android raises a native ActionBar « Mamadera » AND keeps the
+light default theme. It is precisely this native bar and this light background seen in the captures — I
+had taken them for the Flutter app bar and for a blocked splash.
 
-**Provenance — vérifiée :** `main` n'a pas non plus ce thème (`git show main:android/app/src/main/AndroidManifest.xml`).
-Donc **pas une régression de cette branche** : un défaut **déjà présent dans la version publiée**,
-latent depuis `892ff41` (2026-07-26), que la branche a seulement rendu visible en plaçant du contenu
-dans cette bande. En production, la barre ActionBar fantôme existe donc aussi aujourd'hui.
+**Provenance — verified:** `main` does not have this theme either (`git show main:android/app/src/main/AndroidManifest.xml`).
+So **not a regression of this branch**: a defect **already present in the published version**,
+latent since `892ff41` (2026-07-26), which the branch merely made visible by placing content
+in that band. In production, the ghost ActionBar bar therefore exists today as well.
 
-## Constat, vérifié à l'œil et par le dump
-- Capture Android (`/tmp/mamadera-path/step8-home-lea.png`) : barre supérieure « Mamadera », aucune
-  trace de « Lea » au-dessus de la grille.
-- `uiautomator` : le nœud « Lea / 4 months old » est à **[337,32][383,72]** — donc dans la bande de
-  la barre d'état système, en haut à droite.
-- Sur iOS la même place retombe juste à côté de l'horloge (« 16:18 Léa ») et reste lisible : le
-  défaut est Android, mais le *placement* est déjà suspect sur les deux plateformes.
+## Finding, verified by eye and by the dump
+- Android capture (`/tmp/mamadera-path/step8-home-lea.png`): top bar « Mamadera », no
+  trace of « Lea » above the grid.
+- `uiautomator`: the « Lea / 4 months old » node is at **[337,32][383,72]** — i.e. inside the band of
+  the system status bar, top right.
+- On iOS the same spot lands right next to the clock (« 16:18 Léa ») and remains readable: the
+  defect is Android, but the *placement* is already suspicious on both platforms.
 
-## Mécanisme, établi (et non « probable »)
-Sans `LaunchTheme`, l'activité reçoit un thème par défaut **avec** ActionBar : cette barre occupe la
-bande système et pousse le contenu Flutter vers le bas, alors que le prénom était posé en haut du
-corps scrollable → `y=32`, sous la barre. iOS n'a pas d'ActionBar native, donc le même placement y
-retombeait juste à côté de l'horloge et restait lisible. Le « splash qui ne finit jamais » de
-`BUG-android-splash-hang.md` n'était donc **pas** une famine mémoire : c'était ce même défaut de thème.
+## Mechanism, established (and not « probable »)
+Without `LaunchTheme`, the activity receives a default theme **with** ActionBar: this bar occupies the
+system band and pushes the Flutter content down, while the name was placed at the top of the
+scrollable body → `y=32`, under the bar. iOS has no native ActionBar, so the same placement there
+lands right next to the clock and remains readable. The « splash qui ne finit jamais » (splash that never ends) of
+`BUG-android-splash-hang.md` was therefore **not** a memory famine: it was this same theme defect.
 
-## Ce qui n'est PAS un bug (noté pour éviter une fausse piste)
-La troisième rangée (Poids / Taille / Température) coupée à mi-hauteur est **normale** : le domicile
-est un `SingleChildScrollView` et le contenu au pli se termine à l'écran. Vérifié dans le parent de
-scroll avant de conclure.
+## What is NOT a bug (noted to avoid a false lead)
+The third row (`Poids` / `Taille` / `Température` — weight / height / temperature) cut at mid-height is **normal**: the home
+is a `SingleChildScrollView` and the content at the fold ends at the screen. Verified in the scroll
+parent before concluding.
 
-## À faire
-1. Placer le prénom **dans** la `SafeArea` du `Scaffold` — idéalement comme `title` du `AppBar`
-   (ou à l'intérieur du corps, sous la barre), jamais dans la bande système.
-2. Re-vérifier sur Android ET iOS, capture regardée, `dumpsys` confirmant l'activity au premier plan.
-3. Tester un prénom long (30+ caractères) après repositionnement — l'ellipsize actuel est validé en
-   test, pas à l'œil sur le nouveau placement.
+## To do
+1. Place the name **inside** the `SafeArea` of the `Scaffold` — ideally as `title` of the `AppBar`
+   (or inside the body, under the bar), never in the system band.
+2. Re-verify on Android AND iOS, capture viewed, `dumpsys` confirming the activity in the foreground.
+3. Test a long name (30+ characters) after repositioning — the current ellipsize is validated in
+   test, not by eye on the new placement.
 
-## Contexte
-Découverte pendant la passe manuelle du 2026-10-04, qui a par ailleurs validé : biberon 90 ml,
-solide **40 g** (unité correcte à l'écran), poids 3500 → **+10 = 3510 g**, température **37,4 °C**
-exact (virgule française acceptée en locale fr, refusée en en — comportement à confirmer comme voulu),
-historique avec la bonne unité par ligne, export format 2 complet (7 sections, ids uniques, notes et
-valeur de poids chiffrées au repos, déchiffrées à l'export par conception).
+## Context
+Discovered during the 2026-10-04 manual pass, which also validated: bottle 90 ml,
+solid **40 g** (correct unit on screen), weight 3500 → **+10 = 3510 g**, temperature **37,4 °C**
+exact (French comma accepted in fr locale, refused in en — behaviour to confirm as intended),
+history with the right unit per line, complete export format 2 (7 sections, unique ids, notes and
+weight value encrypted at rest, decrypted at export by design).

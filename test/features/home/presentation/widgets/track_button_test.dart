@@ -56,76 +56,129 @@ void main() {
 
   group('TrackButton', () {
     testWidgets('displays the label', (tester) async {
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Test Label', color: AppTheme.miam)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(label: 'Test Label', color: AppTheme.miam)));
       expect(find.text('Test Label'), findsOneWidget);
     });
 
     testWidgets('calls onTap when tapped', (tester) async {
       bool tapped = false;
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam, onTap: () => tapped = true)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding',
+              color: AppTheme.miam,
+              onTap: () => tapped = true)));
       await tester.tap(find.byType(TrackButton));
       expect(tapped, isTrue);
     });
 
-    testWidgets('calls onLongPress when long-pressed (optional)', (tester) async {
+    testWidgets('calls onLongPress when long-pressed (optional)',
+        (tester) async {
       bool pressed = false;
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam, onTap: () {}, onLongPress: () => pressed = true)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding',
+              color: AppTheme.miam,
+              onTap: () {},
+              onLongPress: () => pressed = true)));
       await tester.longPress(find.byType(TrackButton));
       expect(pressed, isTrue);
     });
 
     testWidgets('border uses the provided color', (tester) async {
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Test', color: AppTheme.sante)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(label: 'Test', color: AppTheme.sante)));
       final button = find.byType(TrackButton);
       expect(button, findsOneWidget);
     });
 
     // Core behavior: non-empty reminders list → pills for ALL items (regardless of lastEventAt)
-    testWidgets('shows reminder pills when reminders list is non-empty', (tester) async {
-      final status1 = buildReminder(trackingType: TrackingType.sante, id: 'vitamine_d', labelKey: 'reminderVitaminD', lastEventAt: null);
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
+    testWidgets('shows reminder pills when reminders list is non-empty',
+        (tester) async {
+      final status1 = buildReminder(
+          trackingType: TrackingType.sante,
+          id: 'vitamine_d',
+          labelKey: 'reminderVitaminD',
+          lastEventAt: null);
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
 
       expect(find.byType(ReminderPill), findsOneWidget);
     });
 
-    testWidgets('shows reminder pills for all items in non-empty list (even with lastEventAt)', (tester) async {
+    testWidgets(
+        'shows reminder pills for all items in non-empty list (even with lastEventAt)',
+        (tester) async {
       final now = DateTime.now();
-      final status1 = buildReminder(trackingType: TrackingType.sante, id: 'vitamine_d', labelKey: 'reminderVitaminD', lastEventAt: now);
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
+      final status1 = buildReminder(
+          trackingType: TrackingType.sante,
+          id: 'vitamine_d',
+          labelKey: 'reminderVitaminD',
+          lastEventAt: now);
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
 
       expect(find.byType(ReminderPill), findsOneWidget);
     });
 
     testWidgets('shows no pills when reminders is null', (tester) async {
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam, reminders: null)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding', color: AppTheme.miam, reminders: null)));
       expect(find.byType(ReminderPill), findsNothing);
     });
 
     testWidgets('shows no pills when reminders list is empty', (tester) async {
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam, reminders: [])));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding', color: AppTheme.miam, reminders: [])));
       expect(find.byType(ReminderPill), findsNothing);
     });
 
-    testWidgets('multiple reminder pills render correctly (2 items)', (tester) async {
-      final status1 = buildReminder(trackingType: TrackingType.sante, id: 'vitamine_d', labelKey: 'reminderVitaminD', lastEventAt: null);
-      final status2 = buildReminder(trackingType: TrackingType.caca, id: 'eye_cleaning', labelKey: 'reminderEyeCleaning', lastEventAt: null);
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam, reminders: [status1, status2])));
+    testWidgets('multiple reminder pills render correctly (2 items)',
+        (tester) async {
+      final status1 = buildReminder(
+          trackingType: TrackingType.sante,
+          id: 'vitamine_d',
+          labelKey: 'reminderVitaminD',
+          lastEventAt: null);
+      final status2 = buildReminder(
+          trackingType: TrackingType.caca,
+          id: 'eye_cleaning',
+          labelKey: 'reminderEyeCleaning',
+          lastEventAt: null);
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding',
+              color: AppTheme.miam,
+              reminders: [status1, status2])));
 
       expect(find.byType(ReminderPill), findsNWidgets(2));
     });
 
-    testWidgets('shows relative time text for completed events with non-empty list (pills take priority)', (tester) async {
+    testWidgets(
+        'shows relative time text for completed events with non-empty list (pills take priority)',
+        (tester) async {
       final now = DateTime.now();
       final yesterday = now.subtract(const Duration(days: 1));
-      final status1 = buildReminder(trackingType: TrackingType.sante, id: 'vitamine_d', labelKey: 'reminderVitaminD', lastEventAt: yesterday);
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
+      final status1 = buildReminder(
+          trackingType: TrackingType.sante,
+          id: 'vitamine_d',
+          labelKey: 'reminderVitaminD',
+          lastEventAt: yesterday);
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
 
       // Non-empty list → pills shown (pills take priority over "last tracked" text)
       expect(find.byType(ReminderPill), findsOneWidget);
     });
 
     testWidgets('label is bold and large', (tester) async {
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Test Label', color: AppTheme.miam)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(label: 'Test Label', color: AppTheme.miam)));
       final textFinder = find.text('Test Label');
       expect(textFinder, findsOneWidget);
     });
@@ -133,7 +186,8 @@ void main() {
     // Regression: The word "food" (10 characters) does not fit within the 32-point font size in the...
     // The tile should be two columns wide on the home screen, but its width needs to be reduced.
     // (FittedBox scaleDown) instead of being split across two lines.
-    testWidgets('keeps long labels on a single line via scaleDown', (tester) async {
+    testWidgets('keeps long labels on a single line via scaleDown',
+        (tester) async {
       await tester.pumpWidget(ProviderScope(
         child: pumpTrackButton(label: 'Nourriture', color: AppTheme.miam),
       ));
@@ -147,68 +201,103 @@ void main() {
     });
 
     testWidgets('renders with all tracking type colors', (tester) async {
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Nourriture', color: AppTheme.miam)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(label: 'Nourriture', color: AppTheme.miam)));
       expect(find.byType(TrackButton), findsOneWidget);
 
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Sante', color: AppTheme.sante)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(label: 'Sante', color: AppTheme.sante)));
       expect(find.byType(TrackButton), findsOneWidget);
 
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Couche', color: AppTheme.caca)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(label: 'Couche', color: AppTheme.caca)));
       expect(find.byType(TrackButton), findsOneWidget);
 
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Dodo', color: AppTheme.dodo)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(label: 'Dodo', color: AppTheme.dodo)));
       expect(find.byType(TrackButton), findsOneWidget);
     });
 
     testWidgets('has semantics label for accessibility', (tester) async {
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding Button', color: AppTheme.miam)));
+      await tester.pumpWidget(ProviderScope(
+          child:
+              pumpTrackButton(label: 'Feeding Button', color: AppTheme.miam)));
       expect(find.byType(TrackButton), findsOneWidget);
     });
 
     testWidgets('animates on tap without errors', (tester) async {
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam)));
       final finder = find.byType(TrackButton);
 
       await tester.tap(finder);
-      await tester.pump(const Duration(milliseconds: 150)); // complete animation
+      await tester
+          .pump(const Duration(milliseconds: 150)); // complete animation
 
       expect(find.text('Feeding'), findsOneWidget);
     });
 
-    testWidgets('mixed pending and completed reminders show pills for all items in non-empty list', (tester) async {
+    testWidgets(
+        'mixed pending and completed reminders show pills for all items in non-empty list',
+        (tester) async {
       final now = DateTime.now();
-      final pending = buildReminder(trackingType: TrackingType.sante, id: 'vitamine_d', labelKey: 'reminderVitaminD', lastEventAt: null);
-      final completed = buildReminder(trackingType: TrackingType.caca, id: 'eye_cleaning', labelKey: 'reminderEyeCleaning', lastEventAt: now);
+      final pending = buildReminder(
+          trackingType: TrackingType.sante,
+          id: 'vitamine_d',
+          labelKey: 'reminderVitaminD',
+          lastEventAt: null);
+      final completed = buildReminder(
+          trackingType: TrackingType.caca,
+          id: 'eye_cleaning',
+          labelKey: 'reminderEyeCleaning',
+          lastEventAt: now);
 
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam, reminders: [pending, completed])));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding',
+              color: AppTheme.miam,
+              reminders: [pending, completed])));
 
       // Non-empty list → all items get pills (2 total)
       expect(find.byType(ReminderPill), findsNWidgets(2));
     });
 
-    testWidgets('ReminderPill displays localized label for Vitamin D', (tester) async {
-      final status1 = buildReminder(trackingType: TrackingType.sante, id: 'vitamine_d', labelKey: 'reminderVitaminD', lastEventAt: null);
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
+    testWidgets('ReminderPill displays localized label for Vitamin D',
+        (tester) async {
+      final status1 = buildReminder(
+          trackingType: TrackingType.sante,
+          id: 'vitamine_d',
+          labelKey: 'reminderVitaminD',
+          lastEventAt: null);
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
 
       expect(find.byType(ReminderPill), findsOneWidget);
     });
 
-    testWidgets('no crash when onTap is provided as default callback', (tester) async {
-      await tester.pumpWidget(ProviderScope(child: pumpTrackButton(label: 'Test', color: Colors.red)));
+    testWidgets('no crash when onTap is provided as default callback',
+        (tester) async {
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(label: 'Test', color: Colors.red)));
       expect(find.text('Test'), findsOneWidget);
     });
 
     // ── Accessibility tests ──────────────────────────────────────
 
-    testWidgets('has Semantics widget with label and button:true', (tester) async {
+    testWidgets('has Semantics widget with label and button:true',
+        (tester) async {
       await tester.pumpWidget(ProviderScope(
-        child: pumpTrackButton(label: 'Feeding Accessibility Test', color: AppTheme.miam),
+        child: pumpTrackButton(
+            label: 'Feeding Accessibility Test', color: AppTheme.miam),
       ));
       // Verify at least one Semantics widget exists for accessibility
       expect(find.byType(Semantics), findsWidgets);
     });
 
-    testWidgets('respects reduce motion - no animation when disableAnimations is true', (tester) async {
+    testWidgets(
+        'respects reduce motion - no animation when disableAnimations is true',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -285,7 +374,8 @@ void main() {
 
       // The button has a fixed height: a fourth button would be added to it.
       // The label is placed on top, and the remaining area is the button's support surface.
-      testWidgets('le quatrième rappel est compté, pas affiché', (tester) async {
+      testWidgets('le quatrième rappel est compté, pas affiché',
+          (tester) async {
         await tester.pumpWidget(ProviderScope(
           child: pumpTrackButton(
             label: 'Santé',

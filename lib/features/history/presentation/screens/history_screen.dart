@@ -103,7 +103,8 @@ class HistoryScreen extends ConsumerWidget {
     GrowthMeasurement measurement,
     HistoryFilter selectedFilter,
   ) async {
-    final result = await EditMeasurementSheet.show(context, measurement: measurement);
+    final result =
+        await EditMeasurementSheet.show(context, measurement: measurement);
 
     if (!context.mounted) {
       return;
@@ -241,9 +242,8 @@ class HistoryScreen extends ConsumerWidget {
                       EventHistoryRow(:final event) => HistoryTile(
                           event: event,
                           time: timeFormatted,
-                          onTap: () =>
-                              _showEditDialog(context, ref, event,
-                                  selectedFilter),
+                          onTap: () => _showEditDialog(
+                              context, ref, event, selectedFilter),
                         ),
                       MeasurementHistoryRow(:final measurement) =>
                         MeasurementHistoryTile(

@@ -27,7 +27,8 @@ class _ExportDataDialogState extends ConsumerState<ExportDataDialog> {
       _running = true;
       _outcome = null;
     });
-    final outcome = await ref.read(exportControllerProvider.notifier).shareExport();
+    final outcome =
+        await ref.read(exportControllerProvider.notifier).shareExport();
     if (mounted) {
       setState(() {
         _running = false;

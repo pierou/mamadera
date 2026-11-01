@@ -1,0 +1,4 @@
+• Las mediciones de crecimiento ahora se muestran en el historial; puede editarlas o eliminarlas allí.
+• Puede registrar la lactancia en minutos o en mililitros, según su preferencia.
+• Los valores que se encuentran fuera de rango son rechazados, y el rango se muestra.
+• Correcciones: fechas en inglés, unidades de gráfico duplicadas, diseño para pantallas pequeñas.

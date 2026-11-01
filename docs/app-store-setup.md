@@ -89,6 +89,14 @@ Under **Pricing & Availability**:
 
 ## Step 5 — Localized Descriptions
 
+> ⚠️ **SUPERSEDED for v1.2.1+.** The copy below is the v1.1.0 text, kept as history. The
+> listing text you paste now comes from `store/v<version>/fields/` (built from
+> `store/source/en/`, French and Spanish produced by TranslateGemma and term-aligned to
+> `lib/l10n/app_<locale>.arb`), and "What's New" from
+> `store/v<version>/release-notes/apple-whatsnew-<locale>.txt`. Nothing in a version
+> directory is hand-written — `make store-check` enforces the limits. This block is also the
+> last place the app promised « tétées »: its own home button has always said **Nourriture**.
+
 For each language (fr, en, es), fill in under **App Store** tab → scroll to descriptions:
 
 > v1.1.0 copy. Limits: Name/Subtitle 30 chars, Keywords 100 chars,
@@ -124,8 +132,8 @@ Perfect for parents who value their privacy — and for newborns who deserve the
 
 | Field | Content |
 |-------|---------|
-| **Name** (19/30) | Mamadera Suivi Bébé |
-| **Subtitle** (27/30) | Suivi nouveau-né 100% privé |
+| **Name** (19/30) | `Mamadera Suivi Bébé` |
+| **Subtitle** (27/30) | `Suivi nouveau-né 100% privé` |
 | **Keywords** | bebe, nouveau-ne, tetee, sommeil, couche, confidentialite, hors-ligne, allaitement, sauvegarde |
 
 **Description:**
@@ -150,8 +158,8 @@ Idéal pour les parents qui valorisent leur vie privée — et pour les nouveau-
 
 | Field | Content |
 |-------|---------|
-| **Name** (13/30) | Mamadera Bebé |
-| **Subtitle** (28/30) | Recién nacido, 100 % privado |
+| **Name** (13/30) | `Mamadera Bebé` |
+| **Subtitle** (28/30) | `Recién nacido, 100 % privado` |
 | **Keywords** | recien-nacido, toma, sueno, panal, seguimiento, privacidad, sin-nube, lactancia, copia seguridad |
 
 **Description:**
@@ -177,6 +185,12 @@ Ideal para padres que valoran su privacidad — y para bebés que merecen la suy
 ## Step 6 — Screenshots & Marketing Icon
 
 ### Required screenshots
+
+> **Every uploaded screenshot is named `<locale>-<screen>.png`** (`fr-home.png`,
+> `es-history.png`). The simulator pipeline writes bare names into
+> `screenshots/ios/asc/<size>/`, which every later run overwrites — copy them into the
+> package with the locale prefix (`store/v<version>/capture.sh --asc-only` does it), so a
+> file that escapes its folder still declares its language.
 
 ASC accepts these iPhone sizes (portrait + landscape) — all are already
 produced, ribbon-free, in [`screenshots/ios/asc/`](../screenshots/ios/asc/):
@@ -284,7 +298,13 @@ Answer honestly. For mamadera you'll likely get rated **4+**. The questionnaire 
 
 ## Step 8 — Encryption Declaration
 
-Because we set `ITSAppUsesNonExemptEncryption = true` in Info.plist (the app ships its own AES-256-GCM implementation via the `encrypt` package rather than calling Apple's crypto APIs), Apple will not show the per-submission encryption questionnaire. You must instead keep export compliance documentation on file (EAR self-classification report for everyday/mass-market encryption) — no per-build paperwork in App Store Connect.
+Because `ios/Runner/Info.plist` sets **`ITSAppUsesNonExemptEncryption = false`** (`:69-70`, verified 2026-10-18), App Store Connect treats the build as
+export-compliant on upload: the build never gets `Missing Compliance` status, and there is no per-submission encryption questionnaire to answer.
+
+**This paragraph used to claim the opposite** (`= true`, plus a pile of EAR paperwork). It was wrong, and it was the kind of wrong that wastes an afternoon:
+a build marked non-exempt *does* need documentation before it can be attached to a submission, so anyone debugging a build that "cannot be selected"
+would go chase compliance paperwork for a build that never had the problem. The value in the plist is the authority, not this file. `docs/SUBMISSION-CHECKLIST.md`
+already had it right.
 
 ---
 

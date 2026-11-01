@@ -55,7 +55,8 @@ void main() {
     });
 
     // ── The `findCacaColorFromDbValue()` function defaults to "[cacaColorJauneMoutarde]" for invalid entries. ──
-    test("findCacaColorFromDbValue(null/''/'inconnu') → cacaColorJauneMoutarde", () {
+    test("findCacaColorFromDbValue(null/''/'inconnu') → cacaColorJauneMoutarde",
+        () {
       expect(
         findCacaColorFromDbValue(null),
         equals(cacaColorJauneMoutarde),

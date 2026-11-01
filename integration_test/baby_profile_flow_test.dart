@@ -57,8 +57,7 @@ void main() {
         addButtonFinder.evaluate().isNotEmpty ||
             find.byType(ListTile).evaluate().isNotEmpty,
         isTrue,
-        reason:
-            'Menu should show either an "Add baby" button or profile tiles',
+        reason: 'Menu should show either an "Add baby" button or profile tiles',
       );
     });
 

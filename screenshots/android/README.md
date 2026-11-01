@@ -1,7 +1,9 @@
 # Google Play screenshots pipeline (Android)
 
 Captures eight store screens on the **Pixel_10_Pro emulator** (1280×2856)
-and saves ribbon-free PNGs ready to upload to Play Console.
+and saves ribbon-free PNGs ready to upload to Play Console. One run per
+listing locale: `store/v1.2.1/capture.sh` loops fr/es/en and copies each set
+into `store/v1.2.1/screenshots/play/<locale>/`.
 
 ## Files
 
@@ -18,8 +20,13 @@ screenshots/android/
 └── verify_android.py   size + DEBUG-ribbon check, run after every capture
 ```
 
-All eight are captured in English (the app is pinned to `en` for these
-shots) and must carry no DEBUG banner — `verify_android.py` proves it.
+All eight must carry no DEBUG banner — `verify_android.py` proves it. The
+locale comes from `--dart-define=APP_LOCALE=<code>` (default `en`, which is
+what this directory holds). Every locale needs its own run: Play and ASC each
+want a screenshot set per localization. `screenshot_capture.dart` resolves its
+finder labels through `lookupAppLocalizations` for exactly that reason — the
+hardcoded `'Growth'` it used to carry made the `fr` run die in
+`scrollUntilVisible`, that tile being labelled « Croissance » (2026-10-18).
 
 ## Run
 
@@ -28,7 +35,8 @@ emulator -avd Pixel_10_Pro &          # boot once
 flutter drive \
   --target=integration_test/screenshot_capture.dart \
   --driver=test_driver/screenshot_capture.driver.dart \
-  -d emulator-5554
+  -d emulator-5554 \
+  --dart-define=APP_LOCALE=en
 /usr/bin/python3 screenshots/android/verify_android.py   # never skip this
 ```
 

@@ -9,8 +9,8 @@ part 'reminder_item.freezed.dart';
 
 /// A reminder to display until the associated treatment has been entered.
 ///
-/// The identifier is a stable key (not a UUID): it indexes the rows of...
-/// `reminder_settings` et `reminder_dismissals`.
+/// The [id] is a stable key (not a UUID): it indexes the rows of
+/// `reminder_settings` and `reminder_dismissals`, so it must never change.
 @freezed
 abstract class ReminderItem with _$ReminderItem {
   const factory ReminderItem({
@@ -19,35 +19,34 @@ abstract class ReminderItem with _$ReminderItem {
     required ReminderFrequency frequency,
     required TrackingType trackingType,
 
-    /// Related care (a subtype of the [trackingType] domain), when the...
-    /// The reminder is set based on a specific event that is recorded.
+    /// Related care (a subtype of the [trackingType] domain) when the
+    /// reminder is settled by a specific recorded event.
     ///
-    /// `null`: A standalone reminder for a medical procedure – its completion is not yet determined.
-    /// by the user, and never inferred from an event (invariant D2).
+    /// `null`: a standalone reminder — its completion is decided by the user
+    /// and never inferred from an event (invariant D2).
     String? subtypeValue,
 
-    /// Baby, the owner of the recall, when applicable.
+    /// The baby that owns this reminder, when applicable.
     ///
-    /// `null` in the presets: the handover is managed by the line.
-    /// The `baby_id` is always used as the base, and never derived from the item itself.
+    /// `null` in the presets: the scope is supplied by the row. The
+    /// `baby_id` is always used as the scope and never derived from the
+    /// item itself.
     String? babyId,
 
-    /// Here's what triggers this reminder:
-    /// - [completionFromEvents]: an event that triggers completion.
-    /// [trackingType] with [subtypeValue] (its validity date applies to the...).
-    /// completion);
-    /// - `[completionManual]`: a line from the `reminder_completions` table.
-    /// written by the user — without [subtypeValue], nothing else.
-    /// It can be adjusted (D2 invariant).
+    /// What settles this reminder:
+    /// - [completionFromEvents]: a [trackingType] event with [subtypeValue]
+    ///   (its due date applies to the completion);
+    /// - [completionManual]: a `reminder_completions` row written by the
+    ///   user — nothing else settles it (invariant D2).
     ///
-    /// `null` se lit comme [completionFromEvents].
+    /// `null` is read as [completionFromEvents].
     String? completionSource,
   }) = _ReminderItem;
 }
 
 /// Presets v1.
 extension ReminderItemPresets on ReminderItem {
-  /// Vitamin D — the daily dosage is determined by monitoring your health data related to "vitamin_d."
+  /// Vitamin D — daily, settled by a `vitamine_d` health event.
   static const vitaminD = ReminderItem(
     id: 'vitamine_d',
     labelKey: 'reminderVitaminD',
@@ -58,9 +57,8 @@ extension ReminderItemPresets on ReminderItem {
     completionSource: completionFromEvents,
   );
 
-  /// Vitamin K – a starting point without a birth date: rotating stock.
-  /// of 30 days. `buildForBaby` sets it to the baby's date of birth.
-  /// profil actif.
+  /// Vitamin K — without a birth date on hand, the static 30-day cycle.
+  /// `buildForBaby` swaps it for the baby's birth day (monthly).
   static const vitaminK = ReminderItem(
     id: 'vitamine_k',
     labelKey: 'reminderVitaminK',
@@ -71,7 +69,7 @@ extension ReminderItemPresets on ReminderItem {
     completionSource: completionFromEvents,
   );
 
-  /// Eye cleaning — daily, controlled by the `eye_cleaning` setting.
+  /// Eye cleaning — daily, settled by the `eye_cleaning` health event.
   static const eyeCleaning = ReminderItem(
     id: 'eye_cleaning',
     labelKey: 'reminderEyeCleaning',
@@ -82,7 +80,7 @@ extension ReminderItemPresets on ReminderItem {
     completionSource: completionFromEvents,
   );
 
-  /// Facial cleansing — daily, controlled by the `facial_cleansing` setting.
+  /// Face cleaning — daily, settled by the `face_cleaning` health event.
   static const faceCleaning = ReminderItem(
     id: 'face_cleaning',
     labelKey: 'reminderFaceCleaning',
@@ -93,11 +91,10 @@ extension ReminderItemPresets on ReminderItem {
     completionSource: completionFromEvents,
   );
 
-  /// Build the list of preset reminders based on the active profile.
+  /// The preset list for one baby profile.
   ///
-  /// Only the vitamin K dosage changes; it is adjusted based on the baby's date of birth.
-  /// profile (monthly), instead of the 30-day cycle of the preset setting.
-  /// static. The rest is reproduced as is.
+  /// Only the vitamin K cadence changes: monthly on the baby's birth day,
+  /// instead of the preset's static 30-day cycle. The rest is verbatim.
   static List<ReminderItem> buildForBaby(BabyProfile profile) {
     final vitaminK = ReminderItem(
       id: ReminderItemPresets.vitaminK.id,
@@ -105,8 +102,6 @@ extension ReminderItemPresets on ReminderItem {
       labelKey: ReminderItemPresets.vitaminK.labelKey,
       trackingType: ReminderItemPresets.vitaminK.trackingType,
       subtypeValue: ReminderItemPresets.vitaminK.subtypeValue,
-      // The item ID (babyId) is not the same as the item's ID; it is stored within the...
-      // baseline, which share the same ID.
       completionSource: ReminderItemPresets.vitaminK.completionSource,
     );
 
@@ -118,3 +113,14 @@ extension ReminderItemPresets on ReminderItem {
     ];
   }
 }
+
+/// The item set for one scope, single-sourced with the UI.
+///
+/// With a [profile] ⇒ [ReminderItemPresets.buildForBaby] (vitamin K on the
+/// baby's own birth day). Without ⇒ the profileless fallback: Vitamin D daily
+/// plus Vitamin K on the static 30-day interval. `dynamicRemindersProvider`
+/// and the notification scheduler both call this, so the in-app list and the
+/// OS schedule can never disagree about which items exist.
+List<ReminderItem> reminderItemsFor(BabyProfile? profile) => profile == null
+    ? [ReminderItemPresets.vitaminD, ReminderItemPresets.vitaminK]
+    : ReminderItemPresets.buildForBaby(profile);

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +8,7 @@ import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../core/widgets/show_feedback.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
+import '../../../../features/reminders/presentation/providers/reminder_sync_notifier.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/domain/entities/baby_profile.dart';
 
@@ -26,13 +28,15 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
   late DateTime _selectedDate;
   late AppLocalizations _locale;
 
-  /// A `pop` (likely referring to a traffic alert or notification) has already been issued; a second one would remove another route from consideration.
-  /// navigator, and the onboarding screen would close, displaying an unrelated screen.
+  /// Guards against a double `pop`: a second one would pop another route off
+  /// the navigator and the onboarding screen would close onto an unrelated
+  /// screen.
   bool _closed = false;
 
-  /// A backup is in progress: listening to `anyBabyExistsProvider` should not...
-  /// Don't give the paper back to him until she has completed it herself, and include this message:
-  /// success – otherwise, a successful creation will end in a quiet closure.
+  /// A save is in flight: the `anyBabyExistsProvider` listener in `build()`
+  /// must not dismiss this sheet before the save has completed and shown its
+  /// success feedback — otherwise a successful creation would end in a quiet
+  /// closure.
   bool _saving = false;
 
   /// "Sheet [created]" indicates whether a profile has just been created here.
@@ -60,11 +64,11 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
   Widget build(BuildContext context) {
     _locale = context.l;
 
-    // A restoration process can occur while this sheet is open (important).
-    // triggered elsewhere, on a different device). Its form no longer makes sense: it...
-    // It would add a second profile to a list that is no longer empty. She then...
-    // Therefore, it functions on its own, without any messages — it's a welcome screen that automatically updates.
-    // right behind explains the matter better than any text.
+    // A restore can complete while this sheet is open (an import finished,
+    // triggered from the menu). The form no longer makes sense — submitting it
+    // would add a second profile to a list that is no longer empty — so the
+    // sheet dismisses itself, silently: the welcome screen it leads to says
+    // more than any error text could.
     ref.listen<AsyncValue<bool>>(anyBabyExistsProvider, (previous, next) {
       if (_saving) return;
       if (next.value ?? false) _dismiss(false);
@@ -175,9 +179,8 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
 
-    // Marked before any writing: the refreshments that will follow.
-    // The inclusion triggers the listening process that is set up in the `build()` function, and it should not...
-    // take control of the shutdown process.
+    // Set before any write: the refreshes that follow will trigger the
+    // listener in `build()`, and it must not take over the dismissal.
     _saving = true;
 
     try {
@@ -194,10 +197,10 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
         return;
       }
 
-      // This sheet only exists because no profile was found. If the database...
-      // Now contains: an import was completed during the capture: insert "not".
-      // It wouldn't create "the first baby," but rather the second, and no one...
-      // He didn't ask for anything—which is why the project was abandoned rather than completed.
+      // This sheet only exists because no profile was found. If the database
+      // now contains one (an import completed while the form was open),
+      // inserting would create the *second* baby, unasked — so dismiss
+      // silently instead.
       if (existingProfiles.isNotEmpty) {
         _dismiss(false);
         return;
@@ -214,6 +217,9 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
       await ref.read(activeBabyProvider.notifier).refresh();
       // Refresh the anyBabyExists provider so HomeScreen knows a profile now exists.
       await ref.read(anyBabyExistsProvider.notifier).refresh();
+      // D6: a new baby starts being scheduled immediately — its presets join
+      // the OS plan on this very sync, not on the next tick.
+      unawaited(ref.read(reminderSyncNotifierProvider.notifier).syncNow());
 
       if (mounted) {
         showFeedback(context, _locale.babyAddedWithName(name));

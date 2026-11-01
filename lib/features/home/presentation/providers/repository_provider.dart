@@ -16,5 +16,3 @@ final trackingRepositoryProvider = FutureProvider<TrackingRepository>(
     );
   },
 );
-
-

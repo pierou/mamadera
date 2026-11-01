@@ -196,7 +196,7 @@ void main() {
               timestamp: DateTime.utc(2024, 6, 15),
               duration: null,
               subtype:
-                  'nettoyage_yeux',                   // The subtype column contains the "health" value.
+                  'nettoyage_yeux', // The subtype column contains the "health" value.
               notes: null,
               wasteType: null,
               color: null,

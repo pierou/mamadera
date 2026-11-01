@@ -15,6 +15,7 @@ class ExportCounts {
     required this.reminderDismissals,
     required this.measurements,
     required this.reminderCompletions,
+    required this.appSettings,
   });
 
   /// Number of rows in `baby_profiles`.
@@ -37,6 +38,10 @@ class ExportCounts {
 
   /// Number of rows in the `reminder_completions` table (the "Completed" task log, M4).
   final int reminderCompletions;
+
+  /// Number of rows in `app_settings` (format 4, item 12): the notification
+  /// opt-in and the preferred time of day.
+  final int appSettings;
 
   /// True when the database holds nothing worth backing up.
   ///

@@ -39,9 +39,7 @@ class _Keys {
   static const String trackSante = 'track-sante';
   static const String trackCaca = 'track-caca';
   static const String trackDodo = 'track-dodo';
-
 }
-
 
 void main() {
   group('Mamadera Driver Integration Tests', () {
@@ -56,11 +54,12 @@ void main() {
     ]) async {
       try {
         await driver.waitUntilNoTransientCallbacks(timeout: timeout);
-      // flutter_driver surfaces app-side RPC failures as DriverError
-      // (an Error subclass) by design - tolerating them is the point.
-      // ignore: avoid_catching_errors
+        // flutter_driver surfaces app-side RPC failures as DriverError
+        // (an Error subclass) by design - tolerating them is the point.
+        // ignore: avoid_catching_errors
       } on DriverError catch (e) {
-        _log('[WARN] app did not settle (${e.message.split('\n').first}); continuing.');
+        _log(
+            '[WARN] app did not settle (${e.message.split('\n').first}); continuing.');
       } on TimeoutException {
         _log('[WARN] settle timed out host-side; continuing.');
       }
@@ -130,7 +129,8 @@ void main() {
           );
 
           final topLeft = await driver.getTopLeft(find.byValueKey(tabKey));
-          final bottomRight = await driver.getBottomRight(find.byValueKey(tabKey));
+          final bottomRight =
+              await driver.getBottomRight(find.byValueKey(tabKey));
 
           final width = bottomRight.dx - topLeft.dx;
           final height = bottomRight.dy - topLeft.dy;
@@ -237,7 +237,8 @@ void main() {
       try {
         final health = await driver.checkHealth();
         if (health.status == HealthStatus.ok) {
-          _log('[PASS] App healthy after tapping track-miam (dialog likely open)');
+          _log(
+              '[PASS] App healthy after tapping track-miam (dialog likely open)');
         }
       } on Exception catch (e) {
         _log('[INFO] Could not verify dialog state: $e');

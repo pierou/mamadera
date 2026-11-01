@@ -1,0 +1,6 @@
+• Des notifications lorsque le moment est venu de recevoir un rappel, même lorsque l'application est fermée – uniquement si vous les activez.
+• Vous pouvez définir l'heure des notifications pour tous les rappels.
+• Une notification par bébé, avec son nom.
+• Les préférences sont désormais enregistrées dans votre sauvegarde.
+• Les types d'alimentation affichent désormais leur nom complet, dans toutes les langues.
+• Toujours aucun compte, aucune analyse, et aucune donnée ne quitte l'appareil.

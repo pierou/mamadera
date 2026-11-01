@@ -24,7 +24,8 @@ void main() {
     });
 
     group('.fromString() doit parser les entrées valides', () {
-      test('une entrée minuscule exacte retourne l\'enum correspondant (miam)', () {
+      test('une entrée minuscule exacte retourne l\'enum correspondant (miam)',
+          () {
         expect(TrackingType.fromString('miam'), TrackingType.miam);
       });
 
@@ -36,7 +37,9 @@ void main() {
     group('.fromString() doit être insensible à la casse et aux accents', () {
       // The switch statement handles both "health" and "sante" by using `.toLowerCase()`, so it accounts for variations in capitalization.
       // Whether accented, in uppercase, or a combination of both, all characters must be rendered correctly.
-      test('SANTÉ, Santé, sante retournent TrackingType.sante ; CACA retourne caca', () {
+      test(
+          'SANTÉ, Santé, sante retournent TrackingType.sante ; CACA retourne caca',
+          () {
         expect(TrackingType.fromString('SANTÉ'), TrackingType.sante);
         expect(TrackingType.fromString('Santé'), TrackingType.sante);
         expect(TrackingType.fromString('sante'), TrackingType.sante);

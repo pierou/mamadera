@@ -88,7 +88,7 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    expect(db.schemaVersion, equals(12));
+    expect(db.schemaVersion, equals(13));
     expect(await db.getAllCustomReminders(), isEmpty);
 
     // The reminder that was active before the update remains so: the migration has...
@@ -135,7 +135,8 @@ void main() {
     expect(reminders.single.intervalDays, equals(3));
 
     final enabled = await db.getAllReminderSettings();
-    expect(enabled.map((s) => s.itemId), containsAll(['vitamine_k', 'custom_$id']));
+    expect(enabled.map((s) => s.itemId),
+        containsAll(['vitamine_k', 'custom_$id']));
   });
 
   test('several custom reminders come back in creation order', () async {

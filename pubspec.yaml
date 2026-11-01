@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.2.1+11
+version: 1.3.0+12
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -39,6 +39,10 @@ dependencies:
   file_picker: ^13.1.0
   flutter:
     sdk: flutter
+  # Local OS notifications only (roadmap item 12, PLAN-item-12-notifications.md):
+  # device-local scheduling, no network, no payload leaves the phone; the
+  # notification permission is requested only when the user opts in.
+  flutter_local_notifications: ^22.3.2
   flutter_localizations:
     sdk: flutter
   flutter_native_splash: ^2.4.4
@@ -54,6 +58,9 @@ dependencies:
   path_provider: ^2.1.5
   riverpod: ^3.0.0
   share_plus: ^13.3.0
+  # Wall-clock time-zone data for flutter_local_notifications (item 12):
+  # the bundled tz database is local-only, no fetch.
+  timezone: ^0.11.2
   url_launcher: ^6.3.1
 
 dev_dependencies:

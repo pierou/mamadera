@@ -14,33 +14,33 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$CustomReminder {
-  /// Saisie libre du parent, affichée telle quelle (jamais traduite).
+  /// Free-text input from the parent, displayed exactly as entered (never translated).
   String get label;
 
-  /// Rythme demandé. [ReminderFrequency.monthly] est stocké sans jour
-  /// précis : le jour est celui de naissance du bébé actif, lu au moment de
-  /// construire la liste — comme pour la vitamine K.
+  /// Requested frequency: [ReminderFrequency.monthly] is stored without a specific day.
+  /// precise: the date refers to the baby's actual date of birth, as recorded at the time of birth.
+  /// building the list – just like with vitamin K.
   ReminderFrequency get frequency;
 
-  /// Valeur de `HealthSubtype` dont l'absence rend le rappel dû.
+  /// Value of the `HealthSubtype` field; its absence triggers a reminder.
   ///
-  /// `null` = rappel **détaché** (D2) : aucun soin n'y est lié, c'est le tap
-  /// « Fait » qui l'achève (`completion_source = 'manual'`). Invariant :
-  /// `subtypeValue == null` ⟺ `completionSource == manual` — un rappel détaché
-  /// laissé en `from_events` matcherait *n'importe quel* événement `sante`.
+  /// `null` = detached reminder (D2): no care is associated with it; it's just a notification.
+  /// "Completed" (completion source: manual). Invariant:
+  /// `subtypeValue == null` if and only if `completionSource == manual` — a detached reminder.
+  /// The `left_in_`from_events`` field would match *any* `sante` event.
   String? get subtypeValue;
 
-  /// Qui décide que le rappel est fait : [completionFromEvents] — l'absence
-  /// d'un événement `sante` portant [subtypeValue] dans la période le règle,
-  /// comme les préréglages — ou [completionManual] — seul le tap « Fait »
-  /// l'achève, via `reminder_completions`.
+  /// Who decides that the reminder has been sent: [completionFromEvents] — the absence.
+  /// of an event related to "health" with the subtype "[subtypeValue]" that occurred within the specified time period.
+  /// like the presets—or [completionManual]—only the "Done" button.
+  /// It completes the task via `reminder_completions`.
   ///
   /// Invariant D2 : `subtypeValue == null` ⟺ [completionSource] vaut
-  /// [completionManual] — un rappel détaché laissé en [completionFromEvents]
-  /// matcherait *n'importe quel* événement de santé.
+  /// [completionManual] - a separate reminder left in [completionFromEvents].
+  /// It would match *any* health-related event.
   String get completionSource;
 
-  /// Clé de `custom_reminders`, `null` tant que le rappel n'est pas écrit.
+  /// The `custom_reminders` key is set to `null` until the reminder is saved.
   int? get id;
 
   /// Create a copy of CustomReminder
@@ -322,38 +322,38 @@ class _CustomReminder implements CustomReminder {
       this.completionSource = completionFromEvents,
       this.id});
 
-  /// Saisie libre du parent, affichée telle quelle (jamais traduite).
+  /// Free-text input from the parent, displayed exactly as entered (never translated).
   @override
   final String label;
 
-  /// Rythme demandé. [ReminderFrequency.monthly] est stocké sans jour
-  /// précis : le jour est celui de naissance du bébé actif, lu au moment de
-  /// construire la liste — comme pour la vitamine K.
+  /// Requested frequency: [ReminderFrequency.monthly] is stored without a specific day.
+  /// precise: the date refers to the baby's actual date of birth, as recorded at the time of birth.
+  /// building the list – just like with vitamin K.
   @override
   final ReminderFrequency frequency;
 
-  /// Valeur de `HealthSubtype` dont l'absence rend le rappel dû.
+  /// Value of the `HealthSubtype` field; its absence triggers a reminder.
   ///
-  /// `null` = rappel **détaché** (D2) : aucun soin n'y est lié, c'est le tap
-  /// « Fait » qui l'achève (`completion_source = 'manual'`). Invariant :
-  /// `subtypeValue == null` ⟺ `completionSource == manual` — un rappel détaché
-  /// laissé en `from_events` matcherait *n'importe quel* événement `sante`.
+  /// `null` = detached reminder (D2): no care is associated with it; it's just a notification.
+  /// "Completed" (completion source: manual). Invariant:
+  /// `subtypeValue == null` if and only if `completionSource == manual` — a detached reminder.
+  /// The `left_in_`from_events`` field would match *any* `sante` event.
   @override
   final String? subtypeValue;
 
-  /// Qui décide que le rappel est fait : [completionFromEvents] — l'absence
-  /// d'un événement `sante` portant [subtypeValue] dans la période le règle,
-  /// comme les préréglages — ou [completionManual] — seul le tap « Fait »
-  /// l'achève, via `reminder_completions`.
+  /// Who decides that the reminder has been sent: [completionFromEvents] — the absence.
+  /// of an event related to "health" with the subtype "[subtypeValue]" that occurred within the specified time period.
+  /// like the presets—or [completionManual]—only the "Done" button.
+  /// It completes the task via `reminder_completions`.
   ///
   /// Invariant D2 : `subtypeValue == null` ⟺ [completionSource] vaut
-  /// [completionManual] — un rappel détaché laissé en [completionFromEvents]
-  /// matcherait *n'importe quel* événement de santé.
+  /// [completionManual] - a separate reminder left in [completionFromEvents].
+  /// It would match *any* health-related event.
   @override
   @JsonKey()
   final String completionSource;
 
-  /// Clé de `custom_reminders`, `null` tant que le rappel n'est pas écrit.
+  /// The `custom_reminders` key is set to `null` until the reminder is saved.
   @override
   final int? id;
 

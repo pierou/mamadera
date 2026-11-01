@@ -1,0 +1,6 @@
+* Ajout des notifications système quand un rappel est dû, même application fermée — désactivées tant que vous ne les activez pas, dans Rappels
+* Réglage de votre heure de notification, appliquée à tous les rappels
+* Ajout d'une notification par enfant : chaque message porte le prénom de l'enfant
+* Reprise des préférences de notification lors de la restauration d'une sauvegarde
+* Affichage complet du type d'alimentation sur les boutons (Lait maternel, Lait artificiel, Solide) dans les trois langues
+* Toujours rien à envoyer : l'export manuel par la feuille de partage que vous ouvrez reste le seul chemin de sortie

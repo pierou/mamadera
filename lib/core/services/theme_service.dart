@@ -24,7 +24,8 @@ class ThemeService {
 
   Future<Directory> _getCacheDir() async {
     if (_cacheDir case final dir?) return dir;
-    final dir = await (_directoryResolver?.call() ?? getApplicationDocumentsDirectory());
+    final dir = await (_directoryResolver?.call() ??
+        getApplicationDocumentsDirectory());
     _cacheDir = dir;
     return dir;
   }

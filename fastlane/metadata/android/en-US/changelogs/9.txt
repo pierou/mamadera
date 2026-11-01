@@ -1,0 +1,7 @@
+Growth + per-baby reminders:
+• Follow several babies independently
+• Weight, height and temperature tracking — encrypted at rest
+• Growth screen: latest values and full history
+• Reminders scoped per baby; one-tap manual completion for detached reminders
+• Due reminders listed on Home, +/- steppers on every numeric input, feeding quantity in grams
+• Backup export format v2: the new tables are covered

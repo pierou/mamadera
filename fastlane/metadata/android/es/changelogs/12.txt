@@ -1,0 +1,6 @@
+* Adición de las notificaciones del sistema cuando un recordatorio está pendiente, incluso con la aplicación cerrada — desactivadas hasta que las actives en Recordatorios
+* Ajuste de tu hora de notificación, aplicada a todos los recordatorios
+* Adición de una notificación por bebé: cada mensaje lleva el nombre del bebé
+* Recuperación de las preferencias de notificación al restaurar una copia de seguridad
+* Visualización completa del tipo de alimentación en los botones (Leche materna, Fórmula infantil, Sólido) en los tres idiomas
+* Sigue sin haber nada que enviar: la exportación manual por la ventana para compartir sigue siendo el único camino de salida

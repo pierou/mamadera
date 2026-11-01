@@ -40,7 +40,8 @@ void main() {
       expect(text.style?.color, Colors.white);
     });
 
-    testWidgets('has horizontal margin for spacing between pills', (tester) async {
+    testWidgets('has horizontal margin for spacing between pills',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(home: const ReminderPill(label: 'Margin')),
       );

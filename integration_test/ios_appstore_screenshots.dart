@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_print
 /// Captures 3 App Store-quality screenshots: Home, History, Feeding Dialog.
-/// 
+///
 /// Run with: flutter test integration_test/ios_appstore_screenshots.dart -d "iPhone 17"
 library;
 
@@ -31,7 +31,7 @@ void main() {
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
       final pngBytes = await binding.takeScreenshot(name);
-      
+
       // Write PNG bytes directly to disk.
       try {
         final file = io.File('$iosDir/$name.png');
@@ -59,7 +59,7 @@ void main() {
 
       final historyTab = find.byKey(const ValueKey(TestKeys.historyTab));
       expect(historyTab, findsOneWidget);
-      
+
       await tester.tap(historyTab);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 

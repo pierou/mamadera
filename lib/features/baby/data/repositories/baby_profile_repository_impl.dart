@@ -59,11 +59,14 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
   }
 
   @override
-  Future<BabyProfile?> updateProfile(String id, {String? name, DateTime? birthDate}) async {
+  Future<BabyProfile?> updateProfile(String id,
+      {String? name, DateTime? birthDate}) async {
     try {
       final maps = <db_app.BabyProfilesCompanion>[
         if (name != null) db_app.BabyProfilesCompanion(name: Value(name)),
-        if (birthDate != null) db_app.BabyProfilesCompanion(birthDate: Value(birthDate.millisecondsSinceEpoch)),
+        if (birthDate != null)
+          db_app.BabyProfilesCompanion(
+              birthDate: Value(birthDate.millisecondsSinceEpoch)),
       ];
 
       for (final companion in maps) {
@@ -73,7 +76,8 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
 
       // Fetch the updated row to return a fresh domain entity.
       final profiles = await getAllProfiles();
-      return profiles.firstWhere((p) => p.id == id, orElse: () => throw Exception('Profile not found after update'));
+      return profiles.firstWhere((p) => p.id == id,
+          orElse: () => throw Exception('Profile not found after update'));
     } catch (e, stack) {
       _logger.e('updateProfile error', error: e, stackTrace: stack);
       rethrow;

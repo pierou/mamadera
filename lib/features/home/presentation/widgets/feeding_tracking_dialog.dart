@@ -8,7 +8,8 @@ import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../core/widgets/event_date_time_field.dart';
 import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
-import '../../../../shared/domain/entities/tracking_icons.dart';
+import '../../../../shared/widgets/option_chip_row.dart';
+import '../../../../shared/widgets/tracking_icons.dart';
 import 'quantity_picker_inline.dart';
 
 /// A dialog for tracking feeding events with subtype selection and quantity.
@@ -113,16 +114,26 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
   /// The slider brings it closer, the stepper adjusts it precisely, and the input field sets the value.
   /// dernier cran (docs/BACKLOG.md B2).
   ({double min, double max, int divisions, double step}) get _pickerSpec =>
-          switch (_unit) {
-            QuantityUnit.ml => (min: 0, max: 300, divisions: 30, step: 10),
-            QuantityUnit.min => (min: 0, max: 120, divisions: 120, step: 1),
-            QuantityUnit.g => (min: 0, max: 1000, divisions: 200, step: 5),
-          };
+      switch (_unit) {
+        QuantityUnit.ml => (min: 0, max: 300, divisions: 30, step: 10),
+        QuantityUnit.min => (min: 0, max: 120, divisions: 120, step: 1),
+        QuantityUnit.g => (min: 0, max: 1000, divisions: 200, step: 5),
+      };
 
   /// The displayed unit: the unit of the line currently being entered, resolved since...
   /// the locale — an `'ml'` character will never be written in the widget.
   String _feedingUnit(BuildContext context) =>
       quantityUnitLabel(context, _unit);
+
+  /// Localized label of a subtype, for the selector chips. Full words only:
+  /// the chips size themselves to the label, so a short string is never needed
+  /// here and an abbreviation would only cost meaning.
+  String _subtypeLabel(BuildContext context, FeedingSubtype subtype) =>
+      switch (subtype) {
+        FeedingSubtype.natural => context.l.feedingSubtypeNatural,
+        FeedingSubtype.artificial => context.l.feedingSubtypeArtificial,
+        FeedingSubtype.solid => context.l.feedingSolid,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -152,69 +163,13 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: FilterChip(
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(FeedingSubtype.natural.icon, size: 18),
-                        Flexible(
-                          child: Text(
-                            context.l.feedingSubtypeNatural,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    selected: _selectedSubtype == FeedingSubtype.natural,
-                    onSelected: (_) => _selectSubtype(FeedingSubtype.natural),
-                    selectedColor: AppTheme.miam.withValues(alpha: 0.2),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: FilterChip(
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(FeedingSubtype.artificial.icon, size: 18),
-                        Flexible(
-                          child: Text(
-                            context.l.feedingSubtypeArtificial,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    selected: _selectedSubtype == FeedingSubtype.artificial,
-                    onSelected: (_) =>
-                        _selectSubtype(FeedingSubtype.artificial),
-                    selectedColor: AppTheme.miam.withValues(alpha: 0.2),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: FilterChip(
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(FeedingSubtype.solid.icon, size: 18),
-                        Flexible(
-                          child: Text(
-                            context.l.feedingSolid,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    selected: _selectedSubtype == FeedingSubtype.solid,
-                    onSelected: (_) => _selectSubtype(FeedingSubtype.solid),
-                    selectedColor: AppTheme.miam.withValues(alpha: 0.2),
-                  ),
-                ),
-              ],
+            OptionChipRow<FeedingSubtype>(
+              options: FeedingSubtype.values,
+              selected: _selectedSubtype,
+              onSelected: _selectSubtype,
+              labelOf: _subtypeLabel,
+              iconOf: (FeedingSubtype subtype) => subtype.icon,
+              selectedColor: AppTheme.miam.withValues(alpha: 0.2),
             ),
             const SizedBox(height: 24),
 

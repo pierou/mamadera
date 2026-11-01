@@ -163,8 +163,8 @@ class MeasurementButtonRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final measurements =
-        ref.watch(measurementNotifierProvider).value ?? const <GrowthMeasurement>[];
+    final measurements = ref.watch(measurementNotifierProvider).value ??
+        const <GrowthMeasurement>[];
     return Row(
       children: [
         for (final kind in MeasureKind.values) ...[

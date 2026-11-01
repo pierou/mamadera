@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../../../core/l10n/app_localizations_extension.dart';
+import '../../core/l10n/app_localizations_extension.dart';
 import '../../shared/domain/entities/tracking_enums.dart';
 
 /// Map of localized labels for each health subtype, keyed by labelKey.

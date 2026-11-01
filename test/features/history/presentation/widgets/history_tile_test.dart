@@ -473,8 +473,8 @@ void main() {
             // resolved (including default styles), so `.apply` covers everything.
             // toutes les tailles.
             theme: AppTheme.lightTheme.copyWith(
-              textTheme: AppTheme.lightTheme.textTheme
-                  .apply(fontFamily: 'Roboto'),
+              textTheme:
+                  AppTheme.lightTheme.textTheme.apply(fontFamily: 'Roboto'),
               primaryTextTheme: AppTheme.lightTheme.primaryTextTheme
                   .apply(fontFamily: 'Roboto'),
             ),

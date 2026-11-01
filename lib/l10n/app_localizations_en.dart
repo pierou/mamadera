@@ -233,6 +233,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderFaceCleaning => 'Face';
 
   @override
+  String reminderNotificationTitle(Object care) {
+    return '$care';
+  }
+
+  @override
+  String reminderNotificationBody(Object baby, Object care) {
+    return '$baby: time for $care.';
+  }
+
+  @override
+  String reminderNotificationBodyNoProfile(Object care) {
+    return 'Time for $care.';
+  }
+
+  @override
   String get reminderSettingsTile => 'Choose which reminders to show';
 
   @override
@@ -243,7 +258,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reminderSettingsDescription =>
-      'Banners shown on the home screen until the care has been logged. No system notifications are sent: everything stays on this device.';
+      'Banners shown on the home screen until the care has been logged, and — if you turn them on — system notifications. Everything stays on this device.';
+
+  @override
+  String get reminderNotificationsSectionTitle => 'System notifications';
+
+  @override
+  String get reminderNotificationsOptIn => 'Notify me when a reminder is due';
+
+  @override
+  String get reminderNotificationsTimeLabel => 'Notification time';
+
+  @override
+  String get reminderNotificationsPermissionDenied =>
+      'Notifications are currently disabled in the system settings. Turn them on there to receive reminder notifications.';
 
   @override
   String get reminderFrequencyDaily => 'Every day';

@@ -15,7 +15,8 @@ void main() {
       GlobalCupertinoLocalizations.delegate,
     ];
 
-    testWidgets('renders TermsContent widget without framework errors', (tester) async {
+    testWidgets('renders TermsContent widget without framework errors',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: localizationDelegates,
@@ -28,10 +29,11 @@ void main() {
 
       // Verify TermsContent builds without throwing framework exceptions
       expect(find.byType(TermsContent), findsOneWidget);
-      
+
       // Clear any captured exceptions to verify clean render
       final exception = tester.takeException();
-      if (exception != null && !exception.toString().contains('MissingPlugin')) {
+      if (exception != null &&
+          !exception.toString().contains('MissingPlugin')) {
         throw Exception('Unexpected error during build: $exception');
       }
 
@@ -53,7 +55,7 @@ void main() {
 
       // After sufficient time, the FutureBuilder should resolve or show error state
       await tester.pump(const Duration(milliseconds: 100));
-      
+
       // Verify widget is still present and handles missing assets gracefully
       expect(find.byType(Center), findsWidgets);
       expect(tester.takeException(), isNull);
@@ -119,7 +121,7 @@ void main() {
 
       // During loading phase, should show CircularProgressIndicator
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      
+
       // The SizedBox.expand widget ensures content fills parent space
       final sizedBoxFinder = find.byWidgetPredicate(
         (widget) => widget is SizedBox && widget.child != null,

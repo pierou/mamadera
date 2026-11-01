@@ -2,7 +2,7 @@
 
 ## Guidelines
 * **Native-First:** Prefer `ValueNotifier`, `ChangeNotifier`, `ListenableBuilder`.
-* **Restrictions:** Do NOT use Bloc or GetX unless explicitly requested. Riverpod is allowed if the project already uses it (see [AGENTS.md](../../README.md) for project-specific overrides).
+* **Restrictions:** Do NOT use Bloc or GetX unless explicitly requested. Riverpod is allowed if the project already uses it (see [AGENTS.md](../../../README.md) for project-specific overrides).
 * **ChangeNotifier:** For state that is more complex or shared across multiple widgets, use `ChangeNotifier`.
 * **MVVM:** When a more robust solution is needed, structure the app using the Model-View-ViewModel pattern.
 * **Dependency Injection:** Use simple manual constructor dependency injection to make dependencies explicit in APIs and manage layers.

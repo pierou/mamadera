@@ -1,6 +1,6 @@
 # ROADMAP — Reminders, multi-baby scoping, onboarding, two-phone sync, growth measurements
 
-Status: **§2 shipped in v1.1.0+4 (2026-09-21); §4.2 (measurements) added 2026-09-29, decisions resolved the same day; §5 (v1.1.1) implemented and `make ci`-green 2026-09-29. §4 (items M, 3, 4, 8) implemented in full on branch `feat/v1.2.0-growth-and-baby-scoped-reminders` on 2026-10-03, executed from [`docs/PLAN-v1.2.0.md`](PLAN-v1.2.0.md) — drift v11, export format v2, `make ci`-green (1305 scoped / 1311 full, 0 skipped, 88 % lines). §10 (backlog, items 11–19) recorded 2026-10-02; §9 (items 9 + 10, slider colour) recorded 2026-10-05; §1 remains withdrawn; §6 (v1.3.0 sync) is still proposal; decisions 1, 2, 6 and 7–9 in §7 are resolved, and **3, 4, 5 are now resolved too — 3 → D1 and 4 → D2 as decided in PLAN §2, 5 still awaits you** (sync needs a written privacy mandate change from the owner before any code).
+Status: **§2 shipped in v1.1.0+4 (2026-09-21); §4.2 (measurements) added 2026-09-29, decisions resolved the same day; §5 (v1.1.1) implemented and `make ci`-green 2026-09-29. §4 (items M, 3, 4, 8) implemented in full on branch `feat/v1.2.0-growth-and-baby-scoped-reminders` on 2026-10-03, executed from [`docs/PLAN-v1.2.0.md`](archive/PLAN-v1.2.0.md) — drift v11, export format v2, `make ci`-green (1305 scoped / 1311 full, 0 skipped, 88 % lines). §10 (backlog, items 11–19) recorded 2026-10-02; §9 (items 9 + 10, slider colour) recorded 2026-10-05; §1 remains withdrawn; §6 (v1.3.0 sync) is still proposal; decisions 1, 2, 6 and 7–9 in §7 are resolved, and **3, 4, 5 are now resolved too — 3 → D1 and 4 → D2 as decided in PLAN §2, 5 still awaits you** (sync needs a written privacy mandate change from the owner before any code).
 Opened 2026-09-20, while v1.1.0 was mid-flight (Phase 2B, Xcode Cloud).
 
 Five requests came in together:
@@ -143,9 +143,10 @@ Verified red-before-green: with the fix reverted, the restore test inserts the d
 
 ### 2.2 Item 7 — Patch notes print raw markdown ✅ fixed
 
-Screenshot `Screenshot_20260920_134348` (Android, fr): the 1.1.0 overlay shows `### Nouvelles
-fonctionnalités` and `- Ajout de rappels personnalisés liés à un soin` **literally**, each line on its own
-check-marked row, so section headers and their items are indistinguishable.
+Screenshot `Screenshot_20260920_134348` (Android, fr): the 1.1.0 overlay shows
+`### Nouvelles fonctionnalités` and `- Ajout de rappels personnalisés liés à un soin`
+**literally**, each line on its own check-marked row, so section headers and their
+items are indistinguishable.
 
 **Root cause.** The assets are authored in markdown; the renderer is not. `patch_notes_screen.dart:74` maps
 every `items[]` entry straight to `_PatchNotesItem` (`:134-160`), which is a `check_circle_outline` icon plus
@@ -519,7 +520,7 @@ in §3/§4.2.
 
 ### 10.5 Item 15 — add a brown caca colour
 
-* New `CacaColor` `marron`. Today: exactly 4 (mécônium, vert olive, jaune moutarde, jaune clair —
+* New `CacaColor` `marron`. Today: exactly 4 (`mécônium`, `vert olive`, `jaune moutarde`, `jaune clair` —
   `tracking_enums.dart:160-185`).
 * DB value is a string → new value is **backward-compatible, no migration**; work is the enum
   constant + hex, l10n ×3, position in the picker row, history swatch. Decide the hue (single
@@ -528,7 +529,7 @@ in §3/§4.2.
 
 ### 10.6 Item 16 — pvj.io credit
 
-* Add a "pvj.io" credit mention (Menu → à propos / credits area).
+* Add a "pvj.io" credit mention (Menu → `à propos` / credits area).
 * Open: exact wording and placement (plain text vs tappable link — a link is still local-only, it
   just opens the OS browser).
 * Proposed bucket: **trivial, any** — piggyback on the next release's store copy.
