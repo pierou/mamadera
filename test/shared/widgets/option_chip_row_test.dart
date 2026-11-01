@@ -10,7 +10,11 @@ import 'package:mamadera/shared/widgets/option_chip_row.dart';
 /// A label that is not clipped under the test font therefore cannot be
 /// clipped on a device — the assertions below are deliberately pessimistic.
 void main() {
-  const List<String> threeOptions = ['Lait Maternel', 'Lait Artificiel', 'Solide'];
+  const List<String> threeOptions = [
+    'Lait Maternel',
+    'Lait Artificiel',
+    'Solide'
+  ];
 
   Future<void> pumpRow(
     WidgetTester tester, {
@@ -53,8 +57,7 @@ void main() {
 
   /// True when the rendered label ran out of room and was cut short.
   bool isClipped(WidgetTester tester, String label) {
-    final paragraph =
-        tester.renderObject<RenderParagraph>(find.text(label));
+    final paragraph = tester.renderObject<RenderParagraph>(find.text(label));
     return paragraph.didExceedMaxLines;
   }
 
@@ -62,7 +65,8 @@ void main() {
     testWidgets('never clips a label, at any plausible phone width',
         (tester) async {
       for (final double width in <double>[320, 360, 393]) {
-        await pumpRow(tester, options: threeOptions, selected: 'Solide', width: width);
+        await pumpRow(tester,
+            options: threeOptions, selected: 'Solide', width: width);
         for (final String label in threeOptions) {
           expect(isClipped(tester, label), isFalse,
               reason: '"$label" was truncated at ${width}dp');
