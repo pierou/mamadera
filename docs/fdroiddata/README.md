@@ -8,6 +8,42 @@ holds two kinds of files that live in *different* repositories:
 | `com.pvjio.mamadera.yml` | fork of https://gitlab.com/fdroid/fdroiddata → `metadata/` |
 | (the `fastlane/metadata/android/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source, in **fastlane layout** (required by the New App checklist — a plain `metadata/` dir happens to be read too, but it is not accepted for inclusion) |
 
+## Current status (2026-11-01 — the recipe pins `v1.3.0`)
+
+`com.pvjio.mamadera.yml` in this directory is **byte-identical** to
+`metadata/com.pvjio.mamadera.yml` on the MR branch (`mamadera-new-app` of
+`~/fdroiddata`, fork `pvjacquier/fdroiddata`). Keep them identical — `cmp` the
+two after every bump; a comment or a wrap added on one side only breaks the
+other's pipeline job. Current content: one `Builds` entry (1.3.0 / 12, `commit:
+v1.3.0`), `rm: [ios]`, `CurrentVersion: 1.3.0` / `CurrentVersionCode: 12`.
+
+Checked on 2026-11-01 with fdroidserver master (`cdfdce8`) and Debian trixie's
+`ruamel.yaml 0.18.10`: `fdroid lint` clean, and `fdroid rewritemeta` is a fixed
+point of the file (see the verification block below — this matters, the
+formatting is version-sensitive in two ways now documented there).
+
+The v1.2.1 SHA-pin workaround is retired (section below). The branch
+`fdroid-metadata-v1.2.1` is **pushed** (`refs/heads/` on origin), and it is
+still the only ref that keeps `5fcd9b1` reachable — pipeline `2985018099` built
+the reviewed 1.2.1 APK from it, so deleting it before !53740 merges would make
+already-reviewed evidence unbuildable. Delete it **after** the merge:
+
+```bash
+git push origin --delete fdroid-metadata-v1.2.1    # in the mamadera repo
+```
+
+The MR abstract's screenshot URLs have to move off that branch **before** the
+delete, i.e. to the tag:
+
+```
+https://raw.githubusercontent.com/pierou/mamadera/v1.3.0/fastlane/metadata/android/en-US/images/icon.png
+…/v1.3.0/fastlane/metadata/android/en-US/images/phoneScreenshots/{1,2,3}.png
+```
+
+Same pixels either way — `git diff 5fcd9b1 v1.3.0 -- fastlane/` adds only the
+three `changelogs/12.txt` — but a deleted branch 404s them, and a broken image
+in the abstract reads as a missing screenshot.
+
 ## One-time submission (status: MR opened 2026-10-22)
 
 1. The stable tag `v1.1.0` was added at `3780a25` (the `v1.1.0-rc.2` commit —
@@ -79,8 +115,15 @@ versionCode**. The pin is therefore:
 - `commit: 5fcd9b1…` in fdroiddata, screenshot URLs in the MR abstract pinned
   to the same SHA.
 
-Once a tag that carries `fastlane/metadata/android/` ships (v1.2.2 onward), go
-back to `commit: vX.Y.Z` and delete the branch.
+**Retired 2026-11-01, at v1.3.0.** That tag *does* carry the tree: `git ls-tree
+-r --name-only v1.3.0 fastlane/` lists `en-US`, `fr` and `es` each with
+`short_description.txt`, `full_description.txt` and `changelogs/12.txt`, plus
+`en-US/images/icon.png` (512×512) and three `phoneScreenshots` (1280×2856).
+`fr`/`es` ship text only — screenshots are not required per locale. There is no
+`title.txt` anywhere, so `AutoName: Mamadera` supplies the name. The entry is
+back to `commit: v1.3.0`, which is the only form writable *inside* the release
+commit the tag points at (a pinned SHA would need a second commit after the
+tag, which is what the branch existed to avoid).
 
 ## fdroiddata formatting — what fails the pipeline
 
@@ -102,6 +145,23 @@ The first pipeline run (2026-10-22) failed on three jobs, all formatting:
   AndroidManifest label and adds it), and `AutoUpdateMode`/`UpdateCheckMode`/
   `UpdateCheckData`/`CurrentVersion`/`CurrentVersionCode` **after** `Builds:`
   at the end of the file.
+- **"no comments" is literal, not stylistic.** `_app_to_yaml()` and
+  `_builds_to_yaml()` rebuild the document field by field into fresh
+  `CommentedMap`/`CommentedSeq` objects, so a `#` line *anywhere* in the file is
+  deleted by the rewrite and the job's `git diff --exit-code` then fails.
+  Verified 2026-11-01: a comment added above a `Builds` item vanished on the
+  next `rewritemeta`, and `grep -l "^[[:space:]]*#" metadata/*.yml | wc -l`
+  across upstream master returns **0 of 9740** files. Rationale goes in the
+  commit message and in this README — never in the YAML. (The v1.3.0 entry
+  briefly carried a four-line `#` explanation here in `docs/fdroiddata/`; that
+  is why it no longer does.)
+- **the canonical line wrap comes from the distro's `ruamel.yaml`, not from
+  fdroidserver.** With `ruamel.yaml 0.18.x` (Debian trixie = the pipeline) a
+  long plain scalar stays on **one** line; with `0.19.x` (what `uv`/PyPI resolve
+  today) the same value is folded at width 80 with a **trailing space** before
+  the break, which is what upstream looks like in `com.github.metacubex.clash.meta`
+  but not what trixie emits. A file generated the wrong way differs by whitespace
+  only and still fails the job.
 - **Scanner (run by `fdroid build`)** — two Flutter-specific traps, both
   fixed in the current file:
   - the Flutter template's `org.gradle.toolchains.foojay-resolver-convention`
@@ -122,15 +182,32 @@ The first pipeline run (2026-10-22) failed on three jobs, all formatting:
   directory`. Kept as a fact — this app no longer ships patches at all (see
   the review round above), fdroiddata maintainers prefer sed.
 
-Before pushing any change to the fork, run locally (the pipeline uses the
-Debian-trixie `fdroidserver` package; any recent fdroidserver gets you most of
-the way — if the versions diverge, the `fdroid rewritemeta` job's diff shows
-the remaining delta exactly, so convergence takes at most one extra push):
+Before pushing any change to the fork, run the pipeline's own tools. The
+pipeline installs the Debian `fdroidserver` package and *then* puts a git
+checkout of master ahead of it on the PATH — `.gitlab-ci.yml` does `checkout -B
+master <pin>` followed by `pull origin master --ff-only`, so **the pin is a
+floor, not the version in use**: the code is master tip, the libraries are
+trixie's. That combination is reproducible here without a VM:
 
 ```bash
-fdroid rewritemeta com.pvjio.mamadera   # then git diff must be empty
-fdroid lint com.pvjio.mamadera
+cd ~/fdroiddata
+uv run --python 3.12 --with "ruamel.yaml==0.18.10" \
+   --with "fdroidserver @ git+https://gitlab.com/fdroid/fdroidserver.git" \
+   fdroid rewritemeta com.pvjio.mamadera    # run it twice
+uv run --python 3.12 --with "ruamel.yaml==0.18.10" \
+   --with "fdroidserver @ git+https://gitlab.com/fdroid/fdroidserver.git" \
+   fdroid lint com.pvjio.mamadera
+cmp metadata/com.pvjio.mamadera.yml \
+   ~/DEV/mamadera/docs/fdroiddata/com.pvjio.mamadera.yml
 ```
+
+Two checks, not one: **idempotence** (the second rewrite must leave the file
+alone — the job diffs against your commit, so what has to be stable is what you
+push) and **equality with this repo's copy**. Pinning `ruamel.yaml==0.18.10` is
+not cosmetic: unpinned it resolves 0.19.1 and rewrites the four `sed` items into
+folded lines trixie's writer would reject. Both were run on 2026-11-01 against
+fdroidserver `cdfdce8` and `a35fdfdd` (the CI pin) — the two versions agree on
+this file, which is why the recipe change below is safe to push.
 
 ## Per-release upkeep (every stable tag)
 
@@ -146,6 +223,17 @@ fdroid lint com.pvjio.mamadera
   the toolchain pin in every tag ≥ v1.2.0. Keep the entry in canonical key
   order (`versionName`, `versionCode`, `commit`, `output`, `srclibs`, `rm`,
   `prebuild`, `scandelete`, `build`) — the `rewritemeta` job above is the check.
+- `rm:` — **every entry must exist at the commit being built.** `rm` is resolved
+  through `common.getpaths()`, and `getpaths()` raises
+  `FDroidException("Some glob paths did not match any files/dirs: …")` for a path
+  that matches nothing — before the `"…but it didn't exist"` log line in the
+  `rm` loop can ever print. This is what v1.3.0 would have died on: `linux`,
+  `macos`, `web` and `windows` were deleted from the repo between v1.2.1 and
+  v1.3.0 (`git ls-tree --name-only -d v1.3.0` now shows only `ios`), so the
+  entry copied forward from v1.2.1 would have failed on a **recipe path list**
+  rather than on anything the release changed. Re-derive the list from the tag
+  every release instead of copying it forward; the same rule covers `subdir`
+  and every other globbed field.
 - `CurrentVersion` / `CurrentVersionCode` — bump to the new release (the block
   lives at the **end** of the file, after `Builds:`).
 - `fastlane/metadata/android/<locale>/changelogs/<N>.txt` — one file per
@@ -165,3 +253,41 @@ The auto-update check (`UpdateCheckMode: Tags` + `UpdateCheckData` on
 `pubspec.yaml`) then picks up the new tag without touching this file — as
 long as the tag matches `^v[0-9]+\.[0-9]+\.[0-9]+$` (RC tags are excluded on
 purpose: their +N codes are higher and would be read as releases).
+
+## What v1.3.0 changed under the build — and what was re-checked
+
+v1.3.0 adds `flutter_local_notifications` (+ `timezone`), core library
+desugaring, two permissions and drift schema v13. Schema and Dart are none of
+fdroidserver's business; the Gradle side is, so each item was re-checked against
+the tag rather than assumed (`/tmp` checkout of `git archive v1.3.0`):
+
+- **the four `sed` items still do their job, and spare the new code.** The
+  toolchain-pin range `/Pin the compile toolchain/,/^}/d` ends at the `}` that
+  closes `kotlin { … }` (line ~15); the `dependencies {
+  coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4") }` block
+  added in v1.3.0 sits at line ~87, **outside** the range, so desugaring is not
+  silently deleted by our own prebuild. `foojay` line goes, the signing guard
+  becomes `if (false)`, both pins leave `gradle.properties`. Note the seds were
+  run here with BSD `sed -i ''`: GNU `sed -i -e …` (the builder) and BSD
+  `sed -i -e …` (this Mac) are *not* interchangeable — BSD sed eats `-e` as the
+  backup suffix, so a copy-paste of the recipe locally edits the wrong thing
+  and looks successful.
+- **`desugar_jdk_libs:2.1.4` is fetched from Google Maven like any other
+  dependency** — no recipe change, and there is upstream precedent for building
+  with it (`com.github.metacubex.clash.meta` injects `2.1.5` by sed). Residual
+  risk is memory, not policy: D8 desugaring is new work in the builder VM that
+  v1.2.1 never asked for. `org.gradle.jvmargs=-Xmx8G` is unchanged from v1.2.1.
+- **`flutterVersion=$(sed …)` still resolves.** Run against the tagged
+  `.github/workflows/ci.yml` (79 lines of it changed in v1.3.0) it prints
+  `3.44.8`. If that key ever stops matching, the recipe does **not** fail — it
+  quietly builds the `${flutterVersion:-3.44.8}` default, i.e. a Flutter that
+  may not be the one that shipped. Re-run the sed against the tag each release.
+- **`flutter pub get --offline --enforce-lockfile` at the tag: exit 0**, so the
+  `--enforce-lockfile` in `prebuild` has a lockfile that matches `pubspec.yaml`.
+- **new dependencies are clean:** every added package is MIT except `dbus`
+  (MPL-2.0, used only by the linux/windows variants), and all of it lives under
+  `.pub-cache`, which `scandelete` already covers.
+- **two new permissions**, `POST_NOTIFICATIONS` and `USE_EXACT_ALARM`, both
+  requested at runtime on opt-in. Neither is an F-Droid AntiFeature and the
+  recipe does not change, but they will be listed on the app page — that is the
+  reviewer seeing them first, so it belongs in the MR description.
