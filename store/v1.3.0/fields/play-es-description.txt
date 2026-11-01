@@ -1,4 +1,4 @@
-Realice un seguimiento de las tomas, los patrones de sueño, los cambios de pañal, el crecimiento y las rutinas de salud de su bebé recién nacido, con total privacidad. Todos los datos se almacenan en su dispositivo: no hay almacenamiento en la nube, ni seguimiento, ni telemetría.
+Realice un seguimiento de las tomas, los patrones de sueño, los cambios de pañal, el crecimiento y las rutinas de salud de su bebé recién nacido, con total privacidad. Todos los datos se almacenan en su dispositivo: no se utiliza la nube, no se realiza ningún seguimiento ni telemetría.
 
 Características:
 • Registro de lactancia materna y alimentación con biberón, además de alimentos sólidos en gramos.

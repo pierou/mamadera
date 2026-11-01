@@ -7,4 +7,5 @@ New features
 - Notification preferences now live inside the backup, so a restored phone keeps them instead of asking again
 
 Improvements
+- Full names on the feeding type buttons — Breast milk, Formula, Solid — in every language, and the selected one now reads clearly
 - Still nothing to send: notifications are assembled on the device, and the manual export through the share sheet you open remains the only way your data leaves it

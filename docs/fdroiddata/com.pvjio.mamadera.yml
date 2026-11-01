@@ -43,8 +43,41 @@ Builds:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - $$flutter$$/bin/flutter build apk --release
 
+  # v1.3.0 — reminder notifications (opt-in), schema v13, backup format v4, and the
+  # feeding-type chips that now show their full label. `commit:` names the tag rather
+  # than a sha because this file is part of the release commit the tag points at: a sha
+  # here could only be written by a second commit after tagging.
+  - versionName: 1.3.0
+    versionCode: 12
+    commit: v1.3.0
+    output: build/app/outputs/flutter-apk/app-release.apk
+    srclibs:
+      - flutter@stable
+    rm:
+      - ios
+      - linux
+      - macos
+      - web
+      - windows
+    prebuild:
+      - "flutterVersion=$(sed -n -E \"s/.*flutter-version: '([0-9][0-9.]*)'.*/\\1/p\"\
+        \ .github/workflows/ci.yml | head -1)\ngit -C $$flutter$$ checkout -f \"${flutterVersion:-3.44.8}\""
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - $$flutter$$/bin/flutter config --no-analytics
+      - $$flutter$$/bin/flutter pub get --enforce-lockfile
+      - sed -i -e '/foojay/d' android/settings.gradle.kts
+      - sed -i -e 's/releaseBuildRequested && !hasReleaseSigning/false/' android/app/build.gradle.kts
+      - sed -i -e '/Pin the compile toolchain/,/^}/d' android/app/build.gradle.kts
+      - sed -i -e '/kotlin.jvm.toolchain/d' -e '/java.installations.auto-download/d'
+        android/gradle.properties
+    scandelete:
+      - .pub-cache
+    build:
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - $$flutter$$/bin/flutter build apk --release
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
-CurrentVersion: 1.2.1
-CurrentVersionCode: 11
+CurrentVersion: 1.3.0
+CurrentVersionCode: 12
