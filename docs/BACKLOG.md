@@ -1114,3 +1114,49 @@ string decision, not a deletion — separate ticket.
 - Do not re-add a per-type **count** indicator « for information »: that is the reading B23 retires;
   the list below is the counter. If the owner wants a count back, it is a new request, not a
   regression of this one.
+
+---
+
+## B24 — The stored App Store screenshot set uses a device lineup ASC no longer accepts
+
+**Status:** open, **blocks the App Store Connect upload** (Play is unaffected) · **Cost:** half a day
+— one `SIZES` line, one recapture campaign, `check.py` paths · **Risk:** low — assets only, no app
+code, no schema
+**Found:** 2026-11-03, owner, from the App Store Connect requirements panel while preparing the
+v1.3.0 submission
+
+### The fact
+The ASC panel states (quoted verbatim, owner 2026-11-03):
+
+> Les tailles compatibles pour les aperçus d'app sont les suivantes : 1920 × 886px et 886 × 1920px.
+> Les tailles compatibles pour les captures d'écran d'app sont les suivantes : 2556 × 1179px,
+> 1179 × 2556px, 2622 × 1206px et 1206 × 2622px.
+
+i.e. app previews 1920×886 / 886×1920, screenshots 2556×1179, 1179×2556, 2622×1206, 1206×2622.
+
+Our capture pipeline is pinned to the previous iPhone lineup:
+`screenshots/ios/asc/campaign_asc.sh:34` → `SIZES="1242x2688 2688x1242 1284x2778 2778x1284"`.
+The stored frame sets — `store/v1.3.0/screenshots/ios/asc/{fr,es,en}/` (7 screens × 4 sizes each,
+recaptured 2026-11-01, md5-verified across locales) — are entirely at those old sizes. **None of
+the four stored sizes appears in the panel's accepted list**, so the next App Store upload fails
+validation as-is. The Play set (1280×2856, `store/v1.3.0/capture.sh`) is a different console and
+is unaffected.
+
+### To do
+1. Map the four accepted screenshot sizes to the current iOS simulator device types
+   (`xcrun simctl list devices available`) and update `SIZES` in `campaign_asc.sh` — keep the
+   landscape pair for each portrait size, as today.
+2. Recapture all three locales × seven screens at the new sizes, with the cross-locale md5 check
+   the pipeline already enforces (a capture failure must be visible, not resampled).
+3. Update the stored sets, `store/v1.3.x/check.py` size expectations and
+   `screenshots/ios/asc/README.md` in the same commit as the frames.
+4. Promo/header assets under `store/` (`asc_header_3840x1646*`, `asc_header_5244x2950*`,
+   `appstore_promo_*`): check which sizes the current panel requires for marketing graphics and
+   record the decision here — do not rescale silently.
+5. App previews: we ship none. The quoted preview sizes (1920×886 / 886×1920) are recorded only
+   for the day a video is produced.
+
+### Do not
+- Do not **rescale** the existing frames to the accepted pixel sizes: fake resolution is what the
+  md5/locale discipline exists to catch.
+- Do not touch the Play Store set or the Android capture pipeline from this ticket.
