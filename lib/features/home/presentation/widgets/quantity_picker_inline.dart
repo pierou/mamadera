@@ -305,11 +305,13 @@ class _QuantityPickerInlineState extends State<QuantityPickerInline> {
           ? _formatValue(widget.value)
           : widget.hintLabel!,
       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            // The supplement isn't a measure; it's about the tone, not the color.
-            // This accent mark is specifically used for numbers.
-            color: _hasUserInput || !showingHint
-                ? widget.accentColor
-                : Theme.of(context).colorScheme.primary,
+            // B4: the readout was painted with the tracking-type accent
+            // (« 3 min » measured on white in the store frame) — and the
+            // hint state with `primary` (sante green, ~2.4:1 on white).
+            // Both are the number the parent reads; the text takes the
+            // guaranteed-contrast primary and the accent stays on the
+            // slider and the steppers below.
+            color: Theme.of(context).colorScheme.onSurface,
           ),
     );
     return Column(
