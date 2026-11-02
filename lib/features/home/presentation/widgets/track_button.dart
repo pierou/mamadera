@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../../reminders/domain/entities/reminders_state.dart';
-import 'reminder_pill.dart';
 
 class TrackButton extends StatefulWidget {
   const TrackButton({
@@ -22,8 +21,10 @@ class TrackButton extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
-  /// Reminder statuses for this tracking type (pending or with last-event info).
-  /// `null` means no reminder information available.
+  /// Reminder statuses for this tracking type. Only the most recent
+  /// `lastEventAt` is read, for the « last tracked » line under the label —
+  /// the pending reminders themselves are listed in `HomeRemindersSection`
+  /// below the grid (B23 removed the on-button pills).
   final List<ReminderStatus>? reminders;
 
   @override
@@ -56,21 +57,6 @@ class _TrackButtonState extends State<TrackButton> {
     return '${lastEvent.day}/${lastEvent.month}/${lastEvent.year}';
   }
 
-  String _pillLabelFor(BuildContext context, ReminderStatus status) {
-    switch (status.item.labelKey) {
-      case 'reminderVitaminD':
-        return context.l.reminderVitaminD;
-      case 'reminderVitaminK':
-        return context.l.reminderVitaminK;
-      case 'reminderEyeCleaning':
-        return context.l.reminderEyeCleaning;
-      case 'reminderFaceCleaning':
-        return context.l.reminderFaceCleaning;
-      default:
-        return status.item.labelKey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -87,9 +73,7 @@ class _TrackButtonState extends State<TrackButton> {
           label: widget.label,
           icon: widget.icon,
           color: widget.color,
-          reminders: widget.reminders,
           context: context,
-          pillLabelBuilder: _pillLabelFor,
           lastTrackedLabelBuilder: _lastTrackedLabel,
         ),
       ),
@@ -104,9 +88,7 @@ class _TrackButtonContent extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.color,
-    required this.reminders,
     required this.context,
-    required this.pillLabelBuilder,
     required this.lastTrackedLabelBuilder,
   });
 
@@ -114,46 +96,11 @@ class _TrackButtonContent extends StatelessWidget {
   final String label;
   final IconData? icon;
   final Color color;
-  final List<ReminderStatus>? reminders;
   final BuildContext context;
-  final String Function(BuildContext, ReminderStatus) pillLabelBuilder;
   final String? Function(BuildContext) lastTrackedLabelBuilder;
-
-  bool get _hasPendingReminders => reminders != null && reminders!.isNotEmpty;
-
-  /// Maximum number of stickers that can be placed on the button, including the counter.
-  ///
-  /// The button has a fixed height (200-230 pixels), and the dots rotate at the...
-  /// line: starting with four pending reminders of the same type – two or...
-  /// Three customized options are sufficient – the `Wrap` function consumes the space allocated for the label and...
-  /// The button press becomes random. Beyond that point, we rely more on...
-  /// that are not displayed: the parent sees that there are still reminders remaining, and they can read them on...
-  /// You can find it in the settings menu, either under "Notifications" or in "Settings" -> "Reminders."
-  static const int _maxVisiblePills = 3;
-
-  /// Stickers to display, along with a count of how many remain hidden.
-  ///
-  /// The order of appearance is determined by the notifier (first the pre-set options, then the customized ones).
-  /// (creation order): bounded by `take`, it remains stable even after a reconstruction.
-  /// On the other hand, the indicators don't activate with every five-minute check.
-  ({List<ReminderStatus> visible, int hidden}) _visiblePills(
-      List<ReminderStatus> items) {
-    if (items.length <= _maxVisiblePills) {
-      return (visible: items, hidden: 0);
-    }
-    // A space is reserved for the meter: a maximum of three elements, and...
-    // parent ait quatre rappels ou dix.
-    return (
-      visible: items.take(_maxVisiblePills - 1).toList(growable: false),
-      hidden: items.length - (_maxVisiblePills - 1),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    final hasPending = _hasPendingReminders;
-    final items = reminders ?? [];
-    final pills = _visiblePills(items);
     final theme = Theme.of(context);
     final brightness = theme.brightness;
 
@@ -199,7 +146,7 @@ class _TrackButtonContent extends StatelessWidget {
               ),
             if (icon != null) const SizedBox(height: AppTheme.spacingSm),
             Expanded(
-              flex: icon != null ? (hasPending ? 2 : 3) : (hasPending ? 3 : 4),
+              flex: icon != null ? 3 : 4,
               // Single line + scaleDown: a long label (FR "Nourriture") is
               // shrunk to fit instead of wrapping into an orphaned fragment.
               child: FittedBox(
@@ -221,25 +168,7 @@ class _TrackButtonContent extends StatelessWidget {
                 ),
               ),
             ),
-            if (hasPending) ...[
-              Expanded(
-                flex: 2,
-                child: Center(
-                  child: Wrap(
-                    spacing: AppTheme.spacingSm,
-                    runSpacing: AppTheme.spacingSm,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      for (final status in pills.visible)
-                        ReminderPill(
-                            label: pillLabelBuilder(this.context, status)),
-                      if (pills.hidden > 0)
-                        ReminderPill(label: '+${pills.hidden}'),
-                    ],
-                  ),
-                ),
-              ),
-            ] else if (lastTrackedLabelBuilder(this.context) != null) ...[
+            if (lastTrackedLabelBuilder(this.context) != null) ...[
               Expanded(
                 flex: 2,
                 child: Center(
