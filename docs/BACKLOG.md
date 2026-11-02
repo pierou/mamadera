@@ -143,6 +143,9 @@ promise. No code, no dependency, no spike until that sentence changes — see `A
 
 **Status:** open, v1.3.1 candidate — **measured 2026-11-01: 4 of 8 button×theme pairs fail AA**,
 not the 2 this ticket names · **Priority:** real accessibility · **Cost:** colour choice + verification pass
+— **updated 2026-11-03:** the `+N`-pill part of the scope is removed by **B23** (the pills no
+longer exist, so there is nothing left to fix their contrast); the button labels, the quantity
+readout and the segmented toggles remain
 **Found:** 2026-10-04, by eye on Android (light) and iOS (dark) captures
 
 ### The problem, seen and not guessed
@@ -582,9 +585,12 @@ with no extra code).
 
 ## B12 — Due reminders are at the bottom of the home: they should be at the top
 
-**Status:** open (owner request, 2026-10-06:
-« les rappels devraient être en haut de l'écran d'accueil » ) · **Cost:** trivial — a reordering
-of the `Column`
+**Status:** closed by owner decision, 2026-11-03 — **will not do**: the list stays below the
+grid (« it's nice as it is »); the track-button pills that motivated moving it up are removed
+instead — see **B23**. The « Do not » clause below (the pills stay, « a feature removal without
+request ») is superseded by that owner request. Body kept as the decision record ·
+(owner request, 2026-10-06: « les rappels devraient être en haut de l'écran d'accueil ») ·
+**Cost:** trivial — a reordering of the `Column`
 **Found:** verification of 2026-10-06 — the due reminders list is the **third** child of the
    home `Column`, under the 2×2 tracking grid **and** under the row of growth buttons.
 **Files:** `lib/features/home/presentation/screens/home_screen.dart:344-396` (the `Column`:
@@ -1048,3 +1054,109 @@ written for a parent. `1.0.1`–`1.3.0` read as user prose in all three locales 
 Rewrite `1.0.0` (and tidy `1.0.1`) EN in parent language first — it is the source — then re-derive
 fr/es in the noun form AGENTS.md mandates, human-read, and `make store-package` follows. Factual
 claims stay intact; the entry is history the app shows, so wording may change, events may not.
+
+---
+
+## B23 — The track-button reminder pills overflow and duplicate the home reminders list
+
+**Status:** open, v1.3.1 scope (owner decision 2026-11-03: « remove them ») · **Cost:** small —
+one widget file, one test file, the pill groups of a second test file · **Risk:** low — display
+only, no data, no schema, no export change
+**Found:** owner report 2026-11-03, after custom reminders shipped in v1.3.0 (B14) — the pills
+now carry free-text custom labels, not just the four short preset names
+
+### The fact
+Since the item-12 work, the 2×2 grid buttons render every pending reminder of their type as a
+`ReminderPill` sticker (`lib/features/home/presentation/widgets/track_button.dart`): the
+localized preset label or the **free-text custom label** (« Crème nombril », « Portage »), capped
+at three visible plus a `+N` overflow pill (`_maxVisiblePills`). Two problems, both visible on
+devices:
+
+1. **Space.** The pills wrap in a `Wrap` inside a fixed-height button (230 px) sharing the column
+   with the label; long custom labels wrap into extra lines, the label's `Expanded` flex shrinks
+   (`hasPending ? 2 : 3`) and the stickers overrun the neighbouring cell. The code's own doc
+   comment on `_maxVisiblePills` records the end state it was designed around: the `Wrap`
+   « consumes the space allocated for the label » and « the button press becomes random ».
+2. **Redundancy.** The very same pending reminders are listed in `HomeRemindersSection` directly
+   below the grid (D1). The `home_screen.dart` comment already says the list « replaces the
+   reading of +N » — yet both shipped, so a parent reads every due reminder twice: once as a
+   sticker they have to decode at the top, once as a list below.
+
+### Decision (owner, 2026-11-03)
+Remove the pills from `TrackButton`. The list below is the single place pending reminders are read
+on the home screen. The **« last tracked » line** (« 2h ago », from `ReminderStatus.lastEventAt`)
+is **not** a reminder — it is event history, nothing below shows it, and it **stays**. This
+decision also closes B12 (the list stays where it is) and cuts the `+N`-pill part of B4's scope.
+
+### To do
+1. `track_button.dart`: delete the pills branch, `_pillLabelFor`, `_visiblePills`,
+   `_maxVisiblePills`, the `pillLabelBuilder` wiring and the `hasPending` flex adjustment (the
+   label flex is then always `icon != null ? 3 : 4`). Keep the `reminders` parameter —
+   `_lastTrackedLabel` reads `lastEventAt` from it.
+2. Delete `reminder_pill.dart` (its only consumer) and `reminder_pill_test.dart`; strip the pill
+   groups from `track_button_test.dart` and replace them with the regressions that matter now:
+   no sticker text renders for a non-empty list, the last-tracked line renders from
+   `lastEventAt`, and ten pending reminders with long labels do not overflow.
+3. Emulator pass per the gate: `Small_Phone`, home with 0, 1 and 4+ pending reminders including a
+   long custom label — the label keeps its one-line `FittedBox`, nothing overruns the cell.
+
+### Known follow-up (not in this ticket)
+`_lastTrackedLabel` hardcodes its relative formats in English — `'< 1 min'`, `'45min ago'`,
+`'2h 3m ago'` — and only `yesterday` / `daysAgo` are localized. With the pills gone this line is
+more visible in a French UI; it needs three arb keys × three locales. Small, but it is a product
+string decision, not a deletion — separate ticket.
+
+### Do not
+- Do not remove the **last-tracked** line (« 2h ago ») in this ticket: it is event history, not
+  reminders, and nothing below the grid shows it.
+- Do not touch `HomeRemindersSection`, the reminder notifier or the scheduler: the pills were
+  display-only, the data path is unchanged.
+- Do not re-add a per-type **count** indicator « for information »: that is the reading B23 retires;
+  the list below is the counter. If the owner wants a count back, it is a new request, not a
+  regression of this one.
+
+---
+
+## B24 — The stored App Store screenshot set uses a device lineup ASC no longer accepts
+
+**Status:** open, **blocks the App Store Connect upload** (Play is unaffected) · **Cost:** half a day
+— one `SIZES` line, one recapture campaign, `check.py` paths · **Risk:** low — assets only, no app
+code, no schema
+**Found:** 2026-11-03, owner, from the App Store Connect requirements panel while preparing the
+v1.3.0 submission
+
+### The fact
+The ASC panel states (quoted verbatim, owner 2026-11-03):
+
+> Les tailles compatibles pour les aperçus d'app sont les suivantes : 1920 × 886px et 886 × 1920px.
+> Les tailles compatibles pour les captures d'écran d'app sont les suivantes : 2556 × 1179px,
+> 1179 × 2556px, 2622 × 1206px et 1206 × 2622px.
+
+i.e. app previews 1920×886 / 886×1920, screenshots 2556×1179, 1179×2556, 2622×1206, 1206×2622.
+
+Our capture pipeline is pinned to the previous iPhone lineup:
+`screenshots/ios/asc/campaign_asc.sh:34` → `SIZES="1242x2688 2688x1242 1284x2778 2778x1284"`.
+The stored frame sets — `store/v1.3.0/screenshots/ios/asc/{fr,es,en}/` (7 screens × 4 sizes each,
+recaptured 2026-11-01, md5-verified across locales) — are entirely at those old sizes. **None of
+the four stored sizes appears in the panel's accepted list**, so the next App Store upload fails
+validation as-is. The Play set (1280×2856, `store/v1.3.0/capture.sh`) is a different console and
+is unaffected.
+
+### To do
+1. Map the four accepted screenshot sizes to the current iOS simulator device types
+   (`xcrun simctl list devices available`) and update `SIZES` in `campaign_asc.sh` — keep the
+   landscape pair for each portrait size, as today.
+2. Recapture all three locales × seven screens at the new sizes, with the cross-locale md5 check
+   the pipeline already enforces (a capture failure must be visible, not resampled).
+3. Update the stored sets, `store/v1.3.x/check.py` size expectations and
+   `screenshots/ios/asc/README.md` in the same commit as the frames.
+4. Promo/header assets under `store/` (`asc_header_3840x1646*`, `asc_header_5244x2950*`,
+   `appstore_promo_*`): check which sizes the current panel requires for marketing graphics and
+   record the decision here — do not rescale silently.
+5. App previews: we ship none. The quoted preview sizes (1920×886 / 886×1920) are recorded only
+   for the day a video is produced.
+
+### Do not
+- Do not **rescale** the existing frames to the accepted pixel sizes: fake resolution is what the
+  md5/locale discipline exists to catch.
+- Do not touch the Play Store set or the Android capture pipeline from this ticket.
