@@ -1248,3 +1248,93 @@ phrasings). The implemented fix instead reads as **prefix + duration**: « Derni
 45 min ». Both are legitimate product strings; the device pass shows the implemented one —
 if the relative phrasing is preferred, that is three new keys × three locales, a small
 follow-up, and the line's rendering site is a single method.
+
+---
+
+## B22 — Tapping a reminder notification restores the previous screen; it should land on Home
+
+**Status:** open (owner report, 2026-11-02; first version of this ticket had the request inverted —
+correction note below) · **Cost:** ~2 h incl. the release-gate pass · **Risk:** low — Dart-side
+callback only, no native change, no schema
+**Files:** `lib/features/reminders/data/services/flutter_local_notification_service.dart:43-71`
+(`init()` calls `_plugin.initialize(settings: …)` **without** the tap callback),
+`lib/features/reminders/presentation/providers/reminder_sync_notifier.dart:32` (where
+`FlutterLocalNotificationService()` is built — the seam for injecting the handler),
+`lib/core/router.dart:64-84` (the splash redirect — the cold path that already lands on Home;
+**do not touch**), `android/app/src/main/AndroidManifest.xml` (`singleTop` + `taskAffinity=""` —
+why the alive path restores the previous screen)
+
+### The fact
+Observed on both platforms (owner, 2026-11-02): the app was left on the reminder settings screen;
+tapping a reminder notification brought the app back to **settings** — on Android *and* iOS.
+Expected: **Home**.
+
+Root cause: there is no Dart tap handler at all. `init()` passes only `settings:` to the plugin's
+`initialize` — no `onDidReceiveNotificationResponse`, no other callback — so the tap falls through
+to the OS default, which is *restore the app where it was*:
+
+- **Android, alive** (foreground or in recents): the content intent is the standard launch intent +
+  `SELECT_NOTIFICATION` action; with `launchMode="singleTop"` + `taskAffinity=""`, the tap reaches
+  `onNewIntent` on the existing activity and the previous UI is shown as-is. Verified 2026-11-02
+  against 22.3.3: the plugin's `sendNotificationPayloadMessage` already calls the
+  `didReceiveNotificationResponse` channel method — it goes nowhere because no Dart callback is
+  registered.
+- **iOS, alive** (foreground or suspended): the engine's `FlutterAppDelegate` (conforms to
+  `FlutterAppLifeCycleProvider` <`UNUserNotificationCenterDelegate`>, verified in the current
+  engine headers) forwards the tap to the plugin, which registers itself with
+  `addApplicationDelegate` in `registerWithRegistrar` (verified against 22.3.3); the plugin's
+  `userNotificationCenter:didReceiveNotificationResponse:` invokes the same channel method.
+  **No `AppDelegate.swift` change is needed** — the manual `UNUserNotificationCenter.current().delegate = self`
+  from the plugin README is the legacy setup for non-`FlutterAppDelegate` apps.
+- **Cold launch (app killed)** already lands on Home: the splash redirect (`_redirect`,
+  `router.dart:64`) returns `AppRoute.home.path`, and the plugin's tap callbacks do not fire on a
+  launch by design (launches are read via `getNotificationAppLaunchDetails` — not needed here).
+
+The v1.3.0 plan's D7 said « default tap = open app at root » — that only ever held for the cold
+path; the alive path has silently restored the previous screen since. Owner intent, now explicit:
+**tap ⇒ Home, on both platforms.**
+
+### Correction note (2026-11-02, same day)
+The first version of this ticket was written for the request « bring the app to where it was open,
+not on the home » — based on the misperception that the tap landed on Home. In fact the tap was
+*restoring the previous screen* (settings) on both platforms; the cold path already landed on Home.
+The requirement is the **inverse** of the first version: tap ⇒ **always Home**. Everything in the
+first version's plan (persist the last tab, move `init()` into `main()`, read
+`getNotificationAppLaunchDetails`) is therefore not needed, and is recorded here so it is not
+resurrected during implementation.
+
+### To do
+1. Register `onDidReceiveNotificationResponse` in `FlutterLocalNotificationService.init()` to
+   navigate Home: `router.go(AppRoute.home.path)`. **The seam:** the data-layer service must not
+   import `core/router.dart`, so inject the handler — add a `void Function()? onNotificationTapped`
+   to the service (constructor field, mirroring the existing `plugin` parameter) and pass
+   `() => router.go(AppRoute.home.path)` at the construction site (`localNotificationServiceProvider`,
+   `reminder_sync_notifier.dart:32` — presentation layer, where importing the router is allowed).
+   A tap while the app sits on a non-shell route (`/reminder-settings`, `/info`, …) replaces it
+   with Home — that is the point of a fixed destination; the terms gate is already passed by the
+   time any notification can exist (opt-in ⇒ the app is in use).
+2. **Do not** register `onDidReceiveBackgroundNotificationResponse`: it only fires for notification
+   *actions* that do not show the UI (a background isolate, `@pragma('vm:entry-point')`). The app
+   has no actions and this ticket adds none.
+3. No payload: `scheduleAt` already passes none, and Home is a fixed destination — nothing to encode.
+4. Tests: (a) service test with the existing `FakePlugin`/recording pattern — `init` stores the
+   callback, a simulated tap invokes the injected handler exactly once; (b) provider test that the
+   injected handler routes to `/home`.
+5. **Release gate, both platforms** (the owner has the repro — this is the regression check): leave
+   the app on the reminder settings screen, fire a notification (wait for the due window / catch-up,
+   or temporarily schedule a test one), then tap ⇒ **Home** with (a) the app foregrounded,
+   (b) the app in recents / suspended. Then: (c) kill the app, tap ⇒ Home (no regression),
+   (d) launch from the icon ⇒ Home, (e) the notification dismisses on tap (autoCancel default).
+
+### Do not
+- **Do not persist the last tab, move `init()` into `main()`, or read `getNotificationAppLaunchDetails`**
+  — all of that was the first version's plan and is void under the correction note above.
+- **Do not change the splash redirect** in `router.dart`: the cold path is already correct, and the
+  tap callback must not double-handle it.
+- **Do not touch `AppDelegate.swift` or the Android manifest**: the engine's `FlutterAppDelegate`
+  already wires the iOS notification delegate, and Android's `singleTop` / `taskAffinity=""` are
+  what make the tap reach the running engine at all.
+- **Do not add a payload or deep link to a reminder screen in this ticket** — tap-as-action is
+  B15's territory and needs its own payload design.
+- **Do not amend D7 in the plan document** (v1.3.0 decision record); this ticket is the recorded
+  supersession — link it from the PR description.
