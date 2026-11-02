@@ -522,5 +522,78 @@ void main() {
         expect(find.text('Luna'), findsOneWidget);
       });
     });
+
+    group('age formatting (B18)', () {
+      // The fixture birthdates are built relative to `now` so the tests hold
+      // on any calendar date. The harness locale is French, which doubles as
+      // the regression for the hardcoded-English defect: the subtitle must
+      // read « jours / mois / ans », never 'days old'.
+
+      /// [date] shifted by [months], the day clamped to the last day of the
+      /// target month — mirrors `_addMonths` in the widget under test.
+      DateTime shiftMonths(DateTime date, int months) {
+        final total = date.year * 12 + (date.month - 1) + months;
+        final year = total ~/ 12;
+        final month = total % 12 + 1;
+        final firstOfNext = month == 12
+            ? DateTime(year + 1, 1, 1)
+            : DateTime(year, month + 1, 1);
+        final lastDay = firstOfNext.subtract(const Duration(days: 1)).day;
+        return DateTime(year, month, date.day.clamp(1, lastDay));
+      }
+
+      Future<void> pumpBaby(WidgetTester tester, DateTime birthDate) async {
+        final profile =
+            BabyProfile(id: '1', name: 'Luna', birthDate: birthDate);
+        await tester
+            .pumpWidget(makeTestWidget(AsyncValue.data([profile]), profile));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('a few days old reads in French, not "5 days old"',
+          (tester) async {
+        await pumpBaby(
+            tester, DateTime.now().subtract(const Duration(days: 5)));
+
+        expect(find.text('5 jours'), findsOneWidget);
+        expect(find.textContaining('days old'), findsNothing);
+      });
+
+      testWidgets('two months and a day elapsed reads « 2 mois »',
+          (tester) async {
+        final now = DateTime.now();
+        await pumpBaby(
+            tester, shiftMonths(now, -2).subtract(const Duration(days: 1)));
+
+        expect(find.text('2 mois'), findsOneWidget);
+      });
+
+      testWidgets('thirteen months and a day elapsed reads « 1 ans »',
+          (tester) async {
+        final now = DateTime.now();
+        await pumpBaby(
+            tester, shiftMonths(now, -13).subtract(const Duration(days: 1)));
+
+        expect(find.text('1 ans'), findsOneWidget);
+      });
+
+      testWidgets('the month is not complete before the birth day of the month',
+          (tester) async {
+        // The birthdate is one day past the same day of the month two back
+        // (capped at 28 so it is valid in every month). When the current
+        // day has not reached it, the clamped anniversary of two months is
+        // still ahead and the age rolls back to one month — the off-by-one
+        // the ticket names (born 31 January, on 1 March, reads 1 month,
+        // not 2). When the day has been reached, two months are complete.
+        // The expectation states that rule directly, for the run date.
+        final now = DateTime.now();
+        final birthDay = now.day < 28 ? now.day + 1 : 28;
+        await pumpBaby(tester, DateTime(now.year, now.month - 2, birthDay));
+
+        final complete = now.day >= birthDay;
+        expect(find.text(complete ? '2 mois' : '1 mois'), findsOneWidget);
+        expect(find.text(complete ? '1 mois' : '2 mois'), findsNothing);
+      });
+    });
   });
 }

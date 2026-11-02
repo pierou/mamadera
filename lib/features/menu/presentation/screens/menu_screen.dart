@@ -17,6 +17,7 @@ import '../../../../features/history/presentation/providers/history_repository_p
 import '../../../../features/home/presentation/providers/repository_provider.dart';
 import '../../../../features/import/presentation/widgets/import_data_dialog.dart';
 import '../../../../features/reminders/presentation/providers/reminder_providers.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/menu_repository_provider.dart';
 import '../widgets/baby_profile_section.dart';
 
@@ -239,7 +240,13 @@ class MenuScreen extends ConsumerWidget {
           : null,
       onTap: () async {
         await ref.read(localeProvider.notifier).setLocale(code);
-        if (context.mounted) _showSnackBar(context, context.l.languageChanged);
+        // B11: the tree is still built in the old locale here — the rebuild in
+        // the target locale happens on the next frame, after this line. Resolve
+        // the confirmation in the target locale directly; reading `context.l`
+        // is exactly the bug.
+        if (!context.mounted) return;
+        final target = lookupAppLocalizations(Locale(code));
+        _showSnackBar(context, target.languageChanged);
       },
     );
   }
