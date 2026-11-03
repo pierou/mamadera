@@ -22,6 +22,77 @@ Checked on 2026-11-01 with fdroidserver master (`cdfdce8`) and Debian trixie's
 point of the file (see the verification block below — this matters, the
 formatting is version-sensitive in two ways now documented there).
 
+**Pipeline `3015561025` (2026-11-01, commit `569a1376`) is green on all 9 jobs**,
+including the one that matters: **`fdroid build` succeeded in 508 s** — v1.3.0's
+core-library desugaring compiles on F-Droid's builder (build 11 took 634 s
+without it, so the new D8 work is not even a wall-clock problem), and the
+trimmed `rm:` list built instead of raising. `fdroid lint`, `fdroid rewritemeta`,
+`schema validation`, `check source code`, `git redirect`, `check apk` and
+`checkupdates` green too. Note these pipelines are cited by **global id**, not
+iid — `3015561025` here, `2985018099` for the 1.2.1 review round.
+
+Where the ball sits, read off all 14 notes rather than inferred: **all three of
+their asks are answered; our two questions are unanswered.** The review of
+2026-10-24 arrived as **two notes but three requests** — sed instead of patch
+files, latest version only, fastlane in the repo (enumerated in the review round
+below) — and all three were done that day. Our own reply of 2026-10-24 19:34
+closed by asking them two things, and nothing has answered them since:
+
+- universal `app-release.apk` (current) or `--split-per-abi` with one block per ABI?
+- should the `sudo:` + upstream-path block for reproducible builds go in now, or as
+  a follow-up once the app is included?
+
+So `waiting-on-response` is plausibly accurate rather than stale — it can be the
+unanswered side of that exchange. The next note to the reviewer should re-raise
+both questions; they are the only content that can move the MR past "green but
+silently waiting".
+
+**The error that nearly deleted those questions:** reading notes through the API
+and truncating bodies at 800 characters, then concluding absence from the truncated
+view — which produced a doc commit claiming `--split-per-abi` "has no source in the
+MR" when it sits verbatim in our own note, and an edit removing the auditor's
+accurate parenthetical. Rule: grep full note bodies for the term before ever
+writing that something is absent from a thread (`per_page=100` does not truncate the
+payload — printing does).
+
+### The MR abstract had to be corrected, not just re-pinned
+
+Re-pinning the screenshots was the small part (all four URLs under
+`…/mamadera/v1.3.0/fastlane/…` verified `200` with real byte counts before the
+edit). The description itself had gone **factually wrong** with v1.3.0, in ways a
+reviewer's `check apk` step catches immediately:
+
+- it claimed the app "requests **no permissions**". The released APK declares
+  `POST_NOTIFICATIONS`, `USE_EXACT_ALARM`, `VIBRATE` and
+  `com.pvjio.mamadera.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. `VIBRATE` is
+  **not in our `AndroidManifest`** — `flutter_local_notifications`' library
+  manifest contributes it at merge time, which is why no amount of reading the
+  repo would have surfaced it. The fourth is AndroidX's own
+  `protectionLevel="signature"` permission for non-exported receivers
+  (`0x00000002` in `aapt2 dump xmltree`).
+- the privacy claim was rewritten to rest on what is still provable — **no
+  `INTERNET` permission**, so the APK cannot reach the network — rather than on
+  the now-false absolute.
+- the fastlane checklist line claimed icon **and** images for all three locales;
+  `fr`/`es` ship text only. Disprovable in seconds from the repo.
+- the "Build notes" section still promised "All six stable releases are included
+  (1.0.0+1 … 1.2.1+11)" and described
+  `patches/com.pvjio.mamadera/disable-release-signing-guard.patch` — six entries
+  is precisely what review asked us to delete, and that patch file was deleted in
+  the same round.
+
+**Upkeep rule this teaches: after building a release, diff the MR description
+against the artifact**, not against the repo. One command for the permission
+half (`apksigner`/`aapt2` from any build-tools dir):
+
+```bash
+gh release download v1.3.0 -R pierou/mamadera -p app-release.apk
+dumpBin=$(ls -d ~/Library/Android/sdk/build-tools/*/ | tail -1)
+${dumpBin}aapt2 dump badging app-release.apk | grep -E "^(package|uses-permission|targetSdk)"
+${dumpBin}aapt2 dump xmltree app-release.apk --file AndroidManifest.xml \
+  | grep -B2 -A3 DYNAMIC_RECEIVER_NOT_EXPORTED   # protectionLevel of the AndroidX one
+```
+
 The v1.2.1 SHA-pin workaround is retired (section below). The branch
 `fdroid-metadata-v1.2.1` is **pushed** (`refs/heads/` on origin), and it is
 still the only ref that keeps `5fcd9b1` reachable — pipeline `2985018099` built
