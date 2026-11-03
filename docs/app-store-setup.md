@@ -192,15 +192,17 @@ Ideal para padres que valoran su privacidad — y para bebés que merecen la suy
 > package with the locale prefix (`store/v<version>/capture.sh --asc-only` does it), so a
 > file that escapes its folder still declares its language.
 
-ASC accepts these iPhone sizes (portrait + landscape) — all are already
-produced, ribbon-free, in [`screenshots/ios/asc/`](../screenshots/ios/asc/):
+ASC accepts these iPhone sizes (portrait + landscape) — all are produced,
+ribbon-free, in [`screenshots/ios/asc/`](../screenshots/ios/asc/).
+**B24 (2026-11-03):** the retired set (1242×2688 / 1284×2778) is no longer
+uploadable — the accepted set is now the iPhone 17 / 17e pair:
 
 | Folder | Size | ASC slot |
 |--------|------|----------|
-| `1242x2688/` | 1242 × 2688 | iPhone 6.5" (3D Touch) |
-| `2688x1242/` | 2688 × 1242 | iPhone 6.5" landscape |
-| `1284x2778/` | 1284 × 2778 | iPhone 6.7" (3D Touch) |
-| `2778x1284/` | 2778 × 1284 | iPhone 6.7" landscape |
+| `1206x2622/` | 1206 × 2622 | iPhone 17 (native of the capture) |
+| `2622x1206/` | 2622 × 1206 | iPhone 17 landscape |
+| `1179x2556/` | 1179 × 2556 | iPhone 17e (resize) |
+| `2556x1179/` | 2556 × 1179 | iPhone 17e landscape |
 
 Seven screens per orientation: home, feeding sheet, sleep sheet, diaper
 sheet, history, menu, growth (`/growth`, added in v1.2.0 — the release's
