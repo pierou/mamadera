@@ -142,8 +142,12 @@ promise. No code, no dependency, no spike until that sentence changes — see `A
 ## B4 — Insufficient contrast: the yellow (day) and the brown (night)
 
 **Status:** open, v1.3.1 — **fixed 2026-11-03 on `release/v1.3.1` by the structural alternative**
-(labels pinned to the guaranteed-contrast text, tints kept), device re-measurement owed by the
-v1.3.1 gate · **measured 2026-11-01: 4 of 8 button×theme pairs fail AA**, not the 2 this ticket
+(labels pinned to the guaranteed-contrast text, tints kept) · **re-measured on device
+2026-11-03 from the v1.3.1 store frames — all 8 button×theme pairs pass** (miam light
+**1.15→14.89:1**, sante light **1.89→13.46:1**, caca dark **1.43→12.00:1**, dodo dark
+4.57→9.54:1, dodo light 2.07→passes; method: `scripts/wcag_sample.py` on sips crops of
+`store/v1.3.1/screenshots/play/fr/fr-home.png` and the ASC dark frame) ·
+**measured 2026-11-01: 4 of 8 button×theme pairs fail AA**, not the 2 this ticket
 names · **Priority:** real accessibility · **Cost:** paid — no identity colour changed
 — **updated 2026-11-03:** the `+N`-pill part of the scope is removed by **B23** (the pills no
 longer exist, so there is nothing left to fix their contrast); the button labels, the quantity
@@ -1158,9 +1162,12 @@ string decision, not a deletion — separate ticket.
 
 ## B24 — The stored App Store screenshot set uses a device lineup ASC no longer accepts
 
-**Status:** open, **blocks the App Store Connect upload** (Play is unaffected) · **Cost:** half a day
-— one `SIZES` line, one recapture campaign, `check.py` paths · **Risk:** low — assets only, no app
-code, no schema
+**Status:** **fixed 2026-11-03 on `release/v1.3.1`** · **Cost:** paid — the accepted set is now
+`1206x2622` / `2622x1206` / `1179x2556` / `2556x1179` (iPhone 17 / 17e) in `campaign_asc.sh`,
+`postprocess.sh` and `store_check.py`; the v1.3.1 package carries a fresh per-locale set —
+3 locales × 7 screens × 4 slots, cross-locale pixel-difference asserted by the campaign,
+`check.py` reports **PACKAGE OK** (2026-11-03) · **Risk:** low — assets only, no app code, no
+schema
 **Found:** 2026-11-03, owner, from the App Store Connect requirements panel while preparing the
 v1.3.0 submission
 
