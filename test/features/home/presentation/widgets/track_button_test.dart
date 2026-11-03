@@ -17,8 +17,10 @@ void main() {
     List<ReminderStatus>? reminders,
     VoidCallback? onTap,
     VoidCallback? onLongPress,
+    ThemeData? theme,
   }) =>
       MaterialApp(
+        theme: theme,
         locale: const Locale('fr'),
         supportedLocales: const [Locale('fr')],
         localizationsDelegates: const [
@@ -133,7 +135,22 @@ void main() {
           child: pumpTrackButton(
               label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
 
-      expect(find.text('2h 0m ago'), findsOneWidget);
+      expect(find.text('Dernière activité: 2h0'), findsOneWidget);
+    });
+
+    testWidgets('last-tracked line reads localized minutes, not "45min ago"',
+        (tester) async {
+      final status1 = buildReminder(
+          trackingType: TrackingType.sante,
+          id: 'vitamine_d',
+          labelKey: 'reminderVitaminD',
+          lastEventAt: DateTime.now().subtract(const Duration(minutes: 45)));
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
+
+      expect(find.text('Dernière activité: 45 min'), findsOneWidget);
+      expect(find.textContaining('ago'), findsNothing);
     });
 
     testWidgets(
@@ -148,7 +165,7 @@ void main() {
           child: pumpTrackButton(
               label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
 
-      expect(find.text('Hier'), findsOneWidget);
+      expect(find.text('Dernière activité: hier'), findsOneWidget);
     });
 
     testWidgets('label is bold and large', (tester) async {
@@ -234,7 +251,7 @@ void main() {
               reminders: [pending, completed])));
 
       // The newest lastEventAt wins; nothing sticker-like renders at all.
-      expect(find.text('< 1 min'), findsOneWidget);
+      expect(find.text('Dernière activité: < 1 min'), findsOneWidget);
       expect(find.text('Vit. D'), findsNothing);
     });
 
@@ -243,6 +260,38 @@ void main() {
       await tester.pumpWidget(ProviderScope(
           child: pumpTrackButton(label: 'Test', color: Colors.red)));
       expect(find.text('Test'), findsOneWidget);
+    });
+
+    // ── B4: the label is not the accent ──────────────────────────
+
+    testWidgets('light theme paints the label with onSurface, not the accent',
+        (tester) async {
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding',
+              color: AppTheme.miam,
+              theme: AppTheme.lightTheme)));
+
+      final text = tester.widget<Text>(find.text('Feeding'));
+      expect(text.style?.color, equals(AppTheme.lightTextPrimary),
+          reason: 'miam on cream measured 1.15:1 on device (B4) — the label '
+              'takes the guaranteed-contrast text, the tint stays in the '
+              'background, border and icon');
+      expect(text.style?.color, isNot(equals(AppTheme.miam)));
+    });
+
+    testWidgets('dark theme paints the label with the light onSurface',
+        (tester) async {
+      await tester.pumpWidget(ProviderScope(
+          child: pumpTrackButton(
+              label: 'Feeding',
+              color: AppTheme.caca,
+              theme: AppTheme.darkTheme)));
+
+      final text = tester.widget<Text>(find.text('Feeding'));
+      expect(text.style?.color, equals(AppTheme.darkTextPrimary),
+          reason: 'caca on the dark scaffold measured 1.43:1 on device (B4)');
+      expect(text.style?.color, isNot(equals(AppTheme.caca)));
     });
 
     // ── Accessibility tests ──────────────────────────────────────

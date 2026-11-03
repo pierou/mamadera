@@ -47,15 +47,36 @@ class _TrackButtonState extends State<TrackButton> {
 
     if (lastEvent == null) return null;
 
+    // B25: the line reads localized end to end — the prepared `lastTracked`
+    // prefix plus the app's existing duration keys (B23's known follow-up
+    // asked for three new keys; these reuse the ones that exist, so the
+    // string set stays under owner review rather than growing).
+    final l = context.l;
     final diff = DateTime.now().difference(lastEvent);
 
-    if (diff.inMinutes < 1) return '< 1 min';
-    if (diff.inHours < 1) return '${diff.inMinutes}min ago';
-    if (diff.inDays < 1) return '${diff.inHours}h ${diff.inMinutes % 60}m ago';
-    if (diff.inDays == 1) return context.l.yesterday;
-    if (diff.inDays < 7) return '${diff.inDays}${context.l.daysAgo}';
-    return '${lastEvent.day}/${lastEvent.month}/${lastEvent.year}';
+    if (diff.inMinutes < 1) {
+      return '${l.lastTracked}< 1 min'; // same compact unit in all three locales
+    }
+    if (diff.inHours < 1) {
+      return '${l.lastTracked}${l.durationFormatMinutes(diff.inMinutes)}';
+    }
+    if (diff.inDays < 1) {
+      return '${l.lastTracked}'
+          '${l.durationFormatHoursMinutes(diff.inHours, diff.inMinutes % 60)}';
+    }
+    if (diff.inDays == 1) {
+      return '${l.lastTracked}${_lowerFirst(l.yesterday)}';
+    }
+    if (diff.inDays < 7) {
+      return '${l.lastTracked}${diff.inDays}${l.daysAgo}';
+    }
+    return '${l.lastTracked}${lastEvent.day}/${lastEvent.month}/${lastEvent.year}';
   }
+
+  /// 'Hier' → 'hier': the `yesterday` key is capitalised for standalone use;
+  /// mid-line after the prefix it reads lower-case in all three locales.
+  static String _lowerFirst(String s) =>
+      s.isEmpty ? s : s[0].toLowerCase() + s.substring(1);
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +175,12 @@ class _TrackButtonContent extends StatelessWidget {
                 child: Text(
                   label,
                   style: theme.textTheme.headlineLarge?.copyWith(
-                    color: color,
+                    // B4: the label was painted with the accent itself —
+                    // 1.15:1 sampled on device for miam in light mode. The
+                    // tint stays in the background, border and icon; the
+                    // text takes the guaranteed-contrast primary (the chip
+                    // fix's structural pattern, measured 15.29:1 in v1.3.0).
+                    color: theme.colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
                     shadows: [
                       Shadow(

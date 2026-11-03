@@ -39,6 +39,21 @@ void main() {
     });
   });
 
+  group('B4 — onSecondaryContainer is pinned, not derived', () {
+    test('light theme: dark text on the pale blue tint', () {
+      // Left to the MaterialDynamicColors derivation from the dodo secondary,
+      // the selected segment painted white on rgb(183,231,255): 1.32:1
+      // (measured in the v1.3.0 Play frame, B4). Pinned to the text primary.
+      expect(AppTheme.lightTheme.colorScheme.onSecondaryContainer,
+          equals(AppTheme.lightTextPrimary));
+    });
+
+    test('dark theme: light text on the dark blue tint', () {
+      expect(AppTheme.darkTheme.colorScheme.onSecondaryContainer,
+          equals(AppTheme.darkTextPrimary));
+    });
+  });
+
   group('AppTheme.theme getter', () {
     test('returns ThemeData with Material3 enabled', () {
       final theme = AppTheme.theme;

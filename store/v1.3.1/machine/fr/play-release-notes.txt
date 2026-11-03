@@ -1,0 +1,6 @@
+• La confirmation du changement de langue s'affiche désormais dans la nouvelle langue.
+• L'âge du bébé, indiqué dans le menu, s'affiche désormais dans la langue de l'application.
+• Meilleure lisibilité des étiquettes et des valeurs des boutons en mode clair.
+• Les rappels de prise de médicaments ont été supprimés des boutons d'accueil.
+• La ligne "Dernière activité enregistrée" s'affiche désormais dans la langue de l'application.
+• Aucune donnée de compte, aucune analyse, rien n'est envoyé depuis l'appareil.

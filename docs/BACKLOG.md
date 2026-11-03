@@ -141,8 +141,14 @@ promise. No code, no dependency, no spike until that sentence changes — see `A
 
 ## B4 — Insufficient contrast: the yellow (day) and the brown (night)
 
-**Status:** open, v1.3.1 candidate — **measured 2026-11-01: 4 of 8 button×theme pairs fail AA**,
-not the 2 this ticket names · **Priority:** real accessibility · **Cost:** colour choice + verification pass
+**Status:** open, v1.3.1 — **fixed 2026-11-03 on `release/v1.3.1` by the structural alternative**
+(labels pinned to the guaranteed-contrast text, tints kept) · **re-measured on device
+2026-11-03 from the v1.3.1 store frames — all 8 button×theme pairs pass** (miam light
+**1.15→14.89:1**, sante light **1.89→13.46:1**, caca dark **1.43→12.00:1**, dodo dark
+4.57→9.54:1, dodo light 2.07→passes; method: `scripts/wcag_sample.py` on sips crops of
+`store/v1.3.1/screenshots/play/fr/fr-home.png` and the ASC dark frame) ·
+**measured 2026-11-01: 4 of 8 button×theme pairs fail AA**, not the 2 this ticket
+names · **Priority:** real accessibility · **Cost:** paid — no identity colour changed
 — **updated 2026-11-03:** the `+N`-pill part of the scope is removed by **B23** (the pills no
 longer exist, so there is nothing left to fix their contrast); the button labels, the quantity
 readout and the segmented toggles remain
@@ -222,14 +228,43 @@ The structural alternative is probably the right one: it keeps the visual identi
 colours that distinguish care/feeding/nappy/sleep) without asking a pastel tint to carry
 the readability of the text.
 
-### To do before touching the colours
+### The fix (implemented 2026-11-03, `release/v1.3.1`)
+The structural alternative, not a new palette — no identity colour moved:
+
+1. **Track-button label** (`track_button.dart`): painted with
+   `colorScheme.onSurface` instead of the accent. The accent stays in the background
+   gradient, the border, the shadow and the icon. The chip fix's measured pattern
+   (1.05:1 → 15.29:1 after pinning) applied to the same defect.
+2. **Quantity readout** (`quantity_picker_inline.dart`): the value text — and the hint
+   state, which painted `primary` (sante green ≈ 2.4:1 on white, same class) — now take
+   `onSurface`. The accent stays on the slider track/thumb and the stepper buttons.
+3. **Segmented control** (`theme.dart`): `onSecondaryContainer` is now **explicit** in both
+   schemes (light → `lightTextPrimary` ≈ 13.8:1 on the `B3E5FC` tint, dark →
+   `darkTextPrimary`). Left to the `MaterialDynamicColors` derivation from the dodo
+   `secondary`, it resolved to white on the pale tint — the measured 1.32:1.
+
+Regressions: `track_button_test.dart` (label = onSurface, both themes),
+`quantity_picker_inline_test.dart` (value = onSurface, both themes),
+`theme_test.dart` (the two pins).
+
+### To do before the v1.3.1 screenshots are final
 1. ~~Measure the real ratio of the current pairs~~ **done 2026-11-01**, table above (device sample,
    `small_phone/00-note.txt` §4). Still owed: the same sample in **dark** mode, which so far exists
-   only as a computation.
-2. Choose one pair per theme, verify 4,5:1 on the labels and the pills in **both**
-   themes, on the smallest device.
+   only as a computation — **and now the post-fix sample in both themes**
+   (`scripts/wcag_sample.py` on the 1.3.1 captures; the gate pass covers both themes).
+2. ~~Choose one pair per theme~~ — superseded: the structural fix changes no pair's background,
+   so there is nothing to choose; the verification is the re-measurement, item 1.
 3. Do not change an identity colour lightly: these four tints are the app's
-   wayfinding system, and an unmeasured colour change can break two others.
+   wayfinding system, and an unmeasured colour change can break two others. **Honoured —
+   the palette is untouched.**
+
+### Left in the open (observed 2026-11-03, not in the fix)
+The track-button **icon** is still the accent on its own accent-at-15 % disc — the miam icon in
+light mode sits at roughly the same 1.15:1 as its former label. The ticket's structural proposal
+explicitly reserves the icon for the tint, so it ships as-is; if the re-measurement or the owner
+wants the icon readable too, that is a palette call (dark icon glyph on the tint), not a label
+tweak. Same for the 16 px `secondary`-tinted icons in the history tiles (`history_tile.dart:223`,
+`measurement_history_tile.dart:68`) — 2.65:1 for miam/dodo, below the 3:1 graphic rule.
 
 ---
 
@@ -528,8 +563,10 @@ that
 
 ## B11 — The language-change notification shows in the old language
 
-**Status:** open (owner request, 2026-10-06:
-« la notification de changement de langue doit être dans la langue cible ») · **Cost:** trivial
+**Status:** open → **fixed 2026-11-03 on `release/v1.3.1`** (exactly the fix section below,
+plus a `runAsync` wrap the tap needed for the fake-async test zone; the three-direction tests
+are in `menu_screen_test.dart`) · **Cost:** paid (owner request, 2026-10-06:
+« la notification de changement de langue doit être dans la langue cible »)
 **Found:** verification of 2026-10-06 in `menu_screen.dart:217-218`.
 **Files:** `lib/features/menu/presentation/screens/menu_screen.dart:211-220` (the tap of the language
    tile), `lib/l10n/app_localizations.dart:1711` (`lookupAppLocalizations(Locale)` — the fix
@@ -935,9 +972,15 @@ types — **this ticket is feeding only** (the owner asked for feeding).
 
 ## B18 — The baby's age is hardcoded English, and the month arithmetic is wrong
 
-**Status:** open, v1.3.1 candidate · **Severity:** visible-in-French defect (not cosmetic: it is the
-one line in the Menu that switches language with the rest of the screen and doesn't)
-· **Cost:** ~10 lines, no migration, no export bump — the three ARB keys already exist
+**Status:** open → **fixed 2026-11-03 on `release/v1.3.1`** per the verified mapping below —
+anniversary arithmetic via a clamped `_addMonths`, the three prepared keys wired, no new ARB
+strings; regressions in `baby_profile_section_test.dart` (5 jours / 2 mois / 1 ans / the
+31-January anniversary boundary). The store-artefact consequence (12 files with « 3 months
+old » in every locale) is paid by the **B24 recapture**: the 1.3.1 ASC/Play frames are
+recaptured with the fixed line, and v1.3.0's stored sets are superseded, not patched
+· **Severity:** visible-in-French defect (not cosmetic: it is the one line in the Menu that
+switches language with the rest of the screen and doesn't)
+· **Cost:** paid — ~25 lines, no migration, no export bump, no new ARB keys
 **Found:** 2026-11-01, on the Small_Phone device pass (`v1.2.1+11 → v1.3.0+12`), French UI
 
 ### The defect, seen on hardware
@@ -1119,9 +1162,12 @@ string decision, not a deletion — separate ticket.
 
 ## B24 — The stored App Store screenshot set uses a device lineup ASC no longer accepts
 
-**Status:** open, **blocks the App Store Connect upload** (Play is unaffected) · **Cost:** half a day
-— one `SIZES` line, one recapture campaign, `check.py` paths · **Risk:** low — assets only, no app
-code, no schema
+**Status:** **fixed 2026-11-03 on `release/v1.3.1`** · **Cost:** paid — the accepted set is now
+`1206x2622` / `2622x1206` / `1179x2556` / `2556x1179` (iPhone 17 / 17e) in `campaign_asc.sh`,
+`postprocess.sh` and `store_check.py`; the v1.3.1 package carries a fresh per-locale set —
+3 locales × 7 screens × 4 slots, cross-locale pixel-difference asserted by the campaign,
+`check.py` reports **PACKAGE OK** (2026-11-03) · **Risk:** low — assets only, no app code, no
+schema
 **Found:** 2026-11-03, owner, from the App Store Connect requirements panel while preparing the
 v1.3.0 submission
 
@@ -1160,3 +1206,45 @@ is unaffected.
 - Do not **rescale** the existing frames to the accepted pixel sizes: fake resolution is what the
   md5/locale discipline exists to catch.
 - Do not touch the Play Store set or the Android capture pipeline from this ticket.
+
+---
+
+## B25 — The track-button « last tracked » line ships three hardcoded English formats
+
+**Status:** open, v1.3.1 scope (fixed 2026-11-03 on `release/v1.3.1`, pending owner sign-off of
+the rendered strings) · **Severity:** visible-in-French defect, same class as B11/B18 · **Cost:**
+paid — the line reuses existing keys, no new ARB strings · **Risk:** low — display only
+**Found:** 2026-11-03, during the B11/B18 pass on the v1.3.1 branch — it is B23's own
+"known follow-up", which anticipated exactly this ticket ("it needs three arb keys × three
+locales … a product string decision, not a deletion — separate ticket")
+
+### The fact
+`lib/features/home/presentation/widgets/track_button.dart`, `_lastTrackedLabel`, shipped in
+v1.3.0 (tag `v1.3.0`, lines 51-53 of the file) builds the home button's « last tracked » line
+from literals:
+
+```dart
+if (diff.inMinutes < 1) return '< 1 min';
+if (diff.inHours < 1) return '${diff.inMinutes}min ago';      // « 45min ago » in a French UI
+if (diff.inDays < 1) return '${diff.inHours}h ${diff.inMinutes % 60}m ago';
+```
+
+Only `yesterday` / `daysAgo` were localized. With B23 removing the pills (this line becomes the
+buttons' only dynamic text below the label), the English fragments are now the most visible
+string on the French home screen. The prepared-but-unwired `lastTracked` key
+(« Dernière activité: » / "Última actividad: " / "Last tracked: ", in all three ARBs, referenced
+by nothing in `lib/`) is the same prepared-for-this-line pattern as B18's `daysOld` trio.
+
+### The fix (implemented, 2026-11-03)
+No new ARB keys — the line is reassembled from what already exists, so the string set stays
+under owner review rather than growing: `lastTracked` prefix + `durationFormatMinutes`
+("45 min") + `durationFormatHoursMinutes` (en "2h 5m", fr/es "2h5m") + `yesterday` lower-cased
+mid-line (« hier ») + `daysAgo` + the bare date. `'< 1 min>'` is kept verbatim — the same
+compact unit notation the app already uses in French and Spanish (`"{minutes} min"`).
+
+### Owner decision point (before the 1.3.1 home screenshots are final)
+The ticket B23 anticipated called for **three new keys** (« il y a 45 min »-style relative
+phrasings). The implemented fix instead reads as **prefix + duration**: « Dernière activité:
+45 min ». Both are legitimate product strings; the device pass shows the implemented one —
+if the relative phrasing is preferred, that is three new keys × three locales, a small
+follow-up, and the line's rendering site is a single method.

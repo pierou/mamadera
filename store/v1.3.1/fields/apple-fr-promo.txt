@@ -1,0 +1,1 @@
+Le poids, la taille et la température, chiffrés sur votre appareil, sont affichés dans l'historique, avec des informations sur les repas, le sommeil et les couches.

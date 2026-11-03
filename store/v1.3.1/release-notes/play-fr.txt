@@ -1,0 +1,5 @@
+• La confirmation de changement de langue s'affiche désormais dans la nouvelle langue
+• L'âge du bébé dans le menu s'affiche dans la langue de l'application et est calculé par anniversaire
+• Meilleure lisibilité des libellés de boutons, des valeurs et du sélecteur d'unité en mode clair
+• Suppression des pastilles de rappel sur les boutons d'accueil (la liste des rappels dus reste sous la grille)
+• Toujours aucun compte, aucune analyse, et aucune donnée ne quitte l'appareil
