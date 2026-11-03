@@ -144,8 +144,7 @@ void main() {
           trackingType: TrackingType.sante,
           id: 'vitamine_d',
           labelKey: 'reminderVitaminD',
-          lastEventAt:
-              DateTime.now().subtract(const Duration(minutes: 45)));
+          lastEventAt: DateTime.now().subtract(const Duration(minutes: 45)));
       await tester.pumpWidget(ProviderScope(
           child: pumpTrackButton(
               label: 'Feeding', color: AppTheme.miam, reminders: [status1])));
