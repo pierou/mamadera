@@ -135,7 +135,7 @@ void main() {
   });
 
   group('Affichage des 4 TrackButtons', () {
-    testWidgets('Nourriture, Sante, Couche, Dodo sont affiches',
+    testWidgets('Nourriture, Sante, Couche, Sommeil sont affiches',
         (tester) async {
       await pumpHome(tester);
       await tester.pumpAndSettle();
@@ -143,7 +143,7 @@ void main() {
       expect(find.text('Nourriture'), findsOneWidget);
       expect(find.text('Sant\u00e9'), findsOneWidget);
       expect(find.text('Couche'), findsOneWidget);
-      expect(find.text('Dodo'), findsOneWidget);
+      expect(find.text('Sommeil'), findsOneWidget);
     });
 
     testWidgets('chaque TrackButton a la couleur AppTheme attendue',
@@ -363,7 +363,7 @@ void main() {
   // ──────────────────────────────────────────────
   // Interactions TrackButtons -> dialogs ouverts
   // ──────────────────────────────────────────────
-  group('Interactions Nourriture/Sante/Couche/Dodo', () {
+  group('Interactions Nourriture/Sante/Couche/Sommeil', () {
     testWidgets('tap Nourriture -> ouvre FeedingTrackingDialog',
         (tester) async {
       // Three sub-types of pins: the pin extends beyond the harness, with dimensions of 200x300.
@@ -413,11 +413,12 @@ void main() {
       expect(find.text('🟡 Pipi'), findsOneWidget);
     });
 
-    testWidgets('tap Dodo -> ouverture DurationPickerDialog', (tester) async {
+    testWidgets('tap Sommeil -> ouverture DurationPickerDialog',
+        (tester) async {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
-      final dodoBtn = findTrackButton('Dodo');
+      final dodoBtn = findTrackButton('Sommeil');
       expect(dodoBtn, findsOneWidget);
 
       await tester.tap(dodoBtn);
@@ -440,7 +441,7 @@ void main() {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
-      final dodoBtn = findTrackButton('Dodo');
+      final dodoBtn = findTrackButton('Sommeil');
       await tester.tap(dodoBtn);
       await tester.pumpAndSettle();
 
@@ -465,7 +466,7 @@ void main() {
       await pumpHome(tester);
       await tester.pumpAndSettle();
 
-      final dodoBtn = findTrackButton('Dodo');
+      final dodoBtn = findTrackButton('Sommeil');
       await tester.tap(dodoBtn);
       await tester.pumpAndSettle();
 
@@ -604,7 +605,7 @@ void main() {
 
     testWidgets('Dodo : la date par défaut recule de la durée saisie',
         (tester) async {
-      await openSheetAndConfirm(tester, 'Dodo');
+      await openSheetAndConfirm(tester, 'Sommeil');
 
       final event = verify(mockRepo.insertEvent(captureAny)).captured.single
           as SleepEvent;

@@ -163,7 +163,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeButtonDodo.
   ///
   /// In fr, this message translates to:
-  /// **'Dodo'**
+  /// **'Sommeil'**
   String get homeButtonDodo;
 
   /// No description provided for @homeButtonPoids.
