@@ -25,8 +25,9 @@ void main() {
   group('MeasurementButtonRow', () {
     Future<void> pumpRow(
       WidgetTester tester,
-      List<GrowthMeasurement> measurements,
-    ) async {
+      List<GrowthMeasurement> measurements, {
+      ThemeData? theme,
+    }) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -43,7 +44,7 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            theme: AppTheme.theme,
+            theme: theme ?? AppTheme.theme,
             home: const Scaffold(body: MeasurementButtonRow()),
           ),
         ),
@@ -159,6 +160,30 @@ void main() {
       );
       expect(texts, findsNWidgets(6));
       expect(find.textContaining('erreur'), findsNothing);
+    });
+
+    testWidgets('button labels are ink (onSurface), never the accent (B4)',
+        (tester) async {
+      const labelsByKind = {
+        MeasureKind.poids: 'Poids',
+        MeasureKind.taille: 'Taille',
+        MeasureKind.temperature: 'Température',
+      };
+      for (final theme in [AppTheme.lightTheme, AppTheme.darkTheme]) {
+        await pumpRow(tester, const [], theme: theme);
+        await tester.pumpAndSettle();
+
+        labelsByKind.forEach((kind, label) {
+          final text = tester.widget<Text>(find.descendant(
+            of: find.byWidgetPredicate(
+                (w) => w is MeasurementButton && w.kind == kind),
+            matching: find.text(label),
+          ));
+          expect(text.style?.color, theme.colorScheme.onSurface,
+              reason:
+                  '$label label must be onSurface ink in ${theme.brightness} (B4)');
+        });
+      }
     });
   });
 }
