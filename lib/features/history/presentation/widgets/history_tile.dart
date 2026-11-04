@@ -95,6 +95,13 @@ class HistoryTile extends StatelessWidget {
 }
 
 /// Leading icon widget for HistoryTile.
+///
+/// The canonical [TrackingType] glyph (or [WasteType] glyph for diapers) in
+/// ink on a disc tinted with the event's tracking-type accent — the same
+/// per-type colour as the home buttons. The disc carries the colour; the
+/// glyph is [ColorScheme.onSurface] because an accent-coloured glyph cannot
+/// reach the 3:1 non-text minimum in both themes (B4's luminance window is
+/// empty).
 class HistoryTileLeading extends StatelessWidget {
   const HistoryTileLeading(
       {required this.event, required this.context, super.key});
@@ -104,6 +111,7 @@ class HistoryTileLeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final icon = event.map(
       (_) => Icons.help,
       feeding: (_) => TrackingType.miam.icon,
@@ -111,10 +119,16 @@ class HistoryTileLeading extends StatelessWidget {
       diaper: (e) => e.wasteType?.icon ?? WasteType.caca.icon,
       health: (_) => TrackingType.sante.icon,
     );
-
+    final accent = event.map(
+      (_) => AppTheme.sante,
+      feeding: (_) => AppTheme.miam,
+      sleep: (_) => AppTheme.dodo,
+      diaper: (_) => AppTheme.caca,
+      health: (_) => AppTheme.sante,
+    );
     return CircleAvatar(
-      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+      backgroundColor: accent.withValues(alpha: 0.2),
+      child: Icon(icon, color: theme.colorScheme.onSurface),
     );
   }
 }

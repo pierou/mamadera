@@ -36,8 +36,12 @@ Future<void> _loadRobotoFont() async {
 
 void main() {
   /// Helper: pump HistoryTile inside a minimal MaterialApp + ProviderScope with FR locale.
-  Future<void> pumpTile(WidgetTester tester, TrackingEvent event,
-      {VoidCallback? onTap}) async {
+  Future<void> pumpTile(
+    WidgetTester tester,
+    TrackingEvent event, {
+    VoidCallback? onTap,
+    ThemeData? theme,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
@@ -49,6 +53,7 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
+          theme: theme ?? ThemeData(),
           home: Scaffold(
             body: HistoryTile(
               event: event,
@@ -92,13 +97,14 @@ void main() {
       expect(find.byIcon(Icons.water_drop_outlined), findsOneWidget);
     });
 
-    testWidgets('DiaperEvent lesDeux → wb_sunny icon', (tester) async {
+    testWidgets('DiaperEvent lesDeux → opacity icon (drop family)',
+        (tester) async {
       await pumpTile(
         tester,
         DiaperEvent(
             timestamp: DateTime.utc(2024), wasteType: WasteType.lesDeux),
       );
-      expect(find.byIcon(Icons.wb_sunny), findsOneWidget);
+      expect(find.byIcon(Icons.opacity), findsOneWidget);
     });
 
     testWidgets('DiaperEvent caca → water_drop icon', (tester) async {
@@ -118,6 +124,69 @@ void main() {
       );
       expect(find.byIcon(Icons.favorite), findsOneWidget);
     });
+  });
+
+  group('HistoryTile — leading disc carries the tracking-type accent (B4)', () {
+    /// The leading CircleAvatar is the only CircleAvatar in a colourless tile:
+    /// the waste-colour chips are `Container`s, so `byType` finds exactly one.
+    void expectLeading(WidgetTester tester, ThemeData theme, Color accent) {
+      final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
+      expect(avatar.backgroundColor, accent.withValues(alpha: 0.2),
+          reason: 'disc tinted with the event accent');
+      final icon = tester.widget<Icon>(
+        find.descendant(
+          of: find.byType(CircleAvatar),
+          matching: find.byType(Icon),
+        ),
+      );
+      expect(icon.color, theme.colorScheme.onSurface,
+          reason: 'glyph is ink, never the accent (B4)');
+    }
+
+    for (final (name, theme) in [
+      ('light', AppTheme.lightTheme),
+      ('dark', AppTheme.darkTheme),
+    ]) {
+      testWidgets('$name — miam/dodo/caca/sante discs, onSurface glyphs',
+          (tester) async {
+        await pumpTile(
+          tester,
+          FeedingEvent(
+              unit: QuantityUnit.ml,
+              timestamp: DateTime.utc(2024),
+              subtype: FeedingSubtype.natural),
+          theme: theme,
+        );
+        expectLeading(tester, theme, AppTheme.miam);
+
+        await pumpTile(
+          tester,
+          SleepEvent(
+              unit: QuantityUnit.min,
+              timestamp: DateTime.utc(2024),
+              duration: 30.0),
+          theme: theme,
+        );
+        expectLeading(tester, theme, AppTheme.dodo);
+
+        await pumpTile(
+          tester,
+          DiaperEvent(
+              timestamp: DateTime.utc(2024), wasteType: WasteType.lesDeux),
+          theme: theme,
+        );
+        expectLeading(tester, theme, AppTheme.caca);
+
+        await pumpTile(
+          tester,
+          HealthEvent(
+              timestamp: DateTime.utc(2024),
+              subtype: HealthSubtype.nettoyageYeux),
+          theme: theme,
+        );
+        expectLeading(tester, theme, AppTheme.sante);
+      });
+    }
   });
 
   group('HistoryTile — Type label par événement', () {

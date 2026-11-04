@@ -266,6 +266,18 @@ wants the icon readable too, that is a palette call (dark icon glyph on the tint
 tweak. Same for the 16 px `secondary`-tinted icons in the history tiles (`history_tile.dart:223`,
 `measurement_history_tile.dart:68`) — 2.65:1 for miam/dodo, below the 3:1 graphic rule.
 
+**Resolved 2026-11-04 on `fix/contrast-measurement-history` (ships in 1.3.1+14):** the owner
+chose the ink-glyph-on-tinted-disc strategy — `HistoryTileLeading` now renders the canonical
+glyph in `onSurface` on a 20 % disc of the event's tracking-type accent (the same per-type
+colour as the home buttons), and `measurement_history_tile.dart` drops its accent glyph for the
+same treatment. Measured on the 20 % discs: light 11.5–15.3:1, dark 7.9–12.8:1 on all eight
+accent×theme pairs, against the 3:1 graphic rule. The measurement **button labels** (1.14:1 for
+the weight button in light mode) got the same `onSurface` pin as the track buttons — the
+v1.3.1+13 readability line covered the four track buttons only. Still open, by the same owner
+decision: the **home button icons** (`TrackButton`, `MeasurementButton` — accent glyph on a
+15 % disc) stay accent-tinted as identity; making them readable is a palette call (dual
+per-theme palette), not a contrast fix.
+
 ---
 
 ## B6 — The Vitamin D reminder is on by default; WHO 2022 (Rec 36): research only

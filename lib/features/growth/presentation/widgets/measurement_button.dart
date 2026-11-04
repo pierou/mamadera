@@ -80,8 +80,20 @@ class MeasurementButton extends StatelessWidget {
                       label,
                       maxLines: 1,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: color,
+                        // Label pinned to [ColorScheme.onSurface] (B4, the
+                        // same structural fix as TrackButton): the accent is
+                        // mode-agnostic, so an accent label can never be 4.5:1
+                        // on both its light and dark tints — 1.14:1 measured
+                        // for the weight button in light mode. The accent
+                        // stays in the border, the background, the icon and
+                        // the halo below.
+                        color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                              color: color.withValues(alpha: 0.3),
+                              blurRadius: 4)
+                        ],
                       ),
                     ),
                   ),
