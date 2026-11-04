@@ -3,5 +3,8 @@ Nouveautés de Mamadera 1.3.1
 Améliorations
 - Correction de la notification de changement de langue, désormais affichée dans la nouvelle langue
 - Correction de l'âge du bébé dans le menu, désormais affiché dans la langue de l'application et calculé par anniversaire
-- Amélioration de la lisibilité des libellés de boutons, des valeurs et du sélecteur d'unité en mode clair
+- Amélioration de la lisibilité des libellés de tous les boutons d'accueil, des valeurs et du sélecteur d'unité en modes clair et sombre
 - Suppression des pastilles de rappel sur les boutons d'accueil (la liste des rappels dus reste sous la grille) ; la ligne « Dernière activité » est désormais dans la langue de l'application
+- Ajout de la couleur du type d'événement aux icônes de l'historique, comme sur les boutons d'accueil
+- Remplacement de l'icône « Pipi & Caca » de l'historique par un symbole de gouttes
+- Alignement du libellé du bouton de sommeil avec les filtres de l'historique : « Dodo » devient « Sommeil »
