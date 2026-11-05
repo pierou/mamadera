@@ -81,4 +81,19 @@ class MockTrackingRepository extends _i1.Mock
         returnValue: _i3.Future<DateTime?>.value(),
         returnValueForMissingStub: _i3.Future<DateTime?>.value(),
       ) as _i3.Future<DateTime?>);
+
+  @override
+  _i3.Future<DateTime?> getLatestEventTimestamp(
+    _i5.TrackingType? type, {
+    String? babyId,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getLatestEventTimestamp,
+          [type],
+          {#babyId: babyId},
+        ),
+        returnValue: _i3.Future<DateTime?>.value(),
+        returnValueForMissingStub: _i3.Future<DateTime?>.value(),
+      ) as _i3.Future<DateTime?>);
 }

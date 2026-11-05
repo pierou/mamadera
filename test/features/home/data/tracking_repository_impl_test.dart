@@ -438,6 +438,101 @@ void main() {
       });
     });
 
+    group('getLatestEventTimestamp', () {
+      test('returns null when no event of the type exists', () async {
+        await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
+          timestamp: DateTime(2024, 1, 1, 8),
+          subtype: FeedingSubtype.natural,
+        ));
+
+        final result =
+            await repository.getLatestEventTimestamp(TrackingType.sante);
+        expect(result, isNull);
+      });
+
+      test(
+          'returns the newest timestamp of the type across babies '
+          'when unscoped', () async {
+        await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
+          timestamp: DateTime(2024, 1, 1, 8),
+          subtype: FeedingSubtype.natural,
+          babyId: 'b1',
+        ));
+        await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
+          timestamp: DateTime(2024, 1, 1, 14),
+          subtype: FeedingSubtype.artificial,
+          babyId: 'b2',
+        ));
+
+        final result =
+            await repository.getLatestEventTimestamp(TrackingType.miam);
+        expect(result, DateTime(2024, 1, 1, 14));
+      });
+
+      // The regression that motivated the scalar query: the home line must
+      // not show baby A the time of baby B's event.
+      test('scopes to the given babyId and ignores other babies', () async {
+        await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
+          timestamp: DateTime(2024, 1, 1, 8),
+          subtype: FeedingSubtype.natural,
+          babyId: 'b1',
+        ));
+        await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
+          timestamp: DateTime(2024, 1, 1, 14),
+          subtype: FeedingSubtype.natural,
+          babyId: 'b2',
+        ));
+
+        expect(
+          await repository.getLatestEventTimestamp(
+            TrackingType.miam,
+            babyId: 'b1',
+          ),
+          DateTime(2024, 1, 1, 8),
+        );
+        expect(
+          await repository.getLatestEventTimestamp(
+            TrackingType.miam,
+            babyId: 'b2',
+          ),
+          DateTime(2024, 1, 1, 14),
+        );
+        expect(
+          await repository.getLatestEventTimestamp(
+            TrackingType.miam,
+            babyId: 'b3',
+          ),
+          isNull,
+        );
+      });
+
+      test('counts rows with a null babyId only when unscoped', () async {
+        await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
+          timestamp: DateTime(2024, 1, 1, 8),
+          subtype: FeedingSubtype.natural,
+          // Legacy row: tracked before the baby switch existed.
+        ));
+
+        expect(
+          await repository.getLatestEventTimestamp(TrackingType.miam),
+          DateTime(2024, 1, 1, 8),
+        );
+        expect(
+          await repository.getLatestEventTimestamp(
+            TrackingType.miam,
+            babyId: 'b1',
+          ),
+          isNull,
+        );
+      });
+    });
+
     group('integration: mixed events round-trip', () {
       test('inserts and reads back all event types with data integrity',
           () async {

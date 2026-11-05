@@ -52,6 +52,19 @@ class MockTrackingRepository implements TrackingRepository {
     filtered.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return filtered.first.timestamp;
   }
+
+  @override
+  Future<DateTime?> getLatestEventTimestamp(TrackingType type,
+      {String? babyId}) async {
+    // Domain events carry no baby identity — [babyId] scoping is pinned at
+    // the database layer. This mock mirrors the unscoped semantics.
+    final timestamps = _events
+        .where((e) => e.trackingType == type)
+        .map((e) => e.timestamp)
+        .toList();
+    if (timestamps.isEmpty) return null;
+    return timestamps.reduce((a, b) => a.isAfter(b) ? a : b);
+  }
 }
 
 void main() {
@@ -346,6 +359,48 @@ void main() {
         final result =
             await repository.getLastEventByTypeAndSubtype(TrackingType.dodo);
         expect(result, DateTime(2024, 1, 1, 20));
+      });
+    });
+
+    group('getLatestEventTimestamp', () {
+      test('returns null when no event of the type exists', () async {
+        await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
+          timestamp: DateTime(2024, 1, 1, 8),
+          subtype: FeedingSubtype.natural,
+        ));
+
+        final result =
+            await repository.getLatestEventTimestamp(TrackingType.sante);
+        expect(result, isNull);
+      });
+
+      test('returns the newest timestamp of the type, ignoring subtypes',
+          () async {
+        await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
+          timestamp: DateTime(2024, 1, 1, 8),
+          subtype: FeedingSubtype.natural,
+        ));
+        await repository.insertEvent(SleepEvent(
+          unit: QuantityUnit.min,
+          timestamp: DateTime(2024, 1, 1, 20),
+          duration: 90,
+        ));
+        await repository.insertEvent(FeedingEvent(
+          unit: QuantityUnit.ml,
+          timestamp: DateTime(2024, 1, 1, 14),
+          subtype: FeedingSubtype.artificial,
+        ));
+
+        expect(
+          await repository.getLatestEventTimestamp(TrackingType.miam),
+          DateTime(2024, 1, 1, 14),
+        );
+        expect(
+          await repository.getLatestEventTimestamp(TrackingType.dodo),
+          DateTime(2024, 1, 1, 20),
+        );
       });
     });
 

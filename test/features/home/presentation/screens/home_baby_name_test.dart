@@ -10,9 +10,13 @@ import 'package:mamadera/core/providers/any_baby_exists_provider.dart';
 import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/features/growth/domain/entities/growth_measurement.dart';
 import 'package:mamadera/features/growth/presentation/providers/measurement_providers.dart';
+import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart';
+import 'package:mamadera/features/home/presentation/providers/repository_provider.dart';
 import 'package:mamadera/features/home/presentation/screens/home_screen.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
+import 'package:mamadera/shared/domain/entities/tracking_event.dart';
+import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 import '../../../reminders/data/repositories/mock_reminders_repository.dart';
 import '../../../reminders/presentation/providers/no_poll_reminders_notifier.dart';
@@ -56,6 +60,10 @@ void main() {
           remindersRepositoryProvider
               .overrideWith((ref) async => MockRemindersRepository()),
           reminderNotifierProvider.overrideWith(NoPollRemindersNotifier.new),
+          // The « last tracked » line resolves through the repository: keep
+          // it on a fake, never on a native database, in widget tests.
+          trackingRepositoryProvider
+              .overrideWith((ref) async => _NoEventsTrackingRepository()),
         ],
         child: MaterialApp(
           locale: const Locale('fr'),
@@ -189,4 +197,27 @@ class _NoMeasurementsNotifier extends MeasurementNotifier {
 
   @override
   Future<List<GrowthMeasurement>> build() async => const [];
+}
+
+/// No events: the home buttons omit their « last tracked » line.
+class _NoEventsTrackingRepository implements TrackingRepository {
+  @override
+  Future<List<TrackingEvent>> getAllEventsOrdered() async => const [];
+
+  @override
+  Future<List<TrackingEvent>> getEventsByType(TrackingType type) async =>
+      const [];
+
+  @override
+  Future<int> insertEvent(TrackingEvent event) async => 0;
+
+  @override
+  Future<DateTime?> getLastEventByTypeAndSubtype(TrackingType type,
+          {String? subtypeValue}) async =>
+      null;
+
+  @override
+  Future<DateTime?> getLatestEventTimestamp(TrackingType type,
+          {String? babyId}) async =>
+      null;
 }

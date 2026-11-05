@@ -149,6 +149,7 @@
       "- The baby's age in the menu now reads in the app's language and counts by the true anniversary",
       "- Better readability of every home button's label, the values and the unit selector in both light and dark modes",
       "- Removed the reminder pills from the home buttons (the due-reminders list stays below the grid); the 'Last tracked' line now reads in the app's language",
+      "- Every home button shows its last tracked time again — not just the ones with configured reminders, and always for the baby on screen",
       "- History icons now wear the colour of their event type, matching the home buttons",
       "- The 'Pee & Poop' icon in history now joins the droplet family",
       ""

@@ -439,6 +439,26 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
+  /// Timestamp of the most recent [type] event for [babyId] (any profile when
+  /// `babyId` is null), or null when no such event exists.
+  ///
+  /// Projects only the `timestamp` column — no row hydration, no notes
+  /// decryption. Feeds the home buttons' « last tracked » line, which is
+  /// activity-based rather than reminder-based.
+  Future<DateTime?> getLatestEventTimestampByType(
+    String type, {
+    String? babyId,
+  }) async {
+    final query = select(trackingEvents)..where((t) => t.type.equals(type));
+    if (babyId != null) {
+      query.where((t) => t.babyId.equals(babyId));
+    }
+    final timestamps = await query.map((e) => e.timestamp).get();
+    return timestamps.isEmpty
+        ? null
+        : timestamps.reduce((a, b) => a.isAfter(b) ? a : b);
+  }
+
   /// Updates an existing event by its ID.
   Future<int> updateEvent(int id, TrackingEventsCompanion companion) {
     return (update(trackingEvents)..where((t) => t.id.equals(id)))

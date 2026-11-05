@@ -172,6 +172,27 @@ void main() {
       // Those are provided by AppShell via go_router ShellRoute.
       expect(find.byType(BottomNavigationBar), findsNothing);
     });
+
+    // The « last tracked » line is activity-based: it reads the last event
+    // of the type from the events table (baby-scoped), not the reminder
+    // configuration. A type with events and no reminders configured shows
+    // the line; a type without events never does (the other tests in this
+    // file cover that default: the NiceMock returns null).
+    testWidgets(
+        'a tracked type shows its last-tracked line even without '
+        'any reminder configured', (tester) async {
+      when(mockRepo.getLatestEventTimestamp(
+        TrackingType.dodo,
+        babyId: 'test-baby-1',
+      )).thenAnswer(
+        (_) async => DateTime.now().subtract(const Duration(hours: 2)),
+      );
+
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dernière activité: 2h0'), findsOneWidget);
+    });
   });
 
   // ──────────────────────────────────────────────

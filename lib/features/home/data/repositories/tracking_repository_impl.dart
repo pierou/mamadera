@@ -164,4 +164,17 @@ class TrackingRepositoryImpl implements TrackingRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<DateTime?> getLatestEventTimestamp(TrackingType type,
+      {String? babyId}) async {
+    try {
+      return await _database.getLatestEventTimestampByType(type.name,
+          babyId: babyId);
+    } catch (e, stack) {
+      _logger.e('getLatestEventTimestamp(${type.name}) - Error: $e',
+          error: e, stackTrace: stack);
+      rethrow;
+    }
+  }
 }
