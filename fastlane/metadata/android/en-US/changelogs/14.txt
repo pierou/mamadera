@@ -1,0 +1,6 @@
+* The language-change confirmation now appears in the new language
+* The baby's age in the menu reads in the app's language, counted by the true anniversary
+* Better readability of button labels, values and the unit picker, in light and dark mode
+* Reminder pills removed from the home buttons; the due-reminders list stays below the grid
+* History icons now wear the colour of their event type, like the home buttons
+* Still no account, no analytics, nothing leaving the device
