@@ -31,7 +31,12 @@ cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 VERSION="${VERSION:-$(grep -m1 '^version:' pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)}"
 PKG="store/v${VERSION}"
 RAW=screenshots/ios/asc/raw
-SIZES="1242x2688 2688x1242 1284x2778 2778x1284"
+# B24 (2026-11-03): the four sizes App Store Connect actually accepts for the
+# current iPhone lineup — the old set (1242x2688 / 1284x2778) stopped being
+# uploadable. The raw captures from an iPhone 17 simulator are already
+# 1206x2622 portrait / 2622x1206 landscape; 1179x2556 / 2556x1179 (iPhone 17e)
+# are resizes of the same frames, as the old set did of its two sizes.
+SIZES="1206x2622 2622x1206 1179x2556 2556x1179"
 EXPECTED_RAW=14
 DEVICE="${DEVICE:-iPhone 17}"
 LOCALES="${*:-fr es en}"

@@ -46,11 +46,14 @@ extension FeedingSubtypeIcon on FeedingSubtype {
 
 /// Extension on [WasteType] returning a Material icon for inline display.
 extension WasteTypeIcon on WasteType {
-  /// Returns the canonical icon for this waste type.
+  /// Returns the canonical icon for this waste type — one drop family:
+  /// pipi → outlined drop (light/empty), caca → filled drop (full),
+  /// lesDeux → drop with satellite drops (both, at once). Was `wb_sunny`, a
+  /// glyph found nowhere else in the app.
   IconData get icon => switch (this) {
         WasteType.pipi => Icons.water_drop_outlined,
         WasteType.caca => Icons.water_drop,
-        WasteType.lesDeux => Icons.wb_sunny,
+        WasteType.lesDeux => Icons.opacity,
       };
 }
 

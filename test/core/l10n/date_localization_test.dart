@@ -214,11 +214,11 @@ void main() {
       expect(getTrackingTypeLabel(context, TrackingType.miam), 'Nourriture');
     });
 
-    testWidgets('dodo → Dodo', (tester) async {
+    testWidgets('dodo → Sommeil', (tester) async {
       final context = await pumpWithContext(tester, const Locale('fr'));
       expect(
         getTrackingTypeLabel(context, TrackingType.dodo),
-        'Dodo',
+        'Sommeil',
       );
     });
 

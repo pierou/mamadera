@@ -1,0 +1,5 @@
+• La confirmación del cambio de idioma ahora aparece en el nuevo idioma
+• La edad del bebé en el menú se muestra en el idioma de la aplicación, calculada por aniversario
+• Mejor legibilidad de los textos de los botones, de los valores y del selector de unidad en modo claro
+• Supresión de las pastillas de recordatorio en los botones de inicio (la lista de pendientes sigue bajo la cuadrícula)
+• Siempre sin cuenta, sin análisis, y sin datos que salgan del dispositivo

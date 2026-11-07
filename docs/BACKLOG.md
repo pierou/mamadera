@@ -141,8 +141,17 @@ promise. No code, no dependency, no spike until that sentence changes — see `A
 
 ## B4 — Insufficient contrast: the yellow (day) and the brown (night)
 
-**Status:** open, v1.3.1 candidate — **measured 2026-11-01: 4 of 8 button×theme pairs fail AA**,
-not the 2 this ticket names · **Priority:** real accessibility · **Cost:** colour choice + verification pass
+**Status:** open, v1.3.1 — **fixed 2026-11-03 on `release/v1.3.1` by the structural alternative**
+(labels pinned to the guaranteed-contrast text, tints kept) · **re-measured on device
+2026-11-03 from the v1.3.1 store frames — all 8 button×theme pairs pass** (miam light
+**1.15→14.89:1**, sante light **1.89→13.46:1**, caca dark **1.43→12.00:1**, dodo dark
+4.57→9.54:1, dodo light 2.07→passes; method: `scripts/wcag_sample.py` on sips crops of
+`store/v1.3.1/screenshots/play/fr/fr-home.png` and the ASC dark frame) ·
+**measured 2026-11-01: 4 of 8 button×theme pairs fail AA**, not the 2 this ticket
+names · **Priority:** real accessibility · **Cost:** paid — no identity colour changed
+— **updated 2026-11-03:** the `+N`-pill part of the scope is removed by **B23** (the pills no
+longer exist, so there is nothing left to fix their contrast); the button labels, the quantity
+readout and the segmented toggles remain
 **Found:** 2026-10-04, by eye on Android (light) and iOS (dark) captures
 
 ### The problem, seen and not guessed
@@ -219,14 +228,55 @@ The structural alternative is probably the right one: it keeps the visual identi
 colours that distinguish care/feeding/nappy/sleep) without asking a pastel tint to carry
 the readability of the text.
 
-### To do before touching the colours
+### The fix (implemented 2026-11-03, `release/v1.3.1`)
+The structural alternative, not a new palette — no identity colour moved:
+
+1. **Track-button label** (`track_button.dart`): painted with
+   `colorScheme.onSurface` instead of the accent. The accent stays in the background
+   gradient, the border, the shadow and the icon. The chip fix's measured pattern
+   (1.05:1 → 15.29:1 after pinning) applied to the same defect.
+2. **Quantity readout** (`quantity_picker_inline.dart`): the value text — and the hint
+   state, which painted `primary` (sante green ≈ 2.4:1 on white, same class) — now take
+   `onSurface`. The accent stays on the slider track/thumb and the stepper buttons.
+3. **Segmented control** (`theme.dart`): `onSecondaryContainer` is now **explicit** in both
+   schemes (light → `lightTextPrimary` ≈ 13.8:1 on the `B3E5FC` tint, dark →
+   `darkTextPrimary`). Left to the `MaterialDynamicColors` derivation from the dodo
+   `secondary`, it resolved to white on the pale tint — the measured 1.32:1.
+
+Regressions: `track_button_test.dart` (label = onSurface, both themes),
+`quantity_picker_inline_test.dart` (value = onSurface, both themes),
+`theme_test.dart` (the two pins).
+
+### To do before the v1.3.1 screenshots are final
 1. ~~Measure the real ratio of the current pairs~~ **done 2026-11-01**, table above (device sample,
    `small_phone/00-note.txt` §4). Still owed: the same sample in **dark** mode, which so far exists
-   only as a computation.
-2. Choose one pair per theme, verify 4,5:1 on the labels and the pills in **both**
-   themes, on the smallest device.
+   only as a computation — **and now the post-fix sample in both themes**
+   (`scripts/wcag_sample.py` on the 1.3.1 captures; the gate pass covers both themes).
+2. ~~Choose one pair per theme~~ — superseded: the structural fix changes no pair's background,
+   so there is nothing to choose; the verification is the re-measurement, item 1.
 3. Do not change an identity colour lightly: these four tints are the app's
-   wayfinding system, and an unmeasured colour change can break two others.
+   wayfinding system, and an unmeasured colour change can break two others. **Honoured —
+   the palette is untouched.**
+
+### Left in the open (observed 2026-11-03, not in the fix)
+The track-button **icon** is still the accent on its own accent-at-15 % disc — the miam icon in
+light mode sits at roughly the same 1.15:1 as its former label. The ticket's structural proposal
+explicitly reserves the icon for the tint, so it ships as-is; if the re-measurement or the owner
+wants the icon readable too, that is a palette call (dark icon glyph on the tint), not a label
+tweak. Same for the 16 px `secondary`-tinted icons in the history tiles (`history_tile.dart:223`,
+`measurement_history_tile.dart:68`) — 2.65:1 for miam/dodo, below the 3:1 graphic rule.
+
+**Resolved 2026-11-04 on `fix/contrast-measurement-history` (ships in 1.3.1+14):** the owner
+chose the ink-glyph-on-tinted-disc strategy — `HistoryTileLeading` now renders the canonical
+glyph in `onSurface` on a 20 % disc of the event's tracking-type accent (the same per-type
+colour as the home buttons), and `measurement_history_tile.dart` drops its accent glyph for the
+same treatment. Measured on the 20 % discs: light 11.5–15.3:1, dark 7.9–12.8:1 on all eight
+accent×theme pairs, against the 3:1 graphic rule. The measurement **button labels** (1.14:1 for
+the weight button in light mode) got the same `onSurface` pin as the track buttons — the
+v1.3.1+13 readability line covered the four track buttons only. Still open, by the same owner
+decision: the **home button icons** (`TrackButton`, `MeasurementButton` — accent glyph on a
+15 % disc) stay accent-tinted as identity; making them readable is a palette call (dual
+per-theme palette), not a contrast fix.
 
 ---
 
@@ -525,8 +575,10 @@ that
 
 ## B11 — The language-change notification shows in the old language
 
-**Status:** open (owner request, 2026-10-06:
-« la notification de changement de langue doit être dans la langue cible ») · **Cost:** trivial
+**Status:** open → **fixed 2026-11-03 on `release/v1.3.1`** (exactly the fix section below,
+plus a `runAsync` wrap the tap needed for the fake-async test zone; the three-direction tests
+are in `menu_screen_test.dart`) · **Cost:** paid (owner request, 2026-10-06:
+« la notification de changement de langue doit être dans la langue cible »)
 **Found:** verification of 2026-10-06 in `menu_screen.dart:217-218`.
 **Files:** `lib/features/menu/presentation/screens/menu_screen.dart:211-220` (the tap of the language
    tile), `lib/l10n/app_localizations.dart:1711` (`lookupAppLocalizations(Locale)` — the fix
@@ -582,9 +634,12 @@ with no extra code).
 
 ## B12 — Due reminders are at the bottom of the home: they should be at the top
 
-**Status:** open (owner request, 2026-10-06:
-« les rappels devraient être en haut de l'écran d'accueil » ) · **Cost:** trivial — a reordering
-of the `Column`
+**Status:** closed by owner decision, 2026-11-03 — **will not do**: the list stays below the
+grid (« it's nice as it is »); the track-button pills that motivated moving it up are removed
+instead — see **B23**. The « Do not » clause below (the pills stay, « a feature removal without
+request ») is superseded by that owner request. Body kept as the decision record ·
+(owner request, 2026-10-06: « les rappels devraient être en haut de l'écran d'accueil ») ·
+**Cost:** trivial — a reordering of the `Column`
 **Found:** verification of 2026-10-06 — the due reminders list is the **third** child of the
    home `Column`, under the 2×2 tracking grid **and** under the row of growth buttons.
 **Files:** `lib/features/home/presentation/screens/home_screen.dart:344-396` (the `Column`:
@@ -929,9 +984,15 @@ types — **this ticket is feeding only** (the owner asked for feeding).
 
 ## B18 — The baby's age is hardcoded English, and the month arithmetic is wrong
 
-**Status:** open, v1.3.1 candidate · **Severity:** visible-in-French defect (not cosmetic: it is the
-one line in the Menu that switches language with the rest of the screen and doesn't)
-· **Cost:** ~10 lines, no migration, no export bump — the three ARB keys already exist
+**Status:** open → **fixed 2026-11-03 on `release/v1.3.1`** per the verified mapping below —
+anniversary arithmetic via a clamped `_addMonths`, the three prepared keys wired, no new ARB
+strings; regressions in `baby_profile_section_test.dart` (5 jours / 2 mois / 1 ans / the
+31-January anniversary boundary). The store-artefact consequence (12 files with « 3 months
+old » in every locale) is paid by the **B24 recapture**: the 1.3.1 ASC/Play frames are
+recaptured with the fixed line, and v1.3.0's stored sets are superseded, not patched
+· **Severity:** visible-in-French defect (not cosmetic: it is the one line in the Menu that
+switches language with the rest of the screen and doesn't)
+· **Cost:** paid — ~25 lines, no migration, no export bump, no new ARB keys
 **Found:** 2026-11-01, on the Small_Phone device pass (`v1.2.1+11 → v1.3.0+12`), French UI
 
 ### The defect, seen on hardware
@@ -1048,3 +1109,244 @@ written for a parent. `1.0.1`–`1.3.0` read as user prose in all three locales 
 Rewrite `1.0.0` (and tidy `1.0.1`) EN in parent language first — it is the source — then re-derive
 fr/es in the noun form AGENTS.md mandates, human-read, and `make store-package` follows. Factual
 claims stay intact; the entry is history the app shows, so wording may change, events may not.
+
+---
+
+## B23 — The track-button reminder pills overflow and duplicate the home reminders list
+
+**Status:** open, v1.3.1 scope (owner decision 2026-11-03: « remove them ») · **Cost:** small —
+one widget file, one test file, the pill groups of a second test file · **Risk:** low — display
+only, no data, no schema, no export change
+**Found:** owner report 2026-11-03, after custom reminders shipped in v1.3.0 (B14) — the pills
+now carry free-text custom labels, not just the four short preset names
+
+### The fact
+Since the item-12 work, the 2×2 grid buttons render every pending reminder of their type as a
+`ReminderPill` sticker (`lib/features/home/presentation/widgets/track_button.dart`): the
+localized preset label or the **free-text custom label** (« Crème nombril », « Portage »), capped
+at three visible plus a `+N` overflow pill (`_maxVisiblePills`). Two problems, both visible on
+devices:
+
+1. **Space.** The pills wrap in a `Wrap` inside a fixed-height button (230 px) sharing the column
+   with the label; long custom labels wrap into extra lines, the label's `Expanded` flex shrinks
+   (`hasPending ? 2 : 3`) and the stickers overrun the neighbouring cell. The code's own doc
+   comment on `_maxVisiblePills` records the end state it was designed around: the `Wrap`
+   « consumes the space allocated for the label » and « the button press becomes random ».
+2. **Redundancy.** The very same pending reminders are listed in `HomeRemindersSection` directly
+   below the grid (D1). The `home_screen.dart` comment already says the list « replaces the
+   reading of +N » — yet both shipped, so a parent reads every due reminder twice: once as a
+   sticker they have to decode at the top, once as a list below.
+
+### Decision (owner, 2026-11-03)
+Remove the pills from `TrackButton`. The list below is the single place pending reminders are read
+on the home screen. The **« last tracked » line** (« 2h ago », from `ReminderStatus.lastEventAt`)
+is **not** a reminder — it is event history, nothing below shows it, and it **stays**. This
+decision also closes B12 (the list stays where it is) and cuts the `+N`-pill part of B4's scope.
+
+### To do
+1. `track_button.dart`: delete the pills branch, `_pillLabelFor`, `_visiblePills`,
+   `_maxVisiblePills`, the `pillLabelBuilder` wiring and the `hasPending` flex adjustment (the
+   label flex is then always `icon != null ? 3 : 4`). Keep the `reminders` parameter —
+   `_lastTrackedLabel` reads `lastEventAt` from it.
+2. Delete `reminder_pill.dart` (its only consumer) and `reminder_pill_test.dart`; strip the pill
+   groups from `track_button_test.dart` and replace them with the regressions that matter now:
+   no sticker text renders for a non-empty list, the last-tracked line renders from
+   `lastEventAt`, and ten pending reminders with long labels do not overflow.
+3. Emulator pass per the gate: `Small_Phone`, home with 0, 1 and 4+ pending reminders including a
+   long custom label — the label keeps its one-line `FittedBox`, nothing overruns the cell.
+
+### Known follow-up (not in this ticket)
+`_lastTrackedLabel` hardcodes its relative formats in English — `'< 1 min'`, `'45min ago'`,
+`'2h 3m ago'` — and only `yesterday` / `daysAgo` are localized. With the pills gone this line is
+more visible in a French UI; it needs three arb keys × three locales. Small, but it is a product
+string decision, not a deletion — separate ticket.
+
+### Do not
+- Do not remove the **last-tracked** line (« 2h ago ») in this ticket: it is event history, not
+  reminders, and nothing below the grid shows it.
+- Do not touch `HomeRemindersSection`, the reminder notifier or the scheduler: the pills were
+  display-only, the data path is unchanged.
+- Do not re-add a per-type **count** indicator « for information »: that is the reading B23 retires;
+  the list below is the counter. If the owner wants a count back, it is a new request, not a
+  regression of this one.
+
+---
+
+## B24 — The stored App Store screenshot set uses a device lineup ASC no longer accepts
+
+**Status:** **fixed 2026-11-03 on `release/v1.3.1`** · **Cost:** paid — the accepted set is now
+`1206x2622` / `2622x1206` / `1179x2556` / `2556x1179` (iPhone 17 / 17e) in `campaign_asc.sh`,
+`postprocess.sh` and `store_check.py`; the v1.3.1 package carries a fresh per-locale set —
+3 locales × 7 screens × 4 slots, cross-locale pixel-difference asserted by the campaign,
+`check.py` reports **PACKAGE OK** (2026-11-03) · **Risk:** low — assets only, no app code, no
+schema
+**Found:** 2026-11-03, owner, from the App Store Connect requirements panel while preparing the
+v1.3.0 submission
+
+### The fact
+The ASC panel states (quoted verbatim, owner 2026-11-03):
+
+> Les tailles compatibles pour les aperçus d'app sont les suivantes : 1920 × 886px et 886 × 1920px.
+> Les tailles compatibles pour les captures d'écran d'app sont les suivantes : 2556 × 1179px,
+> 1179 × 2556px, 2622 × 1206px et 1206 × 2622px.
+
+i.e. app previews 1920×886 / 886×1920, screenshots 2556×1179, 1179×2556, 2622×1206, 1206×2622.
+
+Our capture pipeline is pinned to the previous iPhone lineup:
+`screenshots/ios/asc/campaign_asc.sh:34` → `SIZES="1242x2688 2688x1242 1284x2778 2778x1284"`.
+The stored frame sets — `store/v1.3.0/screenshots/ios/asc/{fr,es,en}/` (7 screens × 4 sizes each,
+recaptured 2026-11-01, md5-verified across locales) — are entirely at those old sizes. **None of
+the four stored sizes appears in the panel's accepted list**, so the next App Store upload fails
+validation as-is. The Play set (1280×2856, `store/v1.3.0/capture.sh`) is a different console and
+is unaffected.
+
+### To do
+1. Map the four accepted screenshot sizes to the current iOS simulator device types
+   (`xcrun simctl list devices available`) and update `SIZES` in `campaign_asc.sh` — keep the
+   landscape pair for each portrait size, as today.
+2. Recapture all three locales × seven screens at the new sizes, with the cross-locale md5 check
+   the pipeline already enforces (a capture failure must be visible, not resampled).
+3. Update the stored sets, `store/v1.3.x/check.py` size expectations and
+   `screenshots/ios/asc/README.md` in the same commit as the frames.
+4. Promo/header assets under `store/` (`asc_header_3840x1646*`, `asc_header_5244x2950*`,
+   `appstore_promo_*`): check which sizes the current panel requires for marketing graphics and
+   record the decision here — do not rescale silently.
+5. App previews: we ship none. The quoted preview sizes (1920×886 / 886×1920) are recorded only
+   for the day a video is produced.
+
+### Do not
+- Do not **rescale** the existing frames to the accepted pixel sizes: fake resolution is what the
+  md5/locale discipline exists to catch.
+- Do not touch the Play Store set or the Android capture pipeline from this ticket.
+
+---
+
+## B25 — The track-button « last tracked » line ships three hardcoded English formats
+
+**Status:** open, v1.3.1 scope (fixed 2026-11-03 on `release/v1.3.1`, pending owner sign-off of
+the rendered strings) · **Severity:** visible-in-French defect, same class as B11/B18 · **Cost:**
+paid — the line reuses existing keys, no new ARB strings · **Risk:** low — display only
+**Found:** 2026-11-03, during the B11/B18 pass on the v1.3.1 branch — it is B23's own
+"known follow-up", which anticipated exactly this ticket ("it needs three arb keys × three
+locales … a product string decision, not a deletion — separate ticket")
+
+### The fact
+`lib/features/home/presentation/widgets/track_button.dart`, `_lastTrackedLabel`, shipped in
+v1.3.0 (tag `v1.3.0`, lines 51-53 of the file) builds the home button's « last tracked » line
+from literals:
+
+```dart
+if (diff.inMinutes < 1) return '< 1 min';
+if (diff.inHours < 1) return '${diff.inMinutes}min ago';      // « 45min ago » in a French UI
+if (diff.inDays < 1) return '${diff.inHours}h ${diff.inMinutes % 60}m ago';
+```
+
+Only `yesterday` / `daysAgo` were localized. With B23 removing the pills (this line becomes the
+buttons' only dynamic text below the label), the English fragments are now the most visible
+string on the French home screen. The prepared-but-unwired `lastTracked` key
+(« Dernière activité: » / "Última actividad: " / "Last tracked: ", in all three ARBs, referenced
+by nothing in `lib/`) is the same prepared-for-this-line pattern as B18's `daysOld` trio.
+
+### The fix (implemented, 2026-11-03)
+No new ARB keys — the line is reassembled from what already exists, so the string set stays
+under owner review rather than growing: `lastTracked` prefix + `durationFormatMinutes`
+("45 min") + `durationFormatHoursMinutes` (en "2h 5m", fr/es "2h5m") + `yesterday` lower-cased
+mid-line (« hier ») + `daysAgo` + the bare date. `'< 1 min>'` is kept verbatim — the same
+compact unit notation the app already uses in French and Spanish (`"{minutes} min"`).
+
+### Owner decision point (before the 1.3.1 home screenshots are final)
+The ticket B23 anticipated called for **three new keys** (« il y a 45 min »-style relative
+phrasings). The implemented fix instead reads as **prefix + duration**: « Dernière activité:
+45 min ». Both are legitimate product strings; the device pass shows the implemented one —
+if the relative phrasing is preferred, that is three new keys × three locales, a small
+follow-up, and the line's rendering site is a single method.
+
+---
+
+## B22 — Tapping a reminder notification restores the previous screen; it should land on Home
+
+**Status:** open (owner report, 2026-11-02; first version of this ticket had the request inverted —
+correction note below) · **Cost:** ~2 h incl. the release-gate pass · **Risk:** low — Dart-side
+callback only, no native change, no schema
+**Files:** `lib/features/reminders/data/services/flutter_local_notification_service.dart:43-71`
+(`init()` calls `_plugin.initialize(settings: …)` **without** the tap callback),
+`lib/features/reminders/presentation/providers/reminder_sync_notifier.dart:32` (where
+`FlutterLocalNotificationService()` is built — the seam for injecting the handler),
+`lib/core/router.dart:64-84` (the splash redirect — the cold path that already lands on Home;
+**do not touch**), `android/app/src/main/AndroidManifest.xml` (`singleTop` + `taskAffinity=""` —
+why the alive path restores the previous screen)
+
+### The fact
+Observed on both platforms (owner, 2026-11-02): the app was left on the reminder settings screen;
+tapping a reminder notification brought the app back to **settings** — on Android *and* iOS.
+Expected: **Home**.
+
+Root cause: there is no Dart tap handler at all. `init()` passes only `settings:` to the plugin's
+`initialize` — no `onDidReceiveNotificationResponse`, no other callback — so the tap falls through
+to the OS default, which is *restore the app where it was*:
+
+- **Android, alive** (foreground or in recents): the content intent is the standard launch intent +
+  `SELECT_NOTIFICATION` action; with `launchMode="singleTop"` + `taskAffinity=""`, the tap reaches
+  `onNewIntent` on the existing activity and the previous UI is shown as-is. Verified 2026-11-02
+  against 22.3.3: the plugin's `sendNotificationPayloadMessage` already calls the
+  `didReceiveNotificationResponse` channel method — it goes nowhere because no Dart callback is
+  registered.
+- **iOS, alive** (foreground or suspended): the engine's `FlutterAppDelegate` (conforms to
+  `FlutterAppLifeCycleProvider` <`UNUserNotificationCenterDelegate`>, verified in the current
+  engine headers) forwards the tap to the plugin, which registers itself with
+  `addApplicationDelegate` in `registerWithRegistrar` (verified against 22.3.3); the plugin's
+  `userNotificationCenter:didReceiveNotificationResponse:` invokes the same channel method.
+  **No `AppDelegate.swift` change is needed** — the manual `UNUserNotificationCenter.current().delegate = self`
+  from the plugin README is the legacy setup for non-`FlutterAppDelegate` apps.
+- **Cold launch (app killed)** already lands on Home: the splash redirect (`_redirect`,
+  `router.dart:64`) returns `AppRoute.home.path`, and the plugin's tap callbacks do not fire on a
+  launch by design (launches are read via `getNotificationAppLaunchDetails` — not needed here).
+
+The v1.3.0 plan's D7 said « default tap = open app at root » — that only ever held for the cold
+path; the alive path has silently restored the previous screen since. Owner intent, now explicit:
+**tap ⇒ Home, on both platforms.**
+
+### Correction note (2026-11-02, same day)
+The first version of this ticket was written for the request « bring the app to where it was open,
+not on the home » — based on the misperception that the tap landed on Home. In fact the tap was
+*restoring the previous screen* (settings) on both platforms; the cold path already landed on Home.
+The requirement is the **inverse** of the first version: tap ⇒ **always Home**. Everything in the
+first version's plan (persist the last tab, move `init()` into `main()`, read
+`getNotificationAppLaunchDetails`) is therefore not needed, and is recorded here so it is not
+resurrected during implementation.
+
+### To do
+1. Register `onDidReceiveNotificationResponse` in `FlutterLocalNotificationService.init()` to
+   navigate Home: `router.go(AppRoute.home.path)`. **The seam:** the data-layer service must not
+   import `core/router.dart`, so inject the handler — add a `void Function()? onNotificationTapped`
+   to the service (constructor field, mirroring the existing `plugin` parameter) and pass
+   `() => router.go(AppRoute.home.path)` at the construction site (`localNotificationServiceProvider`,
+   `reminder_sync_notifier.dart:32` — presentation layer, where importing the router is allowed).
+   A tap while the app sits on a non-shell route (`/reminder-settings`, `/info`, …) replaces it
+   with Home — that is the point of a fixed destination; the terms gate is already passed by the
+   time any notification can exist (opt-in ⇒ the app is in use).
+2. **Do not** register `onDidReceiveBackgroundNotificationResponse`: it only fires for notification
+   *actions* that do not show the UI (a background isolate, `@pragma('vm:entry-point')`). The app
+   has no actions and this ticket adds none.
+3. No payload: `scheduleAt` already passes none, and Home is a fixed destination — nothing to encode.
+4. Tests: (a) service test with the existing `FakePlugin`/recording pattern — `init` stores the
+   callback, a simulated tap invokes the injected handler exactly once; (b) provider test that the
+   injected handler routes to `/home`.
+5. **Release gate, both platforms** (the owner has the repro — this is the regression check): leave
+   the app on the reminder settings screen, fire a notification (wait for the due window / catch-up,
+   or temporarily schedule a test one), then tap ⇒ **Home** with (a) the app foregrounded,
+   (b) the app in recents / suspended. Then: (c) kill the app, tap ⇒ Home (no regression),
+   (d) launch from the icon ⇒ Home, (e) the notification dismisses on tap (autoCancel default).
+
+### Do not
+- **Do not persist the last tab, move `init()` into `main()`, or read `getNotificationAppLaunchDetails`**
+  — all of that was the first version's plan and is void under the correction note above.
+- **Do not change the splash redirect** in `router.dart`: the cold path is already correct, and the
+  tap callback must not double-handle it.
+- **Do not touch `AppDelegate.swift` or the Android manifest**: the engine's `FlutterAppDelegate`
+  already wires the iOS notification delegate, and Android's `singleTop` / `taskAffinity=""` are
+  what make the tap reach the running engine at all.
+- **Do not add a payload or deep link to a reminder screen in this ticket** — tap-as-action is
+  B15's territory and needs its own payload design.
+- **Do not amend D7 in the plan document** (v1.3.0 decision record); this ticket is the recorded
+  supersession — link it from the PR description.

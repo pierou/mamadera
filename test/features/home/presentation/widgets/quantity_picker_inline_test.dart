@@ -14,7 +14,8 @@ import 'package:mamadera/features/home/presentation/widgets/quantity_picker_inli
 /// The field was rejecting the comma; `double.tryParse` only recognized the period.
 /// A French-speaking parent who types "37.5" sees nothing happen and believes that...
 /// It recorded a temperature that the app had never received before.
-Widget _host(Widget child) => MaterialApp(
+Widget _host(Widget child, {ThemeData? theme}) => MaterialApp(
+      theme: theme,
       locale: const Locale('fr'),
       supportedLocales: const [Locale('fr'), Locale('en')],
       localizationsDelegates: const [
@@ -388,6 +389,30 @@ void main() {
       await tester.tap(find.byIcon(Icons.add_circle_outline));
       await tester.pumpAndSettle();
       expect(find.text('37,1 °C'), findsWidgets);
+    });
+  });
+
+  group('B4 — the readout is not the accent', () {
+    testWidgets('light theme paints the value with onSurface, not the accent',
+        (tester) async {
+      await tester.pumpWidget(
+          _host(const _EchoPicker(initial: 37.5), theme: AppTheme.lightTheme));
+      await tester.pumpAndSettle();
+
+      final text = tester.widget<Text>(find.text('37,5 °C').first);
+      expect(text.style?.color, equals(AppTheme.lightTextPrimary),
+          reason: 'the accent painted as value text failed on the dialog '
+              'background (B4); the accent stays on the slider and steppers');
+    });
+
+    testWidgets('dark theme paints the value with the light onSurface',
+        (tester) async {
+      await tester.pumpWidget(
+          _host(const _EchoPicker(initial: 37.5), theme: AppTheme.darkTheme));
+      await tester.pumpAndSettle();
+
+      final text = tester.widget<Text>(find.text('37,5 °C').first);
+      expect(text.style?.color, equals(AppTheme.darkTextPrimary));
     });
   });
 }

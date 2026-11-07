@@ -1,0 +1,9 @@
+Novedades de Mamadera 1.3.1
+
+Mejoras
+- Corrección de la notificación de cambio de idioma, ahora en el nuevo idioma
+- Corrección de la edad del bebé en el menú, ahora en el idioma de la aplicación y calculada por aniversario
+- Mejor legibilidad de los textos de todos los botones de inicio, de los valores y del selector de unidad en modo claro y oscuro
+- Supresión de las pastillas de recordatorio en los botones de inicio (la lista de recordatorios pendientes sigue bajo la cuadrícula); la línea « Última actividad » ahora está en el idioma de la aplicación
+- Adición del color del tipo de evento a los iconos del historial, como en los botones de inicio
+- Sustitución del icono « Orina y Caca » del historial por un símbolo de gotas

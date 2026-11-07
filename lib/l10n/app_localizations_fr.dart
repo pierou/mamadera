@@ -39,7 +39,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeButtonCaca => 'Couche';
 
   @override
-  String get homeButtonDodo => 'Dodo';
+  String get homeButtonDodo => 'Sommeil';
 
   @override
   String get homeButtonPoids => 'Poids';
