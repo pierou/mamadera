@@ -5,6 +5,10 @@
 re-checked by hand — corrections are marked *(subagent claim, wrong)*.
 Every number below was measured in this session; nothing is recalled.
 
+**Amended 2026-11-03 (owner):** B12 cut — the reminders list stays below the grid (« nice as it is
+»); the track-button reminder pills that made it feel redundant are removed instead (new **B23**).
+§4 table updated accordingly; B4's `+N`-pill contrast item drops out.
+
 ---
 
 ## 1. v1.3.0 is staged, not shipped
@@ -138,17 +142,19 @@ chip label **1.05:1 → 15.29:1** (white on `miam` 20 % → `onSurface` on the s
 
 | Item | Verified state | Cost |
 |---|---|---|
-| B4 button labels + `+N` pills | 4 failures measured above; `track_button.dart:249-251` already picks white70/black54 by brightness, so the pattern exists in the same file | small + a verification pass on both themes, smallest device |
+| B4 button labels (the `+N` pills drop out of scope — removed by B23 first) | 4 failures measured above; `track_button.dart:249-251` already picks white70/black54 by brightness, so the pattern exists in the same file | small + a verification pass on both themes, smallest device |
 | Waste-type chip row | `edit_event_dialog.dart:415-421` is the last `Row`+`Expanded` selector. **Does not clip** — its `Text` has no ellipsis, so it soft-wraps; chips are 48 dp tall (= 2 lines) at 320/360/393 dp. Polish, not data loss. `:460-500` already use `Wrap` | one line, `OptionChipRow` exists |
 | **B6 — Vitamin D default** | `reminder_providers.dart:87` still `settings[item.id] ?? true`; zero `enabledByDefault` in `lib/`; owner decision **A** (new default only, no migration) dates 2026-10-06 and was never built. Visible in the release evidence: the "Vit. D" pill is on | small: one field + fallback + 3 arb strings. Wording constraint: never "the app now follows the WHO" |
 | B11 — language-change snackbar | `menu_screen.dart:240-242`, verbatim the documented bug; `lookupAppLocalizations` already exists | trivial, fix written in the doc |
 | B18 — baby age hardcoded English | `baby_profile_section.dart:491-504`, seen on device in French; ARB keys exist in all 3 locales and are unused | ~10 lines + the anniversary arithmetic the same lines lack; no migration, no export bump |
-| B12 — reminders below the fold | `home_screen.dart` Column: grid `:351` → measurements `:398` → reminders `:401`; now seen on the small device too (« Rappels à faire » at the very bottom edge of `small_phone/22-…png`) | trivial reorder + **owner decision: hide the section when empty, or keep "Rien à faire"** |
+| **B23 — track-button reminder pills removed** (owner, 2026-11-03) | Since B14 the pills carry free-text custom labels: the `Wrap` eats the label's flex in a fixed 230 px button and overruns the neighbouring cell — the code's own `_maxVisiblePills` comment records « the button press becomes random » — and the very same list sits in `HomeRemindersSection` directly below (D1: « replaces the reading of +N »). Remove the pills; keep the « last tracked » line | small: one widget file deleted, pill test groups replaced by no-sticker / no-overflow regressions; also shrinks B4's scope |
 
 ### Cut from v1.3.1
 
 B3 sync (blocked on a **written** privacy-mandate change, `BACKLOG.md:130`) · B8 growth chart
-(feature + dependency privacy audit) · **B15/B16/B17** — the three open feature tickets PR #52
+(feature + dependency privacy audit) · **B12** — owner 2026-11-03: the list stays below the grid
+(« nice as it is »); the redundant pills are removed instead (B23) · **B15/B16/B17** — the three
+open feature tickets PR #52
 landed on `develop` (merged 2026-10-30, while this branch was in flight); B14 shipped its mechanism
 in `1.3.0+12` and is closed by the owner. B16 (a note when creating a feeding) touches the very
 dialog this release changed, so schedule it immediately after · all clinical content (IMNCI colours,

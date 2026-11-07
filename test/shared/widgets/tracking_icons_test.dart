@@ -46,8 +46,8 @@ void main() {
       expect(WasteType.caca.icon, Icons.water_drop);
     });
 
-    test('lesDeux returns wb_sunny icon', () {
-      expect(WasteType.lesDeux.icon, Icons.wb_sunny);
+    test('lesDeux returns opacity icon (drop family, not the sun)', () {
+      expect(WasteType.lesDeux.icon, Icons.opacity);
     });
   });
 

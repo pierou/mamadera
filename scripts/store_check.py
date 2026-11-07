@@ -55,11 +55,14 @@ PLAY_SLOTS = [(locale, 1280, 2856, len(PLAY_SCREENS)) for locale in LOCALES]
 # Recaptured by the iOS simulator pipeline (asc_driver_main + postprocess.sh). Until each
 # locale is run, the accepted-but-old ASC set lives in screenshots/ios/ — reported as a
 # warning, because uploading it is a decision, not an accident.
+# B24 (2026-11-03): the accepted set is now 1206x2622 / 1179x2556 and their
+# landscape twins (iPhone 17 / 17e); the old 1242x2688 / 1284x2778 pair is no
+# longer uploadable.
 ASC_SLOTS = [
-    ("asc/fr/1284x2778", 1284, 2778),
-    ("asc/fr/1242x2688", 1242, 2688),
-    ("asc/fr/2688x1242", 2688, 1242),
-    ("asc/fr/2778x1284", 2778, 1284),
+    ("asc/fr/1206x2622", 1206, 2622),
+    ("asc/fr/1179x2556", 1179, 2556),
+    ("asc/fr/2622x1206", 2622, 1206),
+    ("asc/fr/2556x1179", 2556, 1179),
 ]
 
 # The headline feature each release must sell, in the stem shared by fr/en/es.
@@ -69,6 +72,10 @@ ASC_SLOTS = [
 HEADLINES = {
     "1.2.1": ("histor", "the unified history"),
     "1.3.0": ("notif", "system notifications"),
+    # Quality release: the user-facing headline is that the app reads in the
+    # language chosen — the stem "nivers" is the cognate all three notes carry
+    # (anniversary / anniversaire / aniversario — Spanish keeps a single n).
+    "1.3.1": ("nivers", "the age counted by anniversary"),
 }
 
 

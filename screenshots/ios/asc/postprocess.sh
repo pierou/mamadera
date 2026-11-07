@@ -32,14 +32,17 @@ declare -a DIM
 # has no `declare -A` (`value too great for base`), while a brew bash on PATH
 # is 5.x — so `./postprocess.sh` and `bash postprocess.sh` would disagree.
 # A plain case on the folder name works in any shell.
-for size in 1242x2688 2688x1242 1284x2778 2778x1284; do
+# B24 (2026-11-03): the accepted ASC set is now 1206x2622 / 1179x2556 portrait
+# (iPhone 17 / 17e) and their landscape twins — not the retired 1242x2688 /
+# 1284x2778 pair.
+for size in 1206x2622 2622x1206 1179x2556 2556x1179; do
   IFS='x' read -r W H <<< "$size"
   dir="screenshots/ios/asc/$size"
   mkdir -p "$dir"
   DIM+=("$dir")
   case "$size" in
-    1242x2688|1284x2778) names="$SCREENS" ;;
-    2688x1242|2778x1284) names="home_landscape feeding_landscape sleep_landscape diaper_landscape history_landscape menu_landscape growth_landscape" ;;
+    1206x2622|1179x2556) names="$SCREENS" ;;
+    2622x1206|2556x1179) names="home_landscape feeding_landscape sleep_landscape diaper_landscape history_landscape menu_landscape growth_landscape" ;;
   esac
   for n in $names; do
     base="${n%_landscape}"

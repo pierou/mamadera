@@ -118,6 +118,9 @@ class AppTheme {
           outline: darkDividerColor,
           primaryContainer: Color(0xFF1B5E20),
           secondaryContainer: Color(0xFF1A3A4D),
+          // B4: pin the selected-segment text explicitly — left to the
+          // dynamic derivation it resolves to white on the pale tint.
+          onSecondaryContainer: darkTextPrimary,
           surfaceContainerHighest: darkDialogBackground,
         ),
         textTheme: const TextTheme(
@@ -229,6 +232,10 @@ class AppTheme {
           outline: lightDividerColor,
           primaryContainer: Color(0xFFA5D6A7),
           secondaryContainer: Color(0xFFB3E5FC),
+          // B4: measured 1.32:1 (white on rgb(183,231,255)) when left to the
+          // dynamic derivation from the dodo secondary; pinned to the text
+          // primary, ~13.8:1 — the chip fix's structural pattern.
+          onSecondaryContainer: lightTextPrimary,
           surfaceContainerHighest: lightDialogBackground,
         ),
         textTheme: const TextTheme(

@@ -1,0 +1,23 @@
+B23 release gate — remove reminder pills from track buttons
+Date: 2026-11-03 · Device: Android emulator Small_Phone (720x1280, 4.7") · Build: debug APK from fix/home-remove-reminder-pills (1.3.1+13)
+
+Pass:
+1. Fresh install (no migration on this pass; B23 touches no schema): onboarding with baby "Lina", birth 02/11/2026.
+2. Home, 4 default reminders pending (Vitamin D/K, Eye Cleaning, Face Cleaning):
+   NO pills on any button — 01-home-fresh-install-no-pills.png.
+   Previously (1.3.0) the Health button carried a "Vit. D" sticker here.
+3. Reminders readable exactly once, in the list below the grid:
+   02-home-reminders-list-below.png (all four, with frequency + "Never done").
+4. Manual entry path: breast-milk feeding recorded (03-history-feeding-recorded.png);
+   Vitamin D routine recorded via the Health button (04-history-vitd-and-feeding.png).
+5. After the Vitamin D completion, the list drops to three items live (06) and the
+   Health button still shows no sticker (05).
+6. No overflow anywhere on Small_Phone; labels render single-line.
+
+Known not exercised on device (unit-covered in track_button_test.dart, B23 regressions):
+- The "last tracked" line needs a due reminder whose last completion is in the past
+  (e.g. completed yesterday, due again today). Today's Vitamin D completion removes it
+  from the due set, so no line is visible in this state — see 05.
+
+Observation (pre-existing, out of B23 scope, flagged to owner):
+- A feeding was accepted with quantity 0 ("Quantity: 0 min" in history).

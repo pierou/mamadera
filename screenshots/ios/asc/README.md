@@ -9,10 +9,10 @@ ribbon-free, ASC-exact-size PNGs ready to upload to App Store Connect.
 screenshots/ios/asc/
 ├── raw/          simulator captures, native res (1206×2622 / 2622×1206)
 ├── clean/        ribbon removed, still native res
-├── 1242x2688/    ASC iPhone 6.5" (3D Touch) — portrait
-├── 2688x1242/    ASC iPhone 6.5" (3D Touch) — landscape
-├── 1284x2778/    ASC iPhone 6.7" (3D Touch) — portrait
-├── 2778x1284/    ASC iPhone 6.7" (3D Touch) — landscape
+├── 1206x2622/    ASC iPhone 17 — portrait (native of the capture)
+├── 2622x1206/    ASC iPhone 17 — landscape (native of the capture)
+├── 1179x2556/    ASC iPhone 17e — portrait (resize)
+└── 2556x1179/    ASC iPhone 17e — landscape (resize)
 ├── Patch.swift   pixel-level ribbon removal (Swift, CoreGraphics)
 └── postprocess.sh orchestrates clean → resize
 ```

@@ -103,7 +103,7 @@ class BabyProfileSection extends ConsumerWidget {
             ),
           ),
           subtitle: Text(
-            _formatBirthdate(profile.birthDate),
+            _formatBirthdate(profile.birthDate, locale),
             style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
@@ -488,19 +488,39 @@ class BabyProfileSection extends ConsumerWidget {
     }
   }
 
-  String _formatBirthdate(DateTime birthDate) {
+  String _formatBirthdate(DateTime birthDate, AppLocalizations locale) {
+    // B18: anniversary-based age. A month counts only once the clamped
+    // anniversary of that many months has been reached: a baby born on
+    // 31 January turns one month old on 28/29 February and reads as 1 month
+    // old on 1 March, not 2. Future birthdates (invalid, not guarded
+    // upstream) clamp to 0 instead of going negative.
     final now = DateTime.now();
-    final age = now.year - birthDate.year;
-    final months = now.month - birthDate.month;
+    var months =
+        (now.year - birthDate.year) * 12 + (now.month - birthDate.month);
+    if (months < 0) months = 0;
+    if (now.isBefore(_addMonths(birthDate, months))) months--;
+    if (months < 0) months = 0;
 
-    if (age == 0 && months == 0) {
-      final days = now.difference(birthDate).inDays;
-      return '$days ${days == 1 ? 'day' : 'days'} old';
-    } else if (age == 0) {
-      return '$months ${months == 1 ? 'month' : 'months'} old';
+    if (months < 1) {
+      final days = now.difference(birthDate).inDays.clamp(0, 1 << 30);
+      return '$days ${locale.daysOld}';
+    } else if (months < 12) {
+      return '$months ${locale.monthsOld}';
     } else {
-      return '$age ${age == 1 ? 'year' : 'years'} old';
+      return '${months ~/ 12} ${locale.yearsOld}';
     }
+  }
+
+  /// [date] shifted by [months], the day clamped to the last day of the
+  /// target month (31 January + 1 month = 28/29 February).
+  static DateTime _addMonths(DateTime date, int months) {
+    final total = date.year * 12 + (date.month - 1) + months;
+    final year = total ~/ 12;
+    final month = total % 12 + 1;
+    final firstOfNext =
+        month == 12 ? DateTime(year + 1, 1, 1) : DateTime(year, month + 1, 1);
+    final lastDay = firstOfNext.subtract(const Duration(days: 1)).day;
+    return DateTime(year, month, date.day.clamp(1, lastDay));
   }
 
   String _formatShortDate(DateTime date) {

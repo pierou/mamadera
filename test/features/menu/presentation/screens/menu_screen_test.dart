@@ -173,5 +173,88 @@ void main() {
       expect(find.text('Réinitialiser la base de données ?'), findsOneWidget);
       expect(find.text('Annuler'), findsOneWidget);
     });
+
+    group('language change confirmation (B11)', () {
+      Future<void> pumpLocale(
+        WidgetTester tester,
+        String locale,
+      ) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              locale: Locale(locale),
+              supportedLocales: const [
+                Locale('fr'),
+                Locale('en'),
+                Locale('es')
+              ],
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              home: const MenuScreen(),
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      // The tree is still built in the source locale when the snackbar is
+      // read — the rebuild in the target locale happens on the next frame.
+      // The confirmation must therefore be resolved in the target locale.
+      //
+      // The tap handler awaits the locale service (persistence), so the tap
+      // runs on the real event loop via `runAsync`; the fake zone would
+      // freeze the file I/O and the handler would never finish.
+      testWidgets('fr -> en: the snackbar reads in English, not French',
+          (tester) async {
+        await pumpLocale(tester, 'fr');
+
+        await tester.ensureVisible(find.text('English'));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.runAsync(() async {
+          await tester.tap(find.text('English'));
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+        });
+        await tester.pump();
+
+        expect(find.text('Language changed'), findsOneWidget);
+        expect(find.text('Langue changée'), findsNothing);
+      });
+
+      testWidgets('fr -> es: the snackbar reads in Spanish, not French',
+          (tester) async {
+        await pumpLocale(tester, 'fr');
+
+        await tester.ensureVisible(find.text('Español'));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.runAsync(() async {
+          await tester.tap(find.text('Español'));
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+        });
+        await tester.pump();
+
+        expect(find.text('Idioma cambiado'), findsOneWidget);
+        expect(find.text('Langue changée'), findsNothing);
+      });
+
+      testWidgets('en -> fr: the snackbar reads in French, not English',
+          (tester) async {
+        await pumpLocale(tester, 'en');
+
+        await tester.ensureVisible(find.text('Français'));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.runAsync(() async {
+          await tester.tap(find.text('Français'));
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+        });
+        await tester.pump();
+
+        expect(find.text('Langue changée'), findsOneWidget);
+        expect(find.text('Language changed'), findsNothing);
+      });
+    });
   });
 }
