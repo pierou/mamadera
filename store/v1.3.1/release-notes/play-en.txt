@@ -1,5 +1,6 @@
-• The language-change confirmation now appears in the new language
-• The baby's age in the menu now reads in the app's language, counted by the true anniversary
-• Better readability of button labels and values in light mode
-• Reminder pills removed from the home buttons
-• Still no account, no analytics, nothing leaving the device
+• Language-change confirmation now in the new language
+• Baby's age in the app's language, by true anniversary
+• Reminder pills off the home buttons
+• Restores backups with repeated reminder completions
+• Baby's name in the menu right after first setup
+• No account, no analytics, nothing leaves the device
