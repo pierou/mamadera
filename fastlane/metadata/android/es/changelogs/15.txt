@@ -1,6 +1,6 @@
-* Confirmación del cambio de idioma mostrada en el nuevo idioma
-* Edad del bebé mostrada en el idioma de la aplicación, calculada por aniversario real
-* Mejor legibilidad de los textos, los valores y el selector de unidad, en claro y en oscuro
-* Supresión de las pastillas de recordatorio en los botones de inicio; la lista sigue bajo la cuadrícula
-* Iconos del historial con el color de su tipo de evento
-* Siempre sin cuenta, sin análisis: nada sale del dispositivo salvo tu exportación
+* Confirmación del cambio de idioma ahora en el nuevo idioma
+* Edad del bebé mostrada en el idioma de la aplicación, calculada a partir del aniversario real
+* Supresión de las pastillas de recordatorio en los botones de inicio
+* Restaura copias de seguridad con un recordatorio marcado varios días
+* Nombre del bebé en el menú, justo después de la primera configuración
+* Siempre sin cuenta, sin análisis, y sin datos que salgan del dispositivo

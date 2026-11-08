@@ -1,6 +1,6 @@
-• La confirmación del cambio de idioma ahora se muestra en el nuevo idioma.
-• La edad del bebé en el menú ahora se muestra en el idioma de la aplicación.
-• Mayor legibilidad de las etiquetas y los valores de los botones en el modo claro.
-• Se han eliminado los recordatorios de pastillas de los botones principales.
-• La línea "Último registro" ahora se muestra en el idioma de la aplicación.
-• Todavía no hay cuentas, ni análisis, ni nada que salga del dispositivo.
+• Confirmación del cambio de idioma ahora en el nuevo idioma.
+• Edad del bebé mostrada en el idioma de la aplicación, calculada a partir del aniversario real.
+• Recordatorios de medicamentos eliminados de los botones principales.
+• Restaura copias de seguridad al completar los recordatorios repetidamente.
+• Nombre del bebé en el menú, justo después de la primera configuración.
+• No se requiere cuenta, no se recopilan datos analíticos, nada se envía desde el dispositivo.
