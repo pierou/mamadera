@@ -266,7 +266,7 @@ wants the icon readable too, that is a palette call (dark icon glyph on the tint
 tweak. Same for the 16 px `secondary`-tinted icons in the history tiles (`history_tile.dart:223`,
 `measurement_history_tile.dart:68`) — 2.65:1 for miam/dodo, below the 3:1 graphic rule.
 
-**Resolved 2026-11-04 on `fix/contrast-measurement-history` (ships in 1.3.1+14):** the owner
+**Resolved 2026-11-04 on `fix/contrast-measurement-history` (ships in 1.3.1, build 15):** the owner
 chose the ink-glyph-on-tinted-disc strategy — `HistoryTileLeading` now renders the canonical
 glyph in `onSurface` on a 20 % disc of the event's tracking-type accent (the same per-type
 colour as the home buttons), and `measurement_history_tile.dart` drops its accent glyph for the
