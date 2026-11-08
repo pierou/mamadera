@@ -8,14 +8,21 @@ holds two kinds of files that live in *different* repositories:
 | `com.pvjio.mamadera.yml` | fork of https://gitlab.com/fdroid/fdroiddata → `metadata/` |
 | (the `fastlane/metadata/android/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source, in **fastlane layout** (required by the New App checklist — a plain `metadata/` dir happens to be read too, but it is not accepted for inclusion) |
 
-## Current status (2026-11-01 — the recipe pins `v1.3.0`)
+## Current status (2026-11-04 — the recipe pins `v1.3.1`)
 
 `com.pvjio.mamadera.yml` in this directory is **byte-identical** to
 `metadata/com.pvjio.mamadera.yml` on the MR branch (`mamadera-new-app` of
 `~/fdroiddata`, fork `pvjacquier/fdroiddata`). Keep them identical — `cmp` the
 two after every bump; a comment or a wrap added on one side only breaks the
-other's pipeline job. Current content: one `Builds` entry (1.3.0 / 12, `commit:
-v1.3.0`), `rm: [ios]`, `CurrentVersion: 1.3.0` / `CurrentVersionCode: 12`.
+other's pipeline job. Current content: one `Builds` entry (1.3.1 / 14, `commit:
+v1.3.1`), `rm: [ios]` (re-derived from the tag tree, which still has only
+`ios`), `CurrentVersion: 1.3.1` / `CurrentVersionCode: 14`.
+The fork commit for that entry is **held unpushed** on `mamadera-new-app`
+until the `v1.3.1` tag exists and is pushed: pushing the branch updates MR
+!53740, whose pipeline immediately builds the entry against `commit: v1.3.1`
+and fails on a ref that does not exist yet. At push time the MR abstract's
+screenshot URLs move from `…/v1.3.0/fastlane/…` to `…/v1.3.1/fastlane/…`
+(same files, now refreshed with the 1.3.1 UI).
 
 Checked on 2026-11-01 with fdroidserver master (`cdfdce8`) and Debian trixie's
 `ruamel.yaml 0.18.10`: `fdroid lint` clean, and `fdroid rewritemeta` is a fixed
