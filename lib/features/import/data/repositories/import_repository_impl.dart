@@ -104,7 +104,9 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
   final settingKeys = <Object>{};
   final dismissalKeys = <Object>{};
   final measurementIds = <int>{};
-  final completionKeys = <Object>{};
+  // NOT a duplicate-detection set for `reminderCompletions` on purpose: that
+  // journal is append-only and legitimately holds the same (baby, item) many
+  // times — see [_parseCompletion].
   // Setting names: `key` is the primary key, so a repeated one is a duplicate
   // row and the last write would silently win.
   final settingNames = <Object>{};
@@ -122,8 +124,8 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
   final measurements = _section<ImportedMeasurement>(
       document, 'measurements', (row) => _parseMeasurement(row, measurementIds),
       optional: true);
-  final reminderCompletions = _section<ImportedReminderCompletion>(document,
-      'reminderCompletions', (row) => _parseCompletion(row, completionKeys),
+  final reminderCompletions = _section<ImportedReminderCompletion>(
+      document, 'reminderCompletions', _parseCompletion,
       optional: true);
   final appSettings = _section<ImportedAppSetting>(
       document, 'appSettings', (row) => _parseAppSetting(row, settingNames),
@@ -441,13 +443,23 @@ ImportedMeasurement _parseMeasurement(
   );
 }
 
-ImportedReminderCompletion _parseCompletion(
-    Map<String, dynamic> row, Set<Object> seenKeys) {
+/// One `reminder_completions` row.
+///
+/// Deliberately **no duplicate check**: this table is an append-only journal of
+/// "done" taps (schema v11, `id INTEGER PRIMARY KEY AUTOINCREMENT`, no unique
+/// constraint — `idx_reminder_completions_baby_item` is a plain index), and
+/// `RemindersRepositoryImpl.recordCompletion` inserts one row per tap. A parent
+/// who ticks a daily custom reminder on two days therefore has two rows with the
+/// same `(babyId, itemId)`, and a uniqueness rule copied from
+/// `reminderDismissals` (whose primary key really is that pair) refuses every
+/// real-world backup of a family that used the feature for more than a day.
+/// The document carries no row id, so there is nothing here to keep unique; the
+/// restore re-inserts with fresh auto-increment ids.
+ImportedReminderCompletion _parseCompletion(Map<String, dynamic> row) {
   const section = 'reminderCompletions';
   final babyId =
       _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
   final itemId = _requiredString(row, 'itemId', section);
-  _requireUnique((babyId, itemId), seenKeys, section);
   return ImportedReminderCompletion(
     babyId: babyId,
     itemId: itemId,
