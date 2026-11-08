@@ -234,6 +234,37 @@ void main() {
 
       expect(repo.inserted.length, 1);
     });
+
+    /// Regression, v1.3.1 on iPhone. `babyProfileListProvider` is a keep-alive
+    /// `FutureProvider`, and on a first launch the first-frame reminder sync
+    /// (`ReminderLifecycleSyncWidget` → `reminder_sync_notifier._run`) resolves
+    /// it to the empty list before the sheet is even opened. The save refreshed
+    /// `activeBabyProvider` and `anyBabyExistsProvider` but never this one, so
+    /// Settings → Baby profiles kept rendering its cached empty state: the name
+    /// the parent had just typed was in the database and invisible until an app
+    /// restart.
+    testWidgets('the typed name reaches the profile list Settings reads',
+        (tester) async {
+      await pumpDialog(tester);
+
+      // The cold start did this already: an empty installation, resolved and
+      // cached by the first-frame sync.
+      expect(await container.read(babyProfileListProvider.future), isEmpty);
+
+      await tester.enterText(find.byType(TextField), 'Lou');
+      await tester.pump();
+      await tester.tap(find.text('Confirmer'));
+      await tester.pumpAndSettle();
+
+      // Same provider, still cached — it must now carry the new profile.
+      final listed = await container.read(babyProfileListProvider.future);
+      expect(
+        listed.map((profile) => profile.name),
+        ['Lou'],
+        reason: 'Settings reads babyProfileListProvider; a stale empty cache '
+            'hides a profile that is in the database',
+      );
+    });
   });
 }
 

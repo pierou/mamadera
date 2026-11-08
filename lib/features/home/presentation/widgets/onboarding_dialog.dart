@@ -214,6 +214,22 @@ class _OnboardingDialogState extends ConsumerState<OnboardingDialog> {
       );
 
       await repository.insertProfile(newProfile);
+
+      // `babyProfileListProvider` is a keep-alive `FutureProvider`, and on a
+      // first launch it has ALREADY been resolved to the empty list — the
+      // first-frame reminder sync reads it (`reminder_sync_notifier._run`).
+      // Nothing else in this path drops that cache, so without the invalidation
+      // below the baby the parent just typed never appears in Settings → Baby
+      // profiles: that section keeps rendering the stale empty state until an
+      // app restart. `baby_profile_section._showAddBabyDialog` invalidates for
+      // exactly this reason; this was the one profile-creating path that did not.
+      ref.invalidate(babyProfileListProvider);
+      // Re-resolve before scheduling: `syncNow` reads this same provider for
+      // the babies to schedule, and an un-awaited invalidation would let it
+      // observe whichever value wins the race — leaving the new baby's presets
+      // unscheduled until the next 5-minute tick.
+      await ref.read(babyProfileListProvider.future);
+
       await ref.read(activeBabyProvider.notifier).refresh();
       // Refresh the anyBabyExists provider so HomeScreen knows a profile now exists.
       await ref.read(anyBabyExistsProvider.notifier).refresh();
