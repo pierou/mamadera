@@ -8,14 +8,31 @@ holds two kinds of files that live in *different* repositories:
 | `com.pvjio.mamadera.yml` | fork of https://gitlab.com/fdroid/fdroiddata → `metadata/` |
 | (the `fastlane/metadata/android/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source, in **fastlane layout** (required by the New App checklist — a plain `metadata/` dir happens to be read too, but it is not accepted for inclusion) |
 
-## Current status (2026-11-01 — the recipe pins `v1.3.0`)
+## Current status (2026-11-08 — the recipe pins `v1.3.1`, build **15**)
 
 `com.pvjio.mamadera.yml` in this directory is **byte-identical** to
 `metadata/com.pvjio.mamadera.yml` on the MR branch (`mamadera-new-app` of
 `~/fdroiddata`, fork `pvjacquier/fdroiddata`). Keep them identical — `cmp` the
 two after every bump; a comment or a wrap added on one side only breaks the
-other's pipeline job. Current content: one `Builds` entry (1.3.0 / 12, `commit:
-v1.3.0`), `rm: [ios]`, `CurrentVersion: 1.3.0` / `CurrentVersionCode: 12`.
+other's pipeline job. Current content: one `Builds` entry (1.3.1 / **15**,
+`commit: v1.3.1`), `rm: [ios]` (re-derived from the tag tree, which still has
+only `ios`), `CurrentVersion: 1.3.1` / `CurrentVersionCode: **15**`.
+
+**Why 15 and not 14:** `1.3.1+14` was already uploaded to App Store Connect by
+Xcode Cloud's build-on-push-to-`main` (PR #68), and the two 1.3.1 fixes — the
+completion-journal restore rejection and the first-launch profile list — needed
+a new iOS build. Apple and Play both refuse a reused build number, so the
+version under test stayed 1.3.1 and the build moved: `pubspec.yaml` is
+`1.3.1+15`, and `fastlane/metadata/android/<locale>/changelogs/15.txt` replaces
+`14.txt`. F-Droid reads the changelog by **versionCode at the tag**, so the
+three must agree at `v1.3.1` — tag it only after those fixes are on `main`.
+
+The fork commit for that entry is **held unpushed** on `mamadera-new-app`
+until the `v1.3.1` tag exists and is pushed: pushing the branch updates MR
+!53740, whose pipeline immediately builds the entry against `commit: v1.3.1`
+and fails on a ref that does not exist yet. At push time the MR abstract's
+screenshot URLs move from `…/v1.3.0/fastlane/…` to `…/v1.3.1/fastlane/…`
+(same files, now refreshed with the 1.3.1 UI).
 
 Checked on 2026-11-01 with fdroidserver master (`cdfdce8`) and Debian trixie's
 `ruamel.yaml 0.18.10`: `fdroid lint` clean, and `fdroid rewritemeta` is a fixed
