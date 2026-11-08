@@ -72,6 +72,13 @@ class _FakeEncryption extends EncryptionService {
   }
 }
 
+/// `convertFlutterSurfaceToImage()` may be called **once per test** — the
+/// plugin asserts `!_isSurfaceRendered` on a second call ("Surface already
+/// converted to an image"), which is what killed the first run of this gate.
+/// The conversion is therefore done on the first capture of each test and
+/// reused afterwards; `setUp` resets the flag.
+bool _surfaceConverted = false;
+
 /// Writes a PNG into the app's Documents so the host can extract it.
 ///
 /// Relative paths raise `errno 30 Read-only file system` on iOS, hence
@@ -79,7 +86,10 @@ class _FakeEncryption extends EncryptionService {
 Future<void> capture(WidgetTester tester, String name) async {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   await tester.pumpAndSettle(const Duration(milliseconds: 400));
-  await binding.convertFlutterSurfaceToImage();
+  if (!_surfaceConverted) {
+    await binding.convertFlutterSurfaceToImage();
+    _surfaceConverted = true;
+  }
   await tester.pumpAndSettle(const Duration(milliseconds: 400));
 
   final bytes = await binding.takeScreenshot(name);
@@ -93,6 +103,8 @@ Future<void> capture(WidgetTester tester, String name) async {
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() => _surfaceConverted = false);
 
   group('v1.3.1 gate — first launch with only a name', () {
     testWidgets('case 1: the name reaches Settings → Babies', (tester) async {
