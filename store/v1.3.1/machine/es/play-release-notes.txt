@@ -1,6 +1,6 @@
-• Confirmación del cambio de idioma ahora en el nuevo idioma.
-• Edad del bebé mostrada en el idioma de la aplicación, calculada a partir del aniversario real.
-• Recordatorios de medicamentos eliminados de los botones principales.
-• Restaura copias de seguridad al completar los recordatorios repetidamente.
-• Nombre del bebé en el menú, justo después de la primera configuración.
+• Confirmación del cambio de idioma en el nuevo idioma.
+• Edad del bebé en el idioma de la aplicación, calculada a partir del aniversario real.
+• Desactivación de las notificaciones de los medicamentos desde los botones principales.
+• Restauración de copias de seguridad después de completar recordatorios.
+• Información del bebé en el menú inmediatamente después de la configuración; no se muestra una pantalla de bienvenida después de una restauración.
 • No se requiere cuenta, no se recopilan datos analíticos, nada se envía desde el dispositivo.

@@ -12,3 +12,4 @@ Améliorations
 Corrections
 - Correction de la restauration d'une sauvegarde où un rappel a été coché plusieurs jours
 - Affichage immédiat du prénom du bébé dans le menu après la première configuration, sans redémarrage
+- Disparition de l'écran de bienvenue qui réapparaissait après la restauration d'une sauvegarde

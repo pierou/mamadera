@@ -1,6 +1,6 @@
-* Confirmación del cambio de idioma ahora en el nuevo idioma
-* Edad del bebé mostrada en el idioma de la aplicación, calculada a partir del aniversario real
+* Confirmación del cambio de idioma en el nuevo idioma
+* Edad del bebé en el idioma de la aplicación, calculada por aniversario real
 * Supresión de las pastillas de recordatorio en los botones de inicio
 * Restaura copias de seguridad con un recordatorio marcado varios días
-* Nombre del bebé en el menú, justo después de la primera configuración
-* Siempre sin cuenta, sin análisis, y sin datos que salgan del dispositivo
+* Nombre del bebé en el menú tras la configuración; sin pantalla de bienvenida tras restaurar
+* Sin cuenta, sin análisis, y sin datos que salgan del dispositivo

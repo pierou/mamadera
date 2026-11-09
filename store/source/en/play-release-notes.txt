@@ -1,6 +1,6 @@
-• Language-change confirmation now in the new language
+• Language-change confirmation in the new language
 • Baby's age in the app's language, by true anniversary
 • Reminder pills off the home buttons
 • Restores backups with repeated reminder completions
-• Baby's name in the menu right after first setup
+• Baby in the menu right after setup; no welcome screen after a restore
 • No account, no analytics, nothing leaves the device

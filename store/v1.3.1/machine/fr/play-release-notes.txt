@@ -1,6 +1,6 @@
-• Confirmation du changement de langue désormais affichée dans la nouvelle langue.
-• L'âge du bébé affiché dans la langue de l'application, en utilisant la date anniversaire réelle.
-• Les rappels de médicaments ont été retirés des boutons d'accueil.
+• Confirmation du changement de langue dans la nouvelle langue.
+• Âge du bébé affiché dans la langue de l'application, en utilisant la date anniversaire réelle.
+• Désactivation des rappels via les boutons d'accueil.
 • Restauration des sauvegardes après la complétion répétée des rappels.
-• Le nom du bébé apparaît dans le menu immédiatement après la première configuration.
+• Affichage de l'enfant dans le menu immédiatement après la configuration ; pas d'écran d'accueil après une restauration.
 • Pas de compte, pas d'analyse, aucune donnée ne quitte l'appareil.

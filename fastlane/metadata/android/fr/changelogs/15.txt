@@ -1,6 +1,6 @@
-* Confirmation du changement de langue désormais affichée dans la nouvelle langue
-* L'âge du bébé affiché dans la langue de l'application, par l'anniversaire réel
+* Confirmation du changement de langue dans la nouvelle langue
+* Âge du bébé dans la langue de l'application, par l'anniversaire réel
 * Suppression des pastilles de rappel sur les boutons d'accueil
 * Restauration des sauvegardes où un rappel a été coché plusieurs jours
-* Le nom du bébé apparaît dans le menu immédiatement après la première configuration
+* Bébé dans le menu dès la configuration ; plus d'écran de bienvenue après restauration
 * Pas de compte, pas d'analyse, aucune donnée ne quitte l'appareil
