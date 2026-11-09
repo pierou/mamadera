@@ -154,7 +154,9 @@
       "",
       "### Correcciones",
       "- Corrección de la restauración de una copia de seguridad con un recordatorio marcado varios días",
-      "- Visualización inmediata del nombre del bebé en el menú tras la configuración inicial, sin reiniciar"
+      "- Visualización inmediata del nombre del bebé en el menú tras la configuración inicial, sin reiniciar",
+      "- Corrección de la pantalla de bienvenida que volvía a aparecer tras restaurar una copia de seguridad",
+      "- Visualización de la línea «Última actividad» en cada botón con registros, no solo en Salud"
     ]
   }
 }
