@@ -15,10 +15,10 @@ import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../../../shared/widgets/tracking_icons.dart';
 import '../../../growth/presentation/widgets/measurement_button.dart';
-import '../../../reminders/domain/entities/reminders_state.dart';
 import '../../../reminders/presentation/providers/reminder_notifier.dart';
 import '../../../reminders/presentation/providers/reminder_providers.dart';
 import '../../../reminders/presentation/widgets/home_reminders_section.dart';
+import '../providers/last_event_by_type_provider.dart';
 import '../providers/track_notifier.dart';
 import '../widgets/duration_picker_dialog.dart';
 import '../widgets/feeding_tracking_dialog.dart';
@@ -329,10 +329,11 @@ class _HomeContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch pending reminder counts per TrackingType.
-    final statusesAsync = ref.watch(reminderNotifierProvider);
-    final statusMap =
-        statusesAsync.value ?? const <TrackingType, List<ReminderStatus>>{};
+    // When each type was last tracked — the line under each button's label.
+    // Deliberately not the reminder statuses (B28): those answer "what is
+    // overdue", which is a different question and is listed below the grid.
+    final lastEventMap = ref.watch(lastEventByTypeProvider).value ??
+        const <TrackingType, DateTime>{};
 
     // The baby's name displayed above the grid: context, not a title.
     // `watch` (not `read`): the header should reflect changes in the baby's condition.
@@ -380,7 +381,7 @@ class _HomeContent extends ConsumerWidget {
                       label: context.l.homeButtonMiam,
                       color: AppTheme.miam,
                       icon: TrackingType.miam.icon,
-                      reminders: statusMap[TrackingType.miam],
+                      lastEventAt: lastEventMap[TrackingType.miam],
                       onTap: () =>
                           _onTrack(context, ref, TrackingType.miam.name),
                     ),
@@ -389,7 +390,7 @@ class _HomeContent extends ConsumerWidget {
                       label: context.l.homeButtonSante,
                       color: AppTheme.sante,
                       icon: TrackingType.sante.icon,
-                      reminders: statusMap[TrackingType.sante],
+                      lastEventAt: lastEventMap[TrackingType.sante],
                       onTap: () =>
                           _onTrack(context, ref, TrackingType.sante.name),
                     ),
@@ -398,7 +399,7 @@ class _HomeContent extends ConsumerWidget {
                       label: context.l.homeButtonCaca,
                       color: AppTheme.caca,
                       icon: TrackingType.caca.icon,
-                      reminders: statusMap[TrackingType.caca],
+                      lastEventAt: lastEventMap[TrackingType.caca],
                       onTap: () =>
                           _onTrack(context, ref, TrackingType.caca.name),
                     ),
@@ -407,7 +408,7 @@ class _HomeContent extends ConsumerWidget {
                       label: context.l.homeButtonDodo,
                       color: AppTheme.dodo,
                       icon: TrackingType.dodo.icon,
-                      reminders: statusMap[TrackingType.dodo],
+                      lastEventAt: lastEventMap[TrackingType.dodo],
                       onTap: () => _onTapDodo(context, ref),
                     ),
                   ],

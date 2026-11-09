@@ -9,6 +9,7 @@ import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../growth/domain/entities/growth_measurement.dart';
 import '../../../growth/presentation/providers/measurement_providers.dart';
+import '../../../home/presentation/providers/last_event_by_type_provider.dart';
 import '../../../reminders/presentation/providers/reminder_notifier.dart';
 import '../../domain/history_row.dart';
 import '../providers/history_repository_provider.dart';
@@ -135,6 +136,9 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
     });
     // Refresh reminders so lastEventAt and due status are re-evaluated.
     unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
+    // The home grid's « last tracked » line is its own read of the event table
+    // (B28), so an edit that moved an event's timestamp needs it too.
+    ref.invalidate(lastEventByTypeProvider);
   }
 
   /// Removes an event by its ID and refreshes the timeline.
@@ -146,6 +150,8 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
       return _fetchRows();
     });
     unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
+    // Deleting the newest event of a type moves that type's line back in time.
+    ref.invalidate(lastEventByTypeProvider);
   }
 
   /// Correct a measurement (value, date, or grade) and then reload the timeline.

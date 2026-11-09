@@ -14,4 +14,12 @@ abstract class TrackingRepository {
   /// Returns null if no matching event exists.
   Future<DateTime?> getLastEventByTypeAndSubtype(TrackingType type,
       {String? subtypeValue});
+
+  /// When [type] was last recorded **for one baby** — `null` when it never was.
+  ///
+  /// Unlike [getLastEventByTypeAndSubtype], which is not scoped and so answers
+  /// across the whole family, this takes the baby explicitly: the home grid
+  /// shows one baby at a time and must not borrow the other's history
+  /// (`null` means the profile-less state, see the implementation).
+  Future<DateTime?> getLastEventAt(TrackingType type, {String? babyId});
 }

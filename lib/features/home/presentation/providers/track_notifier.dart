@@ -6,6 +6,7 @@ import '../../../../shared/domain/entities/quantity_unit.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
+import 'last_event_by_type_provider.dart';
 import 'repository_provider.dart';
 
 final trackNotifierProvider = AsyncNotifierProvider<TrackNotifier, void>(
@@ -93,5 +94,12 @@ class TrackNotifier extends AsyncNotifier<void> {
       };
       await repository.insertEvent(event);
     });
+    // The « last tracked » line under the button's label reads the event table
+    // (B28), so a write that landed has to re-point it too. Only on success: a
+    // rolled-back insert has not changed any answer, and a spurious re-read
+    // would be one more rebuild on the frame that just showed the feedback.
+    if (!state.hasError) {
+      ref.invalidate(lastEventByTypeProvider);
+    }
   }
 }

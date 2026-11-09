@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/data/local/app_db.dart';
@@ -425,6 +425,68 @@ void main() {
       final events = await db.getEventsByBabyId('baby-1');
       expect(events.length, equals(1));
       expect(events.first.type, equals('miam'));
+    });
+  });
+
+  group('getLastEventTimestamp', () {
+    Future<void> insert(
+      String type,
+      DateTime at, {
+      String? babyId,
+    }) async {
+      await db.insertEvent(TrackingEventsCompanion(
+        unit: const Value('ml'),
+        type: Value(type),
+        timestamp: Value(at),
+        babyId: Value(babyId),
+      ));
+    }
+
+    test('returns null when the type has no event at all', () async {
+      await insert('miam', DateTime(2026, 11, 1, 9));
+
+      expect(await db.getLastEventTimestamp('dodo', babyId: 'a'), isNull);
+    });
+
+    test('returns the newest event of the type, not the oldest', () async {
+      await insert('miam', DateTime(2026, 11, 1, 9), babyId: 'a');
+      await insert('miam', DateTime(2026, 11, 3, 22), babyId: 'a');
+      await insert('miam', DateTime(2026, 11, 2, 14), babyId: 'a');
+
+      expect(await db.getLastEventTimestamp('miam', babyId: 'a'),
+          DateTime(2026, 11, 3, 22));
+    });
+
+    test('a baby never reads the other baby\u0027s history', () async {
+      // The defect B28 would have installed if the line had been wired to the
+      // unscoped getLastEventByTypeAndSubtype: log nothing for the second baby
+      // and still be told when it was last fed.
+      await insert('miam', DateTime(2026, 11, 8, 8), babyId: 'a');
+      await insert('dodo', DateTime(2026, 11, 9, 3), babyId: 'b');
+
+      expect(await db.getLastEventTimestamp('miam', babyId: 'b'), isNull,
+          reason: 'baby b has no feeding of its own');
+      expect(await db.getLastEventTimestamp('dodo', babyId: 'b'),
+          DateTime(2026, 11, 9, 3));
+    });
+
+    test('the profile-less state reads only the unowned rows', () async {
+      // Same scoping as RemindersRepositoryImpl.getLastCompleted: a null baby
+      // means `baby_id IS NULL`, never somebody else\u0027s row.
+      await insert('caca', DateTime(2026, 11, 5), babyId: null);
+      await insert('caca', DateTime(2026, 11, 7), babyId: 'a');
+
+      expect(await db.getLastEventTimestamp('caca'), DateTime(2026, 11, 5));
+      expect(await db.getLastEventTimestamp('caca', babyId: 'a'),
+          DateTime(2026, 11, 7));
+    });
+
+    test('a sleep event does not answer for the feeding type', () async {
+      await insert('dodo', DateTime(2026, 11, 9), babyId: 'a');
+
+      expect(await db.getLastEventTimestamp('miam', babyId: 'a'), isNull);
+      expect(await db.getLastEventTimestamp('dodo', babyId: 'a'),
+          DateTime(2026, 11, 9));
     });
   });
 }

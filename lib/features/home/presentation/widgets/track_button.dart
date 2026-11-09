@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
-import '../../../reminders/domain/entities/reminders_state.dart';
 
 class TrackButton extends StatefulWidget {
   const TrackButton({
@@ -11,7 +10,7 @@ class TrackButton extends StatefulWidget {
     required this.onTap,
     this.icon,
     this.onLongPress,
-    this.reminders,
+    this.lastEventAt,
     super.key,
   });
 
@@ -21,11 +20,14 @@ class TrackButton extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
-  /// Reminder statuses for this tracking type. Only the most recent
-  /// `lastEventAt` is read, for the « last tracked » line under the label —
-  /// the pending reminders themselves are listed in `HomeRemindersSection`
-  /// below the grid (B23 removed the on-button pills).
-  final List<ReminderStatus>? reminders;
+  /// When this tracking type was last recorded, from `lastEventByTypeProvider`;
+  /// `null` renders no line at all.
+  ///
+  /// It is **event history**, not reminder state (B28): the pending reminders
+  /// live in `HomeRemindersSection` below the grid, and a line fed by them used
+  /// to vanish as soon as a reminder was settled — which is what left Health as
+  /// the only button ever showing one (B23 had removed the on-button pills).
+  final DateTime? lastEventAt;
 
   @override
   State<TrackButton> createState() => _TrackButtonState();
@@ -35,15 +37,7 @@ class _TrackButtonState extends State<TrackButton> {
   bool _isPressed = false;
 
   String? _lastTrackedLabel(BuildContext context) {
-    final items = widget.reminders ?? [];
-    if (items.isEmpty) return null;
-
-    DateTime? lastEvent;
-    for (final s in items) {
-      final evt = s.lastEventAt;
-      if (evt == null) continue;
-      lastEvent = lastEvent == null || evt.isAfter(lastEvent) ? evt : lastEvent;
-    }
+    final lastEvent = widget.lastEventAt;
 
     if (lastEvent == null) return null;
 

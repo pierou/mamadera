@@ -439,6 +439,28 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
+  /// The most recent event of [type] for one baby, or `null` if there is none.
+  ///
+  /// Baby scoping follows `RemindersRepositoryImpl.getLastCompleted`, so the
+  /// home grid and the reminder list answer with the same rows: a profile reads
+  /// **its own** events only, and the profile-less state reads the legacy
+  /// `baby_id IS NULL` rows. Nothing crosses babies — showing the other baby's
+  /// timestamp under a button would be worse than showing no line.
+  ///
+  /// `LIMIT 1` is the point of the method: the home grid asks this for each of
+  /// its four types on every refresh, and [getEventsByType] loads and decrypts
+  /// a whole lifetime of events to read one timestamp.
+  Future<DateTime?> getLastEventTimestamp(String type, {String? babyId}) async {
+    final query = select(trackingEvents)
+      ..where((t) =>
+          t.type.equals(type) &
+          (babyId == null ? t.babyId.isNull() : t.babyId.equals(babyId)))
+      ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    return row?.timestamp;
+  }
+
   /// Updates an existing event by its ID.
   Future<int> updateEvent(int id, TrackingEventsCompanion companion) {
     return (update(trackingEvents)..where((t) => t.id.equals(id)))
