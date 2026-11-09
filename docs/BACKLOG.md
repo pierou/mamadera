@@ -1467,13 +1467,20 @@ device the frame that threw may well be a frame the parent sees.
 
 ## B28 — The « last tracked » line only appears under a button whose reminder is currently due
 
-**Status:** open, **owner decision first** · **Severity:** visible-in-French, contradicts B23's
-recorded decision · **Cost:** one cached per-type read
+**Status:** ~~open~~ **resolved in 1.3.1** by PR #80 (`feat/last-tracked-from-events`), owner's
+call on 2026-11-09: *option 1* — « it should be getLastEvent, reminders are at the bottom of the
+screen », shipped in this version · **Severity:** visible-in-French, contradicts B23's recorded
+decision · **Cost:** one cached per-type read — paid
 **Found:** 2026-11-09, reported by the owner: on the home grid the line shows under *Health*
 only · **Files:** `lib/features/home/presentation/widgets/track_button.dart:37`
 (`_lastTrackedLabel`), `lib/features/home/presentation/screens/home_screen.dart:383`
 (`reminders: statusMap[TrackingType.miam]`), `lib/features/reminders/domain/services/reminders_service.dart:39`
 (`checkDue`)
+**Body kept as the decision record**, including the part that turned out to matter most: the
+method named in this ticket, `getLastEventByTypeAndSubtype`, is **not baby-scoped**, and shipping
+it verbatim would have shown one baby's history under the other's grid. What shipped is
+`AppDatabase.getLastEventTimestamp(type, {babyId})`, scoped the way
+`RemindersRepositoryImpl.getLastCompleted` scopes.
 
 ### The fact
 
@@ -1495,7 +1502,7 @@ The data the decision assumed is available: `TrackingRepository.getLastEventByTy
 (`lib/features/home/domain/repositories/tracking_repository.dart:15`) answers "when was this
 type last tracked?" without consulting reminders at all.
 
-### Owner decision point
+### The two readings that were on the table (option 1 won)
 1. **Make it the history line B23 believed it was** — feed the line from a per-type last-event
    read, independent of `checkDue`. Then every button shows its own « Dernière activité: »
    whenever that type has any event, and B25's localisation work carries over unchanged.
@@ -1503,13 +1510,17 @@ type last tracked?" without consulting reminders at all.
    present only while a type is due. Cheaper, but it leaves a home screen whose only dynamic
    text appears on one of four buttons for no reason the parent can infer.
 
-### To do (after the decision, option 1)
-1. One read per type, cached in the notifier that already owns the home grid's state — not a
-   query per button per frame, and not inside `_lastTrackedLabel` (it is called from `build`).
-2. Layout: the cell already adapts (`track_button.dart:197`), but four lines at once is a new
-   shape on a 4-inch target — emulator pass on `Small_Phone` and a normal target per the gate,
-   with 0, 1 and 4 lines rendered.
-3. Keep the line out of the reminders list below the grid; that list stays the counter (B23).
+### What shipped (PR #80)
+1. `lastEventByTypeProvider` (`Map<TrackingType, DateTime>`, absent key = no line), one `LIMIT 1`
+   read per type; invalidated by every write that can change an answer (`TrackNotifier`,
+   `HistoryNotifier` edit/delete, the restore, the reset) — nothing watches the event table.
+2. `Small_Phone` pass with 0, 1 and 4 lines (`integration_test/gate_v131_last_tracked_lines.dart`);
+   the four-line capture is the layout record. **A normal-size target was not separately run** —
+   the grid is one cell per type at both sizes and the small one is the binding constraint.
+3. `TrackButton` no longer accepts reminder state at all, so the pills' data path cannot come back.
+4. **Not done, deliberately:** the relative-duration strings are untouched. Now that the line is
+   common, `3h 0m` (en) and `2h5` (fr/es, from `"{hours}h{minutes}"`) are visible everywhere; both
+   belong to B25's owner decision and changing them moves the shipped home screenshots.
 
 ### Do not
 - **Do not read `lastEventAt` from reminder statuses** and call it history — that is the
