@@ -561,6 +561,20 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
       ) as _i5.Future<List<_i3.TrackingEvent>>);
 
   @override
+  _i5.Future<DateTime?> getLastEventTimestamp(
+    String? type, {
+    String? babyId,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getLastEventTimestamp,
+          [type],
+          {#babyId: babyId},
+        ),
+        returnValue: _i5.Future<DateTime?>.value(),
+      ) as _i5.Future<DateTime?>);
+
+  @override
   _i5.Future<int> updateEvent(
     int? id,
     _i3.TrackingEventsCompanion? companion,
@@ -790,6 +804,15 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
         returnValue: _i5.Future<List<_i3.ReminderCompletion>>.value(
             <_i3.ReminderCompletion>[]),
       ) as _i5.Future<List<_i3.ReminderCompletion>>);
+
+  @override
+  _i5.Future<List<_i3.AppSetting>> getAllAppSettings() => (super.noSuchMethod(
+        Invocation.method(
+          #getAllAppSettings,
+          [],
+        ),
+        returnValue: _i5.Future<List<_i3.AppSetting>>.value(<_i3.AppSetting>[]),
+      ) as _i5.Future<List<_i3.AppSetting>>);
 
   @override
   _i5.Future<int> deleteReminderSettingsByItemIds(List<String>? itemIds) =>

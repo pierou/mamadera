@@ -52,6 +52,18 @@ class MockTrackingRepository implements TrackingRepository {
     filtered.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return filtered.first.timestamp;
   }
+
+  @override
+  Future<DateTime?> getLastEventAt(TrackingType type, {String? babyId}) async {
+    // Mirrors the SQL scoping: a null baby means the unowned rows, never
+    // somebody else's history.
+    final scoped = _events.where((e) {
+      if (e.trackingType != type) return false;
+      return babyId == null ? e.babyId == null : e.babyId == babyId;
+    }).toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return scoped.isEmpty ? null : scoped.first.timestamp;
+  }
 }
 
 void main() {
