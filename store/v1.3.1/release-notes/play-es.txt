@@ -1,5 +1,7 @@
-• La confirmación del cambio de idioma ahora aparece en el nuevo idioma
-• La edad del bebé en el menú se muestra en el idioma de la aplicación, calculada por aniversario
-• Mejor legibilidad de los textos de los botones, de los valores y del selector de unidad en modo claro
-• Supresión de las pastillas de recordatorio en los botones de inicio (la lista de pendientes sigue bajo la cuadrícula)
-• Siempre sin cuenta, sin análisis, y sin datos que salgan del dispositivo
+• Confirmación del cambio de idioma en el nuevo idioma
+• Edad del bebé en el idioma de la aplicación, calculada por aniversario real
+• Supresión de las pastillas de recordatorio en los botones de inicio
+• Restaura copias de seguridad con un recordatorio marcado varios días
+• Nombre del bebé en el menú tras la configuración; sin pantalla de bienvenida tras restaurar
+• «Última actividad» en cada botón con registros
+• Sin cuenta, sin análisis, y sin datos que salgan del dispositivo

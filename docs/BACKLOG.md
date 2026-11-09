@@ -266,7 +266,7 @@ wants the icon readable too, that is a palette call (dark icon glyph on the tint
 tweak. Same for the 16 px `secondary`-tinted icons in the history tiles (`history_tile.dart:223`,
 `measurement_history_tile.dart:68`) — 2.65:1 for miam/dodo, below the 3:1 graphic rule.
 
-**Resolved 2026-11-04 on `fix/contrast-measurement-history` (ships in 1.3.1+14):** the owner
+**Resolved 2026-11-04 on `fix/contrast-measurement-history` (ships in 1.3.1, build 15):** the owner
 chose the ink-glyph-on-tinted-disc strategy — `HistoryTileLeading` now renders the canonical
 glyph in `onSurface` on a 20 % disc of the event's tracking-type accent (the same per-type
 colour as the home buttons), and `measurement_history_tile.dart` drops its accent glyph for the
@@ -1350,3 +1350,48 @@ resurrected during implementation.
   B15's territory and needs its own payload design.
 - **Do not amend D7 in the plan document** (v1.3.0 decision record); this ticket is the recorded
   supersession — link it from the PR description.
+
+---
+
+## B26 — `schema.sql` is not replayable: `measurements` ends its column list with a trailing comma
+
+**Status:** open · **Severity:** low · **Cost:** one character + a replay guard
+**Found:** 2026-11-08, during the v1.3.1 release gate — seeding an old-build database by
+replaying `lib/data/local/schema.sql` into an empty `sqlite3` died with
+`Parse error near line 88: near ")"` and `measurements` was never created
+**Files:** `lib/data/local/schema.sql:95` (the `notes` column — the **last** column of the
+`measurements` table, written `notes TEXT,` with a trailing comma), `lib/data/local/app_db.dart`
+(source of truth for the real schema, which is correct)
+
+### The fact
+Replaying the reference DDL (`sqlite3 seed.db < lib/data/local/schema.sql`) creates seven of the
+eight tables and then stops. `CREATE TABLE measurements` spans lines 88–96; its final column is
+`notes TEXT,` (line 95) — a **trailing comma** before the closing paren on line 96, which SQLite
+rejects. The error is reported at the `);` as "near line 88" (the statement's start), which
+points the reader at the statement as a whole; the trailing
+`-- encrypted, same pipeline as tracking events` comment on line 95 is **innocent** (a comment
+after a non-final column parses fine — verified in isolation). Every other table in the file
+closes correctly.
+
+`schema.sql` is a hand-maintained reference: the header says "do not edit directly" but nothing
+regenerates it — no `Makefile` target, no script (only `scripts/fr_comments.py` touches it, and
+it rewrites comments, never DDL). So the file has simply never been replayed; the gate seeding
+was its first consumer, which is why a schema-v13 file carried the defect this long. The live app
+is unaffected — Drift builds the real schema from `app_db.dart`, and the gate confirmed the
++14→+15 migration and a byte-faithful export→restore round trip against the real database.
+
+### To do
+1. Delete the comma at `schema.sql:95` (`notes       TEXT,` → `notes       TEXT`), keeping the
+   column alignment.
+2. Prove it: `rm -f /tmp/s.db && sqlite3 /tmp/s.db < lib/data/local/schema.sql` must exit 0, and
+   `sqlite_master` must then list all eight tables including `measurements`.
+3. Keep it honest: a small `test/data/` unit that replays `schema.sql` into a temporary database
+   and asserts the table set matches `AppDatabase`'s schema — cheap insurance against the next
+   hand-edited reference drifting from the DDL again.
+
+### Do not
+- **Do not "fix" the comment** — it parses fine; the comma is the whole defect.
+- **Do not work around it in seed scripts** by hand-`CREATE`ing `measurements`: the fix is one
+  character in the reference, and a working replay is what every future gate seed wants.
+- **Do not touch `app_db.dart`** — the real schema is correct; this is a defect of the reference
+  file only.

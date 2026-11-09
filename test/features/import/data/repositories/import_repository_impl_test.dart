@@ -277,11 +277,76 @@ void main() {
       expect(parsed.trackingEvents, hasLength(3));
       expect(parsed.customReminders.length, 2);
       expect(parsed.measurements, hasLength(2));
-      expect(parsed.reminderCompletions, hasLength(2));
+      expect(parsed.reminderCompletions, hasLength(3));
       // Notes arrive as the plaintext the exporter wrote, not as ciphertext.
       expect(
         parsed.trackingEvents.map((event) => event.notes),
         contains('100 ml vers 8h'),
+      );
+    });
+
+    /// Regression, v1.3.1 on iPhone. `reminder_completions` is an append-only
+    /// journal — `id` is the primary key, `(baby_id, item_id)` is only an index,
+    /// and `recordCompletion` inserts one row per "done" tap. A parent who
+    /// ticked the same daily reminder on four days therefore has four rows with
+    /// the same `(babyId, itemId)`; the importer applied `reminderDismissals`'s
+    /// composite primary key to this table and rejected the whole backup as an
+    /// invalid row, which the dialog shows as "this is not a valid Mamadera
+    /// backup". Restoring a real device was impossible.
+    test('accepts the completion journal repeating (babyId, itemId)', () async {
+      const epochSeconds = [
+        1793392839, // 2026-10-30
+        1793410636, // 2026-10-31
+        1793559392, // 2026-11-01
+        1793837193, // 2026-11-05
+      ];
+      final document = validDocument(
+        formatVersion: 4,
+        schemaVersion: 13,
+        reminderCompletions: [
+          for (final at in epochSeconds)
+            {
+              'babyId': 'baby_1',
+              'itemId': 'custom_4',
+              'completedAtEpochSeconds': at,
+              'completedAtUtc':
+                  DateTime.fromMillisecondsSinceEpoch(at * 1000, isUtc: true)
+                      .toIso8601String(),
+            },
+        ],
+      );
+
+      final parsed = await repository.parseExport(_jsonOf(document));
+
+      expect(parsed.reminderCompletions, hasLength(epochSeconds.length));
+      expect(
+        parsed.reminderCompletions.map(
+            (row) => row.completedAt.toUtc().millisecondsSinceEpoch ~/ 1000),
+        epochSeconds,
+      );
+    });
+
+    /// The asymmetry above is deliberate, so it is asserted in both directions:
+    /// `reminder_dismissals` really does have `(baby_id, item_id)` as its
+    /// primary key, and a file repeating that pair is a file with duplicate rows
+    /// in which the last write would silently win.
+    test('still rejects a duplicate dismissal for the same baby and item',
+        () async {
+      await expectRejected(
+        document: validDocument(reminderDismissals: [
+          <String, dynamic>{
+            'babyId': 'baby_1',
+            'itemId': 'vitamine_d',
+            'dismissedAtEpochSeconds': 1700000000,
+          },
+          <String, dynamic>{
+            'babyId': 'baby_1',
+            'itemId': 'vitamine_d',
+            'dismissedAtEpochSeconds': 1700086400,
+          },
+        ]),
+        reason: ImportRejectionReason.invalidRow,
+        section: 'reminderDismissals',
       );
     });
 
@@ -781,7 +846,7 @@ void main() {
       expect(counts.reminderSettings, 3);
       expect(counts.reminderDismissals, 1);
       expect(counts.measurements, 2);
-      expect(counts.reminderCompletions, 2);
+      expect(counts.reminderCompletions, 3);
 
       // Same rows, same ids, same instants.
       final restoredEvents = await database.getAllTrackingEvents();
@@ -838,6 +903,13 @@ void main() {
             ('', 'custom_4'),
             ('baby_1', 'custom_5'),
           ]));
+      // The journal keeps every tap: the duplicate (baby_1, custom_5) pair is
+      // the point, and the fresh auto-increment ids are all distinct.
+      expect(restoredCompletions, hasLength(3));
+      expect(restoredCompletions.where((row) => row.itemId == 'custom_5'),
+          hasLength(2));
+      expect(restoredCompletions.map((row) => row.id).toSet(),
+          restoredCompletions.map((row) => row.id));
     });
 
     test(
@@ -1445,6 +1517,16 @@ Future<void> _seedRichDatabase(
           babyId: const Value('baby_1'),
           itemId: 'custom_5',
           completedAt: timestamp,
+        ),
+      );
+  // The second tap on the same item, one day later — the append-only journal
+  // really does hold the same (babyId, itemId) twice, and a backup of any
+  // family that used a daily reminder for more than a day contains that pair.
+  await database.into(database.reminderCompletions).insert(
+        ReminderCompletionsCompanion.insert(
+          babyId: const Value('baby_1'),
+          itemId: 'custom_5',
+          completedAt: timestamp.add(const Duration(days: 1)),
         ),
       );
   // The notification preferences (format 4, item 12): exported plaintext,

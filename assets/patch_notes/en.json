@@ -151,7 +151,12 @@
       "- Removed the reminder pills from the home buttons (the due-reminders list stays below the grid); the 'Last tracked' line now reads in the app's language",
       "- History icons now wear the colour of their event type, matching the home buttons",
       "- The 'Pee & Poop' icon in history now joins the droplet family",
-      ""
+      "",
+      "### Fixes",
+      "- Restoring a backup no longer refuses a file where a reminder was ticked on more than one day",
+      "- The baby's name now appears in the menu right after first-launch setup, without a restart",
+      "- The welcome screen no longer reappears after restoring a backup",
+      "- The 'Last tracked' line now shows under every button you have logged, not under Health only"
     ]
   }
 }

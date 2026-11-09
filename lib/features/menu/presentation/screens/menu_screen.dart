@@ -14,6 +14,7 @@ import '../../../../features/export/presentation/widgets/export_data_dialog.dart
 import '../../../../features/growth/presentation/providers/measurement_providers.dart';
 import '../../../../features/history/presentation/providers/history_notifier.dart';
 import '../../../../features/history/presentation/providers/history_repository_provider.dart';
+import '../../../../features/home/presentation/providers/last_event_by_type_provider.dart';
 import '../../../../features/home/presentation/providers/repository_provider.dart';
 import '../../../../features/import/presentation/widgets/import_data_dialog.dart';
 import '../../../../features/reminders/presentation/providers/reminder_providers.dart';
@@ -395,6 +396,7 @@ class MenuScreen extends ConsumerWidget {
         ..invalidate(babyProfileListProvider)
         ..invalidate(anyBabyExistsProvider)
         ..invalidate(historyNotifierProvider)
+        ..invalidate(lastEventByTypeProvider)
         ..invalidate(reminderNotifierProvider);
       if (context.mounted) _showSnackBar(context, successLabel);
     } catch (e) {

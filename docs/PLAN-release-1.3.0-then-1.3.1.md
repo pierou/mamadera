@@ -189,8 +189,15 @@ Found while planning; each measured in this session.
 
 ## 6. Not verified / open
 
-1. **Play Console and App Store Connect state** — nothing in the repo records an upload of
-   `1.3.0+12`. Decides v1.3.0-vs-v1.3.1 numbering. Check the console before tagging.
+1. ~~**Play Console and App Store Connect state**~~ **answered 2026-11-08 by the owner:** the
+   `1.3.1+14` build **was** uploaded to App Store Connect (Xcode Cloud uploads on every push to
+   `main`, and `main` took `develop` in PR #68) — it is what the 1.3.1 iPhone test device runs.
+   Consequence, recorded here because it is invisible in the tree: `+14` is spent for iOS, so the
+   1.3.1 fixes ship as **`1.3.1+15`** and `v1.3.1` must be tagged **after** them (Apple rejects a
+   duplicate `CFBundleVersion`; `Info.plist` takes it from `$(FLUTTER_BUILD_NUMBER)`, Android takes
+   `versionCode` from the same number, and the F-Droid recipe's `versionCode` must equal it at the
+   tag). Still unrecorded: the **Play** Console state for `1.3.0+12` / `1.3.1`. Check it before
+   uploading anything Android.
 2. ~~B4 ratios are computed, not sampled~~ **sampled 2026-11-01** — light mode on a device
    (1.15 / 1.89 / 2.07 / 6.47:1 against 1.17 / 2.04 / 2.28 / 7.56 computed) and the segmented
    toggle in the store frame at **1.32:1**. Tool: `scripts/wcag_sample.py`. Still open: the same

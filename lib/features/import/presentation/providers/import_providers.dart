@@ -9,6 +9,7 @@ import '../../../../core/services/app_logger.dart';
 import '../../../baby/presentation/providers/baby_profile_providers.dart';
 import '../../../history/presentation/providers/history_notifier.dart';
 import '../../../history/presentation/providers/history_repository_provider.dart';
+import '../../../home/presentation/providers/last_event_by_type_provider.dart';
 import '../../../home/presentation/providers/repository_provider.dart';
 import '../../../menu/presentation/providers/menu_repository_provider.dart';
 import '../../../reminders/presentation/providers/reminder_providers.dart';
@@ -181,7 +182,10 @@ class ImportController extends AsyncNotifier<ImportOutcome> {
       ..invalidate(babyProfileListProvider)
       ..invalidate(anyBabyExistsProvider)
       // Family provider: invalidating the family invalidates every live filter.
-      ..invalidate(historyNotifierProvider);
+      ..invalidate(historyNotifierProvider)
+      // The home grid's « last tracked » lines read the event table; a restore
+      // replaced every row, so all four answers are stale.
+      ..invalidate(lastEventByTypeProvider);
   }
 }
 

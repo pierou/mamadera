@@ -7,3 +7,9 @@ Mejoras
 - Supresión de las pastillas de recordatorio en los botones de inicio (la lista de recordatorios pendientes sigue bajo la cuadrícula); la línea « Última actividad » ahora está en el idioma de la aplicación
 - Adición del color del tipo de evento a los iconos del historial, como en los botones de inicio
 - Sustitución del icono « Orina y Caca » del historial por un símbolo de gotas
+
+Correcciones
+- Corrección de la restauración de una copia de seguridad con un recordatorio marcado varios días
+- Visualización inmediata del nombre del bebé en el menú tras la configuración inicial, sin reiniciar
+- Corrección de la pantalla de bienvenida que volvía a aparecer tras restaurar una copia de seguridad
+- Visualización de la línea «Última actividad» en cada botón con registros, no solo en Salud

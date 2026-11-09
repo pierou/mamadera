@@ -1,6 +1,0 @@
-* Confirmation du changement de langue affichée dans la nouvelle langue
-* Âge du bébé affiché dans la langue de l'application, calculé par anniversaire réel
-* Meilleure lisibilité des libellés, des valeurs et du sélecteur d'unité, en clair comme en sombre
-* Suppression des pastilles de rappel sur les boutons d'accueil ; la liste des rappels dus reste affichée
-* Icônes de l'historique à la couleur de leur type d'événement
-* Toujours aucun compte, aucune analyse, aucune sortie sans votre export

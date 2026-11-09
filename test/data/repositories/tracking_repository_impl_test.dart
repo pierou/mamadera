@@ -595,4 +595,33 @@ void main() {
       );
     });
   });
+
+  group('getLastEventAt', () {
+    test('asks the database for the type name and the baby scope', () async {
+      when(mockDb.getLastEventTimestamp('miam', babyId: 'baby-1'))
+          .thenAnswer((_) async => DateTime(2026, 11, 3, 22));
+
+      final at =
+          await repository.getLastEventAt(TrackingType.miam, babyId: 'baby-1');
+
+      expect(at, DateTime(2026, 11, 3, 22));
+      verify(mockDb.getLastEventTimestamp('miam', babyId: 'baby-1')).called(1);
+    });
+
+    test('passes the null scope through, it is a real answer', () async {
+      when(mockDb.getLastEventTimestamp('dodo', babyId: null))
+          .thenAnswer((_) async => null);
+
+      expect(await repository.getLastEventAt(TrackingType.dodo), isNull);
+      verify(mockDb.getLastEventTimestamp('dodo', babyId: null)).called(1);
+    });
+
+    test('propagates a database failure instead of answering null', () async {
+      when(mockDb.getLastEventTimestamp(any, babyId: anyNamed('babyId')))
+          .thenThrow(Exception('sqlite is locked'));
+
+      await expectLater(repository.getLastEventAt(TrackingType.caca),
+          throwsA(isA<Exception>()));
+    });
+  });
 }

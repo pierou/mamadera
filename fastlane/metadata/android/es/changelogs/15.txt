@@ -1,0 +1,7 @@
+* Confirmación del cambio de idioma en el nuevo idioma
+* Edad del bebé en el idioma de la aplicación, calculada por aniversario real
+* Supresión de las pastillas de recordatorio en los botones de inicio
+* Restaura copias de seguridad con un recordatorio marcado varios días
+* Nombre del bebé en el menú tras la configuración; sin pantalla de bienvenida tras restaurar
+* «Última actividad» en cada botón con registros
+* Sin cuenta, sin análisis, y sin datos que salgan del dispositivo

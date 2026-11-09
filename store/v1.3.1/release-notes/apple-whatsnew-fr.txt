@@ -8,3 +8,9 @@ Améliorations
 - Ajout de la couleur du type d'événement aux icônes de l'historique, comme sur les boutons d'accueil
 - Remplacement de l'icône « Pipi & Caca » de l'historique par un symbole de gouttes
 - Alignement du libellé du bouton de sommeil avec les filtres de l'historique : « Dodo » devient « Sommeil »
+
+Corrections
+- Correction de la restauration d'une sauvegarde où un rappel a été coché plusieurs jours
+- Affichage immédiat du prénom du bébé dans le menu après la première configuration, sans redémarrage
+- Disparition de l'écran de bienvenue qui réapparaissait après la restauration d'une sauvegarde
+- Affichage de la ligne « Dernière activité » sous chaque bouton ayant des événements, et non plus sous Santé uniquement
