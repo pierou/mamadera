@@ -40,27 +40,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// The sheet was opened – only once for each instance of the screen.
   bool _onboardingShown = false;
 
-  /// A frame is waiting to open the sheet. Distinguish "waiting" from...
-  /// "Open" is required: if the re-verification below results in cancellation.
-  /// The display, with a single latch, would result in an initial launch without a data sheet.
-  /// Onboarding – a failure that's worse than one that can be corrected.
+  /// A frame is waiting to open the sheet. "Waiting" must be told apart from
+  /// "shown": if the re-check in [_scheduleOnboardingSheet] cancels the
+  /// display, a single latch would leave a first launch with no sheet at all —
+  /// a worse failure than a correctable one.
   bool _onboardingScheduled = false;
 
-  /// Open the onboarding sheet to the next frame, and double-check this.
-  /// precise moment.
+  /// Whether the question "does any baby exist?" has actually been answered.
   ///
-  /// The decision was based on the supplier's performance in the previous project phase, and...
-  /// The callback function no longer checked anything; it simply indicated whether a restore operation had been successful or not, regardless of what happened in between.
-  /// the two, the sheet stayed open above an already-populated database and
-  /// It added a profile to the form. `null` (currently being invalidated) means...
-  /// "We don't know": we don't open an investigation into an absence that we haven't confirmed.
-  /// And we remain in a waiting state until a value arrives.
+  /// `hasValue` is not enough. Invalidating the provider re-runs its `build()`,
+  /// and while that re-read is in flight Riverpod keeps the *previous* value
+  /// attached: the state is `isLoading` **and** `hasValue`, carrying `false`.
+  /// A restore invalidates exactly this provider
+  /// (`import_providers._invalidateRestoredState`), so the screen that the
+  /// parent lands on right after a restore is handed a stale `false` and reads
+  /// it as "no baby yet". On a device the re-read goes through drift's isolate
+  /// and outlives the frame, which is how cancelling first-launch onboarding,
+  /// restoring from the Menu tab and going back to Home reopened the welcome
+  /// sheet.
+  static bool _isBabyUnknown(AsyncValue<bool> state) =>
+      state.isLoading || !state.hasValue;
+
+  /// Opens the onboarding sheet on the next frame, re-checking at that moment.
+  ///
+  /// The re-check is not redundant: the decision taken during `build()` may be
+  /// a frame out of date by the time the sheet is raised. A restore that landed
+  /// in between used to leave this sheet open over an already-populated
+  /// database, where submitting the form would add a second, unasked-for
+  /// profile. An unknown answer (`null`, or a re-read in flight) means "we don't
+  /// know yet": we never open a sheet on an unconfirmed absence, and we stay
+  /// armed so the next value decides.
   void _scheduleOnboardingSheet() {
     _onboardingScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _onboardingScheduled = false;
       if (!mounted) return;
-      if (ref.read(anyBabyExistsProvider).value ?? true) return;
+      final exists = ref.read(anyBabyExistsProvider);
+      if (_isBabyUnknown(exists)) return;
+      if (exists.value ?? true) return;
       _onboardingShown = true;
       showModalBottomSheet<Object?>(
         context: context,
@@ -90,12 +107,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (!next.hasValue || !next.value!) return;
       if (mounted) setState(() => _onboardingShown = true);
     });
-    if (anyExistsAsync.hasValue && !_onboardingShown && !_onboardingScheduled) {
-      final hasProfiles = anyExistsAsync.value!;
-      if (!hasProfiles) {
-        // Trigger once, then mark as shown so we don't repeat on rebuilds.
-        _scheduleOnboardingSheet();
-      }
+    // Only a *confirmed* absence opens the sheet. While the answer is still in
+    // flight the screen waits for it instead of acting on the previous one
+    // (see [_isBabyUnknown]); `_onboardingScheduled` keeps a pending frame from
+    // being counted twice.
+    if (!_onboardingShown &&
+        !_onboardingScheduled &&
+        !_isBabyUnknown(anyExistsAsync) &&
+        !anyExistsAsync.value!) {
+      _scheduleOnboardingSheet();
     }
 
     return const _HomeContent();
