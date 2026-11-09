@@ -1395,3 +1395,123 @@ is unaffected — Drift builds the real schema from `app_db.dart`, and the gate 
   character in the reference, and a working replay is what every future gate seed wants.
 - **Do not touch `app_db.dart`** — the real schema is correct; this is a defect of the reference
   file only.
+
+---
+
+## B27 — Mounting Home straight after a restore schedules a provider refresh during build
+
+**Status:** open, found on device 2026-11-09 · **Severity:** medium — an unhandled framework
+error on the restore path; invisible in release, red screen in debug · **Cost:** a flush at the
+invalidation site, plus a device pass
+**Found:** 2026-11-09, by `integration_test/gate_v131_restore_onboarding.dart` (written for the
+onboarding-sheet bug). It fires **with and without** that fix, and it is tolerated and counted
+there (`[GATE] B27 recorded`) rather than fixed, so this branch stays one concern.
+**Files:** `lib/features/import/presentation/providers/import_providers.dart:172`
+(`_invalidateRestoredState`), `lib/features/home/presentation/screens/home_screen.dart:333`
+(`_HomeContent.build` → `ref.watch(reminderNotifierProvider)`),
+`lib/features/reminders/presentation/providers/reminder_notifier.dart` (`build()` watches
+`activeBabyProvider` and `remindersServiceProvider.future`)
+
+### The fact
+
+```
+══╡ EXCEPTION CAUGHT BY RIVERPOD ╞═════════════════════════════════════════
+setState() or markNeedsBuild() called during build.
+The widget on which setState() or markNeedsBuild() was called was:
+  UncontrolledProviderScope
+The widget which was currently being built when the offending call was made was:
+  _HomeContent
+```
+
+Sequence, on a device, every time:
+
+1. The parent is on the Menu tab when the restore commits. `HomeScreen` is **not** mounted —
+   the shell renders `body: child` (no `IndexedStack`, `router.dart:255`), so leaving Home
+   disposed it and its subscriptions with it.
+2. `_invalidateRestoredState()` marks ten providers dirty. Nothing is watching the
+   reminder chain from the Menu, so they stay dirty: invalidation does not rebuild what has
+   no listener.
+3. The parent taps Home. `_HomeContent.build` runs `ref.watch(reminderNotifierProvider)`,
+   whose first flush rebuilds `activeBabyProvider` **synchronously inside that build**; the
+   rebuild notifies, `reminderNotifierProvider` invalidates itself,
+   `ProviderScheduler.scheduleProviderRefresh` calls `setState` on the provider scope, and
+   the framework is mid-build.
+
+`flutter run` in debug shows the exception and a red frame; a release build reports it to the
+error handler and recovers on the next frame, which is why nobody has seen it. It is still an
+unhandled error on the one path a parent uses when their backup was refused, and on a slower
+device the frame that threw may well be a frame the parent sees.
+
+### To do
+1. Flush what the shell will need while the Menu is still mounted: alongside the
+   `invalidate` calls, `ref.read` (or `.refresh()`) the *notifiers* Home watches — at least
+   `reminderNotifierProvider`, `activeBabyProvider` and `babyProfileListProvider`. Reading
+   creates the element, so the cascade resolves against the screen that is on screen instead
+   of against Home's first build. Verify with the gate below that the count goes to zero.
+2. Keep the ordering promise in prose where the invalidation lives: `_invalidateRestoredState`
+   currently documents why it must *not* touch `databaseProvider`; it should also say that a
+   bare `invalidate` defers the rebuild to whoever listens next.
+3. Device pass: run `integration_test/gate_v131_restore_onboarding.dart` and require
+   `[GATE] B27 occurrences during this leg: 0`, then remove the tolerance
+   (`suppressKnownProviderFlush`) so the gate fails on it from then on.
+
+### Do not
+- **Do not defer Home's own `ref.watch`** behind a post-frame callback or a `Future.delayed`:
+  that hides the symptom in the widget that reported it and leaves the same landmine under
+  History and any other screen that mounts after a restore.
+- **Do not invalidate `databaseProvider`** to make the cascade "clean" — `import_providers`
+  documents why (a second connection and a second background isolate per restore).
+- **Do not fold this into the onboarding-sheet fix.** They share a path, not a cause.
+
+---
+
+## B28 — The « last tracked » line only appears under a button whose reminder is currently due
+
+**Status:** open, **owner decision first** · **Severity:** visible-in-French, contradicts B23's
+recorded decision · **Cost:** one cached per-type read
+**Found:** 2026-11-09, reported by the owner: on the home grid the line shows under *Health*
+only · **Files:** `lib/features/home/presentation/widgets/track_button.dart:37`
+(`_lastTrackedLabel`), `lib/features/home/presentation/screens/home_screen.dart:383`
+(`reminders: statusMap[TrackingType.miam]`), `lib/features/reminders/domain/services/reminders_service.dart:39`
+(`checkDue`)
+
+### The fact
+
+B23's decision (2026-11-03) says the line « *is not a reminder — it is event history, nothing
+below shows it, and it stays* ». It does not stay, and it was never event history. The line is
+built from `widget.reminders`, which is the per-type slice of `reminderNotifierProvider`, and
+`RemindersService.checkDue` returns **only the items that are due right now** (`!item.frequency
+.isDue(now, lastCompleted)` → `continue`, and a recent dismissal also drops the item). So:
+
+- a type with **no currently-due reminder** has an empty list → `_lastTrackedLabel` returns
+  `null` → **no line at all**, even though the type has plenty of events;
+- `miam`/`dodo`/`caca` reminders are settled by the events themselves
+  (`completion_source = from_events`), so logging a feeding makes its reminder not-due and
+  takes the line away with it;
+- the health routines are ticked by hand, so they stay due far longer — which is why **Health
+  is the only button that shows the line** in ordinary use, exactly as reported.
+
+The data the decision assumed is available: `TrackingRepository.getLastEventByTypeAndSubtype`
+(`lib/features/home/domain/repositories/tracking_repository.dart:15`) answers "when was this
+type last tracked?" without consulting reminders at all.
+
+### Owner decision point
+1. **Make it the history line B23 believed it was** — feed the line from a per-type last-event
+   read, independent of `checkDue`. Then every button shows its own « Dernière activité: »
+   whenever that type has any event, and B25's localisation work carries over unchanged.
+2. **Or accept the coupling** and correct B23's record: the line is a *reminder* affordance,
+   present only while a type is due. Cheaper, but it leaves a home screen whose only dynamic
+   text appears on one of four buttons for no reason the parent can infer.
+
+### To do (after the decision, option 1)
+1. One read per type, cached in the notifier that already owns the home grid's state — not a
+   query per button per frame, and not inside `_lastTrackedLabel` (it is called from `build`).
+2. Layout: the cell already adapts (`track_button.dart:197`), but four lines at once is a new
+   shape on a 4-inch target — emulator pass on `Small_Phone` and a normal target per the gate,
+   with 0, 1 and 4 lines rendered.
+3. Keep the line out of the reminders list below the grid; that list stays the counter (B23).
+
+### Do not
+- **Do not read `lastEventAt` from reminder statuses** and call it history — that is the
+  current defect.
+- **Do not add a per-type count or badge** while touching this: B23's « Do not » still stands.
