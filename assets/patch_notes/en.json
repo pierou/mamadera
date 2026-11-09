@@ -155,7 +155,8 @@
       "### Fixes",
       "- Restoring a backup no longer refuses a file where a reminder was ticked on more than one day",
       "- The baby's name now appears in the menu right after first-launch setup, without a restart",
-      "- The welcome screen no longer reappears after restoring a backup"
+      "- The welcome screen no longer reappears after restoring a backup",
+      "- The 'Last tracked' line now shows under every button you have logged, not under Health only"
     ]
   }
 }

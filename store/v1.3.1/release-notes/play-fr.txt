@@ -3,4 +3,5 @@
 • Suppression des pastilles de rappel sur les boutons d'accueil
 • Restauration des sauvegardes où un rappel a été coché plusieurs jours
 • Bébé dans le menu dès la configuration ; plus d'écran de bienvenue après restauration
+• « Dernière activité » sous chaque bouton avec des événements
 • Pas de compte, pas d'analyse, aucune donnée ne quitte l'appareil

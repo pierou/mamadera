@@ -3,4 +3,5 @@
 * Reminder pills off the home buttons
 * Restores backups with repeated reminder completions
 * Baby in the menu right after setup; no welcome screen after a restore
+* The last-tracked line shows for every type you log
 * No account, no analytics, nothing leaves the device
