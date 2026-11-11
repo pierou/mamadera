@@ -1526,3 +1526,41 @@ type last tracked?" without consulting reminders at all.
 - **Do not read `lastEventAt` from reminder statuses** and call it history — that is the
   current defect.
 - **Do not add a per-type count or badge** while touching this: B23's « Do not » still stands.
+
+---
+
+## B29 — The history filter pills are not the home track-button design
+
+**Status:** open · **Severity:** low (visual consistency) · **Cost:** one style block on one screen
+**Found:** 2026-11-11, requested by the owner: the history pills have to be the same design as
+the home buttons — « darker border »
+**Files:** `lib/features/history/presentation/screens/history_screen.dart:212` (the unstyled
+`FilterChip` row); the reference design is `lib/features/home/presentation/widgets/track_button.dart:140`
+(2px accent border, tinted background, soft shadow, `shapeCardRadius`); the per-type colors
+already exist in `lib/core/theme.dart` (`AppTheme.miam`, `.dodo`, `.caca`, `.sante`)
+
+### The fact
+The history tab filters the timeline by tracking type with a row of stock Material `FilterChip`s
+(all, miam, dodo, caca, sante) with **no custom styling** — default outline, default selected
+color. The home grid buttons for the very same types are a custom decoration: 2px border in the
+type's accent color, tinted background, soft shadow. Two controls on the same axis (filtering by
+tracking type) rendered in two different design languages. The request is to bring the history
+pills over to the home-button language, the darker border being the visible difference.
+
+### To do
+1. Restyle the chips in `history_screen.dart` in the track-button language: 2px border in the
+type's accent color (the same `AppTheme` colors the home grid uses), tinted background, the same
+border radius. `all` has no type accent on home — it stays neutral.
+2. Keep the toggle semantics readable: the home buttons have no selected state to copy, so the
+chip's *fill* carries selected/unselected and the *border* carries the type color.
+3. `test/features/history/presentation/screens/history_screen_test.dart` locates the filter
+chips — keep it green. Gate pass: the row already scrolls horizontally, so confirm no overflow
+on `Small_Phone` and screenshot the history tab (smallest target + normal).
+
+### Do not
+- **Do not replace the chips with `TrackButton` widgets.** The chips are toggles; `TrackButton`
+is a button, and B28 closed its data path deliberately (« can no longer receive reminder state
+at all »).
+- **Do not touch the home track buttons** — they are the reference, and they shipped inside the
+v1.3.1 store screenshots (recaptured 2026-11-11, PR #81); changing their look re-stales the
+uploads.
