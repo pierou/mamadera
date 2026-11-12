@@ -1,0 +1,90 @@
+{
+  "exportFormatVersion": 4,
+  "generator": "mamadera",
+  "appVersion": "1.3.0",
+  "databaseSchemaVersion": 13,
+  "exportedAt": "2026-11-11T23:54:18.908891Z",
+  "counts": {
+    "babyProfiles": 1,
+    "trackingEvents": 3,
+    "customReminders": 0,
+    "reminderSettings": 0,
+    "reminderDismissals": 0,
+    "measurements": 1,
+    "reminderCompletions": 0,
+    "appSettings": 0
+  },
+  "babyProfiles": [
+    {
+      "id": "1794441234206",
+      "name": "Nova",
+      "birthDateEpochMs": 1794441231324,
+      "birthDateUtc": "2026-11-11T23:53:51.324Z",
+      "isActive": true
+    }
+  ],
+  "trackingEvents": [
+    {
+      "id": 1,
+      "type": "miam",
+      "timestampEpochSeconds": 1794441236,
+      "timestampUtc": "2026-11-11T23:53:56.000Z",
+      "durationMinutes": null,
+      "subtype": "natural",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "1794441234206",
+      "quantity": 0.0,
+      "unit": "min"
+    },
+    {
+      "id": 2,
+      "type": "dodo",
+      "timestampEpochSeconds": 1794439439,
+      "timestampUtc": "2026-11-11T23:23:59.000Z",
+      "durationMinutes": 30.0,
+      "subtype": null,
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "1794441234206",
+      "quantity": 30.0,
+      "unit": "min"
+    },
+    {
+      "id": 3,
+      "type": "sante",
+      "timestampEpochSeconds": 1794441240,
+      "timestampUtc": "2026-11-11T23:54:00.000Z",
+      "durationMinutes": null,
+      "subtype": "vitamine_d",
+      "notes": null,
+      "wasteType": null,
+      "color": null,
+      "texture": null,
+      "babyId": "1794441234206",
+      "quantity": null,
+      "unit": "ml"
+    }
+  ],
+  "customReminders": [],
+  "reminderSettings": [],
+  "reminderDismissals": [],
+  "measurements": [
+    {
+      "id": 1,
+      "babyId": "1794441234206",
+      "kind": "poids",
+      "value": "3900.0",
+      "unit": "g",
+      "recordedAtEpochSeconds": 1794441244,
+      "recordedAtUtc": "2026-11-11T23:54:04.000Z",
+      "notes": null
+    }
+  ],
+  "appSettings": [],
+  "reminderCompletions": []
+}
