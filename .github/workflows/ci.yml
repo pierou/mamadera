@@ -536,13 +536,47 @@ jobs:
           # to cover every emulator-XXXX serial, and in practice every qemu on
           # this dedicated runner (2026-10-08: a leftover from a local release-
           # gate pass on emulator-5556 red the v1.2.0 PR, run 37847815004).
-          pkill -f 'qemu-system-aarch64-headless' 2>/dev/null || true
-          sleep 5
+          #
+          # 2026-11-12, run 43129603795: it did not. The pattern carries the
+          # `-headless` suffix, so it only ever kills headless launches; a
+          # leftover started with a window or `-gpu host` shows up as
+          # `.../qemu/darwin-aarch64/qemu-system-aarch64 -avd <name>` and walks
+          # straight past it. Three such leftovers from the v1.3.1 gate pass
+          # survived the step and the boot leg died in 60 ms on
+          # `adb wait-for-device` with `error: more than one device/emulator`.
+          # Kill the `emulator` parent binary instead — it matches every launch
+          # mode — and then VERIFY the slate is clear: a guard that only believes
+          # it worked is how this trap came back twice.
+          pkill -f 'qemu-system-aarch64' 2>/dev/null || true
+          pkill -f "$ANDROID_HOME/emulator/emulator" 2>/dev/null || true
+          pkill -f 'emulator -avd' 2>/dev/null || true
+          # An emulator that has been killed keeps its `adb devices` entry for a
+          # while (measured 2026-11-12: still listed 5 s after the pkill, gone
+          # by ~10 s), so the verification polls before it fails.
+          for i in $(seq 1 12); do
+            if [ -z "$($ANDROID_HOME/platform-tools/adb devices | awk 'NR>1 && $2=="device"')" ]; then
+              break
+            fi
+            sleep 3
+          done
+          if [ -n "$($ANDROID_HOME/platform-tools/adb devices | awk 'NR>1 && $2=="device"')" ]; then
+            echo "an emulator is still attached after the kill:"
+            $ANDROID_HOME/platform-tools/adb devices
+            exit 1
+          fi
 
       - name: Boot Pixel_10_Pro (headless, native arm64)
         run: |
           nohup $ANDROID_HOME/emulator/emulator -avd Pixel_10_Pro -no-window -no-audio -no-boot-anim -no-snapshot-load > /tmp/mamadera_ci_emulator.log 2>&1 &
-          $ANDROID_HOME/platform-tools/adb wait-for-device
+          # Serial-scoped on purpose: a bare `adb wait-for-device` is ambiguous
+          # the moment anything else is attached, and it would then wait on the
+          # wrong device and report someone else's boot as ours.
+          for i in $(seq 1 60); do
+            if $ANDROID_HOME/platform-tools/adb devices | grep -q '^emulator-5554[[:space:]]*device'; then
+              break
+            fi
+            sleep 2
+          done
           for i in $(seq 1 60); do
             if [ "$($ANDROID_HOME/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n')" = "1" ]; then
               echo "emulator boot completed"
