@@ -1,0 +1,108 @@
+# v1.3.1 release gate — upgrade pass on a device holding old-build data
+
+**Date:** 2026-11-12 · **Build under test:** 1.3.1+15 (develop tip `8bdb77e`, includes
+PRs #69–#82) · **Previous release installed first:** 1.3.0+12, checked out at tag `v1.3.0`
+and built from that worktree, so the bytes on disk are written by 1.3.0's own code.
+
+| Device | AVD | Screen | Android image | Legs run |
+|---|---|---|---|---|
+| small target | `Gate_S` (throwaway AVD, Google APIs image) | 720×1280 (4.7") | API 36.1 | 1 continuity, 2 manual entry, 3 export, 4 restore (B25) |
+| normal target | `Pixel_10_Pro` | 1280×2856 | API 37.1 (Play image) | 1 continuity, 2 manual entry, 3 export |
+
+Harness: `integration_test/gate_v131_legacy_seed_v130.dart` (run from the v1.3.0 worktree)
+→ journal injection → `adb install -r` of the 1.3.1 build → `integration_test/gate_v131_upgrade.dart`.
+`[GATE]` lines quoted below are that script's own output; captures in this folder are the files
+it wrote on device and were **viewed**, not just taken.
+
+## 1. The upgrade itself
+
+```
+adb install -r …/app-debug.apk  →  Success
+dumpsys package …  versionCode=12 → versionCode=15,  versionName=1.3.0 → 1.3.1
+data on device after the install: events=3  journal=2  measurements=1  schema user_version=13
+```
+
+No uninstall, no `pm clear`: the same application data directory and the same Android Keystore
+master key across the two versions. `schemaVersion` is **13 on both** — v1.3.1 adds no migration
+(B28 added a `LIMIT 1` query only), so there was no migration to execute; what is being proven
+here is data continuity, not a schema step.
+
+## 2. What the old build showed, and what the new one shows at the same data state
+
+`gate-v130-home.png` (1.3.0) versus `gate-upgrade-01-home.png` (1.3.1), one baby `Nova`, three
+events, one 3.9 kg measurement, reminders settled:
+
+```
+[GATE] v1.3.0 « Last tracked » lines with settled events: 0
+[GATE] B28 « Last tracked » lines after upgrade: 3        (Feeding 15 min · Health 15 min · Sleep 45 min)
+[GATE] history rows rendered after upgrade: 3 (3 events were seeded)
+[GATE] continuity PASS
+```
+
+The 1.3.0 photo also carries two other fixed defects, visible side by side: the pale-yellow
+`Feeding`/`Weight` labels (B4, now dark on the tint) and the `Vit. K`/`Eyes`/`Face` pills on the
+Health button (B23, removed). The seeded **3.9 kg** is displayed by both builds — a measurement
+written by 1.3.0 is still readable by 1.3.1, i.e. the encrypted column survived the upgrade.
+
+## 3. Manual entry on the upgraded build (AGENTS gate item 3)
+
+```
+[GATE] entry: feeding recorded post-upgrade
+[GATE] entry: sleep recorded post-upgrade
+[GATE] entry: weight 4200 g recorded        → home shows 4.2 kg, sheet opened with the seeded
+                                              3.9 kg as its « Last » value
+[GATE] export PASS — upgraded database exports cleanly
+      (format 4, databaseSchemaVersion 13, appVersion 1.3.1, contains the seeded 3.9 kg,
+       the post-upgrade 4200 g and the two injected journal rows)
+```
+
+Run through the real dialogs on both devices. `v130-export.json` in this folder is the
+**genuine 1.3.0 export** (its `reminderCompletions` pair was duplicated host-side, see below).
+
+## 4. Restore of a real 1.3.0 document — B25 closed on device (small target)
+
+The 1.3.0 database and export were edited host-side to carry **two `reminder_completions` rows
+with the same `(baby_id, item_id)`** (`gate_manual`, Nov 9 + Nov 10 2026, drift's epoch-seconds
+encoding) — the shape the 1.3.0 importer refused, which made every family's backup with a daily
+reminder unrestorable. Restored through the real `ImportDataDialog` (its documented
+`readBackup` seam; the native document picker is not drivable from an integration test — the
+same reason `gate_v131_restore_onboarding.dart` records).
+
+```
+[GATE] journal rows before restore: 2
+[GATE] journal rows after restore: 2 (gate_manual: 2)     ← the repeat survived, not deduped
+[GATE] restore committed through the real dialog
+[GATE] restore PASS — B25 closed on device
+[GATE] B27 occurrences during this leg: 1                 ← open ticket, reproduced as recorded
+```
+
+`gate-upgrade-04-restore-warning.png`, `-05-restore-summary.png` (reads "1 baby profile(s),
+3 event(s)"), `-06-home-after-restore.png` (Home shows `Nova`, welcome sheet absent — B27's
+sibling fix, also 1.3.1).
+
+## 5. Things this pass established that are worth keeping
+
+- **The released APK cannot be the "old build" in an emulator upgrade test.** `v1.3.0`'s GitHub
+  asset is signed with the production key; anything built here is signed with a different key,
+  and `adb install -r` across keys fails with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`. Both sides
+  must be debug-signed for the in-place upgrade; production signing is exercised by CI at the tag.
+- **Google Play emulator images (`google_apis_playstore`) forbid `adb root` and silently drop
+  `adb input tap` for non-debuggable builds.** An hour was lost assuming the app was broken; it
+  was the image. Use a Google APIs image (rootable, userdebug) when a test needs file injection
+  or scripted taps on a release build.
+- **`adb shell pm clear` destroys the Android Keystore master key, and `measurements.value` is
+  encrypted** (`4wheVIU46TeFmqJ6:fQsajS5…` in the raw file). After a clear, previously written
+  weights render `—`. Correct behaviour, and the reason this pass never clears data.
+- **`drift` stores `dateTime()` as epoch SECONDS** — an injected millisecond value reads back as
+  year +057830. The first fixture attempt failed on exactly this.
+- On the 4.7-inch target with three « last tracked » lines, the Weight/Height/Temperature row sits
+  at the fold and needs a small scroll (`gate-upgrade-01-home.png`); nothing is clipped or
+  overflowing — the lines wrap inside their own cell.
+
+## Not covered by this pass
+
+- F-Droid's builder and the Play/ASC artifacts are built at the tag by CI, not here; the APKs
+  above are local builds of the same commit.
+- iOS: the on-device legs were Android. The iOS surface of these fixes is covered by
+  `gate_v131_fixes`/`gate_v131_restore_onboarding` unit+integration legs and the ASC capture
+  campaign, not by this note.
