@@ -1750,3 +1750,46 @@ with no active row.
 - Do not touch the profileless fallback itself: on a genuine fresh install (no profiles at all),
   Vitamin D + Vitamin K is the intended minimal set (and B6's opt-in work lives in that same
   territory).
+
+---
+
+## B32 — The prose release-note archive stops at v1.2.1: decide whether the convention is alive
+
+**Status:** open · **Severity:** low (records, not code) · **Cost:** ~20 min per missing version, or
+five minutes to retire the directory
+**Found:** 2026-11-13, while wrapping up the v1.3.1 store submissions. **Files:** `docs/release-notes/`
+(newest file `v1.2.1.md`, directory last touched 2026-10-21)
+
+### The fact
+Nothing in the tree documents v1.3.0 or v1.3.1 in prose. What exists for those two releases is
+mechanical or clipped:
+
+- the **GitHub release bodies** — `gh release view v1.3.1 --json body` is 3 365 characters of
+  auto-generated « What's Changed », a PR list with no editorial voice and no numbers;
+- the **store copy** — `store/v<x>/release-notes/apple-whatsnew-<locale>.txt` and
+  `fastlane/metadata/android/<locale>/changelogs/<code>.txt`, both inside console character limits
+  and written for parents, not for whoever debugs this in a year;
+- the **patch notes** — `assets/patch_notes/<locale>.json`, which is what the app renders, same
+  audience.
+
+`docs/release-notes/v1.2.1.md` is the last file in the house style that actually records the
+engineering facts: store build numbering and why it moved, the schema step and whether it was a
+re-key, what the gate proved. Those are exactly the facts this week had to be **re-derived** from
+`docs/fdroiddata/README.md` and `git log` (why 1.3.1 is `+15` and not `+14` is written down there
+only because the F-Droid recipe had to justify a versionCode to a stranger).
+
+### To do
+Decide, then make the tree say it:
+1. **Alive** → write `v1.3.0.md` and `v1.3.1.md` in the v1.2.1 voice (scope by item id, build
+   numbers, schema version and migration shape, what the device gate ran on which simulator, what
+   went to which store and when). Then it is an archive and worth its weight.
+2. **Retired** → put that in writing: a two-line `docs/release-notes/README.md` saying the directory
+   is the archive for ≤ v1.2.1 and that the release prose since then is the GitHub release body +
+   `store/v<x>/release-notes/`, with the engineering facts living in `docs/BACKLOG.md` and the
+   evidence folders. Cheap, and it stops the next reader rediscovering a « gap ».
+
+### Do not
+- Do not copy the generated « What's Changed » list into a `.md` and call it a release note — that
+  duplicates a page GitHub already rebuilds from the PRs and adds a second thing to keep current.
+- Do not paste console `whatsnew` text here either: it is a constrained marketing artifact and the
+  archive is not its source.
