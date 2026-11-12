@@ -1395,3 +1395,358 @@ is unaffected — Drift builds the real schema from `app_db.dart`, and the gate 
   character in the reference, and a working replay is what every future gate seed wants.
 - **Do not touch `app_db.dart`** — the real schema is correct; this is a defect of the reference
   file only.
+
+---
+
+## B27 — Mounting Home straight after a restore schedules a provider refresh during build
+
+**Status:** open, found on device 2026-11-09 · **Severity:** medium — an unhandled framework
+error on the restore path; invisible in release, red screen in debug · **Cost:** a flush at the
+invalidation site, plus a device pass
+**Found:** 2026-11-09, by `integration_test/gate_v131_restore_onboarding.dart` (written for the
+onboarding-sheet bug). It fires **with and without** that fix, and it is tolerated and counted
+there (`[GATE] B27 recorded`) rather than fixed, so this branch stays one concern.
+**Files:** `lib/features/import/presentation/providers/import_providers.dart:172`
+(`_invalidateRestoredState`), `lib/features/home/presentation/screens/home_screen.dart:333`
+(`_HomeContent.build` → `ref.watch(reminderNotifierProvider)`),
+`lib/features/reminders/presentation/providers/reminder_notifier.dart` (`build()` watches
+`activeBabyProvider` and `remindersServiceProvider.future`)
+
+### The fact
+
+```
+══╡ EXCEPTION CAUGHT BY RIVERPOD ╞═════════════════════════════════════════
+setState() or markNeedsBuild() called during build.
+The widget on which setState() or markNeedsBuild() was called was:
+  UncontrolledProviderScope
+The widget which was currently being built when the offending call was made was:
+  _HomeContent
+```
+
+Sequence, on a device, every time:
+
+1. The parent is on the Menu tab when the restore commits. `HomeScreen` is **not** mounted —
+   the shell renders `body: child` (no `IndexedStack`, `router.dart:255`), so leaving Home
+   disposed it and its subscriptions with it.
+2. `_invalidateRestoredState()` marks ten providers dirty. Nothing is watching the
+   reminder chain from the Menu, so they stay dirty: invalidation does not rebuild what has
+   no listener.
+3. The parent taps Home. `_HomeContent.build` runs `ref.watch(reminderNotifierProvider)`,
+   whose first flush rebuilds `activeBabyProvider` **synchronously inside that build**; the
+   rebuild notifies, `reminderNotifierProvider` invalidates itself,
+   `ProviderScheduler.scheduleProviderRefresh` calls `setState` on the provider scope, and
+   the framework is mid-build.
+
+`flutter run` in debug shows the exception and a red frame; a release build reports it to the
+error handler and recovers on the next frame, which is why nobody has seen it. It is still an
+unhandled error on the one path a parent uses when their backup was refused, and on a slower
+device the frame that threw may well be a frame the parent sees.
+
+### To do
+1. Flush what the shell will need while the Menu is still mounted: alongside the
+   `invalidate` calls, `ref.read` (or `.refresh()`) the *notifiers* Home watches — at least
+   `reminderNotifierProvider`, `activeBabyProvider` and `babyProfileListProvider`. Reading
+   creates the element, so the cascade resolves against the screen that is on screen instead
+   of against Home's first build. Verify with the gate below that the count goes to zero.
+2. Keep the ordering promise in prose where the invalidation lives: `_invalidateRestoredState`
+   currently documents why it must *not* touch `databaseProvider`; it should also say that a
+   bare `invalidate` defers the rebuild to whoever listens next.
+3. Device pass: run `integration_test/gate_v131_restore_onboarding.dart` and require
+   `[GATE] B27 occurrences during this leg: 0`, then remove the tolerance
+   (`suppressKnownProviderFlush`) so the gate fails on it from then on.
+
+### Do not
+- **Do not defer Home's own `ref.watch`** behind a post-frame callback or a `Future.delayed`:
+  that hides the symptom in the widget that reported it and leaves the same landmine under
+  History and any other screen that mounts after a restore.
+- **Do not invalidate `databaseProvider`** to make the cascade "clean" — `import_providers`
+  documents why (a second connection and a second background isolate per restore).
+- **Do not fold this into the onboarding-sheet fix.** They share a path, not a cause.
+
+---
+
+## B28 — The « last tracked » line only appears under a button whose reminder is currently due
+
+**Status:** ~~open~~ **resolved in 1.3.1** by PR #80 (`feat/last-tracked-from-events`), owner's
+call on 2026-11-09: *option 1* — « it should be getLastEvent, reminders are at the bottom of the
+screen », shipped in this version · **Severity:** visible-in-French, contradicts B23's recorded
+decision · **Cost:** one cached per-type read — paid
+**Found:** 2026-11-09, reported by the owner: on the home grid the line shows under *Health*
+only · **Files:** `lib/features/home/presentation/widgets/track_button.dart:37`
+(`_lastTrackedLabel`), `lib/features/home/presentation/screens/home_screen.dart:383`
+(`reminders: statusMap[TrackingType.miam]`), `lib/features/reminders/domain/services/reminders_service.dart:39`
+(`checkDue`)
+**Body kept as the decision record**, including the part that turned out to matter most: the
+method named in this ticket, `getLastEventByTypeAndSubtype`, is **not baby-scoped**, and shipping
+it verbatim would have shown one baby's history under the other's grid. What shipped is
+`AppDatabase.getLastEventTimestamp(type, {babyId})`, scoped the way
+`RemindersRepositoryImpl.getLastCompleted` scopes.
+
+### The fact
+
+B23's decision (2026-11-03) says the line « *is not a reminder — it is event history, nothing
+below shows it, and it stays* ». It does not stay, and it was never event history. The line is
+built from `widget.reminders`, which is the per-type slice of `reminderNotifierProvider`, and
+`RemindersService.checkDue` returns **only the items that are due right now** (`!item.frequency
+.isDue(now, lastCompleted)` → `continue`, and a recent dismissal also drops the item). So:
+
+- a type with **no currently-due reminder** has an empty list → `_lastTrackedLabel` returns
+  `null` → **no line at all**, even though the type has plenty of events;
+- `miam`/`dodo`/`caca` reminders are settled by the events themselves
+  (`completion_source = from_events`), so logging a feeding makes its reminder not-due and
+  takes the line away with it;
+- the health routines are ticked by hand, so they stay due far longer — which is why **Health
+  is the only button that shows the line** in ordinary use, exactly as reported.
+
+The data the decision assumed is available: `TrackingRepository.getLastEventByTypeAndSubtype`
+(`lib/features/home/domain/repositories/tracking_repository.dart:15`) answers "when was this
+type last tracked?" without consulting reminders at all.
+
+### The two readings that were on the table (option 1 won)
+1. **Make it the history line B23 believed it was** — feed the line from a per-type last-event
+   read, independent of `checkDue`. Then every button shows its own « Dernière activité: »
+   whenever that type has any event, and B25's localisation work carries over unchanged.
+2. **Or accept the coupling** and correct B23's record: the line is a *reminder* affordance,
+   present only while a type is due. Cheaper, but it leaves a home screen whose only dynamic
+   text appears on one of four buttons for no reason the parent can infer.
+
+### What shipped (PR #80)
+1. `lastEventByTypeProvider` (`Map<TrackingType, DateTime>`, absent key = no line), one `LIMIT 1`
+   read per type; invalidated by every write that can change an answer (`TrackNotifier`,
+   `HistoryNotifier` edit/delete, the restore, the reset) — nothing watches the event table.
+2. `Small_Phone` pass with 0, 1 and 4 lines (`integration_test/gate_v131_last_tracked_lines.dart`);
+   the four-line capture is the layout record. **A normal-size target was not separately run** —
+   the grid is one cell per type at both sizes and the small one is the binding constraint.
+3. `TrackButton` no longer accepts reminder state at all, so the pills' data path cannot come back.
+4. **Not done, deliberately:** the relative-duration strings are untouched. Now that the line is
+   common, `3h 0m` (en) and `2h5` (fr/es, from `"{hours}h{minutes}"`) are visible everywhere; both
+   belong to B25's owner decision and changing them moves the shipped home screenshots.
+
+### Do not
+- **Do not read `lastEventAt` from reminder statuses** and call it history — that is the
+  current defect.
+- **Do not add a per-type count or badge** while touching this: B23's « Do not » still stands.
+
+---
+
+## B29 — The history filter pills are not the home track-button design
+
+**Status:** open · **Severity:** low (visual consistency) · **Cost:** one style block on one screen
+**Found:** 2026-11-11, requested by the owner: the history pills have to be the same design as
+the home buttons — « darker border »
+**Files:** `lib/features/history/presentation/screens/history_screen.dart:212` (the unstyled
+`FilterChip` row); the reference design is `lib/features/home/presentation/widgets/track_button.dart:140`
+(2px accent border, tinted background, soft shadow, `shapeCardRadius`); the per-type colors
+already exist in `lib/core/theme.dart` (`AppTheme.miam`, `.dodo`, `.caca`, `.sante`)
+
+### The fact
+The history tab filters the timeline by tracking type with a row of stock Material `FilterChip`s
+(all, miam, dodo, caca, sante) with **no custom styling** — default outline, default selected
+color. The home grid buttons for the very same types are a custom decoration: 2px border in the
+type's accent color, tinted background, soft shadow. Two controls on the same axis (filtering by
+tracking type) rendered in two different design languages. The request is to bring the history
+pills over to the home-button language, the darker border being the visible difference.
+
+### To do
+1. Restyle the chips in `history_screen.dart` in the track-button language: 2px border in the
+type's accent color (the same `AppTheme` colors the home grid uses), tinted background, the same
+border radius. `all` has no type accent on home — it stays neutral.
+2. Keep the toggle semantics readable: the home buttons have no selected state to copy, so the
+chip's *fill* carries selected/unselected and the *border* carries the type color.
+3. `test/features/history/presentation/screens/history_screen_test.dart` locates the filter
+chips — keep it green. Gate pass: the row already scrolls horizontally, so confirm no overflow
+on `Small_Phone` and screenshot the history tab (smallest target + normal).
+
+### Do not
+- **Do not replace the chips with `TrackButton` widgets.** The chips are toggles; `TrackButton`
+is a button, and B28 closed its data path deliberately (« can no longer receive reminder state
+at all »).
+- **Do not touch the home track buttons** — they are the reference, and they shipped inside the
+v1.3.1 store screenshots (recaptured 2026-11-11, PR #81); changing their look re-stales the
+uploads.
+
+---
+
+## B30 — Per-reminder notification hour: set it on the reminder itself, in the settings list
+
+**Status:** open (owner request, 2026-11-12: « set the reminder hour of notification directly on
+the reminder in the settings ») · **Severity:** product gap · **Cost:** medium — schema v14 +
+export format v5 + per-item time in the scheduler loop + two UI surfaces + l10n · **Risk:** low —
+additive; the global hour stays the fallback
+**Found:** 2026-11-12, owner request. Mechanics verified in `develop` (1.3.1+15) the same evening.
+**Files:** `lib/features/reminders/presentation/screens/reminder_settings_screen.dart` (preset rows
+are bare `SwitchListTile`s; the only time control is the global `reminderNotificationsTimeLabel`
+row in `_SystemNotificationsSection`),
+`lib/features/reminders/domain/services/reminder_scheduler.dart` (`sync()` takes one
+`preferredHour`/`preferredMinute` pair for **every** item; the `_PlanEntry` diff on
+`(at, title, body)`), `lib/features/reminders/domain/services/reminder_scheduling.dart`
+(`nextDueAt(..., preferredHour, preferredMinute, ...)` — the time of day is applied per item in
+`_naturalCandidate`), `lib/features/reminders/presentation/providers/reminder_sync_notifier.dart`
+(`_run()` reads the single `settingsKeyNotificationTime`; `NotificationSettingsNotifier.setTime`),
+`lib/features/reminders/data/repositories/reminders_repository_impl.dart`
+(`getEnabledByItemId` — the per-(baby, item) read the scheduler already does),
+`lib/data/local/app_db.dart:58` (`reminder_settings`: `baby_id` + `item_id` + `enabled`, no time),
+`lib/features/export/data/repositories/export_repository_impl.dart:56` (`_exportFormatVersion = 4`),
+`lib/features/import/data/repositories/import_repository_impl.dart:32` (`_supportedFormatVersion = 4`),
+`lib/features/reminders/domain/services/notification_time.dart` (the shared `HH:mm` codec +
+validator).
+
+### The fact
+Every notification — the four presets **and** all customs — fires at the **one global hour**
+(`notification_time_of_day`, default `09:00`), editable only in the « System notifications »
+section. A parent who wants « crème nombril » at 08:00 and vitamin K at 21:00 cannot express it:
+the presets' rows are bare switches with no hour affordance at all, and the customs share the
+global hour. **B14 already recorded this exact gap** for customs — « a model change, not a
+schedule tweak » — and parked it pending owner confirmation. The owner has now confirmed the
+intent, and the request goes one step further than B14's per-custom design: the hour belongs on
+**the reminder itself, for every row** of Settings → Reminders. B14's « Do not add a per-custom
+time column before the owner confirms that is the intent » is hereby satisfied — by a request that
+is per-reminder, not per-custom.
+
+### Shape (decide at the plan)
+1. **Storage:** extend the `reminder_settings` row — the per-(baby, item) settings the switches
+   already read and write — with `time TEXT NULL` (schema v14, one `ALTER TABLE … ADD COLUMN`,
+   reversible). `NULL` = inherit the global hour, which keeps the global row meaningful as « the
+   default hour » instead of turning it into dead weight. Presets (`eye_cleaning`) and customs
+   (`custom_7`) land in the same table under the keys the switches already use — no new table, no
+   second store. Alternative considered and set aside: a nullable time column on
+   `custom_reminders` plus a separate preset-time store — it splits one setting across two schemas
+   and reproduces B14's half-measure.
+2. **Export format v5** + importer acceptance of v5 in the same change (AGENTS.md: the two
+   features move together). The time rides the `reminder_settings` section as a nullable `time` per
+   row; `isValidNotificationTime` (already the single shared validator, reused by the importer for
+   the global hour) validates it — the importer **refuses** a malformed stored hour exactly as it
+   refuses a malformed global one, while the app's read side falls back to the global hour (the
+   same read-lax/write-strict split `parseNotificationTime` documents).
+3. **Scheduler:** `sync()` keeps its signature but resolves the hour **per item** inside the item
+   loop instead of passing one pair to `nextDueAt`: the enabled-map read (`getEnabledByItemId`)
+   becomes the settings map (enabled + optional time) — one query per scope, not N. `nextDueAt`
+   itself is unchanged; each item simply feeds its own preferred hour. **The diff needs no new
+   key:** a changed hour moves `at`, and `at` is already the first term of the `_PlanEntry`
+   comparison — an edited hour re-submits by id exactly like a baby rename (B14's « stale schedule
+   left behind » concern is already covered, verified in `reminder_scheduler.dart`'s step-5 loop).
+4. **UI:** every preset row and every `CustomReminderTile` gains the hour — a subtitle or trailing
+   affordance showing the effective hour (its own when set, the global one marked as inherited when
+   not) → `showTimePicker` → persist the `reminder_settings` row → `syncNow()` (the same hook the
+   switches already use). Setting « inherit » again writes `NULL`. The global row stays: it is the
+   default for everything unset and the only control on a profileless install.
+5. **l10n fr/en/es:** the row subtitle in both states, the picker's title. No brand/ASO strings.
+6. **Catch-up follows automatically and is the point:** an item whose *own* hour has already passed
+   today is due-now (D3's 60-second nudge). A per-reminder 08:00 on a device whose global is 09:00
+   opens that item's catch-up window an hour earlier — verify with `reminder_scheduling_test.dart`
+   (the DST and catch-up suites exist; add per-item-hour rows).
+
+### Do not
+- Do not ship B14's per-**custom**-only variant as an intermediate step: the request is per-reminder
+  on the settings list, and the storage shape is identical either way — the halfway version costs a
+  migration to undo.
+- Do not store the hour on the `ReminderItem` entity: the presets are `static const`, and the hour
+  is per-(baby, item) **data**, not item identity (the same reason the enabled flag lives in
+  `reminder_settings`, not on the item).
+- Do not touch plan-indexing or the catch-up id bands: a changed hour re-submits by id, exactly
+  like a rename.
+- No network delivery of schedule changes (charter), no per-item permission.
+
+---
+
+## B31 — Some iOS parents don't see eye/face cleaning in the settings, but get their notifications
+
+**Status:** open, **bug** (user report, 2026-11-12: « Some iOS users don't see the Eye cleaning
+and face cleaning in the settings, but get the notifications ») · **Severity:** high — the affected
+parents receive notifications they **cannot manage**: the rows to switch them off do not exist, and
+the switches that do exist write to the wrong scope · **Cost:** small–medium — one read-boundary
+repair + making the delete flow atomic + tests · **Risk:** low — additive self-heal; the only
+write is restoring the flag the app is supposed to maintain
+**Found:** 2026-11-12, user report. Mechanics verified in `develop` (1.3.1+15) the same evening.
+**Files:** `lib/features/reminders/domain/entities/reminder_item.dart:147-150`
+(`reminderItemsFor` — the profileless fallback is **Vitamin D + Vitamin K only**),
+`lib/features/reminders/presentation/providers/reminder_providers.dart` (`dynamicRemindersProvider`
+= that fallback whenever `activeBabyProvider` resolves to null),
+`lib/features/reminders/domain/services/reminder_scheduler.dart:241-257` (`_itemsForScope` — the
+**full** preset set for **every** baby, D6),
+`lib/data/local/app_db.dart:494-507` (`getActiveBabyProfile` — filters `is_active = true`, no
+repair when the set is empty),
+`lib/features/menu/presentation/widgets/baby_profile_section.dart:455-480` (delete flow:
+`deleteProfile` commits, **then** `switchProfile(remaining.first)` as separate statements),
+`lib/features/baby/data/repositories/baby_profile_repository_impl.dart:139-165`
+(`setActiveProfile` — deactivate-all + activate-target in one transaction),
+`lib/features/import/data/repositories/import_repository_impl.dart:723-731`
+(`_promoteActiveProfile` — the **only** existing repair, on the import path only).
+
+### The fact — two surfaces source their item lists differently, and only one degrades
+Settings → Reminders lists `reminderItemsFor(activeBaby)`; the OS scheduler lists
+`reminderItemsFor` per baby, for **every** baby (D6). When `activeBabyProvider` resolves to
+**null** on a device that **has** baby profiles — i.e. profiles exist but **no row has
+`is_active = true`**:
+
+- the settings screen renders the profileless fallback — **Vitamin D and Vitamin K only** — so
+  « Nettoyage yeux » and « Nettoyage visage » are absent from the list. Same for the home banners
+  (same provider chain): a corroborating sign to check with the reporter.
+- the scheduler sees the profiles, takes the per-baby scopes (not the profileless one), and
+  schedules **all four presets for each baby** — so the eye/face notifications **fire**, with the
+  baby's name in the body (« Nora : c'est l'heure de … »).
+- the two switches that *do* show read and write the `''` profileless scope
+  (`reminder_settings` with `baby_id = ''`): a parent who turns off Vitamin D keeps receiving the
+  named baby's Vitamin D notification. The screen lies in both directions.
+- the state is **self-perpetuating**: nothing re-promotes an active profile at startup (only the
+  importer does), so the parents are stuck until they delete and recreate the baby — an operation
+  the UI offers, and which is *worse* (deleting the profile deletes its events).
+
+« Some iOS users » fits the loss mechanism below: it needs the app killed between two committed
+statements, and iOS suspends and reaps backgrounded apps far more aggressively than Android.
+
+### How a device ends up with profiles but no active one
+Exactly one `is_active = true` row is the invariant. The writers:
+
+1. onboarding insert — `isActive: true`. Safe.
+2. add-from-menu insert — `isActive: false`, current active untouched. Safe.
+3. `setActiveProfile` — deactivate-all + activate-target in **one** transaction. Safe.
+4. **delete flow (`baby_profile_section.dart:455-480`): `deleteProfile` commits (removing the
+   active row when the deleted baby was the active one), and the re-activation
+   (`switchProfile(allProfiles.first.id)`) runs afterwards as separate statements. If the app dies
+   in the gap, the committed state is: profiles present, **zero** active rows. This is the prime
+   suspect: delete the active baby, lock the phone, iOS reaps the suspended process.
+
+It is the only path to the broken state that is not transactional. A hand-edited DB or a restore
+cannot produce it unrepaired: `_promoteActiveProfile` exists precisely for a restore that lands
+with no active row.
+
+### To do
+1. **Confirm on a reported device first** (cheap, and it decides the fix): ask the parent whether
+   the notification body carries the baby's name. With a name ⇒ profiles exist ⇒ the `is_active`
+   loss is confirmed and the fix below applies. Without a name ⇒ the scope is profileless, in
+   which case the current code **cannot** fire eye/face notifications — that would mean an older
+   build, and the ticket is a version question. No telemetry can carry this (charter); the report
+   path is human.
+2. **Self-heal at the read boundary:** when `getActiveBabyProfile` finds profiles but no active
+   row, promote the first by (birth_date, id) — the exact ordering the importer already uses —
+   persist the flag, and log it. Do it in the DB/repository layer so **every** consumer (settings
+   screen, scheduler, home header, B9's future switcher) sees the repaired row, not one provider.
+   A startup repair in `main.dart` is the alternative; the read-boundary version is preferred
+   because it also covers the first read after the kill, with no separate hook.
+3. **Close the gap at the source:** fold the re-activation into the delete path — `deleteProfile`
+   grows a « promote this survivor » parameter in the **same** transaction, or the delete flow's
+   `switchProfile` moves inside the delete transaction. The snackbar/feedback order in the UI does
+   not change.
+4. **Tests:** (a) repository: no-active-row + N profiles ⇒ the read returns the deterministic
+   survivor and the flag is persisted; (b) scheduler/settings agreement: a device in the broken
+   state schedules per-baby presets, and after the repair both surfaces agree on scope and items;
+   (c) delete flow simulated with the app killed between the two statements (don't await the
+   switch) leaves exactly one active row.
+5. **Release gate:** install a build with the old gap, create two babies, delete the active one,
+   kill the process in the gap (breakpoint or `kill -9` on the emulator), relaunch ⇒ the settings
+   screen shows **four** rows scoped to the remaining baby, and the next sync rewrites the OS plan
+   under the right scope. Screenshots on `Small_Phone` + a normal device, recorded in the PR.
+
+### Do not
+- Do not « fix » the symptom by making the settings screen list **all** babies' items (deduped)
+  when the active profile is null: that hides the flag loss, leaves the switches writing to the
+  `''` scope, and creates a third item source the scheduler can disagree with — the whole point of
+  `reminderItemsFor` is that the UI and the OS schedule derive from one list.
+- Do not change D6 (every baby is scheduled): multi-baby coverage is the design; the defect is the
+  lost flag, not the broadcast.
+- Do not add a schema-version « repair» migration: this is a **data state**, not a schema state —
+  a migration fires once and the state can recur (which is what the read-boundary repair is for).
+- Do not touch the profileless fallback itself: on a genuine fresh install (no profiles at all),
+  Vitamin D + Vitamin K is the intended minimal set (and B6's opt-in work lives in that same
+  territory).
