@@ -79,7 +79,7 @@ support asks for.
 |------|--------|
 | Enroll in Apple Developer Program ($99/year) | ✅ done |
 | Create app entry in App Store Connect (`com.pvjio.mamadera`) | ✅ done |
-| Archive + sign + upload via **Xcode Cloud** (auto on `main` push; auto-managed signing) | ✅ first green build 2026-09-20; **1.3.1+15** uploaded by the `main` push of 2026-11-12 (`4570c94`) |
+| Archive + sign + upload via **Xcode Cloud** (auto on `main` push; auto-managed signing) | ✅ first green build 2026-09-20 — 1.1.0 build in ASC, ready to attach. ◱ **1.3.1+15**: the `main` push of 2026-11-12 (`4570c94`) is the trigger and the submission itself is the evidence an upload landed — the Xcode Cloud job is **not visible from this repo**, and CI's `ios-release` artifact (run `43132941873`) is a red herring: `build-ios` runs `flutter build ios --release --no-codesign`, so that IPA is unsigned and could never reach ASC — it exists to prove the app compiles for device |
 | Fill metadata (name, subtitle, description × 3 languages — **from `store/v<version>/fields/`**; the v1.1.0 block in `docs/app-store-setup.md` Step 5 is superseded) | ◱ v1.3.1 from `store/v1.3.1/fields/`, 2026-11-13 (a submission cannot exist without it) |
 | Paste What's New × 3 (`store/v<version>/release-notes/apple-whatsnew-<locale>.txt` — rendered from `assets/patch_notes/`, never hand-edited) | ◱ 2026-11-13 |
 | Upload iPhone screenshots — **exactly four sizes, all else is rejected**: 1206×2622 and 2622×1206 (iPhone 17), 1179×2556 and 2556×1179 (iPhone 17e), 7 screens per locale (`store/v<version>/screenshots/asc/<locale>/<size>/`). The old 1242×2688 / 1284×2778 set stopped being uploadable in B24 (2026-11-03) and `store/v1.3.0/screenshots/asc/` is still built from it — do not take a set from there | ◱ 2026-11-13, taken from `store/v1.3.1/screenshots/asc/` — the four accepted sizes are there and verified (B24 satisfied; this is the first release whose ASC set is not the retired lineup) |
@@ -130,7 +130,7 @@ Follow → [`docs/google-play-setup.md`](google-play-setup.md)
 |------|--------|
 | Fill store listing + localizations × 3 languages — **from `store/v1.3.1/fields/`** + `release-notes/play-<locale>.txt` (the v1.1.0 copy in `docs/google-play-setup.md` Step 6 is superseded) | ◱ 2026-11-13 (a submission cannot exist without it) |
 | Upload feature graphic (1024×500), app icon (512×512), screenshots (≥3) — `store/v1.3.1/screenshots/play/`, 8 screens × fr/es/en at 1280×2856, recaptured 2026-11-11 | ◱ 2026-11-13 |
-| Signed AAB from the release tag (Actions, production keystore) — as `v1.3.0` was in CI run 41353557027 | ✅ built and verifiable: run **`43132941873`**, artifact `android-release-aab` (60 MB, from tag `v1.3.1`) — ◱ uploaded 2026-11-13 |
+| Signed AAB from the release tag (Actions, production keystore) — as `v1.3.0` was in CI run 41353557027 | ✅ built and verifiable: run **`43132941873`**, artifact `android-release-aab` (60 MB, from tag `v1.3.1`) — and genuinely release-signed, not debug: `ci.yml:243` writes `ANDROID_KEYSTORE_BASE64` to `android/app/keystore.jks` and `:264` builds the appbundle with `KEYSTORE_PATH` pointed at it — ◱ uploaded 2026-11-13 |
 | Upload to Internal Testing track first | ◱ — **fill from the Console**: which track the build went to, and when |
 | Complete internal testing → move to Production | 🕐 **waiting for Play validation** since 2026-11-13 — 2–5 business days expected; the track it lands on is a Console fact, not a repo one |
 
