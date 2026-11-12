@@ -8,7 +8,7 @@ holds two kinds of files that live in *different* repositories:
 | `com.pvjio.mamadera.yml` | fork of https://gitlab.com/fdroid/fdroiddata → `metadata/` |
 | (the `fastlane/metadata/android/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source, in **fastlane layout** (required by the New App checklist — a plain `metadata/` dir happens to be read too, but it is not accepted for inclusion) |
 
-## Current status (2026-11-08 — the recipe pins `v1.3.1`, build **15**)
+## Current status (2026-11-12 — build **15** pushed to !53740, pipeline `3062096455`)
 
 `com.pvjio.mamadera.yml` in this directory is **byte-identical** to
 `metadata/com.pvjio.mamadera.yml` on the MR branch (`mamadera-new-app` of
@@ -27,12 +27,50 @@ version under test stayed 1.3.1 and the build moved: `pubspec.yaml` is
 `14.txt`. F-Droid reads the changelog by **versionCode at the tag**, so the
 three must agree at `v1.3.1` — tag it only after those fixes are on `main`.
 
-The fork commit for that entry is **held unpushed** on `mamadera-new-app`
-until the `v1.3.1` tag exists and is pushed: pushing the branch updates MR
-!53740, whose pipeline immediately builds the entry against `commit: v1.3.1`
-and fails on a ref that does not exist yet. At push time the MR abstract's
-screenshot URLs move from `…/v1.3.0/fastlane/…` to `…/v1.3.1/fastlane/…`
-(same files, now refreshed with the 1.3.1 UI).
+**Why nothing else in the recipe changed:** `git diff v1.3.0..v1.3.1 -- android/
+ios/ pubspec.lock .github/workflows/ci.yml` is **empty** — the release touches
+the `pubspec.yaml` version line and nothing build-relevant. Worth knowing as a
+test in its own right: when that diff is empty, every prebuild/build verification
+written for the previous tag carries over verbatim, and when it is not, the seds
+and the `rm` list have to be re-derived from the new tag, not assumed.
+
+### The push, and what the pipeline said (2026-11-12)
+
+The entry used to be **held unpushed** on `mamadera-new-app` until the `v1.3.1`
+tag existed and was pushed: the pipeline builds `commit: v1.3.1` immediately, so
+pushing early just turns the MR red on a ref that does not exist yet. `v1.3.1`
+landed on GitHub 2026-11-12, so the branch went: fork
+`mamadera-new-app@12b317fe`, fast-forward from `569a1376` (plain `git push`, no
+force — a moved remote aborts it rather than overwriting a maintainer's edit),
+MR !53740 pipeline **`3062096455`**:
+
+| Job | Result |
+|---|---|
+| `fdroid lint`, `fdroid rewritemeta`, `schema validation`, `git redirect`, `checkupdates`, `tools check scripts`, `check source code` | ✅ all green |
+| **`fdroid build`** | ✅ **success, 581 s** (v1.3.0 took 508 s) — the Flutter/Gradle build of tag `v1.3.1` on F-Droid's own builder |
+| `check apk` | runs after the build; see the MR for the final state |
+
+Along with the push, the MR abstract moved from `…/v1.3.0/fastlane/…` to
+`…/v1.3.1/fastlane/…` — checked with `curl` that all four files (3 screenshots +
+icon) answer 200 at the new tag with byte sizes matching the tag's blobs — and
+two statements that the bump had made false were corrected in place: the
+`Builds` line in *Build notes*, and the *Metadata* checklist item claiming "the
+MR adds exactly two files: the metadata and the one signing-guard patch". The
+patch file has been gone since the 2026-10-24 review round; the MR adds **one**
+file (`/merge_requests/53740/changes` returns one). Upkeep rule: after any bump,
+re-read the abstract for claims the *release* invalidated, not just the URLs.
+
+### One stale thing the push cannot fix — refresh fastlane captures *before* the tag
+
+`fastlane/metadata/android/en-US/images/phoneScreenshots/` at `v1.3.1` are the
+captures committed 2026-11-08 in `666f94b`. The store set was recaptured
+**2026-11-11** (`store/v1.3.1/screenshots/play/`, PR #81) after B28 put the
+« last tracked » line on Home, so the three screenshots F-Droid ingests for
+1.3.1 show a Home screen without a visible part of what 1.3.1 changes.
+Replacing them in the repo now accomplishes nothing: fdroidserver reads the tree
+**at the tag**, and `v1.3.1` is cut and immutable. The rule for the next release
+is ordering, not effort — the fastlane captures refresh in the same branch as
+the store recapture, and the tag comes after both.
 
 Checked on 2026-11-01 with fdroidserver master (`cdfdce8`) and Debian trixie's
 `ruamel.yaml 0.18.10`: `fdroid lint` clean, and `fdroid rewritemeta` is a fixed

@@ -145,11 +145,11 @@ the tree any more).
 
 | Task | Status |
 |------|--------|
-| fastlane tree in this repo, present **at the release tag** | ✅ v1.3.0 (this was the v1.2.1 blocker) |
-| `com.pvjio.mamadera.yml` canonical + lint-clean under the pipeline's fdroidserver | ✅ 2026-11-01, one `Builds` entry 1.3.0 / 12, `commit: v1.3.0` |
+| fastlane tree in this repo, present **at the release tag** | ✅ v1.3.1 (this was the v1.2.1 blocker) — descriptions ×3, `changelogs/15.txt` ×3, icon + 3 screenshots. Caveat: the screenshots are the 2026-11-08 captures, three days before the store recapture that followed B28 — see `docs/fdroiddata/README.md` |
+| `com.pvjio.mamadera.yml` canonical + lint-clean under the pipeline's fdroidserver | ✅ 2026-11-12, one `Builds` entry 1.3.1 / 15, `commit: v1.3.1` — `rewritemeta` idempotent under fdroidserver master *and* the CI pin, `lint` clean, byte-identical to this repo's copy |
 | Fork fdroiddata (GitLab), MR labelled **New App** | ✅ MR [!53740](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53740), opened 2026-10-22 |
-| Push the v1.3.0 recipe to the MR branch | ✅ 2026-11-01 — pipeline `3015561025` green on all 9 jobs, **`fdroid build` succeeded (508 s)** |
-| Re-pin the MR abstract screenshots to `v1.3.0` | ✅ 2026-11-01 — and the abstract itself needed correcting: it still claimed "no permissions" and six `Builds` entries, both false since v1.3.0 (`docs/fdroiddata/README.md`) |
+| Push the release recipe to the MR branch | ✅ 2026-11-12 (`mamadera-new-app@12b317fe`) — pipeline `3062096455`, **`fdroid build` succeeded (581 s)** on tag `v1.3.1`; v1.3.0's build was `3015561025` (508 s) |
+| Re-pin the MR abstract to `v1.3.1` | ✅ 2026-11-12 — URLs verified 200 at the new tag; two claims the bump had made false corrected in place (the `Builds` line, and "the MR adds exactly two files…patch": it adds one) |
 | Maintainer review → merge | ☐ (~2–6 weeks. All three 2026-10-24 asks — sed instead of patches, latest version only, fastlane in the repo — are answered; **our two questions of the same day, per-ABI splits and whether the `sudo:`/reproducible-build block goes in now, are unanswered**, which is probably what `waiting-on-response` refers to) |
 | Delete branch `fdroid-metadata-v1.2.1` | ☐ **after** the merge — see `docs/AUDIT-2026-10-21.md` addendum |
 
