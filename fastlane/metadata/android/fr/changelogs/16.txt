@@ -1,0 +1,1 @@
+* Correction d'un cas rare où les réglages des rappels n'affichaient que la vitamine D et la vitamine K alors que les rappels de nettoyage des yeux et du visage continuaient de sonner

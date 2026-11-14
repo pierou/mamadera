@@ -1,0 +1,1 @@
+* Fixed a rare case where the reminders settings listed only Vitamin D and K while eye and face cleaning notifications kept firing
