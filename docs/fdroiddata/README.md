@@ -8,15 +8,15 @@ holds two kinds of files that live in *different* repositories:
 | `com.pvjio.mamadera.yml` | fork of https://gitlab.com/fdroid/fdroiddata → `metadata/` |
 | (the `fastlane/metadata/android/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source, in **fastlane layout** (required by the New App checklist — a plain `metadata/` dir happens to be read too, but it is not accepted for inclusion) |
 
-## Current status (2026-11-12 — build **15** pushed to !53740, pipeline `3062096455`)
+## Current status (2026-11-14 — build **16** pushed to !53740, pipeline `3068542108`)
 
 `com.pvjio.mamadera.yml` in this directory is **byte-identical** to
 `metadata/com.pvjio.mamadera.yml` on the MR branch (`mamadera-new-app` of
 `~/fdroiddata`, fork `pvjacquier/fdroiddata`). Keep them identical — `cmp` the
 two after every bump; a comment or a wrap added on one side only breaks the
-other's pipeline job. Current content: one `Builds` entry (1.3.1 / **15**,
-`commit: v1.3.1`), `rm: [ios]` (re-derived from the tag tree, which still has
-only `ios`), `CurrentVersion: 1.3.1` / `CurrentVersionCode: **15**`.
+other's pipeline job. Current content: one `Builds` entry (1.3.2 / **16**,
+`commit: v1.3.2`), `rm: [ios]` (re-derived from the tag tree, which still has
+only `ios`), `CurrentVersion: 1.3.2` / `CurrentVersionCode: **16**`.
 
 **Why 15 and not 14:** `1.3.1+14` was already uploaded to App Store Connect by
 Xcode Cloud's build-on-push-to-`main` (PR #68), and the two 1.3.1 fixes — the
@@ -33,6 +33,25 @@ the `pubspec.yaml` version line and nothing build-relevant. Worth knowing as a
 test in its own right: when that diff is empty, every prebuild/build verification
 written for the previous tag carries over verbatim, and when it is not, the seds
 and the `rm` list have to be re-derived from the new tag, not assumed.
+
+### The 2026-11-14 push (v1.3.2 / 16)
+
+Fork `mamadera-new-app@d8b8be3e`, fast-forward from `12b317fe` (plain `git push`,
+no force). MR !53740 pipeline **`3068542108`**: all jobs green, including
+`fdroid build` (created 15:52 UTC, success 16:04 UTC). The v1.3.2 release
+(B31 active-profile self-heal) touches nothing under `android/`, `ios/` or
+`pubspec.lock` relative to v1.3.1, so the prebuild/build blocks carry over
+verbatim; the one build-relevant file it does change, `.github/workflows/ci.yml`
+(emulator-guard fix), still pins `flutter-version: '3.44.8'`, which the recipe's
+sed resolves at the tag. `changelogs/16.txt` exists at the tag in all three
+locales, and the screens are unchanged (B31 is a settings-list bug; the fastlane
+shots are Home/Feeding/History), so the capture-order rule is satisfied by
+inheritance — the v1.3.1 images are still the current ones. The MR description
+re-pin to `v1.3.2` (screenshot URLs, *Build notes*) is pending a browser session:
+the local GitLab credential can write the fork (verified) but not the upstream
+project — a fork MR does not grant its author write access to `fdroid/fdroiddata`
+— and the full-scope PAT in the keychain is 401. All four tag-pinned asset URLs
+curl 200.
 
 ### The push, and what the pipeline said (2026-11-12)
 
