@@ -201,26 +201,51 @@ once, all rows have stable ids and merges are idempotent for good.
 
 Additive except where noted; no table rebuild, no rekey of any existing pk.
 
+**The `DEFAULT` clause is not decoration — SQLite refuses the bare form.** `ALTER TABLE … ADD COLUMN
+uuid TEXT NOT NULL` fails outright with `Cannot add a NOT NULL column with default value NULL`
+(verified on sqlite 3.54 against a populated table, 2026-11-14), and SQLite offers no way to add the
+constraint later without a **table rebuild** — the B31-class irreversible move this plan's opening
+line rules out, and the reason the sentinel default is not a style choice. So every NOT NULL
+column below carries a sentinel default, and the sentinel is backfilled away in step 2. The house
+precedent is exactly this: `app_db.dart:365` ("`ALTER TABLE … ADD COLUMN … NOT NULL DEFAULT` is
+additive and legal") with the statement at `:371`, `unit TEXT NOT NULL DEFAULT 'ml'`.
+
 | Table | New columns |
 |---|---|
-| `tracking_events` | `uuid TEXT NOT NULL` + UNIQUE index, `updated_at INTEGER NOT NULL` (epoch ms), `deleted_at INTEGER` (NULL = alive) |
+| `tracking_events` | `uuid TEXT NOT NULL DEFAULT ''` + UNIQUE index (post-backfill), `updated_at INTEGER NOT NULL DEFAULT 0` (epoch ms), `deleted_at INTEGER` (NULL = alive) |
 | `measurements` | same three |
 | `custom_reminders` | same three |
-| `reminder_completions` | `uuid TEXT NOT NULL` + UNIQUE index (append-only: no `updated_at`/`deleted_at` — there is no edit or delete UI for a completion today; if one appears, it takes D4) |
-| `reminder_settings` | `updated_at INTEGER NOT NULL` (identity already in pk) |
-| `reminder_dismissals` | `updated_at INTEGER NOT NULL` (identity already in pk) |
-| `baby_profiles` | `updated_at INTEGER NOT NULL` (rename/birthdate edits) |
+| `reminder_completions` | `uuid TEXT NOT NULL DEFAULT ''` + UNIQUE index (append-only: no `updated_at`/`deleted_at` — there is no edit or delete UI for a completion today; if one appears, it takes D4) |
+| `reminder_settings` | `updated_at INTEGER NOT NULL DEFAULT 0` (identity already in pk) |
+| `reminder_dismissals` | `updated_at INTEGER NOT NULL DEFAULT 0` (identity already in pk) |
+| `baby_profiles` | `updated_at INTEGER NOT NULL DEFAULT 0` (rename/birthdate edits) |
 
-New table: `profile_aliases` (D2).
+New table: `profile_aliases` (D2) — a plain `CREATE TABLE`, where `NOT NULL` needs no default.
+
+Drift note: the Dart column declarations must carry the same defaults (`.withDefault(const Constant(''))`,
+`.withDefault(const Constant(0))`), or drift's own schema verification disagrees with the SQL above.
+The default also stays in the DDL permanently (SQLite cannot drop it) — that is accepted, and it is
+why the sentinel must be impossible to mistake for data, next point.
+
+**`''` and `0` are poison values and must be treated as such.** `updated_at = 0` is older than any
+real timestamp, so a row that escapes the backfill loses every D3 comparison to the file, silently;
+`uuid = ''` would make the UNIQUE index collide across rows the moment two un-backfilled rows exist.
+Hence the ordering below, and hence the two assertions in step 4.
 
 Migration `from < 15` (after the v14 step, in the same `onUpgrade`):
 
-1. `ALTER TABLE … ADD COLUMN` for each (the v12 precedent — legal on populated tables).
+1. `ALTER TABLE … ADD COLUMN` for each, **with the sentinel default** (the v12 precedent at
+   `app_db.dart:371` — the bare `NOT NULL` form does not execute, see above).
 2. **Backfill**, per UUID table: a Dart loop over existing rowids generating one uuid each and
    stamping `updated_at` = migration instant, same for `baby_profiles`/settings/dismissals.
    (Row counts are phone-lifetime small — thousands at most; a loop is fine and keeps uuid
    generation in the tested D7 function.)
-3. `CREATE TABLE profile_aliases`; UNIQUE indexes on the uuid columns.
+3. `CREATE TABLE profile_aliases`; **then** the UNIQUE indexes on the uuid columns — after step 2,
+   never before: with `DEFAULT ''` still on two un-backfilled rows, the index creation itself fails.
+4. **Assert the backfill left nothing behind** — `SELECT count(*) FROM <t> WHERE uuid = ''` and
+   `… WHERE updated_at = 0` are both 0 for every table touched. Cheap, and it is the only thing that
+   stands between a partially-backfilled database and silent D3 losses; make it a migration test, not
+   a log line.
 
 **Irreversible** (backfilled uuids cannot be un-generated) — same class as v12, same gate: the
 emulator pass on a device that has v13 data (§9). Downgrade policy: none (existing app position).
@@ -245,7 +270,10 @@ propagation, and `counts` keeps counting them (the counts validator sees rows, n
 
 Importer: accepts 1…6. For rows lacking uuids (any format ≤5): generate at insert (D9). The
 strict-validation stance is unchanged — a malformed `uuid` (wrong shape) rejects the file; a
-*missing* one is the legacy path. The `databaseSchemaVersion` guard is untouched.
+*missing* one is the legacy path. The migration sentinel `''` (§3) is **database-side only**: never
+written to a document, never accepted from one — a `"uuid": ""` in a file is a bug on the exporting
+device and the file is refused rather than silently re-keyed. The `databaseSchemaVersion` guard is
+untouched.
 
 **Version-allocation note (B30/B33):** if the 1.4.0 content release lands as planned, Phase A's
 export v6 adds its fields on top of v5's (per-reminder hour, preset override columns) — the
@@ -350,7 +378,7 @@ Replace mode, its confirm copy and its behaviour: untouched.
 |---|---|
 | domain (pure) | merge plan: union both directions; lww newer-file, newer-local, **tie → local**; tombstone applied; tombstone loses to newer alive row (the un-delete); idempotent re-run = 0 writes; profile: alias hit / suggested / new / file-id-equals-local-id; completions dedup by uuid; composite-pk upsert |
 | data (in-memory drift) | two-DB round trip (seed A, export, merge into B, verify invariants: no duplicate uuids, tombstones respected, active-profile guarantee after merge, counters match plan); replace-mode regression (existing restore tests untouched); D7 uuid function (v4 shape, version/variant bits, collision at 10k) |
-| migration | v13-seeded DB → v15: every row has uuid + updated_at, app boots, data visible; v14→v15 alone (the expected field path) |
+| migration | v13-seeded DB → v15: every row has uuid + updated_at, app boots, data visible; v14→v15 alone (the expected field path); **no `uuid = ''` and no `updated_at = 0` survives the backfill in any table (§3 step 4)** |
 | importer | format 4 file → import → uuids generated (D9); format 6 file merges; format 7 refused; counts-with-tombstones validator; strict uuid-shape rejection; schema guard unchanged |
 | coverage | ≥80 % domain/data as usual (`make ci`) |
 

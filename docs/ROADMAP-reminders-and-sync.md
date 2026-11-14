@@ -18,6 +18,11 @@ Five requests came in together:
 
 ## 0. Verified state of the code (read this, do not re-derive)
 
+*Rows below are as measured when this file was opened (2026-09-20, 1.1.0+4) and are annotated when a
+later release changed them. For current line numbers use `docs/PLAN-sync-phase-a.md` §0 (measured
+2026-11-14 against `3c58037`) — e.g. `restore()` is at `import_repository_impl.dart:570`, not `:439`,
+and the verbatim-id export is `export_repository_impl.dart:221`, not `:159`.*
+
 | Fact | Evidence |
 |---|---|
 | Reminders are in-app banners only — no system notification exists | `RemindersService.checkDue` + `TrackButton` pills; no `flutter_local_notifications` in `pubspec.yaml` |
@@ -375,9 +380,12 @@ direct path unreliable exactly off-WiFi, and a relay fallback puts a server in t
 phase, not B. The "v1.3.0" in this heading and the "(recommended v1.3.0)" tag below are the original
 scoping; v1.3.0 shipped without sync, and the phase decision above supersedes them.
 
-Today the plumbing points the wrong way: restore is **replace-only** (`import_repository_impl.dart:439`) and
-event ids are **autoincrement ints exported verbatim** (`export_repository_impl.dart:159`) → two phones both
-tracking means either overwriting one device's history or colliding ids on merge.
+Today the plumbing points the wrong way: restore is **replace-only** (`ImportRepositoryImpl.restore()`,
+`import_repository_impl.dart:570` — one transaction, deletes all eight tables) and event ids are
+**autoincrement ints exported verbatim** (`'id': row.id`, `export_repository_impl.dart:221`) → two
+phones both tracking means either overwriting one device's history or colliding ids on merge. Verified
+state, measured against `3c58037`, now lives in [`docs/PLAN-sync-phase-a.md`](PLAN-sync-phase-a.md) §0
+— cite that file's symbols rather than line numbers here, which is why this paragraph no longer does.
 
 * **Phase A — merge instead of replace (recommended v1.3.0).** Stable UUID per event + per-row
   `updated_at`/`deleted_at`; merge = union by UUID, latest write wins; still fully manual through the
