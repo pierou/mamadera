@@ -68,18 +68,23 @@ reading, **STOP and report the contradiction** — do not improvise a different 
 
 ## 1. Verified current state (do not re-derive)
 
+Every line number below was re-measured against `3c58037` on 2026-11-14. Where a symbol names the
+fact, cite the **symbol** in anything you write back into this file — line numbers in this repo have
+rotted twice in four days (`docs/ROADMAP-reminders-and-sync.md` §0 still points at
+`import_repository_impl.dart:439` for a method now at `:570`).
+
 | Fact | Evidence |
 |---|---|
 | `schemaVersion == 13` | `lib/data/local/app_db.dart:182` |
 | `reminder_settings`: `(baby_id TEXT NOT NULL DEFAULT '', item_id TEXT NOT NULL, enabled BOOL)`, PK `(baby_id, item_id)` — **no time, no label, no frequency, no removal state** | `app_db.dart:60-68` |
-| Effective-enabled filter is a **literal**: `settings[item.id] ?? true` — absent row means "on" for every item, no per-item default exists | `lib/features/reminders/presentation/providers/reminder_providers.dart:84` (B6) |
-| Frequency codec: `({String code, int? intervalDays}) _encodeFrequency` with 4 codes from `db_constants.dart` (`daily`, `weekly`, `monthly`, `every_n_days`); tolerant decode maps unknown → daily (the "never disappear" rule) | `lib/features/reminders/data/repositories/reminders_repository_impl.dart:254-300` |
+| "Absent row means on" is **not one literal — it is four, in two different idioms**, and no per-item default exists anywhere: `settings[item.id] ?? true` at `reminder_providers.dart:87` (`enabledRemindersProvider`, declared `:81`), the preset switch value at `reminder_settings_screen.dart:112`, the custom-tile switch at `:147`, and — **a different idiom, invisible to a `?? true` grep** — `if (enabled[item.id] == false) continue;` at `reminder_scheduler.dart:121` | those four sites (B6) |
+| Frequency codec: `({String code, int? intervalDays}) _encodeFrequency` with 4 codes from `db_constants.dart` (`daily`, `weekly`, `monthly`, `every_n_days`); tolerant decode maps unknown → daily (the "never disappear" rule) | `lib/features/reminders/data/repositories/reminders_repository_impl.dart:273-300` (`_encodeFrequency` `:273`, `_decodeFrequency` `:287`) |
 | `ReminderFrequency` is a sealed class with exactly 4 variants — **no `OneTime`, no end-date capability anywhere** | `lib/features/reminders/domain/entities/reminder_frequency.dart` (B33) |
 | Vitamin K preset: `CustomInterval(days: 30)` static; `buildForBaby` → `Monthly(dayOfMonth: birthDate.day)` — monthly **for life**, no termination path | `lib/features/reminders/domain/entities/reminder_item.dart` (B33 Part 1) |
 | The 365-day form-sheet cap is the documented boundary: « after one year, the parent wants a specific date. **Not a reminder.** » | `lib/features/reminders/presentation/widgets/custom_reminder_form_sheet.dart:36-38` (B33 Part 2) |
 | Scheduler: `sync()` takes one `preferredHour`/`preferredMinute` for **all** items; `_PlanEntry` diff on `(at, title, body)`; the enabled-map read is already per-(baby, item) (`getEnabledByItemId`) | `lib/features/reminders/domain/services/reminder_scheduler.dart` (B30) |
 | Global hour: `app_settings` key `notification_time_of_day`, default `09:00`, codec + validator in `notification_time.dart` (`isValidNotificationTime` / `parseNotificationTime`, read-lax / write-strict split documented) | `lib/features/reminders/domain/services/notification_time.dart` (B30) |
-| Preset rows are bare `SwitchListTile` (no edit, no remove); custom rows have the switch **plus** `CustomReminderAction {edit, delete}` popup | `lib/features/reminders/presentation/screens/reminder_settings_screen.dart:107-115` (B33 Part 3) |
+| Preset rows are bare `SwitchListTile` (no edit, no remove); custom rows have the switch **plus** `CustomReminderAction {edit, delete}` popup | `lib/features/reminders/presentation/screens/reminder_settings_screen.dart:107-116` (preset block), `:141-152` (custom tile) (B33 Part 3) |
 | Custom delete = hard delete of the `custom_reminders` row **and** its settings row, then `ref.invalidate(reminderSettingsProvider)` | `reminder_settings_screen.dart` / the custom notifier (B33 Part 3) |
 | **No** notification response handler anywhere (zero hits for `onDidReceiveNotificationResponse`); scheduled notifications carry **no payload** (title/body only); Android `singleTop` + `taskAffinity=""` is why a tap restores the previous screen | `lib/features/reminders/data/services/flutter_local_notification_service.dart:43-71`, `lib/main.dart` (B22, B15) |
 | `markDone` on a treatment-linked preset creates **no record** by design (D2: only the real health event settles it) | `lib/features/reminders/presentation/providers/reminder_notifier.dart:153-166` (B15) |
@@ -142,8 +147,14 @@ One row, per `(baby_id, item_id)`, five new states, one effective-item function:
   filtered, in **one** domain function. Consumers: the settings screen provider, the home
   reminders section, the scheduler's `_itemsForScope`. The B31 invariant — provider and scheduler
   can never disagree — is structural, not a test's faith.
-- The existing `enabled` column's read path (`settings[item.id] ?? true`) is replaced **only** by
-  the `?? item.enabledByDefault` literal change — nothing else about the switch writes changes.
+- **The read path is four sites, not one (§1), and M1 changes all four.** `reminder_providers.dart:87`,
+  `reminder_settings_screen.dart:112` and `:147` become `?? item.enabledByDefault`; the scheduler's
+  `reminder_scheduler.dart:121` stops using `== false` and honours the same default (M4 then folds it
+  into this function). Leaving any one behind is the B31 defect class **specified into the plan**:
+  keep `:112` on the old literal and the parent sees a switch **ON** for a reminder that is off;
+  keep `reminder_scheduler.dart:121` on `== false` and the **OS notification still fires** for a new
+  baby whose vitamin D the app displays as off — while every provider-level B6 test in M8 passes.
+  The *write* path (`setEnabled`) is unchanged.
 
 ### D-R3 — Shared v14 columns: B30's hour + B33's overrides + B33's removal, one `ALTER` batch
 
@@ -162,9 +173,22 @@ ALTER TABLE reminder_settings ADD COLUMN removed INTEGER NOT NULL DEFAULT 0;  --
 ```
 
 - All additive; `ALTER TABLE … ADD COLUMN` (the v12 precedent) — **no table rebuild, no rekey**
-  (a rebuild would be B31-class irreversible; none of this needs it).
+  (a rebuild would be B31-class irreversible; none of this needs it). The whole batch was
+  **executed against the v13 table shape on sqlite 3.54 (2026-11-14)**: all eight statements succeed,
+  `time` is not a SQLite keyword, `removed INTEGER NOT NULL DEFAULT 0` is legal on a populated table,
+  and the §3 seed leaves an existing explicit `enabled=0` row untouched (`enabled` still 0) while
+  inserting `enabled=1` for the `''` scope and each row-less profile — re-run, it inserts nothing
+  (3 `vitamine_d` rows both times). Contrast `docs/PLAN-sync-phase-a.md` §3, which as written does **not** execute: adding a
+  `NOT NULL` column without a `DEFAULT` is rejected (`Cannot add a NOT NULL column with default value
+  NULL`) — and the v12 precedent at `app_db.dart:371` is `unit TEXT NOT NULL DEFAULT 'ml'`, which is
+  the only form that could have been added at all.
 - `time` is validated by the existing `isValidNotificationTime` (write-strict at import, read-lax
   at the app read side — the split `notification_time.dart` documents).
+- The DDL column is `time` (B30's name) while the §4 JSON key is `timeOfDay`. Deliberate (B30 names
+  the column, the export already speaks camelCase), but two spellings of one field is a known
+  importer footgun — name the parse variable `timeOfDay` to match the key it reads.
+- **A NULL `frequency_date` has two different meanings** and D-R8 is only one of them. Read D-R8's
+  resolution order before writing the effective-item function.
 - The new frequency code: `const String freqOneTime = 'one_time';` in `db_constants.dart` beside
   the four existing codes.
 - `frequency_date` (the one-shot's occurrence) and `end_date`/`end_age_months` (the series end) are
@@ -248,6 +272,19 @@ consequence: the `_PlanEntry` diff must **remove** the OS notification when a on
 the codec's "never disappear" rule (unknown code → daily, not gone), and with the read-lax /
 write-strict split (the importer *refuses* a malformed date, so a broken row only exists via
 hand-edited JSON, and there the safe read is "ask the parent", not "silently off").
+
+**D-R8 covers a *stored* `frequency = 'one_time'` only.** A NULL `frequency_date` on a row whose
+`frequency` column is NULL does **not** mean "due now" — it means "no override, use the preset's own
+frequency", and the Vitamin K preset's date is **derived at read time** by `buildForBaby` (D-R10).
+The two must never be conflated. Resolution order, explicitly:
+
+1. `frequency IS NULL` → preset frequency, derived date, stored `frequency_date` **ignored**;
+2. `frequency = 'one_time'` → stored `frequency_date`, and **only here** does NULL mean due-now.
+
+If the effective-item function resolves the override pair and then reads `frequency_date`
+unconditionally, the Vitamin K preset arrives at `OneTime(null)` for every new baby — **due at birth
+instead of at one month**: the clinical fix shipping a wrong clinical default. Write-strict at the
+picker follows from this: choosing *one time* on a preset edit requires a date (D-R5).
 
 ### D-R9 — B15's D2 decision: tap **deep-links**, it never auto-creates
 
@@ -373,10 +410,16 @@ One commit each; each ends with the §0 commands green.
 ### M1 — Schema v14 + B6 (the clinical fix)
 
 The §3 migration + seed + drift codegen + `schema.sql` regeneration (B26 fixed inside) +
-`ReminderItem.enabledByDefault` field (D-R2) + the filter literal change
-(`settings[item.id] ?? item.enabledByDefault`, `reminder_providers.dart:84`) + the settings list
+`ReminderItem.enabledByDefault` field (D-R2) + **all four read sites** of the "absent = on" default
+(§1, D-R2), not the one the ticket names: `settings[item.id] ?? item.enabledByDefault` at
+`reminder_providers.dart:87`, `reminder_settings_screen.dart:112` and `:147`, and — the site a
+`?? true` grep does not find — `reminder_scheduler.dart:121`, from
+`if (enabled[item.id] == false) continue;` to
+`if (!(enabled[item.id] ?? item.enabledByDefault)) continue;` (M4 replaces that line with the D-R2
+function call; **until M4 lands it must already honour the per-item default**, or M1 is green and
+wrong on a device). Then the settings list
 showing the off-by-default vitamine_d row **visible, switch off** (D-R2's "off but visible") +
-the §3 migration tests + the existing B6 tests amended.
+the §3 migration tests + the existing B6 tests amended + the M8 scheduler assertion.
 *Ticket: B6 (+B26 folded in by the D-R2/D-R3 decision to regenerate the reference file).*
 
 ### M2 — B30: the per-reminder hour
@@ -390,6 +433,9 @@ default. l10n fr/en/es: the subtitle's two states + the picker title. Tests: the
 catch-up rows in `reminder_scheduling_test.dart` (a 08:00 item under a 09:00 global opens its
 window an hour earlier), the scheduler diff re-submission on hour change, the export/import v5
 `timeOfDay` round trip, the importer's malformed-hour refusal.
+**M4 rewrites `reminder_scheduler.dart:118-121` again** — the map M2 reads becomes the settings map
+the D-R2 function takes — so keep M2's change narrow and inside the loop; do not build a helper here
+that M4 immediately discards.
 *Ticket: B30 (its "Shape" section is the spec).*
 
 ### M3 — B33 Part 1: `OneTime` + the end model (D-R5) + the Vitamin K cadence
@@ -422,7 +468,9 @@ moves the plan), the codec's tolerant branches.
 
 ### M4 — B33 Part 3: preset overrides + removal + UI parity
 
-The effective-item function (D-R2) below the three consumers; the settings-row writes for
+The effective-item function (D-R2) below the three consumers — **it deliberately absorbs M2's
+per-scope settings read at `reminder_scheduler.dart:118-121`, superseding M2's shape**; the
+settings-row writes for
 `label`/`frequency`/`interval_days`/`frequency_date`/`end_date`/`end_age_months`/`removed` (the
 switch write path extends, does not fork); preset rows become the custom-tile pattern (switch +
 `edit`/`remove` menu — `custom_reminder_tile.dart` reference); the preset edit sheet (label +
@@ -512,14 +560,20 @@ must exist as named tests (not faith):
   switches; import refuses a file carrying both end fields or a `one_time` with an end (M3/M4,
   §4 — refused, not repaired);
 - **formats 1–4 restore unchanged** (the §4 regression wall);
-- **B6**: existing-off stays off, existing-absent gets the seed, new baby is off (M1);
+- **B6**: existing-off stays off, existing-absent gets the seed, new baby is off (M1) — asserted on
+  **both** consumers: the provider list *and* `ReminderScheduler.sync()`'s plan. A new baby with no
+  `vitamine_d` row must produce **zero** OS entries. Named explicitly because the provider-only
+  assertion passes on the broken three-of-four-sites version of M1;
 - **B15 payload identity** is never the plan index (M5).
 
 ### M9 — Release gate (AGENTS.md, non-negotiable; the emulator pass BEFORE the PR)
 
 1. **Migration on old data**: install 1.3.2 (v13) on the emulator, seed a profile + events + a
    manually-turned-off vitamine_d → install the 1.4.0 build → §3 test 1 observed on the device:
-   the parent's off is still off, the seed rows exist, data visible.
+   the parent's off is still off, the seed rows exist, data visible. Then **create a new baby** and
+   confirm on that same device: the vitamine_d switch shows **OFF** (`reminder_settings_screen.dart:112`)
+   **and** no OS notification is scheduled for it (`reminder_scheduler.dart:121`) — the four-site
+   default seen on a lock screen, not assumed from a provider test.
 2. **The Vitamin K one-shot, end to end, on the device**: a baby whose birthdate makes
    "birthdate + 1 month" = tomorrow → the OS notification is scheduled once; record the dose →
    **the notification disappears** (the M3 regression, seen on the lock screen / shade, not just
@@ -567,12 +621,21 @@ re-cut is exact, so the decision is a one-liner at the slip:
 - **1.4.0** then = M1–M4 (+ B15 stays with M5's surface? **No** — B15 rides 1.3.3 with M5;
   1.4.0 is the pure reminder cluster).
 - If there is no slip: **no 1.3.3 exists**. The version numbers simply go 1.3.2 → 1.4.0 → 1.5.0.
+- **The lever this section does not offer, recorded so it is not rediscovered under pressure.**
+  M1–M4 is treated as uncuttable, and it is — except that **D-R5's forms 2 and 3** (`end_date`,
+  `end_age_months`) are the only scope in 1.4.0 beyond what the owner actually asked for
+  (« vitamin K should be a one timer » = M3's one-shot alone). Deferring them to 1.5.0 would drop 3
+  of the 8 v14 columns, the read-time age resolution, the birthdate-edit-moves-the-plan tests, the
+  profileless disabled-hint and the 0–180 stepper, and keep every B6/B30/B33-Part-1 promise. The
+  owner chose the trio on 2026-11-14, so this is a **sequencing** note, not a renegotiation — it is
+  here because M4 is the largest milestone in the release and the first thing that gets cut.
 
 ## 7. Risks & rollback
 
 | Risk | Mitigation (already in the plan) |
 |---|---|
-| The seed (D-R1) mis-inserts and flips a parent's off | The `NOT EXISTS` guard inserts only where absent, only `enabled=1`; M1 test 1 asserts an existing `enabled=0` row is byte-unchanged; the gate observes it on device |
+| The seed (D-R1) mis-inserts and flips a parent's off | The `NOT EXISTS` guard inserts only where absent, only `enabled=1`; M1 test 1 asserts an existing `enabled=0` row is byte-unchanged; the gate observes it on device (guard and idempotency both executed on sqlite 3.54, D-R3) |
+| The seed permanently destroys the **"never touched"** signal: after M1 an absent `vitamine_d` row means *scope created post-1.4.0*, never *legacy default* | Accepted deliberately — D-R1 is precisely what needs that distinction, and nothing else in the app has a use for it today. Written down so a future "was this parent ever asked?" feature does not assume the signal survived the seed |
 | Two item lists disagree (B31 class) | The single effective-item function (D-R2) + the M4 invariant test + the M3/M4 plan-removal tests |
 | The one-shot never reschedules / never stops | M3's isDue suite (completed → never) + the scheduler plan-removal regression + the gate step 2 on a real lock screen |
 | Format-5 import breaks formats 1–4 restores | The §4 regression wall + the M8 named test |
