@@ -114,7 +114,16 @@ class BabyProfileRepositoryImpl implements BabyProfileRepository {
           await database.deleteReminderCompletionsByItemIds(customItemKeys);
         }
         await database.deleteCustomRemindersByBabyId(id);
-        return database.deleteBabyProfile(id);
+        final profileGone = await database.deleteBabyProfile(id);
+        if (profileGone) {
+          // B31: the promotion used to run as a second statement *after*
+          // this commit (the UI then called switchProfile); a process death
+          // in the gap left profiles with no active row. The survivor is now
+          // re-activated inside this same transaction, so the committed
+          // state always has an active profile whenever profiles remain.
+          await database.healActiveProfileIfLost();
+        }
+        return profileGone;
       });
       if (deleted) _logger.d('Deleted baby profile: $id');
       return deleted;

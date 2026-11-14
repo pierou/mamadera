@@ -521,6 +521,95 @@ void main() {
         expect(find.text('Max'), findsNothing);
         expect(find.text('Luna'), findsOneWidget);
       });
+
+      // B31: deleting the ACTIVE baby — the repository promotes a survivor
+      // inside the delete transaction, so the widget only refreshes the
+      // provider. No second write, no kill-in-the-gap, and the old
+      // name-ordered switchProfile is gone from this flow.
+      testWidgets(
+          'deleting the active baby keeps the list consistent and shows the feedback',
+          (tester) async {
+        final initialProfiles = [
+          BabyProfile(
+              id: '1',
+              name: 'Luna',
+              birthDate: DateTime(2024, 3, 15),
+              isActive: true),
+          BabyProfile(
+              id: '2',
+              name: 'Max',
+              birthDate: DateTime(2024, 6, 20),
+              isActive: false),
+        ];
+
+        List<BabyProfile> currentProfiles = List.from(initialProfiles);
+
+        when(mockRepo.getAllProfiles())
+            .thenAnswer((_) async => List.from(currentProfiles));
+        when(mockRepo.getActiveProfile()).thenAnswer((_) async {
+          // Stands in for the repository self-heal: after the delete the
+          // survivor is the one and only profile left.
+          return currentProfiles.isEmpty ? null : currentProfiles.first;
+        });
+        when(mockRepo.deleteProfile(any)).thenAnswer((invocation) async {
+          final idToDelete = invocation.positionalArguments.first as String;
+          currentProfiles.removeWhere((p) => p.id == idToDelete);
+          return true;
+        });
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              babyProfileRepositoryProvider
+                  .overrideWith((ref) async => mockRepo),
+              babyProfileListProvider.overrideWith((ref) async {
+                return ref.watch(babyProfileRepositoryProvider.future).then(
+                      (repo) => repo.getAllProfiles(),
+                    );
+              }),
+              activeBabyProvider
+                  .overrideWith(() => _ActiveBabyStub(initialProfiles.first)),
+            ],
+            child: MaterialApp(
+              locale: const Locale('fr'),
+              supportedLocales: const [Locale('fr')],
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              home: const Scaffold(body: BabyProfileSection()),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // Both profiles visible; Luna is the active one (first row).
+        expect(find.text('Luna'), findsOneWidget);
+        expect(find.text('Max'), findsOneWidget);
+
+        // Open the popup menu on Luna and tap Supprimer.
+        final popups = find.byType(PopupMenuButton<String>);
+        await tester.tap(popups.at(0));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Supprimer'));
+        await tester.pumpAndSettle();
+
+        // Confirmation dialog appears.
+        expect(find.byType(AlertDialog), findsOneWidget);
+
+        // Confirm delete (last TextButton).
+        final buttons = find.byType(TextButton);
+        await tester.tap(buttons.last);
+        await tester.pumpAndSettle();
+
+        // Luna is gone, Max remains, and the feedback snackbar is shown.
+        expect(find.text('Luna'), findsNothing);
+        expect(find.text('Max'), findsOneWidget);
+        expect(find.text("'Luna' supprimé"), findsOneWidget);
+      });
     });
 
     group('age formatting (B18)', () {
