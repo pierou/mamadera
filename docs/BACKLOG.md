@@ -1832,7 +1832,10 @@ Decide, then make the tree say it:
 ## B33 — Vitamin K must be a one-shot (one month after birthdate); every reminder must be
 editable/removable like a custom one
 
-**Status:** open (owner request, 2026-11-14) · **Severity:** product gap + clinical content in the
+**Status:** open (owner request, 2026-11-14) · *scope confirmed by the owner the same day — all
+three "end" forms (one time / until a date / until an age) per `docs/PLAN-v1.4.0.md` D-R5; catch-up
+over expiry (D-R7); the profileless fallback keeps its cadence (D-R10); removed presets are
+re-addable from a Removed section (D-R4)* · **Severity:** product gap + clinical content in the
 default list — today the Vitamin K reminder **repeats monthly for the baby's whole life** until the
 parent turns the switch off by hand · **Cost:** medium-large — three coupled parts (a new frequency
 variant, a per-(baby, item) override store, UI parity with the custom tiles); the schema and export
@@ -1964,14 +1967,22 @@ Part 2's capability applied by the owner, not just for Vitamin K.
 
 1. **Part 1 — one-shot, Vitamin K.** New `OneTime` variant + `isDue` (completed → never again) +
    `nextDueAt` + **plan removal** on completion + date label (fr/en/es). `buildForBaby`:
-   `OneTime(birthDate + 1 month)` with the B18 clamped rule. Decide the catch-up/expiry point (Part 2,
-   above) and the profileless-fallback fate (with B6) **before** writing the variant's semantics.
-2. **Part 2 — the generic "end".** Decide scope: `OneTime` only (Part 1 ships it anyway, and the
-   form sheet's 365-day-cap comment is the door it opens for customs) vs a general `untilDate`
-   modifier on all rhythms. The storage shape of Part 3 must not preclude the larger one.
+   `OneTime(birthDate + 1 month)` with the B18 clamped rule. The two open decisions are resolved in
+   `docs/PLAN-v1.4.0.md`: catch-up over expiry (D-R7) and the profileless fallback keeps its
+   `CustomInterval(days: 30)` (D-R10) — write the variant's semantics to those.
+2. **Part 2 — the generic "end".** *Scope — owner decision 2026-11-14: all three forms*, delivered
+   per `docs/PLAN-v1.4.0.md` D-R5: **one time** (`OneTime` + `frequency_date`), **until a date**
+   (`end_date`, inclusive end), **until an age** (`end_age_months`, whole months 0–180, resolved at
+   read time against the birthdate so a corrected birthdate moves the end). The carrier is the
+   reminder (a derived `endsAt` resolved by the effective-item function), **not** a per-rhythm
+   `untilDate` modifier — the sealed `ReminderFrequency` grows only `OneTime`. Mutual exclusivity
+   (one-shot / end-date / end-age) is write-strict at the picker and the importer. A past end at
+   write time is accepted with a warning (D-R5).
 3. **Part 3 — preset overrides + removal, planned with B30.** One schema step (v14): B30's `time` +
-   `label` + frequency encoding + removed state on `reminder_settings`. One export format (v5) with
-   importer acceptance. One override function consumed by the provider **and** the scheduler.
+   `label` + frequency encoding (+ the D-R5 columns `frequency_date`, `end_date`,
+   `end_age_months`) + removed state on `reminder_settings` — eight new columns, the plan's exact
+   DDL. One export format (v5) with importer acceptance. One override function consumed by the
+   provider **and** the scheduler.
    Preset rows get the custom tile's edit/remove menu. The re-add decision (hidden section?) is a
    plan call with the owner.
 4. l10n fr/en/es: the one-shot frequency label, the preset edit sheet, the removed/hidden affordance,
