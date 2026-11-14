@@ -1,0 +1,1 @@
+Peso, altura y temperatura, cifrados en su dispositivo y mostrados en el historial, junto con información sobre las tomas, el sueño y los pañales.

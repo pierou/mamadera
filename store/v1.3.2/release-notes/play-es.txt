@@ -1,0 +1,1 @@
+• Se corrigió un caso poco común en el que la configuración de recordatorios mostraba únicamente las vitaminas D y K, mientras que las notificaciones de limpieza de ojos y rostro seguían apareciendo.

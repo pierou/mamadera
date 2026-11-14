@@ -76,6 +76,9 @@ HEADLINES = {
     # language chosen — the stem "nivers" is the cognate all three notes carry
     # (anniversary / anniversaire / aniversario — Spanish keeps a single n).
     "1.3.1": ("nivers", "the age counted by anniversary"),
+    # Fix release: the headline is the reminders list itself — the stem
+    # "vitamin" is what all three notes carry (Vitamin / vitamine / vitamina).
+    "1.3.2": ("vitamin", "the full reminders list for the selected baby"),
 }
 
 
