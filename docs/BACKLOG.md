@@ -129,8 +129,14 @@ reminder. That exactness is behaviour, not oversight.
 
 ## B3 — v1.3.0 sync requires a written change to the privacy mandate
 
-**Status:** blocked on the owner · **Severity:** structural
-**Files:** `docs/ROADMAP-reminders-and-sync.md` §7 decision 5, `README.md` privacy promises
+**Status:** **re-phased by the owner, 2026-11-14 (ROADMAP §6 + decision 5):** Phase A (manual merge over
+the share sheet) is **approved and planned for a future release**, version unassigned — it needs no
+mandate change at all (no network), which is precisely why it is unblocked; Phase B (LAN peer-to-peer)
+is **under serious consideration** and stays with this ticket's gate below: a *written* change to the
+privacy mandate from the owner before any code, dependency or spike; Phase C (cloud/relay — including
+the internet-reach / E2E-over-relay variant discussed 2026-11-14) is **out of scope for now**
+(re-decidable, not closed) · **Severity:** structural (Phase B)
+**Files:** `docs/ROADMAP-reminders-and-sync.md` §6 + §7 decision 5, `README.md` privacy promises
 
 The app's core promise is *no network transport exists anywhere*. LAN peer sync contradicts that
 sentence, so it is not a feature decision but a promise decision, and only the owner can rewrite the

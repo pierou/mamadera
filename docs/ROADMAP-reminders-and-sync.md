@@ -1,6 +1,6 @@
 # ROADMAP — Reminders, multi-baby scoping, onboarding, two-phone sync, growth measurements
 
-Status: **§2 shipped in v1.1.0+4 (2026-09-21); §4.2 (measurements) added 2026-09-29, decisions resolved the same day; §5 (v1.1.1) implemented and `make ci`-green 2026-09-29. §4 (items M, 3, 4, 8) implemented in full on branch `feat/v1.2.0-growth-and-baby-scoped-reminders` on 2026-10-03, executed from [`docs/PLAN-v1.2.0.md`](archive/PLAN-v1.2.0.md) — drift v11, export format v2, `make ci`-green (1305 scoped / 1311 full, 0 skipped, 88 % lines). §10 (backlog, items 11–19) recorded 2026-10-02; §9 (items 9 + 10, slider colour) recorded 2026-10-05; §1 remains withdrawn; §6 (v1.3.0 sync) is still proposal; decisions 1, 2, 6 and 7–9 in §7 are resolved, and **3, 4, 5 are now resolved too — 3 → D1 and 4 → D2 as decided in PLAN §2, 5 still awaits you** (sync needs a written privacy mandate change from the owner before any code).
+Status: **§2 shipped in v1.1.0+4 (2026-09-21); §4.2 (measurements) added 2026-09-29, decisions resolved the same day; §5 (v1.1.1) implemented and `make ci`-green 2026-09-29. §4 (items M, 3, 4, 8) implemented in full on branch `feat/v1.2.0-growth-and-baby-scoped-reminders` on 2026-10-03, executed from [`docs/PLAN-v1.2.0.md`](archive/PLAN-v1.2.0.md) — drift v11, export format v2, `make ci`-green (1305 scoped / 1311 full, 0 skipped, 88 % lines). §10 (backlog, items 11–19) recorded 2026-10-02; §9 (items 9 + 10, slider colour) recorded 2026-10-05; §1 remains withdrawn; **§6 (two-phone sync) is phased by owner decision (2026-11-14): Phase A approved and planned for a future release (version unassigned), Phase B under serious consideration (gate unchanged: the written privacy mandate change), Phase C out of scope for now** — decisions 1, 2, 6 and 7–9 in §7 are resolved, and **3, 4, 5 are now resolved too — 3 → D1 and 4 → D2 as decided in PLAN §2, 5 resolved 2026-11-14** (see the §6 status block).
 Opened 2026-09-20, while v1.1.0 was mid-flight (Phase 2B, Xcode Cloud).
 
 Five requests came in together:
@@ -364,6 +364,16 @@ instead of `runAsync`-sleeping.
 
 ## 6. v1.3.0 scope — two phones, privacy-first
 
+**Status (owner, 2026-11-14):** Phase A — **approved for a future release**, to be planned; version
+unassigned — it is a schema step of its own (the UUID/merge machinery below) and did not ride v1.3.x.
+Phase B — **under serious consideration**; the gate stands unchanged: a *written* change to the privacy
+mandate from the owner before any code, dependency or spike (B3). Phase C — **out of scope, for now**
+(re-decidable, not closed): re-affirmed 2026-11-14 **including the internet-reach variant** —
+E2E-over-relay / internet P2P was discussed the same day and parked here, because NAT/CGNAT makes a
+direct path unreliable exactly off-WiFi, and a relay fallback puts a server in the data path — i.e. this
+phase, not B. The "v1.3.0" in this heading and the "(recommended v1.3.0)" tag below are the original
+scoping; v1.3.0 shipped without sync, and the phase decision above supersedes them.
+
 Today the plumbing points the wrong way: restore is **replace-only** (`import_repository_impl.dart:439`) and
 event ids are **autoincrement ints exported verbatim** (`export_repository_impl.dart:159`) → two phones both
 tracking means either overwriting one device's history or colliding ids on merge.
@@ -398,6 +408,10 @@ explicitly; do not let it happen by accident.
    also completes it)?
 5. **Sync**: is manual merge over the share sheet acceptable for v1.3.0, or do you want LAN — in which case
    the privacy mandate change must come from you, in writing, before any code.
+   ***RESOLVED (owner, 2026-11-14):*** both, in order — Phase A (manual merge, no network) is approved and
+   planned for a future release (version unassigned); Phase B (LAN) is under serious consideration and
+   remains gated on the written mandate change; Phase C (cloud/relay — including the internet-P2P variant
+   discussed the same day) is out of scope for now.
 6. **Dead `markdown` dep**: drop `markdown: ^7.2.2` in this release with §2.2 (after verifying nothing pulls
    it transitively), or defer to 1.1.1 to keep the in-flight lockfile untouched?
 7. **Measurements placement — RESOLVED 2026-09-29: v1.2.0.** Rides the already-paid v11/format-2
