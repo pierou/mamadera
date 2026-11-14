@@ -130,7 +130,7 @@ reminder. That exactness is behaviour, not oversight.
 ## B3 — v1.3.0 sync requires a written change to the privacy mandate
 
 **Status:** **re-phased by the owner, 2026-11-14 (ROADMAP §6 + decision 5):** Phase A (manual merge over
-the share sheet) is **approved and planned for a future release**, version unassigned — it needs no
+the share sheet) is **approved, target 1.5.0** (plan in `docs/PLAN-sync-phase-a.md`) — it needs no
 mandate change at all (no network), which is precisely why it is unblocked; Phase B (LAN peer-to-peer)
 is **under serious consideration** and stays with this ticket's gate below: a *written* change to the
 privacy mandate from the owner before any code, dependency or spike; Phase C (cloud/relay — including

@@ -1,6 +1,6 @@
 # PLAN — Phase A: two-phone merge over the share sheet (manual sync)
 
-Status: **proposed, awaiting owner sign-off on §12 decision points** · Opened 2026-11-14 against
+Status: **proposed — §12 decision points resolved by the owner, 2026-11-14** · Opened 2026-11-14 against
 `develop` @ `3c58037` (1.3.2+16).
 Mandate: owner decision 2026-11-14 (ROADMAP §6 status block + §7 decision 5, RESOLVED) — Phase A
 *approved for a future release, version unassigned*; Phase B (LAN) under serious consideration,
@@ -396,15 +396,17 @@ Replace mode, its confirm copy and its behaviour: untouched.
 8. UI: mode choice + mapping + result + l10n fr/en/es — M
 9. Gate pass (§9) — M wall-clock, the emulator loop is the bulk
 
-Release: its own feature release, recommended **1.5.0** after 1.4.0 (B30/B33/B6) has field time.
+Release: its own feature release, **1.5.0** (owner-confirmed 2026-11-14) after 1.4.0
+(B30/B33/B6) has field time.
 
-## 12. Decision points left for the owner (three, all small)
+## 12. Owner decisions (resolved 2026-11-14)
 
-1. **D6 confirm**: profile deletion stays local in Phase A (resurrection on next merge is the
-   documented cost) — approve, or push propagation into scope with its confirmation UI.
-2. **Mode default**: when local data exists, "Merge" is the pre-selected mode — approve (the
-   alternative default, "Replace", is the status quo for parents who do not read).
-3. **Release target**: 1.5.0 after 1.4.0 — approve, or name the number.
+1. **D6 confirmed** — profile deletion stays local in Phase A. The resurrection-at-next-merge
+   cost is documented and accepted; propagation with a confirmation UI remains the named follow-up.
+2. **Mode default confirmed** — when local data exists, **Merge is the pre-selected mode**
+   (Replace stays one tap away, behaviour unchanged).
+3. **Release target confirmed** — **1.5.0**, after the 1.4.0 content release (B6/B30/B33 cluster,
+   schema v14 + export v5). Phase A takes schema v15 + export v6.
 
-(The D1–D9 above are implementation decisions made with rationale in this plan; they are
-reversible by owner veto before work starts, cheap to change after only in the UI copy.)
+(D1–D9 above are implementation decisions made with rationale in this plan; the owner may veto any
+of them before work starts — after that, changes cost a migration.)
