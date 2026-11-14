@@ -158,5 +158,13 @@
       "- The welcome screen no longer reappears after restoring a backup",
       "- The 'Last tracked' line now shows under every button you have logged, not under Health only"
     ]
+  },
+  "1.3.2": {
+    "releaseDate": "2026-11-14",
+    "title": "What's New in Mamadera 1.3.2",
+    "items": [
+      "### Fixes",
+      "- Fixed a rare case where the reminders settings listed only Vitamin D and K while eye and face cleaning notifications kept firing — the settings now always show the reminders for the selected baby"
+    ]
   }
 }

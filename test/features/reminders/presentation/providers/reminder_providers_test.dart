@@ -1,6 +1,10 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
+import 'package:mamadera/core/providers/database_provider.dart';
+import 'package:mamadera/data/local/app_db.dart' as db_app;
 import 'package:mamadera/data/local/db_constants.dart';
 import 'package:mamadera/features/baby/domain/repositories/baby_profile_repository.dart';
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
@@ -486,6 +490,63 @@ void main() {
       );
 
       container.dispose();
+    });
+  });
+
+  group('B31 — settings and scheduler agree when no profile claims active', () {
+    testWidgets(
+        'the broken state heals on the read boundary: the active baby '
+        'resolves and the item list matches the scheduler'
+        's per-baby set', (tester) async {
+      final connection = LazyDatabase(NativeDatabase.memory);
+      final database = db_app.AppDatabase(connection);
+      // Seed the broken state directly: profiles exist, zero active rows —
+      // exactly what the old delete-then-switch gap committed on iOS.
+      await database.insertBabyProfile(db_app.BabyProfilesCompanion(
+        id: const Value('emma'),
+        name: const Value('Emma'),
+        birthDate: Value(DateTime(2026, 7, 1).millisecondsSinceEpoch),
+        isActive: const Value(false),
+      ));
+      await database.insertBabyProfile(db_app.BabyProfilesCompanion(
+        id: const Value('zoe'),
+        name: const Value('Zoé'),
+        birthDate: Value(DateTime(2026, 3, 15).millisecondsSinceEpoch),
+        isActive: const Value(false),
+      ));
+
+      final container = ProviderContainer(overrides: [
+        databaseProvider.overrideWith((ref) async => database),
+      ]);
+      addTearDown(container.dispose);
+
+      // The active baby now resolves — the read boundary repaired the state.
+      final active = await container.read(activeBabyProvider.future);
+      expect(active, isNotNull);
+      expect(active!.id, equals('zoe'), reason: 'oldest by birth date wins');
+
+      // Settings screen items derive from the same source the scheduler's
+      // per-baby scope uses: the four presets for the promoted baby, not the
+      // two-item profileless fallback the broken state used to render.
+      final items = await container.read(dynamicRemindersProvider.future);
+      expect(
+        items.map((item) => item.id).toList(),
+        equals(const [
+          'vitamine_d',
+          'vitamine_k',
+          'eye_cleaning',
+          'face_cleaning',
+        ]),
+      );
+      expect(items, equals(reminderItemsFor(active)));
+
+      // The flag is persisted: the raw table now carries exactly one active
+      // row, so the scheduler and every future read agree without re-healing.
+      final all = await database.getAllBabyProfiles();
+      expect(all.where((p) => p.isActive), hasLength(1));
+      expect(all.firstWhere((p) => p.id == 'zoe').isActive, isTrue);
+
+      await database.close();
     });
   });
 }

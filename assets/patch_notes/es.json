@@ -158,5 +158,13 @@
       "- Corrección de la pantalla de bienvenida que volvía a aparecer tras restaurar una copia de seguridad",
       "- Visualización de la línea «Última actividad» en cada botón con registros, no solo en Salud"
     ]
+  },
+  "1.3.2": {
+    "releaseDate": "2026-11-14",
+    "title": "Novedades de Mamadera 1.3.2",
+    "items": [
+      "### Correcciones",
+      "- Corrección de un caso raro en el que los ajustes de recordatorios solo mostraban la vitamina D y la vitamina K mientras las notificaciones de limpieza de ojos y del rostro seguían sonando — los ajustes muestran ahora siempre los recordatorios del bebé seleccionado"
+    ]
   }
 }

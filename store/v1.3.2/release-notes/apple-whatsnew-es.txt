@@ -1,0 +1,4 @@
+Novedades de Mamadera 1.3.2
+
+Correcciones
+- Corrección de un caso raro en el que los ajustes de recordatorios solo mostraban la vitamina D y la vitamina K mientras las notificaciones de limpieza de ojos y del rostro seguían sonando — los ajustes muestran ahora siempre los recordatorios del bebé seleccionado

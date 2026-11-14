@@ -1,0 +1,4 @@
+What's New in Mamadera 1.3.2
+
+Fixes
+- Fixed a rare case where the reminders settings listed only Vitamin D and K while eye and face cleaning notifications kept firing — the settings now always show the reminders for the selected baby

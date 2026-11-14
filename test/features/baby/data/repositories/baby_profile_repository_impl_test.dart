@@ -87,12 +87,19 @@ void main() {
         expect(result.name, equals('Léo'));
       });
 
-      test('returns null when active profile has been deactivated', () async {
+      test(
+          'self-heals a deactivated-only state by promoting that profile (B31)',
+          () async {
+        // Profiles exist but none claims active — the exact broken state the
+        // old delete-then-switch gap committed. The read now repairs it.
         await repository
             .insertProfile(babyProfileUpdated(baby2, isActive: false));
 
         final result = await repository.getActiveProfile();
-        expect(result, isNull);
+        expect(result, isNotNull);
+        expect(result!.id, equals(baby2.id));
+        expect(result.isActive, isTrue,
+            reason: 'the promoted flag is persisted on the row');
       });
 
       test('returns correct one when multiple profiles exist', () async {
@@ -104,6 +111,62 @@ void main() {
         final result = await repository.getActiveProfile();
         expect(result, isNotNull);
         expect(result!.name, equals('Emma'));
+      });
+    });
+
+    group('getActiveProfile self-heal (B31)', () {
+      test('promotes the oldest profile by birth date when none is active',
+          () async {
+        // The broken state: three profiles, zero active rows.
+        final zoe = BabyProfile(
+          id: 'baby-003',
+          name: 'Zoé',
+          birthDate: DateTime(2026, 5, 10),
+          isActive: false,
+        );
+        await repository
+            .insertProfile(babyProfileUpdated(baby1, isActive: false));
+        await repository
+            .insertProfile(babyProfileUpdated(baby2, isActive: false));
+        await repository.insertProfile(zoe);
+
+        final active = await repository.getActiveProfile();
+
+        expect(active, isNotNull);
+        expect(active!.id, equals('baby-001'),
+            reason: 'oldest by birth date wins, not name or id order');
+        // The flag is persisted, not just returned on this call.
+        final all = await database.getAllBabyProfiles();
+        expect(all.where((p) => p.isActive), hasLength(1));
+        expect(all.firstWhere((p) => p.id == 'baby-001').isActive, isTrue);
+      });
+
+      test('breaks birth-date ties by id', () async {
+        await repository.insertProfile(BabyProfile(
+          id: 'b',
+          name: 'B',
+          birthDate: DateTime(2026, 5, 1),
+          isActive: false,
+        ));
+        await repository.insertProfile(BabyProfile(
+          id: 'a',
+          name: 'A',
+          birthDate: DateTime(2026, 5, 1),
+          isActive: false,
+        ));
+
+        final active = await repository.getActiveProfile();
+
+        expect(active, isNotNull);
+        expect(active!.id, equals('a'));
+      });
+
+      test('returns null and invents nothing when the table is empty',
+          () async {
+        final active = await repository.getActiveProfile();
+
+        expect(active, isNull);
+        expect(await database.getAllBabyProfiles(), isEmpty);
       });
     });
 
@@ -444,6 +507,109 @@ void main() {
         expect(measurements.map((m) => m.id), isNot(contains(1)));
         expect(measurements.map((m) => (m.id, m.babyId)),
             contains((2, 'baby-002')));
+      });
+    });
+
+    group('deleteProfile active-baby promotion (B31)', () {
+      test(
+          'deleting the active baby promotes the oldest survivor in the same commit',
+          () async {
+        // Name order and birth order deliberately diverge: name-ascending
+        // would pick Léo (May), the oldest survivor is Zoé (March).
+        await repository.insertProfile(BabyProfile(
+          id: 'emma',
+          name: 'Emma',
+          birthDate: DateTime(2026, 7, 1),
+          isActive: true,
+        ));
+        await repository.insertProfile(BabyProfile(
+          id: 'leo',
+          name: 'Léo',
+          birthDate: DateTime(2026, 5, 10),
+          isActive: false,
+        ));
+        await repository.insertProfile(BabyProfile(
+          id: 'zoe',
+          name: 'Zoé',
+          birthDate: DateTime(2026, 3, 15),
+          isActive: false,
+        ));
+
+        final deleted = await repository.deleteProfile('emma');
+        expect(deleted, isTrue);
+
+        final all = await database.getAllBabyProfiles();
+        final activeRows = all.where((p) => p.isActive).toList(growable: false);
+        expect(activeRows, hasLength(1),
+            reason: 'the committed state has exactly one active row');
+        expect(activeRows.first.id, equals('zoe'),
+            reason: 'oldest by (birth_date, id) — the canonical ordering');
+      });
+
+      test('deleting a non-active baby leaves the active one untouched',
+          () async {
+        await repository.insertProfile(BabyProfile(
+          id: 'emma',
+          name: 'Emma',
+          birthDate: DateTime(2026, 7, 1),
+          isActive: false,
+        ));
+        await repository.insertProfile(BabyProfile(
+          id: 'zoe',
+          name: 'Zoé',
+          birthDate: DateTime(2026, 3, 15),
+          isActive: true,
+        ));
+
+        final deleted = await repository.deleteProfile('emma');
+        expect(deleted, isTrue);
+
+        final active = await repository.getActiveProfile();
+        expect(active, isNotNull);
+        expect(active!.id, equals('zoe'));
+      });
+
+      test(
+          'deleting the last baby leaves no active row and no invented profile',
+          () async {
+        await repository.insertProfile(BabyProfile(
+          id: 'emma',
+          name: 'Emma',
+          birthDate: DateTime(2026, 7, 1),
+          isActive: true,
+        ));
+
+        final deleted = await repository.deleteProfile('emma');
+        expect(deleted, isTrue);
+
+        expect(await repository.getAllProfiles(), isEmpty);
+        expect(await repository.getActiveProfile(), isNull);
+      });
+
+      test(
+          'a fresh reader after the commit sees the repaired flag (kill-in-the-gap closed)',
+          () async {
+        await repository.insertProfile(BabyProfile(
+          id: 'emma',
+          name: 'Emma',
+          birthDate: DateTime(2026, 7, 1),
+          isActive: true,
+        ));
+        await repository.insertProfile(BabyProfile(
+          id: 'zoe',
+          name: 'Zoé',
+          birthDate: DateTime(2026, 3, 15),
+          isActive: false,
+        ));
+
+        await repository.deleteProfile('emma');
+
+        // A new repository on the same database stands in for a process
+        // restart: the old gap let it land on profiles with no active row.
+        final restarted = BabyProfileRepositoryImpl(database: database);
+        final active = await restarted.getActiveProfile();
+        expect(active, isNotNull);
+        expect(active!.id, equals('zoe'));
       });
     });
 

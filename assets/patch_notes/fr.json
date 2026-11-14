@@ -159,5 +159,13 @@
       "- Disparition de l'écran de bienvenue qui réapparaissait après la restauration d'une sauvegarde",
       "- Affichage de la ligne « Dernière activité » sous chaque bouton ayant des événements, et non plus sous Santé uniquement"
     ]
+  },
+  "1.3.2": {
+    "releaseDate": "2026-11-14",
+    "title": "Nouveautés de Mamadera 1.3.2",
+    "items": [
+      "### Corrections",
+      "- Correction d'un cas rare où les réglages des rappels n'affichaient que la vitamine D et la vitamine K alors que les rappels de nettoyage des yeux et du visage continuaient de sonner — les réglages affichent désormais toujours les rappels du bébé sélectionné"
+    ]
   }
 }
