@@ -124,8 +124,10 @@ void main() {
           birthDate: DateTime(2026, 5, 10),
           isActive: false,
         );
-        await repository.insertProfile(babyProfileUpdated(baby1, isActive: false));
-        await repository.insertProfile(babyProfileUpdated(baby2, isActive: false));
+        await repository
+            .insertProfile(babyProfileUpdated(baby1, isActive: false));
+        await repository
+            .insertProfile(babyProfileUpdated(baby2, isActive: false));
         await repository.insertProfile(zoe);
 
         final active = await repository.getActiveProfile();
@@ -509,7 +511,8 @@ void main() {
     });
 
     group('deleteProfile active-baby promotion (B31)', () {
-      test('deleting the active baby promotes the oldest survivor in the same commit',
+      test(
+          'deleting the active baby promotes the oldest survivor in the same commit',
           () async {
         // Name order and birth order deliberately diverge: name-ascending
         // would pick Léo (May), the oldest survivor is Zoé (March).
@@ -566,7 +569,8 @@ void main() {
         expect(active!.id, equals('zoe'));
       });
 
-      test('deleting the last baby leaves no active row and no invented profile',
+      test(
+          'deleting the last baby leaves no active row and no invented profile',
           () async {
         await repository.insertProfile(BabyProfile(
           id: 'emma',

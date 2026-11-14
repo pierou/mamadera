@@ -123,8 +123,8 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
     // Confirmation dialog: Cancel + Delete — confirm with the last one.
-    final dialogButtons =
-        find.descendant(of: find.byType(AlertDialog), matching: find.byType(TextButton));
+    final dialogButtons = find.descendant(
+        of: find.byType(AlertDialog), matching: find.byType(TextButton));
     await tester.tap(dialogButtons.last);
     await tester.pumpAndSettle(const Duration(seconds: 2));
 

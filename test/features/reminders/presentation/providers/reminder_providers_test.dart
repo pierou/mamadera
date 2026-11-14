@@ -496,8 +496,8 @@ void main() {
   group('B31 — settings and scheduler agree when no profile claims active', () {
     testWidgets(
         'the broken state heals on the read boundary: the active baby '
-        'resolves and the item list matches the scheduler''s per-baby set',
-        (tester) async {
+        'resolves and the item list matches the scheduler'
+        's per-baby set', (tester) async {
       final connection = LazyDatabase(NativeDatabase.memory);
       final database = db_app.AppDatabase(connection);
       // Seed the broken state directly: profiles exist, zero active rows —
