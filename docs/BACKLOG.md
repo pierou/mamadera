@@ -1913,7 +1913,7 @@ The parity gap, as rendered on `develop` (1.3.2+16):
 
 | | Presets | Customs |
 |---|---|---|
-| Row widget | bare `SwitchListTile` (`reminder_settings_screen.dart:107-115`: title + frequency subtitle + switch) | `CustomReminderTile` — switch **plus** a popup menu, `CustomReminderAction { edit, delete }` |
+| Row widget | bare `SwitchListTile` (`reminder_settings_screen.dart:107-116`: title + frequency subtitle + switch) | `CustomReminderTile` — switch **plus** a popup menu, `CustomReminderAction { edit, delete }` (`:141-152`) |
 | Edit | none — the item is `static const` (label, frequency, tracking type, care subtype all fixed in code) | `CustomReminderFormSheet`: label, rhythm, interval, care subtype |
 | Remove | none — the only off is the switch (`enabled=false`, still visible) | `CustomRemindersNotifier.remove`: deletes the `custom_reminders` row **and its settings row**, invalidates `reminderSettingsProvider` |
 
@@ -1921,7 +1921,9 @@ Preset ids are stable keys — the doc comment on `ReminderItem.id` says so expl
 `reminder_settings` and `reminder_dismissals`, « must never change ») — so a preset cannot be edited
 or removed "for real": its overrides and its removal must live in **data**, and the natural home is
 the per-(baby, item) row the switches already read and write (`reminder_settings`: `baby_id` +
-`item_id` + `enabled` — `app_db.dart`, created at the v8 migration `:241-250`).
+`item_id` + `enabled` — `app_db.dart:60-70`; created at the v8 migration `:248-255` as
+`(item_id PRIMARY KEY, enabled)` and **rebuilt to the composite `(baby_id, item_id)` pk at v11**
+`:284-299`, which is the shape this ticket extends).
 
 **Storage (plan with B30, one migration):** the row grows nullable override columns alongside B30's
 `time` — at minimum `label TEXT NULL` and a frequency encoding reusing the existing codec
@@ -1932,9 +1934,18 @@ behaviour, so existing installs are untouched.
 
 **Single-source invariant (the B31 lesson, stated once more):** `dynamicRemindersProvider` (the
 settings screen, the home list) and the scheduler's `_itemsForScope` (the OS plan) must consume the
-**same overridden items** — the override function must sit below both, exactly as `reminderItemsFor`
-does today. Two item lists that can disagree about a label or a frequency is precisely the defect
-class B31 shipped and had to self-heal.
+**same overridden items** — the override function must sit below both, settings map read included.
+Today that holds for **item existence only**: `reminderItemsFor` (`reminder_item.dart:124-126`) is
+genuinely called by both sides (`reminder_providers.dart:46-52` and `reminder_scheduler.dart:241-242`).
+It does **not** hold for the *enabled* filter, which is duplicated across **four sites in two
+different idioms**: `settings[item.id] ?? true` at `reminder_providers.dart:87`,
+`reminder_settings_screen.dart:112` and `:147`, and `if (enabled[item.id] == false) continue;` at
+`reminder_scheduler.dart:121` — that last one invisible to a grep for `?? true`. The four are
+*equivalent today by coincidence*: a missing key is neither `true` nor `false`, so both idioms mean
+"on". B6's per-item default breaks the coincidence the moment it lands on fewer than all four sites.
+Two item lists that can disagree about a label or a frequency is precisely the defect class B31
+shipped and had to self-heal — and this is the same defect already sitting in the table this ticket
+proposes to extend, found by reading the read paths instead of the write path.
 
 **Removal is a third state, not `enabled=false`:**
 
@@ -2009,3 +2020,8 @@ Part 2's capability applied by the owner, not just for Vitamin K.
 - Do not touch B6's decision (vitamin D opt-in, decision A) in this ticket: same surface, separate
   decision — but plan the settings-row state machine (absent / off / removed, plus per-item default)
   once, for both.
+- Do not implement B6's per-item default in the provider alone. The "absent row means on" default is
+  read at **four sites in two idioms** (Part 3's invariant section lists them); a partial change is
+  green in CI and wrong on the device, because the OS notification plan is computed at
+  `reminder_scheduler.dart:121` and not by any provider. If a new baby's vitamin D shows off in the
+  app while its notification still fires, that is this gotcha, not a scheduling bug.
