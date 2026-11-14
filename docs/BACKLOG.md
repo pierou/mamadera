@@ -1832,3 +1832,202 @@ Decide, then make the tree say it:
   duplicates a page GitHub already rebuilds from the PRs and adds a second thing to keep current.
 - Do not paste console `whatsnew` text here either: it is a constrained marketing artifact and the
   archive is not its source.
+
+---
+
+## B33 — Vitamin K must be a one-shot (one month after birthdate); every reminder must be
+editable/removable like a custom one
+
+**Status:** open (owner request, 2026-11-14) · *scope confirmed by the owner the same day — all
+three "end" forms (one time / until a date / until an age) per `docs/PLAN-v1.4.0.md` D-R5; catch-up
+over expiry (D-R7); the profileless fallback keeps its cadence (D-R10); removed presets are
+re-addable from a Removed section (D-R4)* · **Severity:** product gap + clinical content in the
+default list — today the Vitamin K reminder **repeats monthly for the baby's whole life** until the
+parent turns the switch off by hand · **Cost:** medium-large — three coupled parts (a new frequency
+variant, a per-(baby, item) override store, UI parity with the custom tiles); the schema and export
+bumps overlap with **B30** · **Risk:** low-medium — additive, but it touches the single-source
+invariant (B31's lesson) and the settings-row state machine (B6's decision)
+**Found:** owner request 2026-11-14: « vitamin K should be a one timer, a month after birthdate. That
+implies to be able to program an end to a reminder. And all reminders should be like custom ones,
+editable/removable »
+**Related:** **B6** (vitamin D opt-in default — same settings-row state machine, separate decision),
+**B30** (per-reminder hour — same `reminder_settings` row extension, same schema v14 + export v5)
+
+### Part 1 — Vitamin K is currently monthly-for-life
+
+`lib/features/reminders/domain/entities/reminder_item.dart`:
+
+- `ReminderItemPresets.vitaminK` = `CustomInterval(days: 30)` (static 30-day rolling cycle);
+- `buildForBaby` swaps the frequency for `Monthly(dayOfMonth: profile.birthDate.day)` — i.e. **the
+  same day of every month, forever**;
+- the profileless fallback (`reminderItemsFor`) keeps the static 30-day cycle.
+
+`Monthly.isDue` (`reminder_frequency.dart`) fires from the configured day of **every calendar month
+after the last completion**, and a never-completed item is always due. Nothing terminates the series:
+no end date, no occurrence cap, no expiry. A parent who recorded the vitamin K dose in month 2 is
+still reminded in month 12, month 36 — until they find the switch in Settings.
+
+The target state (owner): **one reminder, due one month after the baby's birthdate, settled forever
+once completed.** The cadence itself is the owner's product call — this ticket implements the
+mechanism and that cadence, it does not re-derive the clinical schedule.
+
+### Part 2 — the capability gap: there is no way to end a reminder
+
+`ReminderFrequency` is a sealed class with exactly four variants — `Daily`, `Weekly(dayOfWeek)`,
+`Monthly(dayOfMonth)`, `CustomInterval(days)` — and none carries a date or an end. The absence is
+deliberate and documented at the picker: `custom_reminder_form_sheet.dart:36-38` caps the interval at
+365 days with the comment « after one year, the parent wants a specific date. **Not a reminder.** »
+So "one month after birthdate" is currently unexpressible for everyone, not just for Vitamin K.
+
+What a one-shot needs, end to end:
+
+1. A new variant (shape at the plan: `OneTime(DateTime date)` — the date, not a relative "N months
+   after X"; the *relative* rule lives where the baby is known, i.e. `buildForBaby`, which already
+   computes the baby-specific item).
+2. `isDue`: never completed → the catch-up decision below; completed → **never due again** (a
+   one-shot has no next occurrence).
+3. The scheduler (`reminder_scheduling.dart` `nextDueAt`, `reminder_scheduler.dart`): a one-shot
+   schedules **one** OS notification, and — the half most likely to be forgotten — the `_PlanEntry`
+   diff must **remove** it from the OS plan when it is completed (or expired, per the decision below).
+   B14 documents the re-submit path (a changed hour moves `at`); removal is its symmetric and is the
+   actual work.
+4. A frequency label in `reminder_frequency_label.dart` (fr/en/es) that reads a date, not a rhythm —
+   « le 15 déc. »-class string, reusing the existing date-localization helpers.
+5. Tests: `reminder_frequency_test.dart` (the `isDue` suite), `reminder_scheduling_test.dart`,
+   `reminder_scheduler_test.dart` (plan removal after completion — the regression this ticket most
+   needs).
+
+**Where the date comes from, Vitamin K specifically:** `buildForBaby` computes
+`OneTime(date: birthDate + 1 month)` with the **clamped anniversary rule already written for B18**
+(`_addMonths` in `baby_profile_section.dart` — Jan 31 + 1 month = Feb 28/29). Do not invent a second
+month-addition. The profileless fallback has no birthdate, hence no date: decision point (below) —
+keep the static 30-day cycle, or drop Vitamin K from the fallback set (that territory belongs to
+B6's decision A, plan them together).
+
+**Decision point (owner/plan) — a one-shot whose date has already passed:** a parent who opens the
+app in month 6 without ever having recorded the vitamin K dose:
+- (a) **due-now catch-up** (the D3 model, as today for periodic items): it stays due until completed
+  or dismissed — the reminder "chases" a missed dose;
+- (b) **expiry**: N days after the date it is permanently not-due (and the OS entry is removed) —
+  "program an end" in its strongest sense.
+The owner's words name (a)'s opposite: a one-shot *ends*. But (b) silently abandons a missed dose —
+in an app whose point is the care routine. Recommend (a) with (b) as a plan option; record the choice.
+
+### Part 3 — "all reminders like custom ones": preset rows have no edit, no remove
+
+The parity gap, as rendered on `develop` (1.3.2+16):
+
+| | Presets | Customs |
+|---|---|---|
+| Row widget | bare `SwitchListTile` (`reminder_settings_screen.dart:107-116`: title + frequency subtitle + switch) | `CustomReminderTile` — switch **plus** a popup menu, `CustomReminderAction { edit, delete }` (`:141-152`) |
+| Edit | none — the item is `static const` (label, frequency, tracking type, care subtype all fixed in code) | `CustomReminderFormSheet`: label, rhythm, interval, care subtype |
+| Remove | none — the only off is the switch (`enabled=false`, still visible) | `CustomRemindersNotifier.remove`: deletes the `custom_reminders` row **and its settings row**, invalidates `reminderSettingsProvider` |
+
+Preset ids are stable keys — the doc comment on `ReminderItem.id` says so explicitly (they index
+`reminder_settings` and `reminder_dismissals`, « must never change ») — so a preset cannot be edited
+or removed "for real": its overrides and its removal must live in **data**, and the natural home is
+the per-(baby, item) row the switches already read and write (`reminder_settings`: `baby_id` +
+`item_id` + `enabled` — `app_db.dart:60-70`; created at the v8 migration `:248-255` as
+`(item_id PRIMARY KEY, enabled)` and **rebuilt to the composite `(baby_id, item_id)` pk at v11**
+`:284-299`, which is the shape this ticket extends).
+
+**Storage (plan with B30, one migration):** the row grows nullable override columns alongside B30's
+`time` — at minimum `label TEXT NULL` and a frequency encoding reusing the existing codec
+(`reminders_repository_impl.dart:273` `_encodeFrequency` → `(code, intervalDays)`, the same columns
+`custom_reminders` carries), **plus the removal state** (a `removed` flag or a three-valued state —
+shape at the plan). Effective item = preset overridden by its row; `NULL` everywhere = today's
+behaviour, so existing installs are untouched.
+
+**Single-source invariant (the B31 lesson, stated once more):** `dynamicRemindersProvider` (the
+settings screen, the home list) and the scheduler's `_itemsForScope` (the OS plan) must consume the
+**same overridden items** — the override function must sit below both, settings map read included.
+Today that holds for **item existence only**: `reminderItemsFor` (`reminder_item.dart:124-126`) is
+genuinely called by both sides (`reminder_providers.dart:46-52` and `reminder_scheduler.dart:241-242`).
+It does **not** hold for the *enabled* filter, which is duplicated across **four sites in two
+different idioms**: `settings[item.id] ?? true` at `reminder_providers.dart:87`,
+`reminder_settings_screen.dart:112` and `:147`, and `if (enabled[item.id] == false) continue;` at
+`reminder_scheduler.dart:121` — that last one invisible to a grep for `?? true`. The four are
+*equivalent today by coincidence*: a missing key is neither `true` nor `false`, so both idioms mean
+"on". B6's per-item default breaks the coincidence the moment it lands on fewer than all four sites.
+Two item lists that can disagree about a label or a frequency is precisely the defect class B31
+shipped and had to self-heal — and this is the same defect already sitting in the table this ticket
+proposes to extend, found by reading the read paths instead of the write path.
+
+**Removal is a third state, not `enabled=false`:**
+
+- today `false` means "off but visible and re-enableable" — that is the state B6's decision A needs
+  to *show* (a vitamin D off by default must be visible, or a parent cannot find it to switch on);
+- "removable" in the owner's request means the row disappears from the list, as a custom's delete
+  does;
+- therefore the settings row needs a distinct removed/hidden state. Consequences to decide at the
+  plan: (i) removal is per-(baby, item) — a second baby sees the preset fresh, which is consistent
+  with D6's per-baby scoping; (ii) **how is a removed preset re-added?** — a hidden section on the
+  settings screen, or never (re-add = delete & recreate the baby, which B31's delete-flow repair
+  makes safe but destructive); (iii) a removed item's OS notifications must be dropped by the same
+  plan diff as Part 1's one-shot removal (one mechanism, two callers).
+
+**Export/import (AGENTS.md: the two features move together):** `reminder_settings` already travels
+in the backup (v1.3.0: "Notification preferences now live inside the backup"), so the new columns
+ride the **export format v5** that B30 already plans — one bump, one importer acceptance, the
+importer validates an override frequency with the same tolerant decoder it will use for B30's hour,
+and a restored removed-row keeps the row gone.
+
+**UI parity:** preset rows become the custom-tile pattern (switch + `edit`/`remove` menu,
+`custom_reminder_tile.dart` is the reference). The edit sheet reuses the form sheet's label +
+frequency fields — **not** the care-subtype field: a preset's subtype is what makes D2's
+completion-by-event work, and re-pointing `vitamine_k` at another event would decouple the reminder
+from the dose that settles it (recommend: not editable; record the call). The frequency field for a
+preset edit is where the generic "program an end" surfaces: picking a one-shot for *any* reminder is
+Part 2's capability applied by the owner, not just for Vitamin K.
+
+### To do
+
+1. **Part 1 — one-shot, Vitamin K.** New `OneTime` variant + `isDue` (completed → never again) +
+   `nextDueAt` + **plan removal** on completion + date label (fr/en/es). `buildForBaby`:
+   `OneTime(birthDate + 1 month)` with the B18 clamped rule. The two open decisions are resolved in
+   `docs/PLAN-v1.4.0.md`: catch-up over expiry (D-R7) and the profileless fallback keeps its
+   `CustomInterval(days: 30)` (D-R10) — write the variant's semantics to those.
+2. **Part 2 — the generic "end".** *Scope — owner decision 2026-11-14: all three forms*, delivered
+   per `docs/PLAN-v1.4.0.md` D-R5: **one time** (`OneTime` + `frequency_date`), **until a date**
+   (`end_date`, inclusive end), **until an age** (`end_age_months`, whole months 0–180, resolved at
+   read time against the birthdate so a corrected birthdate moves the end). The carrier is the
+   reminder (a derived `endsAt` resolved by the effective-item function), **not** a per-rhythm
+   `untilDate` modifier — the sealed `ReminderFrequency` grows only `OneTime`. Mutual exclusivity
+   (one-shot / end-date / end-age) is write-strict at the picker and the importer. A past end at
+   write time is accepted with a warning (D-R5).
+3. **Part 3 — preset overrides + removal, planned with B30.** One schema step (v14): B30's `time` +
+   `label` + frequency encoding (+ the D-R5 columns `frequency_date`, `end_date`,
+   `end_age_months`) + removed state on `reminder_settings` — eight new columns, the plan's exact
+   DDL. One export format (v5) with importer acceptance. One override function consumed by the
+   provider **and** the scheduler.
+   Preset rows get the custom tile's edit/remove menu. The re-add decision (hidden section?) is a
+   plan call with the owner.
+4. l10n fr/en/es: the one-shot frequency label, the preset edit sheet, the removed/hidden affordance,
+   the vitamin K row subtitle (it no longer says "monthly" after Part 1). Patch notes: vitamin K is
+   now a one-shot (noun form, fr/es), without re-deriving the clinical rationale in the store copy.
+5. Release-gate pass: the OS-plan removal is the part no widget test can see — seed a completed
+   one-shot and a removed preset, inspect the scheduled notifications on both platforms, record it.
+
+### Do not
+
+- Do not change any preset **id**: stable key of `reminder_settings`/`reminder_dismissals`, and B31's
+  single-sourcing stands on it.
+- Do not "remove" a preset by dropping it from `reminderItemsFor` based on stored state: that is two
+  item sources again — removal is a state **on the settings row**, consumed by both the provider and
+  the scheduler.
+- Do not reuse `enabled=false` as the removal state: B6's opt-in depends on "off but visible"
+  staying a visible, re-enableable state.
+- Do not split B30's and B33's storage work into two schema v14s in one release: one migration, one
+  export v5, one plan.
+- Do not invent a second month-addition: the B18 clamped anniversary arithmetic already exists.
+- Do not make the one-shot's completion itself write a tracking event, or a tracking event write the
+  completion: Vitamin K stays `completionFromEvents` (the recorded dose settles it, exactly as
+  today) — the one-shot changes the **cadence**, not D2.
+- Do not touch B6's decision (vitamin D opt-in, decision A) in this ticket: same surface, separate
+  decision — but plan the settings-row state machine (absent / off / removed, plus per-item default)
+  once, for both.
+- Do not implement B6's per-item default in the provider alone. The "absent row means on" default is
+  read at **four sites in two idioms** (Part 3's invariant section lists them); a partial change is
+  green in CI and wrong on the device, because the OS notification plan is computed at
+  `reminder_scheduler.dart:121` and not by any provider. If a new baby's vitamin D shows off in the
+  app while its notification still fires, that is this gotcha, not a scheduling bug.
