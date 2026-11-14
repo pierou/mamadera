@@ -135,12 +135,13 @@ One row, per `(baby_id, item_id)`, five new states, one effective-item function:
   never data): `vitamine_d: false`, `vitamine_k`/`eye_cleaning`/`face_cleaning`: `true`; customs:
   `true`. B30's "Do not" stands: the *hour* is not on the entity — but the *default* is, because a
   default is item identity, not per-(baby, item) data.
-- **One function, three consumers.** `effectiveItemsForScope(babyId, items, settingsMap)` (name at
-  the plan; the ticket's "the override function must sit below both") returns the item list with
-  overrides applied (label/frequency, D-R3) and removal filtered, in **one** domain function.
-  Consumers: the settings screen provider, the home reminders section, the scheduler's
-  `_itemsForScope`. The B31 invariant — provider and scheduler can never disagree — is structural,
-  not a test's faith.
+- **One function, three consumers.** `effectiveItemsForScope(babyId, items, settingsMap, profile)`
+  (name at the plan; the ticket's "the override function must sit below both") returns the item
+  list with overrides applied — label, frequency (**and the resolved `endsAt`**, D-R5 — which is
+  why it takes the profile: `end_age_months` resolves against the birthdate there) — and removal
+  filtered, in **one** domain function. Consumers: the settings screen provider, the home
+  reminders section, the scheduler's `_itemsForScope`. The B31 invariant — provider and scheduler
+  can never disagree — is structural, not a test's faith.
 - The existing `enabled` column's read path (`settings[item.id] ?? true`) is replaced **only** by
   the `?? item.enabledByDefault` literal change — nothing else about the switch writes changes.
 
@@ -154,7 +155,9 @@ ALTER TABLE reminder_settings ADD COLUMN time TEXT NULL;            -- B30: 'HH:
 ALTER TABLE reminder_settings ADD COLUMN label TEXT NULL;           -- B33: preset label override, NULL = preset label
 ALTER TABLE reminder_settings ADD COLUMN frequency TEXT NULL;       -- B33: override code (db_constants), NULL = preset frequency
 ALTER TABLE reminder_settings ADD COLUMN interval_days INTEGER NULL;-- B33: paired with frequency (the every-n-days value)
-ALTER TABLE reminder_settings ADD COLUMN frequency_date TEXT NULL;  -- B33: ISO 8601 'yyyy-MM-dd' when frequency = 'one_time'
+ALTER TABLE reminder_settings ADD COLUMN frequency_date TEXT NULL;  -- D-R5: the one-shot's occurrence date ('yyyy-MM-dd') when frequency = 'one_time'
+ALTER TABLE reminder_settings ADD COLUMN end_date TEXT NULL;        -- D-R5: 'until a date' — 'yyyy-MM-dd', inclusive end
+ALTER TABLE reminder_settings ADD COLUMN end_age_months INTEGER NULL; -- D-R5: 'until an age' — canonical whole months 0–180
 ALTER TABLE reminder_settings ADD COLUMN removed INTEGER NOT NULL DEFAULT 0;  -- B33: the third state (D-R2)
 ```
 
@@ -164,6 +167,10 @@ ALTER TABLE reminder_settings ADD COLUMN removed INTEGER NOT NULL DEFAULT 0;  --
   at the app read side — the split `notification_time.dart` documents).
 - The new frequency code: `const String freqOneTime = 'one_time';` in `db_constants.dart` beside
   the four existing codes.
+- `frequency_date` (the one-shot's occurrence) and `end_date`/`end_age_months` (the series end) are
+  **different concepts with different columns** — D-R5's mutual exclusivity: a row carries at most
+  one of {`one_time`+`frequency_date`, `end_date`, `end_age_months`}, enforced at write and at
+  import, not by the schema.
 
 ### D-R4 — Removed presets are re-addable, from a Removed section
 
@@ -174,14 +181,47 @@ B33's open plan call ("how is a removed preset re-added? — a hidden section, o
 `ExpansionTile`-class widget and one l10n string. (Customs keep their existing hard-delete
 semantics — D-R4 is about *presets* only.)
 
-### D-R5 — B33 Part 2 scope: `OneTime` is the generic "end"; no `untilDate` modifier
+### D-R5 — "Program an end": three options — one time, until a date, until an age
 
-The owner's « program an end to a reminder » is delivered by `OneTime` being available **everywhere
-a frequency is chosen**: the custom form sheet (which removes its 365-day cap's « not a reminder »
-dead end — a date *is* the answer the cap pointed at) and the preset edit sheet (D-R6). A general
-`untilDate` on all four existing rhythms is **rejected**: no ticket asks for "monthly *until* X",
-the model cost is real (every `isDue` variant grows a branch), and `OneTime` covers the expressed
-need. The storage (D-R3) precludes neither — `frequency_date` is there if a future ticket wants it.
+**Owner decision, 2026-11-14** (supersedes this plan's initial D-R5, which offered the one-shot
+only): every reminder can be given an end, in **three forms**, offered wherever a frequency is
+chosen — the preset edit sheet (D-R6) and the custom form/edit sheets (the form sheet's 365-day
+cap « not a reminder » dead end becomes the one-shot's entry point):
+
+1. **One time** — a single occurrence on a date: frequency code `one_time` + `frequency_date`
+   (the date *is* the occurrence, not an end). A passed date is due-now catch-up (D-R7); a
+   completed one-shot never recurs.
+2. **Until a date** — the frequency keeps its rhythm; the series stops after `end_date`
+   (inclusive: the end date itself can still fire; no occurrence exists past it).
+3. **Until an age** — the same, expressed in the baby's age: stored as canonical whole months
+   (`end_age_months`, 0–180), resolved to a date **at read time** against the baby's birthdate
+   with B18's clamped month arithmetic — so a corrected birthdate moves the end automatically.
+   Available only where a birthdate is known (every per-scope row with a profile); on the legacy
+   `''` profileless scope the option is **disabled with a hint** (D-R10's territory).
+
+**Carrier: the end lives on the reminder, not inside the frequency.** The sealed
+`ReminderFrequency` grows only `OneTime` (its `frequency_date`); the end is a derived field
+`endsAt` resolved by the effective-item function (D-R2) from
+`end_date ?? (end_age_months → clamped(birthdate + n months))`. Rationale: one cutoff code path
+serves all five frequencies uniformly (no per-variant `isDue` branch), the export fields are
+uniform, the picker's « end » section is independent of its « frequency » section, and any future
+frequency variant inherits the end for free. The alternative carrier — `Daily(until:)`-style
+embedding in each sealed variant — is rejected: it forks the frequency model five ways for what
+is semantically one property of the reminder.
+
+**Mutual exclusivity** (enforced at write **and** at import — write-strict): a row carries at most
+one of {`one_time` frequency, `end_date`, `end_age_months`}. The picker makes it structural —
+switching *to* the one-shot clears any stored end; switching *away* from it clears `frequency_date`.
+An end set on a reminder whose frequency is changed to one-shot is dropped, not kept dormant.
+
+**Semantics** (scheduling core, M3): `endsAt == null` → today's behaviour, unchanged.
+`endsAt != null` → `isDue` is false once `now` is past the **end of the end date's day**
+(inclusive end); `nextDueAt` returns the last occurrence on or before `endsAt`, else `null` — and
+a `null` nextDueAt drops the item from the plan, so the **existing** `_PlanEntry` diff cancels the
+OS notification: the same "can no longer be due" path as a completed one-shot or a removed row
+(D-R2/D-R7) — one mechanism, three callers. An end in the past at write time is **accepted** (the
+series is already over: the row simply stops being due and its OS entry drops at the next sync);
+the picker warns but does not block.
 
 ### D-R6 — Preset edit: label + frequency (including one-shot); care subtype is **not** editable
 
@@ -231,10 +271,12 @@ still serves.
 
 Patch notes (in-app, fr/en/es, noun form) carry: per-reminder hour; Vitamin K one-shot ("one month
 after the birthdate, settled when recorded" — **without** re-deriving the clinical rationale, B6's
-"Do not" applies); presets editable/removable; Vitamin D now off by default for **new** babies
-(existing keep it until turned off — say so, it is the consent line decision A demands);
-notifications: tap lands on Home + tapping a reminder performs its action. No "l'app suit l'OMS",
-no mortality or efficacy claim (research archive, non-negotiable).
+"Do not" applies); presets editable/removable; **the end trio** ("every reminder can be ended: on
+a date, on a given date, or at a given age" — the D-R5 options as shipped, noun form in fr/es);
+Vitamin D now off by default for **new** babies (existing keep it until turned off — say so, it
+is the consent line decision A demands); notifications: tap lands on Home + tapping a reminder
+performs its action. No "l'app suit l'OMS", no mortality or efficacy claim (research archive,
+non-negotiable).
 
 ---
 
@@ -249,6 +291,8 @@ await customStatement('ALTER TABLE reminder_settings ADD COLUMN label TEXT NULL'
 await customStatement('ALTER TABLE reminder_settings ADD COLUMN frequency TEXT NULL');
 await customStatement('ALTER TABLE reminder_settings ADD COLUMN interval_days INTEGER NULL');
 await customStatement('ALTER TABLE reminder_settings ADD COLUMN frequency_date TEXT NULL');
+await customStatement('ALTER TABLE reminder_settings ADD COLUMN end_date TEXT NULL');
+await customStatement('ALTER TABLE reminder_settings ADD COLUMN end_age_months INTEGER NULL');
 await customStatement('ALTER TABLE reminder_settings ADD COLUMN removed INTEGER NOT NULL DEFAULT 0');
 // B6 (D-R1): seed-true the vitamine_d row for every pre-existing scope that has none.
 // INSERT the row only where absent — never UPDATE an existing row's `enabled`.
@@ -263,7 +307,7 @@ await customStatement('''
 ''');
 ```
 
-Drift data classes update accordingly (`ReminderSettings` gains the six fields; `?` / default as
+Drift data classes update accordingly (`ReminderSettings` gains the eight fields; `?` / default as
 per the DDL); `make codegen`; `schema.sql` regenerated — **and B26's trailing comma fixed in the
 same regeneration** (the reference file must replay: `sqlite3 :memory: < schema.sql` exits 0 — add
 that as the replay guard, B26's To-do).
@@ -274,7 +318,7 @@ idempotent (the `NOT EXISTS` guard) and only ever inserts `enabled = 1`.
 **Migration tests (write in M1, not after):**
 
 1. v13 DB with one profile + one event + an existing explicit `vitamine_d` row `enabled=0`
-   (a parent who turned it off) → v14: **row unchanged** (`enabled` still 0), six new columns
+   (a parent who turned it off) → v14: **row unchanged** (`enabled` still 0), the eight new columns
    null/0, app boots, the parent's off stays off.
 2. v13 DB, no `vitamine_d` row → v14: `''` scope + profile scope each gain `enabled=1` rows.
 3. Fresh install → v14 directly: schema present, no rows seeded (the seed runs in the migration,
@@ -296,7 +340,9 @@ The `reminderSettings` row gains, after `enabled` (order irrelevant, presence is
 'label': row.label,                       // String?
 'frequency': row.frequency,               // code | null
 'intervalDays': row.intervalDays,         // int?
-'frequencyDate': row.frequencyDate,       // 'yyyy-MM-dd' | null
+'frequencyDate': row.frequencyDate,       // 'yyyy-MM-dd' | null — the one-shot's occurrence
+'endDate': row.endDate,                   // 'yyyy-MM-dd' | null — 'until a date' (D-R5)
+'endAgeMonths': row.endAgeMonths,         // int 0–180 | null — 'until an age' (D-R5)
 'removed': row.removed,                   // bool
 ```
 
@@ -305,9 +351,12 @@ The `reminderSettings` row gains, after `enabled` (order irrelevant, presence is
   untouched (a v13 document is still a v13 document; the *format* is what moved).
 - **Import of a format 5 file**: `timeOfDay` validated with `isValidNotificationTime` — a malformed
   hour **refuses the file** (B30 shape §2: write-strict, exactly like the global hour today); a
-  malformed `frequencyDate` (present but not `yyyy-MM-dd`) likewise refuses; `frequency` present but
-  an unknown code **refuses** (the app read side is tolerant, the importer is not — the same split
-  the existing custom-reminder frequency validation uses).
+  malformed `frequencyDate`/`endDate` (present but not `yyyy-MM-dd`) likewise refuses; `endAgeMonths`
+  present but outside 0–180 refuses; `frequency` present but an unknown code **refuses** (the app
+  read side is tolerant, the importer is not — the same split the existing custom-reminder
+  frequency validation uses). **D-R5's mutual exclusivity is also an import refusal**: a row with
+  both an `endDate` and an `endAgeMonths`, or a `one_time` frequency with any end field, is
+  ambiguous or contradictory — the file is refused, not repaired.
 - `counts.reminderSettings` unchanged in meaning (row count; `removed` rows still count — they are
   rows, and a restore of a removed preset keeps it removed: D-R2's state travels with the backup).
 - **Regression wall:** formats 1–4 keep restoring byte-for-byte on the existing test fixtures —
@@ -341,7 +390,7 @@ window an hour earlier), the scheduler diff re-submission on hour change, the ex
 `timeOfDay` round trip, the importer's malformed-hour refusal.
 *Ticket: B30 (its "Shape" section is the spec).*
 
-### M3 — B33 Part 1: `OneTime` + the Vitamin K cadence
+### M3 — B33 Part 1: `OneTime` + the end model (D-R5) + the Vitamin K cadence
 
 `OneTime(DateTime? date)` variant (date nullable in the entity — D-R8's due-now path; the **stored**
 row always has a date, the null case is the tolerant decode's invention); `isDue`: completed →
@@ -354,25 +403,44 @@ test this ticket most needs: completed one-shot → zero OS entries, both platfo
 label (fr/en/es) renders the date (« le 15 déc. »-class, existing date-localization helpers);
 `buildForBaby` → `OneTime(birthDate + 1 month)` with B18's clamped rule; the profileless fallback
 keeps `CustomInterval(days: 30)` (D-R10). The `db_constants` `freqOneTime` code + codec encode/decode
-+ D-R8. Tests: `reminder_frequency_test.dart` (the isDue suite incl. completed-forever and
-catch-up), `reminder_scheduling_test.dart`, `reminder_scheduler_test.dart` (plan removal), the
-codec's tolerant branches.
-*Ticket: B33 Part 1.*
++ D-R8. **The end model (D-R5, semantics half):** the effective-item function (D-R2) resolves
+`endsAt` = `end_date ?? clamped(birthdate + end_age_months)` (B18 arithmetic — the same
+`_addMonths`, not a new one); `isDue` gains the cutoff — `endsAt != null && now` past the end of
+the `endsAt` day → false (inclusive end date); `nextDueAt` returns the last occurrence on or before
+`endsAt`, else `null` (a `null` nextDueAt drops the item from the plan → the **existing** diff
+cancels the OS entry — the "can no longer be due" path now serves three callers: completed
+one-shot, ended series, removed row). A changed birthdate moves an age-based end automatically
+(read-time resolution — no stored date to go stale). Tests: `reminder_frequency_test.dart` (the
+isDue suite incl. completed-forever, catch-up, **the end cutoff inclusive/exclusive boundary**,
+**age-end resolution incl. a clamped anniversary** (Jan 31 baby + 6 months)),
+`reminder_scheduling_test.dart` (nextDueAt past the end → null; last-occurrence-on-or-before),
+`reminder_scheduler_test.dart` (plan removal: ended series → zero OS entries; birthdate edit
+moves the plan), the codec's tolerant branches.
+*Ticket: B33 Part 1 (+ D-R5's scheduling half — Part 2's scope is the owner's trio).*
 
 ### M4 — B33 Part 3: preset overrides + removal + UI parity
 
 The effective-item function (D-R2) below the three consumers; the settings-row writes for
-`label`/`frequency`/`interval_days`/`frequency_date`/`removed` (the switch write path extends,
-does not fork); preset rows become the custom-tile pattern (switch + `edit`/`remove` menu —
-`custom_reminder_tile.dart` reference); the preset edit sheet (label + frequency incl. one-shot
-date picker, **no care-subtype field** — D-R6); removal = `removed=1` + **OS plan drop** (the M3
-removal mechanism, second caller); the « Removed » section with one-tap restore (D-R4); the
-re-add is per-(baby, item) (a second baby sees the preset fresh — D6's per-baby scoping, no
-change). l10n fr/en/es. Tests: the single-source invariant (provider and scheduler return the same
-effective list — the B31 regression, asserted directly), override round trip through export v5,
-removal hides from settings + home + scheduler, restore re-shows, the second-baby fresh state.
-*Ticket: B33 Part 3 (+ Part 2's scope: the custom form sheet gains the one-shot option per D-R5,
-replacing the 365-day dead end — the cap comment becomes the one-shot's entry point).*
+`label`/`frequency`/`interval_days`/`frequency_date`/`end_date`/`end_age_months`/`removed` (the
+switch write path extends, does not fork); preset rows become the custom-tile pattern (switch +
+`edit`/`remove` menu — `custom_reminder_tile.dart` reference); the preset edit sheet (label +
+frequency incl. one-shot date picker, **no care-subtype field** — D-R6); **the end picker (D-R5,
+UI half)** — an « end » section on the edit sheet (presets **and** customs, so the custom form
+sheet gains it too, replacing its 365-day dead end): the three options *one time* (date) /
+*until a date* (date) / *until an age* (a months-or-years stepper, stored as whole months 0–180),
+plus the default *no end*; the exclusivity wiring (switching to one-shot clears the stored end and
+vice versa, D-R5); *until an age* shows its **resolved date** next to the stepper (« until 18
+months — 15 juin 2026 », recomputed per read, so a birthdate correction is visible) and is
+disabled-with-hint on the profileless scope; a past end at write time warns but accepts (D-R5);
+removal = `removed=1` + **OS plan drop** (the M3 removal mechanism, third caller alongside the
+completed one-shot and the ended series); the « Removed » section with one-tap restore (D-R4);
+the re-add is per-(baby, item) (a second baby sees the preset fresh — D6's per-baby scoping, no
+change). l10n fr/en/es: the three option labels, the resolved-date line, the exclusivity, the
+past-end warning, the disabled hint. Tests: the single-source invariant (provider and scheduler
+return the same effective list — the B31 regression, asserted directly), override **and end**
+round trip through export v5, removal hides from settings + home + scheduler, restore re-shows,
+the second-baby fresh state, **the exclusivity write path** (one-shot ↔ ended-frequency switches
+clear the right columns), the age stepper's month canonicalisation (2y6m → 30).
 
 ### M5 — B22 + B15: the notification tap pair
 
@@ -436,6 +504,11 @@ must exist as named tests (not faith):
 - **one-shot completed → zero OS entries** (M3, the plan-removal regression);
 - **removed preset → zero OS entries + absent from home** (M4, the second caller);
 - **hour change re-submits by id** (M2, B14's stale-schedule concern);
+- **the end cutoff** (M3, D-R5): inclusive end date (fires on, stops after), age-end resolved at
+  read time and moved by a birthdate edit, ended series → zero OS entries;
+- **D-R5 exclusivity**: write path clears the right columns on one-shot ↔ ended-frequency
+  switches; import refuses a file carrying both end fields or a `one_time` with an end (M3/M4,
+  §4 — refused, not repaired);
 - **formats 1–4 restore unchanged** (the §4 regression wall);
 - **B6**: existing-off stays off, existing-absent gets the seed, new baby is off (M1);
 - **B15 payload identity** is never the plan index (M5).
@@ -457,14 +530,23 @@ must exist as named tests (not faith):
    observed; the settings subtitle shows the inherited vs own state (screenshot, the two states).
 5. **Removal + re-add**: remove a preset (row gone, OS entry gone, home gone) → the Removed
    section → restore → back on with its switch state kept.
-6. **Screenshots** of every touched screen (Small_Phone + normal): the settings list (preset rows
-   with hour + menus), the edit sheet, the Removed section, the switcher, the feeding note field,
-   the history pills. `xcrun simctl io` / `adb exec-out screencap`, then **look at the files**.
-7. **Export JSON inspection** (the manual entry path, as always): record a feeding with a note,
-   a measurement, set an hour, remove a preset → export → the v5 fields present (`timeOfDay`,
-   `label`, `frequency`, `intervalDays`, `frequencyDate`, `removed`) → the file restores on a
-   fresh emulator with the removal **and** the hour intact.
-8. Record in the PR: which pass, which simulator/emulator, what was seen — an unrecorded pass is
+6. **The end trio on the device** (D-R5): (a) set *until a date* = yesterday on a preset → sync →
+   its OS entry is **gone** and it never shows due (the fast end-observation — no waiting for a
+   real end); (b) set *until an age* on a reminder → the resolved date displays next to the
+   stepper → edit the baby's birthdate → the resolved date **moves** (read-time resolution,
+   observed, not just unit-tested); (c) the *one time* option in the same picker behaves as M3's
+   one-shot (the trio shares one UI).
+7. **Screenshots** of every touched screen (Small_Phone + normal): the settings list (preset rows
+   with hour + menus), the edit sheet (frequency + the end trio), the Removed section, the
+   switcher, the feeding note field, the history pills. `xcrun simctl io` / `adb exec-out
+   screencap`, then **look at the files**.
+8. **Export JSON inspection** (the manual entry path, as always): record a feeding with a note,
+   a measurement, set an hour, set an end, remove a preset → export → the v5 fields present
+   (`timeOfDay`, `label`, `frequency`, `intervalDays`, `frequencyDate`, `endDate`, `endAgeMonths`,
+   `removed`) → the file restores on a fresh emulator with the removal, the hour **and** the end
+   intact; a hand-broken file (both end fields set) is **refused** with the file-level error
+   (§4's exclusivity refusal).
+9. Record in the PR: which pass, which simulator/emulator, what was seen — an unrecorded pass is
    a pass that didn't happen.
 
 ---
