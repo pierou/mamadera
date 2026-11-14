@@ -223,12 +223,14 @@ OS notification: the same "can no longer be due" path as a completed one-shot or
 series is already over: the row simply stops being due and its OS entry drops at the next sync);
 the picker warns but does not block.
 
-### D-R6 — Preset edit: label + frequency (including one-shot); care subtype is **not** editable
+### D-R6 — Preset edit: label + frequency + the end trio (D-R5); care subtype is **not** editable
 
 Preset rows gain the custom-tile affordance (switch + `edit`/`remove` menu —
 `custom_reminder_tile.dart` is the reference). The edit sheet reuses the form's label + frequency
-fields; the **care-subtype field is out** (B33: re-pointing `vitamine_k` at another event would
-decouple the reminder from the dose that settles it — D2's completion-by-event stands).
+fields **plus the D-R5 end picker** (one time / until a date / until an age — the same widget
+customs use, so presets and customs share one « frequency + end » surface); the **care-subtype
+field is out** (B33: re-pointing `vitamine_k` at another event would decouple the reminder from the
+dose that settles it — D2's completion-by-event stands).
 
 ### D-R7 — The missed one-shot: catch-up, not expiry
 
