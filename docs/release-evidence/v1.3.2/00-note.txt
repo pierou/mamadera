@@ -1,0 +1,31 @@
+B31 release gate — self-heal of the lost active baby profile
+Date: 2026-11-14 · Devices: Android emulators Small_Phone (720x1280, 4.7") + Pixel_10_Pro · Build: debug APK from fix/b31-active-profile (1.3.2+16)
+
+Scenario: the broken state was seeded — two profiles (Luna, 7 months; Max, 4 months), zero rows
+with is_active = true — then the fixed build was launched and the integration gate
+integration_test/gate_b31_active_profile_selfheal.dart ran.
+
+Small_Phone:
+1. The read boundary self-heals on launch: the menu lists both babies with Luna — the oldest by
+   birth_date — promoted active: 01-menu-selfhealed-luna-active.png. In the broken state no baby
+   was active; nothing in the UI shows a "no baby selected" limbo.
+2. Settings → Reminders shows all four per-baby presets — Vitamin D (every day), Vitamin K
+   (day 15), Eye Cleaning, Face Cleaning — not the two-row profileless fallback that was the
+   reported defect (« the settings only list Vitamin D and K while the eye/face cleaning
+   notifications keep firing »): 02-settings-four-presets-per-baby.png.
+3. Deleting the active baby (Luna): the menu shows Max alone with the active check and the
+   "'Luna' deleted" snackbar — the promotion happened inside the delete transaction (the old code
+   re-activated the survivor as a separate statement after the delete committed; a process death
+   in that gap is what left the reported devices with zero active rows):
+   03-menu-after-luna-delete-max-active.png.
+
+Pixel_10_Pro: same gate run, green. Home after the heal — "Luna" header, "Luna's reminders"
+scoped to her (01-home-luna-after-heal.png); menu after the delete — Max active
+(02-menu-after-luna-delete-max-active.png).
+
+Gate assertions (both devices): the menu lists both babies with the survivor active; the settings
+screen shows four per-baby presets; the delete flow leaves exactly one persisted active row.
+Unit level: the repository self-heal (ordering, birth_date tie broken by id, empty table untouched)
+and the scheduler/settings agreement on the broken state are covered in
+test/features/baby/data/repositories/baby_profile_repository_impl_test.dart and
+test/features/reminders/presentation/providers/reminder_providers_test.dart.

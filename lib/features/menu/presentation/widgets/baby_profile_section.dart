@@ -452,7 +452,6 @@ class BabyProfileSection extends ConsumerWidget {
     if (confirm == true && context.mounted) {
       try {
         final repository = await ref.read(babyProfileRepositoryProvider.future);
-        final isActive = profile.id == ref.read(activeBabyProvider).value?.id;
         await repository.deleteProfile(profile.id);
 
         // Invalidate the list provider so the menu UI rebuilds with updated data.
@@ -463,19 +462,10 @@ class BabyProfileSection extends ConsumerWidget {
         // tracks the profile list without waiting for the next tick.
         unawaited(ref.read(reminderSyncNotifierProvider.notifier).syncNow());
 
-        if (isActive) {
-          // If we deleted the active baby, activate the first other profile if exists.
-          final allProfiles = await repository.getAllProfiles();
-          if (allProfiles.isNotEmpty) {
-            await ref
-                .read(activeBabyProvider.notifier)
-                .switchProfile(allProfiles.first.id);
-          } else {
-            await ref.read(activeBabyProvider.notifier).refresh();
-          }
-        } else {
-          await ref.read(activeBabyProvider.notifier).refresh();
-        }
+        // B31: if the deleted baby was the active one, deleteProfile has
+        // already re-activated a survivor inside its own transaction — the
+        // provider only re-reads. No second write, no kill-in-the-gap.
+        await ref.read(activeBabyProvider.notifier).refresh();
 
         if (context.mounted) {
           showFeedback(context, locale.babyDeletedWithName(profile.name));

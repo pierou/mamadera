@@ -1651,12 +1651,13 @@ is per-reminder, not per-custom.
 
 ## B31 — Some iOS parents don't see eye/face cleaning in the settings, but get their notifications
 
-**Status:** open, **bug** (user report, 2026-11-12: « Some iOS users don't see the Eye cleaning
-and face cleaning in the settings, but get the notifications ») · **Severity:** high — the affected
-parents receive notifications they **cannot manage**: the rows to switch them off do not exist, and
-the switches that do exist write to the wrong scope · **Cost:** small–medium — one read-boundary
-repair + making the delete flow atomic + tests · **Risk:** low — additive self-heal; the only
-write is restoring the flag the app is supposed to maintain
+**Status:** closed 2026-11-14 by the B31 self-heal (`fix/b31-active-profile`) — ships with v1.3.2;
+archive to BACKLOG-RESOLVED.md on ship · **bug** (user report, 2026-11-12: « Some iOS users don't
+see the Eye cleaning and face cleaning in the settings, but get the notifications ») · **Severity:**
+high — the affected parents receive notifications they **cannot manage**: the rows to switch them
+off do not exist, and the switches that do exist write to the wrong scope · **Cost:** small–medium —
+one read-boundary repair + making the delete flow atomic + tests · **Risk:** low — additive
+self-heal; the only write is restoring the flag the app is supposed to maintain
 **Found:** 2026-11-12, user report. Mechanics verified in `develop` (1.3.1+15) the same evening.
 **Files:** `lib/features/reminders/domain/entities/reminder_item.dart:147-150`
 (`reminderItemsFor` — the profileless fallback is **Vitamin D + Vitamin K only**),
@@ -1711,7 +1712,39 @@ It is the only path to the broken state that is not transactional. A hand-edited
 cannot produce it unrepaired: `_promoteActiveProfile` exists precisely for a restore that lands
 with no active row.
 
-### To do
+### Fixed — 2026-11-14 (branch `fix/b31-active-profile`, ships v1.3.2)
+The fix follows the plan above, items 2–5; item 1 (confirming on a reported device) stayed
+unreachable — no telemetry is allowed to carry it (charter) — but it no longer matters:
+the state self-repairs on first read after the fix, so the next launch of an affected device
+restores the four rows before the parent sees anything.
+
+- **Read-boundary self-heal** — `AppDatabase.healActiveProfileIfLost()` (`lib/data/local/app_db.dart`):
+  profiles present, none active ⇒ promote the oldest by `(birth_date, id)` (the exact ordering of
+  the import repair `_promoteActiveProfile`), persist the flag, log a warning, return the row as
+  now-active. `getActiveBabyProfile()` calls it on the empty-active-set path, so **every** consumer
+  (settings screen, scheduler, home header) sees the repaired row — one promotion, no startup hook.
+  Empty table still returns `null` untouched (the profileless fallback stays the intended minimal set).
+- **Gap closed at the source** — the repository's `deleteProfile`
+  (`lib/features/baby/data/repositories/baby_profile_repository_impl.dart`) runs the promotion
+  **inside the delete transaction**, after the cascade deletes. The committed state after a delete
+  of the active baby is always exactly one active row; the menu's separate post-delete
+  `switchProfile` statement is removed (`lib/features/menu/presentation/widgets/baby_profile_section.dart`)
+  — the UI now relies on the repository, and the snackbar order is unchanged.
+- **Tests** — repository: no-active-row + N profiles ⇒ deterministic survivor persisted;
+  tie on `birth_date` ⇒ `id` breaks it; empty table ⇒ `null` without write; delete-time promotion
+  in-transaction. Scheduler/settings agreement: a broken state resolves both surfaces to the same
+  per-baby scope. Widget: deleting the active baby leaves the survivor active. Integration gate
+  `integration_test/gate_b31_active_profile_selfheal.dart` seeds the broken state (two profiles,
+  zero active), launches the app, and asserts the menu lists both babies with the survivor active,
+  the settings screen shows the **four** per-baby presets (not the two-row profileless fallback),
+  and the delete flow persists the single active row.
+- **Release gate (recorded per AGENTS.md):** gate green on `Small_Phone` and `Pixel_10_Pro`
+  emulators (Android), screenshots of the menu and the reminder settings in the PR.
+  On the Pixel pass the app was launched against the seeded broken state and the heal was observed
+  live: home header resolved to the oldest baby and her per-baby reminders (Vitamin K on the birth
+  day of the month) before any user interaction.
+
+### To do (superseded by the fix above; kept as the record of what was specified)
 1. **Confirm on a reported device first** (cheap, and it decides the fix): ask the parent whether
    the notification body carries the baby's name. With a name ⇒ profiles exist ⇒ the `is_active`
    loss is confirmed and the fix below applies. Without a name ⇒ the scope is profileless, in
@@ -1750,3 +1783,46 @@ with no active row.
 - Do not touch the profileless fallback itself: on a genuine fresh install (no profiles at all),
   Vitamin D + Vitamin K is the intended minimal set (and B6's opt-in work lives in that same
   territory).
+
+---
+
+## B32 — The prose release-note archive stops at v1.2.1: decide whether the convention is alive
+
+**Status:** open · **Severity:** low (records, not code) · **Cost:** ~20 min per missing version, or
+five minutes to retire the directory
+**Found:** 2026-11-13, while wrapping up the v1.3.1 store submissions. **Files:** `docs/release-notes/`
+(newest file `v1.2.1.md`, directory last touched 2026-10-21)
+
+### The fact
+Nothing in the tree documents v1.3.0 or v1.3.1 in prose. What exists for those two releases is
+mechanical or clipped:
+
+- the **GitHub release bodies** — `gh release view v1.3.1 --json body` is 3 365 characters of
+  auto-generated « What's Changed », a PR list with no editorial voice and no numbers;
+- the **store copy** — `store/v<x>/release-notes/apple-whatsnew-<locale>.txt` and
+  `fastlane/metadata/android/<locale>/changelogs/<code>.txt`, both inside console character limits
+  and written for parents, not for whoever debugs this in a year;
+- the **patch notes** — `assets/patch_notes/<locale>.json`, which is what the app renders, same
+  audience.
+
+`docs/release-notes/v1.2.1.md` is the last file in the house style that actually records the
+engineering facts: store build numbering and why it moved, the schema step and whether it was a
+re-key, what the gate proved. Those are exactly the facts this week had to be **re-derived** from
+`docs/fdroiddata/README.md` and `git log` (why 1.3.1 is `+15` and not `+14` is written down there
+only because the F-Droid recipe had to justify a versionCode to a stranger).
+
+### To do
+Decide, then make the tree say it:
+1. **Alive** → write `v1.3.0.md` and `v1.3.1.md` in the v1.2.1 voice (scope by item id, build
+   numbers, schema version and migration shape, what the device gate ran on which simulator, what
+   went to which store and when). Then it is an archive and worth its weight.
+2. **Retired** → put that in writing: a two-line `docs/release-notes/README.md` saying the directory
+   is the archive for ≤ v1.2.1 and that the release prose since then is the GitHub release body +
+   `store/v<x>/release-notes/`, with the engineering facts living in `docs/BACKLOG.md` and the
+   evidence folders. Cheap, and it stops the next reader rediscovering a « gap ».
+
+### Do not
+- Do not copy the generated « What's Changed » list into a `.md` and call it a release note — that
+  duplicates a page GitHub already rebuilds from the PRs and adds a second thing to keep current.
+- Do not paste console `whatsnew` text here either: it is a constrained marketing artifact and the
+  archive is not its source.
