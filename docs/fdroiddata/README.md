@@ -46,12 +46,17 @@ verbatim; the one build-relevant file it does change, `.github/workflows/ci.yml`
 sed resolves at the tag. `changelogs/16.txt` exists at the tag in all three
 locales, and the screens are unchanged (B31 is a settings-list bug; the fastlane
 shots are Home/Feeding/History), so the capture-order rule is satisfied by
-inheritance — the v1.3.1 images are still the current ones. The MR description
-re-pin to `v1.3.2` (screenshot URLs, *Build notes*) is pending a browser session:
-the local GitLab credential can write the fork (verified) but not the upstream
-project — a fork MR does not grant its author write access to `fdroid/fdroiddata`
-— and the full-scope PAT in the keychain is 401. All four tag-pinned asset URLs
-curl 200.
+inheritance — the v1.3.1 images are still the current ones. All four tag-pinned
+asset URLs curl 200 at `v1.3.2`. The MR description re-pin (URLs, *Build notes*,
+the fastlane checklist item) and the reviewer note re-raising both open questions
+(universal vs `--split-per-abi` APK; the `sudo:` block shape) were posted the same
+day **via the API with the git-credential token** (`git credential fill`, host
+`gitlab.com`). Gotcha worth keeping: GitLab answers **404 — not 401/403 — to
+`PATCH` on the bare `/merge_requests/<id>` path**, which reads exactly like a
+permissions wall and is not one; the same token writes fine with
+`PUT /merge_requests/<id>` (or `PATCH /merge_requests/<id>/update`). A fork-MR
+author can edit their own upstream MR description and notes — no browser session
+needed, but diagnose with `curl -X PUT` before concluding otherwise.
 
 ### The push, and what the pipeline said (2026-11-12)
 
@@ -117,9 +122,10 @@ closed by asking them two things, and nothing has answered them since:
   a follow-up once the app is included?
 
 So `waiting-on-response` is plausibly accurate rather than stale — it can be the
-unanswered side of that exchange. The next note to the reviewer should re-raise
-both questions; they are the only content that can move the MR past "green but
-silently waiting".
+unanswered side of that exchange. The 2026-11-14 note re-raised both questions
+(see the current-status section); if they stay unanswered, the note that
+accompanies the *next* bump re-raises them again — that content is the only
+thing that can move the MR past "green but silently waiting".
 
 **The error that nearly deleted those questions:** reading notes through the API
 and truncating bodies at 800 characters, then concluding absence from the truncated
@@ -381,6 +387,13 @@ this file, which is why the recipe change below is safe to push.
   and every other globbed field.
 - `CurrentVersion` / `CurrentVersionCode` — bump to the new release (the block
   lives at the **end** of the file, after `Builds:`).
+- **MR side, same day as the push** — re-pin the description to the new tag
+  (screenshot/icon URLs, the *Build notes* `Builds` line and Flutter-pin
+  sentence, any checklist claim the release invalidated — diff the description,
+  see the 2026-11-12 lesson) and post the reviewer note re-raising the open
+  questions. Both are API-doable with the git-credential token: `PUT
+  /merge_requests/<id>` for the description, `POST …/notes` for the note — a
+  404 on `PATCH` of the bare path is a method artifact, not a permissions wall.
 - `fastlane/metadata/android/<locale>/changelogs/<N>.txt` — one file per
   **versionCode** (not per versionName), ≤ 500 chars per locale; reuse the store
   "What's new" blocks (they are already counted against Play's 500-char limit).
