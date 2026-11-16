@@ -228,20 +228,27 @@ void main() {
     });
 
     testWidgets(
-        'tout est activé par défaut : les rappels sont une option de retrait',
+        'the switches are an opt-out — except vitamin D, off but visible',
         (tester) async {
+      // B6 (WHO 2022 Rec 36, owner decision A): a baby created on 1.4.0 starts
+      // with vitamin D **off but visible** — the switch sits on screen, that is
+      // the whole point of the decision. An install upgraded from 1.3.x has an
+      // explicit enabled = 1 row (the v14 seed, D-R1) and still shows it on:
+      // covered by 'un enabled enregistré true laisse le rappel activé'.
       await pumpScreen(tester);
 
       // 4 presets + the "System notifications" opt-in (M6).
       expect(find.byType(SwitchListTile), findsNWidgets(5));
       for (final label in [
-        'Vitamine D',
         'Vitamine K',
         'Nettoyage des yeux',
         'Nettoyage du visage'
       ]) {
         expect(_isOn(tester, label), isTrue, reason: label);
       }
+      expect(find.text('Vitamine D'), findsOneWidget,
+          reason: 'off by default means hidden from the due list, not from the list');
+      expect(_isOn(tester, 'Vitamine D'), isFalse);
     });
 
     testWidgets('un rappel déjà éteint est affiché éteint', (tester) async {
@@ -250,7 +257,7 @@ void main() {
       await pumpScreen(tester);
 
       expect(_isOn(tester, 'Nettoyage des yeux'), isFalse);
-      expect(_isOn(tester, 'Vitamine D'), isTrue);
+      expect(_isOn(tester, 'Vitamine K'), isTrue);
     });
 
     testWidgets('un enabled enregistré true laisse le rappel activé',
@@ -264,6 +271,10 @@ void main() {
 
     testWidgets('éteindre un rappel l\'enregistre et le switch reste éteint',
         (tester) async {
+      // The v1.3.x state after the v14 seed: an explicit row, switch on. This is
+      // the path B6's decision A is about — keeping the reminder "until manual
+      // turning off", and the turning-off having to be possible.
+      mockReminders.enabledById['vitamine_d'] = true;
       await pumpScreen(tester);
 
       await tester.tap(_switchFor('Vitamine D'));
@@ -659,6 +670,11 @@ void main() {
 
     testWidgets('ON asks the OS, persists 1 on grant and schedules now',
         (tester) async {
+      // This section is about the OS opt-in, so the plan is the one an install
+      // upgraded from 1.3.x has: the v14 seed left an explicit vitamin D row
+      // (D-R1), so all four presets are pending. A baby created on 1.4.0 gets
+      // three — asserted in reminder_scheduler_test.dart.
+      mockReminders.enabledById['vitamine_d'] = true;
       await pumpScreen(tester);
       await toggleOptIn(tester);
 
@@ -724,6 +740,8 @@ void main() {
     testWidgets('turning it off persists 0 and cancels every notification',
         (tester) async {
       fakeSettings.values[settingsKeyNotificationsOptIn] = '1';
+      // Upgraded-install state, see the opt-in test above: four presets pending.
+      mockReminders.enabledById['vitamine_d'] = true;
       // With the lifecycle observer, so the start-up sync really schedules the
       // four entries this test then expects cancelAll() to clear.
       await pumpScreen(tester, withLifecycle: true);
@@ -763,6 +781,8 @@ void main() {
     test('persists zero-padded HH:mm and reconciles through the sync cycle',
         () async {
       fakeSettings.values[settingsKeyNotificationsOptIn] = '1';
+      // Upgraded-install plan: four presets pending, see the opt-in tests above.
+      mockReminders.enabledById['vitamine_d'] = true;
       final container = ProviderContainer(
         overrides: [
           remindersRepositoryProvider

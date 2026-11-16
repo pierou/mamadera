@@ -71,20 +71,21 @@ final customReminderItemsProvider =
 });
 
 /// The reminders that can actually surface: presets plus custom ones, minus
-/// those the parent disabled in Settings → Reminders.
+/// those the parent turned off in Settings → Reminders.
 ///
 /// The filtering is done here, not in [RemindersService]: a disabled reminder
 /// must not add a `getLastCompleted` query to every five-minute check. A key
-/// missing from the `reminderSettingsProvider` defaults to enabled, and the
-/// custom family obeys the same table — a turned-off `custom_7` is stored
-/// exactly like a turned-off `vitamine_d`.
+/// missing from the `reminderSettingsProvider` means "never touched" and
+/// resolves to the item's own `enabledByDefault` (B6: vitamin D off, everything
+/// else on), and the custom family obeys the same table — a turned-off
+/// `custom_7` is stored exactly like a turned-off `vitamine_d`.
 final enabledRemindersProvider =
     FutureProvider<List<ReminderItem>>((ref) async {
   final presets = await ref.watch(dynamicRemindersProvider.future);
   final custom = await ref.watch(customReminderItemsProvider.future);
   final settings = await ref.watch(reminderSettingsProvider.future);
   return [...presets, ...custom]
-      .where((item) => settings[item.id] ?? true)
+      .where((item) => settings[item.id] ?? item.enabledByDefault)
       .toList();
 });
 

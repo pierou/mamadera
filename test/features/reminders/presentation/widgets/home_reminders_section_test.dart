@@ -72,6 +72,11 @@ void main() {
     required BabyProfile? baby,
   }) async {
     final babyNotifier = _SwitchableBabyNotifier(baby);
+    // The rows these tests count are the four presets, so vitamin D needs an
+    // explicit row: since B6 its own default is off, and "no row" would drop the
+    // fourth line and every count in this file with it. The default itself is
+    // asserted in reminder_scheduler_test.dart / reminder_settings_test.dart.
+    await repo.setEnabled('vitamine_d', enabled: true, babyId: baby?.id);
     final container = ProviderContainer(
       overrides: [
         remindersRepositoryProvider.overrideWith((ref) async => repo),

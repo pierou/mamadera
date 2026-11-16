@@ -33,6 +33,21 @@ mixin _$ReminderItem {
   /// item itself.
   String? get babyId;
 
+  /// Whether the reminder is on when the parent has **never** set its state,
+  /// i.e. when no `reminder_settings` row exists for `(baby, id)`.
+  ///
+  /// Item identity, not per-scope data — which is why it lives here in code
+  /// (`static const` values) and never in a column. `true` everywhere except
+  /// vitamin D (BACKLOG B6: WHO 2022 Rec 36 treats vitamin D supplementation
+  /// as research-only, so a new baby starts with the reminder **off but
+  /// visible**; existing installs keep it through the v14 seed, D-R1).
+  ///
+  /// Every read of `reminder_settings` must fall back to this field. There
+  /// are four such reads (providers, the two settings switches, the
+  /// scheduler's enabled filter): honour it on three of four and the OS
+  /// notification still fires for a reminder the app displays as off.
+  bool get enabledByDefault;
+
   /// What settles this reminder:
   /// - [completionFromEvents]: a [trackingType] event with [subtypeValue]
   ///   (its due date applies to the completion);
@@ -65,17 +80,19 @@ mixin _$ReminderItem {
             (identical(other.subtypeValue, subtypeValue) ||
                 other.subtypeValue == subtypeValue) &&
             (identical(other.babyId, babyId) || other.babyId == babyId) &&
+            (identical(other.enabledByDefault, enabledByDefault) ||
+                other.enabledByDefault == enabledByDefault) &&
             (identical(other.completionSource, completionSource) ||
                 other.completionSource == completionSource));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, id, labelKey, frequency,
-      trackingType, subtypeValue, babyId, completionSource);
+      trackingType, subtypeValue, babyId, enabledByDefault, completionSource);
 
   @override
   String toString() {
-    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue, babyId: $babyId, completionSource: $completionSource)';
+    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue, babyId: $babyId, enabledByDefault: $enabledByDefault, completionSource: $completionSource)';
   }
 }
 
@@ -92,6 +109,7 @@ abstract mixin class $ReminderItemCopyWith<$Res> {
       TrackingType trackingType,
       String? subtypeValue,
       String? babyId,
+      bool enabledByDefault,
       String? completionSource});
 
   $ReminderFrequencyCopyWith<$Res> get frequency;
@@ -115,6 +133,7 @@ class _$ReminderItemCopyWithImpl<$Res> implements $ReminderItemCopyWith<$Res> {
     Object? trackingType = null,
     Object? subtypeValue = freezed,
     Object? babyId = freezed,
+    Object? enabledByDefault = null,
     Object? completionSource = freezed,
   }) {
     return _then(_self.copyWith(
@@ -142,6 +161,10 @@ class _$ReminderItemCopyWithImpl<$Res> implements $ReminderItemCopyWith<$Res> {
           ? _self.babyId
           : babyId // ignore: cast_nullable_to_non_nullable
               as String?,
+      enabledByDefault: null == enabledByDefault
+          ? _self.enabledByDefault
+          : enabledByDefault // ignore: cast_nullable_to_non_nullable
+              as bool,
       completionSource: freezed == completionSource
           ? _self.completionSource
           : completionSource // ignore: cast_nullable_to_non_nullable
@@ -260,6 +283,7 @@ extension ReminderItemPatterns on ReminderItem {
             TrackingType trackingType,
             String? subtypeValue,
             String? babyId,
+            bool enabledByDefault,
             String? completionSource)?
         $default, {
     required TResult orElse(),
@@ -274,6 +298,7 @@ extension ReminderItemPatterns on ReminderItem {
             _that.trackingType,
             _that.subtypeValue,
             _that.babyId,
+            _that.enabledByDefault,
             _that.completionSource);
       case _:
         return orElse();
@@ -302,6 +327,7 @@ extension ReminderItemPatterns on ReminderItem {
             TrackingType trackingType,
             String? subtypeValue,
             String? babyId,
+            bool enabledByDefault,
             String? completionSource)
         $default,
   ) {
@@ -315,6 +341,7 @@ extension ReminderItemPatterns on ReminderItem {
             _that.trackingType,
             _that.subtypeValue,
             _that.babyId,
+            _that.enabledByDefault,
             _that.completionSource);
       case _:
         throw StateError('Unexpected subclass');
@@ -342,6 +369,7 @@ extension ReminderItemPatterns on ReminderItem {
             TrackingType trackingType,
             String? subtypeValue,
             String? babyId,
+            bool enabledByDefault,
             String? completionSource)?
         $default,
   ) {
@@ -355,6 +383,7 @@ extension ReminderItemPatterns on ReminderItem {
             _that.trackingType,
             _that.subtypeValue,
             _that.babyId,
+            _that.enabledByDefault,
             _that.completionSource);
       case _:
         return null;
@@ -372,6 +401,7 @@ class _ReminderItem implements ReminderItem {
       required this.trackingType,
       this.subtypeValue,
       this.babyId,
+      this.enabledByDefault = true,
       this.completionSource});
 
   @override
@@ -398,6 +428,23 @@ class _ReminderItem implements ReminderItem {
   /// item itself.
   @override
   final String? babyId;
+
+  /// Whether the reminder is on when the parent has **never** set its state,
+  /// i.e. when no `reminder_settings` row exists for `(baby, id)`.
+  ///
+  /// Item identity, not per-scope data — which is why it lives here in code
+  /// (`static const` values) and never in a column. `true` everywhere except
+  /// vitamin D (BACKLOG B6: WHO 2022 Rec 36 treats vitamin D supplementation
+  /// as research-only, so a new baby starts with the reminder **off but
+  /// visible**; existing installs keep it through the v14 seed, D-R1).
+  ///
+  /// Every read of `reminder_settings` must fall back to this field. There
+  /// are four such reads (providers, the two settings switches, the
+  /// scheduler's enabled filter): honour it on three of four and the OS
+  /// notification still fires for a reminder the app displays as off.
+  @override
+  @JsonKey()
+  final bool enabledByDefault;
 
   /// What settles this reminder:
   /// - [completionFromEvents]: a [trackingType] event with [subtypeValue]
@@ -432,17 +479,19 @@ class _ReminderItem implements ReminderItem {
             (identical(other.subtypeValue, subtypeValue) ||
                 other.subtypeValue == subtypeValue) &&
             (identical(other.babyId, babyId) || other.babyId == babyId) &&
+            (identical(other.enabledByDefault, enabledByDefault) ||
+                other.enabledByDefault == enabledByDefault) &&
             (identical(other.completionSource, completionSource) ||
                 other.completionSource == completionSource));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, id, labelKey, frequency,
-      trackingType, subtypeValue, babyId, completionSource);
+      trackingType, subtypeValue, babyId, enabledByDefault, completionSource);
 
   @override
   String toString() {
-    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue, babyId: $babyId, completionSource: $completionSource)';
+    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue, babyId: $babyId, enabledByDefault: $enabledByDefault, completionSource: $completionSource)';
   }
 }
 
@@ -461,6 +510,7 @@ abstract mixin class _$ReminderItemCopyWith<$Res>
       TrackingType trackingType,
       String? subtypeValue,
       String? babyId,
+      bool enabledByDefault,
       String? completionSource});
 
   @override
@@ -486,6 +536,7 @@ class __$ReminderItemCopyWithImpl<$Res>
     Object? trackingType = null,
     Object? subtypeValue = freezed,
     Object? babyId = freezed,
+    Object? enabledByDefault = null,
     Object? completionSource = freezed,
   }) {
     return _then(_ReminderItem(
@@ -513,6 +564,10 @@ class __$ReminderItemCopyWithImpl<$Res>
           ? _self.babyId
           : babyId // ignore: cast_nullable_to_non_nullable
               as String?,
+      enabledByDefault: null == enabledByDefault
+          ? _self.enabledByDefault
+          : enabledByDefault // ignore: cast_nullable_to_non_nullable
+              as bool,
       completionSource: freezed == completionSource
           ? _self.completionSource
           : completionSource // ignore: cast_nullable_to_non_nullable

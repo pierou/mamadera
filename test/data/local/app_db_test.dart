@@ -18,8 +18,9 @@ void main() {
   });
 
   group('schema migrations', () {
-    test('schemaVersion is 13 (v13 adds app-level settings)', () {
-      expect(db.schemaVersion, equals(13));
+    test('schemaVersion is 14 (v14 extends reminder_settings per baby+item)',
+        () {
+      expect(db.schemaVersion, equals(14));
     });
   });
 

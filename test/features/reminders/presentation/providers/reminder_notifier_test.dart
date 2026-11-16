@@ -54,6 +54,12 @@ void main() {
     MockRemindersRepository repo,
     _SwitchableBabyNotifier baby,
   ) {
+    // These tests are about the notifier, not about B6's default, and vitamin D
+    // is the preset they use as their subject. So the baby carries an explicit
+    // vitamin D row — the state a 1.3.x install is in after the v14 seed (D-R1).
+    // Without it the default-off vitamin D is absent from the list and every
+    // assertion below loses its subject.
+    repo.enabledById['vitamine_d'] = true;
     final container = ProviderContainer(
       overrides: [
         remindersRepositoryProvider.overrideWith((ref) async => repo),

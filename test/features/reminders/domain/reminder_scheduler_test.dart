@@ -195,14 +195,35 @@ List<BabyProfile> _defaultBabies() => [
     ];
 
 class _Harness {
-  _Harness({List<BabyProfile>? babies})
+  /// [seedVitaminDOn] mirrors what a 1.3.x install looks like *after* the v14
+  /// migration: the seed wrote an explicit `enabled = 1` vitamin D row for every
+  /// scope that had none (B6, PLAN-v1.4.0 D-R1). Most of this file is about plan
+  /// mechanics — ids, diffing, cancellation — so that row is present by default.
+  /// A test that wants the 1.4.0 "never touched" state (no row ⇒ **off** for a
+  /// new baby) passes `seedVitaminDOn: false`.
+  _Harness({List<BabyProfile>? babies, bool seedVitaminDOn = true})
       : repo = FakeRemindersRepository(),
         notifications = FakeNotificationService(),
         babies = babies ?? _defaultBabies() {
+    if (seedVitaminDOn) {
+      for (final scope in this.babies.isEmpty
+          ? const <String>['']
+          : this.babies.map((b) => b.id)) {
+        repo.enabledByScope[scope] = {'vitamine_d': true};
+      }
+    }
     scheduler = ReminderScheduler(
       repository: repo,
       notifications: notifications,
     );
+  }
+
+  /// Merge one override into a scope's settings rows.
+  ///
+  /// The maps are seeded (see [seedVitaminDOn]), so a test that switches one
+  /// item off must not silently drop the vitamin D row along with it.
+  void setEnabled(String scope, String item, {required bool enabled}) {
+    repo.enabledByScope.putIfAbsent(scope, () => {})[item] = enabled;
   }
 
   final List<BabyProfile> babies;
@@ -276,7 +297,7 @@ void main() {
 
       // Disable Aimée's eye cleaning (id 3): her face cleaning moves to id 3,
       // ids 4-8 shift down by one, id 8 becomes stale.
-      h.repo.enabledByScope[_aimeeId] = {'eye_cleaning': false};
+      h.setEnabled(_aimeeId, 'eye_cleaning', enabled: false);
       final count = await h.sync();
       expect(count, 7); // 6 scheduled + Béa's live catch-up nudge
       // The plan compacts: ids 1-6, so the old id 7 goes stale.
@@ -346,6 +367,10 @@ void main() {
       await h.sync();
       final aimeeIds = h.notifications.entries.keys.toSet();
 
+      // The baby added mid-day arrives with her vitamin D row already present —
+      // the state a 1.3.x install has after the v14 seed (D-R1), which is what
+      // this harness models by default.
+      h.setEnabled(_beaId, 'vitamine_d', enabled: true);
       final count = await h.sync(
         babies: [_baby(_aimeeId, 'Aimée', 20), _baby(_beaId, 'Béa', 5)],
       );
@@ -415,7 +440,7 @@ void main() {
       await h.sync();
       expect(h.notifications.entries[5]!.$1, 'Aimée:Sirop');
 
-      h.repo.enabledByScope[_aimeeId] = {'custom_1': false};
+      h.setEnabled(_aimeeId, 'custom_1', enabled: false);
       final count = await h.sync();
       expect(count, 4);
       expect(h.notifications.cancelled, [5]);
@@ -464,6 +489,53 @@ void main() {
           _at(2026, 7, 15, 5);
       await h.sync();
       expect(h.notifications.entries[1]!.$3, _at(2026, 7, 16));
+    });
+
+    // B6 (BACKLOG B6, PLAN-v1.4.0 D-R2): the enabled filter here must honour the
+    // item's own default. This is the read site a `?? true` grep does not find
+    // (`enabled[item.id] == false`), so no provider-level test can catch it:
+    // with the old line, every test above still passes while the OS notification
+    // of a new baby's vitamin D keeps firing behind a switch that shows OFF.
+    test('a baby with no vitamin D row gets zero OS entries for it (B6)',
+        () async {
+      final h = _Harness(seedVitaminDOn: false);
+      final count = await h.sync();
+
+      // Three items per baby (vit K, eye, face): 5 scheduled + Béa's vit K nudge.
+      expect(count, 6);
+      for (final entry in h.notifications.entries.values) {
+        expect(entry.$1.contains('reminderVitaminD'), isFalse,
+            reason: 'a reminder that was never turned on must not notify, '
+                'got "${entry.$1}"');
+      }
+      // The other presets are untouched by the new default.
+      expect(h.notifications.entries.values.map((e) => e.$1),
+          containsAll(['Aimée:reminderVitaminK', 'Béa:reminderEyeCleaning']));
+    });
+
+    test('profileless fallback keeps vitamin K and drops the default-off vitamin D',
+        () async {
+      final h = _Harness(babies: const [], seedVitaminDOn: false);
+      final count = await h.sync();
+
+      // Only vitamin K is left, and the 30-day interval was never completed ⇒
+      // due now ⇒ a catch-up nudge, not a plan entry (D3).
+      expect(count, 1);
+      expect(h.notifications.scheduledIn, [catchUpIdBase + 1]);
+      expect(h.notifications.entries[catchUpIdBase + 1]!.$1, 'T:reminderVitaminK');
+    });
+
+    test('an explicit row still wins over the default: on for a new baby',
+        () async {
+      // The switch in Settings writes a row; from then on the row decides, in
+      // both directions, whatever the item's default is.
+      final h = _Harness(seedVitaminDOn: false);
+      h.setEnabled(_beaId, 'vitamine_d', enabled: true);
+      await h.sync();
+      expect(
+        h.notifications.entries.values.map((e) => e.$1),
+        contains('Béa:reminderVitaminD'),
+      );
     });
   });
 }

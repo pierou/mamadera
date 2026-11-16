@@ -86,7 +86,9 @@ class _ReminderList extends ConsumerWidget {
   /// Personalized reminders, listed in the order they were created.
   final List<CustomReminder> custom;
 
-  /// `item_id → enabled`; if the key is missing, it defaults to enabled (opt-out, not opt-in).
+  /// `item_id → enabled` for the rows that **exist**. A missing key means
+  /// "never touched", which resolves per item to `ReminderItem.enabledByDefault`
+  /// (B6: vitamin D starts off, everything else on) — never a blanket `true`.
   final Map<String, bool> settings;
 
   /// Date of birth of the active baby, `null` if no profile exists.
@@ -109,7 +111,7 @@ class _ReminderList extends ConsumerWidget {
             // Accessible content: The label and frequency are read together.
             title: Text(_presetLabel(context, item)),
             subtitle: Text(reminderFrequencyLabel(context, item.frequency)),
-            value: settings[item.id] ?? true,
+            value: settings[item.id] ?? item.enabledByDefault,
             onChanged: (enabled) => ref
                 .read(reminderSettingsProvider.notifier)
                 .setEnabled(item.id, enabled: enabled),
@@ -138,18 +140,7 @@ class _ReminderList extends ConsumerWidget {
           )
         else
           for (final reminder in custom)
-            CustomReminderTile(
-              reminder: reminder,
-              display: CustomReminderPresets.forCustom(
-                reminder,
-                monthlyDay: monthlyDay,
-              ),
-              enabled: settings[_settingsKey(reminder)] ?? true,
-              onToggle: (enabled) => ref
-                  .read(reminderSettingsProvider.notifier)
-                  .setEnabled(_settingsKey(reminder), enabled: enabled),
-              onAction: (action) => _onAction(context, ref, reminder, action),
-            ),
+            _customTile(context, ref, reminder),
         ListTile(
           leading: const Icon(Icons.add_alarm_outlined),
           title: Text(context.l.reminderCustomAdd),
@@ -165,6 +156,31 @@ class _ReminderList extends ConsumerWidget {
   /// never disagree (`CustomReminderTile.keyOf`).
   String _settingsKey(CustomReminder reminder) =>
       CustomReminderTile.keyOf(reminder);
+
+  /// One custom reminder row.
+  ///
+  /// The display item is built once and serves both the tile and the default
+  /// state of its switch, so a row and its default can never come from two
+  /// different item objects (one of B6's four read sites, D-R2).
+  Widget _customTile(
+    BuildContext context,
+    WidgetRef ref,
+    CustomReminder reminder,
+  ) {
+    final display = CustomReminderPresets.forCustom(
+      reminder,
+      monthlyDay: monthlyDay,
+    );
+    final key = _settingsKey(reminder);
+    return CustomReminderTile(
+      reminder: reminder,
+      display: display,
+      enabled: settings[key] ?? display.enabledByDefault,
+      onToggle: (enabled) =>
+          ref.read(reminderSettingsProvider.notifier).setEnabled(key, enabled: enabled),
+      onAction: (action) => _onAction(context, ref, reminder, action),
+    );
+  }
 
   Future<void> _onAction(
     BuildContext context,

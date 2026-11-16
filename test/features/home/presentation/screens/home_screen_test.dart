@@ -184,6 +184,12 @@ void main() {
     Future<void> pumpHomeWithDueReminders(WidgetTester tester) async {
       tester.view.physicalSize = const Size(600, 900);
 
+      // The four preset rows are what this group counts, so vitamin D needs an
+      // explicit row: since B6 its own default is off and the fourth row would
+      // simply not render. The default is covered in reminder_settings_test.dart.
+      final remindersRepo = MockRemindersRepository()
+        ..enabledById['vitamine_d'] = true;
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -195,7 +201,7 @@ void main() {
             activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
             anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
             remindersRepositoryProvider
-                .overrideWith((ref) async => MockRemindersRepository()),
+                .overrideWith((ref) async => remindersRepo),
             reminderNotifierProvider.overrideWith(NoPollRemindersNotifier.new),
           ],
           child: MaterialApp(

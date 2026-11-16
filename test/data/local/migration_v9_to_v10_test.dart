@@ -88,15 +88,21 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    expect(db.schemaVersion, equals(13));
+    expect(db.schemaVersion, equals(14));
     expect(await db.getAllCustomReminders(), isEmpty);
 
     // The reminder that was active before the update remains so: the migration has...
     // No changes made to reminder settings.
     final enabled = await db.getAllReminderSettings();
-    expect(enabled, hasLength(1));
-    expect(enabled.single.itemId, equals('vitamine_k'));
-    expect(enabled.single.enabled, isFalse);
+    // v14 adds rows besides: the vitamin D seed of every pre-existing scope
+    // (D-R1). The row under test is the vitamin K one the parent turned off.
+    final vitaminK =
+        enabled.where((s) => s.itemId == 'vitamine_k').toList();
+    expect(vitaminK, hasLength(1));
+    expect(vitaminK.single.enabled, isFalse);
+    expect(enabled, hasLength(3),
+        reason: 'the v9 row plus the seeded vitamin D row of each of the two '
+            'pre-existing scopes');
 
     final profiles = await db.getAllBabyProfiles();
     expect(profiles.single.name, equals('Bébé Test'));

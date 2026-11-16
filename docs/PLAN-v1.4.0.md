@@ -1,6 +1,7 @@
 # PLAN — mamadera v1.4.0 (`1.4.0+17`, drift schema v14, export format 5)
 
-Status: **proposed, pending owner sign-off on §2 decisions** · Written 2026-11-14 against
+Status: **in progress** — §2 decisions adopted on the owner's go-ahead of 2026-11-16
+(« let's build 1.4.0 »); M1 landed, execution notes in §9. Written 2026-11-14 against
 `develop` @ `3c58037` (1.3.2+16).
 Executes the owner requests B6, B30, B33, B15, B22 and the schema-free small batch (B9, B13, B16,
 B17, B26, B27, B29, B7-remainder) — scope agreed with the owner 2026-11-14.
@@ -657,3 +658,56 @@ revert.
   (`docs/PLAN-sync-phase-a.md` §3/§4) — this release must not consume them.
 - The backlog statuses updated in the release PR: B6/B30/B33/B15/B22/B9/B13/B16/B17/B26/B27/B29/
   B7 closed-or-shipped, B23/B25 status lines corrected (§0), B32/B19/B20/B21 untouched (maintenance).
+
+---
+
+## 9. Execution notes (written back per §0 — "cite the symbol, not the line number")
+
+### M1 — schema v14 + B6 (done against `develop` @ `5c9b5f8`)
+
+Implemented as specified. Three things the plan did not predict, all recorded here
+because the next milestones touch them:
+
+1. **`ALTER … ADD COLUMN` is not re-runnable, and a test fixture knew that only
+   about v12.** `test/data/local/real_file_migration_v11_to_v12_test.dart`
+   fabricates a v11 file by hand (`PRAGMA user_version = 11`) and had always
+   dropped `tracking_events.unit` first — precisely so the v12 step would have
+   its real job. It now has to drop the eight v14 columns and the seeded vitamin D
+   rows too, or the next open dies on `duplicate column name: time`. Any future
+   milestone that adds a column has the same obligation in that helper, and the
+   helper now asserts `reminder_settings` is back to three columns so the lie
+   cannot come back.
+2. **The seed collides with a sentinel-collapsing fixture.** The same helper does
+   `UPDATE reminder_settings SET baby_id = ''`; with the seed there is now a
+   `('', vitamine_d)` row *and* a `(baby, vitamine_d)` row, so the collapse hit
+   `UNIQUE constraint failed`. Fixed by deleting the seed rows before collapsing
+   (a genuine v11 never had them), not by weakening the seed.
+3. **Eleven test files asserted "absent row = on".** The B6 amendment is not one
+   line: the scheduler harness (`_Harness`, `ReminderScheduler.sync`) now seeds an
+   explicit vitamin D row by default (`seedVitaminDOn`, the post-migration state of
+   a 1.3.x install) with `setEnabled` merging into it, and the widget/provider
+   harnesses that count four preset rows seed the row too. Each site says why, so
+   the seed cannot be mistaken for the new default. `enabledByDefault` is asserted
+   on **both** consumers as §0 demands: `enabledRemindersProvider` and
+   `ReminderScheduler.sync()` (a new baby ⇒ zero OS entries naming `reminderVitaminD`).
+
+**Open for M4, decided there, not improvised:** D-R5 gives the *custom* reminder a
+one-shot in the same picker as the presets, but the occurrence date column
+(`frequency_date`) is on `reminder_settings`, while a custom reminder's frequency
+lives in `custom_reminders.frequency` beside its own `interval_days`. So a custom
+one-shot has no date column. Two admissible shapes: add `frequency_date` to
+`custom_reminders` (symmetric with `interval_days`: the frequency's parameter
+travels with the frequency), or read/write it through the `custom_<id>` settings
+row (one carrier for every reminder-level field). v14 is still unreleased, so M4
+may extend the same `if (from < 14)` block either way without spending a schema
+version — but it must be a decision, and §3's "eight columns" line is the number
+that changes.
+
+**Noted, not fixed (out of release, §0):** `schema.sql` declares four indexes no
+code creates — `idx_reminder_settings_baby_item`, `idx_reminder_dismissals_baby_item`,
+`idx_custom_reminders_baby_id`, `idx_custom_reminders_label`. Neither `onCreate`
+nor any `onUpgrade` step makes them (zero hits for the names in `lib/`), so they
+exist only in the reference file. B26's replay guard now executes the file, so it
+is *syntax* that is guarded here; the index parity between file and code is a
+doc-drift ticket of its own (the v11 index gap in `schema_parity_test.dart` was
+the same class, and it was fixed in code).

@@ -32,8 +32,11 @@ void main() {
       await tmp.delete(recursive: true);
     });
 
-    /// Upgrade the fixture from version 10 to version 12, then revert it to a genuine version 11.
-    /// The `unit` column has been removed, version 11. The `''` sentinel has been re-injected.
+    /// Upgrade the fixture from version 10 to the current schema, then revert it
+    /// to a genuine version 11: the `unit` column and the eight v14 columns are
+    /// dropped, the vitamin D seed rows are deleted, and the `''` sentinel is
+    /// re-injected. A file that only pretends to be v11 makes the next upgrade
+    /// fail on a duplicate column instead of doing the migration's work.
     Future<void> rollBackToV11({bool addSecondBaby = false}) async {
       final db = await createAppDatabase(directoryPath: tmp.path);
       // The second profile is inserted **before** the backward movement: the base.
@@ -44,6 +47,27 @@ void main() {
             "VALUES ('baby-BBB', 'Lucas', 1700000000000, 0)");
       }
       await db.customStatement('ALTER TABLE tracking_events DROP COLUMN unit');
+      // The same reason this helper already drops `unit`: a migration is not
+      // re-runnable (`ALTER TABLE … ADD COLUMN` has no IF NOT EXISTS), so a
+      // file that claims to be v11 must not still carry the columns v14 adds —
+      // otherwise the next open fails on "duplicate column name: time".
+      for (final column in const [
+        'time',
+        'label',
+        'frequency',
+        'interval_days',
+        'frequency_date',
+        'end_date',
+        'end_age_months',
+        'removed',
+      ]) {
+        await db.customStatement(
+            'ALTER TABLE reminder_settings DROP COLUMN "$column"');
+      }
+      // And no vitamin D seed row: it comes from a migration this file now
+      // pretends never ran, so the v14 step must find its real job here too.
+      await db.customStatement(
+          "DELETE FROM reminder_settings WHERE item_id = 'vitamine_d'");
       await db.customStatement('PRAGMA user_version = 11');
       // Version 12 has already reassigned the "sentinel" role to the single child: we...
       // It's being adjusted to ensure that the V12 engine has enough work to do.
@@ -62,6 +86,12 @@ void main() {
           .getSingle();
       expect(unitGone.read<int>('n'), 0,
           reason: 'le fichier testé doit être un v11, pas un v12 travesti');
+      final settingsColumns = await db
+          .customSelect("SELECT COUNT(*) AS n FROM pragma_table_info("
+              "'reminder_settings')")
+          .getSingle();
+      expect(settingsColumns.read<int>('n'), 3,
+          reason: 'same class of lie: a v11 file has no v14 column in it');
       await db.close();
     }
 
@@ -90,7 +120,7 @@ void main() {
       }
 
       final version = await db.customSelect('PRAGMA user_version').get();
-      expect(version.first.read<int>('user_version'), 13);
+      expect(version.first.read<int>('user_version'), 14);
 
       final babies = await db.select(db.babyProfiles).get();
       expect(babies.length, 1);
@@ -111,8 +141,17 @@ void main() {
         'reminder_dismissals',
         'reminder_completions',
       ]) {
+        // v14 (D-R1) deliberately leaves ONE sentinel row behind: the vitamin D
+        // seed of the profileless scope, which is a pre-existing scope in its
+        // own right and keeps the reminder. This test is about the rows the
+        // parent already had, so the seed row is excluded by name rather than
+        // pretended away.
+        final seed = table == 'reminder_settings'
+            ? " AND NOT (item_id = 'vitamine_d' AND baby_id = '')"
+            : '';
         final orphans = await db
-            .customSelect("SELECT COUNT(*) AS n FROM $table WHERE baby_id = ''")
+            .customSelect(
+                "SELECT COUNT(*) AS n FROM $table WHERE baby_id = ''$seed")
             .getSingle();
         expect(orphans.read<int>('n'), 0,
             reason:
@@ -156,9 +195,29 @@ void main() {
       expect(customs.map((r) => r.read<String>('baby_id')).toList(), ['', ''],
           reason:
               'deux bébés : la ré-attribution est interdite, la sentinelle reste');
-      final settings =
-          await db.customSelect("SELECT baby_id FROM reminder_settings").get();
-      expect(settings.map((r) => r.read<String>('baby_id')).toSet(), {''});
+      final settings = await db
+          .customSelect('SELECT baby_id, item_id FROM reminder_settings')
+          .get();
+      // The rows the parent had stay sentinel — nothing may be guessed. v14
+      // adds vitamin D rows that are *not* inherited: the seed writes one per
+      // pre-existing scope, profiles included (D-R1), which is a new choice,
+      // not a re-attribution.
+      expect(
+        settings
+            .where((r) => r.read<String>('item_id') != 'vitamine_d')
+            .map((r) => r.read<String>('baby_id'))
+            .toSet(),
+        {''},
+        reason: 'deux bébés : les lignes héritées ne sont ré-attribuées à personne',
+      );
+      expect(
+        settings
+            .where((r) => r.read<String>('item_id') == 'vitamine_d')
+            .map((r) => r.read<String>('baby_id'))
+            .toSet(),
+        {'', 'baby-AAA', 'baby-BBB'},
+        reason: 'v14 seeds every pre-existing scope, including both profiles',
+      );
       final dismissals = await db
           .customSelect("SELECT baby_id FROM reminder_dismissals")
           .get();

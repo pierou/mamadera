@@ -1,7 +1,11 @@
 -- Mamadera Database Schema
--- Version: 13
+-- Version: 14
 -- Generated reference from lib/data/local/app_db.dart — do not edit directly.
 -- Source of truth is app_db.dart (Drift table definitions).
+--
+-- This file must stay **replayable**: `test/data/local/schema_sql_replay_test.dart`
+-- executes it into an empty database and fails on any syntax error (B26 — the v13
+-- file carried a trailing comma in `measurements` and could not be replayed at all).
 --
 -- Changelog:
 --   v5: Added `subtype` column for typed event subtype persistence
@@ -22,6 +26,13 @@
 --        where ownership is unambiguous
 --   v13: Added `app_settings` (app-level key/value settings for the
 --        notification preferences — item 12)
+--   v14: Extended `reminder_settings` with the per-(baby, item) override columns
+--        — `time` (per-reminder hour, B30), `label` / `frequency` /
+--        `interval_days` / `frequency_date` (preset overrides and the one-shot,
+--        B33), `end_date` / `end_age_months` ("program an end", D-R5) and
+--        `removed` (the third state: hidden and restorable, D-R2) — and seeded an
+--        explicit `enabled = 1` vitamin D row for every pre-existing scope that
+--        had none, so B6's off-by-default applies only to new babies
 
 -- ── Baby Profiles ────────────────────────────────────────────────
 
@@ -68,6 +79,14 @@ CREATE TABLE reminder_settings (
     baby_id      TEXT    NOT NULL DEFAULT '',      -- '' = shared by all babies (sentinel), never NULL
     item_id      TEXT    NOT NULL,                -- matches ReminderItem.id — a custom reminder uses 'custom_<id>'
     enabled      BOOLEAN NOT NULL,                -- whether this reminder is enabled for this baby
+    time         TEXT,                            -- v14: per-reminder hour 'HH:mm' — NULL = inherit the global notification_time_of_day (B30)
+    label        TEXT,                            -- v14: preset label override — NULL = the preset's own localized label (B33)
+    frequency    TEXT,                            -- v14: frequency override code — NULL = the preset's own frequency; 'one_time' pairs with frequency_date
+    interval_days INTEGER,                        -- v14: the every_n_days value, paired with frequency
+    frequency_date TEXT,                          -- v14: 'yyyy-MM-dd' — the one-shot's OCCURRENCE date, not an end (only when frequency = 'one_time')
+    end_date     TEXT,                            -- v14: 'yyyy-MM-dd' — 'until a date', inclusive last day the series may fire
+    end_age_months INTEGER,                       -- v14: 'until an age', canonical whole months 0-180, resolved at read time against the birth date
+    removed      INTEGER NOT NULL DEFAULT 0,      -- v14: 1 = the parent removed this preset: hidden, never due, restorable (distinct from enabled = 0)
     PRIMARY KEY (baby_id, item_id)
 );
 
@@ -92,7 +111,7 @@ CREATE TABLE measurements (
     value       TEXT                              NOT NULL,  -- AES-GCM ciphertext (iv:ciphertext base64), not a number
     unit        TEXT                              NOT NULL,  -- g | cm | degC
     recorded_at TIMESTAMP                         NOT NULL,
-    notes       TEXT,                               -- encrypted, same pipeline as tracking events
+    notes       TEXT                                -- encrypted, same pipeline as tracking events
 );
 
 CREATE INDEX idx_measurements_baby_kind_recorded ON measurements(baby_id, kind, recorded_at DESC);

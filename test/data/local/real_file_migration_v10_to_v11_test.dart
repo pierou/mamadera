@@ -86,11 +86,26 @@ void main() {
             'SELECT baby_id, item_id, enabled FROM reminder_settings ORDER BY item_id',
           )
           .get();
-      expect(settings.length, 2);
+      // Two rows inherited from the fixture plus the two vitamin D rows v14
+      // seeds (D-R1): the sentinel scope and the single profile are both
+      // pre-existing scopes, and the seed runs *after* the v12 reassignment —
+      // so the empty sentinel legitimately comes back for that one item.
+      expect(settings.length, 4);
       expect(
-        settings.map((r) => r.read<String>('baby_id')).toSet(),
+        settings
+            .where((r) => r.read<String>('item_id') != 'vitamine_d')
+            .map((r) => r.read<String>('baby_id'))
+            .toSet(),
         {babyId},
-        reason: 'les réglages reprennent le profil unique, pas la sentinelle',
+        reason: 'les réglages hérités reprennent le profil unique, pas la sentinelle',
+      );
+      expect(
+        settings
+            .where((r) => r.read<String>('item_id') == 'vitamine_d')
+            .map((r) => r.read<String>('baby_id'))
+            .toSet(),
+        {'', babyId},
+        reason: 'v14 seeds an explicit vitamin D row for every pre-existing scope',
       );
 
       final dismissals = await db
@@ -102,7 +117,7 @@ void main() {
       expect(dismissals.first.read<String>('baby_id'), babyId);
 
       final userVersion = await db.customSelect('PRAGMA user_version').get();
-      expect(userVersion.first.read<int>('user_version'), 13);
+      expect(userVersion.first.read<int>('user_version'), 14);
 
       // An index that is missing after a migration is invisible to the user and can be costly.
       // Perform a full table scan on every recall query, every time.
@@ -129,7 +144,7 @@ void main() {
       expect(events.length, 4,
           reason: 'ouvrir deux fois ne doit ni dupliquer ni perdre de lignes');
       final version = await second.customSelect('PRAGMA user_version').get();
-      expect(version.first.read<int>('user_version'), 13);
+      expect(version.first.read<int>('user_version'), 14);
       await second.close();
     });
   });

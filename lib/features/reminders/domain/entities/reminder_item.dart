@@ -33,6 +33,21 @@ abstract class ReminderItem with _$ReminderItem {
     /// item itself.
     String? babyId,
 
+    /// Whether the reminder is on when the parent has **never** set its state,
+    /// i.e. when no `reminder_settings` row exists for `(baby, id)`.
+    ///
+    /// Item identity, not per-scope data — which is why it lives here in code
+    /// (`static const` values) and never in a column. `true` everywhere except
+    /// vitamin D (BACKLOG B6: WHO 2022 Rec 36 treats vitamin D supplementation
+    /// as research-only, so a new baby starts with the reminder **off but
+    /// visible**; existing installs keep it through the v14 seed, D-R1).
+    ///
+    /// Every read of `reminder_settings` must fall back to this field. There
+    /// are four such reads (providers, the two settings switches, the
+    /// scheduler's enabled filter): honour it on three of four and the OS
+    /// notification still fires for a reminder the app displays as off.
+    @Default(true) bool enabledByDefault,
+
     /// What settles this reminder:
     /// - [completionFromEvents]: a [trackingType] event with [subtypeValue]
     ///   (its due date applies to the completion);
@@ -47,6 +62,8 @@ abstract class ReminderItem with _$ReminderItem {
 /// Presets v1.
 extension ReminderItemPresets on ReminderItem {
   /// Vitamin D — daily, settled by a `vitamine_d` health event.
+  ///
+  /// The only preset that is off by default ([enabledByDefault], BACKLOG B6).
   static const vitaminD = ReminderItem(
     id: 'vitamine_d',
     labelKey: 'reminderVitaminD',
@@ -55,6 +72,7 @@ extension ReminderItemPresets on ReminderItem {
     subtypeValue: 'vitamine_d',
     babyId: null,
     completionSource: completionFromEvents,
+    enabledByDefault: false,
   );
 
   /// Vitamin K — without a birth date on hand, the static 30-day cycle.

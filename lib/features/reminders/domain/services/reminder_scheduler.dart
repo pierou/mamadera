@@ -118,7 +118,12 @@ class ReminderScheduler {
       final items = await _itemsForScope(scope);
       final enabled = await _repository.getEnabledByItemId(babyId: scope?.id);
       for (final item in items) {
-        if (enabled[item.id] == false) continue;
+        // B6 (D-R2): "no row" is not "on" — it is the item's own default. A
+        // new baby has no `vitamine_d` row, so it must produce no OS entry;
+        // honouring the default in the providers only would show the reminder
+        // as off while its notification still fired. (M4 folds this line into
+        // the shared effective-item function.)
+        if (!(enabled[item.id] ?? item.enabledByDefault)) continue;
         final lastCompleted = await _lastCompleted(item, scope);
         final lastDismissal = await _repository.getLastDismissal(
           item.id,

@@ -70,11 +70,22 @@ void main() {
   });
 
   group('enabledRemindersProvider', () {
-    test('keeps every preset when the parent never opted out', () async {
+    test('a baby that never touched a switch gets every preset but vitamin D',
+        () async {
+      // B6 (owner decision A, PLAN-v1.4.0 D-R1/D-R2): "no row" resolves to the
+      // item's own default, and vitamin D's default is now off — visible in the
+      // settings list with its switch off, absent from the due list and from the
+      // OS schedule. An explicit row brings it back (next-but-one test below).
       final items = await container.read(enabledRemindersProvider.future);
 
+      expect(
+        items.map((item) => item.id),
+        ReminderItemPresets.buildForBaby(_baby)
+            .where((item) => item.enabledByDefault)
+            .map((item) => item.id),
+      );
       expect(items.map((item) => item.id),
-          ReminderItemPresets.buildForBaby(_baby).map((item) => item.id));
+          isNot(contains(ReminderItemPresets.vitaminD.id)));
     });
 
     test('drops the reminders that were switched off, keeps the others',
@@ -105,7 +116,13 @@ void main() {
 
       final items = await container.read(enabledRemindersProvider.future);
 
-      expect(items, hasLength(4));
+      // The baseline is what no-row yields (vitamin D off since B6), so the
+      // comparison is against that list, not against a hardcoded 4.
+      expect(items.map((item) => item.id), {
+        ReminderItemPresets.vitaminK.id,
+        ReminderItemPresets.eyeCleaning.id,
+        ReminderItemPresets.faceCleaning.id,
+      });
     });
 
     test('disabling every reminder leaves nothing to ring', () async {
@@ -167,7 +184,7 @@ void main() {
       expect(after[TrackingType.sante]?.map((status) => status.item.id),
           isNot(contains(ReminderItemPresets.eyeCleaning.id)));
       expect(after[TrackingType.sante]?.map((status) => status.item.id),
-          contains(ReminderItemPresets.vitaminD.id));
+          contains(ReminderItemPresets.vitaminK.id));
     });
 
     test('a disabled reminder is no longer queried at all', () async {
@@ -179,7 +196,7 @@ void main() {
       expect(mockReminders.lookedUpItemIds,
           isNot(contains(ReminderItemPresets.vitaminK.id)));
       expect(mockReminders.lookedUpItemIds,
-          contains(ReminderItemPresets.vitaminD.id));
+          contains(ReminderItemPresets.eyeCleaning.id));
     });
 
     test('switching everything off clears the home screen', () async {
@@ -249,8 +266,11 @@ void main() {
 
     test('they join the presets instead of replacing them', () async {
       storeCream();
-      final presetIds =
-          ReminderItemPresets.buildForBaby(_baby).map((i) => i.id);
+      // The default-on presets: vitamin D is off by default since B6, so it is
+      // not in the enabled list — see 'a baby that never touched a switch…'.
+      final presetIds = ReminderItemPresets.buildForBaby(_baby)
+          .where((i) => i.enabledByDefault)
+          .map((i) => i.id);
 
       final items = await container.read(enabledRemindersProvider.future);
 
@@ -266,7 +286,7 @@ void main() {
       final items = await container.read(enabledRemindersProvider.future);
 
       expect(items.map((i) => i.id), isNot(contains('custom_1')));
-      expect(items.map((i) => i.id), contains(ReminderItemPresets.vitaminD.id));
+      expect(items.map((i) => i.id), contains(ReminderItemPresets.vitaminK.id));
     });
 
     test('a custom reminder is not queried once switched off', () async {

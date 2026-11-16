@@ -40,9 +40,10 @@ abstract class RemindersRepository {
 
   /// Returns the enabled/disabled status by item ID.
   ///
-  /// The absence of a key indicates "default enabled." Read-only access.
-  /// scoped to the carrier: the `''` (unspecified state) setting does not apply to any.
-  /// Real baby – a newborn baby, therefore, has imperfections.
+  /// The absence of a key indicates "never touched", which the callers resolve
+  /// to the item's `enabledByDefault` (B6) — not a blanket "enabled". Read-only
+  /// access. scoped to the carrier: the `''` (unspecified state) setting does
+  /// not apply to any. Real baby – a newborn baby, therefore, has imperfections.
   Future<Map<String, bool>> getEnabledByItemId({String? babyId});
 
   /// Updates or creates the "enabled/disabled" flag for [itemId] (column in the...).

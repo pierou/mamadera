@@ -7,10 +7,12 @@ import 'reminder_sync_notifier.dart';
 
 /// Status (enabled/disabled) of the reminders, as a map `item_id → enabled`.
 ///
-/// A missing key means "never touched", which is **enabled**: disabling is an
-/// opt-out, not a subscription. A parent who never opens this screen still
-/// sees Vitamin D, Vitamin K, eye and face care — the switches only hide what
-/// is already there.
+/// Only rows that exist are in the map. A missing key means "never touched",
+/// which resolves to the item's own `ReminderItem.enabledByDefault` (B6): eye
+/// and face care and vitamin K are on from the first launch, vitamin D is off
+/// for a baby created on 1.4.0 or later and on for one carried over from
+/// 1.3.x (the v14 seed, PLAN-v1.4.0 D-R1). Off-by-default is still **visible**
+/// in the list — the switch shows it, which is the point of the decision.
 final reminderSettingsProvider =
     AsyncNotifierProvider<ReminderSettingsNotifier, Map<String, bool>>(
   ReminderSettingsNotifier.new,
