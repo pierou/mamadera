@@ -1,6 +1,5 @@
 import '../entities/reminder_frequency.dart';
 import '../entities/reminder_item.dart';
-import 'reminder_end.dart' show reminderEndFor;
 
 /// Wall-clock instant (device-local) at which a notification for [item] should
 /// fire, assuming no state change before then. Contract:
@@ -34,20 +33,16 @@ DateTime? nextDueAt(
   required int preferredMinute,
   DateTime? lastCompleted,
   DateTime? lastDismissal,
-  String? endDate,
-  int? endAgeMonths,
-  DateTime? birthDate,
 }) {
   // B33/D-R5: nothing left to schedule. Three callers land here — a completed
   // one-shot, a series whose end has passed, and (via the scheduler) a removed
   // row — and all three mean the same thing to the caller: drop the item from
   // the plan, which makes the existing `_PlanEntry` diff cancel the OS
   // notification. One mechanism, not three (D-R7).
-  final endsAt = reminderEndFor(
-    endDate: endDate,
-    endAgeMonths: endAgeMonths,
-    birthDate: birthDate,
-  );
+  // The end arrives already resolved on the item, by `effectiveItemsForScope`
+  // (D-R2): one place reads the two columns and the scope's birthdate, so the
+  // list, Home and the OS schedule cannot disagree about when a series stops.
+  final endsAt = item.endsAt;
   if (isPastSeriesEnd(now, endsAt)) return null;
   if (lastCompleted != null && item.frequency is OneTime) {
     // D-R7: a settled one-shot never recurs — not "later", **never**. Without

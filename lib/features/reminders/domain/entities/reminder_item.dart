@@ -49,6 +49,24 @@ abstract class ReminderItem with _$ReminderItem {
     /// notification still fires for a reminder the app displays as off.
     @Default(true) bool enabledByDefault,
 
+    /// The parent's own wording for this reminder, from
+    /// `reminder_settings.label` (B33/D-R6). `null` = the preset's localized name.
+    ///
+    /// Derived data, never item identity: the preset's `labelKey` stays what it
+    /// is, because the key is what localizes the *care* elsewhere. Every surface
+    /// that names a reminder must resolve through the one override helper — a site
+    /// that reads `labelKey` alone shows a name the parent renamed, which is the
+    /// B31 defect class wearing a friendlier face.
+    String? labelOverride,
+
+    /// The last day this reminder may still fire (D-R5). `null` = no end.
+    ///
+    /// **Resolved at read time**, never stored as a date: `end_date` is stored as
+    /// a date and `end_age_months` as months, and the age is resolved against the
+    /// scope's birthdate by `effectiveItemsForScope`. That is what lets a
+    /// corrected birthdate move the end with nothing to invalidate.
+    DateTime? endsAt,
+
     /// What settles this reminder:
     /// - [completionFromEvents]: a [trackingType] event with [subtypeValue]
     ///   (its due date applies to the completion);

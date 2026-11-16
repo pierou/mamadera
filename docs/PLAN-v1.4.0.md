@@ -838,3 +838,78 @@ one-shot's door"), and the `frequency_date` column is already there for it.
 unchanged; M1's `schema_sql_replay_test` caught a real bug in this milestone's own
 edit — a comma added *after* a `--` comment in `schema.sql`, which SQLite reads as
 part of the comment. That is the guard earning its place.
+
+### M4 — B33 Part 3: preset overrides, removal, UI parity (done on `release/v1.4.0`)
+
+**What landed.** `effectiveItemsForScope` (`domain/services/effective_reminders.dart`) is D-R2's
+one point: it drops removed items, applies the label/frequency overrides and resolves the series
+end, and it is called by exactly the three consumers — `ReminderScheduler._buildPlan`,
+`enabledRemindersProvider`, `ReminderSettingsScreen`. Four writers own one column set each
+(`RemindersRepositoryImpl.setItemLabel` / `setItemFrequency` / `setItemEnd` / `setItemRemoved`,
+all through one `_upsertOwnColumns` helper), which is M2's writer discipline extended rather than
+forked. `ReminderEndPicker` is the D-R5 UI (none / on a date / at an age, resolved date shown,
+age disabled-with-hint without a profile, past end warns and accepts); it is used by
+`PresetReminderEditSheet` (no care-subtype field, D-R6) **and** by `CustomReminderFormSheet`.
+`_RemovedSection` restores with one tap (D-R4). Export v5 writes the whole settings row and the
+importer parses it, refusal included: `endDate` + `endAgeMonths` together, an end on a `one_time`,
+`one_time` without `frequencyDate`, a `frequencyDate` on another code, `endAgeMonths` outside
+0–180, a non-boolean `removed`.
+
+**Deviation, deliberate — the preset row's menu is in `secondary`, not `trailing`.** The plan's
+reference (`custom_reminder_tile.dart`) puts switch + menu in a `trailing` row. The preset rows are
+`SwitchListTile`s, whose `trailing` *is* the switch; moving both into `trailing` would have
+replaced `SwitchListTile` with a hand-rolled `ListTile` + `Switch`, and every test and screen
+helper that finds a reminder's switch by its label (`_switchFor`/`_isOn` in
+`reminder_settings_screen_test.dart`) reads the `SwitchListTile` semantics. `secondary` keeps one
+widget, one accessibility element, and the switch label association. Cost paid: the title column
+narrows by ~40px, the hour subtitle wraps more, and the "System notifications" section fell below
+the test viewport — a lazy `ListView` does not build it, so two `findsNWidgets(5)` assertions
+became `findsAtLeastNWidgets(4)` (they assert the four preset switches exist, which is what they
+were for) and the D8 de-opt test now uses the group's existing `revealOptIn` before reading its
+switch. Nothing was scrolled away in the app; the assertions were betting on a scroll extent.
+
+**Deviation — the custom form sheet returns `CustomReminderDraft`, not `CustomReminder`.** The end
+belongs to the settings row (`custom_<id>`), not to the reminder, and the sheet's contract is that
+it writes nothing. So it returns the reminder plus the chosen end and the screen performs the two
+writes, `ReminderSettingsNotifier.setEndById` being the second one: after `create`, the new item
+is not in `customReminderItemsProvider` yet, so the end is addressed by id with
+`enabledIfNew: true` — creating a custom reminder *was* the consent (B6), whereas every preset
+write passes `item.enabledByDefault`.
+
+**What the guards caught, in order.**
+1. **The analyzer, on `ReminderItemSetting.copyWith`:** the row mirrors the *columns* (`endDate`
+   is `'yyyy-MM-dd'` text), while `ReminderItem.endsAt` is a `DateTime`. The first draft of
+   `setEndById` passed a `DateTime` where the row wanted text. The fix keeps one spelling on disk
+   (`formatCalendarDate` on the way in, `reminderEndFor` on the way out) instead of letting two
+   representations of the same day coexist.
+2. **`scripts/check_architecture.py`'s 800-line ratchet:** B33's validation pushed
+   `import_repository_impl.dart` to 804. Split as
+   `import_repository_reminder_parsing.dart` (`part` of the same library) rather than raising the
+   baseline — the pairing rules read better on their own page anyway. Baseline unchanged at 0.
+3. **My own test helper, via `const` canonicalisation:** `const Object _profileDefault = Object();
+   const Object _noProfile = Object();` are the **same instance** — Dart canonicalises identical
+   const constructor calls — so the "age end without a profile" case silently ran *with* one and
+   asserted a resolved date as `null`. Two private classes fixed it. Worth remembering as a
+   sentinel idiom in this tree: distinct marker types, never two `const Object()`s.
+4. **`make check-complexity`:** unchanged at the documented baseline of 4.
+
+**Tests.** `effective_reminders_test.dart` (13 cases: each override kind, the malformed-date
+lax read, the both-ends-corrupt-row tie-break, and the one thing the function must *not* do —
+apply `enabled`, since Settings must show a switched-off reminder);
+`reminders_settings_writers_test.dart` (9 cases on a real drift DB: each writer writes only what
+it owns, one-shot ⇒ stored end cleared, age canonicalised with no date column written, both forms
+refused at the write, removal leaves `enabled` alone, and D-R9's per-scope isolation);
+`reminder_scheduler_test.dart` gains "a removed preset is cancelled from the OS schedule (D-R2,
+D-R4)" — cancel, other presets intact, restore re-schedules; `reminder_settings_test.dart` gains
+the B31 regression asserted concretely (removed absent from Home, nickname/rhythm/resolved end
+visible on the items) rather than by calling the function under test;
+`import_repository_impl_test.dart` gains the format-5 whole-row restore, the before-format-5
+"loses nothing it never had" case, and three refusals.
+
+**Exit criteria still open after this commit:** none of M4's list, with one scope note — the plan's
+"single-source invariant (provider and scheduler return the same effective list)" is proved as two
+tests, not one: Home's side in `reminder_settings_test.dart`, the scheduler's side in
+`reminder_scheduler_test.dart`. A single harness driving both from one stored row would need the
+drift-backed repository *and* the fake notification service in the same container; the two halves
+each go through `effectiveItemsForScope` in production code, which is what the invariant actually
+claims, so the shared-function test was not worth the harness.

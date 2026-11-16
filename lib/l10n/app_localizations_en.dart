@@ -314,6 +314,69 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderFrequencyOneTimeNow => 'Once, right away';
 
   @override
+  String get reminderSettingsRemovedSectionTitle => 'Removed';
+
+  @override
+  String get reminderSettingsRemovedDescription =>
+      'A removed reminder leaves Home, this list and the notifications. One tap brings it back with everything you had set.';
+
+  @override
+  String get reminderActionRestore => 'Restore';
+
+  @override
+  String get reminderActionRemove => 'Remove';
+
+  @override
+  String get reminderPresetEditTitle => 'Edit reminder';
+
+  @override
+  String get reminderEndSectionTitle => 'End';
+
+  @override
+  String get reminderEndNone => 'No end';
+
+  @override
+  String get reminderEndOnDate => 'On a date';
+
+  @override
+  String get reminderEndAtAge => 'At an age';
+
+  @override
+  String reminderEndAgeValue(Object months) {
+    return '$months months';
+  }
+
+  @override
+  String reminderEndUntilDate(Object date) {
+    return 'Until $date';
+  }
+
+  @override
+  String reminderEndAgeResolved(Object months, Object date) {
+    return 'Until $months months — $date';
+  }
+
+  @override
+  String get reminderEndNeedsBirthdate =>
+      'A birth date is needed to end a reminder at an age.';
+
+  @override
+  String get reminderEndAlreadyPast =>
+      'That day has already passed: the reminder stops right away.';
+
+  @override
+  String get reminderFrequencyOnceChoice => 'Once';
+
+  @override
+  String get reminderFrequencyReset => 'Back to the default rhythm';
+
+  @override
+  String get reminderLabelReset => 'Back to the default name';
+
+  @override
+  String get reminderOneTimeNeedsDate => 'Choose the day it happens on.';
+
+  @override
   String get reminderCustomSectionTitle => 'Custom reminders';
 
   @override

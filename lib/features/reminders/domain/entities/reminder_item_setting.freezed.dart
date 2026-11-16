@@ -47,6 +47,32 @@ mixin _$ReminderItemSetting {
   /// (`reminderEndFor`) and there is no stored value to go stale.
   int? get endAgeMonths;
 
+  /// Preset label override, the parent's wording (B33/D-R6). `null` = the
+  /// preset's localized name. Never written for a custom reminder — its label
+  /// lives in `custom_reminders.label`, and this row must not become a second
+  /// source of truth for the same name.
+  String? get label;
+
+  /// Frequency override, a `db_constants` code (B33). `null` = the preset's own
+  /// frequency, which is also how "back to the default rhythm" is written.
+  ///
+  /// [frequencyDate] is meaningful **only** when this is `one_time` — the
+  /// resolution order D-R8 spells out, and the one that keeps Vitamin K at one
+  /// month instead of at birth.
+  String? get frequency;
+
+  /// `interval_days` for a `frequency` of `every_n_days`.
+  int? get intervalDays;
+
+  /// `frequency_date` for a `frequency` of `one_time`: the occurrence day,
+  /// `'yyyy-MM-dd'`.
+  String? get frequencyDate;
+
+  /// The third state (D-R2): hidden from the lists and from the schedule, but
+  /// **not deleted** — a removed preset stays restorable (D-R4), and its
+  /// [enabled] value is kept as stored, moot until a restore.
+  bool get removed;
+
   /// Create a copy of ReminderItemSetting
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -65,16 +91,24 @@ mixin _$ReminderItemSetting {
                 other.timeOfDay == timeOfDay) &&
             (identical(other.endDate, endDate) || other.endDate == endDate) &&
             (identical(other.endAgeMonths, endAgeMonths) ||
-                other.endAgeMonths == endAgeMonths));
+                other.endAgeMonths == endAgeMonths) &&
+            (identical(other.label, label) || other.label == label) &&
+            (identical(other.frequency, frequency) ||
+                other.frequency == frequency) &&
+            (identical(other.intervalDays, intervalDays) ||
+                other.intervalDays == intervalDays) &&
+            (identical(other.frequencyDate, frequencyDate) ||
+                other.frequencyDate == frequencyDate) &&
+            (identical(other.removed, removed) || other.removed == removed));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, enabled, timeOfDay, endDate, endAgeMonths);
+  int get hashCode => Object.hash(runtimeType, enabled, timeOfDay, endDate,
+      endAgeMonths, label, frequency, intervalDays, frequencyDate, removed);
 
   @override
   String toString() {
-    return 'ReminderItemSetting(enabled: $enabled, timeOfDay: $timeOfDay, endDate: $endDate, endAgeMonths: $endAgeMonths)';
+    return 'ReminderItemSetting(enabled: $enabled, timeOfDay: $timeOfDay, endDate: $endDate, endAgeMonths: $endAgeMonths, label: $label, frequency: $frequency, intervalDays: $intervalDays, frequencyDate: $frequencyDate, removed: $removed)';
   }
 }
 
@@ -85,7 +119,15 @@ abstract mixin class $ReminderItemSettingCopyWith<$Res> {
       _$ReminderItemSettingCopyWithImpl;
   @useResult
   $Res call(
-      {bool enabled, String? timeOfDay, String? endDate, int? endAgeMonths});
+      {bool enabled,
+      String? timeOfDay,
+      String? endDate,
+      int? endAgeMonths,
+      String? label,
+      String? frequency,
+      int? intervalDays,
+      String? frequencyDate,
+      bool removed});
 }
 
 /// @nodoc
@@ -105,6 +147,11 @@ class _$ReminderItemSettingCopyWithImpl<$Res>
     Object? timeOfDay = freezed,
     Object? endDate = freezed,
     Object? endAgeMonths = freezed,
+    Object? label = freezed,
+    Object? frequency = freezed,
+    Object? intervalDays = freezed,
+    Object? frequencyDate = freezed,
+    Object? removed = null,
   }) {
     return _then(_self.copyWith(
       enabled: null == enabled
@@ -123,6 +170,26 @@ class _$ReminderItemSettingCopyWithImpl<$Res>
           ? _self.endAgeMonths
           : endAgeMonths // ignore: cast_nullable_to_non_nullable
               as int?,
+      label: freezed == label
+          ? _self.label
+          : label // ignore: cast_nullable_to_non_nullable
+              as String?,
+      frequency: freezed == frequency
+          ? _self.frequency
+          : frequency // ignore: cast_nullable_to_non_nullable
+              as String?,
+      intervalDays: freezed == intervalDays
+          ? _self.intervalDays
+          : intervalDays // ignore: cast_nullable_to_non_nullable
+              as int?,
+      frequencyDate: freezed == frequencyDate
+          ? _self.frequencyDate
+          : frequencyDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      removed: null == removed
+          ? _self.removed
+          : removed // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -220,8 +287,16 @@ extension ReminderItemSettingPatterns on ReminderItemSetting {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(bool enabled, String? timeOfDay, String? endDate,
-            int? endAgeMonths)?
+    TResult Function(
+            bool enabled,
+            String? timeOfDay,
+            String? endDate,
+            int? endAgeMonths,
+            String? label,
+            String? frequency,
+            int? intervalDays,
+            String? frequencyDate,
+            bool removed)?
         $default, {
     required TResult orElse(),
   }) {
@@ -229,7 +304,15 @@ extension ReminderItemSettingPatterns on ReminderItemSetting {
     switch (_that) {
       case _ReminderItemSetting() when $default != null:
         return $default(
-            _that.enabled, _that.timeOfDay, _that.endDate, _that.endAgeMonths);
+            _that.enabled,
+            _that.timeOfDay,
+            _that.endDate,
+            _that.endAgeMonths,
+            _that.label,
+            _that.frequency,
+            _that.intervalDays,
+            _that.frequencyDate,
+            _that.removed);
       case _:
         return orElse();
     }
@@ -251,14 +334,30 @@ extension ReminderItemSettingPatterns on ReminderItemSetting {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(
-            bool enabled, String? timeOfDay, String? endDate, int? endAgeMonths)
+            bool enabled,
+            String? timeOfDay,
+            String? endDate,
+            int? endAgeMonths,
+            String? label,
+            String? frequency,
+            int? intervalDays,
+            String? frequencyDate,
+            bool removed)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ReminderItemSetting():
         return $default(
-            _that.enabled, _that.timeOfDay, _that.endDate, _that.endAgeMonths);
+            _that.enabled,
+            _that.timeOfDay,
+            _that.endDate,
+            _that.endAgeMonths,
+            _that.label,
+            _that.frequency,
+            _that.intervalDays,
+            _that.frequencyDate,
+            _that.removed);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -278,15 +377,31 @@ extension ReminderItemSettingPatterns on ReminderItemSetting {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(bool enabled, String? timeOfDay, String? endDate,
-            int? endAgeMonths)?
+    TResult? Function(
+            bool enabled,
+            String? timeOfDay,
+            String? endDate,
+            int? endAgeMonths,
+            String? label,
+            String? frequency,
+            int? intervalDays,
+            String? frequencyDate,
+            bool removed)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ReminderItemSetting() when $default != null:
         return $default(
-            _that.enabled, _that.timeOfDay, _that.endDate, _that.endAgeMonths);
+            _that.enabled,
+            _that.timeOfDay,
+            _that.endDate,
+            _that.endAgeMonths,
+            _that.label,
+            _that.frequency,
+            _that.intervalDays,
+            _that.frequencyDate,
+            _that.removed);
       case _:
         return null;
     }
@@ -297,7 +412,15 @@ extension ReminderItemSettingPatterns on ReminderItemSetting {
 
 class _ReminderItemSetting implements ReminderItemSetting {
   const _ReminderItemSetting(
-      {required this.enabled, this.timeOfDay, this.endDate, this.endAgeMonths});
+      {required this.enabled,
+      this.timeOfDay,
+      this.endDate,
+      this.endAgeMonths,
+      this.label,
+      this.frequency,
+      this.intervalDays,
+      this.frequencyDate,
+      this.removed = false});
 
   /// The switch. Once a row exists it means exactly what it says; absence is
   /// what `enabledByDefault` is for (B6).
@@ -336,6 +459,38 @@ class _ReminderItemSetting implements ReminderItemSetting {
   @override
   final int? endAgeMonths;
 
+  /// Preset label override, the parent's wording (B33/D-R6). `null` = the
+  /// preset's localized name. Never written for a custom reminder — its label
+  /// lives in `custom_reminders.label`, and this row must not become a second
+  /// source of truth for the same name.
+  @override
+  final String? label;
+
+  /// Frequency override, a `db_constants` code (B33). `null` = the preset's own
+  /// frequency, which is also how "back to the default rhythm" is written.
+  ///
+  /// [frequencyDate] is meaningful **only** when this is `one_time` — the
+  /// resolution order D-R8 spells out, and the one that keeps Vitamin K at one
+  /// month instead of at birth.
+  @override
+  final String? frequency;
+
+  /// `interval_days` for a `frequency` of `every_n_days`.
+  @override
+  final int? intervalDays;
+
+  /// `frequency_date` for a `frequency` of `one_time`: the occurrence day,
+  /// `'yyyy-MM-dd'`.
+  @override
+  final String? frequencyDate;
+
+  /// The third state (D-R2): hidden from the lists and from the schedule, but
+  /// **not deleted** — a removed preset stays restorable (D-R4), and its
+  /// [enabled] value is kept as stored, moot until a restore.
+  @override
+  @JsonKey()
+  final bool removed;
+
   /// Create a copy of ReminderItemSetting
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -355,16 +510,24 @@ class _ReminderItemSetting implements ReminderItemSetting {
                 other.timeOfDay == timeOfDay) &&
             (identical(other.endDate, endDate) || other.endDate == endDate) &&
             (identical(other.endAgeMonths, endAgeMonths) ||
-                other.endAgeMonths == endAgeMonths));
+                other.endAgeMonths == endAgeMonths) &&
+            (identical(other.label, label) || other.label == label) &&
+            (identical(other.frequency, frequency) ||
+                other.frequency == frequency) &&
+            (identical(other.intervalDays, intervalDays) ||
+                other.intervalDays == intervalDays) &&
+            (identical(other.frequencyDate, frequencyDate) ||
+                other.frequencyDate == frequencyDate) &&
+            (identical(other.removed, removed) || other.removed == removed));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, enabled, timeOfDay, endDate, endAgeMonths);
+  int get hashCode => Object.hash(runtimeType, enabled, timeOfDay, endDate,
+      endAgeMonths, label, frequency, intervalDays, frequencyDate, removed);
 
   @override
   String toString() {
-    return 'ReminderItemSetting(enabled: $enabled, timeOfDay: $timeOfDay, endDate: $endDate, endAgeMonths: $endAgeMonths)';
+    return 'ReminderItemSetting(enabled: $enabled, timeOfDay: $timeOfDay, endDate: $endDate, endAgeMonths: $endAgeMonths, label: $label, frequency: $frequency, intervalDays: $intervalDays, frequencyDate: $frequencyDate, removed: $removed)';
   }
 }
 
@@ -377,7 +540,15 @@ abstract mixin class _$ReminderItemSettingCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {bool enabled, String? timeOfDay, String? endDate, int? endAgeMonths});
+      {bool enabled,
+      String? timeOfDay,
+      String? endDate,
+      int? endAgeMonths,
+      String? label,
+      String? frequency,
+      int? intervalDays,
+      String? frequencyDate,
+      bool removed});
 }
 
 /// @nodoc
@@ -397,6 +568,11 @@ class __$ReminderItemSettingCopyWithImpl<$Res>
     Object? timeOfDay = freezed,
     Object? endDate = freezed,
     Object? endAgeMonths = freezed,
+    Object? label = freezed,
+    Object? frequency = freezed,
+    Object? intervalDays = freezed,
+    Object? frequencyDate = freezed,
+    Object? removed = null,
   }) {
     return _then(_ReminderItemSetting(
       enabled: null == enabled
@@ -415,6 +591,26 @@ class __$ReminderItemSettingCopyWithImpl<$Res>
           ? _self.endAgeMonths
           : endAgeMonths // ignore: cast_nullable_to_non_nullable
               as int?,
+      label: freezed == label
+          ? _self.label
+          : label // ignore: cast_nullable_to_non_nullable
+              as String?,
+      frequency: freezed == frequency
+          ? _self.frequency
+          : frequency // ignore: cast_nullable_to_non_nullable
+              as String?,
+      intervalDays: freezed == intervalDays
+          ? _self.intervalDays
+          : intervalDays // ignore: cast_nullable_to_non_nullable
+              as int?,
+      frequencyDate: freezed == frequencyDate
+          ? _self.frequencyDate
+          : frequencyDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      removed: null == removed
+          ? _self.removed
+          : removed // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }

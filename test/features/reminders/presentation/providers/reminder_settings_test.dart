@@ -92,6 +92,46 @@ void main() {
           isNot(contains(ReminderItemPresets.vitaminD.id)));
     });
 
+    test('Home shows the effective reminders, not the declared presets (B31)',
+        () async {
+      // B31 was not a wrong reminder, it was a reminder wrong **in one list**:
+      // Home projected `ReminderItemPresets.buildForBaby` while Settings projected
+      // the stored rows, so any state the parent wrote was invisible to the other
+      // surface. M4's answer is one function both consumers call; this test is the
+      // regression, written as concrete expectations rather than as a call to that
+      // function (asserting a function against itself proves nothing).
+      //
+      // The scheduler half — the same effective list reaching the OS plan — is in
+      // `reminder_scheduler_test.dart` ("a removed preset is cancelled from the OS
+      // schedule"), which drives the production scheduler against stored rows.
+      final vitaminK = ReminderItemPresets.vitaminK;
+      final eye = ReminderItemPresets.eyeCleaning;
+      final face = ReminderItemPresets.faceCleaning;
+      mockReminders.labelById[vitaminK.id] = 'la vitamine';
+      mockReminders.frequencyById[eye.id] =
+          const ReminderFrequency.customInterval(days: 3);
+      mockReminders.removedById.add(face.id);
+      mockReminders.endAgeMonthsById[vitaminK.id] = 4;
+
+      final items = await container.read(enabledRemindersProvider.future);
+      final byId = {for (final item in items) item.id: item};
+
+      expect(byId.containsKey(face.id), isFalse,
+          reason:
+              'a removed preset must leave Home; before M4 it was projected from '
+              'the declared presets and came straight back');
+      expect(byId[vitaminK.id]!.labelOverride, 'la vitamine');
+      expect(byId[eye.id]!.frequency,
+          const ReminderFrequency.customInterval(days: 3));
+      // Resolved here, at read time: born 15 January, four months ⇒ 15 May, and a
+      // corrected birthdate would move it with nothing stored to go stale (D-R5).
+      expect(byId[vitaminK.id]!.endsAt, DateTime(2026, 5, 15));
+      // A reminder nobody touched is still absent for the *other* reason (B6's
+      // off-by-default), and stays absent when another item's row is written:
+      // overrides are per (scope, item), never per section.
+      expect(byId.containsKey(ReminderItemPresets.vitaminD.id), isFalse);
+    });
+
     test('drops the reminders that were switched off, keeps the others',
         () async {
       mockReminders.enabledById[ReminderItemPresets.vitaminD.id] = false;

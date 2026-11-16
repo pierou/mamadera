@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
+import 'package:mamadera/features/reminders/domain/services/reminder_end.dart';
 import 'package:mamadera/features/reminders/domain/services/reminder_scheduling.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
@@ -12,13 +13,23 @@ const int _m = 0;
 /// The 24 h dismissal window, mirroring RemindersService.dismissalWindow.
 const Duration _window = Duration(hours: 24);
 
-ReminderItem _item(ReminderFrequency frequency, {String id = 'test'}) =>
+/// An item carrying [endsAt] directly: from B33 the end reaches `nextDueAt` on the
+/// item, resolved by `effectiveItemsForScope` — this file therefore tests the
+/// scheduling consequence of an end, and `reminder_end_test.dart` tests the
+/// resolution of the stored columns into one (`end_date` / `end_age_months` +
+/// birthdate).
+ReminderItem _item(
+  ReminderFrequency frequency, {
+  String id = 'test',
+  DateTime? endsAt,
+}) =>
     ReminderItem(
       id: id,
       labelKey: 'unused',
       frequency: frequency,
       trackingType: TrackingType.sante,
       subtypeValue: 'vitamine_d',
+      endsAt: endsAt,
     );
 
 /// The §3.4 test matrix: every row is a test, all instants fixed, no
@@ -505,13 +516,12 @@ void main() {
       final now = DateTime(2026, 7, 15, 6, 0);
       expect(
         nextDueAt(
-          _item(Daily()),
+          _item(Daily(), endsAt: DateTime(2026, 7, 15)),
           now: now,
           dismissalWindow: _window,
           preferredHour: _h,
           preferredMinute: _m,
           lastCompleted: DateTime(2026, 7, 14, 8, 0),
-          endDate: '2026-07-15',
         ),
         DateTime(2026, 7, 15, 8, 0),
       );
@@ -521,13 +531,12 @@ void main() {
       final now = DateTime(2026, 7, 15, 6, 0);
       expect(
         nextDueAt(
-          _item(Daily()),
+          _item(Daily(), endsAt: DateTime(2026, 7, 14)),
           now: now,
           dismissalWindow: _window,
           preferredHour: _h,
           preferredMinute: _m,
           lastCompleted: DateTime(2026, 7, 14, 8, 0),
-          endDate: '2026-07-14',
         ),
         isNull,
         reason: 'the series ended yesterday: no notification, ever again',
@@ -537,13 +546,12 @@ void main() {
     test('a monthly cycle that would next fall past the end returns null', () {
       expect(
         nextDueAt(
-          _item(Monthly(dayOfMonth: 20)),
+          _item(Monthly(dayOfMonth: 20), endsAt: DateTime(2026, 7, 10)),
           now: DateTime(2026, 6, 25, 9, 0),
           dismissalWindow: _window,
           preferredHour: _h,
           preferredMinute: _m,
           lastCompleted: DateTime(2026, 6, 25, 6, 0),
-          endDate: '2026-07-10',
         ),
         isNull,
         reason: 'its next occurrence (20 July) is after 10 July',
@@ -555,14 +563,15 @@ void main() {
       // schedule on the next sync because nothing about the end is stored as a
       // date (D-R5's read-time resolution).
       DateTime? dueFor(DateTime birthDate) => nextDueAt(
-            _item(Daily()),
+            // Resolved the way `effectiveItemsForScope` resolves it — the row
+            // stores "1 month", the date is computed here, from this birthdate.
+            _item(Daily(),
+                endsAt: reminderEndFor(endAgeMonths: 1, birthDate: birthDate)),
             now: DateTime(2026, 3, 1, 9, 0),
             dismissalWindow: _window,
             preferredHour: _h,
             preferredMinute: _m,
             lastCompleted: DateTime(2026, 2, 28, 8, 0),
-            endAgeMonths: 1,
-            birthDate: birthDate,
           );
 
       // Born 15 January ⇒ one month old on 15 February ⇒ already ended.
@@ -575,19 +584,21 @@ void main() {
 
     test('a malformed stored end reads as no end, not as an immediate stop',
         () {
+      // The seam where the lax read happens: `reminderEndFor` answers null for a
+      // value that is not a date, and an item resolved from it keeps its whole
+      // schedule. A hand-edited backup must not silently end a series.
       final now = DateTime(2026, 7, 15, 6, 0);
+      expect(reminderEndFor(endDate: '15/07/2026'), isNull);
       expect(
         nextDueAt(
-          _item(Daily()),
+          _item(Daily(), endsAt: reminderEndFor(endDate: '15/07/2026')),
           now: now,
           dismissalWindow: _window,
           preferredHour: _h,
           preferredMinute: _m,
           lastCompleted: DateTime(2026, 7, 14, 8, 0),
-          endDate: '15/07/2026',
         ),
         DateTime(2026, 7, 15, 8, 0),
-        reason: 'a hand-edited backup must not silently end a series',
       );
     });
 

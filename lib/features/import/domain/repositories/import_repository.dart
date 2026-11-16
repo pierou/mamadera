@@ -201,6 +201,13 @@ class ImportedReminderSetting {
     required this.itemId,
     required this.enabled,
     this.timeOfDay,
+    this.label,
+    this.frequency,
+    this.intervalDays,
+    this.frequencyDate,
+    this.endDate,
+    this.endAgeMonths,
+    this.removed = false,
   });
 
   /// `''` = shared by every baby (sentinel); format-1 files omit the field
@@ -221,6 +228,35 @@ class ImportedReminderSetting {
   /// restoring a schedule nobody asked for (write-strict, the split
   /// `notification_time.dart` documents).
   final String? timeOfDay;
+
+  // ── The rest of the row (B33, format 5) ────────────────────────────────
+  //
+  // Every key is optional: a file written before format 5 has none of them, and
+  // "absent" there is not a loss — no reminder had a nickname, an override, an end
+  // or a removal state to lose. A *present* value is validated, and a row that
+  // contradicts itself (an end on a one-shot, an occurrence date on a daily) is
+  // refused rather than resolved by a rule the file's author never chose.
+
+  /// Preset label override (D-R6), the parent's wording.
+  final String? label;
+
+  /// Frequency override, a stored code (B33).
+  final String? frequency;
+
+  /// `interval_days` for an `every_n_days` override.
+  final int? intervalDays;
+
+  /// `frequency_date` for a `one_time` override, `'yyyy-MM-dd'`.
+  final String? frequencyDate;
+
+  /// `end_date`, `'yyyy-MM-dd'` (D-R5 form 2).
+  final String? endDate;
+
+  /// `end_age_months`, whole months 0-180 (D-R5 form 3).
+  final int? endAgeMonths;
+
+  /// The removed state (D-R2/D-R4): hidden and unscheduled, still restorable.
+  final bool removed;
 }
 
 /// A `reminder_dismissals` row as read from a backup document.

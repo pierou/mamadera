@@ -209,6 +209,40 @@
     }
   },
   "reminderFrequencyOneTimeNow": "Una sola vez, lo antes posible",
+  "reminderSettingsRemovedSectionTitle": "Eliminados",
+  "reminderSettingsRemovedDescription": "Un recordatorio eliminado sale de la pantalla de inicio, de esta lista y de las notificaciones. Un toque lo devuelve con todos sus ajustes.",
+  "reminderActionRestore": "Restaurar",
+  "reminderActionRemove": "Eliminar",
+  "reminderPresetEditTitle": "Editar recordatorio",
+  "reminderEndSectionTitle": "Fin",
+  "reminderEndNone": "Sin fin",
+  "reminderEndOnDate": "En una fecha",
+  "reminderEndAtAge": "A una edad",
+  "reminderEndAgeValue": "{months} meses",
+  "@reminderEndAgeValue": {
+    "placeholders": {
+      "months": {}
+    }
+  },
+  "reminderEndUntilDate": "Hasta el {date}",
+  "@reminderEndUntilDate": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderEndAgeResolved": "Hasta {months} meses — {date}",
+  "@reminderEndAgeResolved": {
+    "placeholders": {
+      "months": {},
+      "date": {}
+    }
+  },
+  "reminderEndNeedsBirthdate": "Se necesita la fecha de nacimiento para finalizar un recordatorio a una edad.",
+  "reminderEndAlreadyPast": "Ese día ya pasó: el recordatorio se detiene de inmediato.",
+  "reminderFrequencyOnceChoice": "Una vez",
+  "reminderFrequencyReset": "Volver al ritmo predeterminado",
+  "reminderLabelReset": "Volver al nombre predeterminado",
+  "reminderOneTimeNeedsDate": "Elige el día en que debe ocurrir.",
   "reminderCustomSectionTitle": "Recordatorios personalizados",
   "reminderCustomSectionDescription": "Un recordatorio desaparece del inicio en cuanto registras el cuidado asociado.",
   "reminderCustomAdd": "Añadir recordatorio",

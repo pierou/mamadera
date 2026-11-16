@@ -50,5 +50,31 @@ abstract class ReminderItemSetting with _$ReminderItemSetting {
     /// then moves the end by itself, because the date is computed at read time
     /// (`reminderEndFor`) and there is no stored value to go stale.
     int? endAgeMonths,
+
+    /// Preset label override, the parent's wording (B33/D-R6). `null` = the
+    /// preset's localized name. Never written for a custom reminder — its label
+    /// lives in `custom_reminders.label`, and this row must not become a second
+    /// source of truth for the same name.
+    String? label,
+
+    /// Frequency override, a `db_constants` code (B33). `null` = the preset's own
+    /// frequency, which is also how "back to the default rhythm" is written.
+    ///
+    /// [frequencyDate] is meaningful **only** when this is `one_time` — the
+    /// resolution order D-R8 spells out, and the one that keeps Vitamin K at one
+    /// month instead of at birth.
+    String? frequency,
+
+    /// `interval_days` for a `frequency` of `every_n_days`.
+    int? intervalDays,
+
+    /// `frequency_date` for a `frequency` of `one_time`: the occurrence day,
+    /// `'yyyy-MM-dd'`.
+    String? frequencyDate,
+
+    /// The third state (D-R2): hidden from the lists and from the schedule, but
+    /// **not deleted** — a removed preset stays restorable (D-R4), and its
+    /// [enabled] value is kept as stored, moot until a restore.
+    @Default(false) bool removed,
   }) = _ReminderItemSetting;
 }

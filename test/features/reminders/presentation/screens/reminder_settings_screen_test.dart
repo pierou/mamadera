@@ -241,7 +241,11 @@ void main() {
       await pumpScreen(tester);
 
       // 4 presets + the "System notifications" opt-in (M6).
-      expect(find.byType(SwitchListTile), findsNWidgets(5));
+      // 4 presets; the "System notifications" opt-in (M6) sits below them and a
+      // ListView only builds what it may show, so an exact total here would be a
+      // bet on the test viewport — B33's row menu made the row narrower, and this
+      // assertion is about the switches existing, not about the scroll extent.
+      expect(find.byType(SwitchListTile), findsAtLeastNWidgets(4));
       for (final label in [
         'Vitamine K',
         'Nettoyage des yeux',
@@ -314,7 +318,11 @@ void main() {
       await pumpScreen(tester);
 
       // 4 presets + the "System notifications" opt-in (M6).
-      expect(find.byType(SwitchListTile), findsNWidgets(5));
+      // 4 presets; the "System notifications" opt-in (M6) sits below them and a
+      // ListView only builds what it may show, so an exact total here would be a
+      // bet on the test viewport — B33's row menu made the row narrower, and this
+      // assertion is about the switches existing, not about the scroll extent.
+      expect(find.byType(SwitchListTile), findsAtLeastNWidgets(4));
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
   });
@@ -892,6 +900,10 @@ void main() {
       // No tap: the first frame's sync did the work. Tapping here would be a
       // fresh opt-in and would ask the OS, which is not what this asserts.
       expect(fakeSettings.values[settingsKeyNotificationsOptIn], '0');
+      // The section is below the fold (a ListView builds what it may show), so
+      // bring it on stage before reading its switch — the same reason the custom
+      // rows above scroll before tapping.
+      await revealOptIn(tester);
       expect(_isOn(tester, optInLabel), isFalse);
       // Reflecting reality is not the same as re-asking: no prompt here.
       expect(fakeNotifications.ensurePermissionCalls, 0);

@@ -209,6 +209,40 @@
     }
   },
   "reminderFrequencyOneTimeNow": "Once, right away",
+  "reminderSettingsRemovedSectionTitle": "Removed",
+  "reminderSettingsRemovedDescription": "A removed reminder leaves Home, this list and the notifications. One tap brings it back with everything you had set.",
+  "reminderActionRestore": "Restore",
+  "reminderActionRemove": "Remove",
+  "reminderPresetEditTitle": "Edit reminder",
+  "reminderEndSectionTitle": "End",
+  "reminderEndNone": "No end",
+  "reminderEndOnDate": "On a date",
+  "reminderEndAtAge": "At an age",
+  "reminderEndAgeValue": "{months} months",
+  "@reminderEndAgeValue": {
+    "placeholders": {
+      "months": {}
+    }
+  },
+  "reminderEndUntilDate": "Until {date}",
+  "@reminderEndUntilDate": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderEndAgeResolved": "Until {months} months — {date}",
+  "@reminderEndAgeResolved": {
+    "placeholders": {
+      "months": {},
+      "date": {}
+    }
+  },
+  "reminderEndNeedsBirthdate": "A birth date is needed to end a reminder at an age.",
+  "reminderEndAlreadyPast": "That day has already passed: the reminder stops right away.",
+  "reminderFrequencyOnceChoice": "Once",
+  "reminderFrequencyReset": "Back to the default rhythm",
+  "reminderLabelReset": "Back to the default name",
+  "reminderOneTimeNeedsDate": "Choose the day it happens on.",
   "reminderCustomSectionTitle": "Custom reminders",
   "reminderCustomSectionDescription": "A reminder leaves Home as soon as you log the linked care.",
   "reminderCustomAdd": "Add a reminder",

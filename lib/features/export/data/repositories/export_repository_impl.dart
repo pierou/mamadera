@@ -134,6 +134,17 @@ class ExportRepositoryImpl implements ExportRepository {
             // the document speaks camelCase). Two spellings of one field is a
             // known importer footgun — the importer parses it under this name.
             'timeOfDay': setting.time,
+            // B33 (format 5, same bump as the hour): the rest of the row. Written
+            // as the columns hold them, so a restore replays a parent's rename,
+            // their rhythm, their end and their removal instead of handing back
+            // four stock reminders on a phone they had spent an evening tuning.
+            'label': setting.label,
+            'frequency': setting.frequency,
+            'intervalDays': setting.intervalDays,
+            'frequencyDate': setting.frequencyDate,
+            'endDate': setting.endDate,
+            'endAgeMonths': setting.endAgeMonths,
+            'removed': setting.removed,
           },
       ],
       'reminderDismissals': [

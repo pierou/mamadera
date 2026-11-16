@@ -16,9 +16,12 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 // (precedent: baby/data imports reminders/domain/entities).
 import '../../../reminders/domain/repositories/app_settings_repository.dart';
 import '../../../reminders/domain/services/notification_time.dart';
+import '../../../reminders/domain/services/reminder_end.dart'
+    show maxReminderEndAgeMonths;
 import '../../domain/repositories/import_repository.dart';
 
 part 'import_repository_field_extraction.dart';
+part 'import_repository_reminder_parsing.dart';
 part 'import_repository_restore_inserts.dart';
 
 /// Newest format version this build can restore.
@@ -384,53 +387,6 @@ ImportedCustomReminder _parseCustomReminder(
     // Absent (format 1): A shared memory accessible to all babies.
     babyId: _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId,
     completionSource: completionSource,
-  );
-}
-
-ImportedReminderSetting _parseSetting(
-    Map<String, dynamic> row, Set<Object> seenKeys) {
-  const section = 'reminderSettings';
-  // Absent (format 1): Setting shared by all babies.
-  final babyId =
-      _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
-  final itemId = _requiredString(row, 'itemId', section);
-  _requireUnique((babyId, itemId), seenKeys, section);
-  final enabled = row['enabled'];
-  if (enabled is! bool) {
-    throw const ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  // Absent (every file before format 5) = inherit the global hour. Present but
-  // not a real `HH:mm` is refused, not repaired: the app's read side is lax (it
-  // falls back to the global hour), but a file is a one-shot restore and an hour
-  // that does not exist would schedule a notification nobody asked for. The
-  // importer applies the same rule to the global hour (`appSettings`).
-  final timeOfDay = _optionalString(row, 'timeOfDay', section);
-  if (timeOfDay != null && !isValidNotificationTime(timeOfDay)) {
-    throw const ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return ImportedReminderSetting(
-    babyId: babyId,
-    itemId: itemId,
-    enabled: enabled,
-    timeOfDay: timeOfDay,
-  );
-}
-
-ImportedReminderDismissal _parseDismissal(
-    Map<String, dynamic> row, Set<Object> seenKeys) {
-  const section = 'reminderDismissals';
-  // Absent (format 1): Shared rejection among all the babies.
-  final babyId =
-      _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
-  final itemId = _requiredString(row, 'itemId', section);
-  _requireUnique((babyId, itemId), seenKeys, section);
-  return ImportedReminderDismissal(
-    babyId: babyId,
-    itemId: itemId,
-    dismissedAt:
-        _seconds(row, 'dismissedAtEpochSeconds', 'dismissedAtUtc', section),
   );
 }
 

@@ -442,8 +442,7 @@ void main() {
         final id = await repository.insertCustomReminder(
           reminder(
             label: 'Première vitamine K',
-            frequency:
-                ReminderFrequency.oneTime(date: DateTime(2026, 12, 15)),
+            frequency: ReminderFrequency.oneTime(date: DateTime(2026, 12, 15)),
           ),
         );
 
@@ -468,8 +467,7 @@ void main() {
         // moment the code came back.
         final id = await repository.insertCustomReminder(
           reminder(
-            frequency:
-                ReminderFrequency.oneTime(date: DateTime(2026, 12, 15)),
+            frequency: ReminderFrequency.oneTime(date: DateTime(2026, 12, 15)),
           ),
         );
         await repository.updateCustomReminder(

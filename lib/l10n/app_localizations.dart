@@ -622,6 +622,114 @@ abstract class AppLocalizations {
   /// **'Une seule fois, dès que possible'**
   String get reminderFrequencyOneTimeNow;
 
+  /// No description provided for @reminderSettingsRemovedSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimés'**
+  String get reminderSettingsRemovedSectionTitle;
+
+  /// No description provided for @reminderSettingsRemovedDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un rappel supprimé quitte l’accueil, cette liste et les notifications. Une touche suffit pour le faire revenir avec tous ses réglages.'**
+  String get reminderSettingsRemovedDescription;
+
+  /// No description provided for @reminderActionRestore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer'**
+  String get reminderActionRestore;
+
+  /// No description provided for @reminderActionRemove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get reminderActionRemove;
+
+  /// No description provided for @reminderPresetEditTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le rappel'**
+  String get reminderPresetEditTitle;
+
+  /// No description provided for @reminderEndSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fin'**
+  String get reminderEndSectionTitle;
+
+  /// No description provided for @reminderEndNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans fin'**
+  String get reminderEndNone;
+
+  /// No description provided for @reminderEndOnDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'À une date'**
+  String get reminderEndOnDate;
+
+  /// No description provided for @reminderEndAtAge.
+  ///
+  /// In fr, this message translates to:
+  /// **'À un âge'**
+  String get reminderEndAtAge;
+
+  /// No description provided for @reminderEndAgeValue.
+  ///
+  /// In fr, this message translates to:
+  /// **'{months} mois'**
+  String reminderEndAgeValue(Object months);
+
+  /// No description provided for @reminderEndUntilDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jusqu’au {date}'**
+  String reminderEndUntilDate(Object date);
+
+  /// No description provided for @reminderEndAgeResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jusqu’à {months} mois — {date}'**
+  String reminderEndAgeResolved(Object months, Object date);
+
+  /// No description provided for @reminderEndNeedsBirthdate.
+  ///
+  /// In fr, this message translates to:
+  /// **'La date de naissance est nécessaire pour terminer un rappel à un âge.'**
+  String get reminderEndNeedsBirthdate;
+
+  /// No description provided for @reminderEndAlreadyPast.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce jour est déjà passé : le rappel s’arrête tout de suite.'**
+  String get reminderEndAlreadyPast;
+
+  /// No description provided for @reminderFrequencyOnceChoice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une fois'**
+  String get reminderFrequencyOnceChoice;
+
+  /// No description provided for @reminderFrequencyReset.
+  ///
+  /// In fr, this message translates to:
+  /// **'Revenir au rythme par défaut'**
+  String get reminderFrequencyReset;
+
+  /// No description provided for @reminderLabelReset.
+  ///
+  /// In fr, this message translates to:
+  /// **'Revenir au nom par défaut'**
+  String get reminderLabelReset;
+
+  /// No description provided for @reminderOneTimeNeedsDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez le jour où cela doit arriver.'**
+  String get reminderOneTimeNeedsDate;
+
   /// No description provided for @reminderCustomSectionTitle.
   ///
   /// In fr, this message translates to:

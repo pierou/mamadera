@@ -148,7 +148,6 @@ class CustomReminders extends Table {
   /// Only applicable for `every_n_days`:  The duration of the cycle in days.
   IntColumn get intervalDays => integer().nullable()();
 
-
   /// `'from_events'` | `'manual'` — which determines whether the reminder is triggered automatically (D2).
   TextColumn get completionSource =>
       text().withDefault(const Constant(db_const.completionFromEvents))();

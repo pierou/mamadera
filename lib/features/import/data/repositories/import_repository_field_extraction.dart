@@ -45,6 +45,34 @@ int? _optionalPositiveInt(
   return value;
 }
 
+/// An optional whole number (`null` when the key is absent).
+///
+/// Not the same as [_optionalPositiveInt]: some optional integers are legitimately
+/// zero — `end_age_months: 0` means "ends on the birthdate" (D-R5), and a helper
+/// that silently rejected 0 would turn a real choice into a rejected backup.
+int? _optionalInt(Map<String, dynamic> row, String key, String section) {
+  final value = row[key];
+  if (value == null) return null;
+  if (value is! int) {
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
+  return value;
+}
+
+/// An optional boolean (`null` when the key is absent, which is every file older
+/// than the column). A non-boolean is refused: coercing `"yes"`/`1`/`0` would let
+/// a hand-edited file decide what "removed" means.
+bool? _optionalBool(Map<String, dynamic> row, String key, String section) {
+  final value = row[key];
+  if (value == null) return null;
+  if (value is! bool) {
+    throw ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
+  return value;
+}
+
 double? _optionalFiniteDouble(
     Map<String, dynamic> row, String key, String section) {
   final value = row[key];

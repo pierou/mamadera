@@ -140,6 +140,11 @@ const Set<String> _presetIds = {
 
 /// The `{care}` placeholder for [item] in the active locale.
 String _careLabel(AppLocalizations l10n, ReminderItem item) {
+  // B33/D-R6: the notification says what the parent calls the reminder. A rename
+  // that reached only the lists would leave the banner naming a reminder by a name
+  // nobody has used since they typed the new one.
+  final stored = item.labelOverride;
+  if (stored != null && stored.isNotEmpty) return stored;
   if (_presetIds.contains(item.id)) {
     final subtype = item.subtypeValue == null
         ? null

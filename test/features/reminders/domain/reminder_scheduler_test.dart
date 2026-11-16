@@ -109,6 +109,9 @@ class FakeRemindersRepository implements RemindersRepository {
   /// (`end_date`, `end_age_months`) — D-R5. Absent = the series never ends.
   final Map<String, Map<String, (String? endDate, int? endAgeMonths)>>
       endsByScopeItem = {};
+
+  /// Per scope: the items marked removed (D-R2's third state, D-R4).
+  final Map<String, Set<String>> removedByScopeItem = {};
   final Set<String> enabledScopesSeen = {};
 
   static String _scope(String? babyId) => babyId ?? '';
@@ -123,13 +126,20 @@ class FakeRemindersRepository implements RemindersRepository {
     final times = timesByScopeItem[_scope(babyId)] ?? const <String, String>{};
     final ends =
         endsByScopeItem[_scope(babyId)] ?? const <String, (String?, int?)>{};
+    final removed = removedByScopeItem[_scope(babyId)] ?? const <String>{};
     return {
-      for (final id in {...enabled.keys, ...times.keys, ...ends.keys})
+      for (final id in {
+        ...enabled.keys,
+        ...times.keys,
+        ...ends.keys,
+        ...removed
+      })
         id: ReminderItemSetting(
           enabled: enabled[id] ?? true,
           timeOfDay: times[id],
           endDate: ends[id]?.$1,
           endAgeMonths: ends[id]?.$2,
+          removed: removed.contains(id),
         ),
     };
   }
@@ -198,6 +208,42 @@ class FakeRemindersRepository implements RemindersRepository {
   @override
   Future<void> clearItemTime(String itemId, {String? babyId}) async =>
       timesByScopeItem[_scope(babyId)]?.remove(itemId);
+  // The scheduler only reads. The B33 writers exist for the settings screen, so
+  // an implementation here would be a test that never runs; throwing is the
+  // honest answer, and `setEnd` above is the seeding seam the end tests use.
+  @override
+  Future<void> setItemLabel(
+    String itemId, {
+    required String? label,
+    required bool enabledIfNew,
+    String? babyId,
+  }) =>
+      throw UnimplementedError();
+  @override
+  Future<void> setItemFrequency(
+    String itemId, {
+    required ReminderFrequency? frequency,
+    required bool enabledIfNew,
+    String? babyId,
+  }) =>
+      throw UnimplementedError();
+  @override
+  Future<void> setItemEnd(
+    String itemId, {
+    required bool enabledIfNew,
+    DateTime? endDate,
+    int? endAgeMonths,
+    String? babyId,
+  }) =>
+      throw UnimplementedError();
+  @override
+  Future<void> setItemRemoved(
+    String itemId, {
+    required bool removed,
+    required bool enabledIfNew,
+    String? babyId,
+  }) =>
+      throw UnimplementedError();
   @override
   Future<int> insertCustomReminder(
     CustomReminder reminder, {
@@ -272,6 +318,16 @@ class _Harness {
   }) {
     repo.endsByScopeItem.putIfAbsent(scope, () => {})[item] =
         (endDate, endAgeMonths);
+  }
+
+  /// Mark an item removed for [scope] (what `setItemRemoved` writes).
+  void remove(String scope, String item, {bool removed = true}) {
+    repo.removedByScopeItem.putIfAbsent(scope, () => <String>{});
+    if (removed) {
+      repo.removedByScopeItem[scope]!.add(item);
+    } else {
+      repo.removedByScopeItem[scope]!.remove(item);
+    }
   }
 
   /// The plan id currently holding [title], or null when the OS holds nothing
@@ -746,6 +802,33 @@ void main() {
       expect(countTomorrow, lessThan(countToday),
           reason: 'one day later the same row has no occurrence left');
       expect(h.idOf('Aimée:reminderEyeCleaning'), isNull);
+    });
+
+    test('a removed preset is cancelled from the OS schedule (D-R2, D-R4)',
+        () async {
+      // Removal is not a switch and not a deletion: the row stays (so D-R4's
+      // restore has something to restore) but the reminder must stop producing
+      // notifications, here and in every other baby's schedule it belongs to.
+      final h = _Harness(babies: [_baby(_aimeeId, 'Aimée', 20)]);
+      await h.sync();
+      final faceId = h.idOf('Aimée:reminderFaceCleaning');
+      expect(faceId, isNotNull);
+
+      h.remove(_aimeeId, 'eye_cleaning');
+      h.remove(_aimeeId, 'face_cleaning');
+      await h.sync();
+
+      expect(h.notifications.cancelled, contains(faceId),
+          reason: 'the OS entry is cancelled, not left to fire once more');
+      expect(h.idOf('Aimée:reminderFaceCleaning'), isNull);
+      expect(h.idOf('Aimée:reminderEyeCleaning'), isNull);
+      // The other presets are untouched: removal is per item, not per section.
+      expect(h.idOf('Aimée:reminderVitaminK'), isNotNull);
+
+      // And a restore puts it back, switch and all (D-R4): the row was never gone.
+      h.remove(_aimeeId, 'face_cleaning', removed: false);
+      await h.sync();
+      expect(h.idOf('Aimée:reminderFaceCleaning'), isNotNull);
     });
 
     test('an age-based end moves when the birthdate is corrected', () async {

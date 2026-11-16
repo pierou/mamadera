@@ -1,7 +1,10 @@
+import 'package:mamadera/core/utils/calendar_date.dart';
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
+import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item_setting.dart';
 import 'package:mamadera/features/reminders/domain/repositories/reminders_repository.dart';
+import 'package:mamadera/features/reminders/domain/services/reminder_frequency_codec.dart';
 
 /// Simple in-memory mock of [RemindersRepository] for unit tests.
 class MockRemindersRepository implements RemindersRepository {
@@ -49,6 +52,33 @@ class MockRemindersRepository implements RemindersRepository {
   int setItemTimeCallCount = 0;
   int clearItemTimeCallCount = 0;
   String? lastItemTimeBabyId;
+
+  // ── The rest of the settings row (B33, D-R2) ────────────────────────────
+  //
+  // Held as separate maps in the same item-keyed style as the rest of this fake,
+  // and surfaced through [getSettingsByItemId] exactly as the drift row would:
+  // an item with nothing stored must not appear in the map at all, because
+  // "absent" is what `enabledByDefault` and `effectiveItemsForScope` key off.
+
+  /// Item ID → the parent's own wording for a preset (D-R6).
+  final Map<String, String?> labelById = {};
+
+  /// Item ID → a rhythm the parent chose over the preset's own (B33).
+  final Map<String, ReminderFrequency?> frequencyById = {};
+
+  /// Item ID → the stored end, as the two columns hold it (D-R5).
+  final Map<String, DateTime?> endDateById = {};
+  final Map<String, int?> endAgeMonthsById = {};
+
+  /// Items the parent removed (D-R2's third state, D-R4's Removed section).
+  final Set<String> removedById = {};
+
+  /// Call counters for the B33 writers, so a test can assert one decision is
+  /// exactly one write.
+  int setItemLabelCallCount = 0;
+  int setItemFrequencyCallCount = 0;
+  int setItemEndCallCount = 0;
+  int setItemRemovedCallCount = 0;
 
   /// Baby the most recent [setEnabled] call was scoped to.
   String? lastEnabledBabyId;
@@ -131,10 +161,33 @@ class MockRemindersRepository implements RemindersRepository {
     // Only the items that actually have something stored appear: a key absent
     // from this map is what "never touched" means to the callers.
     return {
-      for (final id in {...enabledById.keys, ...timeOfDayById.keys})
+      for (final id in {
+        ...enabledById.keys,
+        ...timeOfDayById.keys,
+        ...labelById.keys,
+        ...frequencyById.keys,
+        ...endDateById.keys,
+        ...endAgeMonthsById.keys,
+        ...removedById,
+      })
         id: ReminderItemSetting(
           enabled: enabledById[id] ?? true,
           timeOfDay: timeOfDayById[id],
+          endDate: endDateById[id] == null
+              ? null
+              : formatCalendarDate(endDateById[id]!),
+          endAgeMonths: endAgeMonthsById[id],
+          label: labelById[id],
+          frequency: frequencyById[id] == null
+              ? null
+              : encodeFrequency(frequencyById[id]!).code,
+          intervalDays: frequencyById[id] == null
+              ? null
+              : encodeFrequency(frequencyById[id]!).intervalDays,
+          frequencyDate: frequencyById[id] == null
+              ? null
+              : encodeFrequency(frequencyById[id]!).occurrenceDate,
+          removed: removedById.contains(id),
         ),
     };
   }
@@ -160,6 +213,97 @@ class MockRemindersRepository implements RemindersRepository {
     lastItemTimeBabyId = babyId;
     // The row stays: only the hour is taken back.
     timeOfDayById.remove(itemId);
+  }
+
+  // ── B33 writers, mirroring the real repository's rules ─────────────────
+
+  @override
+  Future<void> setItemLabel(
+    String itemId, {
+    required String? label,
+    required bool enabledIfNew,
+    String? babyId,
+  }) async {
+    setItemLabelCallCount++;
+    if (label != null) {
+      final trimmed = label.trim();
+      if (trimmed.isEmpty || trimmed.length > 60) {
+        throw ArgumentError.value(
+            label, 'label', 'A reminder name is 1..60 characters.');
+      }
+      labelById[itemId] = trimmed;
+    } else {
+      labelById.remove(itemId);
+    }
+    enabledById.putIfAbsent(itemId, () => enabledIfNew);
+  }
+
+  @override
+  Future<void> setItemFrequency(
+    String itemId, {
+    required ReminderFrequency? frequency,
+    required bool enabledIfNew,
+    String? babyId,
+  }) async {
+    setItemFrequencyCallCount++;
+    if (frequency == null) {
+      frequencyById.remove(itemId);
+      return;
+    }
+    if (frequency is OneTime && frequency.date == null) {
+      throw ArgumentError.value(frequency, 'frequency',
+          'A one-time reminder needs the day it happens on.');
+    }
+    frequencyById[itemId] = frequency;
+    // D-R5's exclusivity: a one-shot carries an occurrence, never an end.
+    if (frequency is OneTime) {
+      endDateById.remove(itemId);
+      endAgeMonthsById.remove(itemId);
+    }
+    enabledById.putIfAbsent(itemId, () => enabledIfNew);
+  }
+
+  @override
+  Future<void> setItemEnd(
+    String itemId, {
+    required bool enabledIfNew,
+    DateTime? endDate,
+    int? endAgeMonths,
+    String? babyId,
+  }) async {
+    setItemEndCallCount++;
+    if (endDate != null && endAgeMonths != null) {
+      throw ArgumentError(
+          'A reminder ends on a date or at an age, never both.');
+    }
+    if (endAgeMonths != null && (endAgeMonths < 0 || endAgeMonths > 180)) {
+      throw ArgumentError.value(endAgeMonths, 'endAgeMonths', '0..180 months');
+    }
+    if (frequencyById[itemId] is OneTime &&
+        (endDate != null || endAgeMonths != null)) {
+      throw ArgumentError('A one-time reminder has an occurrence, not an end.');
+    }
+    endDateById[itemId] = endDate;
+    endAgeMonthsById[itemId] = endAgeMonths;
+    enabledById.putIfAbsent(itemId, () => enabledIfNew);
+  }
+
+  @override
+  Future<void> setItemRemoved(
+    String itemId, {
+    required bool removed,
+    required bool enabledIfNew,
+    String? babyId,
+  }) async {
+    setItemRemovedCallCount++;
+    if (removed) {
+      removedById.add(itemId);
+    } else {
+      removedById.remove(itemId);
+    }
+    // `enabled` untouched on purpose: D-R2 keeps the switch as stored while a row
+    // is removed, so a restore comes back exactly as it was left.
+    enabledById.putIfAbsent(itemId, () => enabledIfNew);
   }
 
   @override

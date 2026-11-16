@@ -4,6 +4,7 @@ import '../entities/custom_reminder.dart';
 import '../entities/reminder_item.dart';
 import '../entities/reminder_item_setting.dart';
 import '../repositories/reminders_repository.dart';
+import 'effective_reminders.dart';
 import 'local_notification_service.dart';
 import 'notification_time.dart';
 import 'reminder_scheduling.dart';
@@ -192,10 +193,21 @@ class ReminderScheduler {
     final scopes = babies.isEmpty ? <BabyProfile?>[null] : babies;
     final fresh = <_FreshEntry>[];
     for (final scope in scopes) {
-      final items = await _itemsForScope(scope);
-      // One query per scope for everything the row carries: the switch and the
-      // item's own hour (B30) — never one query per item.
+      final declared = await _itemsForScope(scope);
+      // One query per scope for everything the row carries: the switch, the item's
+      // own hour (B30), and from B33 the name, the rhythm, the end and the removal
+      // — never one query per item.
       final settings = await _repository.getSettingsByItemId(babyId: scope?.id);
+      // B33 (D-R2): the settings screen, Home and this plan all resolve the row
+      // through `effectiveItemsForScope`, so a removed preset cannot be scheduled
+      // while the list still shows it, or an overridden rhythm fire on the
+      // preset's own. Removal reaches the OS the same way a settled one-shot does:
+      // the item is absent from `fresh`, and the diff below cancels its id.
+      final items = effectiveItemsForScope(
+        items: declared,
+        settings: settings,
+        profile: scope,
+      );
       for (final item in items) {
         final setting = settings[item.id];
         // B6 (D-R2): "no row" is not "on" — it is the item's own default. A
@@ -228,14 +240,6 @@ class ReminderScheduler {
           preferredMinute: fireAt.minute,
           lastCompleted: lastCompleted,
           lastDismissal: lastDismissal,
-          // B33/D-R5: when the series stops. The age form is resolved inside
-          // `nextDueAt` against **this scope's** birthdate, so a corrected
-          // birthdate moves the plan on the next sync with nothing stored to
-          // invalidate — and the legacy profileless scope (no birthdate) gets no
-          // age-end at all (D-R10).
-          endDate: setting?.endDate,
-          endAgeMonths: setting?.endAgeMonths,
-          birthDate: scope?.birthDate,
         );
         // B33: this item can no longer be due (settled one-shot, D-R7; ended
         // series, D-R5). Dropping it from `fresh` is the whole mechanism — the

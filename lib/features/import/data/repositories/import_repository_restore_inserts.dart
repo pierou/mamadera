@@ -70,6 +70,18 @@ Future<void> _insertReminderSettings(
             // named the column, the export speaks camelCase). `Value(null)` when
             // the key was absent: inherit the installation-wide hour.
             time: Value(setting.timeOfDay),
+            // B33: the rest of the row, written as written. A restore that
+            // replayed `enabled` and `timeOfDay` but dropped the nickname, the
+            // rhythm, the end and the removal would turn a tuned installation
+            // back into four stock reminders — a quieter kind of data loss than a
+            // missing table, and harder to notice.
+            label: Value(setting.label),
+            frequency: Value(setting.frequency),
+            intervalDays: Value(setting.intervalDays),
+            frequencyDate: Value(setting.frequencyDate),
+            endDate: Value(setting.endDate),
+            endAgeMonths: Value(setting.endAgeMonths),
+            removed: Value(setting.removed),
           ),
         );
   }

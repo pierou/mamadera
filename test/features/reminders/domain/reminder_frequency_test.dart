@@ -263,7 +263,8 @@ void main() {
       expect(oneShot.isDue(DateTime(2026, 12, 15, 20, 0), completed), isFalse);
       expect(oneShot.isDue(DateTime(2026, 12, 16), completed), isFalse);
       expect(oneShot.isDue(DateTime(2027, 1, 1), completed), isFalse,
-          reason: 'the monthly behaviour this variant replaces must not return');
+          reason:
+              'the monthly behaviour this variant replaces must not return');
     });
 
     test('a dateless one-shot (D-R8 tolerant read) is due now', () {

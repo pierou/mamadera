@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:logger/logger.dart';
 
 import '../../../../core/services/app_logger.dart';
-import '../../../../core/utils/calendar_date.dart';
+import '../../../../core/utils/calendar_date.dart' show formatCalendarDate;
 // Alias for drift-generated row types (distinct from domain entities)
 import '../../../../data/local/app_db.dart' as db_app;
 import '../../../../data/local/db_constants.dart' as db_const;
@@ -12,6 +12,8 @@ import '../../domain/entities/reminder_item.dart';
 import '../../domain/entities/reminder_item_setting.dart';
 import '../../domain/repositories/reminders_repository.dart';
 import '../../domain/services/notification_time.dart';
+import '../../domain/services/reminder_end.dart' show maxReminderEndAgeMonths;
+import '../../domain/services/reminder_frequency_codec.dart';
 
 class RemindersRepositoryImpl implements RemindersRepository {
   /// Explicit injection — no fallback singleton.
@@ -213,6 +215,11 @@ class RemindersRepositoryImpl implements RemindersRepository {
             // the profile, M4's effective-item function will too).
             endDate: row.endDate,
             endAgeMonths: row.endAgeMonths,
+            label: row.label,
+            frequency: row.frequency,
+            intervalDays: row.intervalDays,
+            frequencyDate: row.frequencyDate,
+            removed: row.removed,
           ),
       };
     } catch (e, stack) {
@@ -330,104 +337,242 @@ class RemindersRepositoryImpl implements RemindersRepository {
     }
   }
 
+  // ── The rest of the row (B33, D-R2) ────────────────────────────────────
+
+  /// Insert-with-default / update-own-columns: the shape M2 established for
+  /// `time`. On conflict this writes **only** the columns the decision owns, so
+  /// writing one never erases another (a writer that overwrote a neighbour's
+  /// column would make the row's meaning depend on the order the parent tapped
+  /// in — a rename eating an end date, no test noticing until a year later).
+  ///
+  /// The insert branch has to answer the NOT NULL `enabled`: the caller's
+  /// the item's own default, never a literal — choosing a rhythm, a name or an end
+  /// for a default-off reminder must not switch it on (B6: an edit is not consent).
+  Future<void> _upsertOwnColumns(
+    String itemId,
+    String scope, {
+    required Insertable<db_app.ReminderSetting> insert,
+    required Insertable<db_app.ReminderSetting> update,
+    required String operation,
+  }) async {
+    await database.into(database.reminderSettings).insert(
+          insert,
+          onConflict: DoUpdate((_) => update),
+        );
+    _logger.d('$operation($itemId, $scope)');
+  }
+
+  @override
+  Future<void> setItemLabel(
+    String itemId, {
+    required String? label,
+    required bool enabledIfNew,
+    String? babyId,
+  }) async {
+    try {
+      final scope = _scope(babyId);
+      String? stored;
+      if (label != null) {
+        stored = label.trim();
+        if (stored.isEmpty || stored.length > _maxLabelLength) {
+          throw ArgumentError.value(label, 'label',
+              'A reminder name is 1..$_maxLabelLength characters.');
+        }
+      }
+      await _upsertOwnColumns(
+        itemId,
+        scope,
+        insert: db_app.ReminderSettingsCompanion.insert(
+          babyId: Value(scope),
+          itemId: itemId,
+          enabled: enabledIfNew,
+          label: Value(stored),
+        ),
+        update: db_app.ReminderSettingsCompanion.custom(
+          label: Variable(stored),
+        ),
+        operation: 'setItemLabel',
+      );
+    } catch (e, stack) {
+      _logger.e('setItemLabel error', error: e, stackTrace: stack);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> setItemFrequency(
+    String itemId, {
+    required ReminderFrequency? frequency,
+    required bool enabledIfNew,
+    String? babyId,
+  }) async {
+    try {
+      final scope = _scope(babyId);
+      String? code;
+      int? intervalDays;
+      String? frequencyDate;
+      if (frequency != null) {
+        final stored = encodeFrequency(frequency);
+        code = stored.code;
+        intervalDays = stored.intervalDays;
+        frequencyDate = stored.occurrenceDate;
+        if (code == db_const.freqOneTime && frequencyDate == null) {
+          // D-R5/D-R8 write-strict: a one-shot without a day is not a rhythm but
+          // a bug, and the picker is the thing that must not produce it.
+          throw ArgumentError.value(frequency, 'frequency',
+              'A one-time reminder needs the day it happens on.');
+        }
+      }
+      final clearsEnd = code == db_const.freqOneTime;
+
+      // D-R5's exclusivity at the write, in one transaction: a row carries at most
+      // one of {`one_time` + its date, `end_date`, `end_age_months`}, so switching
+      // **to** a one-shot drops any stored end (it is not kept dormant — a
+      // one-shot has an occurrence, not an end), and switching **away** already
+      // drops the stale occurrence date, because [frequencyDate] is null then.
+      await database.transaction(() async {
+        await _upsertOwnColumns(
+          itemId,
+          scope,
+          insert: db_app.ReminderSettingsCompanion.insert(
+            babyId: Value(scope),
+            itemId: itemId,
+            enabled: enabledIfNew,
+            frequency: Value(code),
+            intervalDays: Value(intervalDays),
+            frequencyDate: Value(frequencyDate),
+          ),
+          update: db_app.ReminderSettingsCompanion.custom(
+            frequency: Variable(code),
+            intervalDays: Variable(intervalDays),
+            frequencyDate: Variable(frequencyDate),
+          ),
+          operation: 'setItemFrequency',
+        );
+        if (clearsEnd) {
+          await (database.update(database.reminderSettings)
+                ..where(
+                    (t) => t.babyId.equals(scope) & t.itemId.equals(itemId)))
+              .write(const db_app.ReminderSettingsCompanion(
+            endDate: Value(null),
+            endAgeMonths: Value(null),
+          ));
+        }
+      });
+    } catch (e, stack) {
+      _logger.e('setItemFrequency error', error: e, stackTrace: stack);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> setItemEnd(
+    String itemId, {
+    required bool enabledIfNew,
+    DateTime? endDate,
+    int? endAgeMonths,
+    String? babyId,
+  }) async {
+    try {
+      final scope = _scope(babyId);
+      if (endDate != null && endAgeMonths != null) {
+        throw ArgumentError(
+            'A reminder ends on a date or at an age, never both (D-R5).');
+      }
+      if (endAgeMonths != null &&
+          (endAgeMonths < 0 || endAgeMonths > maxReminderEndAgeMonths)) {
+        throw ArgumentError.value(
+            endAgeMonths, 'endAgeMonths', '0..$maxReminderEndAgeMonths months');
+      }
+      final stored = endDate == null ? null : formatCalendarDate(endDate);
+
+      final existing = await (database.select(database.reminderSettings)
+            ..where((t) => t.babyId.equals(scope) & t.itemId.equals(itemId)))
+          .getSingleOrNull();
+      if (existing?.frequency == db_const.freqOneTime &&
+          (stored != null || endAgeMonths != null)) {
+        // The picker clears the one-shot first (D-R5 makes the exclusivity
+        // structural); this is the write-side backstop, because the alternative is
+        // a row whose meaning depends on which column a later reader trusts.
+        throw ArgumentError(
+            'A one-time reminder has an occurrence, not an end (D-R5).');
+      }
+
+      await _upsertOwnColumns(
+        itemId,
+        scope,
+        insert: db_app.ReminderSettingsCompanion.insert(
+          babyId: Value(scope),
+          itemId: itemId,
+          enabled: enabledIfNew,
+          endDate: Value(stored),
+          endAgeMonths: Value(endAgeMonths),
+        ),
+        update: db_app.ReminderSettingsCompanion.custom(
+          endDate: Variable(stored),
+          endAgeMonths: Variable(endAgeMonths),
+        ),
+        operation: 'setItemEnd',
+      );
+    } catch (e, stack) {
+      _logger.e('setItemEnd error', error: e, stackTrace: stack);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> setItemRemoved(
+    String itemId, {
+    required bool removed,
+    required bool enabledIfNew,
+    String? babyId,
+  }) async {
+    try {
+      final scope = _scope(babyId);
+      // `enabled` is deliberately untouched: D-R2 keeps it as stored while the row
+      // is removed, so a restore comes back exactly as it was left — the switch,
+      // the hour, the name, the rhythm and the end all survive a removal, because
+      // removal was a visibility decision, not a reset.
+      await _upsertOwnColumns(
+        itemId,
+        scope,
+        insert: db_app.ReminderSettingsCompanion.insert(
+          babyId: Value(scope),
+          itemId: itemId,
+          enabled: enabledIfNew,
+          removed: Value(removed),
+        ),
+        update: db_app.ReminderSettingsCompanion.custom(
+          removed: Variable(removed),
+        ),
+        operation: 'setItemRemoved',
+      );
+    } catch (e, stack) {
+      _logger.e('setItemRemoved error', error: e, stackTrace: stack);
+      rethrow;
+    }
+  }
+
   // ── Personalized Reminders ──────────────────────────────────────────
 
-  /// Codes written in the `custom_reminders.frequency` field.
-  ///
-  /// Defined in `db_constants.dart`: renaming them would change their meaning.
-  /// existing installation, and the importer of record must verify these.
-  /// The same codes can be used without relying on that class. The `every_n_days` function is written in...
-  /// all letters because the column is read exactly as is within a JSON structure.
-  /// sauvegarde.
-  static const String _freqDaily = db_const.freqDaily;
-  static const String _freqWeekly = db_const.freqWeekly;
-  static const String _freqMonthly = db_const.freqMonthly;
-  static const String _freqEveryNDays = db_const.freqEveryNDays;
-  static const String _freqOneTime = db_const.freqOneTime;
-
-  /// Maximum label length: `withLength(max: 60)` for the table, aligned.
-  /// regarding the `maxLength` setting of the form.
+  /// Maximum label length: `withLength(max: 60)` for the table, aligned with
+  /// the form's `maxLength`.
   static const int _maxLabelLength = 60;
 
-  /// Weekday schedule, designed for a weekly routine.
-  ///
-  /// `isDue` is never used (to complete a weekly reminder).
-  /// (postponed to the following ISO week, regardless of the day): we will.
-  /// Record it on Monday so that the line remains legible when written by hand.
-  static const int _weeklyStoredDayOfWeek = 1;
-
-  /// Invalid value for `interval_days`: the value could not be read.
-  static const int _defaultIntervalDays = 7;
-
-  /// The frequency as stored columns: a code plus **its** parameter, in the
-  /// column that belongs to that code (`interval_days` for `every_n_days`,
-  /// `frequency_date` for `one_time`).
-  ///
-  /// Lossless by construction — which is the reason the one-shot's column landed
-  /// in the same v14 batch as the codec rather than after it: an encoder that
-  /// could not write the date would have had to either drop it or refuse the
-  /// reminder, and both are silent data changes.
+  /// The frequency codec lives in the domain
+  /// (`reminder_frequency_codec.dart`) because `effectiveItemsForScope` reads the
+  /// same columns for a preset override; these two wrappers exist so the data
+  /// layer and the domain cannot drift apart on what a stored code means.
   ({String code, int? intervalDays, String? occurrenceDate}) _encodeFrequency(
           ReminderFrequency frequency) =>
-      frequency.map(
-        daily: (_) =>
-            (code: _freqDaily, intervalDays: null, occurrenceDate: null),
-        weekly: (_) =>
-            (code: _freqWeekly, intervalDays: null, occurrenceDate: null),
-        // The day of the month is not stored; instead, it represents the baby's date of birth.
-        // active, and reviewed each time the list is created – like vitamin K.
-        monthly: (_) =>
-            (code: _freqMonthly, intervalDays: null, occurrenceDate: null),
-        customInterval: (f) => (
-          code: _freqEveryNDays,
-          intervalDays: f.days,
-          occurrenceDate: null,
-        ),
-        oneTime: (f) => (
-          code: _freqOneTime,
-          intervalDays: null,
-          // A dateless one-shot is D-R8's *read* shape only; nothing writes
-          // one (the picker requires a date), so the column keeps its
-          // invariant: `one_time` in the database always has a date.
-          occurrenceDate: f.date == null ? null : formatCalendarDate(f.date!),
-        ),
-      );
+      encodeFrequency(frequency);
 
-  /// Tolerant decoding: an unknown code — manually restored JSON, version.
-  /// the future of the format – it's becoming a **daily** reminder rather than...
-  /// to disappear. A reminder that once something is gone, it can no longer be corrected.
   ReminderFrequency _decodeFrequency(
     String code,
     int? intervalDays, {
     String? occurrenceDate,
-  }) {
-    if (code == _freqWeekly) {
-      return const ReminderFrequency.weekly(
-        dayOfWeek: _weeklyStoredDayOfWeek,
-      );
-    }
-    if (code == _freqMonthly) {
-      return const ReminderFrequency.monthly(
-        dayOfMonth: CustomReminderPresets.monthlyFallbackDay,
-      );
-    }
-    if (code == _freqOneTime) {
-      // D-R8: a `one_time` whose date is missing or unparseable decodes to a
-      // one-shot that is **due now**, not to a daily reminder and not to nothing.
-      // The importer refuses such a file outright, so the only way to reach this
-      // branch is a hand-edited backup — and there "the parent is asked now"
-      // beats "the reminder is silently off, or silently monthly".
-      return ReminderFrequency.oneTime(date: parseCalendarDate(occurrenceDate));
-    }
-    if (code == _freqEveryNDays) {
-      // A negative or zero value would result in a perpetual outstanding balance.
-      final days = intervalDays == null || intervalDays < 1
-          ? _defaultIntervalDays
-          : intervalDays;
-      return ReminderFrequency.customInterval(days: days);
-    }
-    return const ReminderFrequency.daily();
-  }
+  }) =>
+      decodeFrequency(code, intervalDays, occurrenceDate: occurrenceDate);
 
   CustomReminder _toDomain(db_app.CustomReminder row) => CustomReminder(
         id: row.id,

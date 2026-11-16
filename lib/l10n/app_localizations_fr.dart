@@ -315,6 +315,70 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reminderFrequencyOneTimeNow => 'Une seule fois, dès que possible';
 
   @override
+  String get reminderSettingsRemovedSectionTitle => 'Supprimés';
+
+  @override
+  String get reminderSettingsRemovedDescription =>
+      'Un rappel supprimé quitte l’accueil, cette liste et les notifications. Une touche suffit pour le faire revenir avec tous ses réglages.';
+
+  @override
+  String get reminderActionRestore => 'Restaurer';
+
+  @override
+  String get reminderActionRemove => 'Supprimer';
+
+  @override
+  String get reminderPresetEditTitle => 'Modifier le rappel';
+
+  @override
+  String get reminderEndSectionTitle => 'Fin';
+
+  @override
+  String get reminderEndNone => 'Sans fin';
+
+  @override
+  String get reminderEndOnDate => 'À une date';
+
+  @override
+  String get reminderEndAtAge => 'À un âge';
+
+  @override
+  String reminderEndAgeValue(Object months) {
+    return '$months mois';
+  }
+
+  @override
+  String reminderEndUntilDate(Object date) {
+    return 'Jusqu’au $date';
+  }
+
+  @override
+  String reminderEndAgeResolved(Object months, Object date) {
+    return 'Jusqu’à $months mois — $date';
+  }
+
+  @override
+  String get reminderEndNeedsBirthdate =>
+      'La date de naissance est nécessaire pour terminer un rappel à un âge.';
+
+  @override
+  String get reminderEndAlreadyPast =>
+      'Ce jour est déjà passé : le rappel s’arrête tout de suite.';
+
+  @override
+  String get reminderFrequencyOnceChoice => 'Une fois';
+
+  @override
+  String get reminderFrequencyReset => 'Revenir au rythme par défaut';
+
+  @override
+  String get reminderLabelReset => 'Revenir au nom par défaut';
+
+  @override
+  String get reminderOneTimeNeedsDate =>
+      'Choisissez le jour où cela doit arriver.';
+
+  @override
   String get reminderCustomSectionTitle => 'Rappels personnalisés';
 
   @override

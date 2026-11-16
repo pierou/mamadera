@@ -316,6 +316,69 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reminderFrequencyOneTimeNow => 'Una sola vez, lo antes posible';
 
   @override
+  String get reminderSettingsRemovedSectionTitle => 'Eliminados';
+
+  @override
+  String get reminderSettingsRemovedDescription =>
+      'Un recordatorio eliminado sale de la pantalla de inicio, de esta lista y de las notificaciones. Un toque lo devuelve con todos sus ajustes.';
+
+  @override
+  String get reminderActionRestore => 'Restaurar';
+
+  @override
+  String get reminderActionRemove => 'Eliminar';
+
+  @override
+  String get reminderPresetEditTitle => 'Editar recordatorio';
+
+  @override
+  String get reminderEndSectionTitle => 'Fin';
+
+  @override
+  String get reminderEndNone => 'Sin fin';
+
+  @override
+  String get reminderEndOnDate => 'En una fecha';
+
+  @override
+  String get reminderEndAtAge => 'A una edad';
+
+  @override
+  String reminderEndAgeValue(Object months) {
+    return '$months meses';
+  }
+
+  @override
+  String reminderEndUntilDate(Object date) {
+    return 'Hasta el $date';
+  }
+
+  @override
+  String reminderEndAgeResolved(Object months, Object date) {
+    return 'Hasta $months meses — $date';
+  }
+
+  @override
+  String get reminderEndNeedsBirthdate =>
+      'Se necesita la fecha de nacimiento para finalizar un recordatorio a una edad.';
+
+  @override
+  String get reminderEndAlreadyPast =>
+      'Ese día ya pasó: el recordatorio se detiene de inmediato.';
+
+  @override
+  String get reminderFrequencyOnceChoice => 'Una vez';
+
+  @override
+  String get reminderFrequencyReset => 'Volver al ritmo predeterminado';
+
+  @override
+  String get reminderLabelReset => 'Volver al nombre predeterminado';
+
+  @override
+  String get reminderOneTimeNeedsDate => 'Elige el día en que debe ocurrir.';
+
+  @override
   String get reminderCustomSectionTitle => 'Recordatorios personalizados';
 
   @override

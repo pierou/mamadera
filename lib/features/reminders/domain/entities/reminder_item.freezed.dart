@@ -48,6 +48,24 @@ mixin _$ReminderItem {
   /// notification still fires for a reminder the app displays as off.
   bool get enabledByDefault;
 
+  /// The parent's own wording for this reminder, from
+  /// `reminder_settings.label` (B33/D-R6). `null` = the preset's localized name.
+  ///
+  /// Derived data, never item identity: the preset's `labelKey` stays what it
+  /// is, because the key is what localizes the *care* elsewhere. Every surface
+  /// that names a reminder must resolve through the one override helper — a site
+  /// that reads `labelKey` alone shows a name the parent renamed, which is the
+  /// B31 defect class wearing a friendlier face.
+  String? get labelOverride;
+
+  /// The last day this reminder may still fire (D-R5). `null` = no end.
+  ///
+  /// **Resolved at read time**, never stored as a date: `end_date` is stored as
+  /// a date and `end_age_months` as months, and the age is resolved against the
+  /// scope's birthdate by `effectiveItemsForScope`. That is what lets a
+  /// corrected birthdate move the end with nothing to invalidate.
+  DateTime? get endsAt;
+
   /// What settles this reminder:
   /// - [completionFromEvents]: a [trackingType] event with [subtypeValue]
   ///   (its due date applies to the completion);
@@ -82,17 +100,30 @@ mixin _$ReminderItem {
             (identical(other.babyId, babyId) || other.babyId == babyId) &&
             (identical(other.enabledByDefault, enabledByDefault) ||
                 other.enabledByDefault == enabledByDefault) &&
+            (identical(other.labelOverride, labelOverride) ||
+                other.labelOverride == labelOverride) &&
+            (identical(other.endsAt, endsAt) || other.endsAt == endsAt) &&
             (identical(other.completionSource, completionSource) ||
                 other.completionSource == completionSource));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, labelKey, frequency,
-      trackingType, subtypeValue, babyId, enabledByDefault, completionSource);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      labelKey,
+      frequency,
+      trackingType,
+      subtypeValue,
+      babyId,
+      enabledByDefault,
+      labelOverride,
+      endsAt,
+      completionSource);
 
   @override
   String toString() {
-    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue, babyId: $babyId, enabledByDefault: $enabledByDefault, completionSource: $completionSource)';
+    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue, babyId: $babyId, enabledByDefault: $enabledByDefault, labelOverride: $labelOverride, endsAt: $endsAt, completionSource: $completionSource)';
   }
 }
 
@@ -110,6 +141,8 @@ abstract mixin class $ReminderItemCopyWith<$Res> {
       String? subtypeValue,
       String? babyId,
       bool enabledByDefault,
+      String? labelOverride,
+      DateTime? endsAt,
       String? completionSource});
 
   $ReminderFrequencyCopyWith<$Res> get frequency;
@@ -134,6 +167,8 @@ class _$ReminderItemCopyWithImpl<$Res> implements $ReminderItemCopyWith<$Res> {
     Object? subtypeValue = freezed,
     Object? babyId = freezed,
     Object? enabledByDefault = null,
+    Object? labelOverride = freezed,
+    Object? endsAt = freezed,
     Object? completionSource = freezed,
   }) {
     return _then(_self.copyWith(
@@ -165,6 +200,14 @@ class _$ReminderItemCopyWithImpl<$Res> implements $ReminderItemCopyWith<$Res> {
           ? _self.enabledByDefault
           : enabledByDefault // ignore: cast_nullable_to_non_nullable
               as bool,
+      labelOverride: freezed == labelOverride
+          ? _self.labelOverride
+          : labelOverride // ignore: cast_nullable_to_non_nullable
+              as String?,
+      endsAt: freezed == endsAt
+          ? _self.endsAt
+          : endsAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
       completionSource: freezed == completionSource
           ? _self.completionSource
           : completionSource // ignore: cast_nullable_to_non_nullable
@@ -284,6 +327,8 @@ extension ReminderItemPatterns on ReminderItem {
             String? subtypeValue,
             String? babyId,
             bool enabledByDefault,
+            String? labelOverride,
+            DateTime? endsAt,
             String? completionSource)?
         $default, {
     required TResult orElse(),
@@ -299,6 +344,8 @@ extension ReminderItemPatterns on ReminderItem {
             _that.subtypeValue,
             _that.babyId,
             _that.enabledByDefault,
+            _that.labelOverride,
+            _that.endsAt,
             _that.completionSource);
       case _:
         return orElse();
@@ -328,6 +375,8 @@ extension ReminderItemPatterns on ReminderItem {
             String? subtypeValue,
             String? babyId,
             bool enabledByDefault,
+            String? labelOverride,
+            DateTime? endsAt,
             String? completionSource)
         $default,
   ) {
@@ -342,6 +391,8 @@ extension ReminderItemPatterns on ReminderItem {
             _that.subtypeValue,
             _that.babyId,
             _that.enabledByDefault,
+            _that.labelOverride,
+            _that.endsAt,
             _that.completionSource);
       case _:
         throw StateError('Unexpected subclass');
@@ -370,6 +421,8 @@ extension ReminderItemPatterns on ReminderItem {
             String? subtypeValue,
             String? babyId,
             bool enabledByDefault,
+            String? labelOverride,
+            DateTime? endsAt,
             String? completionSource)?
         $default,
   ) {
@@ -384,6 +437,8 @@ extension ReminderItemPatterns on ReminderItem {
             _that.subtypeValue,
             _that.babyId,
             _that.enabledByDefault,
+            _that.labelOverride,
+            _that.endsAt,
             _that.completionSource);
       case _:
         return null;
@@ -402,6 +457,8 @@ class _ReminderItem implements ReminderItem {
       this.subtypeValue,
       this.babyId,
       this.enabledByDefault = true,
+      this.labelOverride,
+      this.endsAt,
       this.completionSource});
 
   @override
@@ -446,6 +503,26 @@ class _ReminderItem implements ReminderItem {
   @JsonKey()
   final bool enabledByDefault;
 
+  /// The parent's own wording for this reminder, from
+  /// `reminder_settings.label` (B33/D-R6). `null` = the preset's localized name.
+  ///
+  /// Derived data, never item identity: the preset's `labelKey` stays what it
+  /// is, because the key is what localizes the *care* elsewhere. Every surface
+  /// that names a reminder must resolve through the one override helper — a site
+  /// that reads `labelKey` alone shows a name the parent renamed, which is the
+  /// B31 defect class wearing a friendlier face.
+  @override
+  final String? labelOverride;
+
+  /// The last day this reminder may still fire (D-R5). `null` = no end.
+  ///
+  /// **Resolved at read time**, never stored as a date: `end_date` is stored as
+  /// a date and `end_age_months` as months, and the age is resolved against the
+  /// scope's birthdate by `effectiveItemsForScope`. That is what lets a
+  /// corrected birthdate move the end with nothing to invalidate.
+  @override
+  final DateTime? endsAt;
+
   /// What settles this reminder:
   /// - [completionFromEvents]: a [trackingType] event with [subtypeValue]
   ///   (its due date applies to the completion);
@@ -481,17 +558,30 @@ class _ReminderItem implements ReminderItem {
             (identical(other.babyId, babyId) || other.babyId == babyId) &&
             (identical(other.enabledByDefault, enabledByDefault) ||
                 other.enabledByDefault == enabledByDefault) &&
+            (identical(other.labelOverride, labelOverride) ||
+                other.labelOverride == labelOverride) &&
+            (identical(other.endsAt, endsAt) || other.endsAt == endsAt) &&
             (identical(other.completionSource, completionSource) ||
                 other.completionSource == completionSource));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, labelKey, frequency,
-      trackingType, subtypeValue, babyId, enabledByDefault, completionSource);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      labelKey,
+      frequency,
+      trackingType,
+      subtypeValue,
+      babyId,
+      enabledByDefault,
+      labelOverride,
+      endsAt,
+      completionSource);
 
   @override
   String toString() {
-    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue, babyId: $babyId, enabledByDefault: $enabledByDefault, completionSource: $completionSource)';
+    return 'ReminderItem(id: $id, labelKey: $labelKey, frequency: $frequency, trackingType: $trackingType, subtypeValue: $subtypeValue, babyId: $babyId, enabledByDefault: $enabledByDefault, labelOverride: $labelOverride, endsAt: $endsAt, completionSource: $completionSource)';
   }
 }
 
@@ -511,6 +601,8 @@ abstract mixin class _$ReminderItemCopyWith<$Res>
       String? subtypeValue,
       String? babyId,
       bool enabledByDefault,
+      String? labelOverride,
+      DateTime? endsAt,
       String? completionSource});
 
   @override
@@ -537,6 +629,8 @@ class __$ReminderItemCopyWithImpl<$Res>
     Object? subtypeValue = freezed,
     Object? babyId = freezed,
     Object? enabledByDefault = null,
+    Object? labelOverride = freezed,
+    Object? endsAt = freezed,
     Object? completionSource = freezed,
   }) {
     return _then(_ReminderItem(
@@ -568,6 +662,14 @@ class __$ReminderItemCopyWithImpl<$Res>
           ? _self.enabledByDefault
           : enabledByDefault // ignore: cast_nullable_to_non_nullable
               as bool,
+      labelOverride: freezed == labelOverride
+          ? _self.labelOverride
+          : labelOverride // ignore: cast_nullable_to_non_nullable
+              as String?,
+      endsAt: freezed == endsAt
+          ? _self.endsAt
+          : endsAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
       completionSource: freezed == completionSource
           ? _self.completionSource
           : completionSource // ignore: cast_nullable_to_non_nullable
