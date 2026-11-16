@@ -271,6 +271,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reminderNotificationsTimeLabel => 'Heure de notification';
 
   @override
+  String reminderHourOwn(Object time) {
+    return 'À $time';
+  }
+
+  @override
+  String reminderHourInherited(Object time) {
+    return 'À $time (par défaut)';
+  }
+
+  @override
+  String get reminderHourPickerTitle => 'Heure de notification de ce rappel';
+
+  @override
+  String get reminderHourUseDefault => 'Utiliser l\'heure par défaut';
+
+  @override
   String get reminderNotificationsPermissionDenied =>
       'Les notifications sont désactivées dans les réglages du système. Activez-les là-bas pour recevoir les notifications de rappel.';
 

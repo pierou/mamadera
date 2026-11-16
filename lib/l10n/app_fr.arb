@@ -173,6 +173,20 @@
   "reminderNotificationsSectionTitle": "Notifications système",
   "reminderNotificationsOptIn": "Me notifier quand un rappel est dû",
   "reminderNotificationsTimeLabel": "Heure de notification",
+  "reminderHourOwn": "À {time}",
+  "@reminderHourOwn": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "reminderHourInherited": "À {time} (par défaut)",
+  "@reminderHourInherited": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "reminderHourPickerTitle": "Heure de notification de ce rappel",
+  "reminderHourUseDefault": "Utiliser l'heure par défaut",
   "reminderNotificationsPermissionDenied": "Les notifications sont désactivées dans les réglages du système. Activez-les là-bas pour recevoir les notifications de rappel.",
   "reminderFrequencyDaily": "Tous les jours",
   "reminderFrequencyWeekly": "Chaque semaine",

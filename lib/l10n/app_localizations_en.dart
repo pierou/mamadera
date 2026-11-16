@@ -270,6 +270,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderNotificationsTimeLabel => 'Notification time';
 
   @override
+  String reminderHourOwn(Object time) {
+    return 'At $time';
+  }
+
+  @override
+  String reminderHourInherited(Object time) {
+    return 'At $time (default)';
+  }
+
+  @override
+  String get reminderHourPickerTitle => 'Notification time for this reminder';
+
+  @override
+  String get reminderHourUseDefault => 'Use the default time';
+
+  @override
   String get reminderNotificationsPermissionDenied =>
       'Notifications are currently disabled in the system settings. Turn them on there to receive reminder notifications.';
 

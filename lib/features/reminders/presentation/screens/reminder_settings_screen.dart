@@ -9,11 +9,13 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_item.dart';
+import '../../domain/entities/reminder_item_setting.dart';
+import '../../domain/services/notification_time.dart';
 import '../providers/reminder_providers.dart';
 import '../providers/reminder_sync_notifier.dart';
 import '../widgets/custom_reminder_form_sheet.dart';
 import '../widgets/custom_reminder_tile.dart';
-import '../widgets/reminder_frequency_label.dart';
+import '../widgets/reminder_hour_control.dart';
 
 /// Settings screen → Reminders: the parent turns off the reminders that do not
 /// apply to them (vitamin K after the neonatal period, a care stopped on
@@ -86,10 +88,11 @@ class _ReminderList extends ConsumerWidget {
   /// Personalized reminders, listed in the order they were created.
   final List<CustomReminder> custom;
 
-  /// `item_id → enabled` for the rows that **exist**. A missing key means
-  /// "never touched", which resolves per item to `ReminderItem.enabledByDefault`
-  /// (B6: vitamin D starts off, everything else on) — never a blanket `true`.
-  final Map<String, bool> settings;
+  /// The stored row of each reminder of this scope, for the rows that **exist**:
+  /// the switch and the reminder's own hour (B30). A missing key means "never
+  /// touched", which resolves per item to `ReminderItem.enabledByDefault` (B6:
+  /// vitamin D starts off, everything else on) and to the global hour.
+  final Map<String, ReminderItemSetting> settings;
 
   /// Date of birth of the active baby, `null` if no profile exists.
   final int? monthlyDay;
@@ -110,8 +113,8 @@ class _ReminderList extends ConsumerWidget {
           SwitchListTile(
             // Accessible content: The label and frequency are read together.
             title: Text(_presetLabel(context, item)),
-            subtitle: Text(reminderFrequencyLabel(context, item.frequency)),
-            value: settings[item.id] ?? item.enabledByDefault,
+            subtitle: _hourControl(context, ref, item),
+            value: settings[item.id]?.enabled ?? item.enabledByDefault,
             onChanged: (enabled) => ref
                 .read(reminderSettingsProvider.notifier)
                 .setEnabled(item.id, enabled: enabled),
@@ -139,8 +142,7 @@ class _ReminderList extends ConsumerWidget {
                 ),
           )
         else
-          for (final reminder in custom)
-            _customTile(context, ref, reminder),
+          for (final reminder in custom) _customTile(context, ref, reminder),
         ListTile(
           leading: const Icon(Icons.add_alarm_outlined),
           title: Text(context.l.reminderCustomAdd),
@@ -149,6 +151,78 @@ class _ReminderList extends ConsumerWidget {
         const _SystemNotificationsSection(),
       ],
     );
+  }
+
+  /// The hour state of one row: what to show, and whether it is inherited.
+  ///
+  /// The reminder's own hour wins when the row carries a usable one; otherwise
+  /// it is the installation-wide hour, shown and marked as inherited — "no hour
+  /// of my own" is not "no hour" (B30). While the global preference is still
+  /// being read and the row has nothing of its own, the hour line stays away
+  /// rather than guessing 09:00.
+  ({
+    String hourLabel,
+    bool inherited,
+    bool showHour,
+    NotificationPreferences? prefs
+  }) _hourFor(WidgetRef ref, ReminderItem item) {
+    final stored = settings[item.id]?.timeOfDay;
+    // Promoted once, here: "has an hour of its own" is then one question with
+    // one answer, for the label, the marker and the picker's initial time.
+    final own =
+        (stored != null && isValidNotificationTime(stored)) ? stored : null;
+    final prefs = ref.watch(notificationSettingsProvider).value;
+    return (
+      hourLabel: own ?? prefs?.timeLabel ?? defaultNotificationTime,
+      inherited: own == null,
+      showHour: own != null || prefs != null,
+      prefs: prefs,
+    );
+  }
+
+  /// The rhythm + effective hour line of one preset row, with its two actions.
+  Widget _hourControl(BuildContext context, WidgetRef ref, ReminderItem item) {
+    final hour = _hourFor(ref, item);
+    return ReminderHourControl(
+      frequency: item.frequency,
+      hourLabel: hour.hourLabel,
+      inherited: hour.inherited,
+      showHour: hour.showHour,
+      onPick: () => _pickHour(context, ref, item, hour.prefs),
+      onUseGlobal: () =>
+          ref.read(reminderSettingsProvider.notifier).useGlobalTime(item),
+    );
+  }
+
+  /// The OS time picker for one reminder, starting from the hour the reminder
+  /// actually uses — its own, or the global one it inherits.
+  Future<void> _pickHour(
+    BuildContext context,
+    WidgetRef ref,
+    ReminderItem item,
+    NotificationPreferences? prefs,
+  ) async {
+    final stored = settings[item.id]?.timeOfDay;
+    final own =
+        (stored != null && isValidNotificationTime(stored)) ? stored : null;
+    final fallback = notificationTimeDefaults();
+    final initial = own != null
+        ? parseNotificationTime(own)
+        : (
+            hour: prefs?.hour ?? fallback.hour,
+            minute: prefs?.minute ?? fallback.minute,
+          );
+
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: initial.hour, minute: initial.minute),
+      helpText: context.l.reminderHourPickerTitle,
+    );
+    if (picked == null) return;
+
+    await ref
+        .read(reminderSettingsProvider.notifier)
+        .setTime(item, hour: picked.hour, minute: picked.minute);
   }
 
   /// Key for the `reminder_settings` row of a custom reminder — the same key
@@ -172,13 +246,21 @@ class _ReminderList extends ConsumerWidget {
       monthlyDay: monthlyDay,
     );
     final key = _settingsKey(reminder);
+    final hour = _hourFor(ref, display);
     return CustomReminderTile(
       reminder: reminder,
       display: display,
-      enabled: settings[key] ?? display.enabledByDefault,
-      onToggle: (enabled) =>
-          ref.read(reminderSettingsProvider.notifier).setEnabled(key, enabled: enabled),
+      enabled: settings[key]?.enabled ?? display.enabledByDefault,
+      onToggle: (enabled) => ref
+          .read(reminderSettingsProvider.notifier)
+          .setEnabled(key, enabled: enabled),
       onAction: (action) => _onAction(context, ref, reminder, action),
+      hourLabel: hour.hourLabel,
+      hourInherited: hour.inherited,
+      showHour: hour.showHour,
+      onPickHour: () => _pickHour(context, ref, display, hour.prefs),
+      onUseGlobalHour: () =>
+          ref.read(reminderSettingsProvider.notifier).useGlobalTime(display),
     );
   }
 
@@ -359,6 +441,9 @@ class _SystemNotificationsSection extends ConsumerWidget {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: prefs.hour, minute: prefs.minute),
+      // Named, like the per-reminder picker: two time pickers in one screen that
+      // answer two different questions must not wear the same heading.
+      helpText: context.l.reminderNotificationsTimeLabel,
     );
     if (picked == null) return;
     await ref

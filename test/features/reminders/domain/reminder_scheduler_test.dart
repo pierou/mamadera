@@ -3,6 +3,7 @@ import 'package:mamadera/data/local/db_constants.dart' show completionManual;
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
+import 'package:mamadera/features/reminders/domain/entities/reminder_item_setting.dart';
 import 'package:mamadera/features/reminders/domain/repositories/reminders_repository.dart';
 import 'package:mamadera/features/reminders/domain/services/local_notification_service.dart';
 import 'package:mamadera/features/reminders/domain/services/reminder_scheduler.dart';
@@ -96,6 +97,9 @@ class FakeNotificationService implements LocalNotificationService {
 class FakeRemindersRepository implements RemindersRepository {
   /// Per scope (babyId, `''` sentinel when null): enabled overrides.
   final Map<String, Map<String, bool>> enabledByScope = {};
+
+  /// Per scope, then item: the reminder's own hour (B30). Absent = inherit.
+  final Map<String, Map<String, String>> timesByScopeItem = {};
   final Map<String, List<CustomReminder>> customsByScope = {};
   final Map<String, DateTime> lastCompletedByScopeItem = {};
   final Map<String, DateTime> lastManualByScopeItem = {};
@@ -107,9 +111,18 @@ class FakeRemindersRepository implements RemindersRepository {
   String? _key(String? scope, String item) => '${_scope(scope)}::$item';
 
   @override
-  Future<Map<String, bool>> getEnabledByItemId({String? babyId}) async {
+  Future<Map<String, ReminderItemSetting>> getSettingsByItemId(
+      {String? babyId}) async {
     enabledScopesSeen.add(_scope(babyId));
-    return Map.of(enabledByScope[_scope(babyId)] ?? const {});
+    final enabled = enabledByScope[_scope(babyId)] ?? const <String, bool>{};
+    final times = timesByScopeItem[_scope(babyId)] ?? const <String, String>{};
+    return {
+      for (final id in {...enabled.keys, ...times.keys})
+        id: ReminderItemSetting(
+          enabled: enabled[id] ?? true,
+          timeOfDay: times[id],
+        ),
+    };
   }
 
   @override
@@ -165,6 +178,17 @@ class FakeRemindersRepository implements RemindersRepository {
     String? babyId,
   }) =>
       throw UnimplementedError();
+  @override
+  Future<void> setItemTime(
+    String itemId, {
+    required String timeOfDay,
+    required bool enabledIfNew,
+    String? babyId,
+  }) async =>
+      (timesByScopeItem[_scope(babyId)] ??= {})[itemId] = timeOfDay;
+  @override
+  Future<void> clearItemTime(String itemId, {String? babyId}) async =>
+      timesByScopeItem[_scope(babyId)]?.remove(itemId);
   @override
   Future<int> insertCustomReminder(
     CustomReminder reminder, {
@@ -242,12 +266,14 @@ class _Harness {
     List<BabyProfile>? babies,
     bool optIn = true,
     DateTime? now,
+    int preferredHour = 8,
+    int preferredMinute = 0,
   }) =>
       scheduler.sync(
         babies: babies ?? this.babies,
         notificationsOptIn: optIn,
-        preferredHour: 8,
-        preferredMinute: 0,
+        preferredHour: preferredHour,
+        preferredMinute: preferredMinute,
         title: _title,
         body: _body,
         now: now ?? _now,
@@ -513,7 +539,8 @@ void main() {
           containsAll(['Aimée:reminderVitaminK', 'Béa:reminderEyeCleaning']));
     });
 
-    test('profileless fallback keeps vitamin K and drops the default-off vitamin D',
+    test(
+        'profileless fallback keeps vitamin K and drops the default-off vitamin D',
         () async {
       final h = _Harness(babies: const [], seedVitaminDOn: false);
       final count = await h.sync();
@@ -522,7 +549,78 @@ void main() {
       // due now ⇒ a catch-up nudge, not a plan entry (D3).
       expect(count, 1);
       expect(h.notifications.scheduledIn, [catchUpIdBase + 1]);
-      expect(h.notifications.entries[catchUpIdBase + 1]!.$1, 'T:reminderVitaminK');
+      expect(
+          h.notifications.entries[catchUpIdBase + 1]!.$1, 'T:reminderVitaminK');
+    });
+
+    // BACKLOG B30: the hour is resolved per item inside the loop. `nextDueAt` is
+    // unchanged — it receives this item's time of day — so these tests are about
+    // the resolution, the re-submission and the catch-up window.
+    test('an item with its own hour fires at that hour, not the global one',
+        () async {
+      final h = _Harness(babies: [_baby(_aimeeId, 'Aimée', 20)]);
+      h.repo.timesByScopeItem[_aimeeId] = {'eye_cleaning': '06:15'};
+      await h.sync(); // 06:00 now, global hour 08:00
+
+      final byTitle = {
+        for (final entry in h.notifications.entries.values) entry.$1: entry.$3
+      };
+      expect(byTitle['Aimée:reminderEyeCleaning'], _at(2026, 7, 15, 6, 15),
+          reason: 'its own hour wins, an hour and three quarters early');
+      expect(byTitle['Aimée:reminderFaceCleaning'], _at(2026, 7, 15, 8),
+          reason: 'a row without an hour keeps the global one');
+      expect(byTitle['Aimée:reminderVitaminD'], _at(2026, 7, 15, 8));
+    });
+
+    test('an own hour that has passed opens the catch-up window early',
+        () async {
+      // The point of B30, as its ticket §6 puts it: a reminder at 08:00 on a
+      // device whose global hour is 09:00 opens *its* catch-up an hour earlier
+      // than the others. At 08:30, that item is overdue while the rest wait.
+      final h = _Harness(babies: [_baby(_aimeeId, 'Aimée', 20)]);
+      h.repo.timesByScopeItem[_aimeeId] = {'eye_cleaning': '08:00'};
+
+      await h.sync(now: _at(2026, 7, 15, 8, 30), preferredHour: 9);
+
+      expect(h.notifications.scheduledIn, [catchUpIdBase + 1]);
+      expect(h.notifications.entries[catchUpIdBase + 1]!.$1,
+          'Aimée:reminderEyeCleaning');
+      final scheduled = {
+        for (final entry in h.notifications.entries.values) entry.$1: entry.$3
+      };
+      expect(scheduled['Aimée:reminderFaceCleaning'], _at(2026, 7, 15, 9));
+    });
+
+    test('editing an hour re-submits the same plan id (B14 stale schedule)',
+        () async {
+      final h = _Harness(babies: [_baby(_aimeeId, 'Aimée', 20)]);
+      await h.sync();
+      final callsBefore = h.notifications.scheduleAtCalls;
+      // Aimée's items are ids 1-4 in the pinned slot order: eye cleaning is 3.
+      expect(h.notifications.entries[3]!.$1, 'Aimée:reminderEyeCleaning');
+
+      h.repo.timesByScopeItem[_aimeeId] = {'eye_cleaning': '21:45'};
+      await h.sync();
+
+      expect(h.notifications.entries[3]!.$3, _at(2026, 7, 15, 21, 45),
+          reason: 'the entry moved to the new hour under the same id');
+      expect(h.notifications.cancelled, isEmpty,
+          reason: 'nothing left the plan, so nothing may be cancelled');
+      expect(h.notifications.scheduleAtCalls, greaterThan(callsBefore),
+          reason: 'a changed `at` is re-submitted, the plugin replaces the '
+              'pending entry instead of stacking a duplicate');
+    });
+
+    test('an unusable stored hour inherits the global one', () async {
+      // Read-lax: a value that is not a real HH:mm (hand-edited backup, junk
+      // written by an older build) must not schedule a notification at a time
+      // that does not exist, and must not fall back to 09:00 either — the global
+      // hour is the promise the parent can still see.
+      final h = _Harness(babies: [_baby(_aimeeId, 'Aimée', 20)]);
+      h.repo.timesByScopeItem[_aimeeId] = {'eye_cleaning': '24:00'};
+      await h.sync();
+
+      expect(h.notifications.entries[3]!.$3, _at(2026, 7, 15, 8));
     });
 
     test('an explicit row still wins over the default: on for a new baby',

@@ -1,5 +1,6 @@
 import '../entities/custom_reminder.dart';
 import '../entities/reminder_item.dart';
+import '../entities/reminder_item_setting.dart';
 
 /// Persistence contract for reminders.
 abstract class RemindersRepository {
@@ -38,18 +39,47 @@ abstract class RemindersRepository {
   /// For each baby and each item, the list is displayed line by line and updates with every "ignore" action.
   Future<void> dismissReminder(String itemId, {String? babyId, DateTime? at});
 
-  /// Returns the enabled/disabled status by item ID.
+  /// Returns the stored state of every `(baby_id, item_id)` row of one scope,
+  /// keyed by item ID: the switch **and** the per-reminder hour (B30), from one
+  /// query per scope — never one query per item.
   ///
   /// The absence of a key indicates "never touched", which the callers resolve
-  /// to the item's `enabledByDefault` (B6) — not a blanket "enabled". Read-only
-  /// access. scoped to the carrier: the `''` (unspecified state) setting does
-  /// not apply to any. Real baby – a newborn baby, therefore, has imperfections.
-  Future<Map<String, bool>> getEnabledByItemId({String? babyId});
+  /// to the item's own defaults (B6's `enabledByDefault`) — not a blanket
+  /// "enabled". Read-only access, scoped to the carrier: the `''` (no profile)
+  /// settings never apply to a real baby, and a new baby has no row of its own
+  /// yet.
+  Future<Map<String, ReminderItemSetting>> getSettingsByItemId(
+      {String? babyId});
 
-  /// Updates or creates the "enabled/disabled" flag for [itemId] (column in the...).
-  /// baby [babyId].
+  /// Updates or creates the "enabled/disabled" flag for [itemId] (column for baby [babyId]).
+  ///
+  /// Touches that one column and nothing else: the row may already carry the
+  /// reminder's own hour (B30) or, from M4, its overrides and its removal state,
+  /// and flipping a switch must never erase them.
   Future<void> setEnabled(String itemId,
       {required bool enabled, String? babyId});
+
+  /// Writes the per-reminder notification hour of [itemId] (B30).
+  ///
+  /// [timeOfDay] is a `'HH:mm'` string; only that column is written, so the
+  /// switch and every other column of the row keep their value.
+  ///
+  /// When the scope has no row for [itemId] yet, one is created with
+  /// [enabledIfNew] — the item's own `enabledByDefault`. That matters for
+  /// vitamin D: choosing an hour is not consent to switch the reminder on, so
+  /// an hour written on a default-off item must leave it off (B6).
+  Future<void> setItemTime(
+    String itemId, {
+    required String timeOfDay,
+    required bool enabledIfNew,
+    String? babyId,
+  });
+
+  /// Back to **inherit the global hour** (B30): the `time` column is set to NULL
+  /// and the row is kept, so the switch and the rest of the row survive.
+  ///
+  /// A no-op when the scope has no row at all — absence already means inherited.
+  Future<void> clearItemTime(String itemId, {String? babyId});
 
   /// Returns the personalized reminders for the care of [babyId] (the line `''` ).
   /// They are only visible without a profile, and are sorted by insertion ID.

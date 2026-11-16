@@ -504,15 +504,7 @@ class AppDatabase extends _$AppDatabase {
             // INSERT-only, guarded by NOT EXISTS: an existing row — in
             // particular a parent who already turned it off (`enabled = 0`) —
             // is never updated. The seed writes 1 or nothing, never 0.
-            await m.database.customStatement('''
-              INSERT INTO reminder_settings (baby_id, item_id, enabled)
-              SELECT s.baby_id, 'vitamine_d', 1
-              FROM (SELECT '' AS baby_id UNION ALL SELECT id FROM baby_profiles) s
-              WHERE NOT EXISTS (
-                SELECT 1 FROM reminder_settings r
-                WHERE r.baby_id = s.baby_id AND r.item_id = 'vitamine_d'
-              )
-            ''');
+            await m.database.customStatement(db_const.vitaminDSeedInsert);
           }
         },
       );

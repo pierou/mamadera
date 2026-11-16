@@ -247,7 +247,8 @@ void main() {
         expect(_isOn(tester, label), isTrue, reason: label);
       }
       expect(find.text('Vitamine D'), findsOneWidget,
-          reason: 'off by default means hidden from the due list, not from the list');
+          reason:
+              'off by default means hidden from the due list, not from the list');
       expect(_isOn(tester, 'Vitamine D'), isFalse);
     });
 
@@ -616,6 +617,160 @@ void main() {
       // half.
       expect(mockReminders.customRemindersById, hasLength(1));
       expect(find.byType(CustomReminderTile), findsOneWidget);
+    });
+  });
+
+  // BACKLOG B30: the hour lives on the row. What the parent must see is the
+  // hour that *applies*, marked as inherited or as their own — and the way to
+  // change both.
+  group('per-reminder hour (B30)', () {
+    testWidgets('every row shows the global hour, marked as inherited',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      await pumpScreen(tester);
+
+      // Four presets, all without an hour of their own.
+      expect(find.text('À 20:30 (par défaut)'), findsNWidgets(4));
+      expect(find.byTooltip('Utiliser l\'heure par défaut'), findsNothing,
+          reason: 'nothing to take back on a row that never set one');
+    });
+
+    testWidgets('a row with its own hour shows it, and offers to let go of it',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      mockReminders.timeOfDayById['eye_cleaning'] = '06:15';
+      await pumpScreen(tester);
+
+      expect(find.text('À 06:15'), findsOneWidget);
+      expect(find.byTooltip('Utiliser l\'heure par défaut'), findsOneWidget);
+      expect(find.text('À 20:30 (par défaut)'), findsNWidgets(3),
+          reason: 'the other three still inherit');
+    });
+
+    testWidgets('tapping the hour opens the picker for this reminder',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      await pumpScreen(tester);
+
+      await tester.tap(find.text('À 20:30 (par défaut)').first);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TimePickerDialog), findsOneWidget);
+      expect(find.text('Heure de notification de ce rappel'), findsOneWidget);
+    });
+
+    testWidgets('a custom reminder row shows its own hour too (B30 parity)',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      mockReminders.customRemindersById[7] = const CustomReminder(
+        id: 7,
+        label: 'Crème du change',
+        subtypeValue: 'nettoyage_nez',
+        frequency: ReminderFrequency.daily(),
+      );
+      mockReminders.timeOfDayById['custom_7'] = '06:15';
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
+            activeBabyProvider.overrideWith(() => _ActiveBabyStub(_baby)),
+            appSettingsRepositoryProvider.overrideWith((ref) async => fakeSettings),
+            localNotificationServiceProvider
+                .overrideWith((ref) async => fakeNotifications),
+            babyProfileListProvider.overrideWith((ref) async => [_baby]),
+            localeProvider.overrideWith(_FrLocaleNotifier.new),
+          ],
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr'), Locale('en')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: const ReminderSettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // B30 §6: the custom row carries the same control as a preset row — the
+      // mirror defect (UI sets an hour the scheduler never reads) must not be
+      // possible for either kind.
+      // The row sits below the fold in a lazily built list — the group's own
+      // helper scrolls before it taps, and the same applies to a finder.
+      await tester.scrollUntilVisible(
+        find.text('Crème du change'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(CustomReminderTile),
+          matching: find.textContaining('06:15'),
+        ),
+        findsOneWidget,
+        reason: 'the custom row carries the same hour line as a preset row',
+      );
+      expect(find.byTooltip('Utiliser l\'heure par défaut'), findsOneWidget);
+    });
+
+    testWidgets('confirming the picker stores the hour for that reminder only',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      await pumpScreen(tester);
+
+      await tester.tap(find.text('À 20:30 (par défaut)').first);
+      await tester.pumpAndSettle();
+      // Accepted as it opens: the picker starts at the hour the row actually
+      // uses, so confirming without typing stores 20:30 as its own.
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(mockReminders.setItemTimeCallCount, 1);
+      expect(mockReminders.timeOfDayById['vitamine_d'], '20:30',
+          reason: 'the first preset row is the one that was tapped');
+      expect(mockReminders.timeOfDayById.keys, hasLength(1),
+          reason: 'the other reminders keep inheriting');
+      expect(find.text('À 20:30 (par défaut)'), findsNWidgets(3));
+    });
+
+    testWidgets('the reset button writes the hour back to inherited',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      mockReminders.enabledById['eye_cleaning'] = false;
+      mockReminders.timeOfDayById['eye_cleaning'] = '06:15';
+      await pumpScreen(tester);
+
+      await tester.tap(find.byTooltip('Utiliser l\'heure par défaut'));
+      await tester.pumpAndSettle();
+
+      expect(mockReminders.clearItemTimeCallCount, 1);
+      expect(mockReminders.timeOfDayById, isEmpty);
+      expect(mockReminders.enabledById['eye_cleaning'], isFalse,
+          reason: 'letting go of an hour must not touch the switch (B6 state)');
+      expect(find.text('À 06:15'), findsNothing);
+      expect(find.text('À 20:30 (par défaut)'), findsNWidgets(4));
+    });
+
+    testWidgets('a custom reminder row shows its hour too, same control',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      mockReminders.customRemindersById[4] = CustomReminder(
+        id: 4,
+        label: 'Crème du change',
+        frequency: const Daily(),
+        subtypeValue: 'nettoyage_nez',
+        completionSource: completionFromEvents,
+      );
+      mockReminders.timeOfDayById['custom_4'] = '17:45';
+      await pumpScreen(tester);
+
+      expect(find.text('Crème du change'), findsOneWidget);
+      expect(find.text('À 17:45'), findsOneWidget);
     });
   });
 

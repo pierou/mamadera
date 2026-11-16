@@ -8,7 +8,9 @@ import '../../../../data/local/db_constants.dart' as db_const;
 import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_frequency.dart';
 import '../../domain/entities/reminder_item.dart';
+import '../../domain/entities/reminder_item_setting.dart';
 import '../../domain/repositories/reminders_repository.dart';
+import '../../domain/services/notification_time.dart';
 
 class RemindersRepositoryImpl implements RemindersRepository {
   /// Explicit injection — no fallback singleton.
@@ -189,19 +191,27 @@ class RemindersRepositoryImpl implements RemindersRepository {
   }
 
   @override
-  Future<Map<String, bool>> getEnabledByItemId({String? babyId}) async {
+  Future<Map<String, ReminderItemSetting>> getSettingsByItemId(
+      {String? babyId}) async {
     try {
       final scopes = _visibleScopes(babyId);
       final rows = await (database.select(database.reminderSettings)
             ..where((t) => t.babyId.isIn(scopes)))
           .get();
-      // An empty table is the normal state (no one has selected anything yet):
-      // It's not a mistake, and the caller interprets the lack of a response as "activated."
-      // Only one line per transfer, eliminating any need for merging or resolving conflicts.
-      return {for (final row in rows) row.itemId: row.enabled};
+      // An empty table is the normal state (nobody has chosen anything yet): not
+      // an error, and the caller reads the absence of a key as "the item's own
+      // defaults" (B6) — never as "on". One row per item, so there is nothing to
+      // merge and nothing to arbitrate between.
+      return {
+        for (final row in rows)
+          row.itemId: ReminderItemSetting(
+            enabled: row.enabled,
+            timeOfDay: row.time,
+          ),
+      };
     } catch (e, stack) {
       _logger.e(
-        'getEnabledByItemId error',
+        'getSettingsByItemId error',
         error: e,
         stackTrace: stack,
       );
@@ -216,25 +226,97 @@ class RemindersRepositoryImpl implements RemindersRepository {
       final scope = _scope(babyId);
       _logger.d('setEnabled($itemId, $enabled, $scope)');
 
-      // Transaction: The upsert operation (baby_id, item_id) must be atomic; otherwise...
-      // A break between the deletion and insertion would leave the recall incomplete.
-      // "Enabled by default" - and the parent's choice would be lost each time.
-      // baby rollover.
-      await database.transaction(() async {
-        await (database.delete(database.reminderSettings)
-              ..where((t) => t.babyId.equals(scope) & t.itemId.equals(itemId)))
-            .go();
-        await database.into(database.reminderSettings).insert(
-              db_app.ReminderSettingsCompanion.insert(
-                babyId: Value(scope),
-                itemId: itemId,
-                enabled: enabled,
+      // Upsert on (baby_id, item_id) that writes **only** `enabled`.
+      //
+      // This was a DELETE + INSERT, which is harmless while the row has one
+      // column and is a silent data-loss the moment it has more: flipping a
+      // switch would erase the reminder's own notification hour (B30) and, from
+      // M4, its label override, frequency override, end and removal state. The
+      // switch owns one column, so it writes one column — and the atomicity the
+      // transaction used to buy now comes from the upsert itself.
+      await database.into(database.reminderSettings).insert(
+            db_app.ReminderSettingsCompanion.insert(
+              babyId: Value(scope),
+              itemId: itemId,
+              enabled: enabled,
+            ),
+            onConflict: DoUpdate(
+              (_) => db_app.ReminderSettingsCompanion.custom(
+                enabled: Variable(enabled),
               ),
-            );
-      });
+            ),
+          );
     } catch (e, stack) {
       _logger.e(
         'setEnabled error',
+        error: e,
+        stackTrace: stack,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> setItemTime(
+    String itemId, {
+    required String timeOfDay,
+    required bool enabledIfNew,
+    String? babyId,
+  }) async {
+    try {
+      final scope = _scope(babyId);
+      // Write-strict, on the write side of the split `notification_time.dart`
+      // documents: junk here would schedule a notification for a time of day
+      // that does not exist. The picker cannot produce it and the importer
+      // refuses it; reaching this line with it is a programming error.
+      if (!isValidNotificationTime(timeOfDay)) {
+        throw ArgumentError.value(
+            timeOfDay, 'timeOfDay', 'not a valid HH:mm time');
+      }
+
+      // Only `time` is written on conflict. On the insert branch the row is
+      // created with [enabledIfNew] — the item's own default, so picking an hour
+      // for a default-off reminder does not switch it on (B6: an hour is not
+      // consent).
+      await database.into(database.reminderSettings).insert(
+            db_app.ReminderSettingsCompanion.insert(
+              babyId: Value(scope),
+              itemId: itemId,
+              enabled: enabledIfNew,
+              time: Value(timeOfDay),
+            ),
+            onConflict: DoUpdate(
+              (_) => db_app.ReminderSettingsCompanion.custom(
+                time: Variable(timeOfDay),
+              ),
+            ),
+          );
+      _logger.d('setItemTime($itemId, $timeOfDay, $scope)');
+    } catch (e, stack) {
+      _logger.e(
+        'setItemTime error',
+        error: e,
+        stackTrace: stack,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> clearItemTime(String itemId, {String? babyId}) async {
+    try {
+      final scope = _scope(babyId);
+      // UPDATE only, never an insert: no row already *means* "inherited", and
+      // creating one here would have to invent an `enabled` to satisfy NOT NULL.
+      await (database.update(database.reminderSettings)
+            ..where((t) => t.babyId.equals(scope) & t.itemId.equals(itemId)))
+          .write(
+        const db_app.ReminderSettingsCompanion(time: Value(null)),
+      );
+      _logger.d('clearItemTime($itemId, $scope)');
+    } catch (e, stack) {
+      _logger.e(
+        'clearItemTime error',
         error: e,
         stackTrace: stack,
       );

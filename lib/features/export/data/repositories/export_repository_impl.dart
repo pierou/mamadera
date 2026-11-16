@@ -53,7 +53,11 @@ class ExportRepositoryImpl implements ExportRepository {
   /// Every bump must be mirrored in `ImportRepositoryImpl._supportedFormatVersion`
   /// in the same change: an exporter that outruns its own importer writes files
   /// this app cannot restore.
-  static const int _exportFormatVersion = 4;
+  /// Format 5 (schema v14, PLAN-v1.4.0 §4): the `reminderSettings` row gained the
+  /// per-reminder notification hour (`timeOfDay`, B30) — and, at M4, the preset
+  /// overrides, the end and the removal state. Absent keys are the defaults, so a
+  /// format ≤4 file still restores byte-for-byte.
+  static const int _exportFormatVersion = 5;
 
   @override
   Future<String> buildExportJson() async {
@@ -122,6 +126,10 @@ class ExportRepositoryImpl implements ExportRepository {
             'babyId': setting.babyId,
             'itemId': setting.itemId,
             'enabled': setting.enabled,
+            // The key is `timeOfDay`, the column is `time` (B30 names the column,
+            // the document speaks camelCase). Two spellings of one field is a
+            // known importer footgun — the importer parses it under this name.
+            'timeOfDay': setting.time,
           },
       ],
       'reminderDismissals': [

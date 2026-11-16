@@ -234,12 +234,13 @@ void main() {
         final doc = jsonDecode(await repository.buildExportJson())
             as Map<String, dynamic>;
 
-        // Format 4 (v1.3.0, item 12) adds `appSettings`. Format 3 (v1.2.x)
-        // gave every event its own `unit`; format 2 (M4) added the two new
-        // sections and the `babyId` fields. This build writes 4 and its own
-        // importer must accept 4 — the assertion that catches a version bump
-        // that forgot `ImportRepositoryImpl._supportedFormatVersion`.
-        expect(doc['exportFormatVersion'], 4);
+        // Format 5 (1.4.0, schema v14) adds the per-reminder hour to the
+        // `reminderSettings` rows. Format 4 (v1.3.0, item 12) added `appSettings`,
+        // format 3 (v1.2.x) gave every event its own `unit`, format 2 (M4) added
+        // the two new sections and the `babyId` fields. This build writes 5 and
+        // its own importer must accept 5 — the assertion that catches a version
+        // bump that forgot `ImportRepositoryImpl._supportedFormatVersion`.
+        expect(doc['exportFormatVersion'], 5);
         expect(doc['generator'], 'mamadera');
         // Informational: Tracks the actual version of the schema, not a mock-up.
         // export contract (a schema change should not break this test).
@@ -390,6 +391,37 @@ void main() {
         expect(settings.single['itemId'], 'vitamine_d');
         expect(settings.single['enabled'], isFalse);
         expect((doc['counts'] as Map<String, dynamic>)['reminderSettings'], 1);
+      });
+
+      test('a reminder hour exports under timeOfDay, NULL when inherited',
+          () async {
+        // B30: the column is `time`, the document key is `timeOfDay`. Two
+        // spellings of one field is the importer footgun the plan names, so the
+        // exported name is pinned here as well as in the importer's tests.
+        await database.customStatement(
+          'INSERT INTO reminder_settings (item_id, enabled, time) VALUES (?, ?, ?)',
+          ['eye_cleaning', 1, '21:05'],
+        );
+        await database.customStatement(
+          'INSERT INTO reminder_settings (item_id, enabled) VALUES (?, ?)',
+          ['vitamine_k', 1],
+        );
+
+        final doc = jsonDecode(await repository.buildExportJson())
+            as Map<String, dynamic>;
+        final rows =
+            (doc['reminderSettings'] as List).cast<Map<String, dynamic>>();
+
+        expect(
+          rows.firstWhere((r) => r['itemId'] == 'eye_cleaning')['timeOfDay'],
+          '21:05',
+        );
+        expect(
+          rows.firstWhere((r) => r['itemId'] == 'vitamine_k')['timeOfDay'],
+          isNull,
+          reason: 'inherited is exported as null, never as the app default: '
+              'the hour belongs to the device, not to the file',
+        );
       });
 
       // A personalized reminder that has been dismissed is stored under the key `custom_<id>`: if...

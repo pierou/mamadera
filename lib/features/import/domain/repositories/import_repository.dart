@@ -190,6 +190,7 @@ class ImportedReminderSetting {
     required this.babyId,
     required this.itemId,
     required this.enabled,
+    this.timeOfDay,
   });
 
   /// `''` = shared by every baby (sentinel); format-1 files omit the field
@@ -201,6 +202,15 @@ class ImportedReminderSetting {
 
   /// Whether the parent left this reminder switched on.
   final bool enabled;
+
+  /// The reminder's own notification hour, `'HH:mm'` (format 5, B30).
+  ///
+  /// `null` — or the key being absent, which is every file before format 5 —
+  /// means **inherit the installation-wide hour**. A present value is validated
+  /// by the parser: the importer refuses an hour that does not exist rather than
+  /// restoring a schedule nobody asked for (write-strict, the split
+  /// `notification_time.dart` documents).
+  final String? timeOfDay;
 }
 
 /// A `reminder_dismissals` row as read from a backup document.
@@ -309,6 +319,7 @@ class ImportedAppSetting {
 /// [DateTime]s and strings so it can cross an isolate boundary.
 class ParsedExport {
   const ParsedExport({
+    required this.formatVersion,
     required this.babyProfiles,
     required this.trackingEvents,
     required this.customReminders,
@@ -318,6 +329,13 @@ class ParsedExport {
     this.reminderCompletions = const [],
     this.appSettings = const [],
   });
+
+  /// The document's `exportFormatVersion`, kept because the restore is not a
+  /// pure replay: a file written before format 5 predates the per-item hour and
+  /// the v14 vitamin D seed, and an absent row meant **"on"** back then. The
+  /// restore translates that meaning instead of losing it (see
+  /// `ImportRepositoryImpl.restore`, which re-seeds for those files only).
+  final int formatVersion;
 
   /// Profiles to restore.
   final List<ImportedBabyProfile> babyProfiles;

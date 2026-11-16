@@ -173,6 +173,20 @@
   "reminderNotificationsSectionTitle": "Notificaciones del sistema",
   "reminderNotificationsOptIn": "Avisarme cuando un recordatorio esté pendiente",
   "reminderNotificationsTimeLabel": "Hora de la notificación",
+  "reminderHourOwn": "A las {time}",
+  "@reminderHourOwn": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "reminderHourInherited": "A las {time} (predeterminada)",
+  "@reminderHourInherited": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "reminderHourPickerTitle": "Hora de notificación de este recordatorio",
+  "reminderHourUseDefault": "Usar la hora predeterminada",
   "reminderNotificationsPermissionDenied": "Las notificaciones están desactivadas en la configuración del sistema. Actívalas allí para recibir las notificaciones de recordatorio.",
   "reminderFrequencyDaily": "Todos los días",
   "reminderFrequencyWeekly": "Cada semana",

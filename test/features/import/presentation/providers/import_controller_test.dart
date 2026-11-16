@@ -48,6 +48,7 @@ AppDatabase _openDatabase() {
 
 /// A document that has been analyzed and categorized, which the fake repository can return.
 ParsedExport _sampleParsed() => ParsedExport(
+      formatVersion: 5,
       babyProfiles: [
         const ImportedBabyProfile(
           id: 'baby_1',

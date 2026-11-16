@@ -25,11 +25,14 @@ part 'import_repository_restore_inserts.dart';
 /// The exporter owns this number; anything above it belongs to a future app and
 /// must not be guessed at. 3 (v1.2.x) adds `unit` to every event row; 4
 /// (v1.3.0, item 12) adds the `appSettings` section.
+/// 5 (1.4.0, schema v14) adds the per-reminder notification hour to the
+/// `reminderSettings` rows (B30); M4 extends the same format with the preset
+/// overrides, the end and the removal state — one bump per release, not per field.
 ///
 /// Bumped in the same change as `ExportRepositoryImpl._exportFormatVersion`:
 /// an importer that lags its own exporter refuses the backups this very build
 /// writes.
-const int _supportedFormatVersion = 4;
+const int _supportedFormatVersion = 5;
 
 /// Oldest document format this build can still restore.
 ///
@@ -143,6 +146,10 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
   });
 
   final parsed = ParsedExport(
+    // Validated by _validateHeader above (an int within the supported range);
+    // restore() needs it because a pre-5 file predates the per-item hour and the
+    // vitamin D seed, and its row-absence means something else.
+    formatVersion: document['exportFormatVersion'] as int,
     babyProfiles: babyProfiles,
     trackingEvents: trackingEvents,
     customReminders: customReminders,
@@ -379,10 +386,21 @@ ImportedReminderSetting _parseSetting(
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
         section: section);
   }
+  // Absent (every file before format 5) = inherit the global hour. Present but
+  // not a real `HH:mm` is refused, not repaired: the app's read side is lax (it
+  // falls back to the global hour), but a file is a one-shot restore and an hour
+  // that does not exist would schedule a notification nobody asked for. The
+  // importer applies the same rule to the global hour (`appSettings`).
+  final timeOfDay = _optionalString(row, 'timeOfDay', section);
+  if (timeOfDay != null && !isValidNotificationTime(timeOfDay)) {
+    throw const ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
   return ImportedReminderSetting(
     babyId: babyId,
     itemId: itemId,
     enabled: enabled,
+    timeOfDay: timeOfDay,
   );
 }
 
@@ -647,17 +665,8 @@ class ImportRepositoryImpl implements ImportRepository {
             );
       }
 
-      for (final setting in parsed.reminderSettings) {
-        await database.into(database.reminderSettings).insert(
-              db_app.ReminderSettingsCompanion.insert(
-                // The `babyId` column has a default value defined: the parameter.
-                // The `insertion` option is optional, so we enclose it in parentheses.
-                babyId: Value(setting.babyId),
-                itemId: setting.itemId,
-                enabled: setting.enabled,
-              ),
-            );
-      }
+      await _insertReminderSettings(
+          database, parsed.reminderSettings, parsed.formatVersion);
 
       for (final dismissal in parsed.reminderDismissals) {
         await database.into(database.reminderDismissals).insert(

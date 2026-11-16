@@ -8,6 +8,7 @@ import 'package:mamadera/features/reminders/data/repositories/reminders_reposito
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
+import 'package:mamadera/features/reminders/domain/entities/reminder_item_setting.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
 
 void main() {
@@ -28,6 +29,16 @@ void main() {
     });
 
     final vitaminDItem = ReminderItemPresets.vitaminD;
+
+    /// The switch alone, projected from the settings rows — what a consumer that
+    /// cares only about enabled sees. `getSettingsByItemId` is the read; the
+    /// repository has no separate "enabled map" query any more, and must not get
+    /// one: two reads of `reminder_settings` is how a switch and an hour start
+    /// disagreeing about the same reminder.
+    Future<Map<String, bool>> enabledOf({String? babyId}) async {
+      final rows = await repository.getSettingsByItemId(babyId: babyId);
+      return {for (final entry in rows.entries) entry.key: entry.value.enabled};
+    }
 
     group('getLastCompleted', () {
       test('returns null when no tracking events exist', () async {
@@ -228,13 +239,13 @@ void main() {
       test('returns an empty map on a fresh database', () async {
         // Empty table = no one has selected anything yet, and therefore all the...
         // The reminders are enabled. This is not a mistake.
-        expect(await repository.getEnabledByItemId(), isEmpty);
+        expect(await enabledOf(), isEmpty);
       });
 
       test('persists a disabled reminder', () async {
         await repository.setEnabled(vitaminDItem.id, enabled: false);
 
-        expect(await repository.getEnabledByItemId(), {vitaminDItem.id: false});
+        expect(await enabledOf(), {vitaminDItem.id: false});
       });
 
       test('upserts instead of stacking rows for the same item', () async {
@@ -245,7 +256,7 @@ void main() {
         expect(rows, hasLength(1));
         expect(rows.single.itemId, vitaminDItem.id);
         expect(rows.single.enabled, isTrue);
-        expect(await repository.getEnabledByItemId(), {vitaminDItem.id: true});
+        expect(await enabledOf(), {vitaminDItem.id: true});
       });
 
       test('keeps one row per reminder item', () async {
@@ -254,12 +265,144 @@ void main() {
             enabled: false);
 
         expect(
-          await repository.getEnabledByItemId(),
+          await enabledOf(),
           {
             vitaminDItem.id: false,
             ReminderItemPresets.eyeCleaning.id: false,
           },
         );
+      });
+    });
+
+    // BACKLOG B30: one row now carries two decisions, so the interesting
+    // failures are the ones where writing one column erases the other.
+    group('the per-reminder hour (B30)', () {
+      test('reads back the hour that was set, beside the switch', () async {
+        await repository.setEnabled(vitaminDItem.id, enabled: true);
+        await repository.setItemTime(
+          vitaminDItem.id,
+          timeOfDay: '21:05',
+          enabledIfNew: true,
+        );
+
+        final settings = await repository.getSettingsByItemId();
+        expect(settings[vitaminDItem.id],
+            const ReminderItemSetting(enabled: true, timeOfDay: '21:05'));
+      });
+
+      test('a row with no hour reads as "inherit", not as a default hour',
+          () async {
+        await repository.setEnabled(vitaminDItem.id, enabled: true);
+
+        expect(await repository.getSettingsByItemId(),
+            {vitaminDItem.id: const ReminderItemSetting(enabled: true)});
+        expect(
+          (await database.getAllReminderSettings()).single.time,
+          isNull,
+          reason: 'NULL is the stored form of "inherit the global hour"',
+        );
+      });
+
+      test('setting an hour on the default-off preset does not switch it on',
+          () async {
+        // B6's consent line: choosing an hour for vitamin D is not consent to
+        // receive it, so the row created by the write carries the item's own
+        // default, which the caller passes in.
+        await repository.setItemTime(
+          vitaminDItem.id,
+          timeOfDay: '08:00',
+          enabledIfNew: vitaminDItem.enabledByDefault,
+        );
+
+        final row = (await database.getAllReminderSettings()).single;
+        expect(row.enabled, isFalse);
+        expect(row.time, '08:00');
+      });
+
+      test('setting an hour leaves an existing switch exactly as it was',
+          () async {
+        await repository.setEnabled(vitaminDItem.id, enabled: false);
+        await repository.setItemTime(
+          vitaminDItem.id,
+          timeOfDay: '08:00',
+          enabledIfNew: true,
+        );
+
+        final row = (await database.getAllReminderSettings()).single;
+        expect(row.enabled, isFalse,
+            reason: 'enabledIfNew is for a new row only — never an update');
+      });
+
+      test('switching a reminder does not erase its hour', () async {
+        // The regression this whole group exists for: setEnabled used to be a
+        // DELETE + INSERT, which was invisible while the row had one column and
+        // silently discarded the hour as soon as it had two.
+        await repository.setItemTime(
+          vitaminDItem.id,
+          timeOfDay: '21:30',
+          enabledIfNew: true,
+        );
+        await repository.setEnabled(vitaminDItem.id, enabled: false);
+        await repository.setEnabled(vitaminDItem.id, enabled: true);
+
+        final row = (await database.getAllReminderSettings()).single;
+        expect(row.time, '21:30');
+        expect(row.enabled, isTrue);
+      });
+
+      test('inheriting again clears the hour and keeps the row', () async {
+        await repository.setItemTime(
+          vitaminDItem.id,
+          timeOfDay: '21:30',
+          enabledIfNew: true,
+        );
+        await repository.setEnabled(vitaminDItem.id, enabled: false);
+
+        await repository.clearItemTime(vitaminDItem.id);
+
+        final rows = await database.getAllReminderSettings();
+        expect(rows, hasLength(1), reason: '"inherit" is not "delete"');
+        expect(rows.single.time, isNull);
+        expect(rows.single.enabled, isFalse,
+            reason: 'the switch is a different decision and stays put');
+      });
+
+      test('inheriting on a reminder with no row creates nothing', () async {
+        await repository.clearItemTime(vitaminDItem.id);
+
+        expect(await database.getAllReminderSettings(), isEmpty,
+            reason: 'absence already means inherited; a created row would '
+                'have to invent an enabled flag');
+      });
+
+      test('refuses an hour that does not exist', () async {
+        // Write-strict: the picker cannot produce this and the importer refuses
+        // it, so reaching the repository with it is a programming error.
+        expect(
+          () => repository.setItemTime(vitaminDItem.id,
+              timeOfDay: '8:5', enabledIfNew: true),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(await database.getAllReminderSettings(), isEmpty);
+      });
+
+      test('the hour is scoped per baby, like the switch', () async {
+        await repository.setItemTime(
+          vitaminDItem.id,
+          timeOfDay: '07:00',
+          enabledIfNew: true,
+          babyId: 'baby_a',
+        );
+
+        expect(
+            (await repository.getSettingsByItemId(babyId: 'baby_a'))
+                .values
+                .single
+                .timeOfDay,
+            '07:00');
+        expect(await repository.getSettingsByItemId(babyId: 'baby_b'), isEmpty);
+        expect(await repository.getSettingsByItemId(), isEmpty,
+            reason: 'the profileless scope does not inherit a baby hour');
       });
     });
 
@@ -463,13 +606,13 @@ void main() {
                 dismissedAt: DateTime.now(),
               ),
             );
-        expect(await repository.getEnabledByItemId(), contains(key));
+        expect(await enabledOf(), contains(key));
         expect(await database.getAllReminderDismissals(), hasLength(1));
 
         await repository.deleteCustomReminder(id);
 
         expect(await repository.getCustomReminders(), isEmpty);
-        expect(await repository.getEnabledByItemId(), isEmpty);
+        expect(await enabledOf(), isEmpty);
         expect(await database.getAllReminderDismissals(), isEmpty);
       });
 
@@ -481,7 +624,7 @@ void main() {
 
         // A deletion that doesn't target any specific line should not affect the...
         // settings for other reminders.
-        expect(await repository.getEnabledByItemId(), {'custom_99': false});
+        expect(await enabledOf(), {'custom_99': false});
       });
 
       test('a deleted custom reminder leaves no row in any table', () async {
@@ -507,7 +650,7 @@ void main() {
         await repository.deleteCustomReminder(id);
 
         expect(await repository.getCustomReminders(), isEmpty);
-        expect(await repository.getEnabledByItemId(), isNot(contains(key)));
+        expect(await enabledOf(), isNot(contains(key)));
         expect(await repository.getLastManualCompletion(key), isNull);
         expect(await repository.getLastDismissal(key), isNull);
       });
@@ -615,11 +758,9 @@ void main() {
 
         // Off for A, functional for B.
         await repository.setEnabled(presetId, enabled: false, babyId: 'baby_a');
+        expect((await enabledOf(babyId: 'baby_a'))[presetId], isFalse);
         expect(
-            (await repository.getEnabledByItemId(babyId: 'baby_a'))[presetId],
-            isFalse);
-        expect(
-          await repository.getEnabledByItemId(babyId: 'baby_b'),
+          await enabledOf(babyId: 'baby_b'),
           isNot(contains(presetId)),
         );
 
@@ -659,11 +800,11 @@ void main() {
         expect((await database.getAllReminderSettings()).single.babyId, '');
 
         // It's readable even without a profile.
-        expect((await repository.getEnabledByItemId())['vitamine_d'], isFalse);
+        expect((await enabledOf())['vitamine_d'], isFalse);
         // ...but it is invisible to a baby born later: its presence is.
         // empty, so the preset remains active by default.
         expect(
-          await repository.getEnabledByItemId(babyId: 'nouveau'),
+          await enabledOf(babyId: 'nouveau'),
           isNot(contains('vitamine_d')),
         );
       });
@@ -674,14 +815,11 @@ void main() {
         await repository.setEnabled('vitamine_d',
             enabled: true, babyId: 'nouveau');
 
-        expect(
-            (await repository.getEnabledByItemId(
-                babyId: 'nouveau'))['vitamine_d'],
-            isTrue);
+        expect((await enabledOf(babyId: 'nouveau'))['vitamine_d'], isTrue);
         // The "other" baby doesn't read either its own line (which is absent) or the line...
         // without profile: this is a default setting, so it is enabled.
         expect(
-          await repository.getEnabledByItemId(babyId: 'autre'),
+          await enabledOf(babyId: 'autre'),
           isNot(contains('vitamine_d')),
         );
         expect(await database.getAllReminderSettings(), hasLength(2));
@@ -719,7 +857,7 @@ void main() {
 
         // The "baby b" object, created afterward, inherits nothing: no settings, no...
         // Ignored, no manual adjustment.
-        expect(await repository.getEnabledByItemId(babyId: 'b'), isEmpty);
+        expect(await enabledOf(babyId: 'b'), isEmpty);
         expect(await repository.getLastDismissal('vitamine_d', babyId: 'b'),
             isNull);
         expect(

@@ -4,6 +4,7 @@ import 'package:mamadera/core/providers/active_baby_provider.dart';
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
+import 'package:mamadera/features/reminders/domain/entities/reminder_item_setting.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
@@ -64,7 +65,10 @@ void main() {
 
       expect(
         await container.read(reminderSettingsProvider.future),
-        {ReminderItemPresets.vitaminK.id: false},
+        {
+          ReminderItemPresets.vitaminK.id:
+              const ReminderItemSetting(enabled: false)
+        },
       );
     });
   });
@@ -151,7 +155,10 @@ void main() {
       // No back-tracking: the switch must not move backward by even a single frame.
       expect(
         container.read(reminderSettingsProvider).value,
-        {ReminderItemPresets.vitaminD.id: false},
+        {
+          ReminderItemPresets.vitaminD.id:
+              const ReminderItemSetting(enabled: false)
+        },
       );
     });
 
@@ -165,6 +172,85 @@ void main() {
 
       expect(
           mockReminders.enabledById[ReminderItemPresets.vitaminD.id], isTrue);
+    });
+  });
+
+  // BACKLOG B30: the hour lives on the same row as the switch, so the notifier
+  // owns two writes to one row — and the interesting promises are that each
+  // leaves the other alone, and that an hour is not consent (B6).
+  group('ReminderSettingsNotifier per-reminder hour', () {
+    test('picking an hour stores it and updates the cached row at once',
+        () async {
+      await container.read(reminderSettingsProvider.future);
+
+      await container
+          .read(reminderSettingsProvider.notifier)
+          .setTime(ReminderItemPresets.eyeCleaning, hour: 8, minute: 5);
+
+      expect(mockReminders.timeOfDayById[ReminderItemPresets.eyeCleaning.id],
+          '08:05',
+          reason: 'zero-padded, the stored form — never "8:5"');
+      expect(
+        container.read(reminderSettingsProvider).value,
+        {
+          ReminderItemPresets.eyeCleaning.id:
+              const ReminderItemSetting(enabled: true, timeOfDay: '08:05')
+        },
+      );
+    });
+
+    test('picking an hour leaves an existing switch off', () async {
+      mockReminders.enabledById[ReminderItemPresets.eyeCleaning.id] = false;
+      await container.read(reminderSettingsProvider.future);
+
+      await container
+          .read(reminderSettingsProvider.notifier)
+          .setTime(ReminderItemPresets.eyeCleaning, hour: 21, minute: 0);
+
+      expect(mockReminders.enabledById[ReminderItemPresets.eyeCleaning.id],
+          isFalse);
+    });
+
+    test('an hour on the default-off preset does not switch it on', () async {
+      // B6's consent line, one level down: no row exists for vitamin D, the
+      // parent gives it an hour, and the row that gets created must carry the
+      // item's own default — off — not `true`.
+      await container.read(reminderSettingsProvider.future);
+
+      await container
+          .read(reminderSettingsProvider.notifier)
+          .setTime(ReminderItemPresets.vitaminD, hour: 19, minute: 30);
+
+      expect(mockReminders.timeOfDayById[ReminderItemPresets.vitaminD.id],
+          '19:30');
+      expect(
+          mockReminders.enabledById[ReminderItemPresets.vitaminD.id], isFalse,
+          reason: 'an hour is not consent to receive the reminder');
+      // And it still does not surface on Home.
+      final items = await container.read(enabledRemindersProvider.future);
+      expect(items.map((i) => i.id),
+          isNot(contains(ReminderItemPresets.vitaminD.id)));
+    });
+
+    test('inheriting again clears the hour and keeps the row', () async {
+      mockReminders.enabledById[ReminderItemPresets.eyeCleaning.id] = false;
+      mockReminders.timeOfDayById[ReminderItemPresets.eyeCleaning.id] = '08:05';
+      await container.read(reminderSettingsProvider.future);
+
+      await container
+          .read(reminderSettingsProvider.notifier)
+          .useGlobalTime(ReminderItemPresets.eyeCleaning);
+
+      expect(mockReminders.clearItemTimeCallCount, 1);
+      expect(mockReminders.timeOfDayById, isEmpty);
+      expect(
+        container.read(reminderSettingsProvider).value,
+        {
+          ReminderItemPresets.eyeCleaning.id:
+              const ReminderItemSetting(enabled: false)
+        },
+        reason: 'the row stays, the switch stays: only the hour went back',
+      );
     });
   });
 

@@ -45,7 +45,7 @@ Map<String, dynamic> validDocument({
   List<dynamic>? appSettings,
   Map<String, dynamic>? counts,
   int formatVersion = 2,
-  int schemaVersion = 10,
+  int schemaVersion = 14,
   String? generator,
 }) {
   final profiles = babyProfiles ??
@@ -374,12 +374,114 @@ void main() {
     });
 
     test('rejects a format version it does not know', () async {
-      // Version 4 (v1.3.0, `appSettings`) is the format of this build; only 5
-      // and above belong to a future app whose design cannot be guessed at.
+      // Version 5 (1.4.0, the per-reminder hour) is the format of this build;
+      // only 6 and above belong to a future app whose design cannot be guessed at.
       await expectRejected(
-        document: validDocument(formatVersion: 5),
+        document: validDocument(formatVersion: 6),
         reason: ImportRejectionReason.newerFormatVersion,
       );
+    });
+
+    // BACKLOG B30, export format 5: the `reminderSettings` row carries the
+    // reminder's own notification hour. The column is `time`, the key is
+    // `timeOfDay` — B30 named the column, the document speaks camelCase, and the
+    // importer must parse the *key*.
+    group('the per-reminder hour (format 5)', () {
+      test('a stored hour restores into the row, an absent key inherits',
+          () async {
+        final source = _openDatabase();
+        addTearDown(source.close);
+        final repository = ImportRepositoryImpl(
+            database: source, encryption: _FakeEncryption());
+
+        await repository.restore(await repository.parseExport(_jsonOf(
+          validDocument(
+            formatVersion: 5,
+            reminderSettings: [
+              {
+                'babyId': 'baby_1',
+                'itemId': 'eye_cleaning',
+                'enabled': true,
+                'timeOfDay': '21:05'
+              },
+              {'babyId': 'baby_1', 'itemId': 'vitamine_d', 'enabled': true},
+            ],
+          ),
+        )));
+
+        final rows = await source.getAllReminderSettings();
+        expect(
+            rows.firstWhere((r) => r.itemId == 'eye_cleaning').time, '21:05');
+        expect(rows.firstWhere((r) => r.itemId == 'vitamine_d').time, isNull,
+            reason: 'a row without the key inherits the global hour');
+      });
+
+      test('an hour that is not HH:mm refuses the file, and writes nothing',
+          () async {
+        final before = await _allCounts(database);
+
+        await expectRejected(
+          document: validDocument(
+            formatVersion: 5,
+            reminderSettings: [
+              {
+                'babyId': 'baby_1',
+                'itemId': 'eye_cleaning',
+                'enabled': true,
+                'timeOfDay': '8:5',
+              }
+            ],
+          ),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'reminderSettings',
+        );
+        expect(await _allCounts(database), before,
+            reason: 'write-strict: a malformed hour is refused, not repaired '
+                'into an inheritance the parent never chose');
+      });
+
+      test('a malformed hour is refused even when 24:00 looks well-formed',
+          () async {
+        await expectRejected(
+          document: validDocument(
+            formatVersion: 5,
+            reminderSettings: [
+              {
+                'babyId': 'baby_1',
+                'itemId': 'eye_cleaning',
+                'enabled': true,
+                'timeOfDay': '24:00',
+              }
+            ],
+          ),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'reminderSettings',
+        );
+      });
+
+      test('a format-5 file is replayed as written: the seed stays out',
+          () async {
+        // From format 5 on, the export writes every row that exists, so an
+        // absent vitamin D row genuinely means "new scope, default off". Re-
+        // seeding here would re-light a reminder the file says is untouched.
+        final source = _openDatabase();
+        addTearDown(source.close);
+        final repository = ImportRepositoryImpl(
+            database: source, encryption: _FakeEncryption());
+
+        await repository.restore(await repository.parseExport(_jsonOf(
+          validDocument(
+            formatVersion: 5,
+            reminderSettings: [
+              {'babyId': '', 'itemId': 'eye_cleaning', 'enabled': false},
+            ],
+          ),
+        )));
+
+        final rows = await source.getAllReminderSettings();
+        expect(rows.map((r) => r.itemId), ['eye_cleaning'],
+            reason: 'no seed row for a format-5 document');
+      });
     });
 
     test('accepts a format-3 document and reads its unit', () async {
@@ -997,7 +1099,13 @@ void main() {
       expect(reminder.babyId, '');
       expect(reminder.completionSource, 'from_events');
       expect(reminder.subtypeValue, 'nettoyage_nez');
-      expect((await database.getAllReminderSettings()).single.babyId, '');
+      // The file's own row, plus B6's seed for the scopes the restore creates:
+      // a pre-format-5 document has no vitamin D row, and in that vocabulary an
+      // absent row meant "on" — replaying it must not switch the reminder off.
+      final settings = await database.getAllReminderSettings();
+      expect(settings.where((s) => s.itemId != 'vitamine_d').single.babyId, '');
+      expect(settings.where((s) => s.itemId == 'vitamine_d'), hasLength(2),
+          reason: 'the sentinel scope and the file profile are both seeded');
       expect((await database.getAllReminderDismissals()).single.babyId, '');
       expect(await database.getAllMeasurements(), isEmpty);
       expect(await database.getAllReminderCompletions(), isEmpty);
@@ -1332,6 +1440,7 @@ void main() {
       // A ParsedExport built by hand, bypassing the parser, so the *database*
       // rejects the label (withLength(max: 60)) after the deletes have run.
       final impossible = ParsedExport(
+        formatVersion: 5,
         babyProfiles: [
           const ImportedBabyProfile(
             id: 'newborn',

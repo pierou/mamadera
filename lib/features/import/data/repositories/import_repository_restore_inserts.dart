@@ -40,3 +40,41 @@ Future<void> _insertAppSettings(
         );
   }
 }
+
+/// Re-inserts `reminder_settings` rows, plus the one thing a **pre-format-5**
+/// document cannot carry: B6's vitamin D seed.
+///
+/// In the pre-5 vocabulary an absent vitamin D row meant "on", and a restore
+/// deletes every row before inserting. Replaying such a file without the seed
+/// would therefore switch the reminder off on a parent who never turned it off —
+/// the one outcome PLAN-v1.4.0 D-R1 forbids — so the statement is the very one
+/// the v14 migration runs (`db_const.vitaminDSeedInsert`): INSERT-only,
+/// `NOT EXISTS`-guarded, never an UPDATE, idempotent.
+///
+/// Format 5 and above needs nothing: that export writes every row that exists,
+/// so an absent row genuinely means "new scope, item default".
+Future<void> _insertReminderSettings(
+  db_app.AppDatabase database,
+  List<ImportedReminderSetting> settings,
+  int formatVersion,
+) async {
+  for (final setting in settings) {
+    await database.into(database.reminderSettings).insert(
+          db_app.ReminderSettingsCompanion.insert(
+            // The `babyId` column has a default value defined: the parameter.
+            // The `insertion` option is optional, so we enclose it in parentheses.
+            babyId: Value(setting.babyId),
+            itemId: setting.itemId,
+            enabled: setting.enabled,
+            // The document's key is `timeOfDay`, the column is `time` (B30
+            // named the column, the export speaks camelCase). `Value(null)` when
+            // the key was absent: inherit the installation-wide hour.
+            time: Value(setting.timeOfDay),
+          ),
+        );
+  }
+
+  if (formatVersion < 5) {
+    await database.customStatement(db_const.vitaminDSeedInsert);
+  }
+}

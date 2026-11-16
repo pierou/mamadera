@@ -85,7 +85,7 @@ final enabledRemindersProvider =
   final custom = await ref.watch(customReminderItemsProvider.future);
   final settings = await ref.watch(reminderSettingsProvider.future);
   return [...presets, ...custom]
-      .where((item) => settings[item.id] ?? item.enabledByDefault)
+      .where((item) => settings[item.id]?.enabled ?? item.enabledByDefault)
       .toList();
 });
 

@@ -1575,10 +1575,14 @@ uploads.
 
 ## B30 — Per-reminder notification hour: set it on the reminder itself, in the settings list
 
-**Status:** open (owner request, 2026-11-12: « set the reminder hour of notification directly on
-the reminder in the settings ») · **Severity:** product gap · **Cost:** medium — schema v14 +
-export format v5 + per-item time in the scheduler loop + two UI surfaces + l10n · **Risk:** low —
-additive; the global hour stays the fallback
+**Status:** **in development on `release/v1.4.0`** — implemented as v1.4.0 **M2** (schema v14
+column `reminder_settings.time`, per-item hour resolved in the scheduler's plan loop,
+`ReminderHourControl` on preset rows and custom rows, export/import format 5, l10n fr/en/es).
+Owner request 2026-11-12 (« set the reminder hour of notification directly on the reminder in
+the settings »); the §7 asymmetry the ticket named (a UI hour the scheduler never read) could
+not exist, because nothing wrote the column before this. · **Severity:** product gap · **Cost:**
+medium — schema v14 + export format v5 + per-item time in the scheduler loop + two UI surfaces +
+l10n · **Risk:** low — additive; the global hour stays the fallback
 **Found:** 2026-11-12, owner request. Mechanics verified in `develop` (1.3.1+15) the same evening.
 **Files:** `lib/features/reminders/presentation/screens/reminder_settings_screen.dart` (preset rows
 are bare `SwitchListTile`s; the only time control is the global `reminderNotificationsTimeLabel`

@@ -556,6 +556,30 @@ abstract class AppLocalizations {
   /// **'Heure de notification'**
   String get reminderNotificationsTimeLabel;
 
+  /// No description provided for @reminderHourOwn.
+  ///
+  /// In fr, this message translates to:
+  /// **'À {time}'**
+  String reminderHourOwn(Object time);
+
+  /// No description provided for @reminderHourInherited.
+  ///
+  /// In fr, this message translates to:
+  /// **'À {time} (par défaut)'**
+  String reminderHourInherited(Object time);
+
+  /// No description provided for @reminderHourPickerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure de notification de ce rappel'**
+  String get reminderHourPickerTitle;
+
+  /// No description provided for @reminderHourUseDefault.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utiliser l\'heure par défaut'**
+  String get reminderHourUseDefault;
+
   /// No description provided for @reminderNotificationsPermissionDenied.
   ///
   /// In fr, this message translates to:

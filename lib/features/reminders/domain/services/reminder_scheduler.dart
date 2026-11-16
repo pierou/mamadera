@@ -2,10 +2,24 @@ import '../../../../data/local/db_constants.dart' show completionManual;
 import '../../../../shared/domain/entities/baby_profile.dart';
 import '../entities/custom_reminder.dart';
 import '../entities/reminder_item.dart';
+import '../entities/reminder_item_setting.dart';
 import '../repositories/reminders_repository.dart';
 import 'local_notification_service.dart';
+import 'notification_time.dart';
 import 'reminder_scheduling.dart';
 import 'reminders_service.dart' show defaultDismissalWindow;
+
+/// The localized notification text for one item of one scope (`{baby}` / `{care}`
+/// placeholders, plan §5). Injected into [ReminderScheduler.sync] so the domain
+/// stays Flutter-free.
+///
+/// Named rather than spelled inline at both call sites: the same signature
+/// appeared twice (here and in `_buildPlan`) and the inline form wraps ugly.
+/// (Its other virtue is documentary — see the `ReminderScheduler` note in the
+/// Makefile's `check-complexity` baseline about how little of this class the
+/// complexity scanner can actually see.)
+typedef NotificationContent = String Function(
+    ReminderItem item, BabyProfile? scope);
 
 /// D3: a due-at-sync item is nudged this many seconds after the sync that
 /// sees it. One-shot; the ban is re-arming, not the 60 s delay itself.
@@ -90,8 +104,8 @@ class ReminderScheduler {
     required bool notificationsOptIn,
     required int preferredHour,
     required int preferredMinute,
-    required String Function(ReminderItem, BabyProfile?) title,
-    required String Function(ReminderItem, BabyProfile?) body,
+    required NotificationContent title,
+    required NotificationContent body,
     DateTime? now,
   }) async {
     // Step 0 (R13): init failed in this process ⇒ the OS holds no schedules
@@ -110,31 +124,108 @@ class ReminderScheduler {
 
     final instant = now ?? DateTime.now();
 
-    // Steps 3+4: build the new plan (scoping, item sets, enabled filter,
-    // nextDueAt). Kept as a flat list; plan indices are assigned below.
+    // Steps 3+4: build the new plan (scoping, item sets, the enabled filter,
+    // nextDueAt). A flat list; the plan indices are assigned by the diff below.
+    final fresh = await _buildPlan(
+      babies: babies,
+      preferredHour: preferredHour,
+      preferredMinute: preferredMinute,
+      instant: instant,
+      title: title,
+      body: body,
+    );
+
+    // Steps 5 and 6: diff against the last submitted plan, submit and cancel,
+    // store the new baseline, and report what the OS holds.
+    return _applyDiff(fresh);
+  }
+
+  /// The item set for a scope (plan §3.5 step 4): presets in the pinned slot
+  /// order, then customs by `dbId` ascending (the repository's order).
+  Future<List<ReminderItem>> _itemsForScope(BabyProfile? scope) async {
+    final presets = reminderItemsFor(scope);
+    final byId = {for (final item in presets) item.id: item};
+    final ordered = [
+      for (final slot in _presetSlotOrder)
+        if (byId.containsKey(slot)) byId[slot]!,
+    ];
+    final customs = [
+      for (final reminder
+          in await _repository.getCustomReminders(babyId: scope?.id))
+        CustomReminderPresets.forCustom(
+          reminder,
+          monthlyDay: scope?.birthDate.day,
+        ),
+    ];
+    return [...ordered, ...customs];
+  }
+
+  /// The completion the pill and the scheduler must agree on: the event-driven
+  /// lookup first, the manual journal only for detached (manual) items — the
+  /// same split as `RemindersService._checkDue`.
+  Future<DateTime?> _lastCompleted(
+      ReminderItem item, BabyProfile? scope) async {
+    final lastEventAt = await _repository.getLastCompleted(
+      item,
+      babyId: scope?.id,
+    );
+    if (lastEventAt == null && item.completionSource == completionManual) {
+      return _repository.getLastManualCompletion(item.id, babyId: scope?.id);
+    }
+    return lastEventAt;
+  }
+
+  /// The new plan: one entry per scheduled or overdue item of every scope
+  /// (plan §3.5 steps 3 and 4), in enumeration order and **without** plan indices
+  /// — those belong to the diff, which assigns them to the scheduled subset only.
+  ///
+  /// Kept apart from [sync] on purpose: this half reads the DB and the clock, the
+  /// other half talks to the OS. Each is testable and readable on its own.
+  Future<List<_FreshEntry>> _buildPlan({
+    required List<BabyProfile> babies,
+    required int preferredHour,
+    required int preferredMinute,
+    required DateTime instant,
+    required NotificationContent title,
+    required NotificationContent body,
+  }) async {
     final scopes = babies.isEmpty ? <BabyProfile?>[null] : babies;
     final fresh = <_FreshEntry>[];
     for (final scope in scopes) {
       final items = await _itemsForScope(scope);
-      final enabled = await _repository.getEnabledByItemId(babyId: scope?.id);
+      // One query per scope for everything the row carries: the switch and the
+      // item's own hour (B30) — never one query per item.
+      final settings = await _repository.getSettingsByItemId(babyId: scope?.id);
       for (final item in items) {
+        final setting = settings[item.id];
         // B6 (D-R2): "no row" is not "on" — it is the item's own default. A
         // new baby has no `vitamine_d` row, so it must produce no OS entry;
         // honouring the default in the providers only would show the reminder
         // as off while its notification still fired. (M4 folds this line into
         // the shared effective-item function.)
-        if (!(enabled[item.id] ?? item.enabledByDefault)) continue;
+        if (!(setting?.enabled ?? item.enabledByDefault)) continue;
         final lastCompleted = await _lastCompleted(item, scope);
         final lastDismissal = await _repository.getLastDismissal(
           item.id,
           babyId: scope?.id,
         );
+        // B30: the hour is resolved **per item**, here, and `nextDueAt` itself is
+        // unchanged — it simply receives this item's time of day. The plan diff
+        // needs no new key for it: an edited hour moves `at`, and `at` is already
+        // the first term of the `_PlanEntry` comparison, so the entry is
+        // re-submitted by its id exactly like a renamed baby (B14's
+        // stale-schedule concern is covered by the existing diff).
+        final fireAt = _timeOfDayFor(
+          setting,
+          fallbackHour: preferredHour,
+          fallbackMinute: preferredMinute,
+        );
         final due = nextDueAt(
           item,
           now: instant,
           dismissalWindow: _dismissalWindow,
-          preferredHour: preferredHour,
-          preferredMinute: preferredMinute,
+          preferredHour: fireAt.hour,
+          preferredMinute: fireAt.minute,
           lastCompleted: lastCompleted,
           lastDismissal: lastDismissal,
         );
@@ -152,8 +243,17 @@ class ReminderScheduler {
         );
       }
     }
+    return fresh;
+  }
 
-    // Step 5: diff against the last submitted plan and submit/cancel.
+  /// Step 5 and 6: reconcile the OS schedule with [fresh] — the plan just built.
+  ///
+  /// Unchanged entries are skipped (a steady tick costs zero plugin calls), stale
+  /// ids are cancelled, changed or new ones are (re)submitted **by id** so the
+  /// plugin replaces the pending entry instead of stacking a duplicate, and
+  /// overdue items take a sticky catch-up nudge in their own id band (D3/D5).
+  /// Returns the number of entries now pending in the OS.
+  Future<int> _applyDiff(List<_FreshEntry> fresh) async {
     // Plan indices are assigned to *scheduled* entries only (D5); catch-up
     // nudges take a sticky id from [catchUpIdBase].
     // Period identity is a calendar day, not a month: a weekly item has a
@@ -241,39 +341,28 @@ class ReminderScheduler {
     return _plan.length + _catchUpArmed.length;
   }
 
-  /// The item set for a scope (plan §3.5 step 4): presets in the pinned slot
-  /// order, then customs by `dbId` ascending (the repository's order).
-  Future<List<ReminderItem>> _itemsForScope(BabyProfile? scope) async {
-    final presets = reminderItemsFor(scope);
-    final byId = {for (final item in presets) item.id: item};
-    final ordered = [
-      for (final slot in _presetSlotOrder)
-        if (byId.containsKey(slot)) byId[slot]!,
-    ];
-    final customs = [
-      for (final reminder
-          in await _repository.getCustomReminders(babyId: scope?.id))
-        CustomReminderPresets.forCustom(
-          reminder,
-          monthlyDay: scope?.birthDate.day,
-        ),
-    ];
-    return [...ordered, ...customs];
-  }
-
-  /// The completion the pill and the scheduler must agree on: the event-driven
-  /// lookup first, the manual journal only for detached (manual) items — the
-  /// same split as `RemindersService._checkDue`.
-  Future<DateTime?> _lastCompleted(
-      ReminderItem item, BabyProfile? scope) async {
-    final lastEventAt = await _repository.getLastCompleted(
-      item,
-      babyId: scope?.id,
-    );
-    if (lastEventAt == null && item.completionSource == completionManual) {
-      return _repository.getLastManualCompletion(item.id, babyId: scope?.id);
+  /// The time of day this item's notification fires at (B30).
+  ///
+  /// Its own stored hour when the row carries one that is a real `HH:mm`, the
+  /// installation-wide pair otherwise — which is what `null` means: *inherit*,
+  /// keeping the global row meaningful as "the default hour".
+  ///
+  /// Read-lax, with the fallback chosen deliberately: an unusable stored string
+  /// is treated as "inherit", because the global hour is the promise the parent
+  /// can still see and change, while the app's 09:00 default would be a third
+  /// value nobody picked. The write side is strict (`isValidNotificationTime` at
+  /// the picker and in the repository, and the importer refuses the value).
+  ({int hour, int minute}) _timeOfDayFor(
+    ReminderItemSetting? setting, {
+    required int fallbackHour,
+    required int fallbackMinute,
+  }) {
+    final stored = setting?.timeOfDay;
+    if (stored == null || !isValidNotificationTime(stored)) {
+      return (hour: fallbackHour, minute: fallbackMinute);
     }
-    return lastEventAt;
+    final parsed = parseNotificationTime(stored);
+    return (hour: parsed.hour, minute: parsed.minute);
   }
 }
 

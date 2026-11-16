@@ -114,6 +114,47 @@ void main() {
     });
   });
 
+  // B30: the hour the function is handed is now resolved **per item** by the
+  // scheduler, so this pair is the seam that makes "a 06:15 reminder under a
+  // 20:30 global" fire on its own schedule. `nextDueAt` itself is unchanged
+  // (D-R3) — it simply receives a different `preferredHour`.
+  group('nextDueAt — the hour is a parameter, not a constant (B30)', () {
+    test('the same daily item is due at the hour it is given', () {
+      final now = DateTime(2026, 7, 15, 5, 0);
+      DateTime due(int hour) => nextDueAt(_item(Daily()),
+          now: now,
+          dismissalWindow: _window,
+          preferredHour: hour,
+          preferredMinute: 15);
+
+      expect(due(6), DateTime(2026, 7, 15, 6, 15));
+      expect(due(20), DateTime(2026, 7, 15, 20, 15));
+    });
+
+    test('an early item is already overdue where a late one is not', () {
+      // 07:00: the 06:15 item has passed its time (⇒ D3 catch-up, `now`), the
+      // 20:30 item is still ahead.
+      final now = DateTime(2026, 7, 15, 7, 0);
+      expect(
+        nextDueAt(_item(Daily()),
+            now: now,
+            dismissalWindow: _window,
+            preferredHour: 6,
+            preferredMinute: 15),
+        now,
+        reason: 'the early item is due: the scheduler will nudge it',
+      );
+      expect(
+        nextDueAt(_item(Daily()),
+            now: now,
+            dismissalWindow: _window,
+            preferredHour: 20,
+            preferredMinute: 30),
+        DateTime(2026, 7, 15, 20, 30),
+      );
+    });
+  });
+
   group('nextDueAt — Weekly', () {
     test('never done, target weekday not yet reached', () {
       final now = DateTime(2026, 7, 15, 7, 0); // Wednesday

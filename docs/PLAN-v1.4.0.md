@@ -711,3 +711,45 @@ exist only in the reference file. B26's replay guard now executes the file, so i
 is *syntax* that is guarded here; the index parity between file and code is a
 doc-drift ticket of its own (the v11 index gap in `schema_parity_test.dart` was
 the same class, and it was fixed in code).
+
+### M2 — B30 per-reminder hour (done on `release/v1.4.0`)
+
+Implemented as specified: `reminder_settings.time`, resolved **inside** the plan loop
+(`ReminderScheduler._buildPlan` → `_timeOfDayFor`), `nextDueAt` untouched, `NULL` = inherit,
+preset row and `CustomReminderTile` both carry `ReminderHourControl`, the global row stays
+the default. l10n reuses `reminderAt` for the time itself and adds four keys
+(`reminderTimeInherited`, `reminderTimePickerTitle`, `reminderTimeUseGlobal` — fr/en/es).
+
+Four things the next milestones inherit:
+
+1. **`setEnabled` had to become an upsert.** It used to `delete` the row and insert a fresh
+   one, which was invisible while `enabled` was the only column and destructive the moment a
+   second one existed: set an hour, then toggle the switch, and the hour was gone. It now
+   inserts `enabled` and, on conflict, **updates only `enabled`**. The discipline generalises and
+   M4 depends on it — every writer touches its own columns and nobody's else (`setItemTime`
+   writes `time`, `clearItemTime` nulls `time`). Three existing tests failed on the old shape;
+   none of them was weakened.
+2. **The seam D-R2 wanted now exists.** `getEnabledByItemId → Map<String, bool>` is gone; the
+   repository returns `Map<String, ReminderItemSetting>` (`enabled`, `timeOfDay`) from one query
+   per scope. **M4 extends that row and its reader** (interval overrides, end, `removed`) rather
+   than adding a second map — that was the whole point of doing them in one place.
+3. **Format 5 landed early**, exactly as D-R3 predicted, and with it the importer's
+   `formatVersion` awareness: `ParsedExport.formatVersion` now exists, a document below 5 gets
+   the vitamin D seed replayed inside the restore (`_insertReminderSettings`), and the
+   standalone `seedVitaminDForExistingScopes` became dead and was deleted. A `timeOfDay` that is
+   present but not `HH:mm` 24-7 rejects the whole document (strict write, lax read); absent
+   means inherit.
+4. **The complexity guard moved from 3 to 4 (Makefile), and the fourth entry is a measurement
+   artifact, not a long function.** `sync()` was approaching the length cap, so it is now
+   `sync()` (read the settings map, resolve the hour) + `_buildPlan()` (steps 3-4) +
+   `_applyDiff()` (steps 5-6) — all three under 70 lines. But lizard's Dart parser sees no
+   method boundary inside `ReminderScheduler` at all and charges the **whole class** to its
+   constructor (`ReminderScheduler::ReminderScheduler`, 312 "lines"); four member orderings were
+   tried and which boundaries it detects moves with the file's shape, not its size. The cap is 4
+   with that entry named and explained. **To get back to 3:** extract `_applyDiff` (the half that
+   talks to the OS, with `_plan`/`_catchUpArmed`) into its own type — worth its own small PR,
+   not a milestone rider.
+
+*Export test note: four long tests that count export assets went 4 → 5, because B30 adds the
+`timeOfDay` key to `reminderSettings`; `nProgress` is derived from that list, which is the
+behaviour the long test exists to pin.*

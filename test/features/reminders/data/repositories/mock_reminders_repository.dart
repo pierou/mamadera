@@ -1,5 +1,6 @@
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
+import 'package:mamadera/features/reminders/domain/entities/reminder_item_setting.dart';
 import 'package:mamadera/features/reminders/domain/repositories/reminders_repository.dart';
 
 /// Simple in-memory mock of [RemindersRepository] for unit tests.
@@ -14,8 +15,13 @@ class MockRemindersRepository implements RemindersRepository {
   /// Maps item ID → last "ignore" DateTime (simulates `reminder_dismissals`).
   final Map<String, DateTime?> dismissedById = {};
 
-  /// Maps item ID → persisted enabled flag (absent = never accessed = enabled).
+  /// Maps item ID → persisted enabled flag (absent = never touched, which the
+  /// callers resolve to the item's own default — B6).
   final Map<String, bool> enabledById = {};
+
+  /// Maps item ID → the reminder's own notification hour (B30).
+  /// Absent (or `null`) = inherit the installation-wide hour.
+  final Map<String, String?> timeOfDayById = {};
 
   /// Number of calls to [setEnabled] (to verify that the toggle switch is correctly written to the database).
   int setEnabledCallCount = 0;
@@ -36,8 +42,13 @@ class MockRemindersRepository implements RemindersRepository {
   /// Baby the most recent [getLastDismissal] call was scoped to.
   String? lastDismissalBabyId;
 
-  /// Baby the most recent [getEnabledByItemId] call was scoped to.
+  /// Baby the most recent [getSettingsByItemId] call was scoped to.
   String? lastGetEnabledBabyId;
+
+  /// Calls to [setItemTime] / [clearItemTime] and the scope of the last one (B30).
+  int setItemTimeCallCount = 0;
+  int clearItemTimeCallCount = 0;
+  String? lastItemTimeBabyId;
 
   /// Baby the most recent [setEnabled] call was scoped to.
   String? lastEnabledBabyId;
@@ -114,9 +125,41 @@ class MockRemindersRepository implements RemindersRepository {
   }
 
   @override
-  Future<Map<String, bool>> getEnabledByItemId({String? babyId}) async {
+  Future<Map<String, ReminderItemSetting>> getSettingsByItemId(
+      {String? babyId}) async {
     lastGetEnabledBabyId = babyId;
-    return Map.of(enabledById);
+    // Only the items that actually have something stored appear: a key absent
+    // from this map is what "never touched" means to the callers.
+    return {
+      for (final id in {...enabledById.keys, ...timeOfDayById.keys})
+        id: ReminderItemSetting(
+          enabled: enabledById[id] ?? true,
+          timeOfDay: timeOfDayById[id],
+        ),
+    };
+  }
+
+  @override
+  Future<void> setItemTime(
+    String itemId, {
+    required String timeOfDay,
+    required bool enabledIfNew,
+    String? babyId,
+  }) async {
+    setItemTimeCallCount++;
+    lastItemTimeBabyId = babyId;
+    timeOfDayById[itemId] = timeOfDay;
+    // Mirrors the real upsert: choosing an hour creates the row, and the switch
+    // is created at the item's own default — never silently on (B6).
+    enabledById.putIfAbsent(itemId, () => enabledIfNew);
+  }
+
+  @override
+  Future<void> clearItemTime(String itemId, {String? babyId}) async {
+    clearItemTimeCallCount++;
+    lastItemTimeBabyId = babyId;
+    // The row stays: only the hour is taken back.
+    timeOfDayById.remove(itemId);
   }
 
   @override

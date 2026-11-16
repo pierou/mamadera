@@ -173,6 +173,20 @@
   "reminderNotificationsSectionTitle": "System notifications",
   "reminderNotificationsOptIn": "Notify me when a reminder is due",
   "reminderNotificationsTimeLabel": "Notification time",
+  "reminderHourOwn": "At {time}",
+  "@reminderHourOwn": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "reminderHourInherited": "At {time} (default)",
+  "@reminderHourInherited": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "reminderHourPickerTitle": "Notification time for this reminder",
+  "reminderHourUseDefault": "Use the default time",
   "reminderNotificationsPermissionDenied": "Notifications are currently disabled in the system settings. Turn them on there to receive reminder notifications.",
   "reminderFrequencyDaily": "Every day",
   "reminderFrequencyWeekly": "Every week",
