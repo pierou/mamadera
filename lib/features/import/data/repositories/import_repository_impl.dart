@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 
 import '../../../../core/services/app_logger.dart';
 import '../../../../core/services/encryption_service.dart';
+import '../../../../core/utils/calendar_date.dart';
 import '../../../../data/local/app_db.dart' as db_app;
 import '../../../../data/local/db_constants.dart' as db_const;
 import '../../../../shared/domain/entities/quantity_unit.dart';
@@ -354,6 +355,18 @@ ImportedCustomReminder _parseCustomReminder(
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
         section: section);
   }
+  // D-R5/D-R8 write-strict, at the boundary: `one_time` means exactly one
+  // occurrence **on a day**, so a one-shot without a parseable day is refused
+  // rather than restored as the "due now" shape the app's read side invents for
+  // hand-edited files. A file is a one-shot restore: refusing it is recoverable,
+  // restoring a reminder that fires immediately is not.
+  final frequencyDate = _optionalString(row, 'frequencyDate', section);
+  if (frequency == db_const.freqOneTime &&
+          parseCalendarDate(frequencyDate) == null ||
+      frequency != db_const.freqOneTime && frequencyDate != null) {
+    throw const ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
   // Absent (format 1): `from_events`, which was the only value that existed at that time.
   final completionSource = _optionalString(row, 'completionSource', section) ??
       db_const.completionFromEvents;
@@ -367,6 +380,7 @@ ImportedCustomReminder _parseCustomReminder(
     subtypeValue: subtypeValue,
     frequency: frequency,
     intervalDays: _optionalPositiveInt(row, 'intervalDays', section),
+    frequencyDate: frequencyDate,
     // Absent (format 1): A shared memory accessible to all babies.
     babyId: _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId,
     completionSource: completionSource,
@@ -659,6 +673,8 @@ class ImportRepositoryImpl implements ImportRepository {
                 ),
                 frequency: reminder.frequency,
                 intervalDays: Value(reminder.intervalDays),
+                // `null` for every file before v14 — see the entity's field.
+                frequencyDate: Value(reminder.frequencyDate),
                 // Absent in format 1 backups: shared.
                 babyId: Value(reminder.babyId),
               ),

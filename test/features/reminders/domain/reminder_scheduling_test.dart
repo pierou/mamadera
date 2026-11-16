@@ -121,11 +121,14 @@ void main() {
   group('nextDueAt — the hour is a parameter, not a constant (B30)', () {
     test('the same daily item is due at the hour it is given', () {
       final now = DateTime(2026, 7, 15, 5, 0);
+      // `!` from here on: a never-completed recurring item always has a next
+      // instant. `null` is B33's new answer for an item that can *no longer* be due,
+      // asserted where that claim belongs.
       DateTime due(int hour) => nextDueAt(_item(Daily()),
           now: now,
           dismissalWindow: _window,
           preferredHour: hour,
-          preferredMinute: 15);
+          preferredMinute: 15)!;
 
       expect(due(6), DateTime(2026, 7, 15, 6, 15));
       expect(due(20), DateTime(2026, 7, 15, 20, 15));
@@ -364,7 +367,8 @@ void main() {
         dismissalWindow: _window,
         preferredHour: 2,
         preferredMinute: 30,
-      );
+      )!; // a daily item never completed always has an instant (B33's null is
+      // for an item that can *no longer* be due)
       final reference = DateTime(2026, 1, day + 1, 3, 30);
       expect(result.minute, 30);
       expect(
@@ -389,18 +393,217 @@ void main() {
         dismissalWindow: _window,
         preferredHour: 1,
         preferredMinute: 30,
-      );
+      )!; // B33: recurring and never completed ⇒ always schedulable
       final second = nextDueAt(
         _item(Daily()),
         now: now,
         dismissalWindow: _window,
         preferredHour: 1,
         preferredMinute: 30,
-      );
+      )!; // B33: recurring and never completed ⇒ always schedulable
       expect(first.hour, 1);
       expect(first.minute, 30);
       expect(first, equals(second),
           reason: 'the pure function must return one instant, not two');
+    });
+  });
+
+  // B33 Part 1: `nextDueAt` gained a second answer. `null` means "this item can
+  // no longer be due" — a settled one-shot (D-R7) or a series past its end
+  // (D-R5) — and the scheduler turns it into a plan removal, which is how the OS
+  // notification actually disappears.
+  group('OneTime — the single occurrence', () {
+    test('schedules one notification on its own day at the hour it is given',
+        () {
+      final now = DateTime(2026, 7, 10, 9, 0);
+      expect(
+        nextDueAt(
+          _item(OneTime(date: DateTime(2026, 12, 15))),
+          now: now,
+          dismissalWindow: _window,
+          preferredHour: 21,
+          preferredMinute: 30,
+        ),
+        DateTime(2026, 12, 15, 21, 30),
+      );
+    });
+
+    test('a future one-shot is not due now', () {
+      final now = DateTime(2026, 7, 10, 9, 0);
+      final due = nextDueAt(
+        _item(OneTime(date: DateTime(2026, 12, 15))),
+        now: now,
+        dismissalWindow: _window,
+        preferredHour: _h,
+        preferredMinute: _m,
+      );
+      expect(due!.isAfter(now), isTrue);
+    });
+
+    test('a passed one-shot is due now, and stays so (D-R7 catch-up)', () {
+      final now = DateTime(2026, 12, 20, 9, 0);
+      expect(
+        nextDueAt(
+          _item(OneTime(date: DateTime(2026, 12, 15))),
+          now: now,
+          dismissalWindow: _window,
+          preferredHour: _h,
+          preferredMinute: _m,
+        ),
+        now,
+        reason: 'a missed dose must ask again, not expire quietly',
+      );
+    });
+
+    test('a completed one-shot has no next instant — at all (D-R7)', () {
+      final result = nextDueAt(
+        _item(OneTime(date: DateTime(2026, 12, 15))),
+        now: DateTime(2026, 12, 16, 9, 0),
+        dismissalWindow: _window,
+        preferredHour: _h,
+        preferredMinute: _m,
+        lastCompleted: DateTime(2026, 12, 15, 10, 0),
+      );
+      expect(result, isNull,
+          reason: 'the plan must drop it; the diff cancels the OS entry');
+    });
+
+    test('a dateless one-shot (D-R8) is due now', () {
+      final now = DateTime(2026, 5, 5, 12, 0);
+      expect(
+        nextDueAt(
+          _item(const OneTime(date: null)),
+          now: now,
+          dismissalWindow: _window,
+          preferredHour: _h,
+          preferredMinute: _m,
+        ),
+        now,
+      );
+    });
+
+    test('a dismissed one-shot waits for the window, not for a next period',
+        () {
+      // There is no next occurrence to advance to, so "advance" can only mean
+      // "let go of the snooze" — the loop must terminate on the second pass.
+      final now = DateTime(2026, 12, 15, 9, 0);
+      final dismissed = DateTime(2026, 12, 15, 8, 0);
+      final due = nextDueAt(
+        _item(OneTime(date: DateTime(2026, 12, 15))),
+        now: now,
+        dismissalWindow: const Duration(hours: 24),
+        preferredHour: _h,
+        preferredMinute: _m,
+        lastDismissal: dismissed,
+      );
+      expect(due, dismissed.add(const Duration(hours: 24)));
+    });
+  });
+
+  group('Series end (D-R5)', () {
+    test('an occurrence on the end day itself still fires (inclusive)', () {
+      final now = DateTime(2026, 7, 15, 6, 0);
+      expect(
+        nextDueAt(
+          _item(Daily()),
+          now: now,
+          dismissalWindow: _window,
+          preferredHour: _h,
+          preferredMinute: _m,
+          lastCompleted: DateTime(2026, 7, 14, 8, 0),
+          endDate: '2026-07-15',
+        ),
+        DateTime(2026, 7, 15, 8, 0),
+      );
+    });
+
+    test('the first occurrence after the end day does not exist', () {
+      final now = DateTime(2026, 7, 15, 6, 0);
+      expect(
+        nextDueAt(
+          _item(Daily()),
+          now: now,
+          dismissalWindow: _window,
+          preferredHour: _h,
+          preferredMinute: _m,
+          lastCompleted: DateTime(2026, 7, 14, 8, 0),
+          endDate: '2026-07-14',
+        ),
+        isNull,
+        reason: 'the series ended yesterday: no notification, ever again',
+      );
+    });
+
+    test('a monthly cycle that would next fall past the end returns null', () {
+      expect(
+        nextDueAt(
+          _item(Monthly(dayOfMonth: 20)),
+          now: DateTime(2026, 6, 25, 9, 0),
+          dismissalWindow: _window,
+          preferredHour: _h,
+          preferredMinute: _m,
+          lastCompleted: DateTime(2026, 6, 25, 6, 0),
+          endDate: '2026-07-10',
+        ),
+        isNull,
+        reason: 'its next occurrence (20 July) is after 10 July',
+      );
+    });
+
+    test('an age-end is resolved against the birthdate given here and now', () {
+      // The same stored row, two birthdates: correcting a birthdate moves the
+      // schedule on the next sync because nothing about the end is stored as a
+      // date (D-R5's read-time resolution).
+      DateTime? dueFor(DateTime birthDate) => nextDueAt(
+            _item(Daily()),
+            now: DateTime(2026, 3, 1, 9, 0),
+            dismissalWindow: _window,
+            preferredHour: _h,
+            preferredMinute: _m,
+            lastCompleted: DateTime(2026, 2, 28, 8, 0),
+            endAgeMonths: 1,
+            birthDate: birthDate,
+          );
+
+      // Born 15 January ⇒ one month old on 15 February ⇒ already ended.
+      expect(dueFor(DateTime(2026, 1, 15)), isNull);
+      // Born 15 February ⇒ one month old on 15 March ⇒ still two weeks to run,
+      // and today's 08:00 has already gone by ⇒ due now (the standing D3
+      // catch-up, unchanged by the end model).
+      expect(dueFor(DateTime(2026, 2, 15)), DateTime(2026, 3, 1, 9, 0));
+    });
+
+    test('a malformed stored end reads as no end, not as an immediate stop',
+        () {
+      final now = DateTime(2026, 7, 15, 6, 0);
+      expect(
+        nextDueAt(
+          _item(Daily()),
+          now: now,
+          dismissalWindow: _window,
+          preferredHour: _h,
+          preferredMinute: _m,
+          lastCompleted: DateTime(2026, 7, 14, 8, 0),
+          endDate: '15/07/2026',
+        ),
+        DateTime(2026, 7, 15, 8, 0),
+        reason: 'a hand-edited backup must not silently end a series',
+      );
+    });
+
+    test('no stored end behaves exactly as before', () {
+      final now = DateTime(2026, 7, 15, 6, 0);
+      expect(
+        nextDueAt(
+          _item(Daily()),
+          now: now,
+          dismissalWindow: _window,
+          preferredHour: _h,
+          preferredMinute: _m,
+          lastCompleted: DateTime(2026, 7, 14, 8, 0),
+        ),
+        DateTime(2026, 7, 15, 8, 0),
+      );
     });
   });
 
@@ -414,7 +617,8 @@ void main() {
       expect(items[1], ReminderItemPresets.vitaminK);
     });
 
-    test('profile: four items, vitamin K monthly on the birth day', () {
+    test('profile: four items, vitamin K one-shot clamped off a 31 January',
+        () {
       final profile = BabyProfile(
           id: 'baby-1', name: 'Léa', birthDate: DateTime(2026, 1, 31));
       final items = reminderItemsFor(profile);
@@ -423,15 +627,20 @@ void main() {
         orderedEquals(
             ['vitamine_d', 'vitamine_k', 'eye_cleaning', 'face_cleaning']),
       );
-      expect(items[1].frequency, Monthly(dayOfMonth: 31));
+      // The parity this file exists for: whatever the UI shows as vitamin K's
+      // rhythm is what the scheduler schedules — now a clamped one-shot
+      // (2026 has no 31 February), not a monthly cycle.
+      expect(items[1].frequency, OneTime(date: DateTime(2026, 2, 28)));
       expect(items[0].frequency, Daily());
     });
 
-    test('profile with a mid-month birth day: vitamin K monthly on that day',
-        () {
+    test(
+        'profile with a mid-month birth day: vitamin K one-shot at that day '
+        'next month', () {
       final profile = BabyProfile(
           id: 'baby-2', name: 'Noah', birthDate: DateTime(2026, 2, 10));
-      expect(reminderItemsFor(profile)[1].frequency, Monthly(dayOfMonth: 10));
+      expect(reminderItemsFor(profile)[1].frequency,
+          OneTime(date: DateTime(2026, 3, 10)));
     });
   });
 }

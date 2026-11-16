@@ -141,15 +141,33 @@ class CustomReminders extends Table {
   /// …): the absence of that care in `tracking_events` makes the reminder due.
   TextColumn get subtypeValue => text().nullable()();
 
-  /// `daily` | `weekly` | `monthly` | `every_n_days` — see [CustomReminder].
+  /// `daily` | `weekly` | `monthly` | `every_n_days` | `one_time` — see
+  /// [CustomReminder] and the codes in `db_constants`.
   TextColumn get frequency => text()();
 
   /// Only applicable for `every_n_days`:  The duration of the cycle in days.
   IntColumn get intervalDays => integer().nullable()();
 
+
   /// `'from_events'` | `'manual'` — which determines whether the reminder is triggered automatically (D2).
   TextColumn get completionSource =>
       text().withDefault(const Constant(db_const.completionFromEvents))();
+
+  /// Only applicable for `one_time` (B33 Part 1, D-R5 form 1): the occurrence day
+  /// as `'yyyy-MM-dd'`.
+  ///
+  /// The frequency's parameter travels with the frequency — which is exactly how
+  /// [intervalDays] already works for `every_n_days`. The alternative (a
+  /// `custom_<id>` row in `reminder_settings`) would split one frequency across
+  /// two tables and make this row non-self-contained for the backup, whose whole
+  /// contract is that a section is read and replayed on its own.
+  ///
+  /// **Declared last, on purpose**: a column added by `ALTER TABLE` lands at the
+  /// end of the physical row, and `schema_parity_test` compares fresh against
+  /// migrated column-by-column in order. Declaring it in the "logical" place
+  /// (beside `interval_days`) makes a fresh install and an upgraded one disagree
+  /// on column order — a red test with no user-visible cause.
+  TextColumn get frequencyDate => text().nullable()();
 }
 
 /// Growth measurements (weight, height, temperature) — added in version 11.
@@ -493,6 +511,15 @@ class AppDatabase extends _$AppDatabase {
                 'ALTER TABLE reminder_settings ADD COLUMN end_age_months INTEGER');
             await m.database.customStatement(
                 'ALTER TABLE reminder_settings ADD COLUMN removed INTEGER NOT NULL DEFAULT 0');
+
+            // B33 Part 1 (M3): a custom reminder's one-shot occurrence day, in the
+            // same v14 batch. Same shape as `interval_days` beside it — the
+            // frequency's parameter stored with the frequency — and the reason it
+            // could not wait for a later version: the codec has to be lossless
+            // from the first day a `one_time` row can exist, and a column that is
+            // not exported is a restore hole (AGENTS.md).
+            await m.database.customStatement(
+                'ALTER TABLE custom_reminders ADD COLUMN frequency_date TEXT');
 
             // B6 (D-R1): the Vitamin D reminder is no longer on by default for
             // a *new* baby, which silently turns it OFF for an existing parent

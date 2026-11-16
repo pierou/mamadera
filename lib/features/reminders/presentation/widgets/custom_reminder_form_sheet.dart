@@ -70,6 +70,11 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
       weekly: (_) => null,
       monthly: (_) => null,
       customInterval: (f) => f.days,
+      // A one-shot has no "number of days" field to fill. Unreachable while the
+      // form offers no one-shot entry point — M4 gives this sheet that entry
+      // point (plan §M4: the 365-day cap becomes the one-shot's door), and the
+      // day picker replaces this field there.
+      oneTime: (_) => null,
     );
     _daysController = TextEditingController(
       text: '${storedDays ?? _defaultIntervalDays}',
@@ -85,6 +90,15 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
       (int.tryParse(_daysController.text) ?? _defaultIntervalDays)
           .clamp(1, _maxIntervalDays);
 
+  /// The rhythm the form pre-selects for an existing reminder.
+  ///
+  /// **Known gap until M4** (`PLAN-v1.4.0.md` §9/M3): this sheet has no one-shot
+  /// option yet, so a custom reminder restored as `one_time` (only reachable from a
+  /// hand-built backup today — nothing in the app writes one) reads back as *daily*
+  /// if it is edited and saved. M4 gives the sheet its one-shot entry point — the
+  /// plan's "the 365-day cap becomes the one-shot's door" — and the
+  /// `custom_reminders.frequency_date` column already exists for it. Listed here
+  /// rather than left to the changelog because the fallback is silent by shape.
   CustomReminderFrequencyChoice _choiceOf(ReminderFrequency? frequency) {
     return switch (frequency) {
       CustomInterval() => CustomReminderFrequencyChoice.everyNDays,

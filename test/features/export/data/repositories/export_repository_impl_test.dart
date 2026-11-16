@@ -467,6 +467,7 @@ void main() {
           'subtypeValue': 'nettoyage_nez',
           'frequency': 'every_n_days',
           'intervalDays': 3,
+          'frequencyDate': null,
           'babyId': '',
           'completionSource': 'from_events',
         });
@@ -478,6 +479,7 @@ void main() {
           'subtypeValue': null,
           'frequency': 'weekly',
           'intervalDays': null,
+          'frequencyDate': null,
           'babyId': '',
           'completionSource': 'manual',
         });

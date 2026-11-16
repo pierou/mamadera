@@ -188,7 +188,8 @@ void main() {
   });
 
   /// Runs raw statements against the seeded v13 file, before the migration.
-  Future<void> withRawSql(Future<void> Function(_RawSqlDatabase db) body) async {
+  Future<void> withRawSql(
+      Future<void> Function(_RawSqlDatabase db) body) async {
     final raw = _RawSqlDatabase(NativeDatabase(dbFile));
     await body(raw);
     await raw.close();
@@ -202,10 +203,12 @@ void main() {
   }
 
   Future<List<_SettingRow>> vitaminDRows(AppDatabase db) async {
-    final rows = await db.customSelect(
-      "SELECT baby_id, item_id, enabled FROM reminder_settings "
-      "WHERE item_id = 'vitamine_d' ORDER BY baby_id",
-    ).get();
+    final rows = await db
+        .customSelect(
+          "SELECT baby_id, item_id, enabled FROM reminder_settings "
+          "WHERE item_id = 'vitamine_d' ORDER BY baby_id",
+        )
+        .get();
     return [
       for (final row in rows)
         (
@@ -235,10 +238,12 @@ void main() {
     // The profileless scope had no vitamin D row at all, so it is seeded —
     // that is the documented behaviour of §3, and it inserts, it never updates.
     expect(rows.firstWhere((r) => r.babyId == '').enabled, 1);
-    final untouched = await db.customSelect(
-      "SELECT baby_id, enabled FROM reminder_settings "
-      "WHERE item_id = 'face_cleaning'",
-    ).get();
+    final untouched = await db
+        .customSelect(
+          "SELECT baby_id, enabled FROM reminder_settings "
+          "WHERE item_id = 'face_cleaning'",
+        )
+        .get();
     expect(untouched, hasLength(1));
     expect(untouched.single.read<String>('baby_id'), '');
     expect(untouched.single.read<int>('enabled'), 0);
@@ -303,18 +308,23 @@ void main() {
 
     final info =
         await db.customSelect("PRAGMA table_info('reminder_settings')").get();
-    expect(info.map((r) => r.read<String>('name')), [
-      'baby_id',
-      'item_id',
-      'enabled',
-      ..._v14Columns,
-    ], reason: 'the ALTER order is the drift declaration order — parity with '
-        'a fresh install depends on it');
+    expect(
+        info.map((r) => r.read<String>('name')),
+        [
+          'baby_id',
+          'item_id',
+          'enabled',
+          ..._v14Columns,
+        ],
+        reason: 'the ALTER order is the drift declaration order — parity with '
+            'a fresh install depends on it');
 
-    final row = await db.customSelect(
-      "SELECT * FROM reminder_settings WHERE baby_id = 'baby-AAA' "
-      "AND item_id = 'vitamine_k'",
-    ).getSingle();
+    final row = await db
+        .customSelect(
+          "SELECT * FROM reminder_settings WHERE baby_id = 'baby-AAA' "
+          "AND item_id = 'vitamine_k'",
+        )
+        .getSingle();
     for (final column in _v14Columns.where((c) => c != 'removed')) {
       expect(row.data[column], isNull, reason: '$column must default to NULL');
     }
@@ -323,8 +333,7 @@ void main() {
     // The NOT NULL column really is NOT NULL (SQLite would have refused the
     // ALTER on a populated table without its DEFAULT).
     final notNull = {
-      for (final r in info)
-        r.read<String>('name'): r.read<int>('notnull') == 1,
+      for (final r in info) r.read<String>('name'): r.read<int>('notnull') == 1,
     };
     expect(notNull['removed'], isTrue);
     expect(notNull['time'], isFalse);

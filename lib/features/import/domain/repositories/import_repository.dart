@@ -150,6 +150,7 @@ class ImportedCustomReminder {
     required this.subtypeValue,
     required this.frequency,
     required this.intervalDays,
+    required this.frequencyDate,
     required this.babyId,
     required this.completionSource,
   });
@@ -167,11 +168,20 @@ class ImportedCustomReminder {
   /// "Fait" can be completed using a tap. Format-1 files always contain a value.
   final String? subtypeValue;
 
-  /// Stored frequency code (`daily` | `weekly` | `monthly` | `every_n_days`).
+  /// Stored frequency code (`daily` | `weekly` | `monthly` | `every_n_days` |
+  /// `one_time`).
   final String frequency;
 
   /// Roll length in days, only meaningful for `every_n_days`.
   final int? intervalDays;
+
+  /// The occurrence day (`'yyyy-MM-dd'`), only meaningful for `one_time` (B33).
+  ///
+  /// Absent in every file before v14: no reminder was ever a one-shot, so
+  /// `null` for an older file is not a loss. Present for `one_time` — the parser
+  /// refuses the pairing `one_time` without a real date, which is the same
+  /// write-strict rule the picker follows (D-R5, D-R8).
+  final String? frequencyDate;
 
   /// `''` = reminder shared by every baby (sentinel, never null); format-1
   /// files omit the field and read as shared.

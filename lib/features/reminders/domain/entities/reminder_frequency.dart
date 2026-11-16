@@ -10,6 +10,21 @@ sealed class ReminderFrequency with _$ReminderFrequency {
   const factory ReminderFrequency.monthly({required int dayOfMonth}) = Monthly;
   const factory ReminderFrequency.customInterval({@Default(7) int days}) =
       CustomInterval;
+
+  /// A **single occurrence**, on [date] — B33's "one time" (D-R5 form 1).
+  ///
+  /// [date] is a calendar date at midnight: the *occurrence day*, never an end.
+  /// A series that stops on a day is the `end_date` column (D-R5 form 2) — a
+  /// different concept with a different column, deliberately not merged here.
+  ///
+  /// `date == null` exists for exactly one reason: D-R8's tolerant read of a
+  /// stored `frequency = 'one_time'` whose `frequency_date` is null or
+  /// unparseable. Such a one-shot is **due now** (D-R7's catch-up), because the
+  /// codec's first rule is that a reminder never silently disappears, and the
+  /// choice was "ask the parent" versus "silently off". A *written* one-shot
+  /// always has a date: the picker requires one (D-R5, write-strict) and so does
+  /// the importer.
+  const factory ReminderFrequency.oneTime({DateTime? date}) = OneTime;
 }
 
 /// Whether [a] and [b] fall on the same calendar day (device-local).
@@ -46,6 +61,17 @@ int clampedDayOfMonth(DateTime date, int dayOfMonth) {
   return dayOfMonth > lastDayOfMonth ? lastDayOfMonth : dayOfMonth;
 }
 
+/// The last instant at which a reminder ended on [endsAt] may still fire: the end of that
+/// calendar day, inclusive (D-R5).
+DateTime seriesEndExpiry(DateTime endsAt) =>
+    DateTime(endsAt.year, endsAt.month, endsAt.day, 23, 59, 59, 999);
+
+/// Whether [now] is past the last moment a reminder with this series end may
+/// fire. The single cutoff check for every frequency — never re-derived per
+/// variant, which is what D-R5's "one cutoff code path" means.
+bool isPastSeriesEnd(DateTime now, DateTime? endsAt) =>
+    endsAt != null && now.isAfter(seriesEndExpiry(endsAt));
+
 /// Extension that provides `isDue` on [ReminderFrequency] using freezed's generated `map()`.
 extension ReminderFrequencyIsDue on ReminderFrequency {
   /// Whether this reminder is due at [now], given it was last completed at
@@ -69,6 +95,15 @@ extension ReminderFrequencyIsDue on ReminderFrequency {
   ///   configured day has been reached.
   /// - [CustomInterval]: unchanged rolling behaviour — due once at least
   ///   [CustomInterval.days] whole days have elapsed since [lastCompleted].
+  /// - [OneTime] (B33, D-R7): due on its date and **until it is settled** — a
+  ///   passed date stays due (catch-up, not expiry) and once completed it is
+  ///   **never due again**, because a one-shot has no next occurrence. A
+  ///   dateless one-shot (D-R8's tolerant read) is due now.
+  ///
+  /// The **end of a series** (D-R5's `end_date` / `end_age_months`) is not
+  /// decided here: an end belongs to the reminder, not to its rhythm, and
+  /// folding it into each variant is precisely what D-R5 rejects. Consumers that
+  /// have it check [isPastSeriesEnd] alongside this call.
   bool isDue(DateTime now, DateTime? lastCompleted) => map(
         daily: (_) => lastCompleted == null || !isSameDay(now, lastCompleted),
         weekly: (_) {
@@ -87,6 +122,13 @@ extension ReminderFrequencyIsDue on ReminderFrequency {
           if (lastCompleted == null) return true;
           final diff = now.difference(lastCompleted).inDays;
           return diff >= freq.days;
+        },
+        oneTime: (freq) {
+          // Settled ⇒ done for good. That is the whole point of the one-shot:
+          // what used to be a monthly vitamin K must not come back next month.
+          if (lastCompleted != null) return false;
+          final date = freq.date;
+          return date == null || !date.isAfter(now);
         },
       );
 }

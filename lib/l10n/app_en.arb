@@ -202,6 +202,13 @@
       "days": {}
     }
   },
+  "reminderFrequencyOneTime": "Once, on {date}",
+  "@reminderFrequencyOneTime": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderFrequencyOneTimeNow": "Once, right away",
   "reminderCustomSectionTitle": "Custom reminders",
   "reminderCustomSectionDescription": "A reminder leaves Home as soon as you log the linked care.",
   "reminderCustomAdd": "Add a reminder",

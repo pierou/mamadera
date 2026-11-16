@@ -64,6 +64,12 @@ void main() {
         await db.customStatement(
             'ALTER TABLE reminder_settings DROP COLUMN "$column"');
       }
+      // Same obligation on the other table v14 touches (M3 added
+      // `custom_reminders.frequency_date` to the same migration batch): drop it,
+      // or the v14 step dies on "duplicate column name: frequency_date" the
+      // moment this helper opens a database written by the current schema.
+      await db.customStatement(
+          'ALTER TABLE custom_reminders DROP COLUMN frequency_date');
       // And no vitamin D seed row: it comes from a migration this file now
       // pretends never ran, so the v14 step must find its real job here too.
       await db.customStatement(
@@ -92,6 +98,12 @@ void main() {
           .getSingle();
       expect(settingsColumns.read<int>('n'), 3,
           reason: 'same class of lie: a v11 file has no v14 column in it');
+      final customColumns = await db
+          .customSelect("SELECT COUNT(*) AS n FROM pragma_table_info("
+              "'custom_reminders')")
+          .getSingle();
+      expect(customColumns.read<int>('n'), 7,
+          reason: 'and the same for custom_reminders: v11 had seven columns');
       await db.close();
     }
 
@@ -208,7 +220,8 @@ void main() {
             .map((r) => r.read<String>('baby_id'))
             .toSet(),
         {''},
-        reason: 'deux bébés : les lignes héritées ne sont ré-attribuées à personne',
+        reason:
+            'deux bébés : les lignes héritées ne sont ré-attribuées à personne',
       );
       expect(
         settings

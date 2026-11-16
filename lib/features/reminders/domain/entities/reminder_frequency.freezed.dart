@@ -55,6 +55,7 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
     TResult Function(Weekly value)? weekly,
     TResult Function(Monthly value)? monthly,
     TResult Function(CustomInterval value)? customInterval,
+    TResult Function(OneTime value)? oneTime,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -67,6 +68,8 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
         return monthly(_that);
       case CustomInterval() when customInterval != null:
         return customInterval(_that);
+      case OneTime() when oneTime != null:
+        return oneTime(_that);
       case _:
         return orElse();
     }
@@ -91,6 +94,7 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
     required TResult Function(Weekly value) weekly,
     required TResult Function(Monthly value) monthly,
     required TResult Function(CustomInterval value) customInterval,
+    required TResult Function(OneTime value) oneTime,
   }) {
     final _that = this;
     switch (_that) {
@@ -102,6 +106,8 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
         return monthly(_that);
       case CustomInterval():
         return customInterval(_that);
+      case OneTime():
+        return oneTime(_that);
     }
   }
 
@@ -123,6 +129,7 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
     TResult? Function(Weekly value)? weekly,
     TResult? Function(Monthly value)? monthly,
     TResult? Function(CustomInterval value)? customInterval,
+    TResult? Function(OneTime value)? oneTime,
   }) {
     final _that = this;
     switch (_that) {
@@ -134,6 +141,8 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
         return monthly(_that);
       case CustomInterval() when customInterval != null:
         return customInterval(_that);
+      case OneTime() when oneTime != null:
+        return oneTime(_that);
       case _:
         return null;
     }
@@ -157,6 +166,7 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
     TResult Function(int dayOfWeek)? weekly,
     TResult Function(int dayOfMonth)? monthly,
     TResult Function(int days)? customInterval,
+    TResult Function(DateTime? date)? oneTime,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -169,6 +179,8 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
         return monthly(_that.dayOfMonth);
       case CustomInterval() when customInterval != null:
         return customInterval(_that.days);
+      case OneTime() when oneTime != null:
+        return oneTime(_that.date);
       case _:
         return orElse();
     }
@@ -193,6 +205,7 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
     required TResult Function(int dayOfWeek) weekly,
     required TResult Function(int dayOfMonth) monthly,
     required TResult Function(int days) customInterval,
+    required TResult Function(DateTime? date) oneTime,
   }) {
     final _that = this;
     switch (_that) {
@@ -204,6 +217,8 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
         return monthly(_that.dayOfMonth);
       case CustomInterval():
         return customInterval(_that.days);
+      case OneTime():
+        return oneTime(_that.date);
     }
   }
 
@@ -225,6 +240,7 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
     TResult? Function(int dayOfWeek)? weekly,
     TResult? Function(int dayOfMonth)? monthly,
     TResult? Function(int days)? customInterval,
+    TResult? Function(DateTime? date)? oneTime,
   }) {
     final _that = this;
     switch (_that) {
@@ -236,6 +252,8 @@ extension ReminderFrequencyPatterns on ReminderFrequency {
         return monthly(_that.dayOfMonth);
       case CustomInterval() when customInterval != null:
         return customInterval(_that.days);
+      case OneTime() when oneTime != null:
+        return oneTime(_that.date);
       case _:
         return null;
     }
@@ -449,6 +467,68 @@ class _$CustomIntervalCopyWithImpl<$Res>
           ? _self.days
           : days // ignore: cast_nullable_to_non_nullable
               as int,
+    ));
+  }
+}
+
+/// @nodoc
+
+class OneTime implements ReminderFrequency {
+  const OneTime({this.date});
+
+  final DateTime? date;
+
+  /// Create a copy of ReminderFrequency
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $OneTimeCopyWith<OneTime> get copyWith =>
+      _$OneTimeCopyWithImpl<OneTime>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is OneTime &&
+            (identical(other.date, date) || other.date == date));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, date);
+
+  @override
+  String toString() {
+    return 'ReminderFrequency.oneTime(date: $date)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $OneTimeCopyWith<$Res>
+    implements $ReminderFrequencyCopyWith<$Res> {
+  factory $OneTimeCopyWith(OneTime value, $Res Function(OneTime) _then) =
+      _$OneTimeCopyWithImpl;
+  @useResult
+  $Res call({DateTime? date});
+}
+
+/// @nodoc
+class _$OneTimeCopyWithImpl<$Res> implements $OneTimeCopyWith<$Res> {
+  _$OneTimeCopyWithImpl(this._self, this._then);
+
+  final OneTime _self;
+  final $Res Function(OneTime) _then;
+
+  /// Create a copy of ReminderFrequency
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? date = freezed,
+  }) {
+    return _then(OneTime(
+      date: freezed == date
+          ? _self.date
+          : date // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }

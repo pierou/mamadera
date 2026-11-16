@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:logger/logger.dart';
 
 import '../../../../core/services/app_logger.dart';
+import '../../../../core/utils/calendar_date.dart';
 // Alias for drift-generated row types (distinct from domain entities)
 import '../../../../data/local/app_db.dart' as db_app;
 import '../../../../data/local/db_constants.dart' as db_const;
@@ -207,6 +208,11 @@ class RemindersRepositoryImpl implements RemindersRepository {
           row.itemId: ReminderItemSetting(
             enabled: row.enabled,
             timeOfDay: row.time,
+            // Read straight through, unresolved on purpose: an age-end needs the
+            // scope's birthdate, which belongs to the caller (`_buildPlan` has
+            // the profile, M4's effective-item function will too).
+            endDate: row.endDate,
+            endAgeMonths: row.endAgeMonths,
           ),
       };
     } catch (e, stack) {
@@ -337,6 +343,7 @@ class RemindersRepositoryImpl implements RemindersRepository {
   static const String _freqWeekly = db_const.freqWeekly;
   static const String _freqMonthly = db_const.freqMonthly;
   static const String _freqEveryNDays = db_const.freqEveryNDays;
+  static const String _freqOneTime = db_const.freqOneTime;
 
   /// Maximum label length: `withLength(max: 60)` for the table, aligned.
   /// regarding the `maxLength` setting of the form.
@@ -352,21 +359,48 @@ class RemindersRepositoryImpl implements RemindersRepository {
   /// Invalid value for `interval_days`: the value could not be read.
   static const int _defaultIntervalDays = 7;
 
-  ({String code, int? intervalDays}) _encodeFrequency(
+  /// The frequency as stored columns: a code plus **its** parameter, in the
+  /// column that belongs to that code (`interval_days` for `every_n_days`,
+  /// `frequency_date` for `one_time`).
+  ///
+  /// Lossless by construction — which is the reason the one-shot's column landed
+  /// in the same v14 batch as the codec rather than after it: an encoder that
+  /// could not write the date would have had to either drop it or refuse the
+  /// reminder, and both are silent data changes.
+  ({String code, int? intervalDays, String? occurrenceDate}) _encodeFrequency(
           ReminderFrequency frequency) =>
       frequency.map(
-        daily: (_) => (code: _freqDaily, intervalDays: null),
-        weekly: (_) => (code: _freqWeekly, intervalDays: null),
+        daily: (_) =>
+            (code: _freqDaily, intervalDays: null, occurrenceDate: null),
+        weekly: (_) =>
+            (code: _freqWeekly, intervalDays: null, occurrenceDate: null),
         // The day of the month is not stored; instead, it represents the baby's date of birth.
         // active, and reviewed each time the list is created – like vitamin K.
-        monthly: (_) => (code: _freqMonthly, intervalDays: null),
-        customInterval: (f) => (code: _freqEveryNDays, intervalDays: f.days),
+        monthly: (_) =>
+            (code: _freqMonthly, intervalDays: null, occurrenceDate: null),
+        customInterval: (f) => (
+          code: _freqEveryNDays,
+          intervalDays: f.days,
+          occurrenceDate: null,
+        ),
+        oneTime: (f) => (
+          code: _freqOneTime,
+          intervalDays: null,
+          // A dateless one-shot is D-R8's *read* shape only; nothing writes
+          // one (the picker requires a date), so the column keeps its
+          // invariant: `one_time` in the database always has a date.
+          occurrenceDate: f.date == null ? null : formatCalendarDate(f.date!),
+        ),
       );
 
   /// Tolerant decoding: an unknown code — manually restored JSON, version.
   /// the future of the format – it's becoming a **daily** reminder rather than...
   /// to disappear. A reminder that once something is gone, it can no longer be corrected.
-  ReminderFrequency _decodeFrequency(String code, int? intervalDays) {
+  ReminderFrequency _decodeFrequency(
+    String code,
+    int? intervalDays, {
+    String? occurrenceDate,
+  }) {
     if (code == _freqWeekly) {
       return const ReminderFrequency.weekly(
         dayOfWeek: _weeklyStoredDayOfWeek,
@@ -376,6 +410,14 @@ class RemindersRepositoryImpl implements RemindersRepository {
       return const ReminderFrequency.monthly(
         dayOfMonth: CustomReminderPresets.monthlyFallbackDay,
       );
+    }
+    if (code == _freqOneTime) {
+      // D-R8: a `one_time` whose date is missing or unparseable decodes to a
+      // one-shot that is **due now**, not to a daily reminder and not to nothing.
+      // The importer refuses such a file outright, so the only way to reach this
+      // branch is a hand-edited backup — and there "the parent is asked now"
+      // beats "the reminder is silently off, or silently monthly".
+      return ReminderFrequency.oneTime(date: parseCalendarDate(occurrenceDate));
     }
     if (code == _freqEveryNDays) {
       // A negative or zero value would result in a perpetual outstanding balance.
@@ -394,7 +436,11 @@ class RemindersRepositoryImpl implements RemindersRepository {
         // As it was originally written: "This column is the definitive source of information about who [or what] it concerns."
         // The recall setting is adjusted, and there are never any recalculated defects here.
         completionSource: row.completionSource,
-        frequency: _decodeFrequency(row.frequency, row.intervalDays),
+        frequency: _decodeFrequency(
+          row.frequency,
+          row.intervalDays,
+          occurrenceDate: row.frequencyDate,
+        ),
       );
 
   /// The label is the only free-text field on this page: it has been cleaned, verified, and...
@@ -443,8 +489,11 @@ class RemindersRepositoryImpl implements RemindersRepository {
       {String? babyId}) async {
     try {
       final scope = _scope(babyId);
-      final (code: code, intervalDays: intervalDays) =
-          _encodeFrequency(reminder.frequency);
+      final (
+        code: code,
+        intervalDays: intervalDays,
+        occurrenceDate: occurrenceDate
+      ) = _encodeFrequency(reminder.frequency);
 
       final id = await database.into(database.customReminders).insert(
             db_app.CustomRemindersCompanion.insert(
@@ -461,6 +510,7 @@ class RemindersRepositoryImpl implements RemindersRepository {
               babyId: Value(scope),
               frequency: code,
               intervalDays: Value(intervalDays),
+              frequencyDate: Value(occurrenceDate),
             ),
           );
       _logger.d('insertCustomReminder(id: $id, $scope)');
@@ -487,8 +537,11 @@ class RemindersRepositoryImpl implements RemindersRepository {
           'Un rappel à mettre à jour doit avoir un identifiant.',
         );
       }
-      final (code: code, intervalDays: intervalDays) =
-          _encodeFrequency(reminder.frequency);
+      final (
+        code: code,
+        intervalDays: intervalDays,
+        occurrenceDate: occurrenceDate
+      ) = _encodeFrequency(reminder.frequency);
       // Carrying (or "slinging") isn't about rewriting the rules: it's about renaming or adjusting the pace of something.
       // The recall does not change the baby to whom it belongs.
 
@@ -507,6 +560,11 @@ class RemindersRepositoryImpl implements RemindersRepository {
           ),
           frequency: Value(code),
           intervalDays: Value(intervalDays),
+          // Written on every update, including as `null`: leaving a stale date
+          // behind when the frequency moves off `one_time` would leave a
+          // half-changed frequency in the row (D-R5's exclusivity applies to the
+          // write, not just to the picker).
+          frequencyDate: Value(occurrenceDate),
         ),
       );
       _logger

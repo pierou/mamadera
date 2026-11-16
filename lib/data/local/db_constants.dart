@@ -46,7 +46,8 @@ const String vitaminDSeedInsert = '''
   )
 ''';
 
-// ── Custom reminder frequency codes (match `custom_reminders.frequency`) ───
+// ── Custom reminder frequency codes (match `custom_reminders.frequency`,
+//    and from v14 `reminder_settings.frequency`) ───
 
 // Permanently engraved in existing databases and read back verbatim from
 // backup JSON files: renaming one would silently change the meaning of every
@@ -66,12 +67,19 @@ const String freqMonthly = 'monthly';
 /// Sliding rhythm: due every `interval_days` days after the last completion.
 const String freqEveryNDays = 'every_n_days';
 
+/// Single occurrence on a date (B33 Part 1, D-R5 form 1) — the date itself is
+/// the occurrence, stored in `frequency_date`. Never a rhythm: once settled the
+/// reminder is done (D-R7), which is why this code needs its companion column
+/// and nothing else.
+const String freqOneTime = 'one_time';
+
 /// All valid frequency codes. The importer validates against this set.
 const Set<String> allFrequencyValues = {
   freqDaily,
   freqWeekly,
   freqMonthly,
   freqEveryNDays,
+  freqOneTime,
 };
 
 // ── Growth measurement kinds (`measurements.kind`) ─────────────────────

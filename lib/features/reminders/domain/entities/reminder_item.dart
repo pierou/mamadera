@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/utils/date_arithmetic.dart';
 import '../../../../data/local/db_constants.dart';
 import '../../../../shared/domain/entities/baby_profile.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
@@ -75,8 +76,13 @@ extension ReminderItemPresets on ReminderItem {
     enabledByDefault: false,
   );
 
-  /// Vitamin K — without a birth date on hand, the static 30-day cycle.
-  /// `buildForBaby` swaps it for the baby's birth day (monthly).
+  /// Vitamin K — **the profileless shape**: a static 30-day cycle, kept exactly
+  /// as it was (D-R10). A scope with no birthdate cannot place a one-shot, and
+  /// dropping the reminder there would remove a clinical prompt from precisely
+  /// the installs the B31 self-heal still serves.
+  ///
+  /// `buildForBaby` replaces it with the real cadence: **one occurrence** at the
+  /// baby's first month (B33 Part 1).
   static const vitaminK = ReminderItem(
     id: 'vitamine_k',
     labelKey: 'reminderVitaminK',
@@ -111,12 +117,22 @@ extension ReminderItemPresets on ReminderItem {
 
   /// The preset list for one baby profile.
   ///
-  /// Only the vitamin K cadence changes: monthly on the baby's birth day,
-  /// instead of the preset's static 30-day cycle. The rest is verbatim.
+  /// Only the vitamin K cadence changes, and it changes in **kind**, not in
+  /// length: a `OneTime` occurrence at the baby's first month (B33 Part 1),
+  /// which settles when the dose is recorded and then never returns — instead of
+  /// the monthly cycle that kept asking for a dose that had long been given.
+  /// The date is the birthdate plus one month with B18's clamped anniversary
+  /// ([addMonthsClamped]), so a baby born on 31 January is prompted on 28/29
+  /// February, never on a day that does not exist (D-R10: the same month
+  /// arithmetic as the age label, never a second one).
+  ///
+  /// The rest of the list is verbatim.
   static List<ReminderItem> buildForBaby(BabyProfile profile) {
     final vitaminK = ReminderItem(
       id: ReminderItemPresets.vitaminK.id,
-      frequency: Monthly(dayOfMonth: profile.birthDate.day),
+      frequency: ReminderFrequency.oneTime(
+        date: addMonthsClamped(profile.birthDate, 1),
+      ),
       labelKey: ReminderItemPresets.vitaminK.labelKey,
       trackingType: ReminderItemPresets.vitaminK.trackingType,
       subtypeValue: ReminderItemPresets.vitaminK.subtypeValue,
@@ -134,9 +150,10 @@ extension ReminderItemPresets on ReminderItem {
 
 /// The item set for one scope, single-sourced with the UI.
 ///
-/// With a [profile] ⇒ [ReminderItemPresets.buildForBaby] (vitamin K on the
-/// baby's own birth day). Without ⇒ the profileless fallback: Vitamin D daily
-/// plus Vitamin K on the static 30-day interval. `dynamicRemindersProvider`
+/// With a [profile] ⇒ [ReminderItemPresets.buildForBaby] (vitamin K as a
+/// one-shot at the baby's first month). Without ⇒ the profileless fallback:
+/// Vitamin D daily plus Vitamin K on the static 30-day interval — deliberately
+/// unchanged, since a one-shot needs a birthdate to be placed (D-R10). `dynamicRemindersProvider`
 /// and the notification scheduler both call this, so the in-app list and the
 /// OS schedule can never disagree about which items exist.
 List<ReminderItem> reminderItemsFor(BabyProfile? profile) => profile == null

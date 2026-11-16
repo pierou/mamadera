@@ -97,7 +97,8 @@ void main() {
             .map((r) => r.read<String>('baby_id'))
             .toSet(),
         {babyId},
-        reason: 'les réglages hérités reprennent le profil unique, pas la sentinelle',
+        reason:
+            'les réglages hérités reprennent le profil unique, pas la sentinelle',
       );
       expect(
         settings
@@ -105,7 +106,8 @@ void main() {
             .map((r) => r.read<String>('baby_id'))
             .toSet(),
         {'', babyId},
-        reason: 'v14 seeds an explicit vitamin D row for every pre-existing scope',
+        reason:
+            'v14 seeds an explicit vitamin D row for every pre-existing scope',
       );
 
       final dismissals = await db

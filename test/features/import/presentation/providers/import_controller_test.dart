@@ -82,6 +82,7 @@ ParsedExport _sampleParsed() => ParsedExport(
           subtypeValue: 'nettoyage_nez',
           frequency: 'every_n_days',
           intervalDays: 2,
+          frequencyDate: null,
           babyId: '',
           completionSource: 'from_events',
         ),

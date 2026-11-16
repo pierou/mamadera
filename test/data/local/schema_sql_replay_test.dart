@@ -88,7 +88,8 @@ void main() {
       'install actually has', () async {
     final replayed = _RawSqlDatabase(NativeDatabase.memory());
     addTearDown(replayed.close);
-    for (final statement in _sqlStatements(File(_schemaPath).readAsStringSync())) {
+    for (final statement
+        in _sqlStatements(File(_schemaPath).readAsStringSync())) {
       replayed.customStatement(statement);
     }
 

@@ -104,6 +104,11 @@ class FakeRemindersRepository implements RemindersRepository {
   final Map<String, DateTime> lastCompletedByScopeItem = {};
   final Map<String, DateTime> lastManualByScopeItem = {};
   final Map<String, DateTime> lastDismissalByScopeItem = {};
+
+  /// Per scope, then item: the stored series end, as the v14 columns hold it
+  /// (`end_date`, `end_age_months`) — D-R5. Absent = the series never ends.
+  final Map<String, Map<String, (String? endDate, int? endAgeMonths)>>
+      endsByScopeItem = {};
   final Set<String> enabledScopesSeen = {};
 
   static String _scope(String? babyId) => babyId ?? '';
@@ -116,11 +121,15 @@ class FakeRemindersRepository implements RemindersRepository {
     enabledScopesSeen.add(_scope(babyId));
     final enabled = enabledByScope[_scope(babyId)] ?? const <String, bool>{};
     final times = timesByScopeItem[_scope(babyId)] ?? const <String, String>{};
+    final ends =
+        endsByScopeItem[_scope(babyId)] ?? const <String, (String?, int?)>{};
     return {
-      for (final id in {...enabled.keys, ...times.keys})
+      for (final id in {...enabled.keys, ...times.keys, ...ends.keys})
         id: ReminderItemSetting(
           enabled: enabled[id] ?? true,
           timeOfDay: times[id],
+          endDate: ends[id]?.$1,
+          endAgeMonths: ends[id]?.$2,
         ),
     };
   }
@@ -248,6 +257,31 @@ class _Harness {
   /// item off must not silently drop the vitamin D row along with it.
   void setEnabled(String scope, String item, {required bool enabled}) {
     repo.enabledByScope.putIfAbsent(scope, () => {})[item] = enabled;
+  }
+
+  /// Give one reminder a stored series end (D-R5).
+  ///
+  /// The picker that writes these columns is M4's; M3 owns the semantics, so the
+  /// rows here are shaped exactly as the columns will hold them — `'yyyy-MM-dd'`
+  /// and whole months — and the production read path is what is under test.
+  void setEnd(
+    String scope,
+    String item, {
+    String? endDate,
+    int? endAgeMonths,
+  }) {
+    repo.endsByScopeItem.putIfAbsent(scope, () => {})[item] =
+        (endDate, endAgeMonths);
+  }
+
+  /// The plan id currently holding [title], or null when the OS holds nothing
+  /// for it. Asserted through the title because the ids are positional: they
+  /// compact when an item drops out, which is exactly what these tests change.
+  int? idOf(String title) {
+    for (final entry in notifications.entries.entries) {
+      if (entry.value.$1 == title) return entry.key;
+    }
+    return null;
   }
 
   final List<BabyProfile> babies;
@@ -636,4 +670,110 @@ void main() {
       );
     });
   });
+
+  // B33 Part 1's actual work is the **removal** half (D-R7): an item that can no
+  // longer be due has to leave the OS schedule, which happens by dropping out of
+  // the plan and letting the existing diff cancel its id. A one-shot that stays
+  // behind would re-ask for a dose already given; an ended series that stays
+  // behind is a reminder the parent explicitly stopped.
+  group('B33 — an item that can no longer be due leaves the OS schedule', () {
+    test('a settled one-shot is cancelled, and nothing replaces it', () async {
+      // Aimée: born 20 June ⇒ vitamin K on 20 July.
+      final h = _Harness(babies: [_baby(_aimeeId, 'Aimée', 20)]);
+      await h.sync();
+      final vitKId = h.idOf('Aimée:reminderVitaminK');
+      expect(vitKId, isNotNull, reason: 'the occurrence is scheduled first');
+      final scheduledBefore = h.notifications.scheduleAtCalls;
+
+      // The dose is recorded on the day ⇒ the one-shot is settled for good.
+      h.repo.lastCompletedByScopeItem['$_aimeeId::vitamine_k'] =
+          _at(2026, 7, 20, 9);
+      final count = await h.sync();
+
+      // Plan ids are positional and compact when an item drops out (the
+      // existing disablement test asserts the same way), so the cancelled id is
+      // the *tail*, not necessarily the dropped item's own id: the entry that
+      // carried vitamin K is either cancelled or overwritten by whoever took its
+      // id. What must be true in the OS is that nothing carries the title.
+      expect(h.notifications.cancelled, isNotEmpty);
+      expect(h.idOf('Aimée:reminderVitaminK'), isNull);
+      expect(count, 3, reason: 'vitamin D, eye cleaning, face cleaning');
+      expect(h.notifications.entries.length, 3);
+      // And it never comes back. The next sync does re-submit two entries — the
+      // plan compacted, so whoever took the vacated id is re-submitted by id
+      // (R11, existing behaviour, not a B33 effect). Once the plan has settled,
+      // a further tick must be silent: that is what "settled for good" means.
+      await h.sync();
+      final callsWhenSettled = h.notifications.scheduleAtCalls;
+      expect(callsWhenSettled, greaterThan(scheduledBefore),
+          reason: 'compaction re-submits the shifted entries by id');
+      await h.sync();
+      expect(h.notifications.scheduleAtCalls, callsWhenSettled,
+          reason: 'a settled one-shot must not come back on a later sync');
+      expect(h.idOf('Aimée:reminderVitaminK'), isNull);
+    });
+
+    test('an ended series is cancelled, not merely skipped', () async {
+      final h = _Harness(babies: [_baby(_aimeeId, 'Aimée', 20)]);
+      await h.sync();
+      // Face cleaning is the last item, hence the last plan id: ending *it*
+      // removes the tail, so the cancellation can be asserted on its own id
+      // rather than on the compaction of the others.
+      final faceId = h.idOf('Aimée:reminderFaceCleaning');
+      expect(faceId, 4);
+
+      // "Until 14 July", decided on the 15th: the series is already over. D-R5
+      // accepts a past end at write time — the row simply stops being due.
+      h.setEnd(_aimeeId, 'face_cleaning', endDate: '2026-07-14');
+      await h.sync();
+
+      expect(h.notifications.cancelled, [faceId],
+          reason: 'the OS entry is cancelled, not left to fire on its own');
+      expect(h.idOf('Aimée:reminderFaceCleaning'), isNull);
+    });
+
+    test('the end day itself still fires; the day after it does not', () async {
+      // Inclusive end (D-R5): the boundary is tested at the scheduler level too,
+      // because a whole-day off-by-one here is a reminder that dies early.
+      final h = _Harness(babies: [_baby(_aimeeId, 'Aimée', 20)]);
+      h.setEnd(_aimeeId, 'eye_cleaning', endDate: '2026-07-15');
+      final countToday = await h.sync(); // now = 15 July 06:00
+      expect(h.idOf('Aimée:reminderEyeCleaning'), isNotNull,
+          reason: 'the end date is part of the series');
+
+      h.setEnd(_aimeeId, 'eye_cleaning', endDate: '2026-07-14');
+      final countTomorrow = await h.sync(now: _at(2026, 7, 15, 6));
+      expect(countTomorrow, lessThan(countToday),
+          reason: 'one day later the same row has no occurrence left');
+      expect(h.idOf('Aimée:reminderEyeCleaning'), isNull);
+    });
+
+    test('an age-based end moves when the birthdate is corrected', () async {
+      // Read-time resolution: nothing about the end is stored as a date, so the
+      // plan follows the birthdate with no invalidation step (D-R5).
+      final h = _Harness(babies: [_baby(_aimeeId, 'Aimée', 20)]);
+      h.setEnd(_aimeeId, 'eye_cleaning', endAgeMonths: 1);
+      await h.sync();
+      // Born 20 June, one month old on 20 July ⇒ still running on 15 July.
+      expect(h.idOf('Aimée:reminderEyeCleaning'), isNotNull);
+
+      // Correct the birthdate to 20 May ⇒ one month old on 20 June ⇒ ended.
+      final h2 = _Harness(babies: [_babyMoved(_aimeeId, 'Aimée', 2026, 5, 20)]);
+      h2.setEnd(_aimeeId, 'eye_cleaning', endAgeMonths: 1);
+      await h2.sync();
+      expect(h2.idOf('Aimée:reminderEyeCleaning'), isNull,
+          reason:
+              'the same stored row, a corrected birthdate, a finished series');
+    });
+  });
 }
+
+/// A baby whose birthdate is given in full (the harness helper takes a day of
+/// the current year only).
+BabyProfile _babyMoved(String id, String name, int y, int m, int d) =>
+    BabyProfile(
+      id: id,
+      name: name,
+      birthDate: DateTime(y, m, d),
+      isActive: id == _aimeeId,
+    );

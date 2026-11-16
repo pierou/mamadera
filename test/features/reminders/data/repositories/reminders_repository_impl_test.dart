@@ -423,6 +423,7 @@ void main() {
       Future<void> insertRaw({
         required String frequency,
         int? intervalDays,
+        String? frequencyDate,
         String label = 'Rappel brut',
       }) =>
           database.into(database.customReminders).insert(
@@ -431,8 +432,98 @@ void main() {
                   subtypeValue: const Value('nettoyage_nez'),
                   frequency: frequency,
                   intervalDays: Value(intervalDays),
+                  frequencyDate: Value(frequencyDate),
                 ),
               );
+
+      // ── B33 Part 1: the one-shot's codec (D-R8) ─────────────────────────
+      test('a one-shot round-trips through `one_time` and its date column',
+          () async {
+        final id = await repository.insertCustomReminder(
+          reminder(
+            label: 'Première vitamine K',
+            frequency:
+                ReminderFrequency.oneTime(date: DateTime(2026, 12, 15)),
+          ),
+        );
+
+        final stored = await (database.select(database.customReminders)
+              ..where((t) => t.id.equals(id)))
+            .getSingle();
+        expect(stored.frequency, 'one_time');
+        expect(stored.frequencyDate, '2026-12-15');
+        // The frequency's parameter goes in *its* column — an interval left over
+        // from a previous rhythm would change what `isDue` computes.
+        expect(stored.intervalDays, isNull);
+
+        final read = (await repository.getCustomReminders())
+            .firstWhere((r) => r.id == id);
+        expect(read.frequency,
+            ReminderFrequency.oneTime(date: DateTime(2026, 12, 15)));
+      });
+
+      test('moving off `one_time` clears the occurrence date', () async {
+        // D-R5's exclusivity at the write: a row never keeps a half-changed
+        // frequency, and a stale date would resurrect as an occurrence the
+        // moment the code came back.
+        final id = await repository.insertCustomReminder(
+          reminder(
+            frequency:
+                ReminderFrequency.oneTime(date: DateTime(2026, 12, 15)),
+          ),
+        );
+        await repository.updateCustomReminder(
+          reminder(
+            id: id,
+            label: 'Première vitamine K',
+            frequency: const ReminderFrequency.daily(),
+          ),
+        );
+
+        final after = await (database.select(database.customReminders)
+              ..where((t) => t.id.equals(id)))
+            .getSingle();
+        expect(after.frequency, 'daily');
+        expect(after.frequencyDate, isNull);
+      });
+
+      test('a `one_time` with no date decodes to due-now, not to daily',
+          () async {
+        await insertRaw(frequency: 'one_time');
+        final read = (await repository.getCustomReminders()).single;
+        expect(read.frequency, const ReminderFrequency.oneTime(date: null));
+        expect(
+          read.frequency.isDue(DateTime(2026, 5, 5), null),
+          isTrue,
+          reason: 'the parent is asked now — never silently off, '
+              'never silently monthly',
+        );
+      });
+
+      test('a `one_time` with an unparseable date decodes to due-now too',
+          () async {
+        // A hand-edited file is the only way to get here (the importer refuses
+        // it), and the codec's first rule is that a reminder never disappears.
+        await insertRaw(frequency: 'one_time', frequencyDate: '15/12/2026');
+        await insertRaw(frequency: 'one_time', frequencyDate: '2026-02-30');
+
+        final read = await repository.getCustomReminders();
+        expect(read, hasLength(2));
+        for (final item in read) {
+          expect(item.frequency, const ReminderFrequency.oneTime(date: null));
+        }
+      });
+
+      test(
+          'a date on a row that is not `one_time` is ignored, '
+          'not read as an occurrence', () async {
+        // D-R8's resolution order, step 1 — the branch that would put vitamin K
+        // at birth instead of at one month if the date were read unconditionally.
+        await insertRaw(frequency: 'daily', frequencyDate: '2026-12-15');
+
+        final read = (await repository.getCustomReminders()).single;
+        expect(read.frequency, const ReminderFrequency.daily());
+      });
 
       test('round-trips the four frequencies through their stored codes',
           () async {

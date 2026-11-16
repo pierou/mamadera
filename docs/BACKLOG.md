@@ -1842,7 +1842,15 @@ Decide, then make the tree say it:
 ## B33 — Vitamin K must be a one-shot (one month after birthdate); every reminder must be
 editable/removable like a custom one
 
-**Status:** open (owner request, 2026-11-14) · *scope confirmed by the owner the same day — all
+**Status:** **part 1 in development on `release/v1.4.0`** — implemented as v1.4.0 **M3**
+(`OneTime` frequency + `one_time` code + `custom_reminders.frequency_date` in schema v14;
+Vitamin K is now a single occurrence at birthdate + 1 month with B18's clamped anniversary;
+catch-up rather than expiry (D-R7); `nextDueAt` answers "can no longer be due" and the plan
+diff cancels the notification; the end model's *semantics* — `reminderEndFor`,
+`isPastSeriesEnd` — are in, inclusive end date and age resolved at read time). **Part 3
+(preset overrides, removal, the edit/end pickers) is M4** — nothing can write `end_date` or
+`end_age_months` until that picker exists. Owner request 2026-11-14 · *scope confirmed the same
+day — all
 three "end" forms (one time / until a date / until an age) per `docs/PLAN-v1.4.0.md` D-R5; catch-up
 over expiry (D-R7); the profileless fallback keeps its cadence (D-R10); removed presets are
 re-addable from a Removed section (D-R4)* · **Severity:** product gap + clinical content in the

@@ -30,6 +30,23 @@ mixin _$ReminderItemSetting {
   /// `notification_time.dart`.
   String? get timeOfDay;
 
+  /// End of the series, `'yyyy-MM-dd'` (D-R5 form 2). `null` = no stored date.
+  ///
+  /// One of the two ways a reminder can end; **at most one** of
+  /// [endDate]/[endAgeMonths] is ever set (D-R5's mutual exclusivity, enforced
+  /// at write and at import — the schema only has the columns). Read it through
+  /// `reminderEndFor`, never by parsing this field in place: the age form has
+  /// to be resolved against the baby's birthdate, and a row that somehow holds
+  /// both has to resolve to one answer.
+  String? get endDate;
+
+  /// End of the series as the baby's age in whole months, 0-180 (D-R5 form 3).
+  ///
+  /// Stored as *months*, never as the date it implies: a corrected birthdate
+  /// then moves the end by itself, because the date is computed at read time
+  /// (`reminderEndFor`) and there is no stored value to go stale.
+  int? get endAgeMonths;
+
   /// Create a copy of ReminderItemSetting
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,15 +62,19 @@ mixin _$ReminderItemSetting {
             other is ReminderItemSetting &&
             (identical(other.enabled, enabled) || other.enabled == enabled) &&
             (identical(other.timeOfDay, timeOfDay) ||
-                other.timeOfDay == timeOfDay));
+                other.timeOfDay == timeOfDay) &&
+            (identical(other.endDate, endDate) || other.endDate == endDate) &&
+            (identical(other.endAgeMonths, endAgeMonths) ||
+                other.endAgeMonths == endAgeMonths));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, enabled, timeOfDay);
+  int get hashCode =>
+      Object.hash(runtimeType, enabled, timeOfDay, endDate, endAgeMonths);
 
   @override
   String toString() {
-    return 'ReminderItemSetting(enabled: $enabled, timeOfDay: $timeOfDay)';
+    return 'ReminderItemSetting(enabled: $enabled, timeOfDay: $timeOfDay, endDate: $endDate, endAgeMonths: $endAgeMonths)';
   }
 }
 
@@ -63,7 +84,8 @@ abstract mixin class $ReminderItemSettingCopyWith<$Res> {
           ReminderItemSetting value, $Res Function(ReminderItemSetting) _then) =
       _$ReminderItemSettingCopyWithImpl;
   @useResult
-  $Res call({bool enabled, String? timeOfDay});
+  $Res call(
+      {bool enabled, String? timeOfDay, String? endDate, int? endAgeMonths});
 }
 
 /// @nodoc
@@ -81,6 +103,8 @@ class _$ReminderItemSettingCopyWithImpl<$Res>
   $Res call({
     Object? enabled = null,
     Object? timeOfDay = freezed,
+    Object? endDate = freezed,
+    Object? endAgeMonths = freezed,
   }) {
     return _then(_self.copyWith(
       enabled: null == enabled
@@ -91,6 +115,14 @@ class _$ReminderItemSettingCopyWithImpl<$Res>
           ? _self.timeOfDay
           : timeOfDay // ignore: cast_nullable_to_non_nullable
               as String?,
+      endDate: freezed == endDate
+          ? _self.endDate
+          : endDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      endAgeMonths: freezed == endAgeMonths
+          ? _self.endAgeMonths
+          : endAgeMonths // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
@@ -188,13 +220,16 @@ extension ReminderItemSettingPatterns on ReminderItemSetting {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(bool enabled, String? timeOfDay)? $default, {
+    TResult Function(bool enabled, String? timeOfDay, String? endDate,
+            int? endAgeMonths)?
+        $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _ReminderItemSetting() when $default != null:
-        return $default(_that.enabled, _that.timeOfDay);
+        return $default(
+            _that.enabled, _that.timeOfDay, _that.endDate, _that.endAgeMonths);
       case _:
         return orElse();
     }
@@ -215,12 +250,15 @@ extension ReminderItemSettingPatterns on ReminderItemSetting {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(bool enabled, String? timeOfDay) $default,
+    TResult Function(
+            bool enabled, String? timeOfDay, String? endDate, int? endAgeMonths)
+        $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ReminderItemSetting():
-        return $default(_that.enabled, _that.timeOfDay);
+        return $default(
+            _that.enabled, _that.timeOfDay, _that.endDate, _that.endAgeMonths);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -240,12 +278,15 @@ extension ReminderItemSettingPatterns on ReminderItemSetting {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(bool enabled, String? timeOfDay)? $default,
+    TResult? Function(bool enabled, String? timeOfDay, String? endDate,
+            int? endAgeMonths)?
+        $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ReminderItemSetting() when $default != null:
-        return $default(_that.enabled, _that.timeOfDay);
+        return $default(
+            _that.enabled, _that.timeOfDay, _that.endDate, _that.endAgeMonths);
       case _:
         return null;
     }
@@ -255,7 +296,8 @@ extension ReminderItemSettingPatterns on ReminderItemSetting {
 /// @nodoc
 
 class _ReminderItemSetting implements ReminderItemSetting {
-  const _ReminderItemSetting({required this.enabled, this.timeOfDay});
+  const _ReminderItemSetting(
+      {required this.enabled, this.timeOfDay, this.endDate, this.endAgeMonths});
 
   /// The switch. Once a row exists it means exactly what it says; absence is
   /// what `enabledByDefault` is for (B6).
@@ -275,6 +317,25 @@ class _ReminderItemSetting implements ReminderItemSetting {
   @override
   final String? timeOfDay;
 
+  /// End of the series, `'yyyy-MM-dd'` (D-R5 form 2). `null` = no stored date.
+  ///
+  /// One of the two ways a reminder can end; **at most one** of
+  /// [endDate]/[endAgeMonths] is ever set (D-R5's mutual exclusivity, enforced
+  /// at write and at import — the schema only has the columns). Read it through
+  /// `reminderEndFor`, never by parsing this field in place: the age form has
+  /// to be resolved against the baby's birthdate, and a row that somehow holds
+  /// both has to resolve to one answer.
+  @override
+  final String? endDate;
+
+  /// End of the series as the baby's age in whole months, 0-180 (D-R5 form 3).
+  ///
+  /// Stored as *months*, never as the date it implies: a corrected birthdate
+  /// then moves the end by itself, because the date is computed at read time
+  /// (`reminderEndFor`) and there is no stored value to go stale.
+  @override
+  final int? endAgeMonths;
+
   /// Create a copy of ReminderItemSetting
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -291,15 +352,19 @@ class _ReminderItemSetting implements ReminderItemSetting {
             other is _ReminderItemSetting &&
             (identical(other.enabled, enabled) || other.enabled == enabled) &&
             (identical(other.timeOfDay, timeOfDay) ||
-                other.timeOfDay == timeOfDay));
+                other.timeOfDay == timeOfDay) &&
+            (identical(other.endDate, endDate) || other.endDate == endDate) &&
+            (identical(other.endAgeMonths, endAgeMonths) ||
+                other.endAgeMonths == endAgeMonths));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, enabled, timeOfDay);
+  int get hashCode =>
+      Object.hash(runtimeType, enabled, timeOfDay, endDate, endAgeMonths);
 
   @override
   String toString() {
-    return 'ReminderItemSetting(enabled: $enabled, timeOfDay: $timeOfDay)';
+    return 'ReminderItemSetting(enabled: $enabled, timeOfDay: $timeOfDay, endDate: $endDate, endAgeMonths: $endAgeMonths)';
   }
 }
 
@@ -311,7 +376,8 @@ abstract mixin class _$ReminderItemSettingCopyWith<$Res>
       __$ReminderItemSettingCopyWithImpl;
   @override
   @useResult
-  $Res call({bool enabled, String? timeOfDay});
+  $Res call(
+      {bool enabled, String? timeOfDay, String? endDate, int? endAgeMonths});
 }
 
 /// @nodoc
@@ -329,6 +395,8 @@ class __$ReminderItemSettingCopyWithImpl<$Res>
   $Res call({
     Object? enabled = null,
     Object? timeOfDay = freezed,
+    Object? endDate = freezed,
+    Object? endAgeMonths = freezed,
   }) {
     return _then(_ReminderItemSetting(
       enabled: null == enabled
@@ -339,6 +407,14 @@ class __$ReminderItemSettingCopyWithImpl<$Res>
           ? _self.timeOfDay
           : timeOfDay // ignore: cast_nullable_to_non_nullable
               as String?,
+      endDate: freezed == endDate
+          ? _self.endDate
+          : endDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      endAgeMonths: freezed == endAgeMonths
+          ? _self.endAgeMonths
+          : endAgeMonths // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }

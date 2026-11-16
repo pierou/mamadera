@@ -96,8 +96,7 @@ void main() {
     final enabled = await db.getAllReminderSettings();
     // v14 adds rows besides: the vitamin D seed of every pre-existing scope
     // (D-R1). The row under test is the vitamin K one the parent turned off.
-    final vitaminK =
-        enabled.where((s) => s.itemId == 'vitamine_k').toList();
+    final vitaminK = enabled.where((s) => s.itemId == 'vitamine_k').toList();
     expect(vitaminK, hasLength(1));
     expect(vitaminK.single.enabled, isFalse);
     expect(enabled, hasLength(3),

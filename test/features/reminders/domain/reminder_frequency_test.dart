@@ -235,6 +235,45 @@ void main() {
     });
   });
 
+  // B33 Part 1 / D-R7: a one-shot is settled or overdue, never "next month".
+  // The three rows the ticket lists: completed forever, catch-up on a passed
+  // date, and D-R8's dateless read.
+  group('OneTime', () {
+    test('is not due before its day', () {
+      final oneShot = OneTime(date: DateTime(2026, 12, 15));
+      expect(oneShot.isDue(DateTime(2026, 12, 14, 23, 59), null), isFalse);
+    });
+
+    test('is due on its day, all day', () {
+      final oneShot = OneTime(date: DateTime(2026, 12, 15));
+      expect(oneShot.isDue(DateTime(2026, 12, 15, 0, 0), null), isTrue);
+      expect(oneShot.isDue(DateTime(2026, 12, 15, 23, 30), null), isTrue);
+    });
+
+    test('a passed date stays due until settled — catch-up, not expiry (D-R7)',
+        () {
+      final oneShot = OneTime(date: DateTime(2026, 12, 15));
+      expect(oneShot.isDue(DateTime(2027, 3, 2), null), isTrue,
+          reason: 'a missed vitamin K must keep asking, not vanish silently');
+    });
+
+    test('once completed it is never due again, on any later day', () {
+      final oneShot = OneTime(date: DateTime(2026, 12, 15));
+      final completed = DateTime(2026, 12, 15, 9, 0);
+      expect(oneShot.isDue(DateTime(2026, 12, 15, 20, 0), completed), isFalse);
+      expect(oneShot.isDue(DateTime(2026, 12, 16), completed), isFalse);
+      expect(oneShot.isDue(DateTime(2027, 1, 1), completed), isFalse,
+          reason: 'the monthly behaviour this variant replaces must not return');
+    });
+
+    test('a dateless one-shot (D-R8 tolerant read) is due now', () {
+      const broken = OneTime(date: null);
+      expect(broken.isDue(DateTime(2026, 5, 5), null), isTrue);
+      expect(broken.isDue(DateTime(2026, 5, 5), DateTime(2026, 5, 4)), isFalse,
+          reason: 'settled is settled, date or no date');
+    });
+  });
+
   group('ReminderFrequency sealed class', () {
     test('all subclasses extend ReminderFrequency', () {
       expect(const Daily(), isA<ReminderFrequency>());
@@ -249,6 +288,8 @@ void main() {
         const Weekly(dayOfWeek: 3),
         const Monthly(dayOfMonth: 10),
         const CustomInterval(days: 5),
+        OneTime(date: null),
+        OneTime(date: DateTime(2026, 12, 15)),
       ];
 
       for (final freq in frequencies) {
@@ -258,6 +299,11 @@ void main() {
           Weekly(:final dayOfWeek) => 'Weekly($dayOfWeek)',
           Monthly(:final dayOfMonth) => 'Monthly($dayOfMonth)',
           CustomInterval(:final days) => 'CustomInterval($days)',
+          // B33: the pattern-match sites name the one-shot too. A `_ =>` default
+          // in a switch is how a reminder silently changes kind; this list is
+          // exhaustive on purpose.
+          OneTime(:final date) =>
+            'OneTime(${date?.toIso8601String() ?? "now"})',
         };
 
         expect(label, isNotEmpty);

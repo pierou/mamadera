@@ -610,6 +610,18 @@ abstract class AppLocalizations {
   /// **'Tous les {days} jours'**
   String reminderFrequencyEveryNDays(Object days);
 
+  /// No description provided for @reminderFrequencyOneTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une seule fois, le {date}'**
+  String reminderFrequencyOneTime(Object date);
+
+  /// No description provided for @reminderFrequencyOneTimeNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une seule fois, dès que possible'**
+  String get reminderFrequencyOneTimeNow;
+
   /// No description provided for @reminderCustomSectionTitle.
   ///
   /// In fr, this message translates to:

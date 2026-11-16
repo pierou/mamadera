@@ -223,8 +223,11 @@ void main() {
       expect(find.text('Nettoyage du visage'), findsOneWidget);
 
       expect(find.text('Tous les jours'), findsNWidgets(3));
-      // Vitamin K is set to the date of birth (15) in the active profile.
-      expect(find.text('Le 15 de chaque mois'), findsOneWidget);
+      // B33 Part 1: vitamin K is a **single occurrence** at the baby's first
+      // month, so it is announced by its day (birthdate 15/01/2026 ⇒ 15/02/2026)
+      // and no longer as a monthly rhythm.
+      expect(find.text('Le 15 de chaque mois'), findsNothing);
+      expect(find.text('Une seule fois, le 15/02/2026'), findsOneWidget);
     });
 
     testWidgets(
@@ -388,7 +391,10 @@ void main() {
 
       await pumpScreen(tester);
 
-      expect(find.text('Le 15 de chaque mois'), findsNWidgets(2));
+      // Only the custom reminder now claims the birth day: vitamin K became a
+      // one-shot (B33 Part 1) and names its own date instead.
+      expect(find.text('Le 15 de chaque mois'), findsOneWidget);
+      expect(find.text('Une seule fois, le 15/02/2026'), findsOneWidget);
     });
 
     testWidgets(
@@ -672,9 +678,11 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            remindersRepositoryProvider.overrideWith((ref) async => mockReminders),
+            remindersRepositoryProvider
+                .overrideWith((ref) async => mockReminders),
             activeBabyProvider.overrideWith(() => _ActiveBabyStub(_baby)),
-            appSettingsRepositoryProvider.overrideWith((ref) async => fakeSettings),
+            appSettingsRepositoryProvider
+                .overrideWith((ref) async => fakeSettings),
             localNotificationServiceProvider
                 .overrideWith((ref) async => fakeNotifications),
             babyProfileListProvider.overrideWith((ref) async => [_baby]),

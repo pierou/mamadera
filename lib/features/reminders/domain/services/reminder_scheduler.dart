@@ -228,7 +228,20 @@ class ReminderScheduler {
           preferredMinute: fireAt.minute,
           lastCompleted: lastCompleted,
           lastDismissal: lastDismissal,
+          // B33/D-R5: when the series stops. The age form is resolved inside
+          // `nextDueAt` against **this scope's** birthdate, so a corrected
+          // birthdate moves the plan on the next sync with nothing stored to
+          // invalidate — and the legacy profileless scope (no birthdate) gets no
+          // age-end at all (D-R10).
+          endDate: setting?.endDate,
+          endAgeMonths: setting?.endAgeMonths,
+          birthDate: scope?.birthDate,
         );
+        // B33: this item can no longer be due (settled one-shot, D-R7; ended
+        // series, D-R5). Dropping it from `fresh` is the whole mechanism — the
+        // diff below finds the id in the old plan and in nothing else, and
+        // cancels the OS notification. No second cancel path.
+        if (due == null) continue;
         fresh.add(
           _FreshEntry(
             scopeKey: scope?.id ?? '',

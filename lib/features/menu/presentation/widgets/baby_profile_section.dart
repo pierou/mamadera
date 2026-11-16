@@ -6,6 +6,7 @@ import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/utils/date_arithmetic.dart';
 import '../../../../core/widgets/show_feedback.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
 import '../../../../features/reminders/presentation/providers/reminder_sync_notifier.dart';
@@ -485,11 +486,9 @@ class BabyProfileSection extends ConsumerWidget {
     // old on 1 March, not 2. Future birthdates (invalid, not guarded
     // upstream) clamp to 0 instead of going negative.
     final now = DateTime.now();
-    var months =
-        (now.year - birthDate.year) * 12 + (now.month - birthDate.month);
-    if (months < 0) months = 0;
-    if (now.isBefore(_addMonths(birthDate, months))) months--;
-    if (months < 0) months = 0;
+    // The shared B18 arithmetic (`addMonthsClamped`), not a local copy: the
+    // reminder end model resolves an age the same way, and the two must agree.
+    final months = wholeMonthsOld(birthDate, now);
 
     if (months < 1) {
       final days = now.difference(birthDate).inDays.clamp(0, 1 << 30);
@@ -499,18 +498,6 @@ class BabyProfileSection extends ConsumerWidget {
     } else {
       return '${months ~/ 12} ${locale.yearsOld}';
     }
-  }
-
-  /// [date] shifted by [months], the day clamped to the last day of the
-  /// target month (31 January + 1 month = 28/29 February).
-  static DateTime _addMonths(DateTime date, int months) {
-    final total = date.year * 12 + (date.month - 1) + months;
-    final year = total ~/ 12;
-    final month = total % 12 + 1;
-    final firstOfNext =
-        month == 12 ? DateTime(year + 1, 1, 1) : DateTime(year, month + 1, 1);
-    final lastDay = firstOfNext.subtract(const Duration(days: 1)).day;
-    return DateTime(year, month, date.day.clamp(1, lastDay));
   }
 
   String _formatShortDate(DateTime date) {

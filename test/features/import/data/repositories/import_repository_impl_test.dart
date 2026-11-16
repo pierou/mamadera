@@ -1153,6 +1153,88 @@ void main() {
       expect((await database.getAllTrackingEvents()).length, 3);
     });
 
+    // B33 Part 1: a one-shot is `frequency: "one_time"` **plus** a day. The
+    // pairing is enforced at the boundary (write-strict), because a restore is a
+    // one-shot operation: refusing a file is recoverable, restoring a reminder
+    // that fires the moment it lands is not (D-R5, D-R8).
+    group('the one-shot date (B33, format 5)', () {
+      Map<String, dynamic> oneShotRow({
+        String? frequency = 'one_time',
+        Object? frequencyDate = '2026-12-15',
+      }) =>
+          <String, dynamic>{
+            'id': 1,
+            'label': 'Première vitamine K',
+            'subtypeValue': 'vitamine_k',
+            'frequency': frequency,
+            'intervalDays': null,
+            if (frequencyDate != null) 'frequencyDate': frequencyDate,
+          };
+
+      test('a one-shot restores with its occurrence date', () async {
+        final parsed = await repository.parseExport(_jsonOf(validDocument(
+          formatVersion: 5,
+          customReminders: [oneShotRow()],
+        )));
+        await repository.restore(parsed);
+
+        final restored = (await database.getAllCustomReminders()).single;
+        expect(restored.frequency, 'one_time');
+        expect(restored.frequencyDate, '2026-12-15');
+      });
+
+      test('an older file leaves the column null — no reminder was a one-shot',
+          () async {
+        final parsed = await repository.parseExport(_jsonOf(validDocument(
+          formatVersion: 4,
+          customReminders: [
+            oneShotRow(frequency: 'daily', frequencyDate: null)
+          ],
+        )));
+        await repository.restore(parsed);
+
+        final restored = (await database.getAllCustomReminders()).single;
+        expect(restored.frequencyDate, isNull);
+      });
+
+      test('a one_time without a date is refused, and nothing is written',
+          () async {
+        await expectRejected(
+          document: validDocument(
+            formatVersion: 5,
+            customReminders: [oneShotRow(frequencyDate: null)],
+          ),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'customReminders',
+        );
+      });
+
+      test('a one_time with a day that does not exist is refused', () async {
+        await expectRejected(
+          document: validDocument(
+            formatVersion: 5,
+            customReminders: [oneShotRow(frequencyDate: '2026-02-30')],
+          ),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'customReminders',
+        );
+      });
+
+      test('an occurrence date on a recurring reminder is refused', () async {
+        // D-R5's exclusivity at the boundary: `frequency_date` belongs to
+        // `one_time` alone. Restoring the mismatch would leave a row whose
+        // meaning depends on which column a future reader happens to trust.
+        await expectRejected(
+          document: validDocument(
+            formatVersion: 5,
+            customReminders: [oneShotRow(frequency: 'daily')],
+          ),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'customReminders',
+        );
+      });
+    });
+
     group('appSettings (format 4, item 12)', () {
       test('restores the opt-in and the time of day', () async {
         final parsed = await repository.parseExport(_jsonOf(
@@ -1472,6 +1554,7 @@ void main() {
             subtypeValue: 'vitamine_d',
             frequency: 'daily',
             intervalDays: null,
+            frequencyDate: null,
             babyId: '',
             completionSource: 'from_events',
           ),
@@ -1561,6 +1644,7 @@ Future<void> _seedRichDatabase(
           subtypeValue: const Value('nettoyage_nez'),
           frequency: 'every_n_days',
           intervalDays: const Value(2),
+          frequencyDate: const Value(null),
         ),
       );
   // Recall notice for a detached scope (M4): the scope needs to be re-mounted.

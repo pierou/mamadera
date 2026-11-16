@@ -114,6 +114,10 @@ class ExportRepositoryImpl implements ExportRepository {
             // It should not depend on the language in which it was created.
             'frequency': reminder.frequency,
             'intervalDays': reminder.intervalDays,
+            // v14/B33: the one-shot's occurrence day. Written with the section
+            // like every other column — a reminder whose date did not survive a
+            // backup would come back as "due now", which is a different reminder.
+            'frequencyDate': reminder.frequencyDate,
             'babyId': reminder.babyId,
             // As it is initially defined; the import re-derives the value from `subtypeValue`, so...
             // An inconsistent value cannot take root here.

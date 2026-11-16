@@ -33,5 +33,22 @@ abstract class ReminderItemSetting with _$ReminderItemSetting {
     /// importer refuses the same value outright): the split documented in
     /// `notification_time.dart`.
     String? timeOfDay,
+
+    /// End of the series, `'yyyy-MM-dd'` (D-R5 form 2). `null` = no stored date.
+    ///
+    /// One of the two ways a reminder can end; **at most one** of
+    /// [endDate]/[endAgeMonths] is ever set (D-R5's mutual exclusivity, enforced
+    /// at write and at import — the schema only has the columns). Read it through
+    /// `reminderEndFor`, never by parsing this field in place: the age form has
+    /// to be resolved against the baby's birthdate, and a row that somehow holds
+    /// both has to resolve to one answer.
+    String? endDate,
+
+    /// End of the series as the baby's age in whole months, 0-180 (D-R5 form 3).
+    ///
+    /// Stored as *months*, never as the date it implies: a corrected birthdate
+    /// then moves the end by itself, because the date is computed at read time
+    /// (`reminderEndFor`) and there is no stored value to go stale.
+    int? endAgeMonths,
   }) = _ReminderItemSetting;
 }

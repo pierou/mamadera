@@ -202,6 +202,13 @@
       "days": {}
     }
   },
+  "reminderFrequencyOneTime": "Una sola vez, el {date}",
+  "@reminderFrequencyOneTime": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderFrequencyOneTimeNow": "Una sola vez, lo antes posible",
   "reminderCustomSectionTitle": "Recordatorios personalizados",
   "reminderCustomSectionDescription": "Un recordatorio desaparece del inicio en cuanto registras el cuidado asociado.",
   "reminderCustomAdd": "Añadir recordatorio",

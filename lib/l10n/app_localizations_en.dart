@@ -306,6 +306,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String reminderFrequencyOneTime(Object date) {
+    return 'Once, on $date';
+  }
+
+  @override
+  String get reminderFrequencyOneTimeNow => 'Once, right away';
+
+  @override
   String get reminderCustomSectionTitle => 'Custom reminders';
 
   @override

@@ -97,9 +97,12 @@ CREATE TABLE custom_reminders (
     baby_id          TEXT    NOT NULL DEFAULT '',          -- '' = shared by all babies (sentinel)
     label            TEXT                              NOT NULL,  -- parent's own wording, 1..60 chars
     subtype_value    TEXT,                                 -- HealthSubtype value: the care whose absence makes the reminder due — NULL = detached reminder (manual completion only)
-    frequency        TEXT    NOT NULL,                     -- daily | weekly | monthly | every_n_days
+    frequency        TEXT    NOT NULL,                     -- daily | weekly | monthly | every_n_days | one_time
     interval_days    INTEGER,                              -- only for every_n_days: rolling length in days
-    completion_source TEXT    NOT NULL DEFAULT 'from_events'  -- from_events | manual: what settles the reminder (migrated rows default to 'from_events', fresh installs to '')
+    completion_source TEXT    NOT NULL DEFAULT 'from_events',  -- from_events | manual: what settles the reminder (migrated rows default to 'from_events', fresh installs to '')
+    -- v14, and last on purpose: ALTER TABLE appends, so a migrated file has it
+    -- in the same position (schema_parity_test compares column order).
+    frequency_date   TEXT                                   -- only for one_time: the occurrence day, yyyy-MM-dd
 );
 
 -- ── Measurements ───────────────────────────────────────────────

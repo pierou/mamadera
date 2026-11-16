@@ -1733,6 +1733,12 @@ class $CustomRemindersTable extends CustomReminders
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant(db_const.completionFromEvents));
+  static const VerificationMeta _frequencyDateMeta =
+      const VerificationMeta('frequencyDate');
+  @override
+  late final GeneratedColumn<String> frequencyDate = GeneratedColumn<String>(
+      'frequency_date', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1741,7 +1747,8 @@ class $CustomRemindersTable extends CustomReminders
         subtypeValue,
         frequency,
         intervalDays,
-        completionSource
+        completionSource,
+        frequencyDate
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1790,6 +1797,12 @@ class $CustomRemindersTable extends CustomReminders
           completionSource.isAcceptableOrUnknown(
               data['completion_source']!, _completionSourceMeta));
     }
+    if (data.containsKey('frequency_date')) {
+      context.handle(
+          _frequencyDateMeta,
+          frequencyDate.isAcceptableOrUnknown(
+              data['frequency_date']!, _frequencyDateMeta));
+    }
     return context;
   }
 
@@ -1813,6 +1826,8 @@ class $CustomRemindersTable extends CustomReminders
           .read(DriftSqlType.int, data['${effectivePrefix}interval_days']),
       completionSource: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}completion_source'])!,
+      frequencyDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}frequency_date']),
     );
   }
 
@@ -1837,7 +1852,8 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
   /// …): the absence of that care in `tracking_events` makes the reminder due.
   final String? subtypeValue;
 
-  /// `daily` | `weekly` | `monthly` | `every_n_days` — see [CustomReminder].
+  /// `daily` | `weekly` | `monthly` | `every_n_days` | `one_time` — see
+  /// [CustomReminder] and the codes in `db_constants`.
   final String frequency;
 
   /// Only applicable for `every_n_days`:  The duration of the cycle in days.
@@ -1845,6 +1861,22 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
 
   /// `'from_events'` | `'manual'` — which determines whether the reminder is triggered automatically (D2).
   final String completionSource;
+
+  /// Only applicable for `one_time` (B33 Part 1, D-R5 form 1): the occurrence day
+  /// as `'yyyy-MM-dd'`.
+  ///
+  /// The frequency's parameter travels with the frequency — which is exactly how
+  /// [intervalDays] already works for `every_n_days`. The alternative (a
+  /// `custom_<id>` row in `reminder_settings`) would split one frequency across
+  /// two tables and make this row non-self-contained for the backup, whose whole
+  /// contract is that a section is read and replayed on its own.
+  ///
+  /// **Declared last, on purpose**: a column added by `ALTER TABLE` lands at the
+  /// end of the physical row, and `schema_parity_test` compares fresh against
+  /// migrated column-by-column in order. Declaring it in the "logical" place
+  /// (beside `interval_days`) makes a fresh install and an upgraded one disagree
+  /// on column order — a red test with no user-visible cause.
+  final String? frequencyDate;
   const CustomReminder(
       {required this.id,
       required this.babyId,
@@ -1852,7 +1884,8 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
       this.subtypeValue,
       required this.frequency,
       this.intervalDays,
-      required this.completionSource});
+      required this.completionSource,
+      this.frequencyDate});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1867,6 +1900,9 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
       map['interval_days'] = Variable<int>(intervalDays);
     }
     map['completion_source'] = Variable<String>(completionSource);
+    if (!nullToAbsent || frequencyDate != null) {
+      map['frequency_date'] = Variable<String>(frequencyDate);
+    }
     return map;
   }
 
@@ -1883,6 +1919,9 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
           ? const Value.absent()
           : Value(intervalDays),
       completionSource: Value(completionSource),
+      frequencyDate: frequencyDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(frequencyDate),
     );
   }
 
@@ -1897,6 +1936,7 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
       frequency: serializer.fromJson<String>(json['frequency']),
       intervalDays: serializer.fromJson<int?>(json['intervalDays']),
       completionSource: serializer.fromJson<String>(json['completionSource']),
+      frequencyDate: serializer.fromJson<String?>(json['frequencyDate']),
     );
   }
   @override
@@ -1910,6 +1950,7 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
       'frequency': serializer.toJson<String>(frequency),
       'intervalDays': serializer.toJson<int?>(intervalDays),
       'completionSource': serializer.toJson<String>(completionSource),
+      'frequencyDate': serializer.toJson<String?>(frequencyDate),
     };
   }
 
@@ -1920,7 +1961,8 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
           Value<String?> subtypeValue = const Value.absent(),
           String? frequency,
           Value<int?> intervalDays = const Value.absent(),
-          String? completionSource}) =>
+          String? completionSource,
+          Value<String?> frequencyDate = const Value.absent()}) =>
       CustomReminder(
         id: id ?? this.id,
         babyId: babyId ?? this.babyId,
@@ -1931,6 +1973,8 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
         intervalDays:
             intervalDays.present ? intervalDays.value : this.intervalDays,
         completionSource: completionSource ?? this.completionSource,
+        frequencyDate:
+            frequencyDate.present ? frequencyDate.value : this.frequencyDate,
       );
   CustomReminder copyWithCompanion(CustomRemindersCompanion data) {
     return CustomReminder(
@@ -1947,6 +1991,9 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
       completionSource: data.completionSource.present
           ? data.completionSource.value
           : this.completionSource,
+      frequencyDate: data.frequencyDate.present
+          ? data.frequencyDate.value
+          : this.frequencyDate,
     );
   }
 
@@ -1959,14 +2006,15 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
           ..write('subtypeValue: $subtypeValue, ')
           ..write('frequency: $frequency, ')
           ..write('intervalDays: $intervalDays, ')
-          ..write('completionSource: $completionSource')
+          ..write('completionSource: $completionSource, ')
+          ..write('frequencyDate: $frequencyDate')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, babyId, label, subtypeValue, frequency,
-      intervalDays, completionSource);
+      intervalDays, completionSource, frequencyDate);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1977,7 +2025,8 @@ class CustomReminder extends DataClass implements Insertable<CustomReminder> {
           other.subtypeValue == this.subtypeValue &&
           other.frequency == this.frequency &&
           other.intervalDays == this.intervalDays &&
-          other.completionSource == this.completionSource);
+          other.completionSource == this.completionSource &&
+          other.frequencyDate == this.frequencyDate);
 }
 
 class CustomRemindersCompanion extends UpdateCompanion<CustomReminder> {
@@ -1988,6 +2037,7 @@ class CustomRemindersCompanion extends UpdateCompanion<CustomReminder> {
   final Value<String> frequency;
   final Value<int?> intervalDays;
   final Value<String> completionSource;
+  final Value<String?> frequencyDate;
   const CustomRemindersCompanion({
     this.id = const Value.absent(),
     this.babyId = const Value.absent(),
@@ -1996,6 +2046,7 @@ class CustomRemindersCompanion extends UpdateCompanion<CustomReminder> {
     this.frequency = const Value.absent(),
     this.intervalDays = const Value.absent(),
     this.completionSource = const Value.absent(),
+    this.frequencyDate = const Value.absent(),
   });
   CustomRemindersCompanion.insert({
     this.id = const Value.absent(),
@@ -2005,6 +2056,7 @@ class CustomRemindersCompanion extends UpdateCompanion<CustomReminder> {
     required String frequency,
     this.intervalDays = const Value.absent(),
     this.completionSource = const Value.absent(),
+    this.frequencyDate = const Value.absent(),
   })  : label = Value(label),
         frequency = Value(frequency);
   static Insertable<CustomReminder> custom({
@@ -2015,6 +2067,7 @@ class CustomRemindersCompanion extends UpdateCompanion<CustomReminder> {
     Expression<String>? frequency,
     Expression<int>? intervalDays,
     Expression<String>? completionSource,
+    Expression<String>? frequencyDate,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2024,6 +2077,7 @@ class CustomRemindersCompanion extends UpdateCompanion<CustomReminder> {
       if (frequency != null) 'frequency': frequency,
       if (intervalDays != null) 'interval_days': intervalDays,
       if (completionSource != null) 'completion_source': completionSource,
+      if (frequencyDate != null) 'frequency_date': frequencyDate,
     });
   }
 
@@ -2034,7 +2088,8 @@ class CustomRemindersCompanion extends UpdateCompanion<CustomReminder> {
       Value<String?>? subtypeValue,
       Value<String>? frequency,
       Value<int?>? intervalDays,
-      Value<String>? completionSource}) {
+      Value<String>? completionSource,
+      Value<String?>? frequencyDate}) {
     return CustomRemindersCompanion(
       id: id ?? this.id,
       babyId: babyId ?? this.babyId,
@@ -2043,6 +2098,7 @@ class CustomRemindersCompanion extends UpdateCompanion<CustomReminder> {
       frequency: frequency ?? this.frequency,
       intervalDays: intervalDays ?? this.intervalDays,
       completionSource: completionSource ?? this.completionSource,
+      frequencyDate: frequencyDate ?? this.frequencyDate,
     );
   }
 
@@ -2070,6 +2126,9 @@ class CustomRemindersCompanion extends UpdateCompanion<CustomReminder> {
     if (completionSource.present) {
       map['completion_source'] = Variable<String>(completionSource.value);
     }
+    if (frequencyDate.present) {
+      map['frequency_date'] = Variable<String>(frequencyDate.value);
+    }
     return map;
   }
 
@@ -2082,7 +2141,8 @@ class CustomRemindersCompanion extends UpdateCompanion<CustomReminder> {
           ..write('subtypeValue: $subtypeValue, ')
           ..write('frequency: $frequency, ')
           ..write('intervalDays: $intervalDays, ')
-          ..write('completionSource: $completionSource')
+          ..write('completionSource: $completionSource, ')
+          ..write('frequencyDate: $frequencyDate')
           ..write(')'))
         .toString();
   }
@@ -3799,6 +3859,7 @@ typedef $$CustomRemindersTableCreateCompanionBuilder = CustomRemindersCompanion
   required String frequency,
   Value<int?> intervalDays,
   Value<String> completionSource,
+  Value<String?> frequencyDate,
 });
 typedef $$CustomRemindersTableUpdateCompanionBuilder = CustomRemindersCompanion
     Function({
@@ -3809,6 +3870,7 @@ typedef $$CustomRemindersTableUpdateCompanionBuilder = CustomRemindersCompanion
   Value<String> frequency,
   Value<int?> intervalDays,
   Value<String> completionSource,
+  Value<String?> frequencyDate,
 });
 
 class $$CustomRemindersTableFilterComposer
@@ -3841,6 +3903,9 @@ class $$CustomRemindersTableFilterComposer
   ColumnFilters<String> get completionSource => $composableBuilder(
       column: $table.completionSource,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get frequencyDate => $composableBuilder(
+      column: $table.frequencyDate, builder: (column) => ColumnFilters(column));
 }
 
 class $$CustomRemindersTableOrderingComposer
@@ -3875,6 +3940,10 @@ class $$CustomRemindersTableOrderingComposer
   ColumnOrderings<String> get completionSource => $composableBuilder(
       column: $table.completionSource,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get frequencyDate => $composableBuilder(
+      column: $table.frequencyDate,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$CustomRemindersTableAnnotationComposer
@@ -3906,6 +3975,9 @@ class $$CustomRemindersTableAnnotationComposer
 
   GeneratedColumn<String> get completionSource => $composableBuilder(
       column: $table.completionSource, builder: (column) => column);
+
+  GeneratedColumn<String> get frequencyDate => $composableBuilder(
+      column: $table.frequencyDate, builder: (column) => column);
 }
 
 class $$CustomRemindersTableTableManager extends RootTableManager<
@@ -3942,6 +4014,7 @@ class $$CustomRemindersTableTableManager extends RootTableManager<
             Value<String> frequency = const Value.absent(),
             Value<int?> intervalDays = const Value.absent(),
             Value<String> completionSource = const Value.absent(),
+            Value<String?> frequencyDate = const Value.absent(),
           }) =>
               CustomRemindersCompanion(
             id: id,
@@ -3951,6 +4024,7 @@ class $$CustomRemindersTableTableManager extends RootTableManager<
             frequency: frequency,
             intervalDays: intervalDays,
             completionSource: completionSource,
+            frequencyDate: frequencyDate,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -3960,6 +4034,7 @@ class $$CustomRemindersTableTableManager extends RootTableManager<
             required String frequency,
             Value<int?> intervalDays = const Value.absent(),
             Value<String> completionSource = const Value.absent(),
+            Value<String?> frequencyDate = const Value.absent(),
           }) =>
               CustomRemindersCompanion.insert(
             id: id,
@@ -3969,6 +4044,7 @@ class $$CustomRemindersTableTableManager extends RootTableManager<
             frequency: frequency,
             intervalDays: intervalDays,
             completionSource: completionSource,
+            frequencyDate: frequencyDate,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

@@ -334,6 +334,10 @@ await customStatement('ALTER TABLE reminder_settings ADD COLUMN frequency_date T
 await customStatement('ALTER TABLE reminder_settings ADD COLUMN end_date TEXT NULL');
 await customStatement('ALTER TABLE reminder_settings ADD COLUMN end_age_months INTEGER NULL');
 await customStatement('ALTER TABLE reminder_settings ADD COLUMN removed INTEGER NOT NULL DEFAULT 0');
+// M3 (2026-11-18): a ninth column, on the *other* table, in the same batch — the
+// one-shot's occurrence day for a **custom** reminder. See §9's M3 note for why it
+// could not wait for M4.
+await customStatement('ALTER TABLE custom_reminders ADD COLUMN frequency_date TEXT NULL');
 // B6 (D-R1): seed-true the vitamine_d row for every pre-existing scope that has none.
 // INSERT the row only where absent — never UPDATE an existing row's `enabled`.
 await customStatement('''
@@ -347,8 +351,9 @@ await customStatement('''
 ''');
 ```
 
-Drift data classes update accordingly (`ReminderSettings` gains the eight fields; `?` / default as
-per the DDL); `make codegen`; `schema.sql` regenerated — **and B26's trailing comma fixed in the
+Drift data classes update accordingly (`ReminderSettings` gains the eight fields,
+`CustomReminder` (drift) its `frequencyDate`; `?` / default as per the DDL);
+`make codegen`; `schema.sql` kept in step by hand — **and B26's trailing comma fixed in the
 same regeneration** (the reference file must replay: `sqlite3 :memory: < schema.sql` exits 0 — add
 that as the replay guard, B26's To-do).
 
@@ -691,7 +696,7 @@ because the next milestones touch them:
    on **both** consumers as §0 demands: `enabledRemindersProvider` and
    `ReminderScheduler.sync()` (a new baby ⇒ zero OS entries naming `reminderVitaminD`).
 
-**Open for M4, decided there, not improvised:** D-R5 gives the *custom* reminder a
+**RESOLVED IN M3 (2026-11-18) — see the M3 note below.** D-R5 gives the *custom* reminder a
 one-shot in the same picker as the presets, but the occurrence date column
 (`frequency_date`) is on `reminder_settings`, while a custom reminder's frequency
 lives in `custom_reminders.frequency` beside its own `interval_days`. So a custom
@@ -753,3 +758,83 @@ Four things the next milestones inherit:
 *Export test note: four long tests that count export assets went 4 → 5, because B30 adds the
 `timeOfDay` key to `reminderSettings`; `nProgress` is derived from that list, which is the
 behaviour the long test exists to pin.*
+
+### M3 — B33 Part 1: the one-shot, the end model, the Vitamin K cadence
+
+Implemented as specified (`OneTime`, D-R7 catch-up, D-R8 tolerant decode, D-R5 end
+semantics, D-R10 fallback, `freqOneTime` + codec, `buildForBaby` → one month), with
+one decision the plan left to M4 and four things the rest of the release inherits.
+
+1. **The custom one-shot's carrier is a column, and it landed in v14 after all**
+   (`custom_reminders.frequency_date`, the ninth column of the batch, §3 amended).
+   The plan offered two shapes; the codec forced the choice in M3 rather than M4,
+   because `_encodeFrequency` is exhaustive over the sealed type — adding `OneTime`
+   without somewhere to write the date meant either dropping the date or refusing
+   the reminder, and both are silent data changes. Settings-row carrier rejected for
+   the same reason the export rejects it: it splits one frequency across two tables,
+   and `custom_reminders` rows are exported and replayed as a section on their own.
+   Symmetric with `interval_days`: the frequency's parameter travels with the
+   frequency. Consequences honoured in the same commit: exported (`frequencyDate`),
+   imported (with **`one_time` requires a parseable date**, and the inverse — a date
+   on a recurring row is refused), and dropped by the `real_file_migration_v11_to_v12`
+   helper exactly as §9/M1 predicted any new column would have to be.
+   **Declared last in the drift class**, because `ALTER` appends and
+   `schema_parity_test` compares fresh-vs-migrated column *order*: the logical place
+   (beside `interval_days`) makes a fresh install disagree with an upgraded one.
+2. **`nextDueAt` is now nullable, and that is the whole removal mechanism.** `null` =
+   "can no longer be due", and three callers use it: a settled one-shot (D-R7), a
+   series past its end (D-R5), and — in M4 — a removed row. The scheduler skips the
+   item, the existing `_PlanEntry` diff cancels the id. No second cancel path.
+   `reminder_scheduling_test` and `reminder_scheduler_test` split the assertions
+   accordingly: the pure function answers `null`, the scheduler makes the OS forget.
+   Note in the scheduler test: **plan ids are positional and compact**, so dropping a
+   middle item does not cancel *its* id — it cancels the tail and re-submits whoever
+   moved (R11, pre-existing). That is why those tests assert on the *title* absent
+   from the fake's entries, not on an id; the one id-exact test ends the last item.
+3. **Two shared helpers were created instead of duplicated** (both pure Dart, both
+   with their own test file):
+   - `core/utils/date_arithmetic.dart` — `addMonthsClamped` is B18's rule, extracted
+     from `baby_profile_section.dart` (where it was private and only the age label
+     used it); `wholeMonthsOld` replaces the age computation there too. D-R5 says "the
+     same `_addMonths`, not a new one" and this is the only way to honour it across
+     two features.
+   - `core/utils/calendar_date.dart` — `parseCalendarDate`/`formatCalendarDate` for
+     the `'yyyy-MM-dd'` columns. `DateTime.tryParse('2026-12-15')` returns **UTC**
+     midnight, which against a device-local `now` is the day *before* for any parent
+     west of Greenwich: an inclusive end date would silently become exclusive. The
+     helper validates the fields and returns a local midnight, and rejects the dates
+     Dart would otherwise normalise into existence (`2026-02-30` → 2 March).
+   - `reminder_end.dart` — `reminderEndFor` (date wins over age; age needs a
+     birthdate; age 0-180 canonical) and `isPastSeriesEnd`/`seriesEndExpiry`, the one
+     cutoff check for all five frequencies (D-R5's carrier decision: the end belongs
+     to the reminder, never to the variant).
+4. **D-R8's resolution order is implemented in `_decodeFrequency`, not downstream** —
+   the date column is read *only* when the code is `one_time`. `reminder_item_test` /
+   the repository test pin the two directions: `one_time` + junk date ⇒ due-now
+   one-shot (never daily, never gone), and a date on a `daily` row ⇒ ignored. A
+   reader that resolved the pair first and then read the date would hand Vitamin K a
+   `OneTime(null)` for every new baby — due at birth.
+5. **Vitamin K's behaviour change reaches further than the entity.** Seven existing
+   tests asserted the monthly-for-life cadence (3 in `reminder_item_test`, the UI ⇔
+   scheduler parity row, 2 screen rows, 1 home-section row) and 2 export asset maps;
+   each now asserts the one-shot with its date, including the clamped anniversary
+   (31 January 2026 ⇒ 28 February 2026). None was deleted or weakened.
+
+**Consequence to watch, not a bug (D-R7 as written):** a one-shot whose date is long
+past is *due*, so a family whose baby is two years old sees vitamin K as overdue on
+Home until it is settled or the switch turns it off. The nudge itself fires once per
+process (the catch-up period key is the occurrence day, so it does not re-arm daily),
+and the escape is the settings switch — one tap, and the reminder leaves Home and the
+plan. If that reads as noise in the emulator pass, the fix is a one-shot staleness
+rule, which is an owner decision, not an implementation detail.
+
+**Open for M4 (from this milestone, unchanged in kind):** the custom **edit sheet**
+offers no one-shot entry point, so editing a custom reminder that arrived as
+`one_time` (hand-built backup — no in-app writer exists yet) saves it back as daily.
+M4 rewrites that sheet anyway (its exit criterion: "the 365-day cap becomes the
+one-shot's door"), and the `frequency_date` column is already there for it.
+
+**Tooling note:** `make check-complexity` stayed at 4 and `make check-architecture`
+unchanged; M1's `schema_sql_replay_test` caught a real bug in this milestone's own
+edit — a comma added *after* a `--` comment in `schema.sql`, which SQLite reads as
+part of the comment. That is the guard earning its place.
