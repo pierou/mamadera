@@ -668,6 +668,8 @@ revert.
 
 ## 9. Execution notes (written back per §0 — "cite the symbol, not the line number")
 
+> Session handoff (state, resume point, traps already paid for): `docs/HANDOFF-v1.4.0.md`.
+
 ### M1 — schema v14 + B6 (done against `develop` @ `5c9b5f8`)
 
 Implemented as specified. Three things the plan did not predict, all recorded here
