@@ -222,6 +222,8 @@ class _HomeContent extends ConsumerWidget {
             feedingSubtype: subtype,
             unit: unit,
             quantity: quantity,
+            // B16: written at creation, encrypted by the repository on the way in.
+            notes: feedingResult['notes'] as String?,
             timestamp: feedingResult['timestamp'] as DateTime?,
           );
       if (context.mounted) {

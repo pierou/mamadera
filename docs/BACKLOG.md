@@ -959,7 +959,16 @@ identify, and confirming a preset is defined as *not* creating anything.
 
 ## B16 — No note when creating a feeding
 
-**Status:** open (owner request, 2026-10-30: « Write note on food creation ») · **Cost:** small —
+**Status:** **implemented on `release/v1.4.0` (M6)** — one optional `TextField` at the bottom of
+`feeding_tracking_dialog.dart` (`ValueKey('feeding-note-field')`), carried out in the sheet's
+result map and passed to `track(notes:)`. Empty and whitespace-only both leave the result key
+**`null`**, so the row stores an absence and not an empty string. **No new l10n key**: the label
+and hint reuse `editNotesLabel` / `editNotesHint`, so the concept is worded identically here and
+in Historique. Export/import untouched — `notes` was already in the contract, no version bump, as
+planned. **Still owed from this ticket: item 2**, the `Small_Phone` two-theme screenshots with the
+keyboard up (measured in tests: the sheet is now taller than an 800×600 viewport, so the confirm
+button needs scrolling — precisely the thing unit tests cannot see); that is M9's device pass.
+Original: open (owner request, 2026-10-30: « Write note on food creation ») · **Cost:** small —
 one optional field in one dialog; the storage, encryption and export paths already exist
 **Found:** owner request 2026-10-30; verified same evening.
 **Files:** `lib/features/home/presentation/widgets/feeding_tracking_dialog.dart` (zero note

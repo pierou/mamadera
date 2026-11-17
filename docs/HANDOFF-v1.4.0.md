@@ -11,11 +11,12 @@ per-milestone narrative; this file is the short version plus the resume instruct
 |---|---|
 | Branch | `release/v1.4.0`, cut from `origin/develop` — **8 feature commits + this handoff, working tree clean, nothing pushed** |
 | Range | `git diff --stat origin/develop..HEAD` → 113 files, +10 958 / −735 |
-| Milestones | **M1 ✅ M2 ✅ M3 ✅ M4 ✅ M5 ✅** · **M6 in progress (2 of 7 tickets)** · M7 M8 M9 not started |
+| Milestones | **M1 ✅ M2 ✅ M3 ✅ M4 ✅ M5 ✅** · **M6 in progress (3 of 7 tickets: B9, B13, B16)** · M7 M8 M9 not started |
 | Schema | `AppDatabase.schemaVersion = 14` (`lib/data/local/app_db.dart`) — the one and only v1.4.0 bump |
 | Export | `_exportFormatVersion = 5` / importer `_supportedFormatVersion = 5` — the one and only bump |
 | pubspec | still `1.3.2+16` on purpose — **M7** bumps to `1.4.0+17` |
-| Gates at HEAD | `flutter analyze --fatal-infos --fatal-warnings` clean · `flutter test` **1690 passed** · coverage **84 %** · `make check-architecture` ✅ (`presentation_to_data` 2, `oversized_files` 0) · `make check-complexity` ✅ (3 over cap, baseline 4) |
+| Pushed | **yes** — `origin/release/v1.4.0` exists, no PR opened, `develop` untouched |
+| Gates at HEAD | `flutter analyze --fatal-infos --fatal-warnings` clean · `flutter test` **1695 passed** · coverage **84 %** · `make check-architecture` ✅ (`presentation_to_data` 2, `oversized_files` 0) · `make check-complexity` ✅ (3 over cap, baseline 4) |
 
 ```
 270af3f fix(sleep): a nap carries its minutes once (B13)              <- M6 item 2
@@ -31,12 +32,12 @@ fe8f774 feat(reminders): schema v14 + per-item enabled default (B6, M1)
 ## 2. Resume here — M6, three-and-a-half tickets left
 
 M6 is **schema-free and independent**; the plan (section "M6 — The small batch") fixes the order
-and each item is **its own commit**. Done: B9, B13. Remaining, in order:
+and each item is **its own commit**. Done: B9, B13, B16. Remaining, in order:
 
-3. **B16 — optional note on feeding creation.** One field in
-   `lib/features/home/presentation/widgets/feeding_tracking_dialog.dart`; the storage, encryption
-   and export paths already exist (`track()` already takes `notes`). One new l10n key × **three**
-   locales in the same commit (AGENTS.md rule).
+3. ~~**B16**~~ ✅ done — one optional `TextField` at the foot of the feeding sheet
+   (`ValueKey('feeding-note-field')`), `null` when empty so the row stores an absence, reusing
+   `editNotesLabel`/`editNotesHint` so **no new l10n key** was needed. Its ticket item 2
+   (Small_Phone screenshots, keyboard up) joins the M9 device-pass list.
 4. **B17 — haptics on creation.** Extend the existing `lib/core/widgets/show_feedback.dart`
    creation confirmations. Ticket's magnitude decision to record in the commit message: reuse the
    `selectionClick` class, do not invent a new one.
@@ -103,6 +104,8 @@ already exist as tests, see §9 of the plan), **M9** (the emulator release gate,
 * **M6.1 B9** — `lib/features/baby/presentation/widgets/baby_picker_sheet.dart`
   (`showBabyPickerSheet`, `BabyPickerSheet`) opened from the Home `AppBar` title;
   `add_baby_dialog.dart` (`showAddBabyDialog`) extracted out of `baby_profile_section.dart`.
+* **M6.3 B16** — the note is now asked at creation; `_notesOrNull()` in
+  `feeding_tracking_dialog.dart` owns the empty ⇒ `null` rule, and the UI never encrypts.
 * **M6.2 B13** — `SleepEvent` has **no** `quantity` field; insert leaves the column absent, the
   history update **clears it** (`Value(null)`), the edit dialog's duration picker writes
   `duration` only. Zero migration; legacy mirrors stay, unread.
@@ -168,8 +171,8 @@ make codegen                                     # after any freezed/drift edit 
   which no widget test executes; B27's post-restore gate; and the D-R7 known-noise case — a
   one-shot Vitamin K on a two-year-old's Home reads as overdue until settled or switched off,
   which is the behaviour the owner approved, not a bug.
-* **Nothing is pushed.** No PR exists, so `develop` is untouched and this branch is the only copy
-  of 10 958 lines. Push it before continuing if the session risk matters.
+* Branch is pushed to `origin` as of 2026-11-17 (no PR). Re-push after each new commit if a
+  session boundary is near — the branch is the only copy of the release.
 * Deliberate non-work, recorded rather than forgotten: the store listing is untouched (M7 only
   re-verifies `make store-check`); Phase A sync stays v1.5.0 and its schema/export numbers were
   **not** pre-empted here.

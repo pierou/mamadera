@@ -402,6 +402,39 @@ void main() {
       expect(find.byType(BottomSheet), findsOneWidget);
     });
 
+    testWidgets('a note written at creation reaches the inserted row (B16)',
+        (tester) async {
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
+
+      await tester.tap(find.text('Nourriture'));
+      await tester.pumpAndSettle();
+
+      final noteField = find.byKey(const ValueKey('feeding-note-field'));
+      expect(noteField, findsOneWidget,
+          reason: 'the note is asked where the feeding is created');
+
+      await tester.ensureVisible(noteField);
+      await tester.pumpAndSettle();
+      await tester.enterText(noteField, '  sein gauche refusé  ');
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Confirmer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Confirmer'));
+      await tester.pumpAndSettle();
+
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single!
+          as FeedingEvent;
+      expect(event.notes, 'sein gauche refusé',
+          reason: 'trimmed on the way out of the dialog, encrypted by the '
+              'repository on the way in — the UI never touches crypto');
+    });
+
     testWidgets('tap Sante -> ouverture HealthSubtypeDialog', (tester) async {
       await pumpHome(tester);
       await tester.pumpAndSettle();
