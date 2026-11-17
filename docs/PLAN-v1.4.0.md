@@ -985,3 +985,76 @@ completion *and* selection, the pre-filled sheet ask, cross-baby selection then 
 `switchProfile` when already selected, removed reminder, missing reminder, deleted baby, profileless
 scope not selectable, `take()` drains once); `home_screen_test.dart` (+2: the sheet opens
 pre-selected, and once). 1682 tests, coverage 84 %.
+
+### M6 — The small batch (done on `release/v1.4.0`, seven commits)
+
+All seven tickets landed in the plan's order, one commit each. Four things the plan did not
+predict, each of which changed the shape of a commit:
+
+1. **B13 went further than "stop writing" it.** The plan said *the sleep track stops passing
+   `quantity`*; the honest version is that `SleepEvent` **has no such field**, because a column
+   nobody may write is a column somebody will write again. That turned a two-line diff into the
+   entity, the mapper, both repository companions, the edit dialog's duration picker (it set
+   `_quantity` *and* `_duration`, which is what kept the mirror alive through every correction)
+   and two `.when(...)` positional lists in the exporter. The history **update clears** the column
+   (`Value(null)`), so a touched row stops carrying its minutes twice without a migration.
+2. **B7's enum value did not exist.** The plan's line said "the value already exists and feeds the
+   merged timeline" — the *timeline* does, the value did not: `HistoryFilter` had five cases and an
+   exhaustive switch each. Adding it surfaced a trap worth naming: `HistoryFilter.trackingType`
+   answered `'measurements'` through its `default:` branch, a string no `TrackingType` parses whose
+   caller-side fallback would have listed **feedings under « Mesures »**. It answers `null` now
+   (« not one type »), which is what both `all` and `measurements` mean.
+3. **B27's fix is written with `read`, not `refresh`, because of a lint.** Riverpod's `refresh` is
+   `@useResult`, and this flush wants the rebuild and not the value; after the invalidations above
+   it there is no cache left anyway, so a `read` *is* the rebuild. `cascade_invocations` then forced
+   the flush into the same cascade as the invalidations, which is where a reader needs it. The gate
+   tolerance became `countProviderFlushErrors()` with `expect(…, 0)`: still counted and printed for
+   the PR record, no longer forgiven.
+4. **A `FilterChip` cannot hold a gradient** (B29). The home button's fill is a
+   `LinearGradient(0.08 → 0.02)`; the chip takes a flat tint at the same alpha, and the border does
+   the accent work at the same 2px/0.6 — copying the grid's *decoration* class-for-class would have
+   meant replacing toggles with `TrackButton`, which B29's own "Do not" and B28's closed data path
+   both forbid.
+
+`make l10n` is not `make codegen`: build_runner does not regenerate `app_localizations*.dart`, so a
+new `.arb` key is invisible to `flutter analyze` until `gen-l10n` has run (found on B17's keys).
+
+### M7 — l10n + patch notes + version (done on `release/v1.4.0`)
+
+* **l10n sweep:** the three arbs hold the **same 312 keys**, every key introduced by M1–M6 is
+  present in all three, and every placeholder in every new key is declared. The sweep found one
+  inconsistency and filed one ticket: four keys M4 introduced used the typographic `’` while the
+  other 32 French values and all 88 patch-note items use the straight `'`; M7 normalised the four
+  **to the house convention** and `docs/BACKLOG.md` **B34** now carries the argument for doing it
+  the other way, deliberately, in its own release (a glyph change re-stales the store screenshots).
+* **Patch notes:** `1.4.0` appended **last** in all three files (the patch-notes screen reads
+  `notes.keys.last`, so insertion order is the version order), fr/es in the noun form, only `###`
+  and `-` markup (the shipped-asset regression lock renders and forbids raw markup), and **no
+  clinical claim** anywhere: the two vitamin lines describe what the app *defaults to*, never what
+  a parent should do — B6's "Do not" used as the checklist it was chosen for.
+* **Version:** `pubspec.yaml` → `1.4.0+17` and `AppConfig.version` → `'1.4.0'`. The second one is
+  not optional and is not remembered: `app_config_test.dart` fails the build on drift, which is the
+  right design and worth knowing before the bump.
+* **`make store-check` could not do what this plan assumed.** The plan said the listing is
+  untouched so the package need only be "re-verified"; in fact the checker refuses a version whose
+  package was never built (`no store/v1.4.0/`), so `make store-package` is a per-version step, not a
+  per-release one. Building it produced three findings:
+  1. the fresh TranslateGemma French output is **byte-identical** to the reviewed v1.3.2 fields
+     (description, promo, Play description, Play short) — the listing genuinely did not drift, and
+     that is now evidence rather than an assumption;
+  2. the Spanish leg of the box run **stalled** (`machine/es/` left empty, ~30 min, the router had
+     swapped to a CODER profile underneath), so the Spanish fields and their `machine/` provenance
+     were carried from v1.3.2 — the same bytes the same pipeline produced, from a canonical that is
+     byte-unchanged;
+  3. **`store/source/en/play-release-notes.txt` was still the v1.3.2 text**, so the freshly built
+     1.4.0 package was about to publish last release's notes. 1.4.0's short notes are authored now
+     (399/500), the stale generated `release-notes/play-fr.txt` was **deleted** rather than left in
+     place, and `HEADLINES["1.4.0"] = ("notific", …)` is registered (the cognate en/fr
+     "notification" / es "notificación", verified against the shipped v1.3.2 notes).
+* **Store state, stated exactly:** `make store-check` for 1.4.0 currently reports **five blockers** —
+  `play-fr.txt`, `play-es.txt` (both need one `make store-prose` box run) and the three
+  `play/<locale>` screenshot sets (which need M9's emulator). Nothing else fails. A release whose
+  publish deliverable is incomplete must not be uploaded, so those five are the gate, not a warning.
+* **Owner constraint recorded here:** this branch stops at `develop`. No PR to `main`, no tag, no
+  F-Droid `CurrentVersion` bump (`docs/fdroiddata/com.pvjio.mamadera.yml` still names 1.3.2 on
+  purpose — it belongs with the tag that does not exist yet).

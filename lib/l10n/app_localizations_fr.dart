@@ -319,7 +319,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get reminderSettingsRemovedDescription =>
-      'Un rappel supprimé quitte l’accueil, cette liste et les notifications. Une touche suffit pour le faire revenir avec tous ses réglages.';
+      'Un rappel supprimé quitte l\'accueil, cette liste et les notifications. Une touche suffit pour le faire revenir avec tous ses réglages.';
 
   @override
   String get reminderActionRestore => 'Restaurer';
@@ -349,12 +349,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String reminderEndUntilDate(Object date) {
-    return 'Jusqu’au $date';
+    return 'Jusqu\'au $date';
   }
 
   @override
   String reminderEndAgeResolved(Object months, Object date) {
-    return 'Jusqu’à $months mois — $date';
+    return 'Jusqu\'à $months mois — $date';
   }
 
   @override
@@ -363,7 +363,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get reminderEndAlreadyPast =>
-      'Ce jour est déjà passé : le rappel s’arrête tout de suite.';
+      'Ce jour est déjà passé : le rappel s\'arrête tout de suite.';
 
   @override
   String get reminderFrequencyOnceChoice => 'Une fois';

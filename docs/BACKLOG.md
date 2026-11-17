@@ -439,6 +439,47 @@ tables have
 
 ---
 
+## B34 — French copy is typographically inconsistent (apostrophe, `:` spacing, two undeclared placeholders)
+
+**Status:** open, found during the v1.4.0 M7 l10n sweep (2026-11-18) · **Severity:** low (product
+polish, one screen at a time) · **Cost:** small but it touches shipped copy, so it wants its own
+release rather than a ride-along
+**Found:** `app_fr.arb` audit, v1.4.0 M7.
+**Files:** `lib/l10n/app_fr.arb`, `assets/patch_notes/fr.json`, `lib/l10n/app_localizations*.dart`,
+`lib/features/history/presentation/widgets/history_tile.dart` (`durationPrefix`), `store/**` fr copy
+
+### The fact
+Three different spellings of the same apostrophe are live in the app at once: **32** `app_fr.arb`
+values and **88** patch-note items use the straight `'` (`Utiliser l'heure`, `Ajout d'une note`),
+while four keys introduced in v1.4.0 M4 used the typographic `’` (`Jusqu’au`, `s’arrête`,
+`l’accueil`). M7 normalised those four **to the house convention** rather than the reverse, because
+the majority and the reviewed patch notes both use `'` — but `'` is the wrong glyph for French
+text, and the app is a French product first (`docs/PLAN-francophone-neonatal.md`).
+Two related loose ends in the same audit: `reminderLastDone` (« Dernière fois: {date} »),
+`errorMessage` and `durationPrefix` (« Durée: {minutes} min ») have **no space before the colon**,
+which French typography requires; and `durationPrefix` / `quantityPrefix` carry placeholders with
+**no `@…placeholders` metadata**, so their generated getters take `Object` instead of `String` —
+a wrong-typed argument there compiles.
+
+### To do
+1. Decide the glyph once (proposal: `’` everywhere, i.e. correct French, with the patch notes and
+   the 32 arb values following in the same change), then apply it mechanically and re-run
+   `make l10n`.
+2. Add the required space before `:` in the three strings (a narrow no-break space is the correct
+   one on iOS/Android; a plain space is acceptable and is what the store copy already uses).
+3. Declare the placeholders of `durationPrefix` and `quantityPrefix` in all three arbs so the
+   generated getters are typed.
+4. Check the screenshot pipeline afterwards: `Durée: 45 min` appears in captured store shots
+   (`store/v*/screenshots`), so a glyph change re-stales the uploads — the reason this is its own
+   release and not a v1.4.0 side effect.
+
+### Do not
+- Do not mix the two directions in one commit: half-normalising is worse than either convention.
+- Do not re-shoot store screenshots for a glyph without saying so in the PR: the uploads are
+  versioned assets, not build output.
+
+---
+
 ## B8 — Measurements: no dedicated tab, no visualisation
 
 **Status:** open (owner request, 2026-10-06: « un onglet de visualisation pour les mesures ») ·

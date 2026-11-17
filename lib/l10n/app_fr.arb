@@ -210,7 +210,7 @@
   },
   "reminderFrequencyOneTimeNow": "Une seule fois, dès que possible",
   "reminderSettingsRemovedSectionTitle": "Supprimés",
-  "reminderSettingsRemovedDescription": "Un rappel supprimé quitte l’accueil, cette liste et les notifications. Une touche suffit pour le faire revenir avec tous ses réglages.",
+  "reminderSettingsRemovedDescription": "Un rappel supprimé quitte l'accueil, cette liste et les notifications. Une touche suffit pour le faire revenir avec tous ses réglages.",
   "reminderActionRestore": "Restaurer",
   "reminderActionRemove": "Supprimer",
   "reminderPresetEditTitle": "Modifier le rappel",
@@ -224,13 +224,13 @@
       "months": {}
     }
   },
-  "reminderEndUntilDate": "Jusqu’au {date}",
+  "reminderEndUntilDate": "Jusqu'au {date}",
   "@reminderEndUntilDate": {
     "placeholders": {
       "date": {}
     }
   },
-  "reminderEndAgeResolved": "Jusqu’à {months} mois — {date}",
+  "reminderEndAgeResolved": "Jusqu'à {months} mois — {date}",
   "@reminderEndAgeResolved": {
     "placeholders": {
       "months": {},
@@ -238,7 +238,7 @@
     }
   },
   "reminderEndNeedsBirthdate": "La date de naissance est nécessaire pour terminer un rappel à un âge.",
-  "reminderEndAlreadyPast": "Ce jour est déjà passé : le rappel s’arrête tout de suite.",
+  "reminderEndAlreadyPast": "Ce jour est déjà passé : le rappel s'arrête tout de suite.",
   "reminderFrequencyOnceChoice": "Une fois",
   "reminderFrequencyReset": "Revenir au rythme par défaut",
   "reminderLabelReset": "Revenir au nom par défaut",

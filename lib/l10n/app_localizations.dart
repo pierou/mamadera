@@ -631,7 +631,7 @@ abstract class AppLocalizations {
   /// No description provided for @reminderSettingsRemovedDescription.
   ///
   /// In fr, this message translates to:
-  /// **'Un rappel supprimé quitte l’accueil, cette liste et les notifications. Une touche suffit pour le faire revenir avec tous ses réglages.'**
+  /// **'Un rappel supprimé quitte l\'accueil, cette liste et les notifications. Une touche suffit pour le faire revenir avec tous ses réglages.'**
   String get reminderSettingsRemovedDescription;
 
   /// No description provided for @reminderActionRestore.
@@ -685,13 +685,13 @@ abstract class AppLocalizations {
   /// No description provided for @reminderEndUntilDate.
   ///
   /// In fr, this message translates to:
-  /// **'Jusqu’au {date}'**
+  /// **'Jusqu\'au {date}'**
   String reminderEndUntilDate(Object date);
 
   /// No description provided for @reminderEndAgeResolved.
   ///
   /// In fr, this message translates to:
-  /// **'Jusqu’à {months} mois — {date}'**
+  /// **'Jusqu\'à {months} mois — {date}'**
   String reminderEndAgeResolved(Object months, Object date);
 
   /// No description provided for @reminderEndNeedsBirthdate.
@@ -703,7 +703,7 @@ abstract class AppLocalizations {
   /// No description provided for @reminderEndAlreadyPast.
   ///
   /// In fr, this message translates to:
-  /// **'Ce jour est déjà passé : le rappel s’arrête tout de suite.'**
+  /// **'Ce jour est déjà passé : le rappel s\'arrête tout de suite.'**
   String get reminderEndAlreadyPast;
 
   /// No description provided for @reminderFrequencyOnceChoice.

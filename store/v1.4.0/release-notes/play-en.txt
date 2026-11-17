@@ -1,0 +1,5 @@
+• Give a reminder its own notification time, a "once" frequency, and an end by date or age
+• Rename or remove the reminders the app suggests, and bring one back with one tap
+• Add a note when you log a feed, while it is still true
+• Tap a notification to land on that baby's Home, with the reminder settled or the care sheet open
+• Switch baby from the Home title, and filter History by measurements

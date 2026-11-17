@@ -1,0 +1,1 @@
+• Correction d'un cas rare où les paramètres de rappel affichaient uniquement les vitamines D et K, tandis que les notifications de nettoyage des yeux et du visage continuaient de s'afficher.
