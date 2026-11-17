@@ -944,13 +944,21 @@ test, not by reading. The anchor is `ReminderLifecycleSyncWidget.build`, which `
 `notificationTapHandlerProvider` (that widget is mounted above the router for the life of the app);
 `_act` also checks `_ref.mounted` after each await, so an app torn down mid-tap writes nothing.
 
-**Cross-baby taps stop at Home, deliberately.** D6 schedules *every* baby, so a banner may belong to
-the child who is not selected. The detached branch handles that correctly — `markDone` takes the
-payload's `scope`, and the test pins that the completion row is Béa's while Aimée is selected. The
-care-sheet branch cannot: the sheet is Home's and Home shows the selected baby, so opening it for
-Béa would record the care against Aimée. Home-only is the safe half. **Owner decision if wanted:**
-the alternative is switching the selected baby to the payload's scope on tap, which changes app state
-on a parent's behalf — not ours to take silently.
+**A tap selects the child it is about** — owner decision 2026-11-17, resolving the one open point of
+this milestone. D6 schedules *every* baby, so a banner may belong to the child who is not selected.
+The first cut stopped such a tap at Home, because the care sheet is Home's and Home shows the
+selected baby: opening it for Béa would have recorded the care against Aimée. The owner's answer was
+to go the other way — **`switchProfile(payload.scope)` first, then act** — which is also the more
+honest reading of B22: « tap ⇒ Home » was always « tap ⇒ that baby's Home ». So a cross-baby tap now
+(i) selects that baby, (ii) settles a detached reminder for them (`markDone` still takes the payload's
+`scope` explicitly, so the write is right even when the selection is a no-op) or (iii) asks for their
+care sheet, asked *after* the selection moved so Home opens it for the right child.
+
+Two edges kept deliberately: the profileless `''` scope **cannot** be selected (there is no profile
+to select), so a tap from a legacy install whose selection is a real baby still stops at Home with a
+log line instead of a misattributed care record; and a tap for the already-selected baby never calls
+`switchProfile` at all — that write deactivates every profile and rebuilds the dependent tree, and a
+tap that needs neither must not pay for it. Both are pinned by tests.
 
 **Not unit-tested, and why.** `router.go(AppRoute.home.path)` itself: the handler's navigation is
 asserted through an injected `navigate` (the alternative is pumping the whole route tree — splash,
@@ -970,7 +978,8 @@ round trip, the `''` sentinel, ids needing escaping, the junk-strings list, and 
 pinned as JSON because a *different build* reads it back); `reminder_scheduler_test.dart` (+4: every
 entry carries its scope + stable id, the payload follows the reminder when the plan reshuffles, the
 catch-up nudge carries the same identity, a re-submission keeps it);
-`notification_tap_handler_test.dart` (new, 10: Home always, no payload, cross-baby detached
-completion, the pre-filled sheet ask, cross-baby treatment tap, removed reminder, missing reminder,
-deleted baby, profileless scope, `take()` drains once); `home_screen_test.dart` (+2: the sheet opens
+`notification_tap_handler_test.dart` (new, 12: Home always, no payload, cross-baby detached
+completion *and* selection, the pre-filled sheet ask, cross-baby selection then ask, no
+`switchProfile` when already selected, removed reminder, missing reminder, deleted baby, profileless
+scope not selectable, `take()` drains once); `home_screen_test.dart` (+2: the sheet opens
 pre-selected, and once). 1682 tests, coverage 84 %.

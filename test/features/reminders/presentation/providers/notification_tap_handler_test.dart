@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/active_baby_provider.dart';
 import 'package:mamadera/core/router.dart' show AppRoute;
+import 'package:mamadera/features/baby/domain/repositories/baby_profile_repository.dart';
 import 'package:mamadera/data/local/db_constants.dart' show completionManual;
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
@@ -10,6 +11,7 @@ import 'package:mamadera/features/reminders/domain/services/local_notification_s
 import 'package:mamadera/features/reminders/domain/services/notification_payload.dart';
 import 'package:mamadera/features/reminders/presentation/providers/notification_tap_handler.dart';
 import 'package:mamadera/features/reminders/presentation/providers/pending_care_sheet.dart';
+import 'package:mamadera/features/baby/presentation/providers/baby_profile_providers.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_sync_notifier.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
@@ -24,12 +26,33 @@ import '../../data/repositories/mock_reminders_repository.dart';
 // is not).
 // ---------------------------------------------------------------------------
 
-class _ActiveBabyStub extends ActiveBabyNotifier {
-  _ActiveBabyStub(this._profile);
-  final BabyProfile? _profile;
+/// The profile store, in memory: `switchProfile` has to actually move the selection
+/// for the cross-baby tests to mean anything, which a stubbed `activeBabyProvider`
+/// could not show.
+class _FakeBabyProfiles implements BabyProfileRepository {
+  _FakeBabyProfiles({required this.profiles, this.activeId});
+
+  final List<BabyProfile> profiles;
+  String? activeId;
+
+  int setActiveCalls = 0;
 
   @override
-  Future<BabyProfile?> build() async => _profile;
+  Future<List<BabyProfile>> getAllProfiles() async => List.of(profiles);
+
+  @override
+  Future<BabyProfile?> getActiveProfile() async =>
+      profiles.where((p) => p.id == activeId).firstOrNull;
+
+  @override
+  Future<void> setActiveProfile(String id) async {
+    setActiveCalls++;
+    activeId = id;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('FakeBabyProfiles: ${invocation.memberName}');
 }
 
 class _FakeAppSettings implements AppSettingsRepository {
@@ -101,14 +124,19 @@ void main() {
   /// Builds the container with [selected] as the active baby, and returns the
   /// handler under test — the same object `localNotificationServiceProvider` wires
   /// to the plugin's tap callback.
+  late _FakeBabyProfiles babies;
+
   NotificationTapHandler setUp_({required BabyProfile? selected}) {
     mock = MockRemindersRepository();
     paths = [];
+    babies = _FakeBabyProfiles(
+      profiles: [_aimee, _bea],
+      activeId: selected?.id,
+    );
     container = ProviderContainer(
       overrides: [
         remindersRepositoryProvider.overrideWith((ref) async => mock),
-        activeBabyProvider.overrideWith(() => _ActiveBabyStub(selected)),
-        babyProfileListProvider.overrideWith((ref) async => [_aimee, _bea]),
+        babyProfileRepositoryProvider.overrideWith((ref) async => babies),
         appSettingsRepositoryProvider
             .overrideWith((ref) async => _FakeAppSettings()),
         localNotificationServiceProvider
@@ -209,11 +237,12 @@ void main() {
           reason: 'tap is attention, never completion (B15 "Do not" 1)');
     });
 
-    test('a treatment-linked tap for another baby stops at Home', () async {
-      // The care sheet belongs to Home, and Home shows the selected baby: opening
-      // it for Béa while Aimée is selected would record the care against Aimée.
-      // The honest options are Home-only or switching the selected baby, and
-      // switching is an owner decision (PLAN-v1.4.0 §9, M5).
+    test('a tap for another baby selects that baby, then asks for the sheet',
+        () async {
+      // Owner decision 2026-11-17, resolving the open point in D-R9: the
+      // notification is about one child, so the app lands on that child's Home
+      // (B22's complaint was "right screen, wrong baby" one level up), and the care
+      // sheet now records for the right one.
       final handler = setUp_(selected: _aimee);
 
       handler.handle(payloadFor(_bea.id, 'eye_cleaning'));
@@ -221,8 +250,44 @@ void main() {
       await settle();
 
       expect(paths, [AppRoute.home.path]);
-      expect(container.read(pendingCareSheetProvider), isNull);
-      expect(mock.recordCompletionCallCount, 0);
+      expect(babies.setActiveCalls, 1);
+      expect((await container.read(activeBabyProvider.future))?.id, _bea.id);
+      expect(container.read(pendingCareSheetProvider)?.itemId, 'eye_cleaning',
+          reason: 'the sheet is asked for after the selection moved, so Home '
+              'opens it for Béa');
+      expect(mock.recordCompletionCallCount, 0,
+          reason: 'selecting is not completing (D2)');
+    });
+
+    test('a tap for the already-selected baby does not touch the selection',
+        () async {
+      // `switchProfile` writes (deactivate all, activate one) and rebuilds the
+      // whole dependent tree; a tap that needs neither must not pay for it.
+      final handler = setUp_(selected: _aimee);
+
+      handler.handle(payloadFor(_aimee.id, 'eye_cleaning'));
+      await settle();
+      await settle();
+
+      expect(babies.setActiveCalls, 0);
+      expect(container.read(pendingCareSheetProvider), isNotNull);
+    });
+
+    test('a cross-baby detached tap settles and selects', () async {
+      final handler = setUp_(selected: _aimee);
+      mock.customRemindersById[7] = const CustomReminder(
+        id: 7,
+        label: 'Crème du change',
+        frequency: ReminderFrequency.daily(),
+        completionSource: completionManual,
+      );
+
+      handler.handle(payloadFor(_bea.id, 'custom_7'));
+      await settle();
+      await settle();
+
+      expect(babies.setActiveCalls, 1);
+      expect(mock.lastRecordCompletionBabyId, _bea.id);
     });
 
     test('a reminder removed since the notification fired settles nothing',
@@ -279,6 +344,8 @@ void main() {
       expect(paths, [AppRoute.home.path]);
       // Vitamin D is treatment-linked, so the ask is the sheet, with the selected
       // (absent) baby matching the scope.
+      expect(babies.setActiveCalls, 0,
+          reason: 'there is no profile to select for the `\'\'` scope');
       expect(container.read(pendingCareSheetProvider)?.itemId, 'vitamine_d');
     });
   });

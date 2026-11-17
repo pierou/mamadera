@@ -33,6 +33,11 @@ import 'reminder_providers.dart';
 ///
 void _goRouter(String path) => router.go(path);
 
+/// 3. **The child the notification is about becomes the selected baby** (owner
+///    decision 2026-11-17), so the Home it lands on is that child's Home and the care
+///    sheet below records for them. The profileless `''` scope cannot be selected and
+///    is the one case that still stops at Home.
+///
 /// Injected into `FlutterLocalNotificationService` at
 /// `localNotificationServiceProvider`, because the data layer must not import
 /// `core/router.dart` (B22's seam note).
@@ -103,34 +108,52 @@ class NotificationTapHandler {
           .firstOrNull;
       if (item == null) return;
 
+      // **A tap selects the child it is about** (owner decision 2026-11-17, D-R9's
+      // open point). D6 schedules every baby, so the banner may belong to the one
+      // who is not selected — and landing on the other child's Home is the same
+      // complaint B22 was, one level deeper: right screen, wrong baby. It is also
+      // the only version under which the care sheet below is safe: the sheet belongs
+      // to Home, and Home shows the selected baby.
+      //
+      // The profileless (`''`) scope cannot be selected — there is no profile to
+      // select — so it is left as it is, and its care sheet stays gated on the
+      // selected baby being absent too (below).
+      final active = await _ref.read(activeBabyProvider.future);
+      if (!_ref.mounted) return;
+      if (scope != null && active?.id != scope) {
+        await _ref.read(activeBabyProvider.notifier).switchProfile(scope);
+        if (!_ref.mounted) return;
+      }
+
       if (item.isDetached) {
         // Detached: the tap *is* the act of completion the app already accepts from
         // the Home pill, so it settles the same way — same `reminder_completions`
         // row, same re-plan, and the next due date moves out of tonight (D3).
-        // Scoped to the payload's baby, not to whoever is selected: D6 schedules
-        // every baby, so the reminder that fired may belong to the other one.
+        // Scoped to the payload's baby explicitly rather than to whoever is now
+        // selected: the write must be right even if the selection above is a no-op.
         await _ref
             .read(reminderNotifierProvider.notifier)
             .markDone(item, scope: payload.scope);
         return;
       }
 
-      // Treatment-linked: deep-link, never auto-create (D-R9). The care sheet is
-      // Home's, and Home shows the **active** baby — opening it for another
-      // baby's reminder would record the care against the wrong child, which is
-      // why a cross-baby tap stops at Home. Settling that case means switching the
-      // selected baby, and that is an owner decision, not an implementation detail
-      // (recorded in PLAN-v1.4.0 §9).
-      if (!_ref.mounted) return;
+      // Treatment-linked: deep-link, never auto-create (D-R9). The tap asks Home for
+      // the matching care sheet, pre-selected; the parent confirms, and that confirm
+      // is the only thing that writes (D2). A mistap on a 3 a.m. banner must not
+      // become a line in the paediatrician's export.
       final subtype = item.subtypeValue == null
           ? null
           : HealthSubtype.byValue(item.subtypeValue!);
       if (subtype == null) return;
-      final active = await _ref.read(activeBabyProvider.future);
-      if (active?.id != scope) {
+      if ((await _ref.read(activeBabyProvider.future))?.id != scope) {
+        // Only reachable for the profileless scope: a tap cannot select a baby that
+        // does not exist, and opening the sheet would record against whoever *is*
+        // selected. Home only, then — and said out loud in the log rather than
+        // silently dropped.
         _logger.d(
-          'Notification tap for scope "$scope" while "${active?.id}" is selected: '
-          'opened Home, care sheet withheld (the sheet would record for the wrong baby)',
+          'Notification tap for the profileless scope while "${active?.id}" is '
+          'selected: opened Home, care sheet withheld (it would record for the '
+          'wrong baby)',
         );
         return;
       }

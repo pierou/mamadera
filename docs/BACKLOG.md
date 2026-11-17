@@ -893,9 +893,9 @@ the home screen and must not be folded in silently.
 (`ReminderNotificationPayload`, never the plan index), carried on every scheduled entry and on the
 catch-up nudge; D-R9 shipped as deep-link-not-auto-create (detached → `markDone` scoped to the
 payload's baby; treatment-linked → `HealthSubtypeDialog` with `initialSubtype`, parent confirms).
-**Cross-baby care sheet stops at Home** — the sheet belongs to the selected baby, so settling another
-baby's care from a tap would misattribute it; switching the selected baby on a tap is an owner
-decision (PLAN-v1.4.0 §9, M5). Device pass due with B22's.
+**A cross-baby tap selects that baby** (owner decision 2026-11-17) before settling or asking for the
+care sheet — « tap ⇒ Home » means « tap ⇒ that baby's Home »; the profileless `''` scope stays
+Home-only because there is no profile to select. Device pass due with B22's.
 Original: open (owner request, 2026-10-30: « Create action from reminder or notification
 validation ») · **Cost:** medium (payload + response handler + one decision about D2) · **Risk:**
 low, additive — nothing existing changes semantics
