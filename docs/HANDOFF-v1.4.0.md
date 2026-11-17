@@ -44,9 +44,6 @@ and each item is **its own commit**. Done: B9, B13, B16, B17. Remaining, in orde
    press-feedback were deliberately left out** — the ticket requires feeling them on a handset,
    and its "Do not" forbids bundling press feedback. New keys need **`make l10n`** (not
    `make codegen`): build_runner does not regenerate `app_localizations*.dart`.
-5. **B17 — haptics on creation.** Extend the existing `lib/core/widgets/show_feedback.dart`
-   creation confirmations. Ticket's magnitude decision to record in the commit message: reuse the
-   `selectionClick` class, do not invent a new one.
 5. **B29 — history filter pills adopt the home track-button design.** One style block, one screen
    (`lib/features/history/presentation/screens/history_screen.dart`).
 6. **B7-remainder — the `HistoryFilter.measurements` chip.** The enum value already exists and
