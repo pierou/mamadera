@@ -14,6 +14,7 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../../../shared/widgets/tracking_icons.dart';
+import '../../../baby/presentation/widgets/baby_picker_sheet.dart';
 import '../../../growth/presentation/widgets/measurement_button.dart';
 import '../../../reminders/presentation/providers/pending_care_sheet.dart';
 import '../../../reminders/presentation/providers/reminder_notifier.dart';
@@ -355,10 +356,26 @@ class _HomeContent extends ConsumerWidget {
       appBar: name == null
           ? null
           : AppBar(
-              title: Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              // B9: the name was inert — it showed who the screen was about and
+              // tapping it did nothing, so switching a child meant walking to
+              // Menu → Bébés. The title is now the switcher, and the `expand_more`
+              // is what says so without a second button competing with it.
+              title: InkWell(
+                onTap: () => showBabyPickerSheet(context, ref),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const Icon(Icons.expand_more, semanticLabel: null),
+                  ],
+                ),
               ),
               centerTitle: true,
             ),

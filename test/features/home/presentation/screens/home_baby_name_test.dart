@@ -10,6 +10,8 @@ import 'package:mamadera/core/providers/any_baby_exists_provider.dart';
 import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/features/growth/domain/entities/growth_measurement.dart';
 import 'package:mamadera/features/growth/presentation/providers/measurement_providers.dart';
+import 'package:mamadera/features/baby/domain/repositories/baby_profile_repository.dart';
+import 'package:mamadera/features/baby/presentation/providers/baby_profile_providers.dart';
 import 'package:mamadera/features/home/presentation/screens/home_screen.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
@@ -21,6 +23,24 @@ import '../../../reminders/presentation/providers/no_poll_reminders_notifier.dar
 /// that the main harness (memory recall storage, notify without...).
 /// timer, empty measurements, existing profile) plus a baby monitor.
 /// This can be used to verify that the header is active and not captured.
+/// Enough of a profile store for the switcher sheet to list children (B9); the
+/// switching itself is covered in `baby_picker_sheet_test.dart`.
+class _FakeProfiles implements BabyProfileRepository {
+  _FakeProfiles(this.profile);
+  final BabyProfile? profile;
+
+  @override
+  Future<List<BabyProfile>> getAllProfiles() async =>
+      [if (profile != null) profile!];
+
+  @override
+  Future<BabyProfile?> getActiveProfile() async => profile;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('FakeProfiles: ${invocation.memberName}');
+}
+
 void main() {
   final babyA = BabyProfile(
     id: 'a',
@@ -56,6 +76,8 @@ void main() {
           remindersRepositoryProvider
               .overrideWith((ref) async => MockRemindersRepository()),
           reminderNotifierProvider.overrideWith(NoPollRemindersNotifier.new),
+          babyProfileRepositoryProvider
+              .overrideWith((ref) async => _FakeProfiles(baby)),
         ],
         child: MaterialApp(
           locale: const Locale('fr'),
@@ -91,8 +113,26 @@ void main() {
       // (Scaffolding): Placed at the top of the screen, it extended beneath the...
       // system status bar on Android.
       final appBar = tester.widget<AppBar>(find.byType(AppBar));
-      expect(appBar.title, isA<Text>());
-      expect((appBar.title! as Text).data, 'Anna');
+      // B9 made the title tappable (it opens the baby switcher), so the title is no
+      // longer the `Text` itself — what still has to hold is that the app bar is
+      // what carries the name, and that it is the only place it is rendered.
+      expect(
+        find.descendant(
+            of: find.byWidget(appBar.title!), matching: find.text('Anna')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the title opens the baby switcher (B9)', (tester) async {
+      // The name used to be inert: it said who the screen was about and tapping it
+      // did nothing. It is now the entry point of the switcher, which is also where
+      // a family adds the second child.
+      await pumpHome(tester, baby: babyA);
+
+      await tester.tap(find.text('Anna'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ajouter un bébé'), findsOneWidget);
     });
 
     testWidgets('no active baby means no AppBar on home', (tester) async {

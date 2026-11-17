@@ -4,11 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/active_baby_provider.dart';
-import '../../../../core/providers/any_baby_exists_provider.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/utils/date_arithmetic.dart';
 import '../../../../core/widgets/show_feedback.dart';
 import '../../../../features/baby/presentation/providers/baby_profile_providers.dart';
+import '../../../../features/baby/presentation/widgets/add_baby_dialog.dart';
 import '../../../../features/reminders/presentation/providers/reminder_sync_notifier.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/domain/entities/baby_profile.dart';
@@ -62,7 +62,7 @@ class BabyProfileSection extends ConsumerWidget {
           leading: const Icon(Icons.cake_outlined),
           title: Text(locale.babyProfilesEmpty),
           trailing: ElevatedButton.icon(
-            onPressed: () => _showAddBabyDialog(context, ref, locale),
+            onPressed: () => showAddBabyDialog(context, ref),
             icon: const Icon(Icons.add, size: 18),
             label: Text(locale.addBaby),
           ),
@@ -169,7 +169,7 @@ class BabyProfileSection extends ConsumerWidget {
         leading: const Icon(Icons.add_circle_outline),
         title: Text(locale.addBaby),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () => _showAddBabyDialog(context, ref, locale),
+        onTap: () => showAddBabyDialog(context, ref),
       ),
     ];
   }
@@ -189,125 +189,6 @@ class BabyProfileSection extends ConsumerWidget {
       case 'delete':
         _showDeleteConfirmation(context, ref, profile, locale);
     }
-  }
-
-  Future<void> _showAddBabyDialog(
-      BuildContext context, WidgetRef ref, AppLocalizations locale) async {
-    final nameController = TextEditingController();
-    final birthDateController = TextEditingController();
-    var selectedDate = DateTime.now();
-
-    await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(locale.addBaby),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: locale.babyName,
-                    border: const OutlineInputBorder(),
-                  ),
-                  autofocus: true,
-                ),
-                const SizedBox(height: AppTheme.spacingXl),
-                InkWell(
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: dialogContext,
-                      initialDate: selectedDate,
-                      firstDate: DateTime.now()
-                          .subtract(const Duration(days: 365 * 20)),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                    );
-                    if (picked != null) {
-                      setState(() => selectedDate = picked);
-                      birthDateController.text = _formatShortDate(picked);
-                    }
-                  },
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: locale.birthDate,
-                      border: const OutlineInputBorder(),
-                      suffixIcon: const Icon(Icons.calendar_today),
-                    ),
-                    child: Text(
-                      birthDateController.text.isNotEmpty
-                          ? birthDateController.text
-                          : _formatShortDate(selectedDate),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(locale.cancel),
-            ),
-            TextButton(
-              onPressed: () async {
-                final name = nameController.text.trim();
-                if (name.isEmpty) return;
-
-                try {
-                  final repository =
-                      await ref.read(babyProfileRepositoryProvider.future);
-
-                  // Check for duplicate names before inserting.
-                  final existingProfiles = await repository.getAllProfiles();
-                  final duplicateName = existingProfiles.any(
-                    (p) => p.name.toLowerCase() == name.toLowerCase(),
-                  );
-                  if (duplicateName && dialogContext.mounted) {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      SnackBar(
-                        content: Text(locale.babyNameAlreadyExists(name)),
-                        backgroundColor:
-                            Theme.of(dialogContext).colorScheme.error,
-                      ),
-                    );
-                    return;
-                  }
-
-                  final newProfile = BabyProfile(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    name: name,
-                    birthDate: selectedDate,
-                    isActive: false,
-                  );
-                  await repository.insertProfile(newProfile);
-                  // Invalidate the list provider so the menu UI rebuilds with the new profile.
-                  ref.invalidate(babyProfileListProvider);
-                  await ref.read(activeBabyProvider.notifier).refresh();
-                  await ref.read(anyBabyExistsProvider.notifier).refresh();
-                  // D6: a new baby starts being scheduled immediately — its
-                  // presets join the OS plan on this very sync.
-                  unawaited(ref
-                      .read(reminderSyncNotifierProvider.notifier)
-                      .syncNow());
-
-                  if (dialogContext.mounted) Navigator.pop(dialogContext);
-                  if (dialogContext.mounted) {
-                    showFeedback(context, locale.babyAddedWithName(name));
-                  }
-                } catch (e) {
-                  if (dialogContext.mounted) {
-                    showError(context, locale.babyAddError);
-                  }
-                }
-              },
-              child: Text(locale.addBaby),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _showEditBabyDialog(BuildContext context, WidgetRef ref,
