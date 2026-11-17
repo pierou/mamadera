@@ -123,28 +123,27 @@ Map<String, dynamic> _document() => {
       'appSettings': <dynamic>[],
     };
 
-/// B27 — pre-existing, unrelated to the sheet, recorded so this gate can assert
-/// the behaviour it is about.
+/// B27 — counts the provider-flush errors raised during the leg, for a hard
+/// assertion at the end of it.
 ///
-/// Mounting Home while the restore's invalidation cascade is still pending makes
-/// Riverpod schedule a refresh from inside `_HomeContent.build`
-/// (`setState() or markNeedsBuild() called during build`). It reproduces
-/// identically with and without the `home_screen.dart` guard: the cascade is
-/// dirty because `import_providers._invalidateRestoredState` runs while no
-/// listener can flush it, and Home's first `ref.watch(reminderNotifierProvider)`
-/// is what finally does so, synchronously. The framework reports it and the next
-/// frame rebuilds, so nothing is visibly broken — which is exactly why it needs
-/// its own ticket rather than a drive-by change inside a release.
+/// The defect: mounting Home while the restore's invalidation cascade is still
+/// pending made Riverpod schedule a refresh from inside `_HomeContent.build`
+/// (`setState() or markNeedsBuild() called during build`), because
+/// `import_providers._invalidateRestoredState` ran while no listener could flush
+/// it. Since v1.4.0 (M6) that method flushes the providers Home watches before it
+/// returns, so **this count must now be zero** and the leg asserts it.
 ///
-/// Everything else still reaches the default handler, so a genuine failure in
-/// this leg cannot hide behind the tolerance.
-int Function() suppressKnownProviderFlush() {
+/// It is a counter rather than a pass-through to the default handler so the number
+/// is printed where the PR record quotes it; a non-zero count fails the gate, and
+/// any *other* error still reaches the previous handler immediately, so nothing can
+/// hide behind this function.
+int Function() countProviderFlushErrors() {
   final previous = FlutterError.onError;
   var recorded = 0;
   FlutterError.onError = (details) {
     if (details.exceptionAsString().contains('markNeedsBuild')) {
       recorded++;
-      print('[GATE] B27 recorded (expected, pre-existing): '
+      print('[GATE] B27 flush error (must be zero since the M6 fix): '
           '${details.exceptionAsString().split('\n').first}');
       return;
     }
@@ -207,7 +206,7 @@ void main() {
     expect(outcome, isA<ImportSuccess>(), reason: 'the restore must commit');
     print('[GATE] restore-onboarding: applyRestore committed');
 
-    final stopB27 = suppressKnownProviderFlush();
+    final stopB27 = countProviderFlushErrors();
 
     // 5. Home, immediately — the tab tap the parent makes as soon as the
     //    success dialog is dismissed, which is the frame the bug lived in, and
@@ -232,6 +231,12 @@ void main() {
             'is populated, so this cannot pass for the wrong reason');
     print('[GATE] restore-onboarding PASS — Home shows "Leia", no sheet');
     await capture(tester, 'v131r-03-home-after-restore');
-    expect(stopB27(), greaterThanOrEqualTo(0));
+    // B27: the tolerance is gone. The M6 flush in `_invalidateRestoredState`
+    // rebuilt what Home watches while the Menu was still mounted, so a single
+    // provider refresh raised during Home's build is a regression, not a known
+    // defect — and this gate is the only place the sequence is exercised for real.
+    expect(stopB27(), 0,
+        reason: "B27: a restore must not defer a provider refresh into Home's "
+            'first build');
   });
 }

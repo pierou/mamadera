@@ -170,6 +170,11 @@ class ImportController extends AsyncNotifier<ImportOutcome> {
   /// `reminderSettingsProvider` watch `remindersRepositoryProvider` for exactly
   /// this reason. The notifiers that *read* their repository (rather than watch
   /// it) are listed by hand, because no edge would carry the change to them.
+  ///
+  /// A bare `invalidate` **defers** the rebuild to whoever listens next — which is why
+  /// this method ends by flushing the providers Home watches on its first build (B27).
+  /// Anyone adding an invalidation here should ask which screen mounts after a restore
+  /// and pays for the deferral.
   void _invalidateRestoredState() {
     ref
       ..invalidate(trackingRepositoryProvider)
@@ -185,7 +190,31 @@ class ImportController extends AsyncNotifier<ImportOutcome> {
       ..invalidate(historyNotifierProvider)
       // The home grid's « last tracked » lines read the event table; a restore
       // replaced every row, so all four answers are stale.
-      ..invalidate(lastEventByTypeProvider);
+      ..invalidate(lastEventByTypeProvider)
+
+      // B27 — the flush. An `invalidate` rebuilds nothing: it marks the node dirty and
+      // waits for the next listener. When the parent restores from the Menu, Home is
+      // **not** mounted (the shell renders `body: child`; there is no `IndexedStack`),
+      // so nothing is listening and the whole cascade is deferred to the first
+      // `ref.watch` of `_HomeContent.build` — which rebuilds `activeBabyProvider`
+      // synchronously inside that build, notifies, invalidates
+      // `reminderNotifierProvider`, and lands a `scheduleProviderRefresh` `setState` on
+      // the provider scope while the framework is mid-build. Debug shows the red frame;
+      // release swallows it, which is how this survived six releases.
+      //
+      // Reading here creates the elements now, against the screen that is actually on
+      // screen — and after the invalidations above there is no cache to speak of, so a
+      // read *is* the rebuild. Order follows the cascade: the profile first, since the
+      // reminder chain watches it.
+      //
+      // Deliberately not a post-frame callback inside Home: that hides the symptom in
+      // the widget that reported it and leaves the same landmine under History and any
+      // other screen mounted after a restore.
+      ..read(activeBabyProvider)
+      ..read(babyProfileListProvider)
+      ..read(anyBabyExistsProvider)
+      ..read(reminderNotifierProvider)
+      ..read(lastEventByTypeProvider);
   }
 }
 

@@ -140,9 +140,8 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
       HistoryFilter.sante => TrackingType.sante,
       HistoryFilter.all =>
         throw StateError('unexpected all filter in _filterToTrackingType'),
-      HistoryFilter.measurements =>
-        throw StateError(
-            'measurements are not a tracking type and never reach here'),
+      HistoryFilter.measurements => throw StateError(
+          'measurements are not a tracking type and never reach here'),
     };
   }
 
