@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/locale_provider.dart';
+import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/features/history/domain/repositories/history_repository.dart';
 import 'package:mamadera/features/history/presentation/providers/history_notifier.dart';
 import 'package:mamadera/features/history/presentation/providers/history_repository_provider.dart';
@@ -346,6 +347,67 @@ void main() {
       // The miam chip should now be selected
       final firstChip = tester.widget<FilterChip>(chips.at(0));
       expect(firstChip.selected, isFalse);
+    });
+
+    testWidgets('the filter pills speak the home track-button language (B29)',
+        (tester) async {
+      // Two controls on the same axis — « which type am I looking at? » — were
+      // drawn in two design languages. What is pinned here is the visible contract
+      // the owner asked for: the accent border of the home grid, on a toggle whose
+      // fill (not border) carries the selection.
+      when(mockRepository.getAllEventsOrdered())
+          .thenAnswer((_) async => testEvents);
+      when(mockRepository.getEventsByType(TrackingType.miam))
+          .thenAnswer((_) async => [testEvents.first]);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
+            historyRepositoryProvider.overrideWith(
+              (_) async => mockRepository,
+            ),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
+          ],
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chips = find.byType(FilterChip);
+      final miam = tester.widget<FilterChip>(chips.at(1));
+      expect(miam.side?.color, AppTheme.miam.withValues(alpha: 0.6),
+          reason:
+              'the border is the type accent, the darker edge of the request');
+      expect(miam.side?.width, 2);
+      expect(miam.elevation, 0,
+          reason: 'a grey drop shadow under a tinted pill is the look we left');
+      expect(
+        (miam.shape! as RoundedRectangleBorder).borderRadius,
+        const BorderRadius.all(Radius.circular(AppTheme.shapeCardRadius)),
+      );
+
+      final unselectedFill = miam.backgroundColor;
+      await tester.tap(chips.at(1));
+      await tester.pumpAndSettle();
+
+      final selectedChip = tester.widget<FilterChip>(chips.at(1));
+      expect(selectedChip.selected, isTrue);
+      expect(selectedChip.backgroundColor, isNot(unselectedFill),
+          reason:
+              'the fill carries selection: a home button has no selected state');
+      expect(selectedChip.side?.color, AppTheme.miam.withValues(alpha: 0.9));
     });
 
     testWidgets('tapping HistoryTile opens edit dialog bottom sheet',

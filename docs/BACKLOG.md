@@ -1575,7 +1575,16 @@ type last tracked?" without consulting reminders at all.
 
 ## B29 — The history filter pills are not the home track-button design
 
-**Status:** open · **Severity:** low (visual consistency) · **Cost:** one style block on one screen
+**Status:** **implemented on `release/v1.4.0` (M6)** — `_HistoryFilterChip` in
+`history_screen.dart`: 2px border in the type accent (0.6 → 0.9 when selected), flat tinted fill
+carrying the selection (0.06 → 0.28, the gradient of the grid cannot live inside a `FilterChip`),
+`shapeCardRadius`, accent shadow instead of the grey elevation drop. `all` stays neutral because it
+has no accent at home either — inventing one was not on offer. Chips are still chips: B29's own
+"Do not" (no `TrackButton`, those are toggles) respected; the home buttons were not touched.
+Test: « the filter pills speak the home track-button language (B29) ». **Owed from this ticket:**
+item 3's Small_Phone overflow check + history-tab screenshots (the row already scrolls
+horizontally) — M9's device pass.
+Original: open · **Severity:** low (visual consistency) · **Cost:** one style block on one screen
 **Found:** 2026-11-11, requested by the owner: the history pills have to be the same design as
 the home buttons — « darker border »
 **Files:** `lib/features/history/presentation/screens/history_screen.dart:212` (the unstyled
