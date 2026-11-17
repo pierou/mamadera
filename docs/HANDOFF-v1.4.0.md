@@ -11,12 +11,12 @@ per-milestone narrative; this file is the short version plus the resume instruct
 |---|---|
 | Branch | `release/v1.4.0`, cut from `origin/develop` — **8 feature commits + this handoff, working tree clean, nothing pushed** |
 | Range | `git diff --stat origin/develop..HEAD` → 113 files, +10 958 / −735 |
-| Milestones | **M1 ✅ M2 ✅ M3 ✅ M4 ✅ M5 ✅** · **M6 in progress (3 of 7 tickets: B9, B13, B16)** · M7 M8 M9 not started |
+| Milestones | **M1 ✅ M2 ✅ M3 ✅ M4 ✅ M5 ✅** · **M6 in progress (4 of 7 tickets: B9, B13, B16, B17)** · M7 M8 M9 not started |
 | Schema | `AppDatabase.schemaVersion = 14` (`lib/data/local/app_db.dart`) — the one and only v1.4.0 bump |
 | Export | `_exportFormatVersion = 5` / importer `_supportedFormatVersion = 5` — the one and only bump |
 | pubspec | still `1.3.2+16` on purpose — **M7** bumps to `1.4.0+17` |
 | Pushed | **yes** — `origin/release/v1.4.0` exists, no PR opened, `develop` untouched |
-| Gates at HEAD | `flutter analyze --fatal-infos --fatal-warnings` clean · `flutter test` **1695 passed** · coverage **84 %** · `make check-architecture` ✅ (`presentation_to_data` 2, `oversized_files` 0) · `make check-complexity` ✅ (3 over cap, baseline 4) |
+| Gates at HEAD | `flutter analyze --fatal-infos --fatal-warnings` clean · `flutter test` **1695 passed** (last run f771ec4) · coverage **84 %** · `make check-architecture` ✅ (`presentation_to_data` 2, `oversized_files` 0) · `make check-complexity` ✅ (3 over cap, baseline 4) |
 
 ```
 270af3f fix(sleep): a nap carries its minutes once (B13)              <- M6 item 2
