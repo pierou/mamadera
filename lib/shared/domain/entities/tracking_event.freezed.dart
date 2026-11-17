@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 mixin _$TrackingEvent {
   DateTime get timestamp;
 
-  /// B13: a nap carries its value **once**, in [duration]. There used to be a
+  /// B13: a nap carries its value **once**, in `duration`. There used to be a
   /// `quantity` here as well, holding the same number of minutes under a second
   /// label — which is what produced « Quantité : 45 min / Durée : 45 min » on one
   /// tile (and « 45 / 0 » on a row whose `duration` was never written).
@@ -633,7 +633,7 @@ class SleepEvent implements TrackingEvent {
   /// read time, so the history tile renders from data like every other row.
   final QuantityUnit unit;
 
-  /// B13: a nap carries its value **once**, in [duration]. There used to be a
+  /// B13: a nap carries its value **once**, in `duration`. There used to be a
   /// `quantity` here as well, holding the same number of minutes under a second
   /// label — which is what produced « Quantité : 45 min / Durée : 45 min » on one
   /// tile (and « 45 / 0 » on a row whose `duration` was never written).

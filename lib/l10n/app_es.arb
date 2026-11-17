@@ -261,6 +261,8 @@
   "reminderCustomDeleteConfirm": "¿Eliminar este recordatorio?",
   "reminderCustomDeleteWarning": "El recordatorio desaparece del inicio. Los eventos ya registrados se conservan.",
   "reminderCustomSaveError": "No se pudo guardar el recordatorio. Inténtalo de nuevo.",
+  "reminderCustomAdded": "Recordatorio añadido",
+  "reminderCustomUpdated": "Recordatorio actualizado",
   "reminderCustomDeleteError": "No se pudo eliminar el recordatorio. Inténtalo de nuevo.",
   "reminderListTitle": "Recordatorios por hacer",
   "reminderListTitleFor": "Recordatorios de {name}",

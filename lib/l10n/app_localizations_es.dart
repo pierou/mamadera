@@ -437,6 +437,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo guardar el recordatorio. Inténtalo de nuevo.';
 
   @override
+  String get reminderCustomAdded => 'Recordatorio añadido';
+
+  @override
+  String get reminderCustomUpdated => 'Recordatorio actualizado';
+
+  @override
   String get reminderCustomDeleteError =>
       'No se pudo eliminar el recordatorio. Inténtalo de nuevo.';
 

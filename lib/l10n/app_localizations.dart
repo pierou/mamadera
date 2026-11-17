@@ -838,6 +838,18 @@ abstract class AppLocalizations {
   /// **'Le rappel n\'a pas pu être enregistré. Réessayez.'**
   String get reminderCustomSaveError;
 
+  /// No description provided for @reminderCustomAdded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappel ajouté'**
+  String get reminderCustomAdded;
+
+  /// No description provided for @reminderCustomUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappel mis à jour'**
+  String get reminderCustomUpdated;
+
   /// No description provided for @reminderCustomDeleteError.
   ///
   /// In fr, this message translates to:

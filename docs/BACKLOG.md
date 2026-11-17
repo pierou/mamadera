@@ -840,7 +840,17 @@ notification time of its own per custom reminder**, it is a model change, not a 
 
 ## B17 — Creation must be felt under the finger: a haptic contract
 
-**Status:** open (owner request, 2026-10-30: « Haptic feedback on creation ») · **Cost:** small —
+**Status:** **partially implemented on `release/v1.4.0` (M6)** — the helper now fires
+`HapticFeedback.selectionClick()` (was `lightImpact`) so there is **one magnitude for every
+creation**, and the silent path is filled: custom-reminder create/edit ends in `showFeedback`
+with new keys `reminderCustomAdded` / `reminderCustomUpdated` (fr/en/es), which gives the snackbar
+the ticket argued for and the haptic by construction. Pinned by the settings-screen creation test,
+which asserts the platform was asked for `HapticFeedbackType.selectionClick`. **Deferred, on
+purpose:** Done/Snooze haptics (ticket item 2 says measure on device first — emulators do not
+vibrate, so no test can decide it) and `TrackButton` press-feedback (ticket's own "Do not": it
+changes the feel of every home tap and needs its own sign-off). **Owed: item 4**, a named handset
+in the PR record.
+Original: open (owner request, 2026-10-30: « Haptic feedback on creation ») · **Cost:** small —
 one helper already exists; the gap is coverage and one magnitude decision · **Risk:** low, additive
 **Found:** owner request 2026-10-30; coverage verified in `develop` the same evening.
 **Files:** `lib/core/widgets/show_feedback.dart:14` (the **only** `HapticFeedback` call in `lib/`

@@ -440,6 +440,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le rappel n\'a pas pu être enregistré. Réessayez.';
 
   @override
+  String get reminderCustomAdded => 'Rappel ajouté';
+
+  @override
+  String get reminderCustomUpdated => 'Rappel mis à jour';
+
+  @override
   String get reminderCustomDeleteError =>
       'Le rappel n\'a pas pu être supprimé. Réessayez.';
 

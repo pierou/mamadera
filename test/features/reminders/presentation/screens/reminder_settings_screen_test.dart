@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -462,6 +463,15 @@ void main() {
         (tester) async {
       await pumpScreen(tester);
 
+      final haptics = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'HapticFeedback.vibrate') haptics.add(call);
+        return null;
+      });
+      addTearDown(() => tester.binding.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null));
+
       await tapRow(tester, find.text('Ajouter un rappel'));
       expect(find.text('Nouveau rappel'), findsOneWidget);
 
@@ -477,6 +487,15 @@ void main() {
           'Sérum visage');
       expect(find.byType(CustomReminderTile), findsOneWidget);
       expect(find.text('Sérum visage'), findsOneWidget);
+
+      // B17 — a creation is felt at the moment it commits, with one magnitude for
+      // every creation in the app. Emulators do not vibrate: what is pinned here is
+      // that the platform was asked for `selectionClick`, nothing more.
+      expect(
+        haptics.map((call) => call.arguments),
+        contains('HapticFeedbackType.selectionClick'),
+        reason: 'custom-reminder creation used to be silent to the finger',
+      );
       // Nothing is modal anymore: the screen has reappeared, ready for a second input.
       expect(find.text('Nouveau rappel'), findsNothing);
     });

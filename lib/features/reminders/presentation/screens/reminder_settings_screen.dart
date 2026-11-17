@@ -370,6 +370,16 @@ class _ReminderList extends ConsumerWidget {
             endAgeMonths: draft.endAgeMonths,
             enabledIfNew: true,
           );
+      if (!context.mounted) return;
+      // B17: this path used to complete silently to the finger — the record landed
+      // with nothing but a row appearing. `showFeedback` is the app's single haptic
+      // contract for a committed insert, and a reminder is an insert like any other.
+      showFeedback(
+        context,
+        existing == null
+            ? context.l.reminderCustomAdded
+            : context.l.reminderCustomUpdated,
+      );
     } on Object {
       if (!context.mounted) return;
       showError(context, context.l.reminderCustomSaveError);

@@ -11,7 +11,16 @@ void showFeedback(
   String message, {
   Duration? duration,
 }) {
-  HapticFeedback.lightImpact();
+  // B17 — the haptic contract: one successful insert of a record gives exactly one
+  // haptic, at the moment it commits, and this line is where every creation path in
+  // the app gets it (events, measurements, baby profiles, custom reminders all end
+  // here). The magnitude is **`selectionClick`** for all of them — one class chosen
+  // once, deliberately not a per-site scale (the ticket's wording: a decision, not a
+  // tweak). `lightImpact` was the previous choice, and it is what the parent
+  // described as unfelt at 3 a.m. one-handed; `medium`/`heavy` would make a routine
+  // tap into battery noise on the smallest devices. Whether it is felt *correctly*
+  // can only be settled on a handset — emulators do not vibrate (M9's device pass).
+  HapticFeedback.selectionClick();
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(message),

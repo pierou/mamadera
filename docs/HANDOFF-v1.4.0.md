@@ -32,13 +32,19 @@ fe8f774 feat(reminders): schema v14 + per-item enabled default (B6, M1)
 ## 2. Resume here — M6, three-and-a-half tickets left
 
 M6 is **schema-free and independent**; the plan (section "M6 — The small batch") fixes the order
-and each item is **its own commit**. Done: B9, B13, B16. Remaining, in order:
+and each item is **its own commit**. Done: B9, B13, B16, B17. Remaining, in order:
 
 3. ~~**B16**~~ ✅ done — one optional `TextField` at the foot of the feeding sheet
    (`ValueKey('feeding-note-field')`), `null` when empty so the row stores an absence, reusing
    `editNotesLabel`/`editNotesHint` so **no new l10n key** was needed. Its ticket item 2
    (Small_Phone screenshots, keyboard up) joins the M9 device-pass list.
-4. **B17 — haptics on creation.** Extend the existing `lib/core/widgets/show_feedback.dart`
+4. ~~**B17**~~ ✅ done — one magnitude (`selectionClick`) in `show_feedback.dart` for every
+   committed insert, plus `showFeedback` on the custom-reminder create/edit path with
+   `reminderCustomAdded`/`reminderCustomUpdated` in three locales. **Done/Snooze and TrackButton
+   press-feedback were deliberately left out** — the ticket requires feeling them on a handset,
+   and its "Do not" forbids bundling press feedback. New keys need **`make l10n`** (not
+   `make codegen`): build_runner does not regenerate `app_localizations*.dart`.
+5. **B17 — haptics on creation.** Extend the existing `lib/core/widgets/show_feedback.dart`
    creation confirmations. Ticket's magnitude decision to record in the commit message: reuse the
    `selectionClick` class, do not invent a new one.
 5. **B29 — history filter pills adopt the home track-button design.** One style block, one screen

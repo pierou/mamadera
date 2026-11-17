@@ -261,6 +261,8 @@
   "reminderCustomDeleteConfirm": "Supprimer ce rappel ?",
   "reminderCustomDeleteWarning": "Le rappel disparaît de l'accueil. Les événements déjà enregistrés sont conservés.",
   "reminderCustomSaveError": "Le rappel n'a pas pu être enregistré. Réessayez.",
+  "reminderCustomAdded": "Rappel ajouté",
+  "reminderCustomUpdated": "Rappel mis à jour",
   "reminderCustomDeleteError": "Le rappel n'a pas pu être supprimé. Réessayez.",
   "reminderListTitle": "Rappels à faire",
   "reminderListTitleFor": "Rappels de {name} à faire",

@@ -435,6 +435,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not save the reminder. Please try again.';
 
   @override
+  String get reminderCustomAdded => 'Reminder added';
+
+  @override
+  String get reminderCustomUpdated => 'Reminder updated';
+
+  @override
   String get reminderCustomDeleteError =>
       'Could not delete the reminder. Please try again.';
 
