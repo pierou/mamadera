@@ -367,7 +367,20 @@ Vit. K) is care hygiene,
 
 ## B7 — The History tab does not have *all* event types: measurements are absent from it
 
-**Status:** the timeline part is **shipped in v1.2.1** (verified in the code, 2026-10-17:
+**Status (v1.4.0 update):** the remaining part — the dedicated `HistoryFilter.measurements` chip —
+is **implemented on `release/v1.4.0` (M6)**. `HistoryFilter.measurements` added (last in
+`values`, so it sits after the tracking types instead of among them), `fromString` resolving the
+French spelling `mesures`, `labelKey: filterMeasurements` in fr/en/es, and the chip in the History
+pill row (neutral accent: the ticket says measurements are neither a type nor an existing colour).
+The filter reads `MeasurementRepository.allForBaby` alone — no read of `tracking_events`, no
+written row, **no schema merge** (the ticket's "Do not": a single numeric column carrying
+semantics is exactly B1's debt, and `tracking_events.quantity` is in the clear at rest). One trap
+closed while passing through: `HistoryFilter.trackingType` answered `'measurements'` for the new
+value, a string no `TrackingType` parses whose safe fallback would have listed **feedings under
+« Mesures »** — it returns `null` now, meaning « not one type », documented as such. Tests: 4 enum
+cases + « the measurements chip lists measurements and nothing else (B7) ». Nothing bumped in the
+export format, as planned — a chip is a read question.
+Original status: the timeline part is **shipped in v1.2.1** (verified in the code, 2026-10-17:
    `measurement_history_tile` in `history_screen`, `tracking_events` + `measurements` merge in
    `history_notifier`); what remains on this ticket, re-requested by the owner on 2026-10-17
     (« filtrer les événements de l'historique par mesures »): the dedicated

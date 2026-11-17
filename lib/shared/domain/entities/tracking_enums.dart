@@ -356,7 +356,16 @@ enum HistoryFilter {
   /// Selles uniquement.
   caca, // 'caca'
   /// Health only.
-  sante; // 'sante'
+  sante, // 'sante'
+
+  /// Growth measurements only — weight, size, temperature, head circumference.
+  ///
+  /// B7: not a `TrackingType`, and it never becomes one. The rows it shows live in
+  /// the `measurements` table (their own `unit` column, their own encrypted value,
+  /// their own repository) and reach the timeline through the read-side merge only;
+  /// the schema merge the ticket refuses would have copied the app's most sensitive
+  /// numbers into a column that is in the clear at rest.
+  measurements; // 'measurements'
 
   /// Returns the name of the enum for database compatibility (e.g., TrackingType.name).
   String get dbKey => name.toLowerCase();
@@ -365,6 +374,9 @@ enum HistoryFilter {
   static HistoryFilter fromString(String value) {
     final lower = value.toLowerCase();
     if (lower == 'all' || lower.isEmpty) return HistoryFilter.all;
+    // The stored/passed spelling for measurements is the French one, which is what
+    // older saved state and any hand-written query use.
+    if (lower == 'mesures') return HistoryFilter.measurements;
     for (final f in HistoryFilter.values) {
       if (f.name == lower) return f;
     }
@@ -384,6 +396,8 @@ enum HistoryFilter {
         return 'Caca';
       case HistoryFilter.sante:
         return 'Santé';
+      case HistoryFilter.measurements:
+        return 'Mesures';
     }
   }
 
@@ -400,6 +414,8 @@ enum HistoryFilter {
         return 'filterCaca';
       case HistoryFilter.sante:
         return 'filterSante';
+      case HistoryFilter.measurements:
+        return 'filterMeasurements';
     }
   }
 
@@ -408,6 +424,13 @@ enum HistoryFilter {
     switch (this) {
       case HistoryFilter.all:
         return null; // No specific type → retrieve everything.
+      case HistoryFilter.measurements:
+        // B7: not a tracking type. Answering `'measurements'` here would hand the
+        // caller a string no `TrackingType` parses, and its safe fallback would
+        // list feedings under « Mesures ». `null` means « not one type », which is
+        // what both `all` and `measurements` are; a caller that cares which one
+        // looks at the filter, not at this getter.
+        return null;
       default:
         return name.toLowerCase();
     }

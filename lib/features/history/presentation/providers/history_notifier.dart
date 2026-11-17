@@ -46,8 +46,8 @@ class SelectedFilterNotifier extends Notifier<HistoryFilter> {
 /// timestamping. The reading process merges the two tables without ever creating duplicates.
 /// a line: `measurements` remains the source of truth for numerical data, and...
 /// The measurements do not obtain any event `id`s and only appear as...
-/// "everything" (no "growth" filter applied — a parent who filters "bottle").
-/// ne cherche pas sa courbe de poids).
+/// "everything", or — since B7 — alone under the `measurements` chip, which reads the
+/// same table without ever copying a row into `tracking_events`.
 class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
   HistoryNotifier(this._filter);
 
@@ -65,6 +65,23 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
     if (!ref.mounted) return [];
     // Read active baby synchronously without triggering rebuilds
     final babyId = ref.read(activeBabyProvider).value?.id;
+
+    // B7: the measurements chip is the mirror image of « all » — the same second
+    // table, shown alone. Nothing is read from `tracking_events` and nothing is
+    // written anywhere: this is a read that filters, not an event that is created.
+    if (_filter == HistoryFilter.measurements) {
+      final only = await AsyncValue.guard(() async {
+        final measurementRepository =
+            await ref.read(measurementRepositoryProvider.future);
+        return measurementRepository.allForBaby(babyId);
+      });
+      if (only.hasError) {
+        _logger.w('liste des mesures indisponible — onglet mesures vide',
+            error: only.error);
+      }
+      // `allForBaby` already returns newest first, the order the timeline uses.
+      return (only.value ?? const []).map(HistoryRow.measurement).toList();
+    }
 
     final events = _filter == HistoryFilter.all
         ? await repository.getAllEventsOrdered(babyId: babyId)
@@ -123,6 +140,9 @@ class HistoryNotifier extends AsyncNotifier<List<HistoryRow>> {
       HistoryFilter.sante => TrackingType.sante,
       HistoryFilter.all =>
         throw StateError('unexpected all filter in _filterToTrackingType'),
+      HistoryFilter.measurements =>
+        throw StateError(
+            'measurements are not a tracking type and never reach here'),
     };
   }
 

@@ -25,6 +25,9 @@ class HistoryScreen extends ConsumerWidget {
     HistoryFilter.dodo,
     HistoryFilter.caca,
     HistoryFilter.sante,
+    // Last, not among the types: a measurement is not a `TrackingType`, and the
+    // timeline's own tie-break already ranks it after an event at the same second.
+    HistoryFilter.measurements,
   ];
 
   /// Opens the editing panel for a specific event.
@@ -303,6 +306,9 @@ class _HistoryFilterChip extends StatelessWidget {
         HistoryFilter.caca => AppTheme.caca,
         HistoryFilter.sante => AppTheme.sante,
         HistoryFilter.all => null,
+        // No accent exists for measurements at home, and inventing one for a pill
+        // would be a design decision taken in a filter row.
+        HistoryFilter.measurements => null,
       };
 
   @override

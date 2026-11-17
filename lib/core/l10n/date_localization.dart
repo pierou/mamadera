@@ -68,6 +68,8 @@ String getHistoryFilterLabel(BuildContext context, HistoryFilter filter) {
       return l.filterCaca;
     case HistoryFilter.sante:
       return l.filterSante;
+    case HistoryFilter.measurements:
+      return l.filterMeasurements;
   }
 }
 

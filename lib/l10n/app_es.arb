@@ -316,6 +316,7 @@
   "filterDodo": "Sueño",
   "filterCaca": "Pañal",
   "filterSante": "Salud",
+  "filterMeasurements": "Medidas",
 
   "noEvents": "Sin eventos",
   "@errorMessage": {

@@ -85,6 +85,31 @@ void main() {
         expect(HistoryFilter.fromString('ALL'), HistoryFilter.all);
       });
     });
+
+    group('HistoryFilter.measurements (B7)', () {
+      test('the French spelling and the enum name both resolve', () {
+        expect(HistoryFilter.fromString('mesures'), HistoryFilter.measurements);
+        expect(HistoryFilter.fromString('MEASUREMENTS'),
+            HistoryFilter.measurements);
+      });
+
+      test('it is not a tracking type', () {
+        // Answering `'measurements'` here would hand the caller a string no
+        // TrackingType parses, whose safe fallback would list feedings under
+        // « Mesures ».
+        expect(HistoryFilter.measurements.trackingType, isNull);
+        expect(HistoryFilter.measurements.dbKey, 'measurements');
+      });
+
+      test('it carries its own label and ARB key', () {
+        expect(HistoryFilter.measurements.label, 'Mesures');
+        expect(HistoryFilter.measurements.labelKey, 'filterMeasurements');
+      });
+
+      test('it sits after the tracking types, not among them', () {
+        expect(HistoryFilter.values.last, HistoryFilter.measurements);
+      });
+    });
   });
 
   group('HealthSubtype.byValue()', () {

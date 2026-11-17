@@ -1072,6 +1072,12 @@ abstract class AppLocalizations {
   /// **'Santé'**
   String get filterSante;
 
+  /// No description provided for @filterMeasurements.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mesures'**
+  String get filterMeasurements;
+
   /// No description provided for @noEvents.
   ///
   /// In fr, this message translates to:

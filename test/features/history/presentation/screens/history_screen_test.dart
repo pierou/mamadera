@@ -129,8 +129,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Filter chips for all 5 HistoryFilter values
-      expect(find.byType(FilterChip), findsNWidgets(5));
+      // One chip per HistoryFilter value, measurements last since v1.4.0 (B7).
+      expect(find.byType(FilterChip), findsNWidgets(6));
     });
 
     testWidgets('displays event list when data is loaded', (tester) async {
@@ -338,7 +338,7 @@ void main() {
 
       // Tap on the second filter chip (first is "all" which is already selected)
       final chips = find.byType(FilterChip);
-      expect(chips, findsNWidgets(5));
+      expect(chips, findsNWidgets(6));
 
       // Tap the 'miam' filter chip (second one after 'Tous')
       await tester.tap(chips.at(1));
@@ -616,6 +616,52 @@ void main() {
         recordedAt: DateTime.utc(2025, 6, 15, 8, 30),
         value: 6180,
       );
+
+      testWidgets(
+          'the measurements chip lists measurements and nothing else (B7)',
+          (tester) async {
+        // The chip is the read-side half of B7: « tout » promised every event and
+        // silently omitted an entire class of them, because measurements live in
+        // their own table. Filtering to them must show that table alone — and must
+        // not do it by inventing tracking events.
+        when(mockRepository.getAllEventsOrdered())
+            .thenAnswer((_) async => testEvents);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              measurementRepositoryProvider.overrideWith(
+                (ref) async => _FakeMeasurementRepository(rows: [weight]),
+              ),
+              historyRepositoryProvider.overrideWith(
+                (_) async => mockRepository,
+              ),
+            ],
+            child: MaterialApp(
+              locale: const Locale('fr'),
+              supportedLocales: const [Locale('fr')],
+              home: const HistoryScreen(),
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final chips = find.byType(FilterChip);
+        expect(find.text('Mesures'), findsOneWidget);
+
+        await tester.tap(chips.at(5));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(MeasurementHistoryTile), findsOneWidget);
+        expect(find.byType(HistoryTile), findsNothing,
+            reason: 'the tab filters the timeline, it does not merge it');
+      });
 
       testWidgets(
           'une mesure apparaît sous « Tout », triée par horodatage, formatée',

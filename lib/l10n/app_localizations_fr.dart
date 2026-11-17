@@ -562,6 +562,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get filterSante => 'Santé';
 
   @override
+  String get filterMeasurements => 'Mesures';
+
+  @override
   String get noEvents => 'Aucun événement';
 
   @override
