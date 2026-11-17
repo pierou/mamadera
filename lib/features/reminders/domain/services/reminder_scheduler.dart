@@ -6,6 +6,7 @@ import '../entities/reminder_item_setting.dart';
 import '../repositories/reminders_repository.dart';
 import 'effective_reminders.dart';
 import 'local_notification_service.dart';
+import 'notification_payload.dart';
 import 'notification_time.dart';
 import 'reminder_scheduling.dart';
 import 'reminders_service.dart' show defaultDismissalWindow;
@@ -301,6 +302,12 @@ class ReminderScheduler {
           title: entry.title,
           body: entry.body,
           delay: catchUpDelay,
+          // The catch-up nudge is the same reminder, so it carries the same
+          // identity: tapping it must do what tapping the notification would.
+          payload: ReminderNotificationPayload(
+            scope: entry.scopeKey,
+            itemId: entry.itemKey,
+          ).encode(),
         );
         armed[key] = id;
         continue;
@@ -308,6 +315,13 @@ class ReminderScheduler {
 
       final id = ++planIndex;
       final old = _plan[id];
+      // B15: the reminder's stable identity rides the submission, so a tap can say
+      // what fired. Derived from the entry's own keys — never from `id`, which is a
+      // plan position (D2/D5).
+      final payload = ReminderNotificationPayload(
+        scope: entry.scopeKey,
+        itemId: entry.itemKey,
+      ).encode();
 
       // Steady state: same id + at + title + body ⇒ skip, so a 5-minute tick
       // costs zero plugin calls. A baby rename reshuffles ids and moves the
@@ -317,7 +331,8 @@ class ReminderScheduler {
       if (old != null &&
           old.at.isAtSameMomentAs(entry.at) &&
           old.title == entry.title &&
-          old.body == entry.body) {
+          old.body == entry.body &&
+          old.payload == payload) {
         next[id] = old;
         continue;
       }
@@ -327,8 +342,14 @@ class ReminderScheduler {
         title: entry.title,
         body: entry.body,
         at: entry.at,
+        payload: payload,
       );
-      next[id] = (at: entry.at, title: entry.title, body: entry.body);
+      next[id] = (
+        at: entry.at,
+        title: entry.title,
+        body: entry.body,
+        payload: payload,
+      );
     }
 
     // Stale ids: in the last plan, gone from the new one ⇒ cancel.
@@ -384,7 +405,17 @@ class ReminderScheduler {
 }
 
 /// The diff baseline (plan §3.2): what is pending in the OS at a plan id.
-typedef _PlanEntry = ({DateTime at, String title, String body});
+/// One submitted notification. The `payload` field is the reminder's stable identity
+/// (`scope` + `item.id`) as the OS will hand it back on a tap (B15); it is part of
+/// the entry so a reminder that moves to a different plan index is re-submitted
+/// with the payload that now belongs to that index — which it already was, since
+/// the ids are positional, but the payload must not lag behind the move.
+typedef _PlanEntry = ({
+  DateTime at,
+  String title,
+  String body,
+  String payload,
+});
 
 /// One item of the freshly computed plan, before plan-index assignment.
 class _FreshEntry {

@@ -913,3 +913,64 @@ tests, not one: Home's side in `reminder_settings_test.dart`, the scheduler's si
 drift-backed repository *and* the fake notification service in the same container; the two halves
 each go through `effectiveItemsForScope` in production code, which is what the invariant actually
 claims, so the shared-function test was not worth the harness.
+
+### M5 — B22 + B15: the notification tap pair (done on `release/v1.4.0`)
+
+**What landed.** `FlutterLocalNotificationService` now registers
+`onDidReceiveNotificationResponse` in `init()` and forwards `response.payload` to an injected
+`onNotificationTapped` (B22's seam: the data layer must not import `core/router.dart`); the seam is
+`localNotificationServiceProvider`, which `watch`es the handler and passes `handler.handle`.
+`scheduleAt`/`scheduleIn` gained an optional `payload`, and `ReminderScheduler._applyDiff` submits
+`ReminderNotificationPayload(scope, item.id).encode()` on every entry — plan entries included, so an
+entry whose identity moved to another plan index cannot be skipped as "unchanged". The tap lands on
+Home first (`AppRoute.home.path`, before the payload means anything), then: detached →
+`RemindersNotifier.markDone(item, scope: payload.scope)`; treatment-linked →
+`pendingCareSheetProvider`, consumed by `HomeScreen`.
+
+**D-R9 as implemented.** The treatment-linked branch does not write. It asks Home to open
+`HealthSubtypeDialog`, which gained `initialSubtype` (the sub-type pre-selected, date left at "now" —
+what a tap means), and the parent confirms through the existing care flow. `_HomeContent`'s sheet
+opener became the library-private `_showHealthSubtypeSheet`, because two callers now need the *same*
+flow and a second copy would be a second place to keep D2 true. `PendingCareSheetNotifier.take()`
+drains atomically: Home can see the request two ways (the first build after a tap that navigated
+here, and `ref.listen` for a tap that arrived while Home was already up), and without the atomic take
+one tap stacks two sheets.
+
+**Riverpod 3's disposal is a real hazard on this path, and it is now guarded twice.** A provider
+nothing watches is disposed as soon as the read returns, and a tap's work continues *after* the
+plugin callback returned: the first draft died exactly there, in `_act`, on
+`Cannot use the Ref of Provider<NotificationTapHandler> after it has been disposed` — found by the
+test, not by reading. The anchor is `ReminderLifecycleSyncWidget.build`, which `watch`es
+`notificationTapHandlerProvider` (that widget is mounted above the router for the life of the app);
+`_act` also checks `_ref.mounted` after each await, so an app torn down mid-tap writes nothing.
+
+**Cross-baby taps stop at Home, deliberately.** D6 schedules *every* baby, so a banner may belong to
+the child who is not selected. The detached branch handles that correctly — `markDone` takes the
+payload's `scope`, and the test pins that the completion row is Béa's while Aimée is selected. The
+care-sheet branch cannot: the sheet is Home's and Home shows the selected baby, so opening it for
+Béa would record the care against Aimée. Home-only is the safe half. **Owner decision if wanted:**
+the alternative is switching the selected baby to the payload's scope on tap, which changes app state
+on a parent's behalf — not ours to take silently.
+
+**Not unit-tested, and why.** `router.go(AppRoute.home.path)` itself: the handler's navigation is
+asserted through an injected `navigate` (the alternative is pumping the whole route tree — splash,
+terms gate, shell — to learn that one string was passed), and the two lines of the *seam*
+(`watch` + `handler.handle`) are covered by B22's five-case device pass, which is where B22's repro
+lives anyway. This is the one part of v1.4.0 no widget test executes (the plan's M5 device note).
+
+**Also, one ratchet went down.** Three presentation files compared
+`completionSource == completionManual`, each importing `data/local/db_constants.dart` for it.
+`ReminderItem.isDetached` (domain) answers the question instead, and the
+`presentation_to_data` baseline is now **2** (was 4) — the first shrink of that rule in the repo.
+
+**Tests.** `flutter_local_notification_service_test.dart` (+4: the callback is registered, it
+forwards the payload exactly once, a service with no handler survives a tap, the payload rides
+`zonedSchedule` and a null payload still schedules); `notification_payload_test.dart` (new, 5:
+round trip, the `''` sentinel, ids needing escaping, the junk-strings list, and the encoded shape
+pinned as JSON because a *different build* reads it back); `reminder_scheduler_test.dart` (+4: every
+entry carries its scope + stable id, the payload follows the reminder when the plan reshuffles, the
+catch-up nudge carries the same identity, a re-submission keeps it);
+`notification_tap_handler_test.dart` (new, 10: Home always, no payload, cross-baby detached
+completion, the pre-filled sheet ask, cross-baby treatment tap, removed reminder, missing reminder,
+deleted baby, profileless scope, `take()` drains once); `home_screen_test.dart` (+2: the sheet opens
+pre-selected, and once). 1682 tests, coverage 84 %.

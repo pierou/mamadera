@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/l10n/date_localization.dart';
 import '../../../../core/theme.dart';
-import '../../../../data/local/db_constants.dart' as db_const;
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../../../shared/widgets/tracking_icons.dart';
@@ -111,7 +110,7 @@ class ReminderRow extends ConsumerWidget {
           // would not resolve (the `tracking_events` service) and would display a...
           // "Placebo button" - the parent would believe they are administering the vitamin labeled.
           // while nothing is.
-          if (item.completionSource == db_const.completionManual)
+          if (item.isDetached)
             IconButton(
               tooltip: context.l.reminderMarkDone,
               icon: const Icon(Icons.check_circle_outline),

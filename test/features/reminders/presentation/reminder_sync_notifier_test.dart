@@ -76,14 +76,16 @@ class _FakeNotificationService implements LocalNotificationService {
       {required int id,
       required String title,
       required String body,
-      required DateTime at}) async {}
+      required DateTime at,
+      String? payload}) async {}
 
   @override
   Future<void> scheduleIn(
       {required int id,
       required String title,
       required String body,
-      required Duration delay}) async {}
+      required Duration delay,
+      String? payload}) async {}
 
   @override
   Future<void> cancel(int id) async {}

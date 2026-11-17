@@ -15,6 +15,7 @@ import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../../../shared/widgets/tracking_icons.dart';
 import '../../../growth/presentation/widgets/measurement_button.dart';
+import '../../../reminders/presentation/providers/pending_care_sheet.dart';
 import '../../../reminders/presentation/providers/reminder_notifier.dart';
 import '../../../reminders/presentation/providers/reminder_providers.dart';
 import '../../../reminders/presentation/widgets/home_reminders_section.dart';
@@ -46,6 +47,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// a worse failure than a correctable one.
   bool _onboardingScheduled = false;
 
+  /// One pending post-frame open at a time (see [_schedulePendingCareSheet]).
+  bool _careSheetScheduled = false;
+
   /// Whether the question "does any baby exist?" has actually been answered.
   ///
   /// `hasValue` is not enough. Invalidating the provider re-runs its `build()`,
@@ -70,6 +74,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// profile. An unknown answer (`null`, or a re-read in flight) means "we don't
   /// know yet": we never open a sheet on an unconfirmed absence, and we stay
   /// armed so the next value decides.
+  /// A notification tap for a treatment-linked reminder leaves a request here
+  /// (B15, D-R9) and Home opens the matching care sheet, pre-selected. Same
+  /// post-frame shape as [_scheduleOnboardingSheet]: a sheet cannot open during
+  /// build, and `take()` makes the drain atomic, because there are two entry points
+  /// — this build (the tap navigated here, so the request predates the widget) and
+  /// the listener below (Home was already on screen).
+  void _schedulePendingCareSheet() {
+    _careSheetScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _careSheetScheduled = false;
+      if (!mounted) return;
+      final request = ref.read(pendingCareSheetProvider.notifier).take();
+      if (request == null) return;
+      unawaited(_showHealthSubtypeSheet(context, ref,
+          initialSubtype: request.subtype));
+    });
+  }
+
   void _scheduleOnboardingSheet() {
     _onboardingScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -103,6 +125,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     // Listen for provider changes to handle cases where a baby is created
     // from another screen (e.g., Settings) while HomeScreen is mounted.
+    // B15/D-R9: the care sheet a notification tap asked for, if any. The plain
+    // read below covers the case the listener cannot: the tap navigated *to* this
+    // screen, so the request was already there when the first build ran.
+    ref.listen<PendingCareSheet?>(pendingCareSheetProvider, (previous, next) {
+      if (next != null) _schedulePendingCareSheet();
+    });
+    if (!_careSheetScheduled && ref.read(pendingCareSheetProvider) != null) {
+      _schedulePendingCareSheet();
+    }
+
     ref.listen<AsyncValue<bool>>(anyBabyExistsProvider, (previous, next) {
       if (!next.hasValue || !next.value!) return;
       if (mounted) setState(() => _onboardingShown = true);
@@ -145,7 +177,7 @@ class _HomeContent extends ConsumerWidget {
     final eventType = TrackingType.fromString(type);
 
     if (eventType == TrackingType.sante) {
-      await _showHealthSubtypeDialog(context, ref);
+      await _showHealthSubtypeSheet(context, ref);
       return;
     }
 
@@ -261,33 +293,6 @@ class _HomeContent extends ConsumerWidget {
       if (context.mounted) {
         unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
         _showDiaperFeedback(context, wasteType);
-      }
-    }
-  }
-
-  Future<void> _showHealthSubtypeDialog(
-      BuildContext context, WidgetRef ref) async {
-    final result = await showModalBottomSheet<Map<String, dynamic>?>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
-      ),
-      builder: (context) => const HealthSubtypeDialog(),
-    );
-
-    if (result != null && context.mounted) {
-      final subtype = result['subtype'] as HealthSubtype;
-      await ref.read(trackNotifierProvider.notifier).track(
-            type: TrackingType.sante,
-            healthSubtype: subtype,
-            timestamp: result['timestamp'] as DateTime?,
-          );
-      if (context.mounted) {
-        unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
-        showFeedback(context, resolveHealthLabel(context, subtype));
       }
     }
   }
@@ -426,5 +431,38 @@ class _HomeContent extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// Opens the health care sheet and records what the parent confirms there.
+///
+/// Library-private rather than a member of [_HomeContent] because two callers need
+/// the *same* flow: the "+" button on Home, and a notification tap for a
+/// treatment-linked reminder (B15, D-R9). A second copy would be a second place to
+/// keep the D2 rule true — the sheet's confirm is the only thing that writes.
+Future<void> _showHealthSubtypeSheet(BuildContext context, WidgetRef ref,
+    {HealthSubtype? initialSubtype}) async {
+  final result = await showModalBottomSheet<Map<String, dynamic>?>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppTheme.shapeBottomSheetRadius)),
+    ),
+    builder: (context) => HealthSubtypeDialog(initialSubtype: initialSubtype),
+  );
+
+  if (result != null && context.mounted) {
+    final subtype = result['subtype'] as HealthSubtype;
+    await ref.read(trackNotifierProvider.notifier).track(
+          type: TrackingType.sante,
+          healthSubtype: subtype,
+          timestamp: result['timestamp'] as DateTime?,
+        );
+    if (context.mounted) {
+      unawaited(ref.read(reminderNotifierProvider.notifier).refresh());
+      showFeedback(context, resolveHealthLabel(context, subtype));
+    }
   }
 }

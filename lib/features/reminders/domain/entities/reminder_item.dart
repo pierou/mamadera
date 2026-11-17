@@ -166,6 +166,19 @@ extension ReminderItemPresets on ReminderItem {
   }
 }
 
+/// D2's question, answered in the domain: a **detached** reminder is one whose
+/// completion is a deliberate act (`completionManual`) and never inferred from a
+/// recorded event.
+///
+/// A getter rather than a `completionSource == completionManual` comparison at the
+/// call sites, so the wire spelling stays inside the data layer: a presentation
+/// file that compares it directly is a `presentation_to_data` import
+/// (`scripts/check_architecture.py`), which is how a storage detail ends up
+/// duplicated across screens.
+extension ReminderItemDetachment on ReminderItem {
+  bool get isDetached => completionSource == completionManual;
+}
+
 /// The item set for one scope, single-sourced with the UI.
 ///
 /// With a [profile] ⇒ [ReminderItemPresets.buildForBaby] (vitamin K as a

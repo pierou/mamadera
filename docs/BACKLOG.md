@@ -889,7 +889,14 @@ the home screen and must not be folded in silently.
 
 ## B15 — Validation of a reminder or notification should create the action
 
-**Status:** open (owner request, 2026-10-30: « Create action from reminder or notification
+**Status:** **implemented on `release/v1.4.0` (M5)** — payload = `babyId` + stable `item.id`
+(`ReminderNotificationPayload`, never the plan index), carried on every scheduled entry and on the
+catch-up nudge; D-R9 shipped as deep-link-not-auto-create (detached → `markDone` scoped to the
+payload's baby; treatment-linked → `HealthSubtypeDialog` with `initialSubtype`, parent confirms).
+**Cross-baby care sheet stops at Home** — the sheet belongs to the selected baby, so settling another
+baby's care from a tap would misattribute it; switching the selected baby on a tap is an owner
+decision (PLAN-v1.4.0 §9, M5). Device pass due with B22's.
+Original: open (owner request, 2026-10-30: « Create action from reminder or notification
 validation ») · **Cost:** medium (payload + response handler + one decision about D2) · **Risk:**
 low, additive — nothing existing changes semantics
 **Found:** owner request 2026-10-30; verified same evening — **today the tap is inert**.
@@ -1271,7 +1278,12 @@ follow-up, and the line's rendering site is a single method.
 
 ## B22 — Tapping a reminder notification restores the previous screen; it should land on Home
 
-**Status:** open (owner report, 2026-11-02; first version of this ticket had the request inverted —
+**Status:** **implemented on `release/v1.4.0` (M5)** — the callback is registered in `init()` and
+forwards the payload to an injected handler wired at `localNotificationServiceProvider`; the handler
+(`NotificationTapHandler`) goes Home before it reads the payload, and the `notify` destination is
+asserted in `notification_tap_handler_test.dart`. **The five-case device pass (To-do 5) is still due**
+— it is part of the v1.4.0 release gate, and it is the only proof of the alive/suspended paths.
+Original: open (owner report, 2026-11-02; first version of this ticket had the request inverted —
 correction note below) · **Cost:** ~2 h incl. the release-gate pass · **Risk:** low — Dart-side
 callback only, no native change, no schema
 **Files:** `lib/features/reminders/data/services/flutter_local_notification_service.dart:43-71`

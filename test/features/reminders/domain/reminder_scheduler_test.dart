@@ -6,6 +6,7 @@ import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item_setting.dart';
 import 'package:mamadera/features/reminders/domain/repositories/reminders_repository.dart';
 import 'package:mamadera/features/reminders/domain/services/local_notification_service.dart';
+import 'package:mamadera/features/reminders/domain/services/notification_payload.dart';
 import 'package:mamadera/features/reminders/domain/services/reminder_scheduler.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 
@@ -41,6 +42,11 @@ class FakeNotificationService implements LocalNotificationService {
   int scheduleAtCalls = 0;
   int initCalls = 0;
 
+  /// Per OS id: the payload the notification was scheduled with (B15). Recorded so
+  /// a test can assert the identity that rides a notification — which must be the
+  /// scope + stable item id, never the plan position.
+  final Map<int, String?> payloads = {};
+
   @override
   Future<void> init() async => initCalls++;
 
@@ -62,9 +68,11 @@ class FakeNotificationService implements LocalNotificationService {
     required String title,
     required String body,
     required DateTime at,
+    String? payload,
   }) async {
     scheduleAtCalls++;
     entries[id] = (title, body, at);
+    payloads[id] = payload;
   }
 
   @override
@@ -73,12 +81,14 @@ class FakeNotificationService implements LocalNotificationService {
     required String title,
     required String body,
     required Duration delay,
+    String? payload,
   }) async {
     if (delay != const Duration(seconds: 60)) {
       fail('catch-up delay must be 60 s, got $delay');
     }
     scheduledIn.add(id);
     entries[id] = (title, body, _now.add(const Duration(seconds: 60)));
+    payloads[id] = payload;
   }
 
   @override
@@ -368,6 +378,13 @@ class _Harness {
         body: _body,
         now: now ?? _now,
       );
+}
+
+/// The identity a payload string carries, as a `(scope, item id)` record, so a
+/// failure prints both halves instead of two indistinguishable instances.
+(Object?, Object?) _identity(String? payload) {
+  final parsed = ReminderNotificationPayload.tryParse(payload);
+  return (parsed?.scope, parsed?.itemId);
 }
 
 void main() {
@@ -829,6 +846,88 @@ void main() {
       h.remove(_aimeeId, 'face_cleaning', removed: false);
       await h.sync();
       expect(h.idOf('Aimée:reminderFaceCleaning'), isNotNull);
+    });
+
+    // B15: a tap must be able to say which reminder fired. The identity is decided
+    // here, at schedule time, and nowhere else — the handler can only ever be as
+    // precise as what the notification carries.
+    group('the tap payload (B15)', () {
+      test('every entry carries its scope and its stable item id', () async {
+        final h = _Harness();
+        await h.sync();
+
+        // One entry per baby, with the *scope* of that baby — not the active one,
+        // not the profileless sentinel: D6 schedules every baby, so a tap for Béa
+        // must resolve to Béa even while Aimée is selected.
+        final aimeeEye =
+            h.notifications.payloads[h.idOf('Aimée:reminderEyeCleaning')];
+        expect(ReminderNotificationPayload.tryParse(aimeeEye)?.scope, _aimeeId);
+        expect(ReminderNotificationPayload.tryParse(aimeeEye)?.itemId,
+            'eye_cleaning');
+        final beaVitaminK =
+            h.notifications.payloads[h.idOf('Béa:reminderVitaminK')];
+        expect(
+            ReminderNotificationPayload.tryParse(beaVitaminK)?.scope, _beaId);
+        expect(ReminderNotificationPayload.tryParse(beaVitaminK)?.itemId,
+            'vitamine_k');
+      });
+
+      test('the payload follows the reminder, not the plan position', () async {
+        // B15's "Do not": never the OS id or the plan index. Aimée's eye cleaning
+        // sits at one index while she is the only baby and at another once a second
+        // baby sorts in front of her; the identity a tap resolves must not move.
+        final alone = _Harness(babies: [_baby(_aimeeId, 'Aimée', 20)]);
+        await alone.sync();
+        final idAlone = alone.idOf('Aimée:reminderEyeCleaning')!;
+        expect(_identity(alone.notifications.payloads[idAlone]),
+            (_aimeeId, 'eye_cleaning'));
+
+        final two = _Harness(babies: [
+          _baby('aaron-id', 'Aaron', 12),
+          _baby(_aimeeId, 'Aimée', 20),
+        ]);
+        await two.sync();
+        final idTwo = two.idOf('Aimée:reminderEyeCleaning')!;
+        expect(idTwo, isNot(idAlone),
+            reason:
+                'a new baby in name order reshuffles the plan indices — that '
+                'is exactly why an index is not an identity');
+        expect(_identity(two.notifications.payloads[idTwo]),
+            (_aimeeId, 'eye_cleaning'));
+      });
+
+      test('the catch-up nudge carries the same identity as the reminder',
+          () async {
+        // Tapping the nudge must do what tapping the notification would: it is the
+        // same reminder, nudged because the due moment has already passed.
+        final h = _Harness();
+        await h.sync();
+        final nudgeId = h.notifications.scheduledIn.single;
+        expect(_identity(h.notifications.payloads[nudgeId]),
+            (_beaId, 'vitamine_k'));
+      });
+
+      test('a re-submitted entry keeps its payload', () async {
+        // Steady state skips plugin calls when nothing changed; the payload is part
+        // of what "nothing changed" means, so an entry whose identity moved to a
+        // different index cannot be skipped as unchanged.
+        final h = _Harness(babies: [_baby(_aimeeId, 'Aimée', 20)]);
+        await h.sync();
+        final callsAfterFirst = h.notifications.scheduleAtCalls;
+
+        await h.sync(babies: [
+          _baby('aaron-id', 'Aaron', 12),
+          _baby(_aimeeId, 'Aimée', 20),
+        ]);
+        expect(h.notifications.scheduleAtCalls, greaterThan(callsAfterFirst),
+            reason:
+                'the plan reshuffled, so the entries are re-submitted by id');
+        expect(
+            ReminderNotificationPayload.tryParse(h.notifications
+                    .payloads[h.idOf('Aimée:reminderEyeCleaning')])
+                ?.itemId,
+            'eye_cleaning');
+      });
     });
 
     test('an age-based end moves when the birthdate is corrected', () async {

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers/active_baby_provider.dart';
-import '../../../../data/local/db_constants.dart';
 import '../../../../shared/domain/entities/tracking_type.dart';
 import '../../domain/entities/reminder_item.dart';
 import '../../domain/entities/reminders_state.dart';
@@ -106,8 +105,7 @@ class RemindersNotifier
         // A detached reminder is only logged in the manual log.
         // (reminder_completions): Without this retreat, it would be like saying "last time."
         // "Never done" immediately after a tap that says "done."
-        if (lastEventAt == null &&
-            status.item.completionSource == completionManual) {
+        if (lastEventAt == null && status.item.isDetached) {
           lastEventAt = await repository.getLastManualCompletion(
             status.item.id,
             babyId: babyId,
@@ -150,16 +148,23 @@ class RemindersNotifier
   /// row clears without waiting for the five-minute poll. For a
   /// treatment-linked reminder the treatment event itself settles it (D2
   /// invariant): the button creates no manual log, it only re-evaluates.
-  Future<void> markDone(ReminderItem item) async {
-    if (item.completionSource == completionManual) {
+  /// [scope] overrides that baby: a notification that fired for another child
+  /// (D6 schedules every baby, not just the selected one) settles for the scope the
+  /// notification carried — `ReminderNotificationPayload.scope`. Left out, the
+  /// on-screen button behaves exactly as before, and `''` in the payload is the
+  /// profileless sentinel, which the repository maps from `null`.
+  Future<void> markDone(ReminderItem item, {String? scope}) async {
+    if (item.isDetached) {
       // Awaited `.future`, not `.value`: a transition delay must not write
       // the log with the profileless sentinel (`''`) instead of the active
       // baby — in the v10 schema that row would have been visible to *all*
       // babies.
-      final profile = await ref.read(activeBabyProvider.future);
+      final babyId = scope != null
+          ? (scope.isEmpty ? null : scope)
+          : (await ref.read(activeBabyProvider.future))?.id;
       if (!ref.mounted) return;
       final repository = await ref.read(remindersRepositoryProvider.future);
-      await repository.recordCompletion(item.id, babyId: profile?.id);
+      await repository.recordCompletion(item.id, babyId: babyId);
     }
     await refresh();
     unawaited(ref.read(reminderSyncNotifierProvider.notifier).syncNow());

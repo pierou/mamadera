@@ -92,6 +92,7 @@ class _FakeNotificationService implements LocalNotificationService {
     required String title,
     required String body,
     required DateTime at,
+    String? payload,
   }) async {
     scheduled[id] = (title, body, at);
   }
@@ -102,6 +103,7 @@ class _FakeNotificationService implements LocalNotificationService {
     required String title,
     required String body,
     required Duration delay,
+    String? payload,
   }) async {
     scheduledIn.add(id);
     scheduled[id] = (title, body, DateTime.now().add(delay));
