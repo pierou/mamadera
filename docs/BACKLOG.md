@@ -709,8 +709,15 @@ the bottom while the finger is at the top — the eye does a useless round trip.
 
 ## B13 — Sleep: the same minute is written in `quantity` AND in `duration`
 
-**Status:** open, **post-v1.2.1** (the *display* part is already paid for in rc.2; the
-*model* part is deferred) · **Cost:** small (write path + entity + tests); **zero migration**
+**Status:** **implemented on `release/v1.4.0` (M6, option A)** — `SleepEvent` no longer has a
+`quantity` field at all, so no write path can refill the column: the home track path passes
+`duration` only, the insert leaves the column absent, the **edit clears it** (`Value(null)`) so a
+touched row stops holding the same minutes twice, and the edit dialog's duration picker writes
+`duration` alone (it used to set both). **Zero migration**, as planned: legacy rows keep their
+mirror, unread, and are read through `duration`; nothing was converted ("nommer, pas déduire").
+Pinned by `tracking_repository_impl_test.dart` (« a nap writes its minutes once, in duration »).
+Original: open, **post-v1.2.1** (the *display* part is already paid for in rc.2; the *model* part
+was deferred) · **Cost:** small (write path + entity + tests); **zero migration**
 if we do not clean up the existing rows
 **Found:** 2026-10-13, at the rc.2 emulator pass — the owner saw « Quantité: 45 min » and
 « Durée: 0 min » side by side on a nap.

@@ -71,10 +71,14 @@ class HistoryRepositoryImpl implements HistoryRepository {
           timestamp: Value(e.timestamp),
           duration: Value(e.duration),
           unit: Value(e.unit.dbValue),
-          // `quantity` mirror of `duration` during input; without it here, edit.
-          // A nap allowed the old number to be superseded by the new unit – two.
-          // The displayed times were shown side-by-side, including one that was incorrect.
-          quantity: Value(e.quantity ?? e.duration),
+          // B13: **cleared**, not mirrored. The mirror existed because the tile
+          // rendered both columns and an edit that left it stale showed two
+          // different durations; the tile shows `duration` alone now (rc.2), so an
+          // edited row comes out carrying its value once instead of maintaining a
+          // duplicate for a reader that no longer exists. Legacy rows keep theirs
+          // until someone touches them — no migration, no conversion (B13's
+          // "nommer, pas déduire").
+          quantity: const Value(null),
           notes: Value(encryptedNotes),
           babyId: Value(e.babyId),
           wasteType: const Value.absent(),

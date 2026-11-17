@@ -37,7 +37,14 @@ sealed class TrackingEvent with _$TrackingEvent {
     /// Always [QuantityUnit.min]; carried on the row rather than inferred at
     /// read time, so the history tile renders from data like every other row.
     required QuantityUnit unit,
-    double? quantity,
+
+    /// B13: a nap carries its value **once**, in `duration`. There used to be a
+    /// `quantity` here as well, holding the same number of minutes under a second
+    /// label — which is what produced « Quantité : 45 min / Durée : 45 min » on one
+    /// tile (and « 45 / 0 » on a row whose `duration` was never written).
+    /// `quantity` is the property of feeds (ml/g); the field is gone from the
+    /// entity so no write path can refill the column. Existing rows keep their
+    /// mirror, unread and harmless — read through `duration`, as everything else is.
     int? id,
     String? babyId,
     String? notes,
@@ -72,7 +79,7 @@ extension TrackingEventTrackingType on TrackingEvent {
           throw StateError('Cannot get trackingType from base TrackingEvent'),
       feeding: (subtype, timestamp, unit, quantity, id, babyId, notes) =>
           TrackingType.miam,
-      sleep: (duration, timestamp, unit, quantity, id, babyId, notes) =>
+      sleep: (duration, timestamp, unit, id, babyId, notes) =>
           TrackingType.dodo,
       diaper: (timestamp, id, babyId, wasteType, pipiColor, cacaColor,
               stoolTexture, notes) =>

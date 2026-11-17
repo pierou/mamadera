@@ -256,9 +256,11 @@ class _HomeContent extends ConsumerWidget {
     if (selection != null && context.mounted) {
       await ref.read(trackNotifierProvider.notifier).track(
             type: TrackingType.dodo,
+            // B13: the minutes go in `duration` only. They used to be written twice,
+            // which is how one nap ended up labelled « Quantité : 45 min » and
+            // « Durée : 45 min » on the same tile.
             duration: selection.minutes,
             unit: QuantityUnit.min,
-            quantity: selection.minutes,
             timestamp: selection.start,
           );
       if (context.mounted) {

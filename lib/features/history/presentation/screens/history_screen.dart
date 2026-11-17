@@ -164,7 +164,8 @@ class HistoryScreen extends ConsumerWidget {
         timestamp: ts,
         duration: result.duration ?? e.duration,
         unit: e.unit,
-        quantity: result.quantity ?? e.quantity,
+        // B13: no `quantity` carried over — the repository clears the column on an
+        // edit, so a touched row stops holding the same minutes twice.
         notes: result.notes ?? e.notes,
         babyId: e.babyId,
       ),

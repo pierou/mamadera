@@ -270,8 +270,7 @@ class ExportRepositoryImpl implements ExportRepository {
         (timestamp, id, babyId) => null,
         feeding: (subtype, timestamp, unit, quantity, id, babyId, notes) =>
             notes,
-        sleep: (duration, timestamp, unit, quantity, id, babyId, notes) =>
-            notes,
+        sleep: (duration, timestamp, unit, id, babyId, notes) => notes,
         diaper: (timestamp, id, babyId, wasteType, pipiColor, cacaColor,
                 stoolTexture, notes) =>
             notes,

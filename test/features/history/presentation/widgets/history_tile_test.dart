@@ -484,18 +484,18 @@ void main() {
   });
 
   group('HistoryTile — Sommeil : une seule ligne de valeur', () {
-    // The app records the `duration` of the nap in both the `quantity` and "duration" fields.
-    // (same value). The tiles should not display the quantity twice ("Quantity: 45 min").
-    // + "Duration: 45 minutes"): "Duration" is the natural term used to describe a nap.
-    testWidgets('SleepEvent avec quantité → « Durée » sans « Quantité »',
-        (tester) async {
+    // B13: the minutes of a nap live in `duration`. Since the entity dropped the
+    // mirror column from the model, a nap cannot arrive at the tile carrying the
+    // same number twice — the assertion that a nap shows one value row and that the
+    // natural label is « Durée » is what remains of the rc.2 fix, and the write path
+    // is pinned in `tracking_repository_impl_test.dart`.
+    testWidgets('SleepEvent → « Durée » sans « Quantité »', (tester) async {
       await pumpTile(
         tester,
         SleepEvent(
             unit: QuantityUnit.min,
             timestamp: DateTime.utc(2024),
-            duration: 45.0,
-            quantity: 45.0),
+            duration: 45.0),
       );
       expect(find.text('Durée: 45 min'), findsOneWidget);
       expect(find.textContaining('Quantité'), findsNothing);
