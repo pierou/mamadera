@@ -11,12 +11,12 @@ per-milestone narrative; this file is the short version plus the resume instruct
 |---|---|
 | Branch | `release/v1.4.0`, cut from `origin/develop` — **8 feature commits + this handoff, working tree clean, nothing pushed** |
 | Range | `git diff --stat origin/develop..HEAD` → 113 files, +10 958 / −735 |
-| Milestones | **M1 ✅ M2 ✅ M3 ✅ M4 ✅ M5 ✅** · **M6 in progress (4 of 7 tickets: B9, B13, B16, B17)** · M7 M8 M9 not started |
+| Milestones | **M1 ✅ M2 ✅ M3 ✅ M4 ✅ M5 ✅ M6 ✅** · M7 in progress · M8 queued · **M9 device pass owed (the release gate)** |
 | Schema | `AppDatabase.schemaVersion = 14` (`lib/data/local/app_db.dart`) — the one and only v1.4.0 bump |
 | Export | `_exportFormatVersion = 5` / importer `_supportedFormatVersion = 5` — the one and only bump |
 | pubspec | still `1.3.2+16` on purpose — **M7** bumps to `1.4.0+17` |
 | Pushed | **yes** — `origin/release/v1.4.0` exists, no PR opened, `develop` untouched |
-| Gates at HEAD | `flutter analyze --fatal-infos --fatal-warnings` clean · `flutter test` **1695 passed** (last run f771ec4) · coverage **84 %** · `make check-architecture` ✅ (`presentation_to_data` 2, `oversized_files` 0) · `make check-complexity` ✅ (3 over cap, baseline 4) |
+| Gates at HEAD | `flutter analyze --fatal-infos --fatal-warnings` clean · `flutter test` **1701 passed** (last run 17410a3) · coverage **84 %** · `make check-architecture` ✅ (`presentation_to_data` 2, `oversized_files` 0) · `make check-complexity` ✅ (3 over cap, baseline 4) |
 
 ```
 270af3f fix(sleep): a nap carries its minutes once (B13)              <- M6 item 2
@@ -29,34 +29,40 @@ c1303cd feat(reminders): preset overrides, removal and the end picker (M4)
 fe8f774 feat(reminders): schema v14 + per-item enabled default (B6, M1)
 ```
 
-## 2. Resume here — M6, three-and-a-half tickets left
+## 2. Where the work is — M1–M6 done, M7 in progress
 
-M6 is **schema-free and independent**; the plan (section "M6 — The small batch") fixes the order
-and each item is **its own commit**. Done: B9, B13, B16, B17. Remaining, in order:
+**M6 shipped in seven commits**, one per ticket, in the plan's order: B9 `67c9963`, B13 `270af3f`,
+B16 `6abb141`, B17 `77f3e4b`, B29 `61b69c2`, B7 `d38e8cb`, B27 `17410a3`. Three of them carry
+M9-facing obligations recorded on their tickets, not in code comments:
 
-3. ~~**B16**~~ ✅ done — one optional `TextField` at the foot of the feeding sheet
-   (`ValueKey('feeding-note-field')`), `null` when empty so the row stores an absence, reusing
-   `editNotesLabel`/`editNotesHint` so **no new l10n key** was needed. Its ticket item 2
-   (Small_Phone screenshots, keyboard up) joins the M9 device-pass list.
-4. ~~**B17**~~ ✅ done — one magnitude (`selectionClick`) in `show_feedback.dart` for every
-   committed insert, plus `showFeedback` on the custom-reminder create/edit path with
-   `reminderCustomAdded`/`reminderCustomUpdated` in three locales. **Done/Snooze and TrackButton
-   press-feedback were deliberately left out** — the ticket requires feeling them on a handset,
-   and its "Do not" forbids bundling press feedback. New keys need **`make l10n`** (not
-   `make codegen`): build_runner does not regenerate `app_localizations*.dart`.
-5. **B29 — history filter pills adopt the home track-button design.** One style block, one screen
-   (`lib/features/history/presentation/screens/history_screen.dart`).
-6. **B7-remainder — the `HistoryFilter.measurements` chip.** The enum value already exists and
-   already feeds the merged timeline; this is chip + filter wiring only.
-7. **B27 — the flush at the invalidation site** (post-restore Home mount schedules a provider
-   refresh during build) **+ remove the `[GATE] B27 recorded` tolerance** from
-   `integration_test/gate_v131_restore_onboarding.dart` so the gate asserts what it used to count,
-   **+ the device pass in M9**. B27 is last in the batch precisely because it needs the device.
+* **B16** — the feeding sheet is now taller than an 800×600 viewport: `Small_Phone`, both themes,
+  **keyboard up** (the layout overflow unit tests cannot see).
+* **B17** — a named handset must be felt: emulators do not vibrate. Done/Snooze and `TrackButton`
+  press-feedback were **left out on purpose** (the ticket requires feeling them; its "Do not"
+  forbids bundling press feedback).
+* **B29 / B7** — the history pill row on `Small_Phone` (six pills now, horizontal scroll) and the
+  measurements tab.
+* **B27** — `integration_test/gate_v131_restore_onboarding.dart` now asserts
+  `[GATE] B27 occurrences during this leg: 0`; the tolerance is gone, so a regression fails the gate.
+  Whether the count **is** zero on a device is that run's answer, not this commit's claim.
 
-Then **M7** (l10n sweep of everything M1–M6 introduced, `make codegen`, patch notes per D-R11 in
-the noun form for fr/es with **no clinical claims**, `pubspec.yaml` → `1.4.0+17`,
-`make store-check`), **M8** (`make ci` + the named release assertions the plan lists — most
-already exist as tests, see §9 of the plan), **M9** (the emulator release gate, before the PR).
+**Resume at M7**, in the plan's order:
+
+1. **l10n sweep** of everything M1–M6 introduced. Keys added so far: reminder hour trio (M2),
+   one-shot frequency labels (M3), the end picker + preset edit sheet (M4), `reminderCustomAdded`
+   / `reminderCustomUpdated` (B17), `filterMeasurements` (B7). Regenerate with **`make l10n`** —
+   `make codegen` (build_runner) does **not** touch `app_localizations*.dart`, so a key that looks
+   added in the `.arb` is invisible to `flutter analyze` until `gen-l10n` has run.
+2. **Patch notes** for 1.4.0 per D-R11: `assets/patch_notes/{fr,es}.json` in the **noun form**
+   ("Ajout d'une…", "Adición de un…"), `en` natural; **no clinical claims** (B6's "Do not" is the
+   checklist — nothing may read as a health recommendation, and the Vitamin D change must be
+   described as a default, not as advice).
+3. `pubspec.yaml` → **`1.4.0+17`**; `make store-check` (the listing is untouched; the package is
+   re-verified for the version bump only).
+
+Then **M8** (`make ci`; the named release assertions the plan lists — most already exist as tests,
+see §9 of the plan and §M8's bullet list) and **M9**, the emulator release gate **before the PR**,
+which is where all of the debt above actually lives.
 
 ## 3. Owner decisions taken outside the plan (do not re-litigate, do not re-ask)
 
