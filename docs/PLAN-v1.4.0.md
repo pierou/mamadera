@@ -1058,3 +1058,40 @@ new `.arb` key is invisible to `flutter analyze` until `gen-l10n` has run (found
 * **Owner constraint recorded here:** this branch stops at `develop`. No PR to `main`, no tag, no
   F-Droid `CurrentVersion` bump (`docs/fdroiddata/com.pvjio.mamadera.yml` still names 1.3.2 on
   purpose — it belongs with the tag that does not exist yet).
+
+### M8 — the full matrix and the named release assertions (done on `release/v1.4.0`)
+
+`make version-sync` ✓ · `flutter analyze --fatal-infos --fatal-warnings` ✓ · **1706 tests** ✓ ·
+coverage **85 %** (required 80) ✓ · `check-architecture` ✓ (`presentation_to_data` still 2) ·
+`check-complexity` ✓ (3 over cap, baseline 4). `make store-check` holds five blockers, all listed
+in M7 above and none of them a code failure.
+
+The ten release-specific assertions §M8 demands were **audited against the test tree rather than
+assumed**. Nine already existed, each findable by name (quoted here so the next reader greps the
+title, not the milestone):
+
+| Required | Where it lives |
+|---|---|
+| idempotent seed | `the seed is idempotent and never overwrites an existing row` |
+| one-shot completed ⇒ zero OS entries | `a settled one-shot is cancelled, and nothing replaces it` |
+| removed preset ⇒ zero OS entries | `a removed preset is cancelled from the OS schedule (D-R2, D-R4)` |
+| hour change re-submits by id | `editing an hour re-submits the same plan id (B14 stale schedule)` |
+| the end cutoff, three ways | `the end day itself still fires; the day after it does not`, `an age-based end moves when the birthdate is corrected`, `an ended series is cancelled, not merely skipped` |
+| D-R5 exclusivity, write side | `switching to a one-shot clears the stored end (D-R5 exclusivity)`, `both end forms at once are refused at the write` |
+| D-R5 exclusivity, import side | `a row that ends twice is refused`, `an end on a one-shot is refused`, `an occurrence date on a recurring reminder is refused` |
+| formats 1–4 restore unchanged | `a format-1 document backfills its unit the same way`, `a format-2 natural row imports as ml, never min`, `accepts a format-3 document and reads its unit`, `a format-5 file is replayed as written: the seed stays out` |
+| B6 on **both** consumers | `a baby with no vitamin D row gets zero OS entries for it (B6)` (the scheduler) + the new seam below |
+| B15 payload is never the plan index | `the payload follows the reminder, not the plan position` |
+
+**The one real gap was the B31 invariant itself.** M4 tests `effectiveItemsForScope` and the
+scheduler tests its own plan, but nothing asserted that the two *consumers* still agree — exactly
+the failure mode B31 was (a caller that stopped calling the shared function passes every test of
+the function). Added as `group('B31 — the Home list and the OS plan read one row')` in
+`reminder_scheduler_test.dart`: five cases reading the **same** `FakeRemindersRepository` through
+`enabledRemindersProvider` and through `ReminderScheduler.sync`, comparing the id sets taken from
+the B15 payloads (never from plan indices, which compact). The allowed difference between the two
+lists is stated instead of assumed: a settled one-shot and an ended series stay on Home and hold no
+OS entry, which is why the assertions are `difference(…) == {that item}`, not plain equality.
+One test was written wrong before it was written right: it first named `nettoyage_yeux`, which is
+not a preset id (`eye_cleaning` is), so its negative assertion passed on an item that had never
+been scheduled — the presence check added above is the reason that cannot happen silently again.

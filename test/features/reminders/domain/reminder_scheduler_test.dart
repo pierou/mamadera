@@ -1,5 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mamadera/core/providers/active_baby_provider.dart';
 import 'package:mamadera/data/local/db_constants.dart' show completionManual;
+import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
@@ -385,6 +388,41 @@ class _Harness {
 (Object?, Object?) _identity(String? payload) {
   final parsed = ReminderNotificationPayload.tryParse(payload);
   return (parsed?.scope, parsed?.itemId);
+}
+
+/// A stub active-baby provider that resolves [profile], so the provider side of
+/// the B31 seam can be read against the very repository the scheduler was given.
+class _StubActiveBaby extends ActiveBabyNotifier {
+  _StubActiveBaby(this._profile);
+  final BabyProfile? _profile;
+
+  @override
+  Future<BabyProfile?> build() async => _profile;
+}
+
+/// The item ids the OS plan holds for [scope], read out of the payloads the
+/// scheduler attached (B15) — never out of plan indices, which are positional
+/// and compact when an item drops out.
+Set<String> _scheduledIds(_Harness h, String scope) =>
+    h.notifications.payloads.values
+        .map(ReminderNotificationPayload.tryParse)
+        .whereType<ReminderNotificationPayload>()
+        .where((p) => (p.scopeOrNull ?? '') == scope)
+        .map((p) => p.itemId)
+        .toSet();
+
+/// The item ids Home would list for the same repository state.
+Future<Set<String>> _homeIds(
+    FakeRemindersRepository repo, BabyProfile baby) async {
+  final container = ProviderContainer(
+    overrides: [
+      remindersRepositoryProvider.overrideWith((ref) async => repo),
+      activeBabyProvider.overrideWith(() => _StubActiveBaby(baby)),
+    ],
+  );
+  addTearDown(container.dispose);
+  final items = await container.read(enabledRemindersProvider.future);
+  return items.map((item) => item.id).toSet();
 }
 
 void main() {
@@ -946,6 +984,84 @@ void main() {
       expect(h2.idOf('Aimée:reminderEyeCleaning'), isNull,
           reason:
               'the same stored row, a corrected birthdate, a finished series');
+    });
+  });
+
+  // B31 was never "a reminder is missing". It was two consumers reading the same
+  // settings row two different ways: the list on screen showed the declared preset
+  // while the OS fired the overridden one, so a parent could read a reminder every
+  // day and never meet the notification they had configured. M4 made
+  // `effectiveItemsForScope` the single reading; this group is the seam between the
+  // two consumers, which is where that bug lives — a unit test of the function
+  // alone cannot see a caller that forgot to call it.
+  group('B31 — the Home list and the OS plan read one row', () {
+    test('baseline: both hold exactly the same items', () async {
+      final baby = _baby(_aimeeId, 'Aimée', 20);
+      final h = _Harness(babies: [baby]);
+      await h.sync();
+
+      expect(_scheduledIds(h, _aimeeId), await _homeIds(h.repo, baby));
+    });
+
+    test('a removed preset leaves both; an own hour changes no membership',
+        () async {
+      // The B31 shape exactly: removal applied in one consumer only would leave a
+      // reminder on Home that the OS will never fire — or a notification behind a
+      // row that says it is gone.
+      final baby = _baby(_aimeeId, 'Aimée', 20);
+      final h = _Harness(babies: [baby]);
+      h.remove(_aimeeId, 'vitamine_d');
+      h.repo.timesByScopeItem[_aimeeId] = {'nettoyage_yeux': '06:30'};
+      await h.sync();
+
+      final scheduled = _scheduledIds(h, _aimeeId);
+      expect(scheduled, isNot(contains('vitamine_d')));
+      expect(scheduled, await _homeIds(h.repo, baby));
+    });
+
+    test('a settled one-shot stays on Home and holds no OS entry', () async {
+      // The one difference between the two lists that is allowed, stated rather
+      // than assumed: the dose is taken, so nothing is left to schedule, while the
+      // reminder remains something the parent configured.
+      final baby = _baby(_aimeeId, 'Aimée', 20);
+      final h = _Harness(babies: [baby]);
+      h.repo.lastCompletedByScopeItem['$_aimeeId::vitamine_k'] =
+          _at(2026, 7, 20, 9);
+      await h.sync();
+
+      expect(_scheduledIds(h, _aimeeId), isNot(contains('vitamine_k')));
+      expect(
+          (await _homeIds(h.repo, baby)).difference(_scheduledIds(h, _aimeeId)),
+          {'vitamine_k'});
+    });
+
+    test('an ended series stays on Home and holds no OS entry', () async {
+      final baby = _baby(_aimeeId, 'Aimée', 20);
+      final h = _Harness(babies: [baby]);
+      await h.sync();
+      // Named by its preset id, and proven present first: an assertion about an id
+      // that was never scheduled would pass for the wrong reason.
+      expect(_scheduledIds(h, _aimeeId), contains('eye_cleaning'));
+
+      h.setEnd(_aimeeId, 'eye_cleaning', endDate: '2026-07-14');
+      await h.sync();
+
+      expect(_scheduledIds(h, _aimeeId), isNot(contains('eye_cleaning')));
+      expect(
+          (await _homeIds(h.repo, baby)).difference(_scheduledIds(h, _aimeeId)),
+          {'eye_cleaning'});
+    });
+
+    test('a never-touched vitamin D is absent from both consumers (B6)',
+        () async {
+      // The four-site default asserted on the two sites that matter together: a
+      // provider-only assertion passed on the broken three-of-four version of M1.
+      final baby = _baby(_aimeeId, 'Aimée', 20);
+      final h = _Harness(babies: [baby], seedVitaminDOn: false);
+      await h.sync();
+
+      expect(_scheduledIds(h, _aimeeId), isNot(contains('vitamine_d')));
+      expect(await _homeIds(h.repo, baby), isNot(contains('vitamine_d')));
     });
   });
 }
