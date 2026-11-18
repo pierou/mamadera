@@ -1095,3 +1095,41 @@ OS entry, which is why the assertions are `difference(…) == {that item}`, not 
 One test was written wrong before it was written right: it first named `nettoyage_yeux`, which is
 not a preset id (`eye_cleaning` is), so its negative assertion passed on an item that had never
 been scheduled — the presence check added above is the reason that cannot happen silently again.
+
+### M9 — device pass, first leg (in progress on the `Small_Phone` AVD)
+
+Device: Android emulator `Small_Phone`, 720×1280, **Android  (API )**. The plan's first
+gate — *install the previously released build first, seed, then install the new build over it* — was
+run literally, not simulated:
+
+1. `git worktree add /tmp/m132 v1.3.2`, `flutter build apk --debug`, `adb uninstall` + install, so
+   the data on disk is **written by the real 1.3.2 binary**, not by a fixture.
+2. Seeded through the 1.3.2 UI (terms → onboarding dialog → confirm). Pulled
+   `run-as … /data/data/com.pvjio.mamadera/app_flutter/mamadera.db` **with its `-wal`/`-shm`** (a
+   bare `.db` copy reads empty: drift runs in WAL mode and the new rows are still in the log — that
+   trap produced one false "the profile was never created" reading before it was understood).
+   Before: `user_version=13`, one active profile, `reminder_settings` **0 rows**,
+   `app_settings` **empty**.
+3. `flutter build apk --debug` on this branch, `adb install -r` **over** it (same debug keystore, so
+   it is an upgrade, not a reinstall) and launched.
+
+After, on the same file path:
+
+| Assertion | Reading |
+|---|---|
+| migration ran | `user_version` **13 → 14** |
+| old data still there | profile `Alice%1M9`, birth epoch `1795036387385`, `is_active=1`, unchanged |
+| **B6 seed on a never-touched install** | `reminder_settings` now holds `vitamine_d enabled=1, time=NULL, removed=0` — pre-v14 absence meant *on*, and the seed preserved that instead of trusting absence |
+| the seed covers **both** scopes | two rows, `baby_id=''` (profileless fallback) and the baby's id — not a duplicate: the table is keyed `(baby_id, item_id)` |
+| inherit, not copy | `time` stayed `NULL` on both rows — B30 does not materialise the global hour into every row |
+| **M6, no default-on nudge** | `app_settings` still empty and `dumpsys alarm` reports **0** mamadera alarms; the `dumpsys notification` hits were channel registration, not posted records (no `NotificationRecord` for the package) |
+| additive columns present | `custom_reminders.frequency_date` exists, table still empty |
+
+**Still owed before the PR — the gate is NOT satisfied by this leg.** Screenshots of every touched
+screen on `Small_Phone` in both themes (B9 switcher, B29 pill row + B7 « Mesures », B13 sleep tile,
+B16 feeding note with the keyboard up, B33 edit sheet + removed section + end picker); the B22 five
+tap cases (foreground / recents / killed / icon-launch / `autoCancel`), which need a device with
+opt-in ON and a due reminder; B15's cross-baby tap, which needs a second baby; B17 felt on a named
+handset (the AVD has no vibrator, so a test can only prove the platform call); and the Vitamin K
+one-shot observed scheduling, settling and disappearing. Recording a pass that did not happen is
+exactly what this section exists to prevent.
