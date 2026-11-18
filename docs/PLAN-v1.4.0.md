@@ -1098,7 +1098,11 @@ been scheduled — the presence check added above is the reason that cannot happ
 
 ### M9 — device pass, first leg (in progress on the `Small_Phone` AVD)
 
-Device: Android emulator `Small_Phone`, 720×1280, **Android  (API )**. The plan's first
+Device: Android emulator `Small_Phone`, 720×1280, AVD `target=android-37.1` (**API 37**). The
+property pair was meant to be recorded from the live device, but the emulator had exited by the time
+the read ran and the sentence shipped with blanks — so it is taken from the AVD config instead, and
+the AVD process dying mid-session twice (started from a shell that then returned) is itself worth
+recording: a device pass needs the emulator started detached, not from a tool call that ends.
 gate — *install the previously released build first, seed, then install the new build over it* — was
 run literally, not simulated:
 
