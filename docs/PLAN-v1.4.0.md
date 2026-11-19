@@ -1096,7 +1096,7 @@ One test was written wrong before it was written right: it first named `nettoyag
 not a preset id (`eye_cleaning` is), so its negative assertion passed on an item that had never
 been scheduled — the presence check added above is the reason that cannot happen silently again.
 
-### M9 — device pass, first leg (in progress on the `Small_Phone` AVD)
+### M9 — device pass, first leg (the real v13 → v14 migration, `Small_Phone` AVD)
 
 Device: Android emulator `Small_Phone`, 720×1280, AVD `target=android-37.1` (**API 37**). The
 property pair was meant to be recorded from the live device, but the emulator had exited by the time
@@ -1129,11 +1129,51 @@ After, on the same file path:
 | **M6, no default-on nudge** | `app_settings` still empty and `dumpsys alarm` reports **0** mamadera alarms; the `dumpsys notification` hits were channel registration, not posted records (no `NotificationRecord` for the package) |
 | additive columns present | `custom_reminders.frequency_date` exists, table still empty |
 
-**Still owed before the PR — the gate is NOT satisfied by this leg.** Screenshots of every touched
-screen on `Small_Phone` in both themes (B9 switcher, B29 pill row + B7 « Mesures », B13 sleep tile,
-B16 feeding note with the keyboard up, B33 edit sheet + removed section + end picker); the B22 five
-tap cases (foreground / recents / killed / icon-launch / `autoCancel`), which need a device with
-opt-in ON and a due reminder; B15's cross-baby tap, which needs a second baby; B17 felt on a named
-handset (the AVD has no vibrator, so a test can only prove the platform call); and the Vitamin K
-one-shot observed scheduling, settling and disappearing. Recording a pass that did not happen is
-exactly what this section exists to prevent.
+### M9 — device pass, final leg (completed on the `Small_Phone` AVD, 2026-11-18)
+
+The screen set was captured in both themes — `m9-01`…`m9-10` in `/tmp` (launch, onboarding, B9
+switcher, B29 pills + B7 « Mesures », B13 sleep tile, B16 note with the keyboard up, B33 edit
+sheet, removed section, end picker, opt-in ON). The B22 tap cases were run with opt-in ON and due
+reminders (foreground tap lands on Home with the row present; from recents and cold start the
+app reopens on Home; the tap also auto-cancels the notification); B15's cross-baby tap was run
+with a second baby on the device: a tap carrying the other baby's payload selects that baby (the
+gate's test3 legs now cover the payload round-trip end to end). B17's platform call is exercised
+by every committed creation; the AVD has no vibrator, so the *felt* check stays a named-handset
+item, not a recorded pass. One false alarm is recorded so nobody re-chases it: the settings
+screen "hung" on a 4-inch device while a test waited for the *System notifications* section — it
+had not. The screen's `ListView` never builds children below the cache extent, the section sits
+below the fold, and `find.text` sees only what is built. The test scrolls; the app was always
+fine (diagnostic run rendered the full section in < 1 s).
+
+**Post-upgrade gate — `integration_test/gate_v140_seed_v132.dart` + `gate_v140_post_upgrade.dart`.**
+The seed leg runs on the 1.3.2 worktree (a real v13 file on disk); the post-upgrade legs run from
+this branch, installed over it, so the migration is proved on 1.3.2-written data — the
+AGENTS.md requirement, now scripted rather than hand-run. One continuous cycle, all four legs
+green:
+
+| Leg | Proved |
+|---|---|
+| test1 | v13 rows survive, `user_version=14`, B6 seed rows for both scopes, dave's manual OFF kept (D-R1), dave's passed one-shot K shows the due-now catch-up on Home, export is format 5 |
+| test2 | carmen, created *after* the upgrade, shows Vitamin D **OFF** on the settings screen — the four-site default observed, not assumed |
+| test3a | bob (birth + 1 month = tomorrow) + opt-in: his one-shot K is armed **exactly once** in the OS plan, read in-band |
+| test3b | the dose, recorded through the real sante sheet, settles the one-shot: the row leaves Home, the journal carries it, and bob's K entry is gone from the OS plan while dave's unsettled due-now K survives the same diff (negative control) |
+
+Findings the leg would not have surfaced any other way:
+
+1. **D6 schedules every baby, not just the active one** — the live plan carried all three scopes
+   (dave without `vitamine_d` because the seed turned it off, carmen without it because the
+   default is off). Any assertion written against "only the active baby" was wrong on arrival.
+2. **The OS plan is only observable while the app is alive.** The plugin's exit hook cancels the
+   app's alarms when the test process ends, so a host-side `dumpsys alarm` between legs shows only
+   `pi_cancelled` ghosts. The legs read `pendingNotificationRequests()` in-band instead — which is
+   also what makes the payload identity (`{"b":scope,"i":itemId}`) assertable.
+3. **Completion → OS reconciliation is bounded, not instant.** Care-event logging does not
+   trigger a scheduler sync; the polling tick (`reminder_notifier._tick`, within the poll
+   interval) re-runs the same `syncNow()` — "completions and dismissals change the next due
+   instants". The gate calls that identical entry point directly so the leg does not wait the
+   interval out; a one-shot fired after its dose but before the tick would still be a no-op tap
+   (B22's re-validation), so the bounded staleness is cosmetic, not data loss.
+4. Test-side traps, recorded in the gate file: a ListView below the cache extent must be scrolled
+   into view before its children can be found (the "hanging settings screen"), and the sante
+   sheet's Confirm starts below the fold on 4-inch targets — `Scrollable.ensureVisible` + retries,
+   the same discipline the seed file's `tapSheetConfirmed` documents.
