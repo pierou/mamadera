@@ -9,27 +9,54 @@ per-milestone narrative; this file is the short version plus the resume instruct
 
 | | |
 |---|---|
-| Branch | `release/v1.4.0`, cut from `origin/develop` — **8 feature commits + this handoff, working tree clean, nothing pushed** |
-| Range | `git diff --stat origin/develop..HEAD` → 113 files, +10 958 / −735 |
-| Milestones | **M1 ✅ M2 ✅ M3 ✅ M4 ✅ M5 ✅ M6 ✅** · M7 in progress · M8 queued · **M9 device pass owed (the release gate)** |
+| Branch | `release/v1.4.0`, cut from `origin/develop` — **25 commits, working tree clean, all pushed** |
+| Range | `git diff --stat origin/develop..HEAD` → 337 files, +13 553 / −778 |
+| Milestones | **M1 ✅ M2 ✅ M3 ✅ M4 ✅ M5 ✅ M6 ✅ M7 ✅ M8 ✅ M9 ✅** — the full gate is recorded in §M9 of the plan |
 | Schema | `AppDatabase.schemaVersion = 14` (`lib/data/local/app_db.dart`) — the one and only v1.4.0 bump |
 | Export | `_exportFormatVersion = 5` / importer `_supportedFormatVersion = 5` — the one and only bump |
-| pubspec | still `1.3.2+16` on purpose — **M7** bumps to `1.4.0+17` |
-| Pushed | **yes** — `origin/release/v1.4.0` exists, no PR opened, `develop` untouched |
-| Gates at HEAD | `flutter analyze --fatal-infos --fatal-warnings` clean · `flutter test` **1701 passed** (last run 17410a3) · coverage **84 %** · `make check-architecture` ✅ (`presentation_to_data` 2, `oversized_files` 0) · `make check-complexity` ✅ (3 over cap, baseline 4) |
+| pubspec | `1.4.0+17` (M7 `3b04b6a`) |
+| Pushed | **yes** — `origin/release/v1.4.0` at `b8063b3`, **no PR opened yet**, `develop` untouched |
+| Gates at HEAD | **`make ci` exit 0** (the M9 gate): `flutter analyze --fatal-infos --fatal-warnings` clean · **1706 tests passed** · coverage check green (≥ 80 % domain/data) · `make store-check` **PACKAGE OK** (Play 8/8 × fr/es/en @ 1280×2856, ASC 7×4 × fr/es/en, notes fr 424 / en 298 / es 451 per 500) · architecture + complexity baselines unchanged |
 
 ```
-270af3f fix(sleep): a nap carries its minutes once (B13)              <- M6 item 2
-67c9963 feat(baby): the home title opens the baby switcher (B9)       <- M6 item 1
-c656514 feat(notifications): a cross-baby tap selects that baby       <- owner decision on B15
-2481548 feat(notifications): the tap lands on Home and means … (M5)
-c1303cd feat(reminders): preset overrides, removal and the end picker (M4)
-2b844f1 feat(reminders): one-shot frequency + the end model (M3)
-8a824f7 feat(reminders): per-reminder notification hour (B30, M2)
+b8063b3 docs(v1.4.0): M9 final leg — the post-upgrade gate passes end to end
+fe5006d store(v1.4.0): fit the Play notes, rebuild the prose, recapture every set
+6213ae9 test(gate): the v1.3.2 -> v1.4.0 upgrade gate, scripted end to end (M9)
+6372101 fix(emulator): emu-up/emu-down — a manual gate pass left 15.7 GB of guest RAM up
+e95c89f docs(v1.4.0): record the Small_Phone AVD as API 37 from the AVD config
+57c63cf docs(v1.4.0): M9 first leg — real v13 data migrated on the emulator
+ebff3f7 test(reminders): assert the two reminder consumers read one row (B31, M8)
+3b04b6a feat(release): 1.4.0 copy, patch notes and version (M7)
+17410a3 fix(import): flush the restored state where it is invalidated (B27)  <- M6 item 7
+...
 fe8f774 feat(reminders): schema v14 + per-item enabled default (B6, M1)
 ```
 
-## 2. Where the work is — M1–M6 done, M7 in progress
+## 2. Where the work is — M1–M9 done, the PR is ready to open
+
+**M7** (`3b04b6a`) closed the l10n sweep (`make l10n`), the D-R11 patch notes
+(`assets/patch_notes/{fr,es,en}.json`, noun form, Vitamin D described as a default), the
+`1.4.0+17` bump (pubspec + `AppConfig`, the CI invariant) and the four French curly-apostrophe
+normalisations. **M8** (`ebff3f7`) added the B31 invariant group to the scheduler tests — the
+Home list and the OS plan read one row — without touching the two consumers' existing tests.
+
+**M9** ran in two recorded legs in §M9 of the plan: first the real v13 → v14 migration on the
+`Small_Phone` AVD (1.3.2 worktree at `/tmp/m132`, seeded through its UI, v1.4.0 installed over
+it — the WAL-copy trap and the detached-emulator rule are recorded there), then the final leg:
+screenshots both themes, the B22 tap cases, the B15 cross-baby tap, the one-shot K observed
+arming and settling, and the scripted gate
+(`integration_test/gate_v140_seed_v132.dart` + `gate_v140_post_upgrade.dart`, one continuous
+cycle, four legs green). The store package was rebuilt in the same pass: notes fit, Play shots
+recaptured on `Pixel_10_Pro` (1280×2856), ASC campaign on the `iPhone 17` simulator.
+
+**Resume at the PR**, in the plan's order:
+
+1. Open `release/v1.4.0` → `develop` with the M9 record (§M9 of the plan is the evidence;
+   cite it, do not re-tell it). The PR description carries: device + AVD, the gate legs and
+   their readings, `make ci` exit 0, and the B17 limitation (no vibrator on the AVD — the felt
+   check stays a named-handset item).
+2. On merge to `main` (later, not now): tag `v1.4.0`, F-Droid metadata, console uploads from
+   `store/v1.4.0/`.
 
 **M6 shipped in seven commits**, one per ticket, in the plan's order: B9 `67c9963`, B13 `270af3f`,
 B16 `6abb141`, B17 `77f3e4b`, B29 `61b69c2`, B7 `d38e8cb`, B27 `17410a3`. Three of them carry
@@ -46,23 +73,11 @@ M9-facing obligations recorded on their tickets, not in code comments:
   `[GATE] B27 occurrences during this leg: 0`; the tolerance is gone, so a regression fails the gate.
   Whether the count **is** zero on a device is that run's answer, not this commit's claim.
 
-**Resume at M7**, in the plan's order:
-
-1. **l10n sweep** of everything M1–M6 introduced. Keys added so far: reminder hour trio (M2),
-   one-shot frequency labels (M3), the end picker + preset edit sheet (M4), `reminderCustomAdded`
-   / `reminderCustomUpdated` (B17), `filterMeasurements` (B7). Regenerate with **`make l10n`** —
-   `make codegen` (build_runner) does **not** touch `app_localizations*.dart`, so a key that looks
-   added in the `.arb` is invisible to `flutter analyze` until `gen-l10n` has run.
-2. **Patch notes** for 1.4.0 per D-R11: `assets/patch_notes/{fr,es}.json` in the **noun form**
-   ("Ajout d'une…", "Adición de un…"), `en` natural; **no clinical claims** (B6's "Do not" is the
-   checklist — nothing may read as a health recommendation, and the Vitamin D change must be
-   described as a default, not as advice).
-3. `pubspec.yaml` → **`1.4.0+17`**; `make store-check` (the listing is untouched; the package is
-   re-verified for the version bump only).
-
-Then **M8** (`make ci`; the named release assertions the plan lists — most already exist as tests,
-see §9 of the plan and §M8's bullet list) and **M9**, the emulator release gate **before the PR**,
-which is where all of the debt above actually lives.
+The B27 tolerance note from that era still holds: `gate_v131_restore_onboarding.dart` asserts
+zero occurrences, and the M9 gate cycle ran with that tolerance in force.
+The l10n gotcha also still bites: `make l10n` (not `make codegen`) regenerates
+`app_localizations*.dart` — a key added to a `.arb` is invisible to `flutter analyze` until
+`gen-l10n` has run.
 
 ## 3. Owner decisions taken outside the plan (do not re-litigate, do not re-ask)
 
