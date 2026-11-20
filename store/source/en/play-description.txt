@@ -1,7 +1,7 @@
 Track your newborn's feedings, sleep patterns, diaper changes, growth and health routines with complete privacy. All data stays on your device — no cloud, no tracking, no telemetry.
 
 Features:
-• Breastfeeding and bottle feeding logs, plus solid food in grams
+• Breast milk and formula logs, plus solid food in grams
 • Weight, height and temperature — values encrypted on the device
 • Growth measurements appear in your History next to every other event, and can be edited or deleted right there
 • Diaper change history, with stool texture
