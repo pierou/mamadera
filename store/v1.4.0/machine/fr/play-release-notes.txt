@@ -1,5 +1,5 @@
-• Définissez une heure, une fréquence ("une seule fois") et une date de fin pour un rappel.
-• Renommez ou supprimez un rappel suggéré, et restaurez-en un.
-• Ajoutez une note lorsque vous enregistrez une information, tant qu'elle est toujours valide.
-• Appuyez sur une notification pour accéder à la page d'accueil de ce bébé.
-• Modifiez le nom du bébé dans le titre de la page d'accueil, et filtrez l'historique par mesures.
+• Définissez une heure, une fréquence unique et une date de fin pour chaque rappel.
+• Renommez, supprimez ou restaurez un rappel suggéré.
+• Ajoutez une note lorsque vous enregistrez une tétée, au moment même où elle se produit.
+• Appuyez sur une notification pour ouvrir l'écran d'accueil du bébé correspondant.
+• Accédez à la liste des bébés depuis le titre, et filtrez l'historique par mesures.

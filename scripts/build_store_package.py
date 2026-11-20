@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -81,12 +82,49 @@ ALIGN = {
         # promise in the one sentence that carries the app's whole claim. The app's
         # own wording (exportDataWarning) uses « envoyé »; the app wins.
         ("rien n'est jamais téléchargé", "rien n'est jamais envoyé", "arb:exportDataWarning — « envoyé », not « téléchargé » (= downloaded)"),
+        # v1.4.0 audit, second pass. TranslateGemma answered the app-term English
+        # ("breast milk and formula", "record a feeding") with the breastfeeding
+        # word anyway, and homeButtonMiam says « Nourriture » / feedingSubtype*
+        # name the two milks. Literal pairs, three of them, because the model
+        # declines the same noun in three different constructions — and the new
+        # `store_check` terminology + alignment-no-op blockers are what make an
+        # unaligned slip impossible rather than merely discouraged.
+        ("les tétées au sein et les biberons", "le lait maternel et le lait artificiel",
+         "arb:feedingSubtypeNatural + feedingSubtypeArtificial — « Lait Maternel » / « Lait Artificiel »"),
+        ("des tétées au sein et des biberons", "du lait maternel et du lait artificiel",
+         "same, after the article « de »"),
+        ("vous enregistrez une tétée", "vous enregistrez un repas",
+         "arb:homeButtonMiam — the app's feeding word, and what the fr patch notes already say"),
+        # Read-by-hand catch, 2026-11-21: « Add a note when you record a feeding,
+        # right when it happens » came back with the pronoun agreeing with
+        # « une note » instead of with the feeding. No blocklist sees a pronoun that
+        # agrees with the wrong noun — which is what the alignment-no-op blocker is
+        # for: it forces the read that finds what a rule cannot.
+        ("au moment même où elle se produit", "sur le moment",
+         "the pronoun agreed with « une note », not with the feeding"),
     ],
     "es": [
         ("encriptación", "cifrado", "editorial — « cifrado » is the standard term here"),
         ("encriptado", "cifrado", "editorial — same"),
+        # The v1.4.0 audit: the two entries above are literal and uninflected, so
+        # « los valores se encriptan » and « Notas encriptadas » sailed through and
+        # shipped in the same package next to « cifrado ». Every form the model can
+        # produce has to be listed, or the map has to stop being literal.
+        ("encriptan", "cifran", "editorial — 3rd person plural, missed in v1.4.0"),
+        ("encriptadas", "cifradas", "editorial — feminine plural, missed in v1.4.0"),
+        ("encriptados", "cifrados", "editorial — masculine plural"),
         ("fuera del rango establecido", "fuera de rango", "arb:growthValueOutOfRange"),
         ("fuera del rango", "fuera de rango", "arb:growthValueOutOfRange"),
+        # v1.4.0 audit: the model called the Home screen « pantalla principal ».
+        # The app calls it Inicio (navHome) and the es patch notes say Inicio — a
+        # listing that names the screen differently is the 1.2.1 class again.
+        ("pantalla principal", "pantalla de inicio", "arb:navHome says « Inicio »"),
+        # Scoped to the filter sentence on purpose: « mediciones » IS app vocabulary
+        # for growth records (growthMeasurementUpdated says « Medición actualizada »)
+        # and stays right in the descriptions. Only the chip the note tells the
+        # parent to press has one spelling in the app.
+        ("filtre el historial por mediciones", "filtre el historial por medidas",
+         "arb:filterMeasurements — the chip says « Medidas »"),
     ],
 }
 
@@ -97,7 +135,11 @@ GLOSSARY_WATCH = {
     "fr": {"tétées": "homeButtonMiam says « Nourriture »",
            "tétée": "homeButtonMiam says « Nourriture »"},
     "es": {"pecho": "feedingSubtypeNatural says « Leche Materna »",
-           "pechos": "feedingSubtypeNatural says « Leche Materna »"},
+           "pechos": "feedingSubtypeNatural says « Leche Materna »",
+           # v1.4.0 audit: the es patch notes sold the Measurements filter with
+           # « tallas » while the app (growthLatestHeight) and the es description in
+           # the same package both say « altura ».
+           "tallas": "growthLatestHeight says « Última altura »"},
 }
 
 
@@ -109,10 +151,17 @@ def pubspec_version() -> tuple[str, str]:
     raise SystemExit("pubspec.yaml has no version:")
 
 
-def tg(src: str, tgt: str, infile: Path, outfile: Path) -> str:
-    """One TranslateGemma call. Returns its stderr timing line."""
+def tg(src: str, tgt: str, infile: Path, outfile: Path, model: str = "box") -> str:
+    """One TranslateGemma call. Returns its stderr timing line.
+
+    `model` reaches the estate fleet: `box` (12B Q8, 32k ctx) is the default and the
+    faster of the two, `mac` (27B FP16) is for when the box holds someone else's
+    work. The box has ONE model slot, so `--model mac` is the polite answer to a
+    busy box instead of a queue jump.
+    """
     outfile.parent.mkdir(parents=True, exist_ok=True)
-    proc = subprocess.run(["tg-translate", src, tgt, str(infile), "--out", str(outfile)],
+    proc = subprocess.run(["tg-translate", src, tgt, str(infile), "--out", str(outfile),
+                           "--model", model],
                          capture_output=True, text=True, cwd=ROOT)
     if proc.returncode != 0:
         raise SystemExit(f"tg-translate {src}→{tgt} {infile.name} failed: {proc.stderr.strip()}")
@@ -185,7 +234,16 @@ if __name__ == "__main__":
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--translate", action="store_true",
-                    help="run TranslateGemma (box). Never alongside a queued or running box-* agent.")
+                    help="run TranslateGemma. Never alongside a queued or running box-* agent "
+                         "unless --model mac is given.")
+    ap.add_argument("--align-only", action="store_true",
+                    help="re-run term alignment on the machine/ archive already on disk and "
+                         "call no model. Without this, adding one ALIGN entry cost a full "
+                         "re-translation: ten calls, box time, and every other sentence in "
+                         "the package re-rolled for one term.")
+    ap.add_argument("--model", choices=("box", "mac"),
+                    default=os.environ.get("TG_MODEL", "box"),
+                    help="TranslateGemma backend for --translate (default: box, or $TG_MODEL)")
     ap.add_argument("--version", help="default: pubspec version")
     args = ap.parse_args()
 
@@ -257,15 +315,24 @@ def main() -> int:
         path.write_text(apple_whatsnew(locale, version), encoding="utf-8")
         print(f"  ok   apple-{locale}-whatsnew {len(path.read_text(encoding='utf-8').rstrip())}/4000")
 
-    if args.translate:
-        if not shutil.which("tg-translate"):
+    if args.translate or args.align_only:
+        if args.translate and not shutil.which("tg-translate"):
             raise SystemExit("tg-translate not on PATH")
-        print("== TranslateGemma — prose only, raw output archived under machine/")
+        print("== TranslateGemma — prose only, raw output archived under machine/ "
+              f"(model: {args.model})" if args.translate else
+              "== alignment only — machine/ re-read, the model is NOT called")
         for locale in TRANSLATE_INTO:
             for store, field in TRANSLATED:
                 src = SOURCE / "en" / f"{store}-{field}.txt"
                 raw = pkg / "machine" / locale / f"{store}-{field}.txt"
-                timing = tg("en", locale, src, raw)
+                if args.align_only:
+                    if not raw.exists():
+                        raise SystemExit(
+                            f"{raw.relative_to(ROOT)} missing — --align-only aligns the output "
+                            f"of a previous --translate, it cannot invent one")
+                    timing = "from machine/, no model call"
+                else:
+                    timing = tg("en", locale, src, raw, model=args.model)
                 text, notes = align(locale, raw.read_text(encoding="utf-8"), store, field)
                 out = target(pkg, store, locale, field)
                 out.write_text(text, encoding="utf-8")
@@ -276,8 +343,10 @@ def main() -> int:
                     print(note)
             # Keywords: translated for the record only. The live list stays editorial.
             raw = pkg / "machine" / locale / "apple-keywords.txt"
-            tg("en", locale, SOURCE / "en" / "apple-keywords.txt", raw)
-            print(f"  --   {locale}-apple-keywords archived, editorial list kept")
+            if args.translate:
+                tg("en", locale, SOURCE / "en" / "apple-keywords.txt", raw,
+                   model=args.model)
+                print(f"  --   {locale}-apple-keywords archived, editorial list kept")
 
     # The checker is generated, never hand-authored, and pins the version it was built
     # for. A released package must not drift with pubspec: when 1.3.0 was bumped, the

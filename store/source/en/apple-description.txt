@@ -1,7 +1,7 @@
 Track your baby's feedings, sleep, diapers and health routines — all stored locally on your device with encryption. No cloud, no telemetry, no tracking.
 
 WHAT YOU CAN DO
-• Log breast and bottle feeds, solid food in grams, sleep sessions and diaper changes — including stool texture
+• Log breast milk and formula, solid food in grams, sleep sessions and diaper changes — including stool texture
 • Record weight, height and temperature: values are encrypted on the device and read back in History, alongside every other event
 • Edit or delete a measurement straight from History
 • Follow health routines (Vitamin D & K) with built-in reminders, and create custom reminders tied to any care
