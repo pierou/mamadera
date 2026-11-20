@@ -1,7 +1,7 @@
 Realice un seguimiento de las tomas, los patrones de sueño, los cambios de pañal, el crecimiento y las rutinas de salud de su bebé recién nacido, con total privacidad. Todos los datos se almacenan en su dispositivo: no se utiliza la nube, no se realiza ningún seguimiento ni telemetría.
 
 Características:
-• Registro de lactancia materna y alimentación con biberón, además de alimentos sólidos en gramos.
+• Registro de lactancia materna y fórmula, además de alimentos sólidos en gramos.
 • Peso, altura y temperatura: los valores están encriptados en el dispositivo.
 • Las mediciones de crecimiento aparecen en su historial junto con cada otro evento, y pueden editarse o eliminarse directamente allí.
 • Historial de cambios de pañal, con información sobre la consistencia de las heces.
