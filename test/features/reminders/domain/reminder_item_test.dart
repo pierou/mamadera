@@ -118,7 +118,7 @@ void main() {
       expect(reminders[0].id, 'vitamine_d');
     });
 
-    test('anchors Vitamin K on the birth day of month', () {
+    test('anchors Vitamin K on the first month, as a single occurrence', () {
       final profile = BabyProfile(
         id: '1',
         name: 'Test Baby',
@@ -130,40 +130,45 @@ void main() {
       final vitaminK = reminders[1];
       // Same id as the static preset: it keys reminder_settings/dismissal rows.
       expect(vitaminK.id, 'vitamine_k');
-      expect(vitaminK.frequency, isA<Monthly>());
-      final monthly = vitaminK.frequency as Monthly;
-      expect(monthly.dayOfMonth, 28);
+      // B33 Part 1: one occurrence at the first month, not a monthly cycle — the
+      // dose is given once, and a reminder that came back every month after it
+      // was the defect the ticket was raised on.
+      expect(vitaminK.frequency, isA<OneTime>());
+      final oneShot = vitaminK.frequency as OneTime;
+      expect(oneShot.date, DateTime(2024, 4, 28));
       // Non-frequency fields are inherited from the preset.
       expect(vitaminK.labelKey, ReminderItemPresets.vitaminK.labelKey);
       expect(vitaminK.subtypeValue, 'vitamine_k');
     });
 
-    test(
-        'two babies with different birth dates get different monthly dayOfMonth',
+    test('two babies with different birth dates get different occurrence days',
         () {
       final babyA =
           BabyProfile(id: 'a', name: 'A', birthDate: DateTime(2024, 1, 5));
       final babyB =
           BabyProfile(id: 'b', name: 'B', birthDate: DateTime(2024, 3, 20));
 
-      final monthlyA =
-          ReminderItemPresets.buildForBaby(babyA)[1].frequency as Monthly;
-      final monthlyB =
-          ReminderItemPresets.buildForBaby(babyB)[1].frequency as Monthly;
+      final a = ReminderItemPresets.buildForBaby(babyA)[1].frequency as OneTime;
+      final b = ReminderItemPresets.buildForBaby(babyB)[1].frequency as OneTime;
 
-      expect(monthlyA.dayOfMonth, 5);
-      expect(monthlyB.dayOfMonth, 20);
-      expect(monthlyA.dayOfMonth, isNot(equals(monthlyB.dayOfMonth)));
+      expect(a.date, DateTime(2024, 2, 5));
+      expect(b.date, DateTime(2024, 4, 20));
+      // Per-baby scoping (D6): the second baby is never pinned to the first's
+      // occurrence day.
+      expect(a.date, isNot(equals(b.date)));
     });
 
-    test('a 31st birthday keeps dayOfMonth 31 (clamped later by isDue)', () {
+    test('a 31st birthday clamps to the last day of the next month', () {
       final profile = BabyProfile(
           id: '1', name: 'Test Baby', birthDate: DateTime(2024, 1, 31));
 
-      final monthly =
-          ReminderItemPresets.buildForBaby(profile)[1].frequency as Monthly;
+      final oneShot =
+          ReminderItemPresets.buildForBaby(profile)[1].frequency as OneTime;
 
-      expect(monthly.dayOfMonth, 31);
+      // 31 January + 1 month has no 31 February: B18's clamped anniversary puts
+      // the occurrence on 29 February 2024 (leap), never on a day that does not
+      // exist and never on 3 March.
+      expect(oneShot.date, DateTime(2024, 2, 29));
     });
 
     test('daily presets are returned unchanged (no birth-date anchor)', () {

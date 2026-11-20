@@ -89,7 +89,8 @@ class TrackingRepositoryImpl implements TrackingRepository {
             unit: Value(e.unit.dbValue),
             notes: Value(encryptedNotes),
             babyId: Value(e.babyId),
-            quantity: Value(e.quantity),
+            // B13: absent, not null-by-omission — the column stays a feed's field.
+            quantity: const Value.absent(),
             wasteType: const Value.absent(),
             color: const Value.absent(),
           );

@@ -173,6 +173,20 @@
   "reminderNotificationsSectionTitle": "Notifications système",
   "reminderNotificationsOptIn": "Me notifier quand un rappel est dû",
   "reminderNotificationsTimeLabel": "Heure de notification",
+  "reminderHourOwn": "À {time}",
+  "@reminderHourOwn": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "reminderHourInherited": "À {time} (par défaut)",
+  "@reminderHourInherited": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "reminderHourPickerTitle": "Heure de notification de ce rappel",
+  "reminderHourUseDefault": "Utiliser l'heure par défaut",
   "reminderNotificationsPermissionDenied": "Les notifications sont désactivées dans les réglages du système. Activez-les là-bas pour recevoir les notifications de rappel.",
   "reminderFrequencyDaily": "Tous les jours",
   "reminderFrequencyWeekly": "Chaque semaine",
@@ -188,6 +202,47 @@
       "days": {}
     }
   },
+  "reminderFrequencyOneTime": "Une seule fois, le {date}",
+  "@reminderFrequencyOneTime": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderFrequencyOneTimeNow": "Une seule fois, dès que possible",
+  "reminderSettingsRemovedSectionTitle": "Supprimés",
+  "reminderSettingsRemovedDescription": "Un rappel supprimé quitte l'accueil, cette liste et les notifications. Une touche suffit pour le faire revenir avec tous ses réglages.",
+  "reminderActionRestore": "Restaurer",
+  "reminderActionRemove": "Supprimer",
+  "reminderPresetEditTitle": "Modifier le rappel",
+  "reminderEndSectionTitle": "Fin",
+  "reminderEndNone": "Sans fin",
+  "reminderEndOnDate": "À une date",
+  "reminderEndAtAge": "À un âge",
+  "reminderEndAgeValue": "{months} mois",
+  "@reminderEndAgeValue": {
+    "placeholders": {
+      "months": {}
+    }
+  },
+  "reminderEndUntilDate": "Jusqu'au {date}",
+  "@reminderEndUntilDate": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderEndAgeResolved": "Jusqu'à {months} mois — {date}",
+  "@reminderEndAgeResolved": {
+    "placeholders": {
+      "months": {},
+      "date": {}
+    }
+  },
+  "reminderEndNeedsBirthdate": "La date de naissance est nécessaire pour terminer un rappel à un âge.",
+  "reminderEndAlreadyPast": "Ce jour est déjà passé : le rappel s'arrête tout de suite.",
+  "reminderFrequencyOnceChoice": "Une fois",
+  "reminderFrequencyReset": "Revenir au rythme par défaut",
+  "reminderLabelReset": "Revenir au nom par défaut",
+  "reminderOneTimeNeedsDate": "Choisissez le jour où cela doit arriver.",
   "reminderCustomSectionTitle": "Rappels personnalisés",
   "reminderCustomSectionDescription": "Un rappel s'efface de l'accueil dès que vous enregistrez le soin associé.",
   "reminderCustomAdd": "Ajouter un rappel",
@@ -206,6 +261,8 @@
   "reminderCustomDeleteConfirm": "Supprimer ce rappel ?",
   "reminderCustomDeleteWarning": "Le rappel disparaît de l'accueil. Les événements déjà enregistrés sont conservés.",
   "reminderCustomSaveError": "Le rappel n'a pas pu être enregistré. Réessayez.",
+  "reminderCustomAdded": "Rappel ajouté",
+  "reminderCustomUpdated": "Rappel mis à jour",
   "reminderCustomDeleteError": "Le rappel n'a pas pu être supprimé. Réessayez.",
   "reminderListTitle": "Rappels à faire",
   "reminderListTitleFor": "Rappels de {name} à faire",
@@ -259,6 +316,7 @@
   "filterDodo": "Sommeil",
   "filterCaca": "Couche",
   "filterSante": "Santé",
+  "filterMeasurements": "Mesures",
 
   "noEvents": "Aucun événement",
   "@errorMessage": {

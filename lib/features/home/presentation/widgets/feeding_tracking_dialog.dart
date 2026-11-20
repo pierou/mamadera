@@ -49,11 +49,32 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
   /// displayed "now" stable while the parent is choosing.
   DateTime _selectedDate = DateTime.now();
 
+  /// B16: the note is asked **here**, at creation. The column, the encryption at
+  /// insert, the decryption on read and the history tile all existed already; what
+  /// did not exist was a place to write « refused the left breast, fussy » at the
+  /// moment it was true. Asked afterwards from Historique, the note is usually
+  /// already forgotten — which made the whole feature reachable only as a memory
+  /// test. Optional by construction: an empty field inserts `NULL`, never `''`.
+  final TextEditingController _notesController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _selectedSubtype = FeedingSubtype.natural; // Default to breast milk
     _unit = QuantityUnit.min;
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  /// `null` when the parent wrote nothing, so the row carries the absence rather
+  /// than an empty string — the same contract the edit dialog keeps.
+  String? _notesOrNull() {
+    final text = _notesController.text.trim();
+    return text.isEmpty ? null : text;
   }
 
   void _onQuantityChanged(double quantity) {
@@ -269,6 +290,40 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
 
             const SizedBox(height: 24),
 
+            // Notes — the last thing in the sheet: optional, short, and typed with
+            // one hand. `editNotesLabel` / `editNotesHint` are reused from the edit
+            // dialog on purpose: one concept, one wording, and the parent who has
+            // written a note there meets the same words here.
+            Text(
+              context.l.editNotesLabel,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              key: const ValueKey('feeding-note-field'),
+              controller: _notesController,
+              maxLines: 3,
+              minLines: 1,
+              textCapitalization: TextCapitalization.sentences,
+              textInputAction: TextInputAction.newline,
+              decoration: InputDecoration(
+                hintText: context.l.editNotesHint,
+                isDense: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
             DialogActionButtons(
               onCancelPressed: () => Navigator.pop(context),
               onConfirmPressed: _inRange
@@ -281,6 +336,7 @@ class _FeedingTrackingDialogState extends ConsumerState<FeedingTrackingDialog> {
                           'unit': _unit,
                           'quantity': _selectedQuantity,
                           'timestamp': _selectedDate,
+                          'notes': _notesOrNull(),
                         });
                       }
                     }

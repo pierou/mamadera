@@ -72,6 +72,11 @@ void main() {
     required BabyProfile? baby,
   }) async {
     final babyNotifier = _SwitchableBabyNotifier(baby);
+    // The rows these tests count are the four presets, so vitamin D needs an
+    // explicit row: since B6 its own default is off, and "no row" would drop the
+    // fourth line and every count in this file with it. The default itself is
+    // asserted in reminder_scheduler_test.dart / reminder_settings_test.dart.
+    await repo.setEnabled('vitamine_d', enabled: true, babyId: baby?.id);
     final container = ProviderContainer(
       overrides: [
         remindersRepositoryProvider.overrideWith((ref) async => repo),
@@ -161,9 +166,12 @@ void main() {
       await pumpSection(tester, repo: repo, baby: babyA);
 
       // The daily presets and the personalized settings share the same rhythm.
-      // Vitamin K is administered monthly, on the day of birth.
+      // B33 Part 1: vitamin K is the exception in **kind** — one occurrence at
+      // the first month (birthdate 15/01/2024 ⇒ 15/02/2024), because the dose is
+      // given once and a monthly prompt after it was the reported defect.
       expect(find.textContaining('Tous les jours'), findsNWidgets(4));
-      expect(find.textContaining('Le 15 de chaque mois'), findsOneWidget);
+      expect(
+          find.textContaining('Une seule fois, le 15/02/2024'), findsOneWidget);
       // The manual records the last "incident" involving personalized items.
       expect(find.textContaining('Dernière fois: 30/09/2026 08:00'),
           findsOneWidget);

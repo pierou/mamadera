@@ -91,9 +91,13 @@ void main() {
           ),
         );
     final rows = await db.select(db.reminderSettings).get();
-    expect(rows, hasLength(1));
-    expect(rows.first.itemId, equals('test-reminder'));
-    expect(rows.first.enabled, isTrue);
+    // v14 adds one row this upgrade never wrote: the vitamin D seed of the
+    // profileless scope, which is a pre-existing scope (D-R1). The row this test
+    // wrote is the one it checks.
+    expect(rows, hasLength(2));
+    final mine = rows.where((r) => r.itemId == 'test-reminder').toList();
+    expect(mine, hasLength(1));
+    expect(mine.single.enabled, isTrue);
 
     await db.close();
   });

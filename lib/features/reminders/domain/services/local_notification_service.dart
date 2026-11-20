@@ -33,11 +33,17 @@ abstract class LocalNotificationService {
 
   /// Schedules a one-shot notification for the device-local wall-clock
   /// instant [at]. The OS owns the instant from then on.
+  ///
+  /// [payload] is an opaque string the OS hands back on tap
+  /// (`ReminderNotificationPayload.encode`): it is what lets a tap say *which*
+  /// reminder fired (B15). `null` = no payload, and the tap then means "open the
+  /// app at Home" only (B22's half).
   Future<void> scheduleAt({
     required int id,
     required String title,
     required String body,
     required DateTime at,
+    String? payload,
   });
 
   /// Schedules a one-shot notification [delay] from now — the D3 catch-up
@@ -48,6 +54,7 @@ abstract class LocalNotificationService {
     required String title,
     required String body,
     required Duration delay,
+    String? payload,
   });
 
   /// Cancels the pending notification with [id] (no-op if absent).

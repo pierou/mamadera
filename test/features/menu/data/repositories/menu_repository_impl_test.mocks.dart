@@ -646,6 +646,15 @@ class MockAppDatabase extends _i1.Mock implements _i3.AppDatabase {
       ) as _i5.Future<_i3.BabyProfile?>);
 
   @override
+  _i5.Future<_i3.BabyProfile?> healActiveProfileIfLost() => (super.noSuchMethod(
+        Invocation.method(
+          #healActiveProfileIfLost,
+          [],
+        ),
+        returnValue: _i5.Future<_i3.BabyProfile?>.value(),
+      ) as _i5.Future<_i3.BabyProfile?>);
+
+  @override
   _i5.Future<int> insertBabyProfile(_i3.BabyProfilesCompanion? profile) =>
       (super.noSuchMethod(
         Invocation.method(

@@ -72,6 +72,10 @@ void main() {
 
   setUp(() {
     mockReminders = MockRemindersRepository();
+    // The fixture's synthetic item list uses vitamin D as one of its two
+    // presets, so it needs an explicit row: since B6 the item's own default is
+    // off, and "no row" would silently drop it from the very list under test.
+    mockReminders.enabledById[ReminderItemPresets.vitaminD.id] = true;
     dynamicGate = Future.value(
         [ReminderItemPresets.vitaminD, ReminderItemPresets.eyeCleaning]);
   });

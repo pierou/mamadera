@@ -347,7 +347,12 @@ void main() {
       expect(profiles.single.id, 'baby_1');
       expect(await database.getAllTrackingEvents(), hasLength(1));
       expect(await database.getAllCustomReminders(), hasLength(1));
-      expect(await database.getAllReminderSettings(), hasLength(1));
+      // 1 row from the file + B6's seed for the two scopes it creates ('' and
+      // baby_1): a pre-format-5 file has no vitamin D row and its absence used to
+      // mean "on" (PLAN-v1.4.0 D-R1, replayed by the restore).
+      final settings = await database.getAllReminderSettings();
+      expect(settings, hasLength(3));
+      expect(settings.where((s) => s.itemId != 'vitamine_d'), hasLength(1));
       expect(await database.getAllReminderDismissals(), hasLength(1));
       expect(await database.getAllMeasurements(), hasLength(1));
       expect(await database.getAllReminderCompletions(), hasLength(1));
@@ -438,7 +443,7 @@ void main() {
       // unknown of the future.
       await _pumpDialog(
         tester,
-        readBackup: () async => _jsonOf(validDocument(formatVersion: 5)),
+        readBackup: () async => _jsonOf(validDocument(formatVersion: 6)),
       );
 
       await expectResult(tester, find.textContaining('version plus récente'));
@@ -477,7 +482,12 @@ void main() {
       expect(await database.getAllMeasurements(), isEmpty);
       expect(await database.getAllReminderCompletions(), isEmpty);
       expect((await database.getAllCustomReminders()).single.babyId, '');
-      expect((await database.getAllReminderSettings()).single.babyId, '');
+      final settings = await database.getAllReminderSettings();
+      expect(settings.where((s) => s.itemId != 'vitamine_d').single.babyId, '',
+          reason: 'the file row keeps the shared sentinel');
+      expect(settings.where((s) => s.itemId == 'vitamine_d'), hasLength(2),
+          reason: 'B6: a format-1 file predates the per-item default, so the '
+              'restore seeds the scopes it creates');
     });
 
     testWidgets('databaseSchemaVersion plus récente : message dédié',

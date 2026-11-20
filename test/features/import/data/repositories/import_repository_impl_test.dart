@@ -45,7 +45,7 @@ Map<String, dynamic> validDocument({
   List<dynamic>? appSettings,
   Map<String, dynamic>? counts,
   int formatVersion = 2,
-  int schemaVersion = 10,
+  int schemaVersion = 14,
   String? generator,
 }) {
   final profiles = babyProfiles ??
@@ -374,12 +374,114 @@ void main() {
     });
 
     test('rejects a format version it does not know', () async {
-      // Version 4 (v1.3.0, `appSettings`) is the format of this build; only 5
-      // and above belong to a future app whose design cannot be guessed at.
+      // Version 5 (1.4.0, the per-reminder hour) is the format of this build;
+      // only 6 and above belong to a future app whose design cannot be guessed at.
       await expectRejected(
-        document: validDocument(formatVersion: 5),
+        document: validDocument(formatVersion: 6),
         reason: ImportRejectionReason.newerFormatVersion,
       );
+    });
+
+    // BACKLOG B30, export format 5: the `reminderSettings` row carries the
+    // reminder's own notification hour. The column is `time`, the key is
+    // `timeOfDay` — B30 named the column, the document speaks camelCase, and the
+    // importer must parse the *key*.
+    group('the per-reminder hour (format 5)', () {
+      test('a stored hour restores into the row, an absent key inherits',
+          () async {
+        final source = _openDatabase();
+        addTearDown(source.close);
+        final repository = ImportRepositoryImpl(
+            database: source, encryption: _FakeEncryption());
+
+        await repository.restore(await repository.parseExport(_jsonOf(
+          validDocument(
+            formatVersion: 5,
+            reminderSettings: [
+              {
+                'babyId': 'baby_1',
+                'itemId': 'eye_cleaning',
+                'enabled': true,
+                'timeOfDay': '21:05'
+              },
+              {'babyId': 'baby_1', 'itemId': 'vitamine_d', 'enabled': true},
+            ],
+          ),
+        )));
+
+        final rows = await source.getAllReminderSettings();
+        expect(
+            rows.firstWhere((r) => r.itemId == 'eye_cleaning').time, '21:05');
+        expect(rows.firstWhere((r) => r.itemId == 'vitamine_d').time, isNull,
+            reason: 'a row without the key inherits the global hour');
+      });
+
+      test('an hour that is not HH:mm refuses the file, and writes nothing',
+          () async {
+        final before = await _allCounts(database);
+
+        await expectRejected(
+          document: validDocument(
+            formatVersion: 5,
+            reminderSettings: [
+              {
+                'babyId': 'baby_1',
+                'itemId': 'eye_cleaning',
+                'enabled': true,
+                'timeOfDay': '8:5',
+              }
+            ],
+          ),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'reminderSettings',
+        );
+        expect(await _allCounts(database), before,
+            reason: 'write-strict: a malformed hour is refused, not repaired '
+                'into an inheritance the parent never chose');
+      });
+
+      test('a malformed hour is refused even when 24:00 looks well-formed',
+          () async {
+        await expectRejected(
+          document: validDocument(
+            formatVersion: 5,
+            reminderSettings: [
+              {
+                'babyId': 'baby_1',
+                'itemId': 'eye_cleaning',
+                'enabled': true,
+                'timeOfDay': '24:00',
+              }
+            ],
+          ),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'reminderSettings',
+        );
+      });
+
+      test('a format-5 file is replayed as written: the seed stays out',
+          () async {
+        // From format 5 on, the export writes every row that exists, so an
+        // absent vitamin D row genuinely means "new scope, default off". Re-
+        // seeding here would re-light a reminder the file says is untouched.
+        final source = _openDatabase();
+        addTearDown(source.close);
+        final repository = ImportRepositoryImpl(
+            database: source, encryption: _FakeEncryption());
+
+        await repository.restore(await repository.parseExport(_jsonOf(
+          validDocument(
+            formatVersion: 5,
+            reminderSettings: [
+              {'babyId': '', 'itemId': 'eye_cleaning', 'enabled': false},
+            ],
+          ),
+        )));
+
+        final rows = await source.getAllReminderSettings();
+        expect(rows.map((r) => r.itemId), ['eye_cleaning'],
+            reason: 'no seed row for a format-5 document');
+      });
     });
 
     test('accepts a format-3 document and reads its unit', () async {
@@ -997,7 +1099,13 @@ void main() {
       expect(reminder.babyId, '');
       expect(reminder.completionSource, 'from_events');
       expect(reminder.subtypeValue, 'nettoyage_nez');
-      expect((await database.getAllReminderSettings()).single.babyId, '');
+      // The file's own row, plus B6's seed for the scopes the restore creates:
+      // a pre-format-5 document has no vitamin D row, and in that vocabulary an
+      // absent row meant "on" — replaying it must not switch the reminder off.
+      final settings = await database.getAllReminderSettings();
+      expect(settings.where((s) => s.itemId != 'vitamine_d').single.babyId, '');
+      expect(settings.where((s) => s.itemId == 'vitamine_d'), hasLength(2),
+          reason: 'the sentinel scope and the file profile are both seeded');
       expect((await database.getAllReminderDismissals()).single.babyId, '');
       expect(await database.getAllMeasurements(), isEmpty);
       expect(await database.getAllReminderCompletions(), isEmpty);
@@ -1043,6 +1151,88 @@ void main() {
       await repository.restore(await repository.parseExport(exported));
 
       expect((await database.getAllTrackingEvents()).length, 3);
+    });
+
+    // B33 Part 1: a one-shot is `frequency: "one_time"` **plus** a day. The
+    // pairing is enforced at the boundary (write-strict), because a restore is a
+    // one-shot operation: refusing a file is recoverable, restoring a reminder
+    // that fires the moment it lands is not (D-R5, D-R8).
+    group('the one-shot date (B33, format 5)', () {
+      Map<String, dynamic> oneShotRow({
+        String? frequency = 'one_time',
+        Object? frequencyDate = '2026-12-15',
+      }) =>
+          <String, dynamic>{
+            'id': 1,
+            'label': 'Première vitamine K',
+            'subtypeValue': 'vitamine_k',
+            'frequency': frequency,
+            'intervalDays': null,
+            if (frequencyDate != null) 'frequencyDate': frequencyDate,
+          };
+
+      test('a one-shot restores with its occurrence date', () async {
+        final parsed = await repository.parseExport(_jsonOf(validDocument(
+          formatVersion: 5,
+          customReminders: [oneShotRow()],
+        )));
+        await repository.restore(parsed);
+
+        final restored = (await database.getAllCustomReminders()).single;
+        expect(restored.frequency, 'one_time');
+        expect(restored.frequencyDate, '2026-12-15');
+      });
+
+      test('an older file leaves the column null — no reminder was a one-shot',
+          () async {
+        final parsed = await repository.parseExport(_jsonOf(validDocument(
+          formatVersion: 4,
+          customReminders: [
+            oneShotRow(frequency: 'daily', frequencyDate: null)
+          ],
+        )));
+        await repository.restore(parsed);
+
+        final restored = (await database.getAllCustomReminders()).single;
+        expect(restored.frequencyDate, isNull);
+      });
+
+      test('a one_time without a date is refused, and nothing is written',
+          () async {
+        await expectRejected(
+          document: validDocument(
+            formatVersion: 5,
+            customReminders: [oneShotRow(frequencyDate: null)],
+          ),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'customReminders',
+        );
+      });
+
+      test('a one_time with a day that does not exist is refused', () async {
+        await expectRejected(
+          document: validDocument(
+            formatVersion: 5,
+            customReminders: [oneShotRow(frequencyDate: '2026-02-30')],
+          ),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'customReminders',
+        );
+      });
+
+      test('an occurrence date on a recurring reminder is refused', () async {
+        // D-R5's exclusivity at the boundary: `frequency_date` belongs to
+        // `one_time` alone. Restoring the mismatch would leave a row whose
+        // meaning depends on which column a future reader happens to trust.
+        await expectRejected(
+          document: validDocument(
+            formatVersion: 5,
+            customReminders: [oneShotRow(frequency: 'daily')],
+          ),
+          reason: ImportRejectionReason.invalidRow,
+          section: 'customReminders',
+        );
+      });
     });
 
     group('appSettings (format 4, item 12)', () {
@@ -1332,6 +1522,7 @@ void main() {
       // A ParsedExport built by hand, bypassing the parser, so the *database*
       // rejects the label (withLength(max: 60)) after the deletes have run.
       final impossible = ParsedExport(
+        formatVersion: 5,
         babyProfiles: [
           const ImportedBabyProfile(
             id: 'newborn',
@@ -1363,6 +1554,7 @@ void main() {
             subtypeValue: 'vitamine_d',
             frequency: 'daily',
             intervalDays: null,
+            frequencyDate: null,
             babyId: '',
             completionSource: 'from_events',
           ),
@@ -1382,6 +1574,157 @@ void main() {
       );
       expect((await database.getAllBabyProfiles()).map((row) => row.id),
           isNot(contains('newborn')));
+    });
+  });
+
+  // B33 (format 5): the rest of the settings row. A backup that restored
+  // `enabled` and the hour but dropped the nickname, the rhythm, the end and the
+  // removal would hand back a tuned installation as four stock reminders — the
+  // quiet kind of data loss, so each key is pinned here on the way in.
+  group('the B33 overrides (format 5)', () {
+    Future<List<ReminderSetting>> restore(
+        List<Map<String, Object?>> settings) async {
+      final source = _openDatabase();
+      addTearDown(source.close);
+      final repository =
+          ImportRepositoryImpl(database: source, encryption: _FakeEncryption());
+      await repository.restore(await repository.parseExport(_jsonOf(
+        validDocument(formatVersion: 5, reminderSettings: settings),
+      )));
+      return source.getAllReminderSettings();
+    }
+
+    test('the whole row restores: name, rhythm, end, removal', () async {
+      final rows = await restore([
+        {
+          'babyId': 'baby_1',
+          'itemId': 'vitamine_d',
+          'enabled': false,
+          'label': 'les gouttes',
+          'frequency': 'every_n_days',
+          'intervalDays': 2,
+          'endDate': '2027-03-14',
+        },
+        {
+          'babyId': 'baby_1',
+          'itemId': 'vitamine_k1',
+          'enabled': true,
+          'frequency': 'one_time',
+          'frequencyDate': '2027-01-08',
+        },
+        {
+          'babyId': 'baby_1',
+          'itemId': 'eye_cleaning',
+          'enabled': true,
+          'endAgeMonths': 8,
+          'removed': true,
+        },
+      ]);
+
+      final byItem = {for (final row in rows) row.itemId: row};
+      expect(byItem['vitamine_d']!.label, 'les gouttes');
+      expect(byItem['vitamine_d']!.frequency, 'every_n_days');
+      expect(byItem['vitamine_d']!.intervalDays, 2);
+      expect(byItem['vitamine_d']!.endDate, '2027-03-14');
+      expect(byItem['vitamine_k1']!.frequency, 'one_time');
+      expect(byItem['vitamine_k1']!.frequencyDate, '2027-01-08');
+      expect(byItem['eye_cleaning']!.endAgeMonths, 8);
+      expect(byItem['eye_cleaning']!.removed, isTrue,
+          reason:
+              'a restore that lost the removal would put a reminder the parent '
+              'took away back on the schedule');
+    });
+
+    test('a file from before format 5 loses nothing it never had', () async {
+      final source = _openDatabase();
+      addTearDown(source.close);
+      final repository =
+          ImportRepositoryImpl(database: source, encryption: _FakeEncryption());
+      await repository.restore(await repository.parseExport(_jsonOf(
+        validDocument(formatVersion: 4, reminderSettings: [
+          {'babyId': 'baby_1', 'itemId': 'eye_cleaning', 'enabled': true},
+        ]),
+      )));
+
+      // Not `.single`: restoring a format-4 document replays the B6 vitamin D seed
+      // (M2), so the document's own row is picked by item id.
+      final row = (await source.getAllReminderSettings())
+          .firstWhere((r) => r.itemId == 'eye_cleaning');
+      expect(row.removed, isFalse);
+      expect(row.frequency, isNull);
+      expect(row.endDate, isNull);
+    });
+
+    test('a row that ends twice is refused', () async {
+      final repository = ImportRepositoryImpl(
+          database: _openDatabase(), encryption: _FakeEncryption());
+      final document = _jsonOf(validDocument(
+        formatVersion: 5,
+        reminderSettings: [
+          {
+            'babyId': 'baby_1',
+            'itemId': 'eye_cleaning',
+            'enabled': true,
+            'endDate': '2027-03-14',
+            'endAgeMonths': 8,
+          },
+        ],
+      ));
+      // The refusal belongs to the parse, which runs in its own isolate, so the
+      // whole read is inside the expectation: a document rejected before `restore`
+      // is the same outcome for the parent.
+      await expectLater(
+        () async => repository.restore(await repository.parseExport(document)),
+        throwsA(isA<ImportFormatException>()),
+      );
+    });
+
+    test('an end on a one-shot is refused', () async {
+      final repository = ImportRepositoryImpl(
+          database: _openDatabase(), encryption: _FakeEncryption());
+      final document = _jsonOf(validDocument(
+        formatVersion: 5,
+        reminderSettings: [
+          {
+            'babyId': 'baby_1',
+            'itemId': 'eye_cleaning',
+            'enabled': true,
+            'frequency': 'one_time',
+            'frequencyDate': '2027-01-08',
+            'endDate': '2027-03-14',
+          },
+        ],
+      ));
+      // The refusal belongs to the parse, which runs in its own isolate, so the
+      // whole read is inside the expectation: a document rejected before `restore`
+      // is the same outcome for the parent.
+      await expectLater(
+        () async => repository.restore(await repository.parseExport(document)),
+        throwsA(isA<ImportFormatException>()),
+      );
+    });
+
+    test('an out-of-range end age is refused', () async {
+      final repository = ImportRepositoryImpl(
+          database: _openDatabase(), encryption: _FakeEncryption());
+      final document = _jsonOf(validDocument(
+        formatVersion: 5,
+        reminderSettings: [
+          {
+            'babyId': 'baby_1',
+            'itemId': 'eye_cleaning',
+            'enabled': true,
+            'endAgeMonths': 181,
+          },
+        ],
+      ));
+      // The refusal belongs to the parse, which runs in its own isolate, so the
+      // whole read is inside the expectation: a document rejected before `restore`
+      // is the same outcome for the parent.
+      await expectLater(
+        () async => repository.restore(await repository.parseExport(document)),
+        throwsA(isA<ImportFormatException>()),
+      );
     });
   });
 }
@@ -1452,6 +1795,7 @@ Future<void> _seedRichDatabase(
           subtypeValue: const Value('nettoyage_nez'),
           frequency: 'every_n_days',
           intervalDays: const Value(2),
+          frequencyDate: const Value(null),
         ),
       );
   // Recall notice for a detached scope (M4): the scope needs to be re-mounted.

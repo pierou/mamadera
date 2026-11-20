@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -92,6 +93,7 @@ class _FakeNotificationService implements LocalNotificationService {
     required String title,
     required String body,
     required DateTime at,
+    String? payload,
   }) async {
     scheduled[id] = (title, body, at);
   }
@@ -102,6 +104,7 @@ class _FakeNotificationService implements LocalNotificationService {
     required String title,
     required String body,
     required Duration delay,
+    String? payload,
   }) async {
     scheduledIn.add(id);
     scheduled[id] = (title, body, DateTime.now().add(delay));
@@ -223,25 +226,40 @@ void main() {
       expect(find.text('Nettoyage du visage'), findsOneWidget);
 
       expect(find.text('Tous les jours'), findsNWidgets(3));
-      // Vitamin K is set to the date of birth (15) in the active profile.
-      expect(find.text('Le 15 de chaque mois'), findsOneWidget);
+      // B33 Part 1: vitamin K is a **single occurrence** at the baby's first
+      // month, so it is announced by its day (birthdate 15/01/2026 ⇒ 15/02/2026)
+      // and no longer as a monthly rhythm.
+      expect(find.text('Le 15 de chaque mois'), findsNothing);
+      expect(find.text('Une seule fois, le 15/02/2026'), findsOneWidget);
     });
 
     testWidgets(
-        'tout est activé par défaut : les rappels sont une option de retrait',
+        'the switches are an opt-out — except vitamin D, off but visible',
         (tester) async {
+      // B6 (WHO 2022 Rec 36, owner decision A): a baby created on 1.4.0 starts
+      // with vitamin D **off but visible** — the switch sits on screen, that is
+      // the whole point of the decision. An install upgraded from 1.3.x has an
+      // explicit enabled = 1 row (the v14 seed, D-R1) and still shows it on:
+      // covered by 'un enabled enregistré true laisse le rappel activé'.
       await pumpScreen(tester);
 
       // 4 presets + the "System notifications" opt-in (M6).
-      expect(find.byType(SwitchListTile), findsNWidgets(5));
+      // 4 presets; the "System notifications" opt-in (M6) sits below them and a
+      // ListView only builds what it may show, so an exact total here would be a
+      // bet on the test viewport — B33's row menu made the row narrower, and this
+      // assertion is about the switches existing, not about the scroll extent.
+      expect(find.byType(SwitchListTile), findsAtLeastNWidgets(4));
       for (final label in [
-        'Vitamine D',
         'Vitamine K',
         'Nettoyage des yeux',
         'Nettoyage du visage'
       ]) {
         expect(_isOn(tester, label), isTrue, reason: label);
       }
+      expect(find.text('Vitamine D'), findsOneWidget,
+          reason:
+              'off by default means hidden from the due list, not from the list');
+      expect(_isOn(tester, 'Vitamine D'), isFalse);
     });
 
     testWidgets('un rappel déjà éteint est affiché éteint', (tester) async {
@@ -250,7 +268,7 @@ void main() {
       await pumpScreen(tester);
 
       expect(_isOn(tester, 'Nettoyage des yeux'), isFalse);
-      expect(_isOn(tester, 'Vitamine D'), isTrue);
+      expect(_isOn(tester, 'Vitamine K'), isTrue);
     });
 
     testWidgets('un enabled enregistré true laisse le rappel activé',
@@ -264,6 +282,10 @@ void main() {
 
     testWidgets('éteindre un rappel l\'enregistre et le switch reste éteint',
         (tester) async {
+      // The v1.3.x state after the v14 seed: an explicit row, switch on. This is
+      // the path B6's decision A is about — keeping the reminder "until manual
+      // turning off", and the turning-off having to be possible.
+      mockReminders.enabledById['vitamine_d'] = true;
       await pumpScreen(tester);
 
       await tester.tap(_switchFor('Vitamine D'));
@@ -299,7 +321,11 @@ void main() {
       await pumpScreen(tester);
 
       // 4 presets + the "System notifications" opt-in (M6).
-      expect(find.byType(SwitchListTile), findsNWidgets(5));
+      // 4 presets; the "System notifications" opt-in (M6) sits below them and a
+      // ListView only builds what it may show, so an exact total here would be a
+      // bet on the test viewport — B33's row menu made the row narrower, and this
+      // assertion is about the switches existing, not about the scroll extent.
+      expect(find.byType(SwitchListTile), findsAtLeastNWidgets(4));
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
   });
@@ -376,7 +402,10 @@ void main() {
 
       await pumpScreen(tester);
 
-      expect(find.text('Le 15 de chaque mois'), findsNWidgets(2));
+      // Only the custom reminder now claims the birth day: vitamin K became a
+      // one-shot (B33 Part 1) and names its own date instead.
+      expect(find.text('Le 15 de chaque mois'), findsOneWidget);
+      expect(find.text('Une seule fois, le 15/02/2026'), findsOneWidget);
     });
 
     testWidgets(
@@ -434,6 +463,15 @@ void main() {
         (tester) async {
       await pumpScreen(tester);
 
+      final haptics = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'HapticFeedback.vibrate') haptics.add(call);
+        return null;
+      });
+      addTearDown(() => tester.binding.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null));
+
       await tapRow(tester, find.text('Ajouter un rappel'));
       expect(find.text('Nouveau rappel'), findsOneWidget);
 
@@ -449,6 +487,15 @@ void main() {
           'Sérum visage');
       expect(find.byType(CustomReminderTile), findsOneWidget);
       expect(find.text('Sérum visage'), findsOneWidget);
+
+      // B17 — a creation is felt at the moment it commits, with one magnitude for
+      // every creation in the app. Emulators do not vibrate: what is pinned here is
+      // that the platform was asked for `selectionClick`, nothing more.
+      expect(
+        haptics.map((call) => call.arguments),
+        contains('HapticFeedbackType.selectionClick'),
+        reason: 'custom-reminder creation used to be silent to the finger',
+      );
       // Nothing is modal anymore: the screen has reappeared, ready for a second input.
       expect(find.text('Nouveau rappel'), findsNothing);
     });
@@ -608,6 +655,162 @@ void main() {
     });
   });
 
+  // BACKLOG B30: the hour lives on the row. What the parent must see is the
+  // hour that *applies*, marked as inherited or as their own — and the way to
+  // change both.
+  group('per-reminder hour (B30)', () {
+    testWidgets('every row shows the global hour, marked as inherited',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      await pumpScreen(tester);
+
+      // Four presets, all without an hour of their own.
+      expect(find.text('À 20:30 (par défaut)'), findsNWidgets(4));
+      expect(find.byTooltip('Utiliser l\'heure par défaut'), findsNothing,
+          reason: 'nothing to take back on a row that never set one');
+    });
+
+    testWidgets('a row with its own hour shows it, and offers to let go of it',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      mockReminders.timeOfDayById['eye_cleaning'] = '06:15';
+      await pumpScreen(tester);
+
+      expect(find.text('À 06:15'), findsOneWidget);
+      expect(find.byTooltip('Utiliser l\'heure par défaut'), findsOneWidget);
+      expect(find.text('À 20:30 (par défaut)'), findsNWidgets(3),
+          reason: 'the other three still inherit');
+    });
+
+    testWidgets('tapping the hour opens the picker for this reminder',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      await pumpScreen(tester);
+
+      await tester.tap(find.text('À 20:30 (par défaut)').first);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TimePickerDialog), findsOneWidget);
+      expect(find.text('Heure de notification de ce rappel'), findsOneWidget);
+    });
+
+    testWidgets('a custom reminder row shows its own hour too (B30 parity)',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      mockReminders.customRemindersById[7] = const CustomReminder(
+        id: 7,
+        label: 'Crème du change',
+        subtypeValue: 'nettoyage_nez',
+        frequency: ReminderFrequency.daily(),
+      );
+      mockReminders.timeOfDayById['custom_7'] = '06:15';
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            remindersRepositoryProvider
+                .overrideWith((ref) async => mockReminders),
+            activeBabyProvider.overrideWith(() => _ActiveBabyStub(_baby)),
+            appSettingsRepositoryProvider
+                .overrideWith((ref) async => fakeSettings),
+            localNotificationServiceProvider
+                .overrideWith((ref) async => fakeNotifications),
+            babyProfileListProvider.overrideWith((ref) async => [_baby]),
+            localeProvider.overrideWith(_FrLocaleNotifier.new),
+          ],
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr'), Locale('en')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: const ReminderSettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // B30 §6: the custom row carries the same control as a preset row — the
+      // mirror defect (UI sets an hour the scheduler never reads) must not be
+      // possible for either kind.
+      // The row sits below the fold in a lazily built list — the group's own
+      // helper scrolls before it taps, and the same applies to a finder.
+      await tester.scrollUntilVisible(
+        find.text('Crème du change'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(CustomReminderTile),
+          matching: find.textContaining('06:15'),
+        ),
+        findsOneWidget,
+        reason: 'the custom row carries the same hour line as a preset row',
+      );
+      expect(find.byTooltip('Utiliser l\'heure par défaut'), findsOneWidget);
+    });
+
+    testWidgets('confirming the picker stores the hour for that reminder only',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      await pumpScreen(tester);
+
+      await tester.tap(find.text('À 20:30 (par défaut)').first);
+      await tester.pumpAndSettle();
+      // Accepted as it opens: the picker starts at the hour the row actually
+      // uses, so confirming without typing stores 20:30 as its own.
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(mockReminders.setItemTimeCallCount, 1);
+      expect(mockReminders.timeOfDayById['vitamine_d'], '20:30',
+          reason: 'the first preset row is the one that was tapped');
+      expect(mockReminders.timeOfDayById.keys, hasLength(1),
+          reason: 'the other reminders keep inheriting');
+      expect(find.text('À 20:30 (par défaut)'), findsNWidgets(3));
+    });
+
+    testWidgets('the reset button writes the hour back to inherited',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      mockReminders.enabledById['eye_cleaning'] = false;
+      mockReminders.timeOfDayById['eye_cleaning'] = '06:15';
+      await pumpScreen(tester);
+
+      await tester.tap(find.byTooltip('Utiliser l\'heure par défaut'));
+      await tester.pumpAndSettle();
+
+      expect(mockReminders.clearItemTimeCallCount, 1);
+      expect(mockReminders.timeOfDayById, isEmpty);
+      expect(mockReminders.enabledById['eye_cleaning'], isFalse,
+          reason: 'letting go of an hour must not touch the switch (B6 state)');
+      expect(find.text('À 06:15'), findsNothing);
+      expect(find.text('À 20:30 (par défaut)'), findsNWidgets(4));
+    });
+
+    testWidgets('a custom reminder row shows its hour too, same control',
+        (tester) async {
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      mockReminders.customRemindersById[4] = CustomReminder(
+        id: 4,
+        label: 'Crème du change',
+        frequency: const Daily(),
+        subtypeValue: 'nettoyage_nez',
+        completionSource: completionFromEvents,
+      );
+      mockReminders.timeOfDayById['custom_4'] = '17:45';
+      await pumpScreen(tester);
+
+      expect(find.text('Crème du change'), findsOneWidget);
+      expect(find.text('À 17:45'), findsOneWidget);
+    });
+  });
+
   group('System notifications section (M6, D8)', () {
     final optInLabel = 'Me notifier quand un rappel est dû';
 
@@ -659,6 +862,11 @@ void main() {
 
     testWidgets('ON asks the OS, persists 1 on grant and schedules now',
         (tester) async {
+      // This section is about the OS opt-in, so the plan is the one an install
+      // upgraded from 1.3.x has: the v14 seed left an explicit vitamin D row
+      // (D-R1), so all four presets are pending. A baby created on 1.4.0 gets
+      // three — asserted in reminder_scheduler_test.dart.
+      mockReminders.enabledById['vitamine_d'] = true;
       await pumpScreen(tester);
       await toggleOptIn(tester);
 
@@ -713,6 +921,10 @@ void main() {
       // No tap: the first frame's sync did the work. Tapping here would be a
       // fresh opt-in and would ask the OS, which is not what this asserts.
       expect(fakeSettings.values[settingsKeyNotificationsOptIn], '0');
+      // The section is below the fold (a ListView builds what it may show), so
+      // bring it on stage before reading its switch — the same reason the custom
+      // rows above scroll before tapping.
+      await revealOptIn(tester);
       expect(_isOn(tester, optInLabel), isFalse);
       // Reflecting reality is not the same as re-asking: no prompt here.
       expect(fakeNotifications.ensurePermissionCalls, 0);
@@ -724,6 +936,8 @@ void main() {
     testWidgets('turning it off persists 0 and cancels every notification',
         (tester) async {
       fakeSettings.values[settingsKeyNotificationsOptIn] = '1';
+      // Upgraded-install state, see the opt-in test above: four presets pending.
+      mockReminders.enabledById['vitamine_d'] = true;
       // With the lifecycle observer, so the start-up sync really schedules the
       // four entries this test then expects cancelAll() to clear.
       await pumpScreen(tester, withLifecycle: true);
@@ -763,6 +977,8 @@ void main() {
     test('persists zero-padded HH:mm and reconciles through the sync cycle',
         () async {
       fakeSettings.values[settingsKeyNotificationsOptIn] = '1';
+      // Upgraded-install plan: four presets pending, see the opt-in tests above.
+      mockReminders.enabledById['vitamine_d'] = true;
       final container = ProviderContainer(
         overrides: [
           remindersRepositoryProvider

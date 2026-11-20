@@ -1,0 +1,5 @@
+• Définissez une heure, une fréquence ("une seule fois") et une date de fin pour un rappel.
+• Renommez ou supprimez un rappel suggéré, et restaurez-en un.
+• Ajoutez une note lorsque vous enregistrez une information, tant qu'elle est toujours valide.
+• Appuyez sur une notification pour accéder à la page d'accueil de ce bébé.
+• Modifiez le nom du bébé dans le titre de la page d'accueil, et filtrez l'historique par mesures.

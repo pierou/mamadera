@@ -8,6 +8,7 @@ import '../../data/repositories/reminders_repository_impl.dart';
 import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_item.dart';
 import '../../domain/repositories/reminders_repository.dart';
+import '../../domain/services/effective_reminders.dart';
 import '../../domain/services/reminders_service.dart';
 import 'custom_reminders_notifier.dart';
 import 'reminder_settings_notifier.dart';
@@ -71,20 +72,32 @@ final customReminderItemsProvider =
 });
 
 /// The reminders that can actually surface: presets plus custom ones, minus
-/// those the parent disabled in Settings → Reminders.
+/// those the parent turned off in Settings → Reminders.
 ///
 /// The filtering is done here, not in [RemindersService]: a disabled reminder
 /// must not add a `getLastCompleted` query to every five-minute check. A key
-/// missing from the `reminderSettingsProvider` defaults to enabled, and the
-/// custom family obeys the same table — a turned-off `custom_7` is stored
-/// exactly like a turned-off `vitamine_d`.
+/// missing from the `reminderSettingsProvider` means "never touched" and
+/// resolves to the item's own `enabledByDefault` (B6: vitamin D off, everything
+/// else on), and the custom family obeys the same table — a turned-off
+/// `custom_7` is stored exactly like a turned-off `vitamine_d`.
 final enabledRemindersProvider =
     FutureProvider<List<ReminderItem>>((ref) async {
+  final profile = await ref.watch(activeBabyProvider.future);
   final presets = await ref.watch(dynamicRemindersProvider.future);
   final custom = await ref.watch(customReminderItemsProvider.future);
   final settings = await ref.watch(reminderSettingsProvider.future);
-  return [...presets, ...custom]
-      .where((item) => settings[item.id] ?? true)
+  // B33 (D-R2): overrides, removal and the resolved end come from the same domain
+  // function the settings list and the notification scheduler call — three
+  // consumers, one reading of the row. Then, and only then, the enabled filter:
+  // a reminder that is renamed, re-paced or ended is still listed in Settings with
+  // its switch off, but it must not surface on Home.
+  final effective = effectiveItemsForScope(
+    items: [...presets, ...custom],
+    settings: settings,
+    profile: profile,
+  );
+  return effective
+      .where((item) => settings[item.id]?.enabled ?? item.enabledByDefault)
       .toList();
 });
 

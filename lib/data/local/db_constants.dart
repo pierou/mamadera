@@ -17,7 +17,37 @@ const Set<String> allTypeValues = {
   typeDodo,
 };
 
-// ── Custom reminder frequency codes (match `custom_reminders.frequency`) ───
+// ── The v14 vitamin D seed (BACKLOG B6, PLAN-v1.4.0 D-R1) ───────────────────
+
+/// The statement that gives every **pre-existing scope** an explicit
+/// `enabled = 1` vitamin D row when it has none.
+///
+/// Lives here, next to the other permanently engraved values, because two
+/// different code paths need the *identical* statement:
+///
+/// * the schema v13 → v14 migration, where it is what keeps an existing parent's
+///   reminder on while the app's default flips to off (B6);
+/// * the backup restore, for documents written **before export format 5**: in
+///   those files an absent vitamin D row still meant "on", and the restore
+///   deletes every row before inserting, so replaying such a file without this
+///   statement would silently switch the reminder off on a parent who never
+///   turned it off.
+///
+/// INSERT-only and guarded by `NOT EXISTS`: it writes `enabled = 1` or nothing,
+/// never 0, and never touches a row that exists — a parent who turned the
+/// reminder off keeps it off. Idempotent by construction.
+const String vitaminDSeedInsert = '''
+  INSERT INTO reminder_settings (baby_id, item_id, enabled)
+  SELECT s.baby_id, 'vitamine_d', 1
+  FROM (SELECT '' AS baby_id UNION ALL SELECT id FROM baby_profiles) s
+  WHERE NOT EXISTS (
+    SELECT 1 FROM reminder_settings r
+    WHERE r.baby_id = s.baby_id AND r.item_id = 'vitamine_d'
+  )
+''';
+
+// ── Custom reminder frequency codes (match `custom_reminders.frequency`,
+//    and from v14 `reminder_settings.frequency`) ───
 
 // Permanently engraved in existing databases and read back verbatim from
 // backup JSON files: renaming one would silently change the meaning of every
@@ -37,12 +67,19 @@ const String freqMonthly = 'monthly';
 /// Sliding rhythm: due every `interval_days` days after the last completion.
 const String freqEveryNDays = 'every_n_days';
 
+/// Single occurrence on a date (B33 Part 1, D-R5 form 1) — the date itself is
+/// the occurrence, stored in `frequency_date`. Never a rhythm: once settled the
+/// reminder is done (D-R7), which is why this code needs its companion column
+/// and nothing else.
+const String freqOneTime = 'one_time';
+
 /// All valid frequency codes. The importer validates against this set.
 const Set<String> allFrequencyValues = {
   freqDaily,
   freqWeekly,
   freqMonthly,
   freqEveryNDays,
+  freqOneTime,
 };
 
 // ── Growth measurement kinds (`measurements.kind`) ─────────────────────

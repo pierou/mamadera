@@ -79,6 +79,12 @@ HEADLINES = {
     # Fix release: the headline is the reminders list itself — the stem
     # "vitamin" is what all three notes carry (Vitamin / vitamine / vitamina).
     "1.3.2": ("vitamin", "the full reminders list for the selected baby"),
+    # Reminder release: the headline is the reminder you can time. The stem is the
+    # cognate all three notes carry — en/fr "notification", es "notificación" — and
+    # it is verified against the shipped v1.3.2 notes, where both translations kept
+    # the same root. If a future release notes file loses it, that is the day the
+    # headline stopped being the story, and the check says so.
+    "1.4.0": ("notific", "the reminder you can time"),
 }
 
 

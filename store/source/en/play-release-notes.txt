@@ -1,1 +1,5 @@
-• Fixed a rare case where the reminders settings listed only Vitamin D and K while eye and face cleaning notifications kept firing
+• Give a reminder its own time, a "once" frequency, and an end
+• Rename or remove a suggested reminder, and bring one back
+• Add a note when you log a feed, while it is still true
+• Tap a notification to land on that baby's Home
+• Switch baby from the Home title, and filter History by measurements

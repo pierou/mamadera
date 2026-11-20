@@ -104,6 +104,26 @@ void main() {
         expect(rows.first.notes, isNot(contains('sleeping in crib')));
       });
 
+      test('a nap writes its minutes once, in duration (B13)', () async {
+        // The mirror this test forbids used to be written by the home track path:
+        // the same 45 in `duration` and in `quantity`, which the tile then printed
+        // under two labels. `quantity` is a feed's field (ml/g) — a nap leaves it
+        // NULL, and there is no longer an entity field that could fill it.
+        final event = SleepEvent(
+          unit: QuantityUnit.min,
+          timestamp: DateTime.utc(2024, 1, 1, 14, 0),
+          duration: 45,
+          babyId: 'b1',
+        );
+        await repository.insertEvent(event);
+
+        final row =
+            (await database.select(database.trackingEvents).get()).single;
+        expect(row.duration, 45.0);
+        expect(row.quantity, isNull);
+        expect(row.unit, 'min', reason: 'the row still renders from data');
+      });
+
       test('encrypts notes for DiaperEvent', () async {
         final event = DiaperEvent(
           timestamp: DateTime.utc(2024, 1, 1, 8, 0),

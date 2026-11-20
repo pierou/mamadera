@@ -271,6 +271,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reminderNotificationsTimeLabel => 'Hora de la notificación';
 
   @override
+  String reminderHourOwn(Object time) {
+    return 'A las $time';
+  }
+
+  @override
+  String reminderHourInherited(Object time) {
+    return 'A las $time (predeterminada)';
+  }
+
+  @override
+  String get reminderHourPickerTitle =>
+      'Hora de notificación de este recordatorio';
+
+  @override
+  String get reminderHourUseDefault => 'Usar la hora predeterminada';
+
+  @override
   String get reminderNotificationsPermissionDenied =>
       'Las notificaciones están desactivadas en la configuración del sistema. Actívalas allí para recibir las notificaciones de recordatorio.';
 
@@ -289,6 +306,77 @@ class AppLocalizationsEs extends AppLocalizations {
   String reminderFrequencyEveryNDays(Object days) {
     return 'Cada $days días';
   }
+
+  @override
+  String reminderFrequencyOneTime(Object date) {
+    return 'Una sola vez, el $date';
+  }
+
+  @override
+  String get reminderFrequencyOneTimeNow => 'Una sola vez, lo antes posible';
+
+  @override
+  String get reminderSettingsRemovedSectionTitle => 'Eliminados';
+
+  @override
+  String get reminderSettingsRemovedDescription =>
+      'Un recordatorio eliminado sale de la pantalla de inicio, de esta lista y de las notificaciones. Un toque lo devuelve con todos sus ajustes.';
+
+  @override
+  String get reminderActionRestore => 'Restaurar';
+
+  @override
+  String get reminderActionRemove => 'Eliminar';
+
+  @override
+  String get reminderPresetEditTitle => 'Editar recordatorio';
+
+  @override
+  String get reminderEndSectionTitle => 'Fin';
+
+  @override
+  String get reminderEndNone => 'Sin fin';
+
+  @override
+  String get reminderEndOnDate => 'En una fecha';
+
+  @override
+  String get reminderEndAtAge => 'A una edad';
+
+  @override
+  String reminderEndAgeValue(Object months) {
+    return '$months meses';
+  }
+
+  @override
+  String reminderEndUntilDate(Object date) {
+    return 'Hasta el $date';
+  }
+
+  @override
+  String reminderEndAgeResolved(Object months, Object date) {
+    return 'Hasta $months meses — $date';
+  }
+
+  @override
+  String get reminderEndNeedsBirthdate =>
+      'Se necesita la fecha de nacimiento para finalizar un recordatorio a una edad.';
+
+  @override
+  String get reminderEndAlreadyPast =>
+      'Ese día ya pasó: el recordatorio se detiene de inmediato.';
+
+  @override
+  String get reminderFrequencyOnceChoice => 'Una vez';
+
+  @override
+  String get reminderFrequencyReset => 'Volver al ritmo predeterminado';
+
+  @override
+  String get reminderLabelReset => 'Volver al nombre predeterminado';
+
+  @override
+  String get reminderOneTimeNeedsDate => 'Elige el día en que debe ocurrir.';
 
   @override
   String get reminderCustomSectionTitle => 'Recordatorios personalizados';
@@ -347,6 +435,12 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get reminderCustomSaveError =>
       'No se pudo guardar el recordatorio. Inténtalo de nuevo.';
+
+  @override
+  String get reminderCustomAdded => 'Recordatorio añadido';
+
+  @override
+  String get reminderCustomUpdated => 'Recordatorio actualizado';
 
   @override
   String get reminderCustomDeleteError =>
@@ -463,6 +557,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get filterSante => 'Salud';
+
+  @override
+  String get filterMeasurements => 'Medidas';
 
   @override
   String get noEvents => 'Sin eventos';

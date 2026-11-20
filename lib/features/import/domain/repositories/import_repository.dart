@@ -150,6 +150,7 @@ class ImportedCustomReminder {
     required this.subtypeValue,
     required this.frequency,
     required this.intervalDays,
+    required this.frequencyDate,
     required this.babyId,
     required this.completionSource,
   });
@@ -167,11 +168,20 @@ class ImportedCustomReminder {
   /// "Fait" can be completed using a tap. Format-1 files always contain a value.
   final String? subtypeValue;
 
-  /// Stored frequency code (`daily` | `weekly` | `monthly` | `every_n_days`).
+  /// Stored frequency code (`daily` | `weekly` | `monthly` | `every_n_days` |
+  /// `one_time`).
   final String frequency;
 
   /// Roll length in days, only meaningful for `every_n_days`.
   final int? intervalDays;
+
+  /// The occurrence day (`'yyyy-MM-dd'`), only meaningful for `one_time` (B33).
+  ///
+  /// Absent in every file before v14: no reminder was ever a one-shot, so
+  /// `null` for an older file is not a loss. Present for `one_time` — the parser
+  /// refuses the pairing `one_time` without a real date, which is the same
+  /// write-strict rule the picker follows (D-R5, D-R8).
+  final String? frequencyDate;
 
   /// `''` = reminder shared by every baby (sentinel, never null); format-1
   /// files omit the field and read as shared.
@@ -190,6 +200,14 @@ class ImportedReminderSetting {
     required this.babyId,
     required this.itemId,
     required this.enabled,
+    this.timeOfDay,
+    this.label,
+    this.frequency,
+    this.intervalDays,
+    this.frequencyDate,
+    this.endDate,
+    this.endAgeMonths,
+    this.removed = false,
   });
 
   /// `''` = shared by every baby (sentinel); format-1 files omit the field
@@ -201,6 +219,44 @@ class ImportedReminderSetting {
 
   /// Whether the parent left this reminder switched on.
   final bool enabled;
+
+  /// The reminder's own notification hour, `'HH:mm'` (format 5, B30).
+  ///
+  /// `null` — or the key being absent, which is every file before format 5 —
+  /// means **inherit the installation-wide hour**. A present value is validated
+  /// by the parser: the importer refuses an hour that does not exist rather than
+  /// restoring a schedule nobody asked for (write-strict, the split
+  /// `notification_time.dart` documents).
+  final String? timeOfDay;
+
+  // ── The rest of the row (B33, format 5) ────────────────────────────────
+  //
+  // Every key is optional: a file written before format 5 has none of them, and
+  // "absent" there is not a loss — no reminder had a nickname, an override, an end
+  // or a removal state to lose. A *present* value is validated, and a row that
+  // contradicts itself (an end on a one-shot, an occurrence date on a daily) is
+  // refused rather than resolved by a rule the file's author never chose.
+
+  /// Preset label override (D-R6), the parent's wording.
+  final String? label;
+
+  /// Frequency override, a stored code (B33).
+  final String? frequency;
+
+  /// `interval_days` for an `every_n_days` override.
+  final int? intervalDays;
+
+  /// `frequency_date` for a `one_time` override, `'yyyy-MM-dd'`.
+  final String? frequencyDate;
+
+  /// `end_date`, `'yyyy-MM-dd'` (D-R5 form 2).
+  final String? endDate;
+
+  /// `end_age_months`, whole months 0-180 (D-R5 form 3).
+  final int? endAgeMonths;
+
+  /// The removed state (D-R2/D-R4): hidden and unscheduled, still restorable.
+  final bool removed;
 }
 
 /// A `reminder_dismissals` row as read from a backup document.
@@ -309,6 +365,7 @@ class ImportedAppSetting {
 /// [DateTime]s and strings so it can cross an isolate boundary.
 class ParsedExport {
   const ParsedExport({
+    required this.formatVersion,
     required this.babyProfiles,
     required this.trackingEvents,
     required this.customReminders,
@@ -318,6 +375,13 @@ class ParsedExport {
     this.reminderCompletions = const [],
     this.appSettings = const [],
   });
+
+  /// The document's `exportFormatVersion`, kept because the restore is not a
+  /// pure replay: a file written before format 5 predates the per-item hour and
+  /// the v14 vitamin D seed, and an absent row meant **"on"** back then. The
+  /// restore translates that meaning instead of losing it (see
+  /// `ImportRepositoryImpl.restore`, which re-seeds for those files only).
+  final int formatVersion;
 
   /// Profiles to restore.
   final List<ImportedBabyProfile> babyProfiles;

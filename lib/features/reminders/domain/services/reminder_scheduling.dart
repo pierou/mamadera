@@ -6,7 +6,12 @@ import '../entities/reminder_item.dart';
 ///
 /// - `result <= now` ⇒ the item is due RIGHT NOW — the caller converts this to
 ///   the D3 catch-up (one notification ~60 s later);
-/// - `result  > now` ⇒ wait until `result`.
+/// - `result  > now` ⇒ wait until `result`;
+/// - `null` ⇒ this item can **no longer** be due (B33): a one-shot already
+///   settled (D-R7), or a series that has run past its end (D-R5). The caller
+///   drops it from the plan and the existing diff cancels its notification —
+///   which is why this returns a nullable rather than a sentinel date: a made-up
+///   "never" instant would eventually be reached and fire.
 ///
 /// All comparisons are device-local wall clock. [lastDismissal] suppression is
 /// `lastDismissal + dismissalWindow` (24 h default, mirroring the
@@ -20,7 +25,7 @@ import '../entities/reminder_item.dart';
 // Lint note: the plan's §3.2 signature listed the two nullable lookups in
 // the middle; always_put_required_named_parameters_first forces required
 // parameters first, so the order here is a cosmetic re-ordering only.
-DateTime nextDueAt(
+DateTime? nextDueAt(
   ReminderItem item, {
   required DateTime now,
   required Duration dismissalWindow,
@@ -29,6 +34,24 @@ DateTime nextDueAt(
   DateTime? lastCompleted,
   DateTime? lastDismissal,
 }) {
+  // B33/D-R5: nothing left to schedule. Three callers land here — a completed
+  // one-shot, a series whose end has passed, and (via the scheduler) a removed
+  // row — and all three mean the same thing to the caller: drop the item from
+  // the plan, which makes the existing `_PlanEntry` diff cancel the OS
+  // notification. One mechanism, not three (D-R7).
+  // The end arrives already resolved on the item, by `effectiveItemsForScope`
+  // (D-R2): one place reads the two columns and the scope's birthdate, so the
+  // list, Home and the OS schedule cannot disagree about when a series stops.
+  final endsAt = item.endsAt;
+  if (isPastSeriesEnd(now, endsAt)) return null;
+  if (lastCompleted != null && item.frequency is OneTime) {
+    // D-R7: a settled one-shot never recurs — not "later", **never**. Without
+    // this branch the suppression logic below would read "completed today" and
+    // cheerfully propose tomorrow, which is the monthly reminder the one-shot
+    // replaced.
+    return null;
+  }
+
   final suppressedUntil =
       _suppressedUntil(now, lastCompleted, lastDismissal, dismissalWindow);
   var candidate = _naturalCandidate(
@@ -51,9 +74,13 @@ DateTime nextDueAt(
   }
   // The due window is open and the fire moment passed while the app was
   // closed ⇒ due now (D3 catch-up, scheduled by the caller ~60 s out).
-  return candidate.isBefore(now) || candidate.isAtSameMomentAs(now)
+  final resolved = candidate.isBefore(now) || candidate.isAtSameMomentAs(now)
       ? now
       : candidate;
+  // An occurrence that would fall after the end day does not exist (the end
+  // date itself is inclusive). A due-now item inside the end day still fires.
+  if (endsAt != null && resolved.isAfter(seriesEndExpiry(endsAt))) return null;
+  return resolved;
 }
 
 /// `max(end-of-today if completed today, lastDismissal + window, epoch)`.
@@ -156,6 +183,15 @@ DateTime _naturalCandidate(
           preferredMinute,
         );
       },
+      oneTime: (freq) {
+        // The occurrence day at the item's own hour (B30's per-item hour feeds
+        // `preferredHour` like any other frequency). A dateless one-shot is
+        // D-R8's tolerant read: due now, so the next sync settles it.
+        final date = freq.date;
+        if (date == null) return now;
+        return _at(
+            date.year, date.month, date.day, preferredHour, preferredMinute);
+      },
     );
 
 /// One period later (step 2 of the §3.4 universal resolution): a day for
@@ -190,6 +226,10 @@ DateTime _advancePeriod(
           suppressedUntil
           : _at(from.year, from.month, from.day + freq.days, preferredHour,
               preferredMinute),
+      // A one-shot has no next period, so "advance" means only: let go of the
+      // snooze. There is no second occurrence to skip to — the loop runs once
+      // and the item is due when the dismissal window closes.
+      oneTime: (_) => suppressedUntil,
     );
 
 /// [hour]:[minute] on the given calendar day. If the instant does not exist

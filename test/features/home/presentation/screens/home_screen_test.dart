@@ -28,9 +28,11 @@ import 'package:mamadera/features/history/presentation/screens/history_screen.da
 import 'package:mamadera/features/home/domain/repositories/tracking_repository.dart';
 import 'package:mamadera/features/home/presentation/providers/repository_provider.dart';
 import 'package:mamadera/features/home/presentation/screens/home_screen.dart';
+import 'package:mamadera/features/home/presentation/widgets/health_subtype_dialog.dart';
 import 'package:mamadera/features/home/presentation/widgets/onboarding_dialog.dart';
 import 'package:mamadera/features/home/presentation/widgets/track_button.dart';
 import 'package:mamadera/features/menu/presentation/screens/menu_screen.dart';
+import 'package:mamadera/features/reminders/presentation/providers/pending_care_sheet.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
 import 'package:mamadera/features/reminders/presentation/widgets/reminder_row.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
@@ -52,6 +54,16 @@ Finder findTrackButton(String label) {
 }
 
 @GenerateNiceMocks([MockSpec<TrackingRepository>()])
+
+/// The request a notification tap would have left behind (B15, D-R9).
+class _PreSeededCareSheetNotifier extends PendingCareSheetNotifier {
+  @override
+  PendingCareSheet? build() => const PendingCareSheet(
+        subtype: HealthSubtype.nettoyageYeux,
+        itemId: 'eye_cleaning',
+      );
+}
+
 void main() {
   late MockTrackingRepository mockRepo;
 
@@ -184,6 +196,12 @@ void main() {
     Future<void> pumpHomeWithDueReminders(WidgetTester tester) async {
       tester.view.physicalSize = const Size(600, 900);
 
+      // The four preset rows are what this group counts, so vitamin D needs an
+      // explicit row: since B6 its own default is off and the fourth row would
+      // simply not render. The default is covered in reminder_settings_test.dart.
+      final remindersRepo = MockRemindersRepository()
+        ..enabledById['vitamine_d'] = true;
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -195,7 +213,7 @@ void main() {
             activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
             anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
             remindersRepositoryProvider
-                .overrideWith((ref) async => MockRemindersRepository()),
+                .overrideWith((ref) async => remindersRepo),
             reminderNotifierProvider.overrideWith(NoPollRemindersNotifier.new),
           ],
           child: MaterialApp(
@@ -382,6 +400,39 @@ void main() {
 
       // A bottom sheet needs to be opened (the food tracking dialog).
       expect(find.byType(BottomSheet), findsOneWidget);
+    });
+
+    testWidgets('a note written at creation reaches the inserted row (B16)',
+        (tester) async {
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      when(mockRepo.insertEvent(any)).thenAnswer((_) async => 1);
+
+      await tester.tap(find.text('Nourriture'));
+      await tester.pumpAndSettle();
+
+      final noteField = find.byKey(const ValueKey('feeding-note-field'));
+      expect(noteField, findsOneWidget,
+          reason: 'the note is asked where the feeding is created');
+
+      await tester.ensureVisible(noteField);
+      await tester.pumpAndSettle();
+      await tester.enterText(noteField, '  sein gauche refusé  ');
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Confirmer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Confirmer'));
+      await tester.pumpAndSettle();
+
+      final event = verify(mockRepo.insertEvent(captureAny)).captured.single!
+          as FeedingEvent;
+      expect(event.notes, 'sein gauche refusé',
+          reason: 'trimmed on the way out of the dialog, encrypted by the '
+              'repository on the way in — the UI never touches crypto');
     });
 
     testWidgets('tap Sante -> ouverture HealthSubtypeDialog', (tester) async {
@@ -802,6 +853,86 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(OnboardingDialog), findsNothing);
+    });
+  });
+
+  // B15 / D-R9, the Home half: a notification tap for a treatment-linked reminder
+  // navigates Home and leaves a request; Home opens the care sheet with that care
+  // already selected. What the sheet's confirm writes is the sheet's own contract
+  // (already covered by the care-flow tests) — what this pins is that the tap
+  // arrives *pre-filled*, and that it arrives once.
+  group('Care sheet requested by a notification tap', () {
+    /// The same harness as `pumpHome`, with the request a notification tap would
+    /// have left behind. A per-group pump is this file's existing idiom (see
+    /// `pumpHomeWithDueReminders`): Riverpod 3's curated export surface does not
+    /// name the element type of `ProviderScope.overrides`, so `pumpHome` cannot take
+    /// an extra-override parameter to be threaded through.
+    Future<void> pumpHomeWithCareRequest(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(600, 900);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
+            trackingRepositoryProvider.overrideWith((ref) async => mockRepo),
+            measurementNotifierProvider
+                .overrideWith(() => TestMeasurementNotifier(const [])),
+            activeBabyProvider.overrideWith(TestActiveBabyNotifier.new),
+            anyBabyExistsProvider.overrideWith(TestAnyBabyExistsNotifier.new),
+            reminderNotifierProvider.overrideWith(NoPollRemindersNotifier.new),
+            pendingCareSheetProvider
+                .overrideWith(() => _PreSeededCareSheetNotifier()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            theme: AppTheme.theme,
+            home: Scaffold(body: const HomeScreen()),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('opens the health sheet with the tapped care pre-selected',
+        (tester) async {
+      await pumpHomeWithCareRequest(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HealthSubtypeDialog), findsOneWidget);
+      // Exactly one row carries the selection marker, and it is the tapped care:
+      // the parent arrives one tap away from confirming, not at an empty list.
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+      final selectedRow = find.ancestor(
+        of: find.byIcon(Icons.check_circle),
+        matching: find.byType(ListTile),
+      );
+      expect(selectedRow, findsOneWidget);
+      expect(
+        find.descendant(
+            of: selectedRow, matching: find.text('Nettoyage des yeux')),
+        findsOneWidget,
+        reason:
+            'the eye-cleaning row is the one a tap on that reminder pre-selects',
+      );
+    });
+
+    testWidgets('a tap consumes the request, so one tap is one sheet',
+        (tester) async {
+      await pumpHomeWithCareRequest(tester);
+      await tester.pumpAndSettle();
+      expect(find.byType(HealthSubtypeDialog), findsOneWidget);
+
+      // A rebuild (a tab switch back, a provider refresh) must not stack a second
+      // sheet: `take()` drained the request when the sheet opened.
+      await tester.pumpAndSettle();
+      expect(find.byType(HealthSubtypeDialog), findsOneWidget);
     });
   });
 }
