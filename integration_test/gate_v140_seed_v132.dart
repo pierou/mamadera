@@ -51,14 +51,14 @@ Future<void> hideKeyboard(WidgetTester tester) async {
 }
 
 /// Poll until [cond] is true or fail with [what].
-Future<void> waitUntil(WidgetTester tester, String what, bool Function() cond) async {
+Future<void> waitUntil(
+    WidgetTester tester, String what, bool Function() cond) async {
   for (var i = 0; i < 150; i++) {
     if (cond()) return;
     await tester.pump(const Duration(milliseconds: 200));
   }
   fail('timed out waiting for: $what');
 }
-
 
 /// Taps a bottom sheet's action button and proves it worked: the 1.3.2
 /// sheets overflow the 4-inch screen (Confirm rendered at y=657 on a 640px
@@ -75,7 +75,8 @@ Future<void> tapSheetConfirmed(WidgetTester tester, String label) async {
     await Future<void>.delayed(const Duration(milliseconds: 600));
     await tester.pump();
     if (find.text(label).evaluate().isEmpty) return;
-    print('[SEED] $label tap did not close the sheet (attempt $attempt) — closing keyboard, retrying');
+    print(
+        '[SEED] $label tap did not close the sheet (attempt $attempt) — closing keyboard, retrying');
     await hideKeyboard(tester);
   }
   fail('$label was never confirmed');
@@ -120,8 +121,13 @@ void main() {
     // 2. First-baby onboarding sheet: dave (birth fixed by SQL below).
     await tester.enterText(find.byType(TextField).first, 'dave');
     await hideKeyboard(tester);
-    await waitUntil(tester, 'the onboarding Confirm to be tappable',
-        () => find.widgetWithText(ElevatedButton, 'Confirm').evaluate().isNotEmpty);
+    await waitUntil(
+        tester,
+        'the onboarding Confirm to be tappable',
+        () => find
+            .widgetWithText(ElevatedButton, 'Confirm')
+            .evaluate()
+            .isNotEmpty);
     await tapSheetConfirmed(tester, 'Confirm');
     await waitUntil(tester, 'the onboarding sheet to close (dave created)',
         () => find.text('Welcome to Mamadera!').evaluate().isEmpty);
@@ -152,14 +158,16 @@ void main() {
     // 4. Second baby via the menu: bob.
     await tester.tap(findByKey(TestKeys.menuTab));
     await tester.pumpAndSettle();
-    await waitUntil(tester, 'the menu screen', () => find.text('Add Baby').evaluate().isNotEmpty);
+    await waitUntil(tester, 'the menu screen',
+        () => find.text('Add Baby').evaluate().isNotEmpty);
     await tester.tap(find.text('Add Baby'));
     await waitUntil(tester, 'the add-baby dialog',
         () => find.byType(TextField).evaluate().isNotEmpty);
     await tester.enterText(find.byType(TextField).first, 'bob');
     await hideKeyboard(tester);
     await tester.tap(find.widgetWithText(TextButton, 'Add Baby'));
-    await waitUntil(tester, 'bob in the profile list', () => find.text('bob').evaluate().isNotEmpty);
+    await waitUntil(tester, 'bob in the profile list',
+        () => find.text('bob').evaluate().isNotEmpty);
     print('[SEED] bob created');
 
     // 5. The M1 trap, planted honestly: Vitamin D manually OFF for dave
@@ -168,8 +176,13 @@ void main() {
     await Scrollable.ensureVisible(tester.element(settingsRow));
     await tester.pumpAndSettle();
     await tester.tap(settingsRow);
-    await waitUntil(tester, 'the reminder settings screen',
-        () => find.widgetWithText(SwitchListTile, 'Vitamin D').evaluate().isNotEmpty);
+    await waitUntil(
+        tester,
+        'the reminder settings screen',
+        () => find
+            .widgetWithText(SwitchListTile, 'Vitamin D')
+            .evaluate()
+            .isNotEmpty);
     final vitD = find.widgetWithText(SwitchListTile, 'Vitamin D');
     final sw = find.descendant(of: vitD, matching: find.byType(Switch)).first;
     expect((sw.evaluate().single.widget as Switch).value, isTrue,
@@ -187,8 +200,8 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
     // 6. Birthdates for the Vitamin K math (fixture adjustment, see header).
-    final container = ProviderScope.containerOf(
-        tester.element(find.byType(Scaffold).first));
+    final container =
+        ProviderScope.containerOf(tester.element(find.byType(Scaffold).first));
     final db = await container.read(databaseProvider.future);
     final dave = (await db
             .customSelect("SELECT id FROM baby_profiles WHERE name='dave'")
@@ -206,7 +219,8 @@ void main() {
 
     // 7. Dump the file database — the contract the post-upgrade leg verifies.
     final babies = await db
-        .customSelect('SELECT id, name, birth_date, is_active FROM baby_profiles ORDER BY name')
+        .customSelect(
+            'SELECT id, name, birth_date, is_active FROM baby_profiles ORDER BY name')
         .get();
     for (final r in babies) {
       print('[SEED-DB] baby_profiles: ${r.data}');
@@ -217,8 +231,9 @@ void main() {
     for (final r in settings) {
       print('[SEED-DB] reminder_settings: ${r.data}');
     }
-    final events =
-        await db.customSelect('SELECT COUNT(*) AS n FROM tracking_events').get();
+    final events = await db
+        .customSelect('SELECT COUNT(*) AS n FROM tracking_events')
+        .get();
     print('[SEED-DB] tracking_events: ${events.first.data['n']}');
     final version = await db.customSelect('PRAGMA user_version').get();
     print('[SEED-DB] user_version: ${version.first.data['user_version']}');

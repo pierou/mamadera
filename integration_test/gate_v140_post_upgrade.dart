@@ -120,8 +120,8 @@ Future<void> ensureHome(WidgetTester tester) async {
 }
 
 Future<AppDatabase> _db(WidgetTester tester) async {
-  final container = ProviderScope.containerOf(
-      tester.element(find.byType(Scaffold).first));
+  final container =
+      ProviderScope.containerOf(tester.element(find.byType(Scaffold).first));
   return container.read(databaseProvider.future);
 }
 
@@ -151,15 +151,11 @@ void main() {
     // Old data visible on the new build. The app bar title, the measurements
     // section and the reminder section all load asynchronously after launch —
     // wait for each marker instead of racing the first frame.
-    await waitUntil(
-        tester,
-        'the active baby on the app bar',
+    await waitUntil(tester, 'the active baby on the app bar',
         () => find.text('dave').evaluate().isNotEmpty);
     expect(find.text('dave'), findsWidgets,
         reason: 'the seeded active baby is on the app bar');
-    await waitUntil(
-        tester,
-        'the seeded weight on Home',
+    await waitUntil(tester, 'the seeded weight on Home',
         () => find.text('4.2 kg').evaluate().isNotEmpty);
     expect(find.text('4.2 kg'), findsWidgets,
         reason:
@@ -167,9 +163,7 @@ void main() {
     // The Home row resolves its label through the health subtype (the full
     // "Vitamin K", not the "Vit. K" short form of the reminder key) — the
     // diagnostic run proved the item is due; this text is what the row shows.
-    await waitUntil(
-        tester,
-        'the due Vitamin K row on Home',
+    await waitUntil(tester, 'the due Vitamin K row on Home',
         () => find.text('Vitamin K').evaluate().isNotEmpty);
     expect(find.text('Vitamin K'), findsWidgets,
         reason:
@@ -203,8 +197,9 @@ void main() {
     expect(bobRow['birth_date'], msLocal(2026, 10, 20));
 
     // Events and the measurement survive.
-    final events =
-        await db.customSelect('SELECT COUNT(*) AS n FROM tracking_events').get();
+    final events = await db
+        .customSelect('SELECT COUNT(*) AS n FROM tracking_events')
+        .get();
     expect(events.first.data['n'], 2,
         reason: 'feeding + sleep seeded by 1.3.2');
     final measures =
@@ -249,13 +244,15 @@ void main() {
     await _settleTap(tester, tile);
     // The settings list shows the full care name ("Vitamin D", per
     // _presetLabel's doc), not the Home abbreviation.
-    await waitUntil(tester, 'the reminder settings screen',
-        () => find.widgetWithText(SwitchListTile, 'Vitamin D')
+    await waitUntil(
+        tester,
+        'the reminder settings screen',
+        () => find
+            .widgetWithText(SwitchListTile, 'Vitamin D')
             .evaluate()
             .isNotEmpty);
     final vitD = find.widgetWithText(SwitchListTile, 'Vitamin D');
-    final sw =
-        find.descendant(of: vitD, matching: find.byType(Switch)).first;
+    final sw = find.descendant(of: vitD, matching: find.byType(Switch)).first;
     expect((sw.evaluate().single.widget as Switch).value, isFalse,
         reason: "the parent's off is still off, seen on the screen");
     await capture(tester, 'gate-v140-02-settings-vitd-off');
@@ -352,17 +349,20 @@ void main() {
     await Scrollable.ensureVisible(tester.element(tile));
     await tester.pumpAndSettle();
     await _settleTap(tester, tile);
-    await waitUntil(tester, 'the reminder settings screen',
-        () => find.widgetWithText(SwitchListTile, 'Vitamin D')
+    await waitUntil(
+        tester,
+        'the reminder settings screen',
+        () => find
+            .widgetWithText(SwitchListTile, 'Vitamin D')
             .evaluate()
             .isNotEmpty);
     final vitD = find.widgetWithText(SwitchListTile, 'Vitamin D');
-    final sw =
-        find.descendant(of: vitD, matching: find.byType(Switch)).first;
+    final sw = find.descendant(of: vitD, matching: find.byType(Switch)).first;
     expect((sw.evaluate().single.widget as Switch).value, isFalse,
         reason: 'B6 — a baby created under 1.4.0 starts with Vitamin D off');
     await capture(tester, 'gate-v140-03-newbaby-vitd-off');
-    print('[GATE-MARKER] test2 done — host: `adb shell dumpsys alarm | grep -c mamadera` must be 0 (no opt-in yet)');
+    print(
+        '[GATE-MARKER] test2 done — host: `adb shell dumpsys alarm | grep -c mamadera` must be 0 (no opt-in yet)');
     print('[GATE] B6 new-baby PASS');
   });
 
@@ -429,10 +429,7 @@ void main() {
     final plugin = FlutterLocalNotificationsPlugin();
     final pending = await plugin.pendingNotificationRequests();
     print('[GATE] pending OS requests after opt-in:\n    '
-        '${pending
-            .map((PendingNotificationRequest r) =>
-                '#${r.id} ${r.title} ${r.payload}')
-            .join('\n    ')}');
+        '${pending.map((PendingNotificationRequest r) => '#${r.id} ${r.title} ${r.payload}').join('\n    ')}');
 
     final db = await _db(tester);
     final bobId = (await db
@@ -447,8 +444,7 @@ void main() {
                 .encode())
         .toList();
     expect(kRequests, hasLength(1),
-        reason:
-            "bob's one-shot Vitamin K is armed exactly once (B33) — D6 "
+        reason: "bob's one-shot Vitamin K is armed exactly once (B33) — D6 "
             'schedules every baby, so the other scopes are in the plan too');
     print("[GATE] K-ARMED — bob's one-shot (birth + 1 month, at the global "
         "hour) is armed exactly once. D6 schedules every baby, so dave's "
@@ -489,8 +485,11 @@ void main() {
       if (find.byType(Dialog).evaluate().isEmpty) break;
       print('[GATE] confirm tap attempt $attempt did not close the sheet');
     }
-    await waitUntil(tester, 'the sheet to close (dose recorded)',
-        () => find.byType(Dialog).evaluate().isEmpty &&
+    await waitUntil(
+        tester,
+        'the sheet to close (dose recorded)',
+        () =>
+            find.byType(Dialog).evaluate().isEmpty &&
             find.text('Vitamin K').evaluate().isEmpty);
     print('[GATE] vitamin K dose recorded through the sante sheet');
 
@@ -508,8 +507,7 @@ void main() {
         .single
         .data['id'] as String;
     final doses = await db
-        .customSelect(
-            'SELECT COUNT(*) AS n FROM tracking_events '
+        .customSelect('SELECT COUNT(*) AS n FROM tracking_events '
             "WHERE type='sante' AND subtype='vitamine_k' AND baby_id='$bobId'")
         .get();
     expect(doses.first.data['n'], 1,
@@ -521,8 +519,8 @@ void main() {
     // the poll interval — "completions and dismissals change the next due
     // instants"; the gate triggers the identical call directly so the leg
     // does not wait the interval out.
-    final container = ProviderScope.containerOf(
-        tester.element(find.byType(Scaffold).first));
+    final container =
+        ProviderScope.containerOf(tester.element(find.byType(Scaffold).first));
     await container.read(reminderSyncNotifierProvider.notifier).syncNow();
     await tester.pumpAndSettle();
 
@@ -531,7 +529,8 @@ void main() {
     print('[GATE] pending OS requests after the dose: '
         '${pendingAfter.map((PendingNotificationRequest r) => r.payload).join(' | ')}');
     expect(
-        pendingAfter.where((PendingNotificationRequest r) => r.payload ==
+        pendingAfter.where((PendingNotificationRequest r) =>
+            r.payload ==
             ReminderNotificationPayload(scope: bobId, itemId: 'vitamine_k')
                 .encode()),
         isEmpty,
@@ -545,7 +544,8 @@ void main() {
         .single
         .data['id'] as String;
     expect(
-        pendingAfter.where((PendingNotificationRequest r) => r.payload ==
+        pendingAfter.where((PendingNotificationRequest r) =>
+            r.payload ==
             ReminderNotificationPayload(scope: daveId, itemId: 'vitamine_k')
                 .encode()),
         isNotEmpty,
