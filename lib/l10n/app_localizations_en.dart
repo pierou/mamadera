@@ -286,6 +286,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderHourUseDefault => 'Use the default time';
 
   @override
+  String get reminderHourSectionTitle => 'Notification time';
+
+  @override
   String get reminderNotificationsPermissionDenied =>
       'Notifications are currently disabled in the system settings. Turn them on there to receive reminder notifications.';
 
@@ -345,6 +348,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String reminderEndAgeValue(Object months) {
     return '$months months';
   }
+
+  @override
+  String get reminderEndYearsLabel => 'Years';
+
+  @override
+  String get reminderEndMonthsLabel => 'Months';
 
   @override
   String reminderEndUntilDate(Object date) {

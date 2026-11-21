@@ -580,6 +580,12 @@ abstract class AppLocalizations {
   /// **'Utiliser l\'heure par défaut'**
   String get reminderHourUseDefault;
 
+  /// No description provided for @reminderHourSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure de notification'**
+  String get reminderHourSectionTitle;
+
   /// No description provided for @reminderNotificationsPermissionDenied.
   ///
   /// In fr, this message translates to:
@@ -681,6 +687,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{months} mois'**
   String reminderEndAgeValue(Object months);
+
+  /// No description provided for @reminderEndYearsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Années'**
+  String get reminderEndYearsLabel;
+
+  /// No description provided for @reminderEndMonthsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mois'**
+  String get reminderEndMonthsLabel;
 
   /// No description provided for @reminderEndUntilDate.
   ///

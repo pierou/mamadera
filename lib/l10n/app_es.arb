@@ -187,6 +187,7 @@
   },
   "reminderHourPickerTitle": "Hora de notificación de este recordatorio",
   "reminderHourUseDefault": "Usar la hora predeterminada",
+  "reminderHourSectionTitle": "Hora de notificación",
   "reminderNotificationsPermissionDenied": "Las notificaciones están desactivadas en la configuración del sistema. Actívalas allí para recibir las notificaciones de recordatorio.",
   "reminderFrequencyDaily": "Todos los días",
   "reminderFrequencyWeekly": "Cada semana",
@@ -219,6 +220,8 @@
   "reminderEndOnDate": "En una fecha",
   "reminderEndAtAge": "A una edad",
   "reminderEndAgeValue": "{months} meses",
+  "reminderEndYearsLabel": "Años",
+  "reminderEndMonthsLabel": "Meses",
   "@reminderEndAgeValue": {
     "placeholders": {
       "months": {}
