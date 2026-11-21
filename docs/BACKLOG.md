@@ -2151,3 +2151,77 @@ Part 2's capability applied by the owner, not just for Vitamin K.
   green in CI and wrong on the device, because the OS notification plan is computed at
   `reminder_scheduler.dart:121` and not by any provider. If a new baby's vitamin D shows off in the
   app while its notification still fires, that is this gotcha, not a scheduling bug.
+---
+
+## B35 — The end-age stepper is four unlabeled buttons; B30's hour is not in the edit panel; the history glyphs mix filled and outlined
+
+**Status:** resolved on `fix/v1.4.0-ui-legibility` (2026-11-21, owner report against the released
+1.4.0 build: « the buttons to add year, month have no indication » / « the modification of history
+filters is ok, but for each line, the icon needed to be outlined too ») ·
+**Cost:** small · **Priority:** medium (one accessibility defect, one reachability defect)
+
+### 1 — The "end at an age" stepper (D-R5) was four unlabeled buttons
+
+`reminder_end_picker.dart` drew four identical `IconButton`s in one `Row` — `− + − +` — with the
+current value printed on the line *below* them. The only thing distinguishing a year step from a
+month step was `Tooltip(message: '${years}y −')`: a Tooltip does not exist under a finger, the four
+strings were hardcoded English inside a widget that ships in fr and es, and a screen reader read
+"2y −". Two of the four buttons moved the answer by twelve months.
+
+Restyled to the idiom the app already owns (`duration_picker_dialog.dart:199-215`,
+`quantity_picker_inline.dart:399-411`): one labelled row per unit, the value **between** the two
+buttons that change it, `remove_circle_outline`/`add_circle_outline`, and a spoken label of
+`Années · Incrémenter` (an `IconButton` reads its tooltip aloud, so the unit is in the a11y name).
+New arb keys `reminderEndYearsLabel`, `reminderEndMonthsLabel` (fr+en+es in one commit);
+`increment`/`decrement` already existed.
+
+**`ReminderEndPicker` had no widget test at all** — neither `test/` nor `integration_test/` mentioned
+`_AgeStepper`, which is why this shipped. `reminder_end_picker_test.dart` (6 tests) pins the unit
+labels in fr *and* en, that the years row writes twelve months where the months row writes one, the
+0 and 180 bounds, and that the English tooltips are gone.
+
+### 2 — B30's hour was on the row but not in the panel that edits the reminder
+
+The preset edit sheet offered a name, a rhythm and an end — and not the hour. `resolveReminderHour()`
+and `pickReminderHour()` moved out of `reminder_settings_screen.dart` (they were private there) into
+`reminder_hour_control.dart`, because two surfaces must not own two answers to "what hour does this
+reminder use". The sheet writes through the two writers that already own
+`reminder_settings.time` (`setItemTime` / `clearItemTime`, both column-scoped upserts) — no new
+writer, and the row keeps its own hour line: the affordance was copied, not moved.
+The write is immediate, like the row's; the sheet's *Annuler* does not roll it back, because the OS
+picker has its own confirm/cancel. The custom-reminder form sheet is deliberately **not** given the
+control: it returns a draft and creates the very row the hour would be written to, so an immediate
+write there would break its "nothing is stored until Confirm" contract.
+Covered by `the edit sheet of a preset reminder carries its hour (B30)` — the preset sheet had zero
+tests before (`showPresetReminderEditSheet` appeared in no test file).
+
+### 3 — Solid glyphs in one screen, outlined in another
+
+`TrackingType.icon` is a mixed set (`lunch_dining`, `favorite`, `nightlight` filled;
+`water_drop_outlined` outlined), so the history list drew solid glyphs in a tinted disc while the
+filter pills wore no glyph at all. Added `TrackingTypeListIcon.listIcon` and
+`HistoryFilterIcon.pillIcon`, both outlined; the home grid stays on the filled set, because B29
+measured those buttons into the live store screenshots.
+
+**Two traps, both measured on device rather than reasoned about:**
+
+- `Icons.favorite_outlined` (codepoint `0xf04b`) renders as a **solid** heart in the Material font
+  this Flutter ships — seen on `Small_Phone` after the change was built and installed, while
+  `lunch_dining_outlined` and `nightlight_outlined` rendered correctly outlined. An `_outlined` name
+  is not a promise about the glyph. `favorite_border` (`0xe25c`) is the outline and is what the
+  mapping uses.
+- A `FilterChip` paints its checkmark **over** its avatar when selected: the same screenshot showed
+  the tick drawn on top of the burger. `showCheckmark: false`; selection stays where B29 put it (the
+  fill, under the accent border), and a test asserts a selected pill still carries its glyph.
+
+**Deliberate exception:** the diaper row keeps its filled drop, because inside the drop family
+*filled versus outlined is the pipi/caca distinction* (`water_drop_outlined` versus `water_drop`) —
+outlining that line would draw the pipi glyph for a caca. `pipi and caca are never the same glyph`
+asserts it, so the exception cannot rot into an accident. « Tous » and « Mesures » wear no glyph for
+the reason B7 already gives for their missing accent: they are not one type.
+
+**Verified on `Small_Phone` (720×1280), 2026-11-21:** the stepper in French (two years + three
+months → « 27 mois » and « Jusqu'à 27 mois — 20/01/2029 », the past-end warning clearing as the value
+moved), the hour line inside the edit sheet writing `À 09:00` onto the row behind it while another
+reminder went on inheriting `À 09:00 (par défaut)`, the outlined heart/burger/crescent/ruler beside
+the still-filled home buttons, and both themes.
