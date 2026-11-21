@@ -207,6 +207,14 @@ class _DateRow extends StatelessWidget {
 /// Years + months, stored as one canonical month count (D-R5: `end_age_months` is
 /// whole months, 0-180). "2 years 6 months" leaves this widget as 30, never as a
 /// pair of columns a later reader would have to multiply.
+///
+/// One labelled row per unit, value between its own two buttons — the idiom
+/// `DurationPickerDialog` and `QuantityPickerInline` already use. It used to be
+/// four identical `− + − +` squares in a single row, with the current value
+/// printed two lines below the lot: the only thing distinguishing a year step
+/// from a month step was a Tooltip, and a Tooltip does not exist under a finger.
+/// So the control read as four unlabeled buttons, two of which silently moved
+/// the answer by twelve.
 class _AgeStepper extends StatelessWidget {
   const _AgeStepper({
     required this.months,
@@ -219,44 +227,29 @@ class _AgeStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = context.l;
-    final years = months ~/ 12;
-    final rest = months % 12;
 
     return Padding(
       padding: const EdgeInsets.only(top: AppTheme.spacingSm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              _Step(
-                icon: Icons.remove,
-                tooltip: '${years}y −',
-                onTap: () => onChanged(months - 12),
-                enabled: years > 0,
-              ),
-              _Step(
-                icon: Icons.add,
-                tooltip: '${years}y +',
-                onTap: () => onChanged(months + 12),
-                enabled: months + 12 <= maxReminderEndAgeMonths,
-              ),
-              const SizedBox(width: AppTheme.spacingLg),
-              _Step(
-                icon: Icons.remove,
-                tooltip: '${rest}m −',
-                onTap: () => onChanged(months - 1),
-                enabled: months > 0,
-              ),
-              _Step(
-                icon: Icons.add,
-                tooltip: '${rest}m +',
-                onTap: () => onChanged(months + 1),
-                enabled: months + 1 <= maxReminderEndAgeMonths,
-              ),
-            ],
+          _UnitStepper(
+            label: l.reminderEndYearsLabel,
+            value: months ~/ 12,
+            onDecrement: () => onChanged(months - 12),
+            onIncrement: () => onChanged(months + 12),
+            canDecrement: months >= 12,
+            canIncrement: months + 12 <= maxReminderEndAgeMonths,
           ),
-          const SizedBox(height: AppTheme.spacingSm),
+          _UnitStepper(
+            label: l.reminderEndMonthsLabel,
+            value: months % 12,
+            onDecrement: () => onChanged(months - 1),
+            onIncrement: () => onChanged(months + 1),
+            canDecrement: months > 0,
+            canIncrement: months + 1 <= maxReminderEndAgeMonths,
+          ),
+          const SizedBox(height: AppTheme.spacingXs),
           Text(l.reminderEndAgeValue(months)),
         ],
       ),
@@ -264,8 +257,78 @@ class _AgeStepper extends StatelessWidget {
   }
 }
 
-class _Step extends StatelessWidget {
-  const _Step({
+/// `<unit> − value +`. The unit is named on the control itself, and the value
+/// sits between the two buttons that change it, so which magnitude a tap moves
+/// is legible without pressing anything.
+class _UnitStepper extends StatelessWidget {
+  const _UnitStepper({
+    required this.label,
+    required this.value,
+    required this.onDecrement,
+    required this.onIncrement,
+    required this.canDecrement,
+    required this.canIncrement,
+  });
+
+  final String label;
+  final int value;
+  final VoidCallback onDecrement;
+  final VoidCallback onIncrement;
+  final bool canDecrement;
+  final bool canIncrement;
+
+  /// Wide enough for « Années » at `bodyMedium`, so both rows align their buttons.
+  static const double _labelWidth = 72;
+  static const double _valueWidth = 40;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l = context.l;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
+      child: Row(
+        children: [
+          SizedBox(
+            width: _labelWidth,
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          _StepButton(
+            icon: Icons.remove_circle_outline,
+            tooltip: '$label · ${l.decrement}',
+            onTap: onDecrement,
+            enabled: canDecrement,
+          ),
+          SizedBox(
+            width: _valueWidth,
+            child: Text(
+              '$value',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          _StepButton(
+            icon: Icons.add_circle_outline,
+            tooltip: '$label · ${l.increment}',
+            onTap: onIncrement,
+            enabled: canIncrement,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepButton extends StatelessWidget {
+  const _StepButton({
     required this.icon,
     required this.tooltip,
     required this.onTap,
@@ -279,16 +342,13 @@ class _Step extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // `tooltip` doubles as the semantics label of an IconButton, which is what a
+    // screen reader reads: the unit and the direction, never a bare "add".
     return Tooltip(
       message: tooltip,
       child: IconButton(
         icon: Icon(icon),
         onPressed: enabled ? onTap : null,
-        style: IconButton.styleFrom(
-          side: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-        ),
       ),
     );
   }
