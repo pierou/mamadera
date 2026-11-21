@@ -406,8 +406,22 @@ class Checker:
                        "" if not long else
                        f" holds {len(long)} long text block(s) — reference fields/ instead")
 
-    def check_source_is_canonical(self) -> None:
-        """The EN fields and the per-locale editorial fields must be the source bytes."""
+    def check_source_is_canonical(self, current: bool) -> None:
+        """The EN fields and the per-locale editorial fields must be the source bytes.
+
+        Only for the version being built. `store/source/en/` is one mutable file per
+        field — it is the source of the *next* listing — so this check can only mean
+        something for the package being prepared from it. Measured on `make store-check`
+        after the v1.4.0 copy fixes reworded `apple-description.txt` and
+        `play-description.txt`: four already-published packages each reported two
+        blockers, because their archived fields hold the wording that was actually
+        uploaded. Rewriting an uploaded listing to satisfy a check is not what a
+        release gate is for.
+        """
+        if not current:
+            print(f"== fields are copies of store/source/ — skipped: v{self.version} "
+                  "is archived; the source moved on when the next version was cut")
+            return
         print("== fields are copies of store/source/, not edits")
         source = ROOT / "store" / "source"
         for store, kind in CANONICAL_EN:
@@ -492,8 +506,20 @@ class Checker:
                 lines += path.read_text(encoding="utf-8").splitlines()
         return lines
 
-    def check_translation_gate(self) -> None:
-        """The copy rules `AGENTS.md` states and CI never checked (v1.4.0 audit)."""
+    def check_translation_gate(self, current: bool) -> None:
+        """The copy rules `AGENTS.md` states and CI never checked (v1.4.0 audit).
+
+        Only for the version being built. `make store-check` loops over every
+        `store/v*/check.py`, and these rules were written in November against the
+        copy conventions of November: run against v1.2.1 or v1.3.1 they report ten
+        blockers each on **published listings nobody can amend** — the archived
+        release notes of a shipped version are a record, not a draft, and a gate
+        that fails the archive fails the build for something no action can fix.
+        """
+        if not current:
+            print(f"== translation gate — skipped: v{self.version} is archived, "
+                  "the gate governs the version being built, not a published listing")
+            return
         print("== translation gate")
         self.check_alignment_no_op()
         self.check_play_note_parity()
@@ -705,14 +731,18 @@ def main(package: Path, version: str, write: bool = False) -> int:
           f"pinned at build time)")
     PROBLEMS.clear()
     checker = Checker(package, version)
+    # The gate is judged against the pubspec this run is building from, so a released
+    # package's own pinned version goes into its archived state naturally when the next
+    # version is cut — no list of exemptions to maintain.
+    current = version == pubspec_version()
     checker.check_version()
     checker.check_fields()
     checker.check_machine_archive()
     checker.check_no_duplicate_prose()
-    checker.check_source_is_canonical()
+    checker.check_source_is_canonical(current)
     checker.check_notes(write)
     checker.check_screenshots()
-    checker.check_translation_gate()
+    checker.check_translation_gate(current)
     if PROBLEMS:
         print(f"\n{len(PROBLEMS)} BLOCKER(S):")
         for problem in PROBLEMS:
