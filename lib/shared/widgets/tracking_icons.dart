@@ -26,6 +26,62 @@ extension TrackingTypeIcon on TrackingType {
 }
 
 // ──────────────────────────────────────────────
+// TrackingType → history-row glyph (outlined)
+// ──────────────────────────────────────────────
+
+/// Extension on [TrackingType] for the leading glyph of a history row.
+///
+/// Outlined on purpose: a row is a line of text with a small disc beside it, and a
+/// solid glyph in that disc renders heavier than the words next to it — this file
+/// already prefers the outlined variant for chips for the same reason. The two
+/// mappings are kept apart rather than merging into one because the filled glyphs
+/// are what the home grid ships with, and B29 measured those buttons into the live
+/// store screenshots: restyling the list must not restyle the grid from here.
+extension TrackingTypeListIcon on TrackingType {
+  /// The outlined glyph a history row wears for this type.
+  ///
+  /// `favorite_border` rather than `favorite_outlined` for health: measured on a
+  /// Small_Phone on 2026-11-21, `Icons.favorite_outlined` (codepoint 0xf04b in the
+  /// Material font this Flutter ships) renders as a **solid** heart, so the name is
+  /// not a promise about the glyph. `favorite_border` (0xe25c) is the outline.
+  IconData get listIcon => switch (this) {
+        TrackingType.miam => Icons.lunch_dining_outlined,
+        TrackingType.sante => Icons.favorite_border,
+        // The disc of a diaper row wears the *waste* glyph, not this one, so this
+        // is the type-level fallback (`WasteTypeIcon` owns pipi/caca/les deux).
+        TrackingType.caca => Icons.water_drop_outlined,
+        TrackingType.dodo => Icons.nightlight_outlined,
+      };
+}
+
+// ──────────────────────────────────────────────
+// HistoryFilter → filter-pill icon (outlined)
+// ──────────────────────────────────────────────
+
+/// Extension on [HistoryFilter] for the glyph a filter pill wears.
+///
+/// Outlined, which is the rule this file already writes for [FeedingSubtypeIcon]:
+/// a chip wears the outlined variant, the filled glyph stays with the type avatar.
+/// A pill is read as a wall of words otherwise — the type accent alone was not
+/// enough to tell « Sommeil » from « Caca » at a glance in a row of six.
+///
+/// `all` and `measurements` return `null` on purpose, for the same reason they
+/// carry no accent in the pill row (B7): there is no tracking type behind them,
+/// and the glyph for « everything » is a design decision, not something to invent
+/// inside a widget.
+extension HistoryFilterIcon on HistoryFilter {
+  /// The pill's leading glyph, or `null` for a filter that is not one type.
+  IconData? get pillIcon => switch (this) {
+        HistoryFilter.miam => Icons.lunch_dining_outlined,
+        HistoryFilter.dodo => Icons.nightlight_outlined,
+        HistoryFilter.caca => Icons.water_drop_outlined,
+        HistoryFilter.sante => Icons.favorite_border,
+        HistoryFilter.all => null,
+        HistoryFilter.measurements => null,
+      };
+}
+
+// ──────────────────────────────────────────────
 // FeedingSubtype → canonical IconData (outlined variants)
 // ──────────────────────────────────────────────
 
