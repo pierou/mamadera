@@ -10,7 +10,6 @@ import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_item.dart';
 import '../../domain/entities/reminder_item_setting.dart';
 import '../../domain/services/effective_reminders.dart';
-import '../../domain/services/notification_time.dart';
 import '../providers/reminder_providers.dart';
 import '../providers/reminder_sync_notifier.dart';
 import '../widgets/custom_reminder_form_sheet.dart';
@@ -197,76 +196,42 @@ class _ReminderList extends ConsumerWidget {
     );
   }
 
-  /// The hour state of one row: what to show, and whether it is inherited.
+  /// The hour state of one row plus the stored column it came from.
   ///
-  /// The reminder's own hour wins when the row carries a usable one; otherwise
-  /// it is the installation-wide hour, shown and marked as inherited — "no hour
-  /// of my own" is not "no hour" (B30). While the global preference is still
-  /// being read and the row has nothing of its own, the hour line stays away
-  /// rather than guessing 09:00.
-  ({
-    String hourLabel,
-    bool inherited,
-    bool showHour,
-    NotificationPreferences? prefs
-  }) _hourFor(WidgetRef ref, ReminderItem item) {
+  /// The resolution itself lives in `reminder_hour_control.dart`, because the
+  /// preset edit sheet asks the same question about the same reminder; a second
+  /// copy here is how two surfaces start disagreeing about one hour (B30).
+  ({ReminderHourState state, String? stored}) _hourOf(
+    WidgetRef ref,
+    ReminderItem item,
+  ) {
     final stored = settings[item.id]?.timeOfDay;
-    // Promoted once, here: "has an hour of its own" is then one question with
-    // one answer, for the label, the marker and the picker's initial time.
-    final own =
-        (stored != null && isValidNotificationTime(stored)) ? stored : null;
-    final prefs = ref.watch(notificationSettingsProvider).value;
     return (
-      hourLabel: own ?? prefs?.timeLabel ?? defaultNotificationTime,
-      inherited: own == null,
-      showHour: own != null || prefs != null,
-      prefs: prefs,
+      state: resolveReminderHour(
+        storedTimeOfDay: stored,
+        prefs: ref.watch(notificationSettingsProvider).value,
+      ),
+      stored: stored,
     );
   }
 
   /// The rhythm + effective hour line of one preset row, with its two actions.
   Widget _hourControl(BuildContext context, WidgetRef ref, ReminderItem item) {
-    final hour = _hourFor(ref, item);
+    final hour = _hourOf(ref, item);
     return ReminderHourControl(
       frequency: item.frequency,
-      hourLabel: hour.hourLabel,
-      inherited: hour.inherited,
-      showHour: hour.showHour,
-      onPick: () => _pickHour(context, ref, item, hour.prefs),
+      hourLabel: hour.state.hourLabel,
+      inherited: hour.state.inherited,
+      showHour: hour.state.showHour,
+      onPick: () => pickReminderHour(
+        context: context,
+        ref: ref,
+        item: item,
+        storedTimeOfDay: hour.stored,
+      ),
       onUseGlobal: () =>
           ref.read(reminderSettingsProvider.notifier).useGlobalTime(item),
     );
-  }
-
-  /// The OS time picker for one reminder, starting from the hour the reminder
-  /// actually uses — its own, or the global one it inherits.
-  Future<void> _pickHour(
-    BuildContext context,
-    WidgetRef ref,
-    ReminderItem item,
-    NotificationPreferences? prefs,
-  ) async {
-    final stored = settings[item.id]?.timeOfDay;
-    final own =
-        (stored != null && isValidNotificationTime(stored)) ? stored : null;
-    final fallback = notificationTimeDefaults();
-    final initial = own != null
-        ? parseNotificationTime(own)
-        : (
-            hour: prefs?.hour ?? fallback.hour,
-            minute: prefs?.minute ?? fallback.minute,
-          );
-
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: initial.hour, minute: initial.minute),
-      helpText: context.l.reminderHourPickerTitle,
-    );
-    if (picked == null) return;
-
-    await ref
-        .read(reminderSettingsProvider.notifier)
-        .setTime(item, hour: picked.hour, minute: picked.minute);
   }
 
   /// Key for the `reminder_settings` row of a custom reminder — the same key
@@ -290,7 +255,7 @@ class _ReminderList extends ConsumerWidget {
       monthlyDay: monthlyDay,
     );
     final key = _settingsKey(reminder);
-    final hour = _hourFor(ref, display);
+    final hour = _hourOf(ref, display);
     return CustomReminderTile(
       reminder: reminder,
       display: display,
@@ -299,10 +264,15 @@ class _ReminderList extends ConsumerWidget {
           .read(reminderSettingsProvider.notifier)
           .setEnabled(key, enabled: enabled),
       onAction: (action) => _onAction(context, ref, reminder, action),
-      hourLabel: hour.hourLabel,
-      hourInherited: hour.inherited,
-      showHour: hour.showHour,
-      onPickHour: () => _pickHour(context, ref, display, hour.prefs),
+      hourLabel: hour.state.hourLabel,
+      hourInherited: hour.state.inherited,
+      showHour: hour.state.showHour,
+      onPickHour: () => pickReminderHour(
+        context: context,
+        ref: ref,
+        item: display,
+        storedTimeOfDay: hour.stored,
+      ),
       onUseGlobalHour: () =>
           ref.read(reminderSettingsProvider.notifier).useGlobalTime(display),
     );
