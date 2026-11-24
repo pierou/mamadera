@@ -68,25 +68,56 @@ class ReminderSettingsNotifier
   /// own default: picking an hour for vitamin D is not consent to switch it on
   /// (B6).
   Future<void> setTime(ReminderItem item,
-      {required int hour, required int minute}) async {
+          {required int hour, required int minute}) =>
+      setTimeById(
+        item.id,
+        timeOfDay: formatNotificationTime(hour: hour, minute: minute),
+        enabledIfNew: item.enabledByDefault,
+      );
+
+  /// Give one reminder addressed by id its **own** hour (B30), or `null` to
+  /// inherit again.
+  ///
+  /// For a reminder whose [ReminderItem] the caller does not hold: a custom
+  /// reminder has just been written by the form sheet and its item is not in
+  /// the provider yet — the same reason [setEndById] exists, and the hour the
+  /// sheet's panel offered is written here, after the reminder itself, as the
+  /// second column-write of the same row (B35).
+  /// `enabledIfNew` is the caller's B6 answer: for a custom reminder it is
+  /// `true`, because creating one *was* the consent.
+  Future<void> setTimeById(
+    String itemId, {
+    required bool enabledIfNew,
+    String? timeOfDay,
+  }) async {
     final profile = await ref.read(activeBabyProvider.future);
     final repository = await ref.read(remindersRepositoryProvider.future);
-    final stored = formatNotificationTime(hour: hour, minute: minute);
-    await repository.setItemTime(
-      item.id,
-      timeOfDay: stored,
-      enabledIfNew: item.enabledByDefault,
-      babyId: profile?.id,
-    );
-
-    _put(
-      item.id,
-      (current) => current.copyWith(timeOfDay: stored),
-      whenAbsent: () => ReminderItemSetting(
-        enabled: item.enabledByDefault,
-        timeOfDay: stored,
-      ),
-    );
+    if (timeOfDay == null) {
+      // Back to the global hour: the stored hour becomes NULL, the switch and
+      // the rest of the row are untouched (`useGlobalTime`'s contract, and a
+      // missing row has nothing to clear).
+      await repository.clearItemTime(itemId, babyId: profile?.id);
+      final current =
+          (state.value ?? const <String, ReminderItemSetting>{})[itemId];
+      if (current != null) {
+        _put(itemId, (row) => row.copyWith(timeOfDay: null));
+      }
+    } else {
+      await repository.setItemTime(
+        itemId,
+        timeOfDay: timeOfDay,
+        enabledIfNew: enabledIfNew,
+        babyId: profile?.id,
+      );
+      _put(
+        itemId,
+        (row) => row.copyWith(timeOfDay: timeOfDay),
+        whenAbsent: () => ReminderItemSetting(
+          enabled: enabledIfNew,
+          timeOfDay: timeOfDay,
+        ),
+      );
+    }
     unawaited(ref.read(reminderSyncNotifierProvider.notifier).syncNow());
   }
 

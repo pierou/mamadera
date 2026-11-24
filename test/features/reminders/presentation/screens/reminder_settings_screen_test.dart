@@ -868,6 +868,105 @@ void main() {
       expect(find.text('Crème du change'), findsOneWidget);
       expect(find.text('À 17:45'), findsOneWidget);
     });
+    testWidgets('the edit panel of a custom reminder carries its hour (B35)',
+        (tester) async {
+      // The owner-reported defect: the panel that edits a custom reminder
+      // offered everything except the hour it fires at — the hour lived only
+      // on the row behind the panel. Pinned: the panel carries the shared
+      // control, starting from the reminder's own stored hour.
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      mockReminders.customRemindersById[4] = CustomReminder(
+        id: 4,
+        label: 'Crème du change',
+        frequency: const Daily(),
+        subtypeValue: 'nettoyage_nez',
+        completionSource: completionFromEvents,
+      );
+      mockReminders.timeOfDayById['custom_4'] = '06:15';
+      await pumpScreen(tester);
+
+      await tester.scrollUntilVisible(
+        find.text('Crème du change'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Crème du change'));
+      await tester.pumpAndSettle();
+
+      final sheet = find.byType(BottomSheet);
+      expect(
+        find.descendant(of: sheet, matching: find.text('Modifier le rappel')),
+        findsOneWidget,
+        reason: 'the edit sheet did open',
+      );
+      expect(
+        find.descendant(of: sheet, matching: find.byType(ReminderHourControl)),
+        findsOneWidget,
+        reason: 'the panel owns the hour, not only the row behind it',
+      );
+      expect(
+        find.descendant(of: sheet, matching: find.text('À 06:15')),
+        findsOneWidget,
+        reason: "the panel starts from the reminder's own stored hour",
+      );
+    });
+
+    testWidgets(
+        'the hour picked in the custom edit panel is stored on confirm (B35)',
+        (tester) async {
+      // The write path: the sheet keeps its "writes nothing" contract, the
+      // screen performs the column-write after the reminder exists — the
+      // same second-write shape as the end (D-R5).
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      mockReminders.customRemindersById[4] = CustomReminder(
+        id: 4,
+        label: 'Crème du change',
+        frequency: const Daily(),
+        subtypeValue: 'nettoyage_nez',
+        completionSource: completionFromEvents,
+      );
+      await pumpScreen(tester);
+
+      await tester.scrollUntilVisible(
+        find.text('Crème du change'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Crème du change'));
+      await tester.pumpAndSettle();
+
+      final inheritedLine = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('À 20:30 (par défaut)'),
+      );
+      await tester.ensureVisible(inheritedLine);
+      await tester.pumpAndSettle();
+      await tester.tap(inheritedLine);
+      await tester.pumpAndSettle();
+      expect(find.byType(TimePickerDialog), findsOneWidget);
+      // Accepted as it opens: the picker starts at the hour the reminder
+      // inherits, and confirming makes that hour its own.
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(mockReminders.setItemTimeCallCount, 0,
+          reason: 'the sheet writes nothing before the confirm');
+
+      await tester.ensureVisible(find.text('Confirmer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Confirmer'));
+      await tester.pumpAndSettle();
+
+      expect(mockReminders.setItemTimeCallCount, 1,
+          reason: 'the screen writes the hour after the reminder exists');
+      expect(mockReminders.timeOfDayById['custom_4'], '20:30');
+      expect(mockReminders.timeOfDayById.keys, ['custom_4'],
+          reason: 'no other reminder is dragged off the global hour');
+      expect(find.text('À 20:30'), findsOneWidget,
+          reason: 'the row shows the hour the panel just stored');
+    });
   });
 
   group('System notifications section (M6, D8)', () {

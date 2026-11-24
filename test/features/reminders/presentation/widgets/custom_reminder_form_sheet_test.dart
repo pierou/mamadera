@@ -21,6 +21,7 @@ Finder _frequencyField() =>
 Future<void> _open(
   WidgetTester tester, {
   CustomReminder? existing,
+  String? existingTimeOfDay,
 }) async {
   _popped = null;
   // An open sheet would survive the next `pumpWidget`—the Navigator is...
@@ -47,7 +48,9 @@ Future<void> _open(
                   context: context,
                   isScrollControlled: true,
                   builder: (sheetContext) => CustomReminderFormSheet(
-                      existing: existing, birthDate: null),
+                      existing: existing,
+                      birthDate: null,
+                      existingTimeOfDay: existingTimeOfDay),
                 );
               },
               child: const Text('ouvrir'),
@@ -372,6 +375,40 @@ void main() {
       expect(_popped!.reminder.subtypeValue, HealthSubtype.nettoyageNez.value);
       expect(_popped!.reminder.completionSource, completionFromEvents);
       expect(_popped!.reminder.frequency, const ReminderFrequency.daily());
+    });
+  });
+
+  group('hour in the edit panel (B35)', () {
+    testWidgets(
+        'the panel starts from the stored own hour, and a confirm without '
+        'touching it rewrites nothing', (tester) async {
+      // The owner-reported defect: the panel that edits a custom reminder
+      // offered a name, a care, a rhythm and an end, and not the hour the
+      // reminder fires at. Pinned here first: the panel shows the stored hour.
+      await _open(
+        tester,
+        existing: CustomReminder(
+          id: 9,
+          label: 'Crème du change',
+          frequency: const ReminderFrequency.daily(),
+          subtypeValue: HealthSubtype.nettoyageNez.value,
+        ),
+        existingTimeOfDay: '06:15',
+      );
+
+      expect(
+        find.descendant(
+            of: find.byType(BottomSheet), matching: find.text('À 06:15')),
+        findsOneWidget,
+        reason: 'the panel shows the hour the reminder really fires at',
+      );
+
+      await _confirm(tester);
+
+      expect(_popped, isNotNull);
+      expect(_popped!.timeOfDay, '06:15');
+      expect(_popped!.timeChanged, isFalse,
+          reason: 'untouched means the caller must not write the column');
     });
   });
 }
