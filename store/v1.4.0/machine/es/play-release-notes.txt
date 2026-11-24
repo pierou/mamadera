@@ -1,5 +1,5 @@
-• Asigne un horario específico, una frecuencia ("cada vez") y una fecha de finalización a un recordatorio.
-• Cambie el nombre o elimine un recordatorio sugerido, y vuelva a añadir uno.
-• Agregue una nota al registrar una actualización, mientras la información siga siendo válida.
-• Toque una notificación para acceder a la sección principal del perfil del bebé.
-• Cambie el título de la sección principal del bebé y filtre el historial por mediciones.
+• Asigne un horario, una frecuencia única y una fecha de finalización a cada recordatorio.
+• Cambie el nombre o elimine un recordatorio sugerido, y vuelva a añadirlo si lo desea.
+• Agregue una nota al registrar una toma de leche, justo en el momento en que ocurre.
+• Toque una notificación para abrir la pantalla principal del bebé correspondiente.
+• Abra la lista de bebés desde el título y filtre el historial por mediciones.
