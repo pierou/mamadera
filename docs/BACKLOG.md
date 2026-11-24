@@ -2155,9 +2155,11 @@ Part 2's capability applied by the owner, not just for Vitamin K.
 
 ## B35 — The end-age stepper is four unlabeled buttons; B30's hour is not in the edit panel; the history glyphs mix filled and outlined
 
-**Status:** resolved on `fix/v1.4.0-ui-legibility` (2026-11-21, owner report against the released
-1.4.0 build: « the buttons to add year, month have no indication » / « the modification of history
-filters is ok, but for each line, the icon needed to be outlined too ») ·
+**Status:** §1 and §3 resolved on `fix/v1.4.0-ui-legibility` (2026-11-21, owner report against the
+released 1.4.0 build: « the buttons to add year, month have no indication » / « the modification of
+history filters is ok, but for each line, the icon needed to be outlined too ») · §2 reopened by the
+same owner on 2026-11-24 (« I'M TALKING ABOUT CUSTOM NOTIFICATIONS ») — the hour belonged in the
+**custom** panel too; closed on `fix/custom-hour-panel-b35` (PR #99) ·
 **Cost:** small · **Priority:** medium (one accessibility defect, one reachability defect)
 
 ### 1 — The "end at an age" stepper (D-R5) was four unlabeled buttons
@@ -2189,11 +2191,20 @@ reminder use". The sheet writes through the two writers that already own
 `reminder_settings.time` (`setItemTime` / `clearItemTime`, both column-scoped upserts) — no new
 writer, and the row keeps its own hour line: the affordance was copied, not moved.
 The write is immediate, like the row's; the sheet's *Annuler* does not roll it back, because the OS
-picker has its own confirm/cancel. The custom-reminder form sheet is deliberately **not** given the
+picker has its own confirm/cancel. The custom-reminder form sheet was at first **not** given the
 control: it returns a draft and creates the very row the hour would be written to, so an immediate
-write there would break its "nothing is stored until Confirm" contract.
+write there would break its "nothing is stored until Confirm" contract — and that is why the owner
+came back on 2026-11-24 (« I'M TALKING ABOUT CUSTOM NOTIFICATIONS »): the panel that edits a custom
+reminder still had no hour. The requirement wins; the contract stands. The hour now travels **in the
+draft** (`timeOfDay` + `timeChanged`) and the screen writes it after the reminder exists, on
+`setEndById`'s second-write shape, through a new id-addressed `setTimeById` that `setTime` itself
+now delegates to — one writer for the column, and an untouched panel rewrites nothing.
 Covered by `the edit sheet of a preset reminder carries its hour (B30)` — the preset sheet had zero
-tests before (`showPresetReminderEditSheet` appeared in no test file).
+tests before (`showPresetReminderEditSheet` appeared in no test file) — and, for the custom path
+(2026-11-24, PR #99), by `the edit panel of a custom reminder carries its hour (B35)`,
+`the hour picked in the custom edit panel is stored on confirm (B35)` and the sheet-level
+`a confirm without touching it rewrites nothing`; also asserted on the device, inside the open
+panel, on `Small_Phone` (`/tmp/b35_pose3_custom_sheet.png`).
 
 ### 3 — Solid glyphs in one screen, outlined in another
 
