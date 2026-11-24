@@ -24,4 +24,15 @@ extension MeasureKindAccent on MeasureKind {
         MeasureKind.taille => Icons.straighten,
         MeasureKind.temperature => Icons.thermostat,
       };
+
+  /// The outlined glyph a history row wears (see `TrackingTypeListIcon`).
+  ///
+  /// Separate from [icon] because that one is also what the home buttons ship with,
+  /// and the home grid is in the live store screenshots — the list gets its own
+  /// mapping so outlining a row cannot restyle a button.
+  IconData get listIcon => switch (this) {
+        MeasureKind.poids => Icons.scale_outlined,
+        MeasureKind.taille => Icons.straighten_outlined,
+        MeasureKind.temperature => Icons.thermostat_outlined,
+      };
 }

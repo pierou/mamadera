@@ -187,6 +187,7 @@
   },
   "reminderHourPickerTitle": "Notification time for this reminder",
   "reminderHourUseDefault": "Use the default time",
+  "reminderHourSectionTitle": "Notification time",
   "reminderNotificationsPermissionDenied": "Notifications are currently disabled in the system settings. Turn them on there to receive reminder notifications.",
   "reminderFrequencyDaily": "Every day",
   "reminderFrequencyWeekly": "Every week",
@@ -219,6 +220,8 @@
   "reminderEndOnDate": "On a date",
   "reminderEndAtAge": "At an age",
   "reminderEndAgeValue": "{months} months",
+  "reminderEndYearsLabel": "Years",
+  "reminderEndMonthsLabel": "Months",
   "@reminderEndAgeValue": {
     "placeholders": {
       "months": {}

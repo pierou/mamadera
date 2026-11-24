@@ -16,6 +16,7 @@ import 'package:mamadera/features/reminders/presentation/widgets/reminder_lifecy
 import 'package:mamadera/features/reminders/presentation/providers/reminder_sync_notifier.dart';
 import 'package:mamadera/features/reminders/presentation/screens/reminder_settings_screen.dart';
 import 'package:mamadera/features/reminders/presentation/widgets/custom_reminder_tile.dart';
+import 'package:mamadera/features/reminders/presentation/widgets/reminder_hour_control.dart';
 import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 
@@ -791,6 +792,64 @@ void main() {
           reason: 'letting go of an hour must not touch the switch (B6 state)');
       expect(find.text('À 06:15'), findsNothing);
       expect(find.text('À 20:30 (par défaut)'), findsNWidgets(4));
+    });
+
+    testWidgets('the edit sheet of a preset reminder carries its hour (B30)',
+        (tester) async {
+      // The panel that edits a reminder offered a name, a rhythm and an end, and
+      // not the hour — so the number a parent most often wants to move was the
+      // one thing the "edit" panel could not reach. What is pinned here is that
+      // the sheet carries the control, that it writes through the same
+      // column-scoped writer as the row, and that the row keeps its own hour line
+      // (a copy of the affordance, not a move).
+      fakeSettings.values[settingsKeyNotificationTime] = '20:30';
+      await pumpScreen(tester);
+
+      await tester.tap(find.byTooltip('Modifier le rappel').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Modifier'));
+      await tester.pumpAndSettle();
+
+      final sheet = find.byType(BottomSheet);
+      expect(find.descendant(of: sheet, matching: find.text('Fin')),
+          findsOneWidget,
+          reason: 'the edit sheet did open');
+      expect(
+        find.descendant(
+          of: sheet,
+          matching: find.text('Heure de notification'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: sheet, matching: find.byType(ReminderHourControl)),
+        findsOneWidget,
+        reason: 'the same control as the row, not a re-implementation of it',
+      );
+
+      await tester.tap(
+        find.descendant(of: sheet, matching: find.text('À 20:30 (par défaut)')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(TimePickerDialog), findsOneWidget);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(mockReminders.setItemTimeCallCount, 1);
+      expect(mockReminders.timeOfDayById['vitamine_d'], '20:30');
+      expect(
+        find.descendant(of: sheet, matching: find.text('À 20:30')),
+        findsOneWidget,
+        reason: 'the sheet shows the hour it just stored, without reopening',
+      );
+      expect(
+        find.descendant(
+          of: find.byType(SwitchListTile),
+          matching: find.byType(ReminderHourControl),
+        ),
+        findsAtLeastNWidgets(1),
+        reason: 'the row keeps its hour line',
+      );
     });
 
     testWidgets('a custom reminder row shows its hour too, same control',

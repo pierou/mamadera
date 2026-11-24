@@ -112,12 +112,16 @@ class HistoryTileLeading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Outlined, the way a row reads against its own text (`TrackingTypeListIcon`).
+    // The diaper line is the deliberate exception: within the drop family, filled
+    // versus outlined *is* the pipi/caca distinction, so outlining that row would
+    // draw two identical glyphs for two different events.
     final icon = event.map(
       (_) => Icons.help,
-      feeding: (_) => TrackingType.miam.icon,
-      sleep: (_) => TrackingType.dodo.icon,
+      feeding: (_) => TrackingType.miam.listIcon,
+      sleep: (_) => TrackingType.dodo.listIcon,
       diaper: (e) => e.wasteType?.icon ?? WasteType.caca.icon,
-      health: (_) => TrackingType.sante.icon,
+      health: (_) => TrackingType.sante.listIcon,
     );
     final accent = event.map(
       (_) => AppTheme.sante,

@@ -410,6 +410,92 @@ void main() {
       expect(selectedChip.side?.color, AppTheme.miam.withValues(alpha: 0.9));
     });
 
+    testWidgets('a type pill wears its type icon, in the outlined variant',
+        (tester) async {
+      // Six words in a row is a wall of text: the accent border says *that* a pill
+      // has a type, not *which* type. What is pinned here is the glyph itself —
+      // outlined, the rule `tracking_icons.dart` already writes for chips, because
+      // the filled glyph belongs to the type avatar in the timeline below.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
+            historyRepositoryProvider.overrideWith(
+              (_) async => mockRepository,
+            ),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
+          ],
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chips = find.byType(FilterChip);
+      const outlined = [
+        (Icons.lunch_dining_outlined, Icons.lunch_dining),
+        (Icons.nightlight_outlined, Icons.nightlight),
+        (Icons.water_drop_outlined, Icons.water_drop),
+        (Icons.favorite_border, Icons.favorite),
+      ];
+      for (final (index, pair) in outlined.indexed) {
+        final chip = chips.at(index + 1);
+        expect(
+          find.descendant(of: chip, matching: find.byIcon(pair.$1)),
+          findsOneWidget,
+          reason: 'pill ${index + 1} says which type it is without being read',
+        );
+        expect(
+          find.descendant(of: chip, matching: find.byIcon(pair.$2)),
+          findsNothing,
+          reason: 'a chip wears the outlined variant, not the filled one',
+        );
+      }
+
+      // « Tous » and « Mesures » are not one tracking type, so they wear no glyph
+      // at all — the same reasoning that leaves them without an accent (B7).
+      for (final index in [0, 5]) {
+        expect(
+          find.descendant(
+            of: chips.at(index),
+            matching: find.byType(Icon),
+          ),
+          findsNothing,
+          reason: 'a neutral pill borrows no type identity',
+        );
+      }
+
+      // Selection must not eat the glyph. Material paints a FilterChip's checkmark
+      // *over* its avatar — seen on a Small_Phone on 2026-11-21, where the tick
+      // rendered on top of the burger — which is what `showCheckmark: false` is for.
+      await tester.tap(chips.at(1));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: chips.at(1),
+          matching: find.byIcon(Icons.lunch_dining_outlined),
+        ),
+        findsOneWidget,
+        reason: 'a selected pill keeps the glyph that identifies it',
+      );
+      expect(
+        find.descendant(of: chips.at(1), matching: find.byIcon(Icons.check)),
+        findsNothing,
+        reason: 'the tick is what covered the glyph',
+      );
+      expect(tester.widget<FilterChip>(chips.at(1)).selected, isTrue);
+    });
+
     testWidgets('tapping HistoryTile opens edit dialog bottom sheet',
         (tester) async {
       await tester.pumpWidget(
@@ -655,8 +741,19 @@ void main() {
         final chips = find.byType(FilterChip);
         expect(find.text('Mesures'), findsOneWidget);
 
+        // The pill row scrolls sideways, and giving each pill a glyph made every
+        // one of them wider: « Mesures », the sixth, now sits past the test
+        // viewport. Scroll first, then prove the tap landed — a `tap` on an
+        // off-screen widget only warns and carries on, which is how this test used
+        // to fail three assertions later with « found 2 HistoryTile »: the filter
+        // had never changed at all.
+        await tester.ensureVisible(chips.at(5));
+        await tester.pumpAndSettle();
         await tester.tap(chips.at(5));
         await tester.pumpAndSettle();
+
+        expect(tester.widget<FilterChip>(chips.at(5)).selected, isTrue,
+            reason: 'the tap landed on « Mesures », not on empty space');
 
         expect(find.byType(MeasurementHistoryTile), findsOneWidget);
         expect(find.byType(HistoryTile), findsNothing,

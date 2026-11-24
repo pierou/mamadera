@@ -72,6 +72,46 @@ void main() {
     });
   });
 
+  group('TrackingTypeListIcon and HistoryFilterIcon (the outlined pair)', () {
+    test('a history row wears the outlined glyph of its type', () {
+      expect(TrackingType.miam.listIcon, Icons.lunch_dining_outlined);
+      expect(TrackingType.dodo.listIcon, Icons.nightlight_outlined);
+      expect(TrackingType.sante.listIcon, Icons.favorite_border);
+      expect(TrackingType.caca.listIcon, Icons.water_drop_outlined);
+    });
+
+    test('outlining a row does not restyle the home grid', () {
+      // The two mappings exist because the filled glyphs are what the home buttons
+      // ship with, and those buttons are inside the live store listings.
+      expect(TrackingType.miam.icon, Icons.lunch_dining);
+      expect(TrackingType.dodo.icon, Icons.nightlight);
+      expect(TrackingType.sante.icon, Icons.favorite);
+    });
+
+    test('a filter pill wears its type glyph, outlined like the row', () {
+      expect(HistoryFilter.miam.pillIcon, Icons.lunch_dining_outlined);
+      expect(HistoryFilter.dodo.pillIcon, Icons.nightlight_outlined);
+      expect(HistoryFilter.caca.pillIcon, Icons.water_drop_outlined);
+      expect(HistoryFilter.sante.pillIcon, Icons.favorite_border);
+    });
+
+    test('a pill that is not one type wears no glyph', () {
+      expect(HistoryFilter.all.pillIcon, isNull,
+          reason: '« Tous » is every type, so it is none of them');
+      expect(HistoryFilter.measurements.pillIcon, isNull,
+          reason: 'B7: measurements are not a tracking type');
+    });
+
+    test('the pill glyph of a type matches the row glyph of that type', () {
+      // Two surfaces, one identity: the pill for « Sommeil » and a sleep row must
+      // not be two different pictures of the same thing.
+      expect(HistoryFilter.miam.pillIcon, TrackingType.miam.listIcon);
+      expect(HistoryFilter.dodo.pillIcon, TrackingType.dodo.listIcon);
+      expect(HistoryFilter.caca.pillIcon, TrackingType.caca.listIcon);
+      expect(HistoryFilter.sante.pillIcon, TrackingType.sante.listIcon);
+    });
+  });
+
   group('HealthIcons.from (HealthSubtype)', () {
     test('returns correct icon for each HealthSubtype constant', () {
       // Nettoyages → cleaning_services

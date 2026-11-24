@@ -41,8 +41,12 @@ class MeasurementHistoryTile extends StatelessWidget {
           backgroundColor: measurement.kind.accent.withValues(alpha: 0.2),
           // Ink glyph on tinted disc (B4): an accent-coloured glyph measures
           // 1.23:1 on the 20 % disc in light mode for the weight kind.
-          child:
-              Icon(measurement.kind.icon, color: theme.colorScheme.onSurface),
+          // `listIcon`, so a row reads outlined while the home button keeps the
+          // glyph it shipped with.
+          child: Icon(
+            measurement.kind.listIcon,
+            color: theme.colorScheme.onSurface,
+          ),
         ),
         title: Text(_kindLabel(context)),
         subtitle: Column(

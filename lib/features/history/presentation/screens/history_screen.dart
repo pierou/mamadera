@@ -7,6 +7,7 @@ import '../../../../core/theme.dart';
 import '../../../../core/widgets/show_feedback.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
+import '../../../../shared/widgets/tracking_icons.dart';
 import '../../../growth/domain/entities/growth_measurement.dart';
 import '../../../growth/presentation/widgets/edit_measurement_sheet.dart';
 import '../../domain/history_row.dart';
@@ -285,7 +286,9 @@ class HistoryScreen extends ConsumerWidget {
 /// "Do not" forbids replacing with `TrackButton`: these are toggles).
 ///
 /// `all` stays neutral on purpose: it has no type accent at home either, so giving
-/// it a colour would invent one.
+/// it a colour would invent one — and for the same reason it wears no glyph, while
+/// the four type pills wear their type icon in the outlined variant a chip takes
+/// (see `HistoryFilterIcon`).
 class _HistoryFilterChip extends StatelessWidget {
   const _HistoryFilterChip({
     required this.filter,
@@ -320,13 +323,30 @@ class _HistoryFilterChip extends StatelessWidget {
     final fill = accent == scheme.outline
         ? scheme.onSurface.withValues(alpha: selected ? 0.16 : 0.04)
         : accent.withValues(alpha: selected ? 0.28 : 0.06);
+    // The glyph carries the type accent, so an unselected pill is still
+    // identifiable before its border; a neutral pill uses the secondary text
+    // colour, which is what its label is drawn in.
+    final icon = filter.pillIcon;
 
     return FilterChip(
+      avatar: icon == null
+          ? null
+          : Icon(
+              icon,
+              size: 18,
+              color: accentOf(context, filter) ?? scheme.onSurfaceVariant,
+            ),
       label: Text(getHistoryFilterLabel(context, filter)),
       selected: selected,
       onSelected: (_) => onPressed(),
       backgroundColor: fill,
       selectedColor: fill,
+      // Material replaces a chip's avatar with its checkmark when the chip is
+      // selected — measured on a Small_Phone on 2026-11-21, where the selected
+      // « Nourriture » pill rendered the tick *on top of* the burger. The glyph is
+      // the reason this change exists, so the check goes and selection stays where
+      // B29 put it: the fill, under the accent border.
+      showCheckmark: false,
       // The accent shadow replaces the elevation shadow the chip would otherwise
       // paint: a grey drop under a tinted pill is the look we are leaving behind.
       elevation: 0,

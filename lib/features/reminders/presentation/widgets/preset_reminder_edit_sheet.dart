@@ -10,13 +10,16 @@ import '../../domain/entities/reminder_item.dart';
 import '../../domain/entities/reminder_item_setting.dart';
 import '../../domain/services/reminder_frequency_codec.dart';
 import '../providers/reminder_providers.dart';
+import '../providers/reminder_sync_notifier.dart';
 import 'reminder_display_name.dart';
 import 'reminder_end_picker.dart';
 import 'reminder_frequency_label.dart';
+import 'reminder_hour_control.dart';
 
 /// Edit one preset reminder (B33/D-R6): its **name**, its **rhythm** (including a
-/// single occurrence) and its **end** — the same three decisions a custom reminder
-/// form offers, so a preset is not a second-class row a parent can only switch off.
+/// single occurrence), the **hour** it fires at (B30) and its **end** — the same
+/// decisions a custom reminder form offers, so a preset is not a second-class row
+/// a parent can only switch off.
 ///
 /// What is deliberately *not* here: the **care** the reminder is settled by. D-R6
 /// rules it out — re-pointing `vitamine_k` at some other event would decouple the
@@ -79,9 +82,18 @@ class _PresetReminderEditSheetState extends State<_PresetReminderEditSheet> {
   late DateTime? _endDate;
   late int? _endAgeMonths;
 
+  /// The hour column as this sheet last left it (B30).
+  ///
+  /// The sheet is handed a snapshot of the row, and an hour is written the moment
+  /// it is picked (the settings row behaves the same way), so the copy has to be
+  /// kept here: without it, pressing the reset button inside the sheet would look
+  /// like nothing happened until the sheet was reopened.
+  late String? _storedTime;
+
   @override
   void initState() {
     super.initState();
+    _storedTime = widget.setting?.timeOfDay;
     _labelController = TextEditingController(
       text: widget.setting?.label ?? '',
     );
@@ -127,6 +139,28 @@ class _PresetReminderEditSheetState extends State<_PresetReminderEditSheet> {
 
   bool get _oneTimeMissing =>
       _choice == _Choice.oneTime && _oneTimeDate == null;
+
+  /// One reminder's hour state, resolved by the same function the settings row
+  /// uses, so the two surfaces cannot disagree about what "its hour" is.
+  ReminderHourState get _hour => resolveReminderHour(
+        storedTimeOfDay: _storedTime,
+        prefs: widget.ref.read(notificationSettingsProvider).value,
+      );
+
+  /// Write the hour, then show what was actually stored.
+  ///
+  /// Re-read rather than formatted from the picked `TimeOfDay`: the codec that
+  /// owns `HH:mm` stays the only place that spelling is produced.
+  Future<void> _writeHour(Future<void> Function() write) async {
+    await write();
+    if (!mounted) return;
+    setState(() {
+      _storedTime = widget.ref
+          .read(reminderSettingsProvider)
+          .value?[widget.item.id]
+          ?.timeOfDay;
+    });
+  }
 
   Future<void> _save() async {
     if (_oneTimeMissing) return;
@@ -268,6 +302,35 @@ class _PresetReminderEditSheetState extends State<_PresetReminderEditSheet> {
                       ],
                     ),
                   ),
+                const SizedBox(height: AppTheme.spacingLg),
+                // B30: the hour belongs with the rhythm it fires on. It used to be
+                // reachable only from the settings row, so "edit this reminder"
+                // offered a name, a frequency and an end — and not the one number
+                // a parent most often wants to move.
+                Text(l.reminderHourSectionTitle,
+                    style: Theme.of(context).textTheme.titleSmall),
+                ReminderHourControl(
+                  frequency: _frequencyOrNull() ?? widget.item.frequency,
+                  // The chips above already are the rhythm; this line is about the
+                  // hour alone.
+                  showRhythm: false,
+                  hourLabel: _hour.hourLabel,
+                  inherited: _hour.inherited,
+                  showHour: _hour.showHour,
+                  onPick: () => _writeHour(
+                    () => pickReminderHour(
+                      context: context,
+                      ref: widget.ref,
+                      item: widget.item,
+                      storedTimeOfDay: _storedTime,
+                    ),
+                  ),
+                  onUseGlobal: () => _writeHour(
+                    () => widget.ref
+                        .read(reminderSettingsProvider.notifier)
+                        .useGlobalTime(widget.item),
+                  ),
+                ),
                 const SizedBox(height: AppTheme.spacingLg),
                 ReminderEndPicker(
                   birthDate: widget.birthDate,

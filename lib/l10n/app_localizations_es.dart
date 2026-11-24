@@ -288,6 +288,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reminderHourUseDefault => 'Usar la hora predeterminada';
 
   @override
+  String get reminderHourSectionTitle => 'Hora de notificación';
+
+  @override
   String get reminderNotificationsPermissionDenied =>
       'Las notificaciones están desactivadas en la configuración del sistema. Actívalas allí para recibir las notificaciones de recordatorio.';
 
@@ -347,6 +350,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String reminderEndAgeValue(Object months) {
     return '$months meses';
   }
+
+  @override
+  String get reminderEndYearsLabel => 'Años';
+
+  @override
+  String get reminderEndMonthsLabel => 'Meses';
 
   @override
   String reminderEndUntilDate(Object date) {
