@@ -9,7 +9,10 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_frequency.dart';
+import '../../domain/services/notification_time.dart';
+import '../providers/reminder_sync_notifier.dart';
 import 'reminder_end_picker.dart';
+import 'reminder_hour_control.dart';
 
 /// Suggested rhythms for creating a reminder.
 ///
@@ -41,11 +44,22 @@ class CustomReminderDraft {
     this.reminder, {
     this.endDate,
     this.endAgeMonths,
+    this.timeOfDay,
+    this.timeChanged = false,
   });
 
   final CustomReminder reminder;
   final DateTime? endDate;
   final int? endAgeMonths;
+
+  /// The hour the parent set in the panel (B35) — `'HH:mm'`, or `null` when
+  /// they chose to inherit the global hour.
+  final String? timeOfDay;
+
+  /// `true` only when the panel actually changed the hour: untouched means the
+  /// `reminder_settings.time` column must not be written at all, so editing a
+  /// label cannot disturb a stored hour any more than a forgotten field could.
+  final bool timeChanged;
 }
 
 /// Personalized reminder form, on a template sheet.
@@ -59,6 +73,8 @@ class CustomReminderFormSheet extends StatefulWidget {
     this.existing,
     this.existingEndDate,
     this.existingEndAgeMonths,
+    this.existingTimeOfDay,
+    this.prefs,
     super.key,
   });
 
@@ -73,6 +89,16 @@ class CustomReminderFormSheet extends StatefulWidget {
   /// sheet shows what is really set rather than "no end".
   final DateTime? existingEndDate;
   final int? existingEndAgeMonths;
+
+  /// The hour currently stored for this reminder (`reminder_settings`), so the
+  /// sheet shows what really fires rather than "no hour" (B35). `null` = the
+  /// reminder inherits the installation-wide hour.
+  final String? existingTimeOfDay;
+
+  /// The installation-wide notification preference, for the inherited form of
+  /// the hour line. `null` while it is still being read: the hour line then
+  /// stays away rather than guessing 09:00, exactly as on the settings row.
+  final NotificationPreferences? prefs;
 
   @override
   State<CustomReminderFormSheet> createState() =>
@@ -96,6 +122,11 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
   late DateTime? _endDate;
   late int? _endAgeMonths;
 
+  /// The hour column as this panel last left it (B35). Seeded from the stored
+  /// row, written back by the caller only if the panel actually changed it —
+  /// the sheet keeps its "writes nothing" contract through the draft.
+  late String? _ownTime;
+
   /// The default interval suggested when creating a new one: three days, the frequency.
   /// applying a cream on medical advice, the most commonly requested.
   static const int _defaultIntervalDays = 3;
@@ -114,6 +145,7 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
     _choice = _choiceOf(existing?.frequency);
     _endDate = widget.existingEndDate;
     _endAgeMonths = widget.existingEndAgeMonths;
+    _ownTime = widget.existingTimeOfDay;
     if (existing?.frequency case OneTime(:final date)) _oneTimeDate = date;
     // Only one field requires you to enter a number of days; the others do not.
     // The rhythms start with the default setting, which is invisible until a selection is made.
@@ -160,6 +192,37 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
       OneTime() => CustomReminderFrequencyChoice.oneTime,
       _ => CustomReminderFrequencyChoice.daily,
     };
+  }
+
+  /// One reminder's hour state, resolved by the same function the settings row
+  /// uses, so the two surfaces cannot disagree about what "its hour" is.
+  ReminderHourState get _hour => resolveReminderHour(
+        storedTimeOfDay: _ownTime,
+        prefs: widget.prefs,
+      );
+
+  /// Ask the OS for the hour, and keep the answer in the draft's state — the
+  /// write itself happens in `_openForm`, after the reminder exists (a brand
+  /// new one has no settings row to own the hour before the sheet closes).
+  Future<void> _pickHour() async {
+    final hour = _hour;
+    final fallback = notificationTimeDefaults();
+    final prefs = hour.prefs;
+    final initial = hour.inherited
+        ? (
+            hour: prefs?.hour ?? fallback.hour,
+            minute: prefs?.minute ?? fallback.minute,
+          )
+        : parseNotificationTime(hour.hourLabel);
+
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: initial.hour, minute: initial.minute),
+      helpText: context.l.reminderHourPickerTitle,
+    );
+    if (picked == null) return;
+    setState(() => _ownTime =
+        formatNotificationTime(hour: picked.hour, minute: picked.minute));
   }
 
   @override
@@ -209,6 +272,8 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
         ),
         endDate: _endDate,
         endAgeMonths: _endAgeMonths,
+        timeOfDay: _ownTime,
+        timeChanged: _ownTime != widget.existingTimeOfDay,
       ),
     );
   }
@@ -257,6 +322,20 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
                     const SizedBox(height: AppTheme.spacingLg),
                     _buildOneTimeDateField(),
                   ],
+                  const SizedBox(height: AppTheme.spacingXl),
+                  // The hour this reminder fires at (B35) — the same control the
+                  // row and the preset sheet offer, so the three surfaces cannot
+                  // spell "its hour" differently. The rhythm text is off here:
+                  // the dropdown above already picked it.
+                  ReminderHourControl(
+                    frequency: const ReminderFrequency.daily(),
+                    hourLabel: _hour.hourLabel,
+                    inherited: _hour.inherited,
+                    showHour: _hour.showHour,
+                    showRhythm: false,
+                    onPick: _pickHour,
+                    onUseGlobal: () => setState(() => _ownTime = null),
+                  ),
                   const SizedBox(height: AppTheme.spacingXl),
                   // D-R5: the same end section as a preset's, so "until a date"
                   // and "until an age" mean one thing wherever they are set.

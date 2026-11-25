@@ -315,6 +315,8 @@ class _ReminderList extends ConsumerWidget {
         birthDate: profile?.birthDate,
         existingEndDate: parseCalendarDate(stored?.endDate),
         existingEndAgeMonths: stored?.endAgeMonths,
+        existingTimeOfDay: stored?.timeOfDay,
+        prefs: ref.read(notificationSettingsProvider).value,
       ),
     );
     if (draft == null) return;
@@ -340,6 +342,16 @@ class _ReminderList extends ConsumerWidget {
             endAgeMonths: draft.endAgeMonths,
             enabledIfNew: true,
           );
+      // B35: an hour chosen in the panel is the second column-write of the
+      // same row, on the end's path. Untouched means the time column is not
+      // written at all — editing a label never disturbs a stored hour.
+      if (draft.timeChanged) {
+        await ref.read(reminderSettingsProvider.notifier).setTimeById(
+              'custom_${reminder.id}',
+              enabledIfNew: true,
+              timeOfDay: draft.timeOfDay,
+            );
+      }
       if (!context.mounted) return;
       // B17: this path used to complete silently to the finger — the record landed
       // with nothing but a row appearing. `showFeedback` is the app's single haptic
