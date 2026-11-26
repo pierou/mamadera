@@ -8,6 +8,32 @@ holds two kinds of files that live in *different* repositories:
 | `com.pvjio.mamadera.yml` | fork of https://gitlab.com/fdroid/fdroiddata → `metadata/` |
 | (the `fastlane/metadata/android/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source, in **fastlane layout** (required by the New App checklist — a plain `metadata/` dir happens to be read too, but it is not accepted for inclusion) |
 
+## Current status (2026-11-26 — build **17** prepared, tag pending)
+
+`com.pvjio.mamadera.yml` in this directory now carries one `Builds` entry
+(1.4.0 / **17**, `commit: v1.4.0`), `CurrentVersion: 1.4.0` /
+`CurrentVersionCode: **17**`, and nothing else changed. The fork's
+`mamadera-new-app` is still at `d8b8be3e` (16) — **the push happens only after
+`v1.4.0` exists on GitHub**: the pipeline builds `commit: v1.4.0` immediately,
+so pushing the entry early turns the MR red on a ref that does not exist yet
+(the 1.3.1 rule, same as the first push). After the push, `cmp` the two ymls
+again — they must be byte-identical.
+
+**Why nothing else in the recipe changed:** `git diff v1.3.2..develop --
+android/ ios/ pubspec.lock .github/workflows/ci.yml` is **empty** — v1.4.0 is
+pure Dart (schema v14, notifications, the reminder rework), so every prebuild
+sed, the `rm: [ios]` list and the `flutter-version` pin (still `3.44.8` at
+the tag) carry over verbatim from build 16.
+
+**Changelog and screenshots, both at the tag:** `changelogs/17.txt` exists in
+all three locales (the Play release notes, `*`-bulleted like 15/16), and the
+`fastlane/metadata/android/en-US/images/phoneScreenshots/` set (Home /
+Feeding / History) was recaptured on `Pixel_10_Pro` (1280×2856) from the
+v1.4.0 build — the ordering rule from the stale-captures note below: captures
+refresh in the release cycle, the tag comes after.
+
+---
+
 ## Current status (2026-11-14 — build **16** pushed to !53740, pipeline `3068542108`)
 
 `com.pvjio.mamadera.yml` in this directory is **byte-identical** to
