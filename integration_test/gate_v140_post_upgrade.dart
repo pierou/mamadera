@@ -97,12 +97,22 @@ Future<void> ensureHome(WidgetTester tester) async {
   for (var i = 0; i < 40 && find.byKey(miam).evaluate().isEmpty; i++) {
     await tester.pump(const Duration(milliseconds: 100));
   }
-  if (find.byKey(miam).evaluate().isEmpty) {
+  // An earlier leg may have left the app on a pushed route (the reminder
+  // settings has no tab bar), so Home is neither on screen nor one tab-tap
+  // away. Pop until the scaffold is back, then switch to the home tab.
+  for (var i = 0; i < 4 && find.byKey(miam).evaluate().isEmpty; i++) {
     final home = findByKey(TestKeys.homeTab);
     if (home.evaluate().isNotEmpty) {
       await tester.tap(home.first);
       await tester.pumpAndSettle();
+      break;
     }
+    final navs = find.byType(Navigator).evaluate();
+    if (navs.isEmpty) break;
+    final nav = Navigator.of(navs.last); // an Element is a BuildContext
+    if (!nav.canPop()) break;
+    nav.pop();
+    await tester.pumpAndSettle();
   }
   await tester.pumpAndSettle();
   expect(find.byKey(miam), findsWidgets,
