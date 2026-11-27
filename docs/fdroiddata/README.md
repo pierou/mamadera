@@ -8,7 +8,26 @@ holds two kinds of files that live in *different* repositories:
 | `com.pvjio.mamadera.yml` | fork of https://gitlab.com/fdroid/fdroiddata → `metadata/` |
 | (the `fastlane/metadata/android/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source, in **fastlane layout** (required by the New App checklist — a plain `metadata/` dir happens to be read too, but it is not accepted for inclusion) |
 
-## Current status (2026-11-26 — build **17** prepared, tag pending)
+## Current status (2026-11-27 — build **17** pushed to !53740, pipeline `3121274643`)
+
+Tag `v1.4.0` cut (`d9f5249`, main). The fork's `mamadera-new-app` is at
+`b5b88c9d`: one `Builds` entry (1.4.0 / **17**, `commit: v1.4.0`),
+`CurrentVersion: 1.4.0` / `CurrentVersionCode: 17`, `changelogs/17.txt` in all
+three locales at the tag, and the fastlane phone-screenshot set recaptured on
+`Pixel_10_Pro` from the v1.4.0 build (all three URLs curl 200 at the tag). The
+pushed yml is byte-identical to this directory's copy (re-`cmp`ed after the
+push). Pipeline `3121274643` is **green**, `fdroid build` included — the build
+blocks were untouched: `git diff v1.3.2..v1.4.0 -- android/ ios/ pubspec.lock
+.github/workflows/ci.yml` is empty, the `flutter-version` sed still resolves to
+3.44.8 and the `rm:` list still derives to `ios` only. The MR description was
+re-pinned to `v1.4.0` and the note of the same day re-raised the two open
+questions (universal vs `--split-per-abi`; the `sudo:` block) — per the rule
+above, that content is the only thing that can move the MR past "green but
+silently waiting".
+
+---
+
+## Earlier: 2026-11-26 — build **17** prepared, tag pending
 
 `com.pvjio.mamadera.yml` in this directory now carries one `Builds` entry
 (1.4.0 / **17**, `commit: v1.4.0`), `CurrentVersion: 1.4.0` /

@@ -79,10 +79,10 @@ support asks for.
 |------|--------|
 | Enroll in Apple Developer Program ($99/year) | ✅ done |
 | Create app entry in App Store Connect (`com.pvjio.mamadera`) | ✅ done |
-| Archive + sign + upload via **Xcode Cloud** (auto on `main` push; auto-managed signing) | ✅ first green build 2026-09-20 — 1.1.0 build in ASC, ready to attach. ◱ **1.3.1+15**: the `main` push of 2026-11-12 (`4570c94`) is the trigger and the submission itself is the evidence an upload landed — the Xcode Cloud job is **not visible from this repo**, and CI's `ios-release` artifact (run `43132941873`) is a red herring: `build-ios` runs `flutter build ios --release --no-codesign`, so that IPA is unsigned and could never reach ASC — it exists to prove the app compiles for device |
-| Fill metadata (name, subtitle, description × 3 languages — **from `store/v<version>/fields/`**; the v1.1.0 block in `docs/app-store-setup.md` Step 5 is superseded) | ◱ v1.3.1 from `store/v1.3.1/fields/`, 2026-11-13 (a submission cannot exist without it) |
-| Paste What's New × 3 (`store/v<version>/release-notes/apple-whatsnew-<locale>.txt` — rendered from `assets/patch_notes/`, never hand-edited) | ◱ 2026-11-13 |
-| Upload iPhone screenshots — **exactly four sizes, all else is rejected**: 1206×2622 and 2622×1206 (iPhone 17), 1179×2556 and 2556×1179 (iPhone 17e), 7 screens per locale (`store/v<version>/screenshots/asc/<locale>/<size>/`). The old 1242×2688 / 1284×2778 set stopped being uploadable in B24 (2026-11-03) and `store/v1.3.0/screenshots/asc/` is still built from it — do not take a set from there | ◱ 2026-11-13, taken from `store/v1.3.1/screenshots/asc/` — the four accepted sizes are there and verified (B24 satisfied; this is the first release whose ASC set is not the retired lineup) |
+| Archive + sign + upload via **Xcode Cloud** (auto on `main` push; auto-managed signing) | ✅ first green build 2026-09-20 — 1.1.0 build in ASC, ready to attach. ◱ **1.4.0+17**: the `main` push of 2026-11-27 (`d9f5249`) is the trigger — the Xcode Cloud job is **not visible from this repo**, and CI's `build-ios` (run `45915894822`, green) only proves the app compiles for device (`--no-codesign`) |
+| Fill metadata (name, subtitle, description × 3 languages — **from `store/v<version>/fields/`**; the v1.1.0 block in `docs/app-store-setup.md` Step 5 is superseded) | ◱ v1.4.0 from `store/v1.4.0/fields/` (v1.3.1 was 2026-11-13) — pending the 1.4.0 version in ASC |
+| Paste What's New × 3 (`store/v<version>/release-notes/apple-whatsnew-<locale>.txt` — rendered from `assets/patch_notes/`, never hand-edited) | ◱ v1.4.0 texts ready (v1.3.1 was 2026-11-13) |
+| Upload iPhone screenshots — **exactly four sizes, all else is rejected**: 1206×2622 and 2622×1206 (iPhone 17), 1179×2556 and 2556×1179 (iPhone 17e), 7 screens per locale (`store/v<version>/screenshots/asc/<locale>/<size>/`). The old 1242×2688 / 1284×2778 set stopped being uploadable in B24 (2026-11-03) and `store/v1.3.0/screenshots/asc/` is still built from it — do not take a set from there | ◱ v1.4.0 set from `store/v1.4.0/screenshots/asc/` — four B24 sizes × 7 screens × fr/es/en, recaptured 2026-11-20 (`fe5006d`) from the v1.4.0 build |
 | Set privacy policy URL | ◱ required to submit, so set by 2026-11-13 |
 | Complete age rating questionnaire | ◱ required to submit, so done by 2026-11-13 |
 | Declare no non-exempt encryption — `ITSAppUsesNonExemptEncryption = false` in Info.plist, matching the ASC export-compliance answer | ✅ done |
@@ -128,11 +128,11 @@ Follow → [`docs/google-play-setup.md`](google-play-setup.md)
 
 | Task | Status |
 |------|--------|
-| Fill store listing + localizations × 3 languages — **from `store/v1.3.1/fields/`** + `release-notes/play-<locale>.txt` (the v1.1.0 copy in `docs/google-play-setup.md` Step 6 is superseded) | ◱ 2026-11-13 (a submission cannot exist without it) |
-| Upload feature graphic (1024×500), app icon (512×512), screenshots (≥3) — `store/v1.3.1/screenshots/play/`, 8 screens × fr/es/en at 1280×2856, recaptured 2026-11-11 | ◱ 2026-11-13 |
-| Signed AAB from the release tag (Actions, production keystore) — as `v1.3.0` was in CI run 41353557027 | ✅ built and verifiable: run **`43132941873`**, artifact `android-release-aab` (60 MB, from tag `v1.3.1`) — and genuinely release-signed, not debug: `ci.yml:243` writes `ANDROID_KEYSTORE_BASE64` to `android/app/keystore.jks` and `:264` builds the appbundle with `KEYSTORE_PATH` pointed at it — ◱ uploaded 2026-11-13 |
+| Fill store listing + localizations × 3 languages — **from `store/v<version>/fields/`** + `release-notes/play-<locale>.txt` (the v1.1.0 copy in `docs/google-play-setup.md` Step 6 is superseded) | ◱ v1.4.0 from `store/v1.4.0/fields/` + `release-notes/play-<locale>.txt` (= `changelogs/17.txt`) — pending the Console upload |
+| Upload feature graphic (1024×500), app icon (512×512), screenshots (≥3) — `store/v<version>/screenshots/play/`, 8 screens × fr/es/en at 1280×2856 | ◱ v1.4.0 set from `store/v1.4.0/screenshots/play/`, recaptured 2026-11-27 on `Pixel_10_Pro` (v1.3.1 was 2026-11-13) |
+| Signed AAB from the release tag (Actions, production keystore) — as `v1.3.0` was in CI run 41353557027 | ✅ built and verifiable: run **`45915901390`**, artifact `android-release-aab` (61 MB, from tag `v1.4.0`, sha256 `100b3924…baa06295`) — release-signed per `ci.yml:243`/`:264` as always — ◱ pending Console upload (v1.3.1's run was `43132941873`, uploaded 2026-11-13) |
 | Upload to Internal Testing track first | ◱ — **fill from the Console**: which track the build went to, and when |
-| Complete internal testing → move to Production | 🕐 **waiting for Play validation** since 2026-11-13 — 2–5 business days expected; the track it lands on is a Console fact, not a repo one |
+| Complete internal testing → move to Production | 🕐 pending the 1.4.0 upload — the track it lands on is a Console fact, not a repo one |
 
 The gating checks that were learned the hard way, and that a green CI cannot
 replace: the upgrade test on a device still holding the **previous** schema, and
@@ -186,12 +186,12 @@ the tree any more).
 
 | Task | Status |
 |------|--------|
-| fastlane tree in this repo, present **at the release tag** | ✅ v1.3.1 (this was the v1.2.1 blocker) — descriptions ×3, `changelogs/15.txt` ×3, icon + 3 screenshots. Caveat: the screenshots are the 2026-11-08 captures, three days before the store recapture that followed B28 — see `docs/fdroiddata/README.md` |
-| `com.pvjio.mamadera.yml` canonical + lint-clean under the pipeline's fdroidserver | ✅ 2026-11-12, one `Builds` entry 1.3.1 / 15, `commit: v1.3.1` — `rewritemeta` idempotent under fdroidserver master *and* the CI pin, `lint` clean, byte-identical to this repo's copy |
+| fastlane tree in this repo, present **at the release tag** | ✅ v1.4.0 — descriptions ×3, `changelogs/17.txt` ×3, icon + 3 screenshots (recaptured 2026-11-27 on `Pixel_10_Pro` from the v1.4.0 build; the v1.3.1-era stale-capture caveat no longer applies) |
+| `com.pvjio.mamadera.yml` canonical + lint-clean under the pipeline's fdroidserver | ✅ 2026-11-27, one `Builds` entry 1.4.0 / 17, `commit: v1.4.0` — `rewritemeta` idempotent under fdroidserver master *and* the CI pin, `lint` clean, byte-identical to this repo's copy |
 | Fork fdroiddata (GitLab), MR labelled **New App** | ✅ MR [!53740](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/53740), opened 2026-10-22 |
-| Push the release recipe to the MR branch | ✅ 2026-11-12 (`mamadera-new-app@12b317fe`) — pipeline `3062096455`, **`fdroid build` succeeded (581 s)** on tag `v1.3.1`; v1.3.0's build was `3015561025` (508 s) |
-| Re-pin the MR abstract to `v1.3.1` | ✅ 2026-11-12 — URLs verified 200 at the new tag; two claims the bump had made false corrected in place (the `Builds` line, and "the MR adds exactly two files…patch": it adds one) |
-| Maintainer review → merge | ☐ (~2–6 weeks. All three 2026-10-24 asks — sed instead of patches, latest version only, fastlane in the repo — are answered; **our two questions of the same day, per-ABI splits and whether the `sudo:`/reproducible-build block goes in now, are unanswered**, which is probably what `waiting-on-response` refers to) |
+| Push the release recipe to the MR branch | ✅ 2026-11-27 (`mamadera-new-app@b5b88c9d`) — pipeline `3121274643`, **`fdroid build` succeeded** on tag `v1.4.0`; v1.3.2's build was `3068542108`, v1.3.1's `3062096455` (581 s) |
+| Re-pin the MR abstract to the new tag | ✅ 2026-11-27 to `v1.4.0` — all three screenshot URLs curl 200 at the tag; the `Builds` line, the Flutter-pin claim and the sed re-check updated in place (the v1.3.1 re-pin of 2026-11-12 corrected two claims the bump had made false) |
+| Maintainer review → merge | ☐ (~2–6 weeks. All three 2026-10-24 asks — sed instead of patches, latest version only, fastlane in the repo — are answered; **our two questions of the same day, per-ABI splits and whether the `sudo:`/reproducible-build block goes in now, are still unanswered** — re-raised again in the 2026-11-27 note, which is probably what `waiting-on-response` refers to) |
 | Delete branch `fdroid-metadata-v1.2.1` | ☐ **after** the merge — see `docs/AUDIT-2026-10-21.md` addendum |
 
 **Note:** F-Droid builds from source on its own builders and re-signs the APK —
