@@ -166,5 +166,26 @@
       "### Correcciones",
       "- Corrección de un caso raro en el que los ajustes de recordatorios solo mostraban la vitamina D y la vitamina K mientras las notificaciones de limpieza de ojos y del rostro seguían sonando — los ajustes muestran ahora siempre los recordatorios del bebé seleccionado"
     ]
+  },
+  "1.4.0": {
+    "releaseDate": "2026-11-18",
+    "title": "Novedades de Mamadera 1.4.0",
+    "items": [
+      "### Nuevas funciones",
+      "- Adición de una hora de notificación propia para cada recordatorio: sin hora elegida, sigue la hora general y la lista lo marca «predeterminada»",
+      "- Adición de una frecuencia «Una sola vez» para un recordatorio, con el día indicado",
+      "- Adición de un fin para los recordatorios: en una fecha o a una edad, con el día resultante mostrado durante el ajuste",
+      "- Adición de la edición y de la eliminación de los recordatorios sugeridos: nombre, ritmo y fin ajustables, el recordatorio eliminado sale de Inicio y de las notificaciones, y un toque lo devuelve desde la sección Eliminados",
+      "- Adición de una nota opcional al registrar una toma, escrita en el momento en lugar de reconstruirla después",
+      "- Adición del selector de bebé en el título de Inicio: un toque abre la lista de hijos y cambia de bebé",
+      "- Adición de un filtro Medidas en el historial, para ver solo pesos, alturas y temperaturas",
+      "- Adición de la acción al tocar una notificación: la aplicación se abre en el Inicio del bebé correspondiente, marca como tomado un recordatorio sin cuidado asociado, o abre la ficha de cuidado con el tipo ya elegido",
+      "### Mejoras",
+      "- Actualización de las pastillas de filtro del historial al diseño de los botones de Inicio: borde del color del tipo sobre un fondo teñido",
+      "- Adición de una confirmación háptica a cada registro: toma, sueño, pañal, cuidado, medida, bebé y recordatorio personalizado",
+      "- Adición del cambio de bebé al tocar una notificación de otro hijo: el Inicio mostrado es el del bebé correspondiente antes de actuar",
+      "- Actualización del recordatorio de vitamina D: desactivado de forma predeterminada en un perfil nunca ajustado; los perfiles existentes conservan su ajuste",
+      "- Actualización del recordatorio de vitamina K: ofrecido una sola vez, un mes después de la fecha de nacimiento"
+    ]
   }
 }

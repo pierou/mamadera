@@ -67,7 +67,8 @@ void main() {
   }
 
   group('HistoryTile — Icone par type d\'événement', () {
-    testWidgets('FeedingEvent → lunch_dining icon', (tester) async {
+    testWidgets('FeedingEvent → the outlined lunch_dining a row wears',
+        (tester) async {
       await pumpTile(
         tester,
         FeedingEvent(
@@ -75,10 +76,11 @@ void main() {
             timestamp: DateTime.utc(2024),
             subtype: FeedingSubtype.natural),
       );
-      expect(find.byIcon(Icons.lunch_dining), findsOneWidget);
+      expect(find.byIcon(Icons.lunch_dining_outlined), findsOneWidget);
     });
 
-    testWidgets('SleepEvent → nightlight icon', (tester) async {
+    testWidgets('SleepEvent → the outlined nightlight a row wears',
+        (tester) async {
       await pumpTile(
         tester,
         SleepEvent(
@@ -86,7 +88,7 @@ void main() {
             timestamp: DateTime.utc(2024),
             duration: 30.0),
       );
-      expect(find.byIcon(Icons.nightlight), findsOneWidget);
+      expect(find.byIcon(Icons.nightlight_outlined), findsOneWidget);
     });
 
     testWidgets('DiaperEvent pipi → water_drop_outlined icon', (tester) async {
@@ -115,15 +117,55 @@ void main() {
       expect(find.byIcon(Icons.water_drop), findsOneWidget);
     });
 
-    testWidgets('HealthEvent → favorite icon', (tester) async {
+    testWidgets('pipi and caca are never the same glyph', (tester) async {
+      // The one line the outlined-row rule does not reach, stated as an invariant
+      // rather than a coincidence: inside the drop family, filled versus outlined
+      // carries the difference between the two events, so outlining the row would
+      // draw the pipi glyph for a caca.
+      await pumpTile(
+        tester,
+        DiaperEvent(timestamp: DateTime.utc(2024), wasteType: WasteType.pipi),
+      );
+      final pipi = tester
+          .widget<Icon>(
+            find.descendant(
+              of: find.byType(CircleAvatar),
+              matching: find.byType(Icon),
+            ),
+          )
+          .icon;
+
+      await pumpTile(
+        tester,
+        DiaperEvent(timestamp: DateTime.utc(2024), wasteType: WasteType.caca),
+      );
+      final caca = tester
+          .widget<Icon>(
+            find.descendant(
+              of: find.byType(CircleAvatar),
+              matching: find.byType(Icon),
+            ),
+          )
+          .icon;
+
+      expect(pipi, isNot(caca));
+    });
+
+    testWidgets('HealthEvent → the outlined favorite a row wears',
+        (tester) async {
       await pumpTile(
         tester,
         HealthEvent(
             timestamp: DateTime.utc(2024),
             subtype: HealthSubtype.nettoyageYeux),
       );
-      expect(find.byIcon(Icons.favorite), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_border), findsOneWidget);
     });
+
+    // The three diaper assertions above are left on the filled family on purpose:
+    // within the drop family, filled versus outlined is the pipi/caca distinction,
+    // so the diaper row is the one line that is not outlined (see
+    // `TrackingTypeListIcon`).
   });
 
   group('HistoryTile — leading disc carries the tracking-type accent (B4)', () {
@@ -484,18 +526,18 @@ void main() {
   });
 
   group('HistoryTile — Sommeil : une seule ligne de valeur', () {
-    // The app records the `duration` of the nap in both the `quantity` and "duration" fields.
-    // (same value). The tiles should not display the quantity twice ("Quantity: 45 min").
-    // + "Duration: 45 minutes"): "Duration" is the natural term used to describe a nap.
-    testWidgets('SleepEvent avec quantité → « Durée » sans « Quantité »',
-        (tester) async {
+    // B13: the minutes of a nap live in `duration`. Since the entity dropped the
+    // mirror column from the model, a nap cannot arrive at the tile carrying the
+    // same number twice — the assertion that a nap shows one value row and that the
+    // natural label is « Durée » is what remains of the rc.2 fix, and the write path
+    // is pinned in `tracking_repository_impl_test.dart`.
+    testWidgets('SleepEvent → « Durée » sans « Quantité »', (tester) async {
       await pumpTile(
         tester,
         SleepEvent(
             unit: QuantityUnit.min,
             timestamp: DateTime.utc(2024),
-            duration: 45.0,
-            quantity: 45.0),
+            duration: 45.0),
       );
       expect(find.text('Durée: 45 min'), findsOneWidget);
       expect(find.textContaining('Quantité'), findsNothing);

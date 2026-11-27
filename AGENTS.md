@@ -134,6 +134,8 @@ All commands available via [`Makefile`](Makefile):
 | `make store-prose` | Same + TranslateGemma fr/es, raw output archived under `machine/` |
 | `make store-check` | Consoles' character limits, note consistency, screenshot inventory |
 | `make store-shots` VERSION=1.2.2 | Recapture Play screenshots for fr/es/en (emulator) |
+| `make emu-up` [AVD=Small_Phone] | Boot an AVD **headless** (`-gpu swiftshader_indirect`) for a non-interactive leg |
+| `make emu-down` | Kill every emulator and **verify** `adb devices` is empty — run it when a pass ends |
 | `make build-android` | Build release APK |
 | `make clean` | Clean build artifacts |
 | `make audit-trivy` | Security scan dependencies with Trivy (HIGH/CRITICAL) |
@@ -239,6 +241,14 @@ The pass, in order:
    from a correct one in the console, in a zip, and to a reviewer. The folder is not the record:
    the filename is. `store/v<x>/check.py` fails the package on a bare name;
    `/usr/bin/python3 screenshots/android/verify_android.py --locale=fr` verifies an upload set.
+
+5. **Tear the emulators down when the pass ends: `make emu-down`.** CI already does this
+   (`if: always()`); a manual pass never did. Measured 2026-11-19, two AVDs left up after a gate
+   pass held **15.7 GB** (`footprint` phys_footprint 8.0 + 7.7 GB) on a 96 GB machine whose oMLX
+   ceiling is pinned at 92 GB — and `ps` RSS showed 0.6 GB each, so `ps`/Activity Monitor
+   understate Hypervisor.framework guest RAM ~13×. Beyond the RAM, a leftover AVD poisons the next
+   run: the AVD is single-instance and CI's boot leg dies on `error: more than one device/emulator`
+   (run 43129603795). Never size an emulator from RSS; use `footprint -p <pid>`.
 
 Available targets: `flutter emulators` (Android: `Pixel_10_Pro`, `Small_Phone`, `ci_test`) and
 `xcrun simctl list devices available` (iOS). Record in the PR description which pass was run, on

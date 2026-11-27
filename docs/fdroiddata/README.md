@@ -8,15 +8,41 @@ holds two kinds of files that live in *different* repositories:
 | `com.pvjio.mamadera.yml` | fork of https://gitlab.com/fdroid/fdroiddata → `metadata/` |
 | (the `fastlane/metadata/android/` tree at the repo root) | **this repo** — F-Droid 2.0 fetches localized descriptions, changelogs and screenshots from the app's own source, in **fastlane layout** (required by the New App checklist — a plain `metadata/` dir happens to be read too, but it is not accepted for inclusion) |
 
-## Current status (2026-11-12 — build **15** pushed to !53740, pipeline `3062096455`)
+## Current status (2026-11-26 — build **17** prepared, tag pending)
+
+`com.pvjio.mamadera.yml` in this directory now carries one `Builds` entry
+(1.4.0 / **17**, `commit: v1.4.0`), `CurrentVersion: 1.4.0` /
+`CurrentVersionCode: **17**`, and nothing else changed. The fork's
+`mamadera-new-app` is still at `d8b8be3e` (16) — **the push happens only after
+`v1.4.0` exists on GitHub**: the pipeline builds `commit: v1.4.0` immediately,
+so pushing the entry early turns the MR red on a ref that does not exist yet
+(the 1.3.1 rule, same as the first push). After the push, `cmp` the two ymls
+again — they must be byte-identical.
+
+**Why nothing else in the recipe changed:** `git diff v1.3.2..develop --
+android/ ios/ pubspec.lock .github/workflows/ci.yml` is **empty** — v1.4.0 is
+pure Dart (schema v14, notifications, the reminder rework), so every prebuild
+sed, the `rm: [ios]` list and the `flutter-version` pin (still `3.44.8` at
+the tag) carry over verbatim from build 16.
+
+**Changelog and screenshots, both at the tag:** `changelogs/17.txt` exists in
+all three locales (the Play release notes, `*`-bulleted like 15/16), and the
+`fastlane/metadata/android/en-US/images/phoneScreenshots/` set (Home /
+Feeding / History) was recaptured on `Pixel_10_Pro` (1280×2856) from the
+v1.4.0 build — the ordering rule from the stale-captures note below: captures
+refresh in the release cycle, the tag comes after.
+
+---
+
+## Current status (2026-11-14 — build **16** pushed to !53740, pipeline `3068542108`)
 
 `com.pvjio.mamadera.yml` in this directory is **byte-identical** to
 `metadata/com.pvjio.mamadera.yml` on the MR branch (`mamadera-new-app` of
 `~/fdroiddata`, fork `pvjacquier/fdroiddata`). Keep them identical — `cmp` the
 two after every bump; a comment or a wrap added on one side only breaks the
-other's pipeline job. Current content: one `Builds` entry (1.3.1 / **15**,
-`commit: v1.3.1`), `rm: [ios]` (re-derived from the tag tree, which still has
-only `ios`), `CurrentVersion: 1.3.1` / `CurrentVersionCode: **15**`.
+other's pipeline job. Current content: one `Builds` entry (1.3.2 / **16**,
+`commit: v1.3.2`), `rm: [ios]` (re-derived from the tag tree, which still has
+only `ios`), `CurrentVersion: 1.3.2` / `CurrentVersionCode: **16**`.
 
 **Why 15 and not 14:** `1.3.1+14` was already uploaded to App Store Connect by
 Xcode Cloud's build-on-push-to-`main` (PR #68), and the two 1.3.1 fixes — the
@@ -33,6 +59,30 @@ the `pubspec.yaml` version line and nothing build-relevant. Worth knowing as a
 test in its own right: when that diff is empty, every prebuild/build verification
 written for the previous tag carries over verbatim, and when it is not, the seds
 and the `rm` list have to be re-derived from the new tag, not assumed.
+
+### The 2026-11-14 push (v1.3.2 / 16)
+
+Fork `mamadera-new-app@d8b8be3e`, fast-forward from `12b317fe` (plain `git push`,
+no force). MR !53740 pipeline **`3068542108`**: all jobs green, including
+`fdroid build` (created 15:52 UTC, success 16:04 UTC). The v1.3.2 release
+(B31 active-profile self-heal) touches nothing under `android/`, `ios/` or
+`pubspec.lock` relative to v1.3.1, so the prebuild/build blocks carry over
+verbatim; the one build-relevant file it does change, `.github/workflows/ci.yml`
+(emulator-guard fix), still pins `flutter-version: '3.44.8'`, which the recipe's
+sed resolves at the tag. `changelogs/16.txt` exists at the tag in all three
+locales, and the screens are unchanged (B31 is a settings-list bug; the fastlane
+shots are Home/Feeding/History), so the capture-order rule is satisfied by
+inheritance — the v1.3.1 images are still the current ones. All four tag-pinned
+asset URLs curl 200 at `v1.3.2`. The MR description re-pin (URLs, *Build notes*,
+the fastlane checklist item) and the reviewer note re-raising both open questions
+(universal vs `--split-per-abi` APK; the `sudo:` block shape) were posted the same
+day **via the API with the git-credential token** (`git credential fill`, host
+`gitlab.com`). Gotcha worth keeping: GitLab answers **404 — not 401/403 — to
+`PATCH` on the bare `/merge_requests/<id>` path**, which reads exactly like a
+permissions wall and is not one; the same token writes fine with
+`PUT /merge_requests/<id>` (or `PATCH /merge_requests/<id>/update`). A fork-MR
+author can edit their own upstream MR description and notes — no browser session
+needed, but diagnose with `curl -X PUT` before concluding otherwise.
 
 ### The push, and what the pipeline said (2026-11-12)
 
@@ -98,9 +148,10 @@ closed by asking them two things, and nothing has answered them since:
   a follow-up once the app is included?
 
 So `waiting-on-response` is plausibly accurate rather than stale — it can be the
-unanswered side of that exchange. The next note to the reviewer should re-raise
-both questions; they are the only content that can move the MR past "green but
-silently waiting".
+unanswered side of that exchange. The 2026-11-14 note re-raised both questions
+(see the current-status section); if they stay unanswered, the note that
+accompanies the *next* bump re-raises them again — that content is the only
+thing that can move the MR past "green but silently waiting".
 
 **The error that nearly deleted those questions:** reading notes through the API
 and truncating bodies at 800 characters, then concluding absence from the truncated
@@ -362,6 +413,13 @@ this file, which is why the recipe change below is safe to push.
   and every other globbed field.
 - `CurrentVersion` / `CurrentVersionCode` — bump to the new release (the block
   lives at the **end** of the file, after `Builds:`).
+- **MR side, same day as the push** — re-pin the description to the new tag
+  (screenshot/icon URLs, the *Build notes* `Builds` line and Flutter-pin
+  sentence, any checklist claim the release invalidated — diff the description,
+  see the 2026-11-12 lesson) and post the reviewer note re-raising the open
+  questions. Both are API-doable with the git-credential token: `PUT
+  /merge_requests/<id>` for the description, `POST …/notes` for the note — a
+  404 on `PATCH` of the bare path is a method artifact, not a permissions wall.
 - `fastlane/metadata/android/<locale>/changelogs/<N>.txt` — one file per
   **versionCode** (not per versionName), ≤ 500 chars per locale; reuse the store
   "What's new" blocks (they are already counted against Play's 500-char limit).

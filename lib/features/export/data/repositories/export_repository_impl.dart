@@ -53,7 +53,11 @@ class ExportRepositoryImpl implements ExportRepository {
   /// Every bump must be mirrored in `ImportRepositoryImpl._supportedFormatVersion`
   /// in the same change: an exporter that outruns its own importer writes files
   /// this app cannot restore.
-  static const int _exportFormatVersion = 4;
+  /// Format 5 (schema v14, PLAN-v1.4.0 §4): the `reminderSettings` row gained the
+  /// per-reminder notification hour (`timeOfDay`, B30) — and, at M4, the preset
+  /// overrides, the end and the removal state. Absent keys are the defaults, so a
+  /// format ≤4 file still restores byte-for-byte.
+  static const int _exportFormatVersion = 5;
 
   @override
   Future<String> buildExportJson() async {
@@ -110,6 +114,10 @@ class ExportRepositoryImpl implements ExportRepository {
             // It should not depend on the language in which it was created.
             'frequency': reminder.frequency,
             'intervalDays': reminder.intervalDays,
+            // v14/B33: the one-shot's occurrence day. Written with the section
+            // like every other column — a reminder whose date did not survive a
+            // backup would come back as "due now", which is a different reminder.
+            'frequencyDate': reminder.frequencyDate,
             'babyId': reminder.babyId,
             // As it is initially defined; the import re-derives the value from `subtypeValue`, so...
             // An inconsistent value cannot take root here.
@@ -122,6 +130,21 @@ class ExportRepositoryImpl implements ExportRepository {
             'babyId': setting.babyId,
             'itemId': setting.itemId,
             'enabled': setting.enabled,
+            // The key is `timeOfDay`, the column is `time` (B30 names the column,
+            // the document speaks camelCase). Two spellings of one field is a
+            // known importer footgun — the importer parses it under this name.
+            'timeOfDay': setting.time,
+            // B33 (format 5, same bump as the hour): the rest of the row. Written
+            // as the columns hold them, so a restore replays a parent's rename,
+            // their rhythm, their end and their removal instead of handing back
+            // four stock reminders on a phone they had spent an evening tuning.
+            'label': setting.label,
+            'frequency': setting.frequency,
+            'intervalDays': setting.intervalDays,
+            'frequencyDate': setting.frequencyDate,
+            'endDate': setting.endDate,
+            'endAgeMonths': setting.endAgeMonths,
+            'removed': setting.removed,
           },
       ],
       'reminderDismissals': [
@@ -247,8 +270,7 @@ class ExportRepositoryImpl implements ExportRepository {
         (timestamp, id, babyId) => null,
         feeding: (subtype, timestamp, unit, quantity, id, babyId, notes) =>
             notes,
-        sleep: (duration, timestamp, unit, quantity, id, babyId, notes) =>
-            notes,
+        sleep: (duration, timestamp, unit, id, babyId, notes) => notes,
         diaper: (timestamp, id, babyId, wasteType, pipiColor, cacaColor,
                 stoolTexture, notes) =>
             notes,

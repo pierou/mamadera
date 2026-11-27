@@ -4,14 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/l10n/date_localization.dart';
 import '../../../../core/theme.dart';
-import '../../../../data/local/db_constants.dart' as db_const;
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../../../shared/widgets/tracking_icons.dart';
-import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_item.dart';
 import '../../domain/entities/reminders_state.dart';
 import '../providers/reminder_providers.dart';
+import 'reminder_display_name.dart';
 import 'reminder_frequency_label.dart';
 
 /// A line from the welcome message recall list (D1): icon type, label.
@@ -41,27 +40,29 @@ class ReminderRow extends ConsumerWidget {
   /// Displayed label: The name entered by the parent for a reminder.
   /// personalized, the full name of the treatment for a related preset, and the...
   /// Short label, translated as a last resort.
-  String _label(BuildContext context) {
-    // A personalized item bears the parent's name in the [ReminderItem.labelKey] field:
-    // It's never truly resolved as a localization key (l10n), otherwise it's just a "thermometer" [meaning a simple indicator].
-    // It would appear as a key.
-    if (item.id.startsWith(CustomReminderPresets.customIdPrefix)) {
-      return item.labelKey;
-    }
-    final subtypeValue = item.subtypeValue;
-    if (subtypeValue != null) {
-      final subtype = HealthSubtype.byValue(subtypeValue);
-      if (subtype != null) return resolveHealthLabel(context, subtype);
-    }
-    final l = context.l;
-    return switch (item.labelKey) {
-      'reminderVitaminD' => l.reminderVitaminD,
-      'reminderVitaminK' => l.reminderVitaminK,
-      'reminderEyeCleaning' => l.reminderEyeCleaning,
-      'reminderFaceCleaning' => l.reminderFaceCleaning,
-      _ => item.labelKey,
-    };
-  }
+  String _label(BuildContext context) => reminderDisplayName(
+        context,
+        item,
+        // A personalized item bears the parent's name in the [ReminderItem.labelKey]
+        // field: it is never truly a localization key, otherwise a reminder called
+        // "thermometer" would appear on screen as its key.
+        localised: () {
+          if (isCustomItem(item)) return item.labelKey;
+          final subtypeValue = item.subtypeValue;
+          if (subtypeValue != null) {
+            final subtype = HealthSubtype.byValue(subtypeValue);
+            if (subtype != null) return resolveHealthLabel(context, subtype);
+          }
+          final l = context.l;
+          return switch (item.labelKey) {
+            'reminderVitaminD' => l.reminderVitaminD,
+            'reminderVitaminK' => l.reminderVitaminK,
+            'reminderEyeCleaning' => l.reminderEyeCleaning,
+            'reminderFaceCleaning' => l.reminderFaceCleaning,
+            _ => item.labelKey,
+          };
+        },
+      );
 
   /// "Last time:..." — the event that triggers the recall, or the log.
   /// manual for a detached component – or "Never done" if nothing has been logged yet.
@@ -109,7 +110,7 @@ class ReminderRow extends ConsumerWidget {
           // would not resolve (the `tracking_events` service) and would display a...
           // "Placebo button" - the parent would believe they are administering the vitamin labeled.
           // while nothing is.
-          if (item.completionSource == db_const.completionManual)
+          if (item.isDetached)
             IconButton(
               tooltip: context.l.reminderMarkDone,
               icon: const Icon(Icons.check_circle_outline),

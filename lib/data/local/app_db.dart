@@ -57,12 +57,57 @@ class ReminderDismissals extends Table {
   Set<Column> get primaryKey => {babyId, itemId};
 }
 
+/// Per-(baby, item) reminder state: the switch, the overrides, the end, removal.
+///
+/// One row per `(baby_id, item_id)`; **absent row means "never touched"**, which
+/// resolves to the item's own `enabledByDefault` (schema v14, PLAN-v1.4.0 D-R2) —
+/// never a hard-coded `true`. The override columns are `NULL` when the parent
+/// never overrode that aspect: a `NULL` [frequency] means "use the preset's own
+/// frequency", and the vitamin K one-shot date is then *derived* from the birth
+/// date at read time, not read from [frequencyDate] (D-R8: the two must never be
+/// conflated, or vitamin K arrives at `OneTime(null)` — due at birth).
 class ReminderSettings extends Table {
   /// NOT NULL, `''` = installation without a profile (sentinel [db_const.sharedBabyId]).
   TextColumn get babyId =>
       text().withDefault(const Constant(db_const.sharedBabyId))();
   TextColumn get itemId => text()();
   BoolColumn get enabled => boolean()();
+
+  /// Per-reminder notification hour, `'HH:mm'` (B30). `null` = inherit the
+  /// global `app_settings` `notification_time_of_day` value.
+  TextColumn get time => text().nullable()();
+
+  /// Preset label override written by the parent (B33). `null` = the preset's
+  /// own localized label. Custom reminders keep their label in
+  /// [CustomReminders.label] and never use this column.
+  TextColumn get label => text().nullable()();
+
+  /// Frequency override, a `db_const` frequency code (B33). `null` = the
+  /// preset's own frequency.
+  TextColumn get frequency => text().nullable()();
+
+  /// The `every_n_days` value, paired with [frequency] (B33).
+  IntColumn get intervalDays => integer().nullable()();
+
+  /// The one-shot's **occurrence** date, `'yyyy-MM-dd'` — only meaningful when
+  /// [frequency] is `one_time` (B33/D-R5). Not an end: see [endDate].
+  TextColumn get frequencyDate => text().nullable()();
+
+  /// `'until a date'` — inclusive last day the series may fire, `'yyyy-MM-dd'`
+  /// (D-R5). Mutually exclusive with [endAgeMonths] and with a `one_time`
+  /// [frequency]; enforced at write and at import, not by the schema.
+  TextColumn get endDate => text().nullable()();
+
+  /// `'until an age'` — canonical whole months (0–180) resolved **at read time**
+  /// against the baby's birthdate, so a corrected birthdate moves the end
+  /// (D-R5). Mutually exclusive with [endDate] and with a `one_time` [frequency].
+  IntColumn get endAgeMonths => integer().nullable()();
+
+  /// B33/D-R2: the third state. `true` = the parent **removed** this preset —
+  /// hidden from the settings list and the home section, never due, no OS
+  /// notification, restorable from the Removed section. Distinct from
+  /// [enabled] = `false`, which means "off but visible and re-enableable".
+  BoolColumn get removed => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {babyId, itemId};
@@ -96,7 +141,8 @@ class CustomReminders extends Table {
   /// …): the absence of that care in `tracking_events` makes the reminder due.
   TextColumn get subtypeValue => text().nullable()();
 
-  /// `daily` | `weekly` | `monthly` | `every_n_days` — see [CustomReminder].
+  /// `daily` | `weekly` | `monthly` | `every_n_days` | `one_time` — see
+  /// [CustomReminder] and the codes in `db_constants`.
   TextColumn get frequency => text()();
 
   /// Only applicable for `every_n_days`:  The duration of the cycle in days.
@@ -105,6 +151,22 @@ class CustomReminders extends Table {
   /// `'from_events'` | `'manual'` — which determines whether the reminder is triggered automatically (D2).
   TextColumn get completionSource =>
       text().withDefault(const Constant(db_const.completionFromEvents))();
+
+  /// Only applicable for `one_time` (B33 Part 1, D-R5 form 1): the occurrence day
+  /// as `'yyyy-MM-dd'`.
+  ///
+  /// The frequency's parameter travels with the frequency — which is exactly how
+  /// [intervalDays] already works for `every_n_days`. The alternative (a
+  /// `custom_<id>` row in `reminder_settings`) would split one frequency across
+  /// two tables and make this row non-self-contained for the backup, whose whole
+  /// contract is that a section is read and replayed on its own.
+  ///
+  /// **Declared last, on purpose**: a column added by `ALTER TABLE` lands at the
+  /// end of the physical row, and `schema_parity_test` compares fresh against
+  /// migrated column-by-column in order. Declaring it in the "logical" place
+  /// (beside `interval_days`) makes a fresh install and an upgraded one disagree
+  /// on column order — a red test with no user-visible cause.
+  TextColumn get frequencyDate => text().nullable()();
 }
 
 /// Growth measurements (weight, height, temperature) — added in version 11.
@@ -179,7 +241,7 @@ class AppDatabase extends _$AppDatabase {
   static final Logger _logger = appLogger();
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   /// SQL indexes are automatically created during the database initialization process.
   @override
@@ -416,6 +478,59 @@ class AppDatabase extends _$AppDatabase {
           // no sentinel (the table has no baby dimension).
           if (from < 13) {
             await m.createTable(appSettings);
+          }
+
+          // v13 → v14: per-(baby, item) overrides + per-reminder hour + removal
+          // (BACKLOG B30 / B33, PLAN-v1.4.0 D-R2/D-R3), then the B6 seed (D-R1).
+          //
+          // Purely additive — eight `ALTER TABLE … ADD COLUMN`, the v12
+          // precedent — no table rebuild and no rekey (a rebuild would be
+          // B31-class irreversible and nothing here needs one). Every column is
+          // NULL by default except `removed`, which needs its DEFAULT for the
+          // NOT NULL to be legal on a populated table at all.
+          //
+          // The ALTER order is the [ReminderSettings] declaration order: the
+          // schema-parity test compares PRAGMA column lists *in order* between
+          // a fresh install and a migrated one, so a reshuffled ALTER would
+          // report a difference that is only cosmetic.
+          if (from < 14) {
+            await m.database.customStatement(
+                'ALTER TABLE reminder_settings ADD COLUMN time TEXT');
+            await m.database.customStatement(
+                'ALTER TABLE reminder_settings ADD COLUMN label TEXT');
+            await m.database.customStatement(
+                'ALTER TABLE reminder_settings ADD COLUMN frequency TEXT');
+            await m.database.customStatement(
+                'ALTER TABLE reminder_settings ADD COLUMN interval_days INTEGER');
+            await m.database.customStatement(
+                'ALTER TABLE reminder_settings ADD COLUMN frequency_date TEXT');
+            await m.database.customStatement(
+                'ALTER TABLE reminder_settings ADD COLUMN end_date TEXT');
+            await m.database.customStatement(
+                'ALTER TABLE reminder_settings ADD COLUMN end_age_months INTEGER');
+            await m.database.customStatement(
+                'ALTER TABLE reminder_settings ADD COLUMN removed INTEGER NOT NULL DEFAULT 0');
+
+            // B33 Part 1 (M3): a custom reminder's one-shot occurrence day, in the
+            // same v14 batch. Same shape as `interval_days` beside it — the
+            // frequency's parameter stored with the frequency — and the reason it
+            // could not wait for a later version: the codec has to be lossless
+            // from the first day a `one_time` row can exist, and a column that is
+            // not exported is a restore hole (AGENTS.md).
+            await m.database.customStatement(
+                'ALTER TABLE custom_reminders ADD COLUMN frequency_date TEXT');
+
+            // B6 (D-R1): the Vitamin D reminder is no longer on by default for
+            // a *new* baby, which silently turns it OFF for an existing parent
+            // whose row is absent — "absent" used to mean "on". So every scope
+            // that predates v14 gets an explicit `enabled = 1` row: their
+            // behaviour stays byte-identical, and the choice becomes visible
+            // and flippable (owner decision A: "until manual turning off").
+            //
+            // INSERT-only, guarded by NOT EXISTS: an existing row — in
+            // particular a parent who already turned it off (`enabled = 0`) —
+            // is never updated. The seed writes 1 or nothing, never 0.
+            await m.database.customStatement(db_const.vitaminDSeedInsert);
           }
         },
       );

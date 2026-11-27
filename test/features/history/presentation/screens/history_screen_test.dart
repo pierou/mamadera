@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mamadera/core/providers/locale_provider.dart';
+import 'package:mamadera/core/theme.dart';
 import 'package:mamadera/features/history/domain/repositories/history_repository.dart';
 import 'package:mamadera/features/history/presentation/providers/history_notifier.dart';
 import 'package:mamadera/features/history/presentation/providers/history_repository_provider.dart';
@@ -128,8 +129,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Filter chips for all 5 HistoryFilter values
-      expect(find.byType(FilterChip), findsNWidgets(5));
+      // One chip per HistoryFilter value, measurements last since v1.4.0 (B7).
+      expect(find.byType(FilterChip), findsNWidgets(6));
     });
 
     testWidgets('displays event list when data is loaded', (tester) async {
@@ -337,7 +338,7 @@ void main() {
 
       // Tap on the second filter chip (first is "all" which is already selected)
       final chips = find.byType(FilterChip);
-      expect(chips, findsNWidgets(5));
+      expect(chips, findsNWidgets(6));
 
       // Tap the 'miam' filter chip (second one after 'Tous')
       await tester.tap(chips.at(1));
@@ -346,6 +347,153 @@ void main() {
       // The miam chip should now be selected
       final firstChip = tester.widget<FilterChip>(chips.at(0));
       expect(firstChip.selected, isFalse);
+    });
+
+    testWidgets('the filter pills speak the home track-button language (B29)',
+        (tester) async {
+      // Two controls on the same axis — « which type am I looking at? » — were
+      // drawn in two design languages. What is pinned here is the visible contract
+      // the owner asked for: the accent border of the home grid, on a toggle whose
+      // fill (not border) carries the selection.
+      when(mockRepository.getAllEventsOrdered())
+          .thenAnswer((_) async => testEvents);
+      when(mockRepository.getEventsByType(TrackingType.miam))
+          .thenAnswer((_) async => [testEvents.first]);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
+            historyRepositoryProvider.overrideWith(
+              (_) async => mockRepository,
+            ),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
+          ],
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chips = find.byType(FilterChip);
+      final miam = tester.widget<FilterChip>(chips.at(1));
+      expect(miam.side?.color, AppTheme.miam.withValues(alpha: 0.6),
+          reason:
+              'the border is the type accent, the darker edge of the request');
+      expect(miam.side?.width, 2);
+      expect(miam.elevation, 0,
+          reason: 'a grey drop shadow under a tinted pill is the look we left');
+      expect(
+        (miam.shape! as RoundedRectangleBorder).borderRadius,
+        const BorderRadius.all(Radius.circular(AppTheme.shapeCardRadius)),
+      );
+
+      final unselectedFill = miam.backgroundColor;
+      await tester.tap(chips.at(1));
+      await tester.pumpAndSettle();
+
+      final selectedChip = tester.widget<FilterChip>(chips.at(1));
+      expect(selectedChip.selected, isTrue);
+      expect(selectedChip.backgroundColor, isNot(unselectedFill),
+          reason:
+              'the fill carries selection: a home button has no selected state');
+      expect(selectedChip.side?.color, AppTheme.miam.withValues(alpha: 0.9));
+    });
+
+    testWidgets('a type pill wears its type icon, in the outlined variant',
+        (tester) async {
+      // Six words in a row is a wall of text: the accent border says *that* a pill
+      // has a type, not *which* type. What is pinned here is the glyph itself —
+      // outlined, the rule `tracking_icons.dart` already writes for chips, because
+      // the filled glyph belongs to the type avatar in the timeline below.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            measurementRepositoryProvider
+                .overrideWith((ref) async => _FakeMeasurementRepository()),
+            historyRepositoryProvider.overrideWith(
+              (_) async => mockRepository,
+            ),
+            localeProvider.overrideWith(_TestLocaleNotifier.new),
+          ],
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            home: const HistoryScreen(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chips = find.byType(FilterChip);
+      const outlined = [
+        (Icons.lunch_dining_outlined, Icons.lunch_dining),
+        (Icons.nightlight_outlined, Icons.nightlight),
+        (Icons.water_drop_outlined, Icons.water_drop),
+        (Icons.favorite_border, Icons.favorite),
+      ];
+      for (final (index, pair) in outlined.indexed) {
+        final chip = chips.at(index + 1);
+        expect(
+          find.descendant(of: chip, matching: find.byIcon(pair.$1)),
+          findsOneWidget,
+          reason: 'pill ${index + 1} says which type it is without being read',
+        );
+        expect(
+          find.descendant(of: chip, matching: find.byIcon(pair.$2)),
+          findsNothing,
+          reason: 'a chip wears the outlined variant, not the filled one',
+        );
+      }
+
+      // « Tous » and « Mesures » are not one tracking type, so they wear no glyph
+      // at all — the same reasoning that leaves them without an accent (B7).
+      for (final index in [0, 5]) {
+        expect(
+          find.descendant(
+            of: chips.at(index),
+            matching: find.byType(Icon),
+          ),
+          findsNothing,
+          reason: 'a neutral pill borrows no type identity',
+        );
+      }
+
+      // Selection must not eat the glyph. Material paints a FilterChip's checkmark
+      // *over* its avatar — seen on a Small_Phone on 2026-11-21, where the tick
+      // rendered on top of the burger — which is what `showCheckmark: false` is for.
+      await tester.tap(chips.at(1));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: chips.at(1),
+          matching: find.byIcon(Icons.lunch_dining_outlined),
+        ),
+        findsOneWidget,
+        reason: 'a selected pill keeps the glyph that identifies it',
+      );
+      expect(
+        find.descendant(of: chips.at(1), matching: find.byIcon(Icons.check)),
+        findsNothing,
+        reason: 'the tick is what covered the glyph',
+      );
+      expect(tester.widget<FilterChip>(chips.at(1)).selected, isTrue);
     });
 
     testWidgets('tapping HistoryTile opens edit dialog bottom sheet',
@@ -554,6 +702,63 @@ void main() {
         recordedAt: DateTime.utc(2025, 6, 15, 8, 30),
         value: 6180,
       );
+
+      testWidgets(
+          'the measurements chip lists measurements and nothing else (B7)',
+          (tester) async {
+        // The chip is the read-side half of B7: « tout » promised every event and
+        // silently omitted an entire class of them, because measurements live in
+        // their own table. Filtering to them must show that table alone — and must
+        // not do it by inventing tracking events.
+        when(mockRepository.getAllEventsOrdered())
+            .thenAnswer((_) async => testEvents);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              measurementRepositoryProvider.overrideWith(
+                (ref) async => _FakeMeasurementRepository(rows: [weight]),
+              ),
+              historyRepositoryProvider.overrideWith(
+                (_) async => mockRepository,
+              ),
+            ],
+            child: MaterialApp(
+              locale: const Locale('fr'),
+              supportedLocales: const [Locale('fr')],
+              home: const HistoryScreen(),
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final chips = find.byType(FilterChip);
+        expect(find.text('Mesures'), findsOneWidget);
+
+        // The pill row scrolls sideways, and giving each pill a glyph made every
+        // one of them wider: « Mesures », the sixth, now sits past the test
+        // viewport. Scroll first, then prove the tap landed — a `tap` on an
+        // off-screen widget only warns and carries on, which is how this test used
+        // to fail three assertions later with « found 2 HistoryTile »: the filter
+        // had never changed at all.
+        await tester.ensureVisible(chips.at(5));
+        await tester.pumpAndSettle();
+        await tester.tap(chips.at(5));
+        await tester.pumpAndSettle();
+
+        expect(tester.widget<FilterChip>(chips.at(5)).selected, isTrue,
+            reason: 'the tap landed on « Mesures », not on empty space');
+
+        expect(find.byType(MeasurementHistoryTile), findsOneWidget);
+        expect(find.byType(HistoryTile), findsNothing,
+            reason: 'the tab filters the timeline, it does not merge it');
+      });
 
       testWidgets(
           'une mesure apparaît sous « Tout », triée par horodatage, formatée',

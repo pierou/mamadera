@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 
 import '../../../../core/services/app_logger.dart';
 import '../../../../core/services/encryption_service.dart';
+import '../../../../core/utils/calendar_date.dart';
 import '../../../../data/local/app_db.dart' as db_app;
 import '../../../../data/local/db_constants.dart' as db_const;
 import '../../../../shared/domain/entities/quantity_unit.dart';
@@ -15,9 +16,12 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 // (precedent: baby/data imports reminders/domain/entities).
 import '../../../reminders/domain/repositories/app_settings_repository.dart';
 import '../../../reminders/domain/services/notification_time.dart';
+import '../../../reminders/domain/services/reminder_end.dart'
+    show maxReminderEndAgeMonths;
 import '../../domain/repositories/import_repository.dart';
 
 part 'import_repository_field_extraction.dart';
+part 'import_repository_reminder_parsing.dart';
 part 'import_repository_restore_inserts.dart';
 
 /// Newest format version this build can restore.
@@ -25,11 +29,14 @@ part 'import_repository_restore_inserts.dart';
 /// The exporter owns this number; anything above it belongs to a future app and
 /// must not be guessed at. 3 (v1.2.x) adds `unit` to every event row; 4
 /// (v1.3.0, item 12) adds the `appSettings` section.
+/// 5 (1.4.0, schema v14) adds the per-reminder notification hour to the
+/// `reminderSettings` rows (B30); M4 extends the same format with the preset
+/// overrides, the end and the removal state — one bump per release, not per field.
 ///
 /// Bumped in the same change as `ExportRepositoryImpl._exportFormatVersion`:
 /// an importer that lags its own exporter refuses the backups this very build
 /// writes.
-const int _supportedFormatVersion = 4;
+const int _supportedFormatVersion = 5;
 
 /// Oldest document format this build can still restore.
 ///
@@ -143,6 +150,10 @@ ParsedExport _parseAndValidate(_ParseRequest request) {
   });
 
   final parsed = ParsedExport(
+    // Validated by _validateHeader above (an int within the supported range);
+    // restore() needs it because a pre-5 file predates the per-item hour and the
+    // vitamin D seed, and its row-absence means something else.
+    formatVersion: document['exportFormatVersion'] as int,
     babyProfiles: babyProfiles,
     trackingEvents: trackingEvents,
     customReminders: customReminders,
@@ -347,6 +358,18 @@ ImportedCustomReminder _parseCustomReminder(
     throw const ImportFormatException(ImportRejectionReason.invalidRow,
         section: section);
   }
+  // D-R5/D-R8 write-strict, at the boundary: `one_time` means exactly one
+  // occurrence **on a day**, so a one-shot without a parseable day is refused
+  // rather than restored as the "due now" shape the app's read side invents for
+  // hand-edited files. A file is a one-shot restore: refusing it is recoverable,
+  // restoring a reminder that fires immediately is not.
+  final frequencyDate = _optionalString(row, 'frequencyDate', section);
+  if (frequency == db_const.freqOneTime &&
+          parseCalendarDate(frequencyDate) == null ||
+      frequency != db_const.freqOneTime && frequencyDate != null) {
+    throw const ImportFormatException(ImportRejectionReason.invalidRow,
+        section: section);
+  }
   // Absent (format 1): `from_events`, which was the only value that existed at that time.
   final completionSource = _optionalString(row, 'completionSource', section) ??
       db_const.completionFromEvents;
@@ -360,45 +383,10 @@ ImportedCustomReminder _parseCustomReminder(
     subtypeValue: subtypeValue,
     frequency: frequency,
     intervalDays: _optionalPositiveInt(row, 'intervalDays', section),
+    frequencyDate: frequencyDate,
     // Absent (format 1): A shared memory accessible to all babies.
     babyId: _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId,
     completionSource: completionSource,
-  );
-}
-
-ImportedReminderSetting _parseSetting(
-    Map<String, dynamic> row, Set<Object> seenKeys) {
-  const section = 'reminderSettings';
-  // Absent (format 1): Setting shared by all babies.
-  final babyId =
-      _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
-  final itemId = _requiredString(row, 'itemId', section);
-  _requireUnique((babyId, itemId), seenKeys, section);
-  final enabled = row['enabled'];
-  if (enabled is! bool) {
-    throw const ImportFormatException(ImportRejectionReason.invalidRow,
-        section: section);
-  }
-  return ImportedReminderSetting(
-    babyId: babyId,
-    itemId: itemId,
-    enabled: enabled,
-  );
-}
-
-ImportedReminderDismissal _parseDismissal(
-    Map<String, dynamic> row, Set<Object> seenKeys) {
-  const section = 'reminderDismissals';
-  // Absent (format 1): Shared rejection among all the babies.
-  final babyId =
-      _optionalString(row, 'babyId', section) ?? db_const.sharedBabyId;
-  final itemId = _requiredString(row, 'itemId', section);
-  _requireUnique((babyId, itemId), seenKeys, section);
-  return ImportedReminderDismissal(
-    babyId: babyId,
-    itemId: itemId,
-    dismissedAt:
-        _seconds(row, 'dismissedAtEpochSeconds', 'dismissedAtUtc', section),
   );
 }
 
@@ -641,23 +629,16 @@ class ImportRepositoryImpl implements ImportRepository {
                 ),
                 frequency: reminder.frequency,
                 intervalDays: Value(reminder.intervalDays),
+                // `null` for every file before v14 — see the entity's field.
+                frequencyDate: Value(reminder.frequencyDate),
                 // Absent in format 1 backups: shared.
                 babyId: Value(reminder.babyId),
               ),
             );
       }
 
-      for (final setting in parsed.reminderSettings) {
-        await database.into(database.reminderSettings).insert(
-              db_app.ReminderSettingsCompanion.insert(
-                // The `babyId` column has a default value defined: the parameter.
-                // The `insertion` option is optional, so we enclose it in parentheses.
-                babyId: Value(setting.babyId),
-                itemId: setting.itemId,
-                enabled: setting.enabled,
-              ),
-            );
-      }
+      await _insertReminderSettings(
+          database, parsed.reminderSettings, parsed.formatVersion);
 
       for (final dismissal in parsed.reminderDismissals) {
         await database.into(database.reminderDismissals).insert(

@@ -173,6 +173,21 @@
   "reminderNotificationsSectionTitle": "System notifications",
   "reminderNotificationsOptIn": "Notify me when a reminder is due",
   "reminderNotificationsTimeLabel": "Notification time",
+  "reminderHourOwn": "At {time}",
+  "@reminderHourOwn": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "reminderHourInherited": "At {time} (default)",
+  "@reminderHourInherited": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "reminderHourPickerTitle": "Notification time for this reminder",
+  "reminderHourUseDefault": "Use the default time",
+  "reminderHourSectionTitle": "Notification time",
   "reminderNotificationsPermissionDenied": "Notifications are currently disabled in the system settings. Turn them on there to receive reminder notifications.",
   "reminderFrequencyDaily": "Every day",
   "reminderFrequencyWeekly": "Every week",
@@ -188,6 +203,49 @@
       "days": {}
     }
   },
+  "reminderFrequencyOneTime": "Once, on {date}",
+  "@reminderFrequencyOneTime": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderFrequencyOneTimeNow": "Once, right away",
+  "reminderSettingsRemovedSectionTitle": "Removed",
+  "reminderSettingsRemovedDescription": "A removed reminder leaves Home, this list and the notifications. One tap brings it back with everything you had set.",
+  "reminderActionRestore": "Restore",
+  "reminderActionRemove": "Remove",
+  "reminderPresetEditTitle": "Edit reminder",
+  "reminderEndSectionTitle": "End",
+  "reminderEndNone": "No end",
+  "reminderEndOnDate": "On a date",
+  "reminderEndAtAge": "At an age",
+  "reminderEndAgeValue": "{months} months",
+  "reminderEndYearsLabel": "Years",
+  "reminderEndMonthsLabel": "Months",
+  "@reminderEndAgeValue": {
+    "placeholders": {
+      "months": {}
+    }
+  },
+  "reminderEndUntilDate": "Until {date}",
+  "@reminderEndUntilDate": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "reminderEndAgeResolved": "Until {months} months — {date}",
+  "@reminderEndAgeResolved": {
+    "placeholders": {
+      "months": {},
+      "date": {}
+    }
+  },
+  "reminderEndNeedsBirthdate": "A birth date is needed to end a reminder at an age.",
+  "reminderEndAlreadyPast": "That day has already passed: the reminder stops right away.",
+  "reminderFrequencyOnceChoice": "Once",
+  "reminderFrequencyReset": "Back to the default rhythm",
+  "reminderLabelReset": "Back to the default name",
+  "reminderOneTimeNeedsDate": "Choose the day it happens on.",
   "reminderCustomSectionTitle": "Custom reminders",
   "reminderCustomSectionDescription": "A reminder leaves Home as soon as you log the linked care.",
   "reminderCustomAdd": "Add a reminder",
@@ -206,6 +264,8 @@
   "reminderCustomDeleteConfirm": "Delete this reminder?",
   "reminderCustomDeleteWarning": "The reminder leaves Home. Events you already logged are kept.",
   "reminderCustomSaveError": "Could not save the reminder. Please try again.",
+  "reminderCustomAdded": "Reminder added",
+  "reminderCustomUpdated": "Reminder updated",
   "reminderCustomDeleteError": "Could not delete the reminder. Please try again.",
   "reminderListTitle": "Reminders to do",
   "reminderListTitleFor": "{name}'s reminders",
@@ -259,6 +319,7 @@
   "filterDodo": "Sleep",
   "filterCaca": "Diaper",
   "filterSante": "Health",
+  "filterMeasurements": "Measurements",
 
   "noEvents": "No events",
   "@errorMessage": {

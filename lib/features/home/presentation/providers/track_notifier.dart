@@ -73,7 +73,9 @@ class TrackNotifier extends AsyncNotifier<void> {
             babyId: babyId,
             duration: duration?.toDouble() ?? 0.0,
             unit: unit ?? QuantityUnit.min,
-            quantity: quantity,
+            // B13: the [quantity] argument is ignored for a nap. The minutes are
+            // its duration, and one column holds them; the argument stays on
+            // `track` because it is the feeding path's own field.
             notes: notes,
           ),
         TrackingType.caca => TrackingEvent.diaper(

@@ -15,6 +15,7 @@ import '../../domain/repositories/app_settings_repository.dart';
 import '../../domain/services/local_notification_service.dart';
 import '../../domain/services/notification_time.dart';
 import '../../domain/services/reminder_scheduler.dart';
+import 'notification_tap_handler.dart';
 import 'reminder_providers.dart';
 
 /// The M2 settings table needs its wiring; the sync notifier is the first
@@ -29,7 +30,17 @@ final appSettingsRepositoryProvider =
 /// init/health state the scheduler relies on survives across syncs.
 final localNotificationServiceProvider =
     FutureProvider<LocalNotificationService>((ref) async {
-  return FlutterLocalNotificationService();
+  // B22's seam: the tap behaviour is injected here, in the presentation layer,
+  // because the service below must not import `core/router.dart`. The provider is
+  // process-lived, so the callback is registered once — and the plugin keeps the
+  // same instance for the whole run, which is what its init/health state (R13)
+  // assumes.
+  // `watch`, twice over: the handler must outlive this build (a tap's work runs
+  // after the callback returns), and reading it per tap would hand the plugin a
+  // provider nothing keeps alive. The durable anchor is
+  // `ReminderLifecycleSyncWidget`, which watches the same provider.
+  final handler = ref.watch(notificationTapHandlerProvider);
+  return FlutterLocalNotificationService(onNotificationTapped: handler.handle);
 });
 
 /// The reconciler (D2): one instance per app run — its `_plan` bookkeeping is
@@ -140,6 +151,11 @@ const Set<String> _presetIds = {
 
 /// The `{care}` placeholder for [item] in the active locale.
 String _careLabel(AppLocalizations l10n, ReminderItem item) {
+  // B33/D-R6: the notification says what the parent calls the reminder. A rename
+  // that reached only the lists would leave the banner naming a reminder by a name
+  // nobody has used since they typed the new one.
+  final stored = item.labelOverride;
+  if (stored != null && stored.isNotEmpty) return stored;
   if (_presetIds.contains(item.id)) {
     final subtype = item.subtypeValue == null
         ? null

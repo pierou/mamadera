@@ -1,0 +1,5 @@
+• Asigne un horario, una frecuencia única y una fecha de finalización a cada recordatorio.
+• Cambie el nombre o elimine un recordatorio sugerido, y vuelva a añadirlo si lo desea.
+• Agregue una nota al registrar una toma de leche, justo en el momento en que ocurre.
+• Toque una notificación para abrir la pantalla principal del bebé correspondiente.
+• Abra la lista de bebés desde el título y filtre el historial por mediciones.

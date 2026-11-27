@@ -15,6 +15,14 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TrackingEvent {
   DateTime get timestamp;
+
+  /// B13: a nap carries its value **once**, in `duration`. There used to be a
+  /// `quantity` here as well, holding the same number of minutes under a second
+  /// label — which is what produced « Quantité : 45 min / Durée : 45 min » on one
+  /// tile (and « 45 / 0 » on a row whose `duration` was never written).
+  /// `quantity` is the property of feeds (ml/g); the field is gone from the
+  /// entity so no write path can refill the column. Existing rows keep their
+  /// mirror, unread and harmless — read through `duration`, as everything else is.
   int? get id;
   String? get babyId;
 
@@ -227,7 +235,7 @@ extension TrackingEventPatterns on TrackingEvent {
             String? notes)?
         feeding,
     TResult Function(double duration, DateTime timestamp, QuantityUnit unit,
-            double? quantity, int? id, String? babyId, String? notes)?
+            int? id, String? babyId, String? notes)?
         sleep,
     TResult Function(
             DateTime timestamp,
@@ -252,8 +260,8 @@ extension TrackingEventPatterns on TrackingEvent {
         return feeding(_that.subtype, _that.timestamp, _that.unit,
             _that.quantity, _that.id, _that.babyId, _that.notes);
       case SleepEvent() when sleep != null:
-        return sleep(_that.duration, _that.timestamp, _that.unit,
-            _that.quantity, _that.id, _that.babyId, _that.notes);
+        return sleep(_that.duration, _that.timestamp, _that.unit, _that.id,
+            _that.babyId, _that.notes);
       case DiaperEvent() when diaper != null:
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.stoolTexture, _that.notes);
@@ -290,14 +298,8 @@ extension TrackingEventPatterns on TrackingEvent {
             String? babyId,
             String? notes)
         feeding,
-    required TResult Function(
-            double duration,
-            DateTime timestamp,
-            QuantityUnit unit,
-            double? quantity,
-            int? id,
-            String? babyId,
-            String? notes)
+    required TResult Function(double duration, DateTime timestamp,
+            QuantityUnit unit, int? id, String? babyId, String? notes)
         sleep,
     required TResult Function(
             DateTime timestamp,
@@ -321,8 +323,8 @@ extension TrackingEventPatterns on TrackingEvent {
         return feeding(_that.subtype, _that.timestamp, _that.unit,
             _that.quantity, _that.id, _that.babyId, _that.notes);
       case SleepEvent():
-        return sleep(_that.duration, _that.timestamp, _that.unit,
-            _that.quantity, _that.id, _that.babyId, _that.notes);
+        return sleep(_that.duration, _that.timestamp, _that.unit, _that.id,
+            _that.babyId, _that.notes);
       case DiaperEvent():
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.stoolTexture, _that.notes);
@@ -357,7 +359,7 @@ extension TrackingEventPatterns on TrackingEvent {
             String? notes)?
         feeding,
     TResult? Function(double duration, DateTime timestamp, QuantityUnit unit,
-            double? quantity, int? id, String? babyId, String? notes)?
+            int? id, String? babyId, String? notes)?
         sleep,
     TResult? Function(
             DateTime timestamp,
@@ -381,8 +383,8 @@ extension TrackingEventPatterns on TrackingEvent {
         return feeding(_that.subtype, _that.timestamp, _that.unit,
             _that.quantity, _that.id, _that.babyId, _that.notes);
       case SleepEvent() when sleep != null:
-        return sleep(_that.duration, _that.timestamp, _that.unit,
-            _that.quantity, _that.id, _that.babyId, _that.notes);
+        return sleep(_that.duration, _that.timestamp, _that.unit, _that.id,
+            _that.babyId, _that.notes);
       case DiaperEvent() when diaper != null:
         return diaper(_that.timestamp, _that.id, _that.babyId, _that.wasteType,
             _that.pipiColor, _that.cacaColor, _that.stoolTexture, _that.notes);
@@ -619,7 +621,6 @@ class SleepEvent implements TrackingEvent {
       {required this.duration,
       required this.timestamp,
       required this.unit,
-      this.quantity,
       this.id,
       this.babyId,
       this.notes});
@@ -631,7 +632,14 @@ class SleepEvent implements TrackingEvent {
   /// Always [QuantityUnit.min]; carried on the row rather than inferred at
   /// read time, so the history tile renders from data like every other row.
   final QuantityUnit unit;
-  final double? quantity;
+
+  /// B13: a nap carries its value **once**, in `duration`. There used to be a
+  /// `quantity` here as well, holding the same number of minutes under a second
+  /// label — which is what produced « Quantité : 45 min / Durée : 45 min » on one
+  /// tile (and « 45 / 0 » on a row whose `duration` was never written).
+  /// `quantity` is the property of feeds (ml/g); the field is gone from the
+  /// entity so no write path can refill the column. Existing rows keep their
+  /// mirror, unread and harmless — read through `duration`, as everything else is.
   @override
   final int? id;
   @override
@@ -656,20 +664,18 @@ class SleepEvent implements TrackingEvent {
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp) &&
             (identical(other.unit, unit) || other.unit == unit) &&
-            (identical(other.quantity, quantity) ||
-                other.quantity == quantity) &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.babyId, babyId) || other.babyId == babyId) &&
             (identical(other.notes, notes) || other.notes == notes));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, duration, timestamp, unit, quantity, id, babyId, notes);
+  int get hashCode =>
+      Object.hash(runtimeType, duration, timestamp, unit, id, babyId, notes);
 
   @override
   String toString() {
-    return 'TrackingEvent.sleep(duration: $duration, timestamp: $timestamp, unit: $unit, quantity: $quantity, id: $id, babyId: $babyId, notes: $notes)';
+    return 'TrackingEvent.sleep(duration: $duration, timestamp: $timestamp, unit: $unit, id: $id, babyId: $babyId, notes: $notes)';
   }
 }
 
@@ -685,7 +691,6 @@ abstract mixin class $SleepEventCopyWith<$Res>
       {double duration,
       DateTime timestamp,
       QuantityUnit unit,
-      double? quantity,
       int? id,
       String? babyId,
       String? notes});
@@ -706,7 +711,6 @@ class _$SleepEventCopyWithImpl<$Res> implements $SleepEventCopyWith<$Res> {
     Object? duration = null,
     Object? timestamp = null,
     Object? unit = null,
-    Object? quantity = freezed,
     Object? id = freezed,
     Object? babyId = freezed,
     Object? notes = freezed,
@@ -724,10 +728,6 @@ class _$SleepEventCopyWithImpl<$Res> implements $SleepEventCopyWith<$Res> {
           ? _self.unit
           : unit // ignore: cast_nullable_to_non_nullable
               as QuantityUnit,
-      quantity: freezed == quantity
-          ? _self.quantity
-          : quantity // ignore: cast_nullable_to_non_nullable
-              as double?,
       id: freezed == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable

@@ -9,7 +9,7 @@ import 'package:mamadera/l10n/app_localizations.dart';
 import 'package:mamadera/shared/domain/entities/tracking_enums.dart';
 
 /// What the sheet returned to the Navigator.
-CustomReminder? _popped;
+CustomReminderDraft? _popped;
 
 Finder _labelField() => find.widgetWithText(TextFormField, 'Nom du rappel');
 Finder _intervalField() =>
@@ -21,6 +21,7 @@ Finder _frequencyField() =>
 Future<void> _open(
   WidgetTester tester, {
   CustomReminder? existing,
+  String? existingTimeOfDay,
 }) async {
   _popped = null;
   // An open sheet would survive the next `pumpWidget`—the Navigator is...
@@ -43,11 +44,13 @@ Future<void> _open(
           builder: (context) => Center(
             child: ElevatedButton(
               onPressed: () async {
-                _popped = await showModalBottomSheet<CustomReminder>(
+                _popped = await showModalBottomSheet<CustomReminderDraft>(
                   context: context,
                   isScrollControlled: true,
-                  builder: (sheetContext) =>
-                      CustomReminderFormSheet(existing: existing),
+                  builder: (sheetContext) => CustomReminderFormSheet(
+                      existing: existing,
+                      birthDate: null,
+                      existingTimeOfDay: existingTimeOfDay),
                 );
               },
               child: const Text('ouvrir'),
@@ -130,12 +133,12 @@ void main() {
       await _confirm(tester);
 
       expect(_popped, isNotNull);
-      expect(_popped!.label, 'Crème du change');
+      expect(_popped!.reminder.label, 'Crème du change');
       // The default care option is the one that parents most frequently request.
       // and the ID remains null: it's the caller who is writing, and therefore who is providing the number.
-      expect(_popped!.subtypeValue, HealthSubtype.nettoyageNez.value);
-      expect(_popped!.frequency, const ReminderFrequency.daily());
-      expect(_popped!.id, isNull);
+      expect(_popped!.reminder.subtypeValue, HealthSubtype.nettoyageNez.value);
+      expect(_popped!.reminder.frequency, const ReminderFrequency.daily());
+      expect(_popped!.reminder.id, isNull);
     });
 
     testWidgets('le soin associé est celui du menu déroulant', (tester) async {
@@ -148,7 +151,7 @@ void main() {
 
       await _confirm(tester);
 
-      expect(_popped!.subtypeValue, HealthSubtype.vitamineD.value);
+      expect(_popped!.reminder.subtypeValue, HealthSubtype.vitamineD.value);
     });
 
     testWidgets('le champ intervalle n\'existe que pour un roulement',
@@ -173,8 +176,8 @@ void main() {
 
       await _confirm(tester);
 
-      expect(
-          _popped!.frequency, const ReminderFrequency.customInterval(days: 12));
+      expect(_popped!.reminder.frequency,
+          const ReminderFrequency.customInterval(days: 12));
     });
 
     testWidgets('un intervalle hors des bornes est refusé', (tester) async {
@@ -208,7 +211,7 @@ void main() {
       // The day previously assigned is being replaced with the day of birth.
       // from the active baby stage to the moment when the gift registry is being created.
       expect(
-        _popped!.frequency,
+        _popped!.reminder.frequency,
         const ReminderFrequency.monthly(
           dayOfMonth: CustomReminderPresets.monthlyFallbackDay,
         ),
@@ -223,7 +226,7 @@ void main() {
 
       await _confirm(tester);
 
-      expect(_popped!.frequency, isA<Weekly>());
+      expect(_popped!.reminder.frequency, isA<Weekly>());
     });
 
     testWidgets('la modification préremplit le formulaire et rend l\'id',
@@ -256,10 +259,10 @@ void main() {
       await tester.enterText(_labelField(), 'Crème du change, le soir');
       await _confirm(tester);
 
-      expect(_popped!.id, 7);
-      expect(_popped!.label, 'Crème du change, le soir');
-      expect(
-          _popped!.frequency, const ReminderFrequency.customInterval(days: 5));
+      expect(_popped!.reminder.id, 7);
+      expect(_popped!.reminder.label, 'Crème du change, le soir');
+      expect(_popped!.reminder.frequency,
+          const ReminderFrequency.customInterval(days: 5));
     });
 
     testWidgets('annuler ne rend rien et n\'écrit rien', (tester) async {
@@ -312,11 +315,11 @@ void main() {
       await _confirm(tester);
 
       expect(_popped, isNotNull);
-      expect(_popped!.label, 'Thermomètre');
-      expect(_popped!.subtypeValue, isNull);
-      expect(_popped!.completionSource, completionManual);
-      expect(_popped!.frequency, const ReminderFrequency.daily());
-      expect(_popped!.id, isNull);
+      expect(_popped!.reminder.label, 'Thermomètre');
+      expect(_popped!.reminder.subtypeValue, isNull);
+      expect(_popped!.reminder.completionSource, completionManual);
+      expect(_popped!.reminder.frequency, const ReminderFrequency.daily());
+      expect(_popped!.reminder.id, isNull);
     });
 
     testWidgets(
@@ -345,12 +348,12 @@ void main() {
       await _confirm(tester);
 
       expect(_popped, isNotNull);
-      expect(_popped!.id, 7);
-      expect(_popped!.label, 'Thermomètre');
-      expect(_popped!.subtypeValue, isNull);
-      expect(_popped!.completionSource, completionManual);
-      expect(
-          _popped!.frequency, const ReminderFrequency.customInterval(days: 2));
+      expect(_popped!.reminder.id, 7);
+      expect(_popped!.reminder.label, 'Thermomètre');
+      expect(_popped!.reminder.subtypeValue, isNull);
+      expect(_popped!.reminder.completionSource, completionManual);
+      expect(_popped!.reminder.frequency,
+          const ReminderFrequency.customInterval(days: 2));
     });
 
     testWidgets('un rappel lié au soin reste lié, réglé par événement',
@@ -368,10 +371,44 @@ void main() {
       await _confirm(tester);
 
       expect(_popped, isNotNull);
-      expect(_popped!.id, 8);
-      expect(_popped!.subtypeValue, HealthSubtype.nettoyageNez.value);
-      expect(_popped!.completionSource, completionFromEvents);
-      expect(_popped!.frequency, const ReminderFrequency.daily());
+      expect(_popped!.reminder.id, 8);
+      expect(_popped!.reminder.subtypeValue, HealthSubtype.nettoyageNez.value);
+      expect(_popped!.reminder.completionSource, completionFromEvents);
+      expect(_popped!.reminder.frequency, const ReminderFrequency.daily());
+    });
+  });
+
+  group('hour in the edit panel (B35)', () {
+    testWidgets(
+        'the panel starts from the stored own hour, and a confirm without '
+        'touching it rewrites nothing', (tester) async {
+      // The owner-reported defect: the panel that edits a custom reminder
+      // offered a name, a care, a rhythm and an end, and not the hour the
+      // reminder fires at. Pinned here first: the panel shows the stored hour.
+      await _open(
+        tester,
+        existing: CustomReminder(
+          id: 9,
+          label: 'Crème du change',
+          frequency: const ReminderFrequency.daily(),
+          subtypeValue: HealthSubtype.nettoyageNez.value,
+        ),
+        existingTimeOfDay: '06:15',
+      );
+
+      expect(
+        find.descendant(
+            of: find.byType(BottomSheet), matching: find.text('À 06:15')),
+        findsOneWidget,
+        reason: 'the panel shows the hour the reminder really fires at',
+      );
+
+      await _confirm(tester);
+
+      expect(_popped, isNotNull);
+      expect(_popped!.timeOfDay, '06:15');
+      expect(_popped!.timeChanged, isFalse,
+          reason: 'untouched means the caller must not write the column');
     });
   });
 }

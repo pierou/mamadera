@@ -113,6 +113,15 @@ class FakePlugin implements FlutterLocalNotificationsPlugin {
 
   int initializeCalls = 0;
   InitializationSettings? lastSettings;
+
+  /// The tap callback `init` registered (B22). A test drives a simulated tap by
+  /// invoking this, which is exactly what the plugin does with the OS response.
+  DidReceiveNotificationResponseCallback? lastResponseCallback;
+
+  /// Per OS id: the payload the notification was scheduled with (B15). Kept apart
+  /// from [scheduled] so the 5-tuple every existing assertion destructures keeps
+  /// its shape.
+  final Map<int, String?> payloads = {};
   final List<(int, tz.TZDateTime, AndroidScheduleMode, String, String)>
       scheduled = [];
   final List<int> cancelled = [];
@@ -129,6 +138,7 @@ class FakePlugin implements FlutterLocalNotificationsPlugin {
     final error = initializeError;
     if (error != null) throw error;
     lastSettings = settings;
+    lastResponseCallback = onDidReceiveNotificationResponse;
     return true;
   }
 
@@ -157,6 +167,7 @@ class FakePlugin implements FlutterLocalNotificationsPlugin {
   }) async {
     scheduled
         .add((id, scheduledDate, androidScheduleMode, title ?? '', body ?? ''));
+    payloads[id] = payload;
   }
 
   @override
@@ -422,6 +433,91 @@ void main() {
         ).exactAlarmsAllowed,
         isFalse,
       );
+    });
+  });
+
+  // B22 (the tap must reach Home) and B15 (the tap must say *which* reminder
+  // fired). Both live in this wrapper because both are plugin-initialisation and
+  // schedule-time facts: nothing above the data layer can supply them, and nothing
+  // below it decides what a tap means.
+  group('the notification tap (B22) and its payload (B15)', () {
+    test('init registers a tap callback, and it forwards the payload once',
+        () async {
+      final plugin = FakePlugin(android: FakeAndroidPlugin());
+      final taps = <String?>[];
+      final service = FlutterLocalNotificationService(
+        plugin: plugin,
+        onNotificationTapped: taps.add,
+      );
+      await service.init();
+
+      expect(plugin.lastResponseCallback, isNotNull,
+          reason:
+              'with no Dart callback registered the tap falls through to the OS '
+              'default — restore the app where it was, which is the whole B22 '
+              'defect (owner report 2026-11-02, both platforms)');
+
+      plugin.lastResponseCallback!(
+        const NotificationResponse(
+          id: 7,
+          notificationResponseType:
+              NotificationResponseType.selectedNotification,
+          payload: '{"b":"baby-1","i":"vitamine_d"}',
+        ),
+      );
+      expect(taps, ['{"b":"baby-1","i":"vitamine_d"}'],
+          reason:
+              'one tap, one call: a doubled callback would double the action');
+    });
+
+    test('a tap still reaches a service that was given no handler', () async {
+      // The wrapper must not decide what a tap means, and it must not die when the
+      // app handed it nothing to mean (a service built without the seam, e.g. in a
+      // test or a future call site).
+      final plugin = FakePlugin(android: FakeAndroidPlugin());
+      await FlutterLocalNotificationService(plugin: plugin).init();
+      expect(
+          () => plugin.lastResponseCallback?.call(
+                const NotificationResponse(
+                  notificationResponseType:
+                      NotificationResponseType.selectedNotification,
+                ),
+              ),
+          returnsNormally);
+    });
+
+    test('the payload rides the schedule call untouched', () async {
+      final plugin = FakePlugin(android: FakeAndroidPlugin());
+      final service = FlutterLocalNotificationService(plugin: plugin);
+      await service.init();
+      await service.scheduleAt(
+        id: 7,
+        title: 'Vitamine D',
+        body: 'C\'est l\'heure',
+        at: DateTime(2026, 7, 15, 6),
+        payload: '{"b":"baby-1","i":"vitamine_d"}',
+      );
+
+      expect(plugin.payloads[7], '{"b":"baby-1","i":"vitamine_d"}',
+          reason:
+              'the identity the tap will read back is the one that was submitted');
+    });
+
+    test('a notification with no payload still schedules', () async {
+      // Every schedule before B15, and any future surface that has nothing to
+      // resolve: the tap then means "open the app at Home" and nothing more.
+      final plugin = FakePlugin(android: FakeAndroidPlugin());
+      final service = FlutterLocalNotificationService(plugin: plugin);
+      await service.init();
+      await service.scheduleAt(
+        id: 3,
+        title: 't',
+        body: 'b',
+        at: DateTime(2026, 7, 15, 6),
+      );
+
+      expect(plugin.scheduled, hasLength(1));
+      expect(plugin.payloads[3], isNull);
     });
   });
 }

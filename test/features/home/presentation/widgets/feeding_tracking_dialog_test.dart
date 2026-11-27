@@ -144,7 +144,11 @@ void main() {
 
       // 20 minutes of data collection, then conversion to milliliters: the count is reset to 0, and...
       // The dialogue says it – never silently relabeled.
-      await tester.enterText(find.byType(TextField), '20');
+      await tester.enterText(
+          find.descendant(
+              of: find.byType(QuantityPickerInline),
+              matching: find.byType(TextField)),
+          '20');
       await tester.pump();
       expect(find.text('20 min'), findsOneWidget);
 
@@ -388,5 +392,105 @@ void main() {
         });
       }
     }
+  });
+
+  group('FeedingTrackingDialog — la note saisie à la création (B16)', () {
+    // The note feature existed everywhere except here, which is the only place it
+    // is worth anything. What these tests pin is the contract the row depends on:
+    // nothing written ⇒ `NULL`, never an empty string.
+    Map<String, Object?>? popped;
+
+    Future<void> pumpSheet(WidgetTester tester) async {
+      popped = null;
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            locale: const Locale('fr'),
+            supportedLocales: const [Locale('fr')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () async {
+                    popped = await showModalBottomSheet<Map<String, Object?>>(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => const FeedingTrackingDialog(),
+                    );
+                  },
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+    }
+
+    final noteField = find.byKey(const ValueKey('feeding-note-field'));
+
+    Future<void> confirm(WidgetTester tester) async {
+      // The sheet is taller than the 800x600 test viewport once the note field is
+      // in it — which is exactly the layout the Small_Phone release gate looks at.
+      await tester.ensureVisible(find.text('Confirmer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Confirmer'));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> writeNote(WidgetTester tester, String text) async {
+      await tester.ensureVisible(noteField);
+      await tester.pumpAndSettle();
+      await tester.enterText(noteField, text);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets("note field is present, worded as it is in Historique",
+        (tester) async {
+      await pumpSheet(tester);
+      expect(noteField, findsOneWidget);
+      expect(find.text('Notes'), findsOneWidget);
+      expect(find.text('Ajouter une note...'), findsOneWidget,
+          reason:
+              'the hint reuses the edit dialog key: one concept, one wording');
+    });
+
+    testWidgets('a note left empty is absent from the result (NULL, not empty)',
+        (tester) async {
+      await pumpSheet(tester);
+      await confirm(tester);
+      expect(popped, isNotNull);
+      expect(popped!.containsKey('notes'), isTrue);
+      expect(popped!['notes'], isNull);
+    });
+
+    testWidgets('a blank note is NULL', (tester) async {
+      await pumpSheet(tester);
+      await writeNote(tester, '   \n  ');
+      await confirm(tester);
+      expect(popped!['notes'], isNull,
+          reason:
+              'a blank note is the parent saying nothing, not an empty string');
+    });
+
+    testWidgets('a written note is trimmed, the rest of the payload intact',
+        (tester) async {
+      await pumpSheet(tester);
+      await writeNote(tester, '  sein gauche refusé, agitée  ');
+      await confirm(tester);
+      expect(popped!['notes'], 'sein gauche refusé, agitée');
+      expect(popped!['subtype'], isNotNull,
+          reason:
+              'a new field must not disturb the subtype/quantity/timestamp');
+      expect(popped!['timestamp'], isA<DateTime>());
+    });
   });
 }

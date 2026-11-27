@@ -120,7 +120,8 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
       },
       sleep: (e) {
         _duration = e.duration;
-        _quantity = e.quantity;
+        // B13: the row's mirror is deliberately not read. The nap's value is its
+        // duration, and the picker below writes that one field.
       },
       diaper: (e) {
         _wasteType = e.wasteType;
@@ -251,12 +252,11 @@ class _EditEventDialogState extends ConsumerState<EditEventDialog> {
         divisions: 96,
         // Stepper motor aligned with the slider's step: 96 steps per 480 minutes.
         step: 5,
-        value: _quantity ?? 0.0,
+        value: _duration ?? 0.0,
         onValueChanged: (double value) {
-          setState(() {
-            _quantity = value;
-            _duration = value;
-          });
+          // B13: `duration` only. Writing both is what made one nap appear as two
+          // numbers under two labels.
+          setState(() => _duration = value);
         },
       ),
     ];

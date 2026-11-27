@@ -157,7 +157,7 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(dbFile)));
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 13);
+    expect(db.schemaVersion, 14);
 
     // The new table exists, is empty, and has the expected shape.
     final info =
@@ -167,11 +167,15 @@ void main() {
         info.map((r) => r.read<String>('name')), containsAll(['key', 'value']));
     expect((await db.select(db.appSettings).get()), isEmpty);
 
-    // All seven v12 tables keep exactly the rows that were seeded.
+    // All seven v12 tables keep the rows that were seeded — `reminder_settings`
+    // excepted, because v14 adds the vitamin D seed row to every pre-existing
+    // scope that had none (D-R1). Nothing v12 wrote was modified.
     expect(await db.select(db.babyProfiles).get(), hasLength(1));
     expect(await db.select(db.trackingEvents).get(), hasLength(3));
     expect(await db.select(db.reminderDismissals).get(), hasLength(1));
-    expect(await db.select(db.reminderSettings).get(), hasLength(2));
+    expect(await db.select(db.reminderSettings).get(), hasLength(4),
+        reason: 'the two v12 rows plus the vitamin D seed of both pre-existing '
+            'scopes (v14, D-R1)');
     expect(await db.select(db.customReminders).get(), hasLength(1));
     expect(await db.select(db.measurements).get(), hasLength(1));
     expect(await db.select(db.reminderCompletions).get(), hasLength(1));
@@ -204,7 +208,7 @@ void main() {
     final db = AppDatabase(LazyDatabase(() => NativeDatabase(freshFile)));
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 13);
+    expect(db.schemaVersion, 14);
     expect((await db.select(db.appSettings).get()), isEmpty);
   });
 }

@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/providers/active_baby_provider.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/utils/calendar_date.dart';
 import '../../../../core/widgets/show_feedback.dart';
-import '../../../../shared/domain/entities/tracking_enums.dart';
-import '../../../../shared/utils/health_label_resolver.dart';
+import '../../../../shared/domain/entities/baby_profile.dart';
 import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_item.dart';
+import '../../domain/entities/reminder_item_setting.dart';
+import '../../domain/services/effective_reminders.dart';
 import '../providers/reminder_providers.dart';
 import '../providers/reminder_sync_notifier.dart';
 import '../widgets/custom_reminder_form_sheet.dart';
 import '../widgets/custom_reminder_tile.dart';
-import '../widgets/reminder_frequency_label.dart';
+import '../widgets/preset_reminder_edit_sheet.dart';
+import '../widgets/reminder_display_name.dart';
+import '../widgets/reminder_hour_control.dart';
 
 /// Settings screen → Reminders: the parent turns off the reminders that do not
 /// apply to them (vitamin K after the neonatal period, a care stopped on
@@ -58,14 +61,31 @@ class ReminderSettingsScreen extends ConsumerWidget {
               customAsync.hasError) {
             return Center(child: Text(context.l.reminderSettingsError));
           }
+          final profile = ref.watch(activeBabyProvider).value;
+          // B33 (D-R2): the same domain function Home and the notification
+          // scheduler call, so a renamed, re-paced, ended or removed preset cannot
+          // look different here than it does on Home or in the OS schedule. The
+          // removed ones are partitioned out of the *declared* list — the function
+          // drops them, and D-R4's section needs to show them.
+          final declared = presetsAsync.requireValue;
+          final stored = settingsAsync.requireValue;
           return _ReminderList(
-            presets: presetsAsync.requireValue,
+            presets: effectiveItemsForScope(
+              items: declared,
+              settings: stored,
+              profile: profile,
+            ),
+            removedPresets: [
+              for (final item in declared)
+                if (isRemoved(stored[item.id])) item,
+            ],
             custom: customAsync.requireValue,
-            settings: settingsAsync.requireValue,
+            settings: stored,
+            profile: profile,
             // Date of birth of the active baby: only a monthly cycle applies.
             // serves, and that's why it displays "The 14th of each month" instead of...
             // The fictional date is stored in the database.
-            monthlyDay: ref.watch(activeBabyProvider).value?.birthDate.day,
+            monthlyDay: profile?.birthDate.day,
           );
         },
       ),
@@ -76,18 +96,35 @@ class ReminderSettingsScreen extends ConsumerWidget {
 class _ReminderList extends ConsumerWidget {
   const _ReminderList({
     required this.presets,
+    required this.removedPresets,
     required this.custom,
     required this.settings,
+    required this.profile,
     required this.monthlyDay,
   });
 
+  /// The presets as they are for this parent: overrides applied, removed ones
+  /// absent (they are in [removedPresets]).
   final List<ReminderItem> presets;
+
+  /// The presets this parent removed, in declaration order (D-R4's section).
+  /// They are *not* deleted: one tap restores each with its hour, name, rhythm and
+  /// end intact.
+  final List<ReminderItem> removedPresets;
+
+  /// The active baby, for the age form of "program an end" and the monthly rhythm.
+  /// `null` on the legacy profileless scope, where the age option is disabled
+  /// with a hint (D-R10).
+  final BabyProfile? profile;
 
   /// Personalized reminders, listed in the order they were created.
   final List<CustomReminder> custom;
 
-  /// `item_id → enabled`; if the key is missing, it defaults to enabled (opt-out, not opt-in).
-  final Map<String, bool> settings;
+  /// The stored row of each reminder of this scope, for the rows that **exist**:
+  /// the switch and the reminder's own hour (B30). A missing key means "never
+  /// touched", which resolves per item to `ReminderItem.enabledByDefault` (B6:
+  /// vitamin D starts off, everything else on) and to the global hour.
+  final Map<String, ReminderItemSetting> settings;
 
   /// Date of birth of the active baby, `null` if no profile exists.
   final int? monthlyDay;
@@ -108,11 +145,19 @@ class _ReminderList extends ConsumerWidget {
           SwitchListTile(
             // Accessible content: The label and frequency are read together.
             title: Text(_presetLabel(context, item)),
-            subtitle: Text(reminderFrequencyLabel(context, item.frequency)),
-            value: settings[item.id] ?? true,
+            subtitle: _hourControl(context, ref, item),
+            value: settings[item.id]?.enabled ?? item.enabledByDefault,
             onChanged: (enabled) => ref
                 .read(reminderSettingsProvider.notifier)
                 .setEnabled(item.id, enabled: enabled),
+            // B33/D-R6: a preset is editable and removable like a custom one. The
+            // menu sits in `secondary` because the switch already owns `trailing`,
+            // and both must stay reachable with one thumb.
+            secondary: _PresetMenu(
+              item: item,
+              setting: settings[item.id],
+              profile: profile,
+            ),
           ),
         const SizedBox(height: AppTheme.spacingXxl),
         Text(
@@ -137,26 +182,55 @@ class _ReminderList extends ConsumerWidget {
                 ),
           )
         else
-          for (final reminder in custom)
-            CustomReminderTile(
-              reminder: reminder,
-              display: CustomReminderPresets.forCustom(
-                reminder,
-                monthlyDay: monthlyDay,
-              ),
-              enabled: settings[_settingsKey(reminder)] ?? true,
-              onToggle: (enabled) => ref
-                  .read(reminderSettingsProvider.notifier)
-                  .setEnabled(_settingsKey(reminder), enabled: enabled),
-              onAction: (action) => _onAction(context, ref, reminder, action),
-            ),
+          for (final reminder in custom) _customTile(context, ref, reminder),
         ListTile(
           leading: const Icon(Icons.add_alarm_outlined),
           title: Text(context.l.reminderCustomAdd),
           onTap: () => _openForm(context, ref),
         ),
+        // D-R4: the bottom of the screen, because it is a place things go to be
+        // left alone, and one tap away from being not.
+        _RemovedSection(items: removedPresets, settings: settings),
         const _SystemNotificationsSection(),
       ],
+    );
+  }
+
+  /// The hour state of one row plus the stored column it came from.
+  ///
+  /// The resolution itself lives in `reminder_hour_control.dart`, because the
+  /// preset edit sheet asks the same question about the same reminder; a second
+  /// copy here is how two surfaces start disagreeing about one hour (B30).
+  ({ReminderHourState state, String? stored}) _hourOf(
+    WidgetRef ref,
+    ReminderItem item,
+  ) {
+    final stored = settings[item.id]?.timeOfDay;
+    return (
+      state: resolveReminderHour(
+        storedTimeOfDay: stored,
+        prefs: ref.watch(notificationSettingsProvider).value,
+      ),
+      stored: stored,
+    );
+  }
+
+  /// The rhythm + effective hour line of one preset row, with its two actions.
+  Widget _hourControl(BuildContext context, WidgetRef ref, ReminderItem item) {
+    final hour = _hourOf(ref, item);
+    return ReminderHourControl(
+      frequency: item.frequency,
+      hourLabel: hour.state.hourLabel,
+      inherited: hour.state.inherited,
+      showHour: hour.state.showHour,
+      onPick: () => pickReminderHour(
+        context: context,
+        ref: ref,
+        item: item,
+        storedTimeOfDay: hour.stored,
+      ),
+      onUseGlobal: () =>
+          ref.read(reminderSettingsProvider.notifier).useGlobalTime(item),
     );
   }
 
@@ -165,6 +239,44 @@ class _ReminderList extends ConsumerWidget {
   /// never disagree (`CustomReminderTile.keyOf`).
   String _settingsKey(CustomReminder reminder) =>
       CustomReminderTile.keyOf(reminder);
+
+  /// One custom reminder row.
+  ///
+  /// The display item is built once and serves both the tile and the default
+  /// state of its switch, so a row and its default can never come from two
+  /// different item objects (one of B6's four read sites, D-R2).
+  Widget _customTile(
+    BuildContext context,
+    WidgetRef ref,
+    CustomReminder reminder,
+  ) {
+    final display = CustomReminderPresets.forCustom(
+      reminder,
+      monthlyDay: monthlyDay,
+    );
+    final key = _settingsKey(reminder);
+    final hour = _hourOf(ref, display);
+    return CustomReminderTile(
+      reminder: reminder,
+      display: display,
+      enabled: settings[key]?.enabled ?? display.enabledByDefault,
+      onToggle: (enabled) => ref
+          .read(reminderSettingsProvider.notifier)
+          .setEnabled(key, enabled: enabled),
+      onAction: (action) => _onAction(context, ref, reminder, action),
+      hourLabel: hour.state.hourLabel,
+      hourInherited: hour.state.inherited,
+      showHour: hour.state.showHour,
+      onPickHour: () => pickReminderHour(
+        context: context,
+        ref: ref,
+        item: display,
+        storedTimeOfDay: hour.stored,
+      ),
+      onUseGlobalHour: () =>
+          ref.read(reminderSettingsProvider.notifier).useGlobalTime(display),
+    );
+  }
 
   Future<void> _onAction(
     BuildContext context,
@@ -189,12 +301,26 @@ class _ReminderList extends ConsumerWidget {
     WidgetRef ref, {
     CustomReminder? existing,
   }) async {
-    final draft = await showModalBottomSheet<CustomReminder>(
+    final profile = ref.read(activeBabyProvider).value;
+    // The end stored for this reminder so far, so editing shows what is set
+    // instead of offering "no end" while one exists.
+    final stored = existing == null
+        ? null
+        : ref.read(reminderSettingsProvider).value?['custom_${existing.id}'];
+    final draft = await showModalBottomSheet<CustomReminderDraft>(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) => CustomReminderFormSheet(existing: existing),
+      builder: (sheetContext) => CustomReminderFormSheet(
+        existing: existing,
+        birthDate: profile?.birthDate,
+        existingEndDate: parseCalendarDate(stored?.endDate),
+        existingEndAgeMonths: stored?.endAgeMonths,
+        existingTimeOfDay: stored?.timeOfDay,
+        prefs: ref.read(notificationSettingsProvider).value,
+      ),
     );
     if (draft == null) return;
+    final reminder = draft.reminder;
 
     final notifier = ref.read(customRemindersProvider.notifier);
     // The try/catch is not decorative: without it a failed write (a full
@@ -203,10 +329,39 @@ class _ReminderList extends ConsumerWidget {
     // the list.
     try {
       if (existing == null) {
-        await notifier.create(draft);
+        await notifier.create(reminder);
       } else {
-        await notifier.edit(draft);
+        await notifier.edit(reminder);
       }
+      // D-R5: the end lives on the settings row, not on the reminder, so it is a
+      // second write after the reminder itself. `enabledIfNew: true` because
+      // creating a custom reminder is itself the consent to run it (B6).
+      await ref.read(reminderSettingsProvider.notifier).setEndById(
+            'custom_${reminder.id}',
+            endDate: draft.endDate,
+            endAgeMonths: draft.endAgeMonths,
+            enabledIfNew: true,
+          );
+      // B35: an hour chosen in the panel is the second column-write of the
+      // same row, on the end's path. Untouched means the time column is not
+      // written at all — editing a label never disturbs a stored hour.
+      if (draft.timeChanged) {
+        await ref.read(reminderSettingsProvider.notifier).setTimeById(
+              'custom_${reminder.id}',
+              enabledIfNew: true,
+              timeOfDay: draft.timeOfDay,
+            );
+      }
+      if (!context.mounted) return;
+      // B17: this path used to complete silently to the finger — the record landed
+      // with nothing but a row appearing. `showFeedback` is the app's single haptic
+      // contract for a committed insert, and a reminder is an insert like any other.
+      showFeedback(
+        context,
+        existing == null
+            ? context.l.reminderCustomAdded
+            : context.l.reminderCustomUpdated,
+      );
     } on Object {
       if (!context.mounted) return;
       showError(context, context.l.reminderCustomSaveError);
@@ -259,12 +414,102 @@ class _ReminderList extends ConsumerWidget {
   /// "Vit. D"): this is a setting being chosen, not a label scanned above a
   /// button. Items with no health subtype fall back to their `labelKey`.
   String _presetLabel(BuildContext context, ReminderItem item) {
-    final subtypeValue = item.subtypeValue;
-    if (subtypeValue != null) {
-      final subtype = HealthSubtype.byValue(subtypeValue);
-      if (subtype != null) return resolveHealthLabel(context, subtype);
-    }
-    return item.labelKey;
+    // Through the shared override helper (B33/D-R6): a preset the parent renamed
+    // must not answer here with the app's original wording.
+    return reminderDisplayName(context, item,
+        localised: () => presetCareLabel(context, item));
+  }
+}
+
+/// The `edit` / `remove` menu of a preset row (B33/D-R6, the custom tile's
+/// pattern). Removal is not deletion: the row keeps every column it had and the
+/// Removed section offers it back, so no confirmation dialog pretends otherwise —
+/// the undo is one tap away and says so.
+class _PresetMenu extends ConsumerWidget {
+  const _PresetMenu({
+    required this.item,
+    required this.setting,
+    required this.profile,
+  });
+
+  final ReminderItem item;
+  final ReminderItemSetting? setting;
+  final BabyProfile? profile;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l;
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert),
+      tooltip: l.reminderCustomSheetEdit,
+      initialValue: null,
+      onSelected: (value) async {
+        switch (value) {
+          case 'edit':
+            await showPresetReminderEditSheet(
+              context,
+              ref,
+              item: item,
+              setting: setting,
+              birthDate: profile?.birthDate,
+            );
+          case 'remove':
+            await ref.read(reminderSettingsProvider.notifier).remove(item);
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(value: 'edit', child: Text(l.edit)),
+        PopupMenuItem(value: 'remove', child: Text(l.reminderActionRemove)),
+      ],
+    );
+  }
+}
+
+/// D-R4: the removed presets, collapsed, with one-tap restore.
+///
+/// Removal is a state flag, so the preset has to be reachable again — otherwise a
+/// misclick would be permanent for a parent who never meant to stop a clinical
+/// reminder. Absent when nothing is removed, so the screen does not grow an empty
+/// section nobody asked for.
+class _RemovedSection extends ConsumerWidget {
+  const _RemovedSection({required this.items, required this.settings});
+
+  final List<ReminderItem> items;
+  final Map<String, ReminderItemSetting> settings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    final l = context.l;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: AppTheme.spacingXxl),
+        ExpansionTile(
+          title: Text(l.reminderSettingsRemovedSectionTitle),
+          subtitle: Text(
+            l.reminderSettingsRemovedDescription,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          tilePadding: EdgeInsets.zero,
+          children: [
+            for (final item in items)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(reminderDisplayName(context, item,
+                    localised: () => presetCareLabel(context, item))),
+                trailing: TextButton(
+                  onPressed: () =>
+                      ref.read(reminderSettingsProvider.notifier).restore(item),
+                  child: Text(l.reminderActionRestore),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
   }
 }
 
@@ -343,6 +588,9 @@ class _SystemNotificationsSection extends ConsumerWidget {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: prefs.hour, minute: prefs.minute),
+      // Named, like the per-reminder picker: two time pickers in one screen that
+      // answer two different questions must not wear the same heading.
+      helpText: context.l.reminderNotificationsTimeLabel,
     );
     if (picked == null) return;
     await ref

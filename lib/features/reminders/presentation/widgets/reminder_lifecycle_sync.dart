@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/notification_tap_handler.dart';
 import '../providers/reminder_sync_notifier.dart';
 
 /// The app's single [WidgetsBindingObserver] (verified 2026-10-26: no other
@@ -56,5 +57,13 @@ class _ReminderLifecycleSyncWidgetState
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    // A notification tap does its work *after* the plugin callback returned, and
+    // Riverpod 3 disposes a provider that nothing watches: watching the handler here
+    // (this widget is mounted for the life of the app, above the router) is what
+    // keeps its Ref usable when a banner is tapped minutes later. The `mounted`
+    // guards inside the handler are the belt to this brace.
+    ref.watch(notificationTapHandlerProvider);
+    return widget.child;
+  }
 }

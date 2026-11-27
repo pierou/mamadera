@@ -124,6 +124,7 @@ class _FakeImportRepository extends ImportRepository {
 
   @override
   Future<ParsedExport> parseExport(String json) async => const ParsedExport(
+        formatVersion: 4,
         babyProfiles: [
           ImportedBabyProfile(
             id: 'baby_1',

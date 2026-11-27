@@ -1,4 +1,4 @@
-.PHONY: ci gate lint test build-android build-aab build-ipa clean codegen l10n check-coverage audit-trivy audit-gitleaks patch-notes check-ui check-architecture check-complexity format-check format version-sync integration-test-simulator ci-integration integration-driver splash-create store-package store-prose store-check store-shots pub-get
+.PHONY: ci gate lint test build-android build-aab build-ipa clean codegen l10n check-coverage audit-trivy audit-gitleaks patch-notes check-ui check-architecture check-complexity format-check format version-sync integration-test-simulator ci-integration integration-driver splash-create store-package store-prose store-check store-shots pub-get emu-up emu-down
 
 # Harness-based integration tests (integration_test binding — require a
 # connected device). driver_integration_test.dart is excluded: it is a
@@ -62,10 +62,22 @@ check-architecture:
 # file list and the Fun Cnt guard below stay as protection against that regression (a check that
 # cannot fail is worse than no check). Lizard's bounded exit code is 1 whenever ANY warning
 # exists — i.e. on every within-budget scan — so the guards, not the exit code, decide pass/fail.
-# Baseline 3 (measured 2026-10-19, tighten as these are refactored):
+# Baseline 4 (3 measured 2026-10-19, tighten as these are refactored):
 #   _FeedingTrackingDialogState::build  187 NLOC   feeding_tracking_dialog.dart:128
 #   MenuScreen::build                   154 NLOC   menu_screen.dart:27
 #   HistoryScreen::_applyUpdate          CCN 31    history_screen.dart:145
+#   ReminderScheduler::ReminderScheduler 312 LEN   reminder_scheduler.dart:53
+# The fourth is a MEASUREMENT ARTIFACT, not a long function, and was added
+# 2026-11-18 (v1.4.0 M2), not because code grew past a real budget: lizard's Dart
+# parser loses every method boundary inside ReminderScheduler and charges the
+# whole class to its constructor, so the "312-line function" it reports is the
+# class. M2 split `sync` into `sync` + `_buildPlan` + `_applyDiff`, each under 70
+# lines. Four member orderings were tried; which boundaries lizard sees moves with
+# the file's shape, not with its size, so no ordering makes this entry disappear.
+# To clear it for real, extract the OS-reconciling half of the class
+# (`_applyDiff`) into its own type, then drop the cap back to 3 below.
+# Reproduce the artifact with:
+#   uv tool run lizard lib/features/reminders/domain/services/reminder_scheduler.dart --CCN 30 --length 150
 check-complexity:
 	@command -v uv >/dev/null 2>&1 || { echo "⚠️  uv not installed — skipping complexity check"; exit 0; }; \
 	files=$$(find lib -name '*.dart' ! -name '*.g.dart' ! -name '*.freezed.dart'); \
@@ -76,11 +88,11 @@ check-complexity:
 	if [ "$${fun:-0}" -lt 400 ]; then \
 		echo "❌ lizard analysed $${fun:-0} functions (<400) — the scan is broken, not clean"; exit 1; \
 	fi; \
-	if [ "$${warn:-0}" -gt 3 ]; then \
-		echo "❌ $${warn} functions over CCN 30 / NLOC 150 (baseline cap 3)"; \
+	if [ "$${warn:-0}" -gt 4 ]; then \
+		echo "❌ $${warn} functions over CCN 30 / NLOC 150 (baseline cap 4 — the 4th is a documented parser artifact, see the comment above)"; \
 		uv tool run lizard $$files --CCN 30 --length 150 -w 2>/dev/null | head -12; exit 1; \
 	fi; \
-	echo "✅ complexity within budget: $$fun functions scanned, $${warn} over cap (baseline 3)"
+	echo "✅ complexity within budget: $$fun functions scanned, $${warn} over cap (baseline 4 — the 4th entry is a documented parser artifact, see the comment above)"
 
 pub-get:
 	flutter pub get
@@ -249,3 +261,63 @@ store-check:
 
 store-shots:
 	@bash store/v$(VERSION)/capture.sh
+
+# 📱 Emulator lifecycle for INTERACTIVE / release-gate passes.
+#
+# Why this exists at all: CI tears itself down ("Kill emulator", `if: always()`), but
+# nothing ever tore down a manual gate pass. Measured 2026-11-19: Small_Phone +
+# Pixel_10_Pro were left up with no test attached, holding `footprint`
+# phys_footprint 8.0 GB + 7.7 GB = 15.7 GB of a 96 GB machine whose oMLX ceiling is
+# pinned at 92 GB (docs: ~/bagent/docs/mamadera-emulator-placement.md). Two traps found
+# while measuring it, both worth remembering:
+#   * `ps` RSS reported 0.56 / 0.61 GB for those same PIDs — Hypervisor.framework guest
+#     RAM is NOT charged to RSS, so `ps`/Activity Monitor understate an emulator ~13x.
+#     Use `footprint -p <pid>` (phys_footprint), never RSS, to size an emulator.
+#   * The leftovers are not merely expensive, they are gate-poisoning: the AVD is
+#     single-instance and a stale one reds the CI boot leg ("more than one
+#     device/emulator", run 43129603795).
+ANDROID_HOME ?= $(HOME)/Library/Android/sdk
+AVD          ?= Pixel_10_Pro
+
+# Kill every emulator, then PROVE the slate is clear. Kill the `emulator` parent
+# binary, not just qemu: a windowed or `-gpu host` launch walks straight past a
+# qemu-only pattern — the exact reason this guard came back twice (2026-10-08, 2026-11-12,
+# both logged in .github/workflows/ci.yml). A killed emulator also keeps its `adb
+# devices` entry for ~10 s, hence the poll before the verdict.
+emu-down:
+	@ADB="$(ANDROID_HOME)/platform-tools/adb"; \
+	pkill -f 'qemu-system-aarch64' 2>/dev/null || true; \
+	pkill -f "$(ANDROID_HOME)/emulator/emulator" 2>/dev/null || true; \
+	pkill -f 'emulator -avd' 2>/dev/null || true; \
+	for i in $$(seq 1 15); do \
+		[ -z "$$($$ADB devices 2>/dev/null | awk 'NR>1 && $$2=="device"')" ] && break; sleep 1; \
+	done; \
+	left=$$($$ADB devices 2>/dev/null | awk 'NR>1 && $$2=="device"'); \
+	if [ -n "$$left" ]; then \
+		echo "❌ still attached: $$left"; \
+		echo "   do NOT kill -9 blindly if a test is live — find the owner first: pgrep -fl 'flutter test'"; exit 1; \
+	fi; \
+	echo "✅ no emulator attached — guest RAM released"
+
+# Boot an AVD headless for NON-interactive legs (`make ci-integration`,
+# `make integration-test-simulator`). `-gpu swiftshader_indirect` on purpose: the
+# interactive AVDs measured 8 GB each WITH `-gpu swiftshader`, so a host-GPU launch
+# on a machine that also serves inference is strictly worse. `-no-snapshot-load`
+# so a stale snapshot can never fake a pass. NOT for store-shots: capture.sh
+# expects `emulator -avd Pixel_10_Pro` as-is and screenshot parity under an
+# indirect GPU has never been verified — leave that one windowed until someone
+# diffs a capture set.
+emu-up:
+	@echo "📱 Booting $(AVD) headless → /tmp/mamadera_emu_$(AVD).log"
+	@nohup $(ANDROID_HOME)/emulator/emulator -avd $(AVD) -no-window -no-audio \
+		-no-boot-anim -no-snapshot-load -gpu swiftshader_indirect \
+		> /tmp/mamadera_emu_$(AVD).log 2>&1 &
+	@ADB="$(ANDROID_HOME)/platform-tools/adb"; \
+	for i in $$(seq 1 60); do \
+		$$ADB devices 2>/dev/null | grep -q '^emulator-5554[[:space:]]*device' && break; sleep 2; \
+	done; \
+	if $$ADB devices 2>/dev/null | grep -q '^emulator-5554[[:space:]]*device'; then \
+		echo "✅ $(AVD) online as emulator-5554"; \
+	else \
+		echo "❌ $(AVD) never came up — tail /tmp/mamadera_emu_$(AVD).log"; exit 1; \
+	fi

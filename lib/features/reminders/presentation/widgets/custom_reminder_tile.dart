@@ -4,7 +4,7 @@ import '../../../../core/l10n/app_localizations_extension.dart';
 import '../../../../core/theme.dart';
 import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_item.dart';
-import 'reminder_frequency_label.dart';
+import 'reminder_hour_control.dart';
 
 /// What the parent requests on a personalized reminder tile.
 enum CustomReminderAction { edit, delete }
@@ -22,6 +22,11 @@ class CustomReminderTile extends StatelessWidget {
     required this.enabled,
     required this.onToggle,
     required this.onAction,
+    required this.hourLabel,
+    required this.hourInherited,
+    required this.onPickHour,
+    required this.onUseGlobalHour,
+    this.showHour = true,
     super.key,
   });
 
@@ -41,6 +46,35 @@ class CustomReminderTile extends StatelessWidget {
 
   /// Demande de modification ou de suppression.
   final ValueChanged<CustomReminderAction> onAction;
+
+  /// The hour this reminder fires at (BACKLOG B30) — its own `'HH:mm'`, or the
+  /// installation-wide hour when it has none.
+  ///
+  /// Resolved by the caller: the inherited value is an app-level preference a
+  /// tile cannot know on its own, and the preset rows above must resolve it the
+  /// same way, from the same read.
+  final String hourLabel;
+
+  /// `true` ⇒ [hourLabel] is the global hour, not this reminder's own.
+  final bool hourInherited;
+
+  /// Opens the time picker for this reminder.
+  final VoidCallback onPickHour;
+
+  /// Back to the global hour (writes NULL).
+  final VoidCallback onUseGlobalHour;
+
+  /// `false` while the global hour is still being read (see [ReminderHourControl]).
+  final bool showHour;
+
+  Widget _hourLine(BuildContext context) => ReminderHourControl(
+        frequency: display.frequency,
+        hourLabel: hourLabel,
+        inherited: hourInherited,
+        showHour: showHour,
+        onPick: onPickHour,
+        onUseGlobal: onUseGlobalHour,
+      );
 
   /// Key for the `reminder_settings` of this reminder.
   ///
@@ -65,14 +99,14 @@ class CustomReminderTile extends StatelessWidget {
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(reminderFrequencyLabel(context, display.frequency)),
+                _hourLine(context),
                 Text(
                   context.l.reminderCustomCareNoneHint,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
             )
-          : Text(reminderFrequencyLabel(context, display.frequency)),
+          : _hourLine(context),
       onTap: () => onAction(CustomReminderAction.edit),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

@@ -129,8 +129,14 @@ reminder. That exactness is behaviour, not oversight.
 
 ## B3 — v1.3.0 sync requires a written change to the privacy mandate
 
-**Status:** blocked on the owner · **Severity:** structural
-**Files:** `docs/ROADMAP-reminders-and-sync.md` §7 decision 5, `README.md` privacy promises
+**Status:** **re-phased by the owner, 2026-11-14 (ROADMAP §6 + decision 5):** Phase A (manual merge over
+the share sheet) is **approved, target 1.5.0** (plan in `docs/PLAN-sync-phase-a.md`) — it needs no
+mandate change at all (no network), which is precisely why it is unblocked; Phase B (LAN peer-to-peer)
+is **under serious consideration** and stays with this ticket's gate below: a *written* change to the
+privacy mandate from the owner before any code, dependency or spike; Phase C (cloud/relay — including
+the internet-reach / E2E-over-relay variant discussed 2026-11-14) is **out of scope for now**
+(re-decidable, not closed) · **Severity:** structural (Phase B)
+**Files:** `docs/ROADMAP-reminders-and-sync.md` §6 + §7 decision 5, `README.md` privacy promises
 
 The app's core promise is *no network transport exists anywhere*. LAN peer sync contradicts that
 sentence, so it is not a feature decision but a promise decision, and only the owner can rewrite the
@@ -361,7 +367,20 @@ Vit. K) is care hygiene,
 
 ## B7 — The History tab does not have *all* event types: measurements are absent from it
 
-**Status:** the timeline part is **shipped in v1.2.1** (verified in the code, 2026-10-17:
+**Status (v1.4.0 update):** the remaining part — the dedicated `HistoryFilter.measurements` chip —
+is **implemented on `release/v1.4.0` (M6)**. `HistoryFilter.measurements` added (last in
+`values`, so it sits after the tracking types instead of among them), `fromString` resolving the
+French spelling `mesures`, `labelKey: filterMeasurements` in fr/en/es, and the chip in the History
+pill row (neutral accent: the ticket says measurements are neither a type nor an existing colour).
+The filter reads `MeasurementRepository.allForBaby` alone — no read of `tracking_events`, no
+written row, **no schema merge** (the ticket's "Do not": a single numeric column carrying
+semantics is exactly B1's debt, and `tracking_events.quantity` is in the clear at rest). One trap
+closed while passing through: `HistoryFilter.trackingType` answered `'measurements'` for the new
+value, a string no `TrackingType` parses whose safe fallback would have listed **feedings under
+« Mesures »** — it returns `null` now, meaning « not one type », documented as such. Tests: 4 enum
+cases + « the measurements chip lists measurements and nothing else (B7) ». Nothing bumped in the
+export format, as planned — a chip is a read question.
+Original status: the timeline part is **shipped in v1.2.1** (verified in the code, 2026-10-17:
    `measurement_history_tile` in `history_screen`, `tracking_events` + `measurements` merge in
    `history_notifier`); what remains on this ticket, re-requested by the owner on 2026-10-17
     (« filtrer les événements de l'historique par mesures »): the dedicated
@@ -417,6 +436,47 @@ tables have
   merge is enough; a schema merge is an irreversible migration with no gain.
 - Do not add `reminder_completions` or `reminder_dismissals` to the history: they are
   service logs, not the baby's events.
+
+---
+
+## B34 — French copy is typographically inconsistent (apostrophe, `:` spacing, two undeclared placeholders)
+
+**Status:** open, found during the v1.4.0 M7 l10n sweep (2026-11-18) · **Severity:** low (product
+polish, one screen at a time) · **Cost:** small but it touches shipped copy, so it wants its own
+release rather than a ride-along
+**Found:** `app_fr.arb` audit, v1.4.0 M7.
+**Files:** `lib/l10n/app_fr.arb`, `assets/patch_notes/fr.json`, `lib/l10n/app_localizations*.dart`,
+`lib/features/history/presentation/widgets/history_tile.dart` (`durationPrefix`), `store/**` fr copy
+
+### The fact
+Three different spellings of the same apostrophe are live in the app at once: **32** `app_fr.arb`
+values and **88** patch-note items use the straight `'` (`Utiliser l'heure`, `Ajout d'une note`),
+while four keys introduced in v1.4.0 M4 used the typographic `’` (`Jusqu’au`, `s’arrête`,
+`l’accueil`). M7 normalised those four **to the house convention** rather than the reverse, because
+the majority and the reviewed patch notes both use `'` — but `'` is the wrong glyph for French
+text, and the app is a French product first (`docs/PLAN-francophone-neonatal.md`).
+Two related loose ends in the same audit: `reminderLastDone` (« Dernière fois: {date} »),
+`errorMessage` and `durationPrefix` (« Durée: {minutes} min ») have **no space before the colon**,
+which French typography requires; and `durationPrefix` / `quantityPrefix` carry placeholders with
+**no `@…placeholders` metadata**, so their generated getters take `Object` instead of `String` —
+a wrong-typed argument there compiles.
+
+### To do
+1. Decide the glyph once (proposal: `’` everywhere, i.e. correct French, with the patch notes and
+   the 32 arb values following in the same change), then apply it mechanically and re-run
+   `make l10n`.
+2. Add the required space before `:` in the three strings (a narrow no-break space is the correct
+   one on iOS/Android; a plain space is acceptable and is what the store copy already uses).
+3. Declare the placeholders of `durationPrefix` and `quantityPrefix` in all three arbs so the
+   generated getters are typed.
+4. Check the screenshot pipeline afterwards: `Durée: 45 min` appears in captured store shots
+   (`store/v*/screenshots`), so a glyph change re-stales the uploads — the reason this is its own
+   release and not a v1.4.0 side effect.
+
+### Do not
+- Do not mix the two directions in one commit: half-normalising is worse than either convention.
+- Do not re-shoot store screenshots for a glyph without saying so in the PR: the uploads are
+  versioned assets, not build output.
 
 ---
 
@@ -703,8 +763,15 @@ the bottom while the finger is at the top — the eye does a useless round trip.
 
 ## B13 — Sleep: the same minute is written in `quantity` AND in `duration`
 
-**Status:** open, **post-v1.2.1** (the *display* part is already paid for in rc.2; the
-*model* part is deferred) · **Cost:** small (write path + entity + tests); **zero migration**
+**Status:** **implemented on `release/v1.4.0` (M6, option A)** — `SleepEvent` no longer has a
+`quantity` field at all, so no write path can refill the column: the home track path passes
+`duration` only, the insert leaves the column absent, the **edit clears it** (`Value(null)`) so a
+touched row stops holding the same minutes twice, and the edit dialog's duration picker writes
+`duration` alone (it used to set both). **Zero migration**, as planned: legacy rows keep their
+mirror, unread, and are read through `duration`; nothing was converted ("nommer, pas déduire").
+Pinned by `tracking_repository_impl_test.dart` (« a nap writes its minutes once, in duration »).
+Original: open, **post-v1.2.1** (the *display* part is already paid for in rc.2; the *model* part
+was deferred) · **Cost:** small (write path + entity + tests); **zero migration**
 if we do not clean up the existing rows
 **Found:** 2026-10-13, at the rc.2 emulator pass — the owner saw « Quantité: 45 min » and
 « Durée: 0 min » side by side on a nap.
@@ -827,7 +894,17 @@ notification time of its own per custom reminder**, it is a model change, not a 
 
 ## B17 — Creation must be felt under the finger: a haptic contract
 
-**Status:** open (owner request, 2026-10-30: « Haptic feedback on creation ») · **Cost:** small —
+**Status:** **partially implemented on `release/v1.4.0` (M6)** — the helper now fires
+`HapticFeedback.selectionClick()` (was `lightImpact`) so there is **one magnitude for every
+creation**, and the silent path is filled: custom-reminder create/edit ends in `showFeedback`
+with new keys `reminderCustomAdded` / `reminderCustomUpdated` (fr/en/es), which gives the snackbar
+the ticket argued for and the haptic by construction. Pinned by the settings-screen creation test,
+which asserts the platform was asked for `HapticFeedbackType.selectionClick`. **Deferred, on
+purpose:** Done/Snooze haptics (ticket item 2 says measure on device first — emulators do not
+vibrate, so no test can decide it) and `TrackButton` press-feedback (ticket's own "Do not": it
+changes the feel of every home tap and needs its own sign-off). **Owed: item 4**, a named handset
+in the PR record.
+Original: open (owner request, 2026-10-30: « Haptic feedback on creation ») · **Cost:** small —
 one helper already exists; the gap is coverage and one magnitude decision · **Risk:** low, additive
 **Found:** owner request 2026-10-30; coverage verified in `develop` the same evening.
 **Files:** `lib/core/widgets/show_feedback.dart:14` (the **only** `HapticFeedback` call in `lib/`
@@ -883,7 +960,14 @@ the home screen and must not be folded in silently.
 
 ## B15 — Validation of a reminder or notification should create the action
 
-**Status:** open (owner request, 2026-10-30: « Create action from reminder or notification
+**Status:** **implemented on `release/v1.4.0` (M5)** — payload = `babyId` + stable `item.id`
+(`ReminderNotificationPayload`, never the plan index), carried on every scheduled entry and on the
+catch-up nudge; D-R9 shipped as deep-link-not-auto-create (detached → `markDone` scoped to the
+payload's baby; treatment-linked → `HealthSubtypeDialog` with `initialSubtype`, parent confirms).
+**A cross-baby tap selects that baby** (owner decision 2026-11-17) before settling or asking for the
+care sheet — « tap ⇒ Home » means « tap ⇒ that baby's Home »; the profileless `''` scope stays
+Home-only because there is no profile to select. Device pass due with B22's.
+Original: open (owner request, 2026-10-30: « Create action from reminder or notification
 validation ») · **Cost:** medium (payload + response handler + one decision about D2) · **Risk:**
 low, additive — nothing existing changes semantics
 **Found:** owner request 2026-10-30; verified same evening — **today the tap is inert**.
@@ -939,7 +1023,16 @@ identify, and confirming a preset is defined as *not* creating anything.
 
 ## B16 — No note when creating a feeding
 
-**Status:** open (owner request, 2026-10-30: « Write note on food creation ») · **Cost:** small —
+**Status:** **implemented on `release/v1.4.0` (M6)** — one optional `TextField` at the bottom of
+`feeding_tracking_dialog.dart` (`ValueKey('feeding-note-field')`), carried out in the sheet's
+result map and passed to `track(notes:)`. Empty and whitespace-only both leave the result key
+**`null`**, so the row stores an absence and not an empty string. **No new l10n key**: the label
+and hint reuse `editNotesLabel` / `editNotesHint`, so the concept is worded identically here and
+in Historique. Export/import untouched — `notes` was already in the contract, no version bump, as
+planned. **Still owed from this ticket: item 2**, the `Small_Phone` two-theme screenshots with the
+keyboard up (measured in tests: the sheet is now taller than an 800×600 viewport, so the confirm
+button needs scrolling — precisely the thing unit tests cannot see); that is M9's device pass.
+Original: open (owner request, 2026-10-30: « Write note on food creation ») · **Cost:** small —
 one optional field in one dialog; the storage, encryption and export paths already exist
 **Found:** owner request 2026-10-30; verified same evening.
 **Files:** `lib/features/home/presentation/widgets/feeding_tracking_dialog.dart` (zero note
@@ -1265,7 +1358,12 @@ follow-up, and the line's rendering site is a single method.
 
 ## B22 — Tapping a reminder notification restores the previous screen; it should land on Home
 
-**Status:** open (owner report, 2026-11-02; first version of this ticket had the request inverted —
+**Status:** **implemented on `release/v1.4.0` (M5)** — the callback is registered in `init()` and
+forwards the payload to an injected handler wired at `localNotificationServiceProvider`; the handler
+(`NotificationTapHandler`) goes Home before it reads the payload, and the `notify` destination is
+asserted in `notification_tap_handler_test.dart`. **The five-case device pass (To-do 5) is still due**
+— it is part of the v1.4.0 release gate, and it is the only proof of the alive/suspended paths.
+Original: open (owner report, 2026-11-02; first version of this ticket had the request inverted —
 correction note below) · **Cost:** ~2 h incl. the release-gate pass · **Risk:** low — Dart-side
 callback only, no native change, no schema
 **Files:** `lib/features/reminders/data/services/flutter_local_notification_service.dart:43-71`
@@ -1531,7 +1629,16 @@ type last tracked?" without consulting reminders at all.
 
 ## B29 — The history filter pills are not the home track-button design
 
-**Status:** open · **Severity:** low (visual consistency) · **Cost:** one style block on one screen
+**Status:** **implemented on `release/v1.4.0` (M6)** — `_HistoryFilterChip` in
+`history_screen.dart`: 2px border in the type accent (0.6 → 0.9 when selected), flat tinted fill
+carrying the selection (0.06 → 0.28, the gradient of the grid cannot live inside a `FilterChip`),
+`shapeCardRadius`, accent shadow instead of the grey elevation drop. `all` stays neutral because it
+has no accent at home either — inventing one was not on offer. Chips are still chips: B29's own
+"Do not" (no `TrackButton`, those are toggles) respected; the home buttons were not touched.
+Test: « the filter pills speak the home track-button language (B29) ». **Owed from this ticket:**
+item 3's Small_Phone overflow check + history-tab screenshots (the row already scrolls
+horizontally) — M9's device pass.
+Original: open · **Severity:** low (visual consistency) · **Cost:** one style block on one screen
 **Found:** 2026-11-11, requested by the owner: the history pills have to be the same design as
 the home buttons — « darker border »
 **Files:** `lib/features/history/presentation/screens/history_screen.dart:212` (the unstyled
@@ -1569,10 +1676,14 @@ uploads.
 
 ## B30 — Per-reminder notification hour: set it on the reminder itself, in the settings list
 
-**Status:** open (owner request, 2026-11-12: « set the reminder hour of notification directly on
-the reminder in the settings ») · **Severity:** product gap · **Cost:** medium — schema v14 +
-export format v5 + per-item time in the scheduler loop + two UI surfaces + l10n · **Risk:** low —
-additive; the global hour stays the fallback
+**Status:** **in development on `release/v1.4.0`** — implemented as v1.4.0 **M2** (schema v14
+column `reminder_settings.time`, per-item hour resolved in the scheduler's plan loop,
+`ReminderHourControl` on preset rows and custom rows, export/import format 5, l10n fr/en/es).
+Owner request 2026-11-12 (« set the reminder hour of notification directly on the reminder in
+the settings »); the §7 asymmetry the ticket named (a UI hour the scheduler never read) could
+not exist, because nothing wrote the column before this. · **Severity:** product gap · **Cost:**
+medium — schema v14 + export format v5 + per-item time in the scheduler loop + two UI surfaces +
+l10n · **Risk:** low — additive; the global hour stays the fallback
 **Found:** 2026-11-12, owner request. Mechanics verified in `develop` (1.3.1+15) the same evening.
 **Files:** `lib/features/reminders/presentation/screens/reminder_settings_screen.dart` (preset rows
 are bare `SwitchListTile`s; the only time control is the global `reminderNotificationsTimeLabel`
@@ -1826,3 +1937,302 @@ Decide, then make the tree say it:
   duplicates a page GitHub already rebuilds from the PRs and adds a second thing to keep current.
 - Do not paste console `whatsnew` text here either: it is a constrained marketing artifact and the
   archive is not its source.
+
+---
+
+## B33 — Vitamin K must be a one-shot (one month after birthdate); every reminder must be
+editable/removable like a custom one
+
+**Status:** **parts 1 and 3 in development on `release/v1.4.0`** — part 3 implemented as
+v1.4.0 **M4** (`effectiveItemsForScope` is the one place the overrides are applied, with the
+four column-scoped writers `setItemLabel`/`setItemFrequency`/`setItemEnd`/`setItemRemoved`;
+preset rows carry the custom tile's edit/remove menu; the preset edit sheet and
+`ReminderEndPicker` are the writers D-R5 needed, for presets **and** customs; the Removed
+section restores with one tap; export v5 carries the whole row, the importer refuses a row
+that ends twice or paces a one-shot with an occurrence date on a `daily`). Part 1 implemented
+as v1.4.0 **M3**
+(`OneTime` frequency + `one_time` code + `custom_reminders.frequency_date` in schema v14;
+Vitamin K is now a single occurrence at birthdate + 1 month with B18's clamped anniversary;
+catch-up rather than expiry (D-R7); `nextDueAt` answers "can no longer be due" and the plan
+diff cancels the notification; the end model's *semantics* — `reminderEndFor`,
+`isPastSeriesEnd` — are in, inclusive end date and age resolved at read time). **Part 3
+(preset overrides, removal, the edit/end pickers) is M4**, now landed — until it, nothing could
+write `end_date` or `end_age_months`. Owner request 2026-11-14 · *scope confirmed the same
+day — all
+three "end" forms (one time / until a date / until an age) per `docs/PLAN-v1.4.0.md` D-R5; catch-up
+over expiry (D-R7); the profileless fallback keeps its cadence (D-R10); removed presets are
+re-addable from a Removed section (D-R4)* · **Severity:** product gap + clinical content in the
+default list — today the Vitamin K reminder **repeats monthly for the baby's whole life** until the
+parent turns the switch off by hand · **Cost:** medium-large — three coupled parts (a new frequency
+variant, a per-(baby, item) override store, UI parity with the custom tiles); the schema and export
+bumps overlap with **B30** · **Risk:** low-medium — additive, but it touches the single-source
+invariant (B31's lesson) and the settings-row state machine (B6's decision)
+**Found:** owner request 2026-11-14: « vitamin K should be a one timer, a month after birthdate. That
+implies to be able to program an end to a reminder. And all reminders should be like custom ones,
+editable/removable »
+**Related:** **B6** (vitamin D opt-in default — same settings-row state machine, separate decision),
+**B30** (per-reminder hour — same `reminder_settings` row extension, same schema v14 + export v5)
+
+### Part 1 — Vitamin K is currently monthly-for-life
+
+`lib/features/reminders/domain/entities/reminder_item.dart`:
+
+- `ReminderItemPresets.vitaminK` = `CustomInterval(days: 30)` (static 30-day rolling cycle);
+- `buildForBaby` swaps the frequency for `Monthly(dayOfMonth: profile.birthDate.day)` — i.e. **the
+  same day of every month, forever**;
+- the profileless fallback (`reminderItemsFor`) keeps the static 30-day cycle.
+
+`Monthly.isDue` (`reminder_frequency.dart`) fires from the configured day of **every calendar month
+after the last completion**, and a never-completed item is always due. Nothing terminates the series:
+no end date, no occurrence cap, no expiry. A parent who recorded the vitamin K dose in month 2 is
+still reminded in month 12, month 36 — until they find the switch in Settings.
+
+The target state (owner): **one reminder, due one month after the baby's birthdate, settled forever
+once completed.** The cadence itself is the owner's product call — this ticket implements the
+mechanism and that cadence, it does not re-derive the clinical schedule.
+
+### Part 2 — the capability gap: there is no way to end a reminder
+
+`ReminderFrequency` is a sealed class with exactly four variants — `Daily`, `Weekly(dayOfWeek)`,
+`Monthly(dayOfMonth)`, `CustomInterval(days)` — and none carries a date or an end. The absence is
+deliberate and documented at the picker: `custom_reminder_form_sheet.dart:36-38` caps the interval at
+365 days with the comment « after one year, the parent wants a specific date. **Not a reminder.** »
+So "one month after birthdate" is currently unexpressible for everyone, not just for Vitamin K.
+
+What a one-shot needs, end to end:
+
+1. A new variant (shape at the plan: `OneTime(DateTime date)` — the date, not a relative "N months
+   after X"; the *relative* rule lives where the baby is known, i.e. `buildForBaby`, which already
+   computes the baby-specific item).
+2. `isDue`: never completed → the catch-up decision below; completed → **never due again** (a
+   one-shot has no next occurrence).
+3. The scheduler (`reminder_scheduling.dart` `nextDueAt`, `reminder_scheduler.dart`): a one-shot
+   schedules **one** OS notification, and — the half most likely to be forgotten — the `_PlanEntry`
+   diff must **remove** it from the OS plan when it is completed (or expired, per the decision below).
+   B14 documents the re-submit path (a changed hour moves `at`); removal is its symmetric and is the
+   actual work.
+4. A frequency label in `reminder_frequency_label.dart` (fr/en/es) that reads a date, not a rhythm —
+   « le 15 déc. »-class string, reusing the existing date-localization helpers.
+5. Tests: `reminder_frequency_test.dart` (the `isDue` suite), `reminder_scheduling_test.dart`,
+   `reminder_scheduler_test.dart` (plan removal after completion — the regression this ticket most
+   needs).
+
+**Where the date comes from, Vitamin K specifically:** `buildForBaby` computes
+`OneTime(date: birthDate + 1 month)` with the **clamped anniversary rule already written for B18**
+(`_addMonths` in `baby_profile_section.dart` — Jan 31 + 1 month = Feb 28/29). Do not invent a second
+month-addition. The profileless fallback has no birthdate, hence no date: decision point (below) —
+keep the static 30-day cycle, or drop Vitamin K from the fallback set (that territory belongs to
+B6's decision A, plan them together).
+
+**Decision point (owner/plan) — a one-shot whose date has already passed:** a parent who opens the
+app in month 6 without ever having recorded the vitamin K dose:
+- (a) **due-now catch-up** (the D3 model, as today for periodic items): it stays due until completed
+  or dismissed — the reminder "chases" a missed dose;
+- (b) **expiry**: N days after the date it is permanently not-due (and the OS entry is removed) —
+  "program an end" in its strongest sense.
+The owner's words name (a)'s opposite: a one-shot *ends*. But (b) silently abandons a missed dose —
+in an app whose point is the care routine. Recommend (a) with (b) as a plan option; record the choice.
+
+### Part 3 — "all reminders like custom ones": preset rows have no edit, no remove
+
+The parity gap, as rendered on `develop` (1.3.2+16):
+
+| | Presets | Customs |
+|---|---|---|
+| Row widget | bare `SwitchListTile` (`reminder_settings_screen.dart:107-116`: title + frequency subtitle + switch) | `CustomReminderTile` — switch **plus** a popup menu, `CustomReminderAction { edit, delete }` (`:141-152`) |
+| Edit | none — the item is `static const` (label, frequency, tracking type, care subtype all fixed in code) | `CustomReminderFormSheet`: label, rhythm, interval, care subtype |
+| Remove | none — the only off is the switch (`enabled=false`, still visible) | `CustomRemindersNotifier.remove`: deletes the `custom_reminders` row **and its settings row**, invalidates `reminderSettingsProvider` |
+
+Preset ids are stable keys — the doc comment on `ReminderItem.id` says so explicitly (they index
+`reminder_settings` and `reminder_dismissals`, « must never change ») — so a preset cannot be edited
+or removed "for real": its overrides and its removal must live in **data**, and the natural home is
+the per-(baby, item) row the switches already read and write (`reminder_settings`: `baby_id` +
+`item_id` + `enabled` — `app_db.dart:60-70`; created at the v8 migration `:248-255` as
+`(item_id PRIMARY KEY, enabled)` and **rebuilt to the composite `(baby_id, item_id)` pk at v11**
+`:284-299`, which is the shape this ticket extends).
+
+**Storage (plan with B30, one migration):** the row grows nullable override columns alongside B30's
+`time` — at minimum `label TEXT NULL` and a frequency encoding reusing the existing codec
+(`reminders_repository_impl.dart:273` `_encodeFrequency` → `(code, intervalDays)`, the same columns
+`custom_reminders` carries), **plus the removal state** (a `removed` flag or a three-valued state —
+shape at the plan). Effective item = preset overridden by its row; `NULL` everywhere = today's
+behaviour, so existing installs are untouched.
+
+**Single-source invariant (the B31 lesson, stated once more):** `dynamicRemindersProvider` (the
+settings screen, the home list) and the scheduler's `_itemsForScope` (the OS plan) must consume the
+**same overridden items** — the override function must sit below both, settings map read included.
+Today that holds for **item existence only**: `reminderItemsFor` (`reminder_item.dart:124-126`) is
+genuinely called by both sides (`reminder_providers.dart:46-52` and `reminder_scheduler.dart:241-242`).
+It does **not** hold for the *enabled* filter, which is duplicated across **four sites in two
+different idioms**: `settings[item.id] ?? true` at `reminder_providers.dart:87`,
+`reminder_settings_screen.dart:112` and `:147`, and `if (enabled[item.id] == false) continue;` at
+`reminder_scheduler.dart:121` — that last one invisible to a grep for `?? true`. The four are
+*equivalent today by coincidence*: a missing key is neither `true` nor `false`, so both idioms mean
+"on". B6's per-item default breaks the coincidence the moment it lands on fewer than all four sites.
+Two item lists that can disagree about a label or a frequency is precisely the defect class B31
+shipped and had to self-heal — and this is the same defect already sitting in the table this ticket
+proposes to extend, found by reading the read paths instead of the write path.
+
+**Removal is a third state, not `enabled=false`:**
+
+- today `false` means "off but visible and re-enableable" — that is the state B6's decision A needs
+  to *show* (a vitamin D off by default must be visible, or a parent cannot find it to switch on);
+- "removable" in the owner's request means the row disappears from the list, as a custom's delete
+  does;
+- therefore the settings row needs a distinct removed/hidden state. Consequences to decide at the
+  plan: (i) removal is per-(baby, item) — a second baby sees the preset fresh, which is consistent
+  with D6's per-baby scoping; (ii) **how is a removed preset re-added?** — a hidden section on the
+  settings screen, or never (re-add = delete & recreate the baby, which B31's delete-flow repair
+  makes safe but destructive); (iii) a removed item's OS notifications must be dropped by the same
+  plan diff as Part 1's one-shot removal (one mechanism, two callers).
+
+**Export/import (AGENTS.md: the two features move together):** `reminder_settings` already travels
+in the backup (v1.3.0: "Notification preferences now live inside the backup"), so the new columns
+ride the **export format v5** that B30 already plans — one bump, one importer acceptance, the
+importer validates an override frequency with the same tolerant decoder it will use for B30's hour,
+and a restored removed-row keeps the row gone.
+
+**UI parity:** preset rows become the custom-tile pattern (switch + `edit`/`remove` menu,
+`custom_reminder_tile.dart` is the reference). The edit sheet reuses the form sheet's label +
+frequency fields — **not** the care-subtype field: a preset's subtype is what makes D2's
+completion-by-event work, and re-pointing `vitamine_k` at another event would decouple the reminder
+from the dose that settles it (recommend: not editable; record the call). The frequency field for a
+preset edit is where the generic "program an end" surfaces: picking a one-shot for *any* reminder is
+Part 2's capability applied by the owner, not just for Vitamin K.
+
+### To do
+
+1. **Part 1 — one-shot, Vitamin K.** New `OneTime` variant + `isDue` (completed → never again) +
+   `nextDueAt` + **plan removal** on completion + date label (fr/en/es). `buildForBaby`:
+   `OneTime(birthDate + 1 month)` with the B18 clamped rule. The two open decisions are resolved in
+   `docs/PLAN-v1.4.0.md`: catch-up over expiry (D-R7) and the profileless fallback keeps its
+   `CustomInterval(days: 30)` (D-R10) — write the variant's semantics to those.
+2. **Part 2 — the generic "end".** *Scope — owner decision 2026-11-14: all three forms*, delivered
+   per `docs/PLAN-v1.4.0.md` D-R5: **one time** (`OneTime` + `frequency_date`), **until a date**
+   (`end_date`, inclusive end), **until an age** (`end_age_months`, whole months 0–180, resolved at
+   read time against the birthdate so a corrected birthdate moves the end). The carrier is the
+   reminder (a derived `endsAt` resolved by the effective-item function), **not** a per-rhythm
+   `untilDate` modifier — the sealed `ReminderFrequency` grows only `OneTime`. Mutual exclusivity
+   (one-shot / end-date / end-age) is write-strict at the picker and the importer. A past end at
+   write time is accepted with a warning (D-R5).
+3. **Part 3 — preset overrides + removal, planned with B30.** One schema step (v14): B30's `time` +
+   `label` + frequency encoding (+ the D-R5 columns `frequency_date`, `end_date`,
+   `end_age_months`) + removed state on `reminder_settings` — eight new columns, the plan's exact
+   DDL. One export format (v5) with importer acceptance. One override function consumed by the
+   provider **and** the scheduler.
+   Preset rows get the custom tile's edit/remove menu. The re-add decision (hidden section?) is a
+   plan call with the owner.
+4. l10n fr/en/es: the one-shot frequency label, the preset edit sheet, the removed/hidden affordance,
+   the vitamin K row subtitle (it no longer says "monthly" after Part 1). Patch notes: vitamin K is
+   now a one-shot (noun form, fr/es), without re-deriving the clinical rationale in the store copy.
+5. Release-gate pass: the OS-plan removal is the part no widget test can see — seed a completed
+   one-shot and a removed preset, inspect the scheduled notifications on both platforms, record it.
+
+### Do not
+
+- Do not change any preset **id**: stable key of `reminder_settings`/`reminder_dismissals`, and B31's
+  single-sourcing stands on it.
+- Do not "remove" a preset by dropping it from `reminderItemsFor` based on stored state: that is two
+  item sources again — removal is a state **on the settings row**, consumed by both the provider and
+  the scheduler.
+- Do not reuse `enabled=false` as the removal state: B6's opt-in depends on "off but visible"
+  staying a visible, re-enableable state.
+- Do not split B30's and B33's storage work into two schema v14s in one release: one migration, one
+  export v5, one plan.
+- Do not invent a second month-addition: the B18 clamped anniversary arithmetic already exists.
+- Do not make the one-shot's completion itself write a tracking event, or a tracking event write the
+  completion: Vitamin K stays `completionFromEvents` (the recorded dose settles it, exactly as
+  today) — the one-shot changes the **cadence**, not D2.
+- Do not touch B6's decision (vitamin D opt-in, decision A) in this ticket: same surface, separate
+  decision — but plan the settings-row state machine (absent / off / removed, plus per-item default)
+  once, for both.
+- Do not implement B6's per-item default in the provider alone. The "absent row means on" default is
+  read at **four sites in two idioms** (Part 3's invariant section lists them); a partial change is
+  green in CI and wrong on the device, because the OS notification plan is computed at
+  `reminder_scheduler.dart:121` and not by any provider. If a new baby's vitamin D shows off in the
+  app while its notification still fires, that is this gotcha, not a scheduling bug.
+---
+
+## B35 — The end-age stepper is four unlabeled buttons; B30's hour is not in the edit panel; the history glyphs mix filled and outlined
+
+**Status:** §1 and §3 resolved on `fix/v1.4.0-ui-legibility` (2026-11-21, owner report against the
+released 1.4.0 build: « the buttons to add year, month have no indication » / « the modification of
+history filters is ok, but for each line, the icon needed to be outlined too ») · §2 reopened by the
+same owner on 2026-11-24 (« I'M TALKING ABOUT CUSTOM NOTIFICATIONS ») — the hour belonged in the
+**custom** panel too; closed on `fix/custom-hour-panel-b35` (PR #99) ·
+**Cost:** small · **Priority:** medium (one accessibility defect, one reachability defect)
+
+### 1 — The "end at an age" stepper (D-R5) was four unlabeled buttons
+
+`reminder_end_picker.dart` drew four identical `IconButton`s in one `Row` — `− + − +` — with the
+current value printed on the line *below* them. The only thing distinguishing a year step from a
+month step was `Tooltip(message: '${years}y −')`: a Tooltip does not exist under a finger, the four
+strings were hardcoded English inside a widget that ships in fr and es, and a screen reader read
+"2y −". Two of the four buttons moved the answer by twelve months.
+
+Restyled to the idiom the app already owns (`duration_picker_dialog.dart:199-215`,
+`quantity_picker_inline.dart:399-411`): one labelled row per unit, the value **between** the two
+buttons that change it, `remove_circle_outline`/`add_circle_outline`, and a spoken label of
+`Années · Incrémenter` (an `IconButton` reads its tooltip aloud, so the unit is in the a11y name).
+New arb keys `reminderEndYearsLabel`, `reminderEndMonthsLabel` (fr+en+es in one commit);
+`increment`/`decrement` already existed.
+
+**`ReminderEndPicker` had no widget test at all** — neither `test/` nor `integration_test/` mentioned
+`_AgeStepper`, which is why this shipped. `reminder_end_picker_test.dart` (6 tests) pins the unit
+labels in fr *and* en, that the years row writes twelve months where the months row writes one, the
+0 and 180 bounds, and that the English tooltips are gone.
+
+### 2 — B30's hour was on the row but not in the panel that edits the reminder
+
+The preset edit sheet offered a name, a rhythm and an end — and not the hour. `resolveReminderHour()`
+and `pickReminderHour()` moved out of `reminder_settings_screen.dart` (they were private there) into
+`reminder_hour_control.dart`, because two surfaces must not own two answers to "what hour does this
+reminder use". The sheet writes through the two writers that already own
+`reminder_settings.time` (`setItemTime` / `clearItemTime`, both column-scoped upserts) — no new
+writer, and the row keeps its own hour line: the affordance was copied, not moved.
+The write is immediate, like the row's; the sheet's *Annuler* does not roll it back, because the OS
+picker has its own confirm/cancel. The custom-reminder form sheet was at first **not** given the
+control: it returns a draft and creates the very row the hour would be written to, so an immediate
+write there would break its "nothing is stored until Confirm" contract — and that is why the owner
+came back on 2026-11-24 (« I'M TALKING ABOUT CUSTOM NOTIFICATIONS »): the panel that edits a custom
+reminder still had no hour. The requirement wins; the contract stands. The hour now travels **in the
+draft** (`timeOfDay` + `timeChanged`) and the screen writes it after the reminder exists, on
+`setEndById`'s second-write shape, through a new id-addressed `setTimeById` that `setTime` itself
+now delegates to — one writer for the column, and an untouched panel rewrites nothing.
+Covered by `the edit sheet of a preset reminder carries its hour (B30)` — the preset sheet had zero
+tests before (`showPresetReminderEditSheet` appeared in no test file) — and, for the custom path
+(2026-11-24, PR #99), by `the edit panel of a custom reminder carries its hour (B35)`,
+`the hour picked in the custom edit panel is stored on confirm (B35)` and the sheet-level
+`a confirm without touching it rewrites nothing`; also asserted on the device, inside the open
+panel, on `Small_Phone` (`/tmp/b35_pose3_custom_sheet.png`).
+
+### 3 — Solid glyphs in one screen, outlined in another
+
+`TrackingType.icon` is a mixed set (`lunch_dining`, `favorite`, `nightlight` filled;
+`water_drop_outlined` outlined), so the history list drew solid glyphs in a tinted disc while the
+filter pills wore no glyph at all. Added `TrackingTypeListIcon.listIcon` and
+`HistoryFilterIcon.pillIcon`, both outlined; the home grid stays on the filled set, because B29
+measured those buttons into the live store screenshots.
+
+**Two traps, both measured on device rather than reasoned about:**
+
+- `Icons.favorite_outlined` (codepoint `0xf04b`) renders as a **solid** heart in the Material font
+  this Flutter ships — seen on `Small_Phone` after the change was built and installed, while
+  `lunch_dining_outlined` and `nightlight_outlined` rendered correctly outlined. An `_outlined` name
+  is not a promise about the glyph. `favorite_border` (`0xe25c`) is the outline and is what the
+  mapping uses.
+- A `FilterChip` paints its checkmark **over** its avatar when selected: the same screenshot showed
+  the tick drawn on top of the burger. `showCheckmark: false`; selection stays where B29 put it (the
+  fill, under the accent border), and a test asserts a selected pill still carries its glyph.
+
+**Deliberate exception:** the diaper row keeps its filled drop, because inside the drop family
+*filled versus outlined is the pipi/caca distinction* (`water_drop_outlined` versus `water_drop`) —
+outlining that line would draw the pipi glyph for a caca. `pipi and caca are never the same glyph`
+asserts it, so the exception cannot rot into an accident. « Tous » and « Mesures » wear no glyph for
+the reason B7 already gives for their missing accent: they are not one type.
+
+**Verified on `Small_Phone` (720×1280), 2026-11-21:** the stepper in French (two years + three
+months → « 27 mois » and « Jusqu'à 27 mois — 20/01/2029 », the past-end warning clearing as the value
+moved), the hour line inside the edit sheet writing `À 09:00` onto the row behind it while another
+reminder went on inheriting `À 09:00 (par défaut)`, the outlined heart/burger/crescent/ruler beside
+the still-filled home buttons, and both themes.

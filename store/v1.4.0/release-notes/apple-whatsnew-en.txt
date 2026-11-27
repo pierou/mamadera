@@ -1,0 +1,18 @@
+What's New in Mamadera 1.4.0
+
+New Features
+- Give a reminder its own notification time; without one it follows the app-wide hour, and the list marks it "default"
+- Add a "Once" frequency for a reminder, with the day you have in mind
+- Add an end to a reminder: on a date or at an age, with the day it means shown as you set it
+- Edit and remove the suggested reminders: name, rhythm and end are yours to change, a removed reminder leaves Home and the notifications, and one tap brings it back from the Removed section
+- Add an optional note when you record a feeding, so it goes down at the time instead of being reconstructed later
+- Move the baby switcher to the Home title: tap it to see your children and change baby
+- Add a Measurements filter to History, for weight, height and temperature alone
+- Tapping a notification now does something: the app opens on that baby's Home, marks a reminder with no care attached as taken, or opens the care sheet with the right type already selected
+
+Improvements
+- Update the History filter pills to the Home button design: a border in the type's colour over a tinted fill
+- Add a haptic confirmation to every save: feed, sleep, diaper, care, measurement, baby and custom reminder
+- Add the baby switch to a notification tap from another child, so the app is on the right Home before it acts
+- Change the vitamin D reminder to off by default on a profile you have never set; existing profiles keep whatever you had set
+- Change the vitamin K reminder to a single occurrence, one month after the birth date

@@ -1,0 +1,5 @@
+* Give a reminder its own time, a one-time frequency, and an end
+* Rename or remove a suggested reminder, and bring one back
+* Add a note when you record a feeding, right when it happens
+* Tap a notification to open that baby's home screen
+* Open the baby list from the title, and filter History by measurements

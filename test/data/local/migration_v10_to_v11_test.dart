@@ -120,7 +120,7 @@ void main() {
     addTearDown(db.close);
 
     // The file has been updated to the latest version.
-    expect(db.schemaVersion, equals(13));
+    expect(db.schemaVersion, equals(14));
 
     await db.into(db.measurements).insert(
           MeasurementsCompanion.insert(
@@ -194,10 +194,18 @@ void main() {
     addTearDown(db.close);
 
     final settings = await db.getAllReminderSettings();
-    expect(settings, hasLength(3));
-    for (final setting in settings) {
+    // v14 adds rows this v10 fixture never had: the vitamin D seed of every
+    // pre-existing **profile** scope (PLAN-v1.4.0 D-R1). The `''` scope already
+    // had a vitamin D row, so it gains none — the NOT EXISTS guard, observed.
+    final legacy =
+        settings.where((s) => s.babyId == db_const.sharedBabyId).toList();
+    expect(legacy, hasLength(3));
+    for (final setting in legacy) {
       expect(setting.babyId, equals(db_const.sharedBabyId));
     }
+    expect(settings, hasLength(5),
+        reason: 'the three legacy rows plus one seeded vitamin D row per '
+            'existing profile');
 
     // The composite key rejects a second "shared" row from the same table.
     // rappel…
@@ -221,7 +229,7 @@ void main() {
             enabled: true,
           ),
         );
-    expect(await db.getAllReminderSettings(), hasLength(4));
+    expect(await db.getAllReminderSettings(), hasLength(6));
   });
 
   test('two babies get independent settings rows for the same reminder',

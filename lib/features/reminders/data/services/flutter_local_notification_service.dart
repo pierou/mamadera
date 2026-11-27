@@ -24,10 +24,23 @@ const String _channelDescription = 'Care reminders';
 /// half-scheduled plan (init either completes fully or not at all).
 class FlutterLocalNotificationService implements LocalNotificationService {
   /// Creates the service. [plugin] defaults to the shared plugin singleton.
-  FlutterLocalNotificationService({FlutterLocalNotificationsPlugin? plugin})
-      : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+  ///
+  /// [onNotificationTapped] is the seam B22 requires: the data layer must not
+  /// import `core/router.dart`, so the service owns nothing about *what a tap
+  /// means* and simply forwards the payload the OS delivered (`null` when the tap
+  /// carried none). Injection happens in the presentation layer, at
+  /// `localNotificationServiceProvider`, where navigation is allowed.
+  FlutterLocalNotificationService({
+    FlutterLocalNotificationsPlugin? plugin,
+    this.onNotificationTapped,
+  }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   final FlutterLocalNotificationsPlugin _plugin;
+
+  /// Called for every notification tap, with the payload that notification was
+  /// scheduled with — the encoded `ReminderNotificationPayload`, or `null` when the
+  /// tap carried none (a notification scheduled before B15, or a bare OS tap).
+  final void Function(String? payload)? onNotificationTapped;
   final Logger _logger = appLogger();
 
   /// True once [init] has fully succeeded; false while healthy-uninitialized
@@ -44,6 +57,17 @@ class FlutterLocalNotificationService implements LocalNotificationService {
     try {
       tz_data.initializeTimeZones();
       await _plugin.initialize(
+        // B22: without this callback the tap falls through to the OS default,
+        // which is *restore the app where it was* — the owner-reported defect.
+        // Registered here rather than in `main()` because this service owns the
+        // plugin's lifecycle and its init/health state (R13); the behaviour it
+        // triggers is injected, so no routing lives below the data layer.
+        //
+        // Deliberately **not** `onDidReceiveBackgroundNotificationResponse`: that
+        // fires only for notification *actions* that do not show the UI, and this
+        // app has no actions (B22 To-do 2).
+        onDidReceiveNotificationResponse: (response) =>
+            onNotificationTapped?.call(response.payload),
         settings: const InitializationSettings(
           android: AndroidInitializationSettings('@mipmap/ic_launcher'),
           iOS: IOSInitializationSettings(
@@ -134,6 +158,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
     required String title,
     required String body,
     required DateTime at,
+    String? payload,
   }) async {
     if (!_ready()) return;
     await _plugin.zonedSchedule(
@@ -146,6 +171,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
       androidScheduleMode: await _scheduleMode(),
       title: title,
       body: body,
+      payload: payload,
     );
   }
 
@@ -155,6 +181,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
     required String title,
     required String body,
     required Duration delay,
+    String? payload,
   }) async {
     // The plugin has no zonedTimer: a one-shot `now + delay` schedule is the
     // exact same primitive for the D3 catch-up.
@@ -163,6 +190,7 @@ class FlutterLocalNotificationService implements LocalNotificationService {
       title: title,
       body: body,
       at: DateTime.now().add(delay),
+      payload: payload,
     );
   }
 

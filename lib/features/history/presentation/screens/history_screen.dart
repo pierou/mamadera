@@ -7,6 +7,7 @@ import '../../../../core/theme.dart';
 import '../../../../core/widgets/show_feedback.dart';
 import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/domain/entities/tracking_event.dart';
+import '../../../../shared/widgets/tracking_icons.dart';
 import '../../../growth/domain/entities/growth_measurement.dart';
 import '../../../growth/presentation/widgets/edit_measurement_sheet.dart';
 import '../../domain/history_row.dart';
@@ -25,6 +26,9 @@ class HistoryScreen extends ConsumerWidget {
     HistoryFilter.dodo,
     HistoryFilter.caca,
     HistoryFilter.sante,
+    // Last, not among the types: a measurement is not a `TrackingType`, and the
+    // timeline's own tie-break already ranks it after an event at the same second.
+    HistoryFilter.measurements,
   ];
 
   /// Opens the editing panel for a specific event.
@@ -164,7 +168,8 @@ class HistoryScreen extends ConsumerWidget {
         timestamp: ts,
         duration: result.duration ?? e.duration,
         unit: e.unit,
-        quantity: result.quantity ?? e.quantity,
+        // B13: no `quantity` carried over — the repository clears the column on an
+        // edit, so a touched row stops holding the same minutes twice.
         notes: result.notes ?? e.notes,
         babyId: e.babyId,
       ),
@@ -206,17 +211,14 @@ class HistoryScreen extends ConsumerWidget {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: _filters.map((filter) {
-                  final isSelected = selectedFilter == filter;
                   return Padding(
                     padding: const EdgeInsets.only(right: AppTheme.spacingMd),
-                    child: FilterChip(
-                      label: Text(getHistoryFilterLabel(context, filter)),
-                      selected: isSelected,
-                      onSelected: (_) {
-                        ref
-                            .read(selectedFilterProvider.notifier)
-                            .setFilter(filter);
-                      },
+                    child: _HistoryFilterChip(
+                      filter: filter,
+                      selected: selectedFilter == filter,
+                      onPressed: () => ref
+                          .read(selectedFilterProvider.notifier)
+                          .setFilter(filter),
                     ),
                   );
                 }).toList(),
@@ -262,6 +264,101 @@ class HistoryScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A filter pill for the history timeline, drawn in the **home track-button
+/// language** (B29).
+///
+/// Until now the two controls that both answer « which type of event am I looking
+/// at? » lived in two design languages: the home grid used a custom decoration
+/// (2px border in the type's accent, tinted fill, soft accent shadow), the history
+/// row used stock `FilterChip`s. The owner asked for the pills to look like the
+/// buttons — the visible difference being the darker border.
+///
+/// The two jobs are deliberately split, because a home button has no selected
+/// state to copy: the **border** says which type this pill is (the accent, at the
+/// same 2px and the same alpha as the grid), and the **fill** says whether it is on
+/// (a flat tint where the grid uses a gradient — a chip is not a container we can
+/// paint a `LinearGradient` into without abandoning `FilterChip`, which B29's
+/// "Do not" forbids replacing with `TrackButton`: these are toggles).
+///
+/// `all` stays neutral on purpose: it has no type accent at home either, so giving
+/// it a colour would invent one — and for the same reason it wears no glyph, while
+/// the four type pills wear their type icon in the outlined variant a chip takes
+/// (see `HistoryFilterIcon`).
+class _HistoryFilterChip extends StatelessWidget {
+  const _HistoryFilterChip({
+    required this.filter,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final HistoryFilter filter;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  /// The accent of a tracking type — the same constants the home grid paints with.
+  /// `null` means neutral, which is what `all` is.
+  static Color? accentOf(BuildContext context, HistoryFilter filter) =>
+      switch (filter) {
+        HistoryFilter.miam => AppTheme.miam,
+        HistoryFilter.dodo => AppTheme.dodo,
+        HistoryFilter.caca => AppTheme.caca,
+        HistoryFilter.sante => AppTheme.sante,
+        HistoryFilter.all => null,
+        // No accent exists for measurements at home, and inventing one for a pill
+        // would be a design decision taken in a filter row.
+        HistoryFilter.measurements => null,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    // A neutral chip borrows the outline colour rather than a type accent; the
+    // selected fill borrows `onSurface` so it stays visible in both themes.
+    final accent = accentOf(context, filter) ?? scheme.outline;
+    final fill = accent == scheme.outline
+        ? scheme.onSurface.withValues(alpha: selected ? 0.16 : 0.04)
+        : accent.withValues(alpha: selected ? 0.28 : 0.06);
+    // The glyph carries the type accent, so an unselected pill is still
+    // identifiable before its border; a neutral pill uses the secondary text
+    // colour, which is what its label is drawn in.
+    final icon = filter.pillIcon;
+
+    return FilterChip(
+      avatar: icon == null
+          ? null
+          : Icon(
+              icon,
+              size: 18,
+              color: accentOf(context, filter) ?? scheme.onSurfaceVariant,
+            ),
+      label: Text(getHistoryFilterLabel(context, filter)),
+      selected: selected,
+      onSelected: (_) => onPressed(),
+      backgroundColor: fill,
+      selectedColor: fill,
+      // Material replaces a chip's avatar with its checkmark when the chip is
+      // selected — measured on a Small_Phone on 2026-11-21, where the selected
+      // « Nourriture » pill rendered the tick *on top of* the burger. The glyph is
+      // the reason this change exists, so the check goes and selection stays where
+      // B29 put it: the fill, under the accent border.
+      showCheckmark: false,
+      // The accent shadow replaces the elevation shadow the chip would otherwise
+      // paint: a grey drop under a tinted pill is the look we are leaving behind.
+      elevation: 0,
+      pressElevation: 0,
+      shadowColor: accent.withValues(alpha: 0.15),
+      side: BorderSide(
+        color: accent.withValues(alpha: selected ? 0.9 : 0.6),
+        width: 2,
+      ),
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.all(Radius.circular(AppTheme.shapeCardRadius)),
       ),
     );
   }

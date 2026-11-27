@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/app_localizations_extension.dart';
+import '../../../../core/l10n/date_localization.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/widgets/dialog_buttons.dart';
 import '../../../../data/local/db_constants.dart';
@@ -8,13 +9,58 @@ import '../../../../shared/domain/entities/tracking_enums.dart';
 import '../../../../shared/utils/health_label_resolver.dart';
 import '../../domain/entities/custom_reminder.dart';
 import '../../domain/entities/reminder_frequency.dart';
+import '../../domain/services/notification_time.dart';
+import '../providers/reminder_sync_notifier.dart';
+import 'reminder_end_picker.dart';
+import 'reminder_hour_control.dart';
 
 /// Suggested rhythms for creating a reminder.
 ///
 /// Four, and no more: these are the four that `isDue` is able to evaluate. A rhythm...
 /// "Every Tuesday at 8 PM" would require a clock and a system notification.
 /// Here are two things that this app doesn't have.
-enum CustomReminderFrequencyChoice { daily, weekly, monthlyBirth, everyNDays }
+enum CustomReminderFrequencyChoice {
+  daily,
+  weekly,
+  monthlyBirth,
+  everyNDays,
+
+  /// B33 Part 1/D-R5 form 1: **one occurrence on a day**. The 365-day ceiling of
+  /// "every n days" was always a sign that the parent wanted a date rather than a
+  /// rhythm — this is that door, and the day is required, not optional.
+  oneTime,
+}
+
+/// What the sheet returns: the reminder itself, plus the **end** the parent chose
+/// in the same sheet (D-R5).
+///
+/// The end is not a field of [CustomReminder] because it is not part of the
+/// reminder — it is this scope's decision about it, and it lives on the
+/// `reminder_settings` row beside the switch and the hour (`custom_<id>`). The
+/// sheet keeps its "writes nothing" contract by handing both halves to the screen,
+/// which performs the two writes.
+class CustomReminderDraft {
+  const CustomReminderDraft(
+    this.reminder, {
+    this.endDate,
+    this.endAgeMonths,
+    this.timeOfDay,
+    this.timeChanged = false,
+  });
+
+  final CustomReminder reminder;
+  final DateTime? endDate;
+  final int? endAgeMonths;
+
+  /// The hour the parent set in the panel (B35) — `'HH:mm'`, or `null` when
+  /// they chose to inherit the global hour.
+  final String? timeOfDay;
+
+  /// `true` only when the panel actually changed the hour: untouched means the
+  /// `reminder_settings.time` column must not be written at all, so editing a
+  /// label cannot disturb a stored hour any more than a forgotten field could.
+  final bool timeChanged;
+}
 
 /// Personalized reminder form, on a template sheet.
 ///
@@ -22,10 +68,37 @@ enum CustomReminderFrequencyChoice { daily, weekly, monthlyBirth, everyNDays }
 /// Navigator: The screen that opens this application allows the user to create or modify something, and then proceeds to...
 /// The notifier – it's the only way to invalidate the reception prompts.
 class CustomReminderFormSheet extends StatefulWidget {
-  const CustomReminderFormSheet({this.existing, super.key});
+  const CustomReminderFormSheet({
+    required this.birthDate,
+    this.existing,
+    this.existingEndDate,
+    this.existingEndAgeMonths,
+    this.existingTimeOfDay,
+    this.prefs,
+    super.key,
+  });
 
   /// Pre-filled value; `null` for a new creation.
   final CustomReminder? existing;
+
+  /// The active baby's birthdate: needed to offer "until an age" (D-R10 disables
+  /// it with a hint on the legacy profileless scope).
+  final DateTime? birthDate;
+
+  /// The end currently stored for this reminder (`reminder_settings`), so the
+  /// sheet shows what is really set rather than "no end".
+  final DateTime? existingEndDate;
+  final int? existingEndAgeMonths;
+
+  /// The hour currently stored for this reminder (`reminder_settings`), so the
+  /// sheet shows what really fires rather than "no hour" (B35). `null` = the
+  /// reminder inherits the installation-wide hour.
+  final String? existingTimeOfDay;
+
+  /// The installation-wide notification preference, for the inherited form of
+  /// the hour line. `null` while it is still being read: the hour line then
+  /// stays away rather than guessing 09:00, exactly as on the settings row.
+  final NotificationPreferences? prefs;
 
   @override
   State<CustomReminderFormSheet> createState() =>
@@ -45,6 +118,14 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
   /// The menu and its value, never a forced default.
   late String? _subtypeValue;
   late CustomReminderFrequencyChoice _choice;
+  DateTime? _oneTimeDate;
+  late DateTime? _endDate;
+  late int? _endAgeMonths;
+
+  /// The hour column as this panel last left it (B35). Seeded from the stored
+  /// row, written back by the caller only if the panel actually changed it —
+  /// the sheet keeps its "writes nothing" contract through the draft.
+  late String? _ownTime;
 
   /// The default interval suggested when creating a new one: three days, the frequency.
   /// applying a cream on medical advice, the most commonly requested.
@@ -62,6 +143,10 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
         ? HealthSubtype.nettoyageNez.value
         : existing.subtypeValue;
     _choice = _choiceOf(existing?.frequency);
+    _endDate = widget.existingEndDate;
+    _endAgeMonths = widget.existingEndAgeMonths;
+    _ownTime = widget.existingTimeOfDay;
+    if (existing?.frequency case OneTime(:final date)) _oneTimeDate = date;
     // Only one field requires you to enter a number of days; the others do not.
     // The rhythms start with the default setting, which is invisible until a selection is made.
     // est ailleurs.
@@ -70,6 +155,11 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
       weekly: (_) => null,
       monthly: (_) => null,
       customInterval: (f) => f.days,
+      // A one-shot has no "number of days" field to fill. Unreachable while the
+      // form offers no one-shot entry point — M4 gives this sheet that entry
+      // point (plan §M4: the 365-day cap becomes the one-shot's door), and the
+      // day picker replaces this field there.
+      oneTime: (_) => null,
     );
     _daysController = TextEditingController(
       text: '${storedDays ?? _defaultIntervalDays}',
@@ -85,13 +175,54 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
       (int.tryParse(_daysController.text) ?? _defaultIntervalDays)
           .clamp(1, _maxIntervalDays);
 
+  /// The rhythm the form pre-selects for an existing reminder.
+  ///
+  /// **Known gap until M4** (`PLAN-v1.4.0.md` §9/M3): this sheet has no one-shot
+  /// option yet, so a custom reminder restored as `one_time` (only reachable from a
+  /// hand-built backup today — nothing in the app writes one) reads back as *daily*
+  /// if it is edited and saved. M4 gives the sheet its one-shot entry point — the
+  /// plan's "the 365-day cap becomes the one-shot's door" — and the
+  /// `custom_reminders.frequency_date` column already exists for it. Listed here
+  /// rather than left to the changelog because the fallback is silent by shape.
   CustomReminderFrequencyChoice _choiceOf(ReminderFrequency? frequency) {
     return switch (frequency) {
       CustomInterval() => CustomReminderFrequencyChoice.everyNDays,
       Weekly() => CustomReminderFrequencyChoice.weekly,
       Monthly() => CustomReminderFrequencyChoice.monthlyBirth,
+      OneTime() => CustomReminderFrequencyChoice.oneTime,
       _ => CustomReminderFrequencyChoice.daily,
     };
+  }
+
+  /// One reminder's hour state, resolved by the same function the settings row
+  /// uses, so the two surfaces cannot disagree about what "its hour" is.
+  ReminderHourState get _hour => resolveReminderHour(
+        storedTimeOfDay: _ownTime,
+        prefs: widget.prefs,
+      );
+
+  /// Ask the OS for the hour, and keep the answer in the draft's state — the
+  /// write itself happens in `_openForm`, after the reminder exists (a brand
+  /// new one has no settings row to own the hour before the sheet closes).
+  Future<void> _pickHour() async {
+    final hour = _hour;
+    final fallback = notificationTimeDefaults();
+    final prefs = hour.prefs;
+    final initial = hour.inherited
+        ? (
+            hour: prefs?.hour ?? fallback.hour,
+            minute: prefs?.minute ?? fallback.minute,
+          )
+        : parseNotificationTime(hour.hourLabel);
+
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: initial.hour, minute: initial.minute),
+      helpText: context.l.reminderHourPickerTitle,
+    );
+    if (picked == null) return;
+    setState(() => _ownTime =
+        formatNotificationTime(hour: picked.hour, minute: picked.minute));
   }
 
   @override
@@ -123,18 +254,26 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
         ReminderFrequency.customInterval(
           days: _intervalDays,
         ),
+      CustomReminderFrequencyChoice.oneTime =>
+        ReminderFrequency.oneTime(date: _oneTimeDate),
     };
 
     Navigator.of(context).pop(
-      CustomReminder(
-        label: _labelController.text.trim(),
-        subtypeValue: _subtypeValue,
-        // D2: The choice of treatment determines the source – a reminder without treatment is...
-        // It was determined by the "Done" button, never by a health-related event.
-        completionSource:
-            _subtypeValue == null ? completionManual : completionFromEvents,
-        frequency: frequency,
-        id: widget.existing?.id,
+      CustomReminderDraft(
+        CustomReminder(
+          label: _labelController.text.trim(),
+          subtypeValue: _subtypeValue,
+          // D2: The choice of treatment determines the source – a reminder without treatment is...
+          // It was determined by the "Done" button, never by a health-related event.
+          completionSource:
+              _subtypeValue == null ? completionManual : completionFromEvents,
+          frequency: frequency,
+          id: widget.existing?.id,
+        ),
+        endDate: _endDate,
+        endAgeMonths: _endAgeMonths,
+        timeOfDay: _ownTime,
+        timeChanged: _ownTime != widget.existingTimeOfDay,
       ),
     );
   }
@@ -179,6 +318,37 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
                     const SizedBox(height: AppTheme.spacingLg),
                     _buildIntervalField(),
                   ],
+                  if (_choice == CustomReminderFrequencyChoice.oneTime) ...[
+                    const SizedBox(height: AppTheme.spacingLg),
+                    _buildOneTimeDateField(),
+                  ],
+                  const SizedBox(height: AppTheme.spacingXl),
+                  // The hour this reminder fires at (B35) — the same control the
+                  // row and the preset sheet offer, so the three surfaces cannot
+                  // spell "its hour" differently. The rhythm text is off here:
+                  // the dropdown above already picked it.
+                  ReminderHourControl(
+                    frequency: const ReminderFrequency.daily(),
+                    hourLabel: _hour.hourLabel,
+                    inherited: _hour.inherited,
+                    showHour: _hour.showHour,
+                    showRhythm: false,
+                    onPick: _pickHour,
+                    onUseGlobal: () => setState(() => _ownTime = null),
+                  ),
+                  const SizedBox(height: AppTheme.spacingXl),
+                  // D-R5: the same end section as a preset's, so "until a date"
+                  // and "until an age" mean one thing wherever they are set.
+                  ReminderEndPicker(
+                    birthDate: widget.birthDate,
+                    endDate: _endDate,
+                    endAgeMonths: _endAgeMonths,
+                    onChanged: ({DateTime? endDate, int? endAgeMonths}) =>
+                        setState(() {
+                      _endDate = endDate;
+                      _endAgeMonths = endAgeMonths;
+                    }),
+                  ),
                 ],
               ),
             ),
@@ -187,7 +357,14 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
               cancelLabel: context.l.cancelButton,
               confirmLabel: context.l.confirmButton,
               onCancelPressed: () => Navigator.of(context).pop(),
-              onConfirmPressed: _submit,
+              // D-R5 write-strict: a one-shot without a day is not a rhythm, and
+              // the repository refuses the call anyway — the button is the honest
+              // place to say so.
+              onConfirmPressed:
+                  _choice == CustomReminderFrequencyChoice.oneTime &&
+                          _oneTimeDate == null
+                      ? null
+                      : _submit,
             ),
           ],
         ),
@@ -261,6 +438,45 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
     );
   }
 
+  /// The day the single occurrence happens on, plus the reason the confirm button
+  /// is greyed out while it is empty.
+  Widget _buildOneTimeDateField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l.reminderOneTimeNeedsDate,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: _oneTimeDate == null
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: AppTheme.spacingSm),
+        TextButton.icon(
+          onPressed: _pickOneTimeDate,
+          icon: const Icon(Icons.event),
+          label: Text(_oneTimeDate == null
+              ? context.l.reminderEndOnDate
+              : formatDateShort(context, _oneTimeDate!)),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickOneTimeDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _oneTimeDate ?? now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: DateTime(now.year + 20),
+    );
+    if (picked == null) return;
+    setState(
+        () => _oneTimeDate = DateTime(picked.year, picked.month, picked.day));
+  }
+
   Widget _buildIntervalField() {
     return TextFormField(
       controller: _daysController,
@@ -294,6 +510,8 @@ class _CustomReminderFormSheetState extends State<CustomReminderFormSheet> {
         context.l.reminderFrequencyMonthlyBirth,
       CustomReminderFrequencyChoice.everyNDays =>
         context.l.reminderCustomIntervalField,
+      CustomReminderFrequencyChoice.oneTime =>
+        context.l.reminderFrequencyOnceChoice,
     };
   }
 }

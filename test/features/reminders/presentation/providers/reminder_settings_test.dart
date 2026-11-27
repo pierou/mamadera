@@ -4,6 +4,7 @@ import 'package:mamadera/core/providers/active_baby_provider.dart';
 import 'package:mamadera/features/reminders/domain/entities/custom_reminder.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_frequency.dart';
 import 'package:mamadera/features/reminders/domain/entities/reminder_item.dart';
+import 'package:mamadera/features/reminders/domain/entities/reminder_item_setting.dart';
 import 'package:mamadera/features/reminders/presentation/providers/reminder_providers.dart';
 import 'package:mamadera/shared/domain/entities/baby_profile.dart';
 import 'package:mamadera/shared/domain/entities/tracking_type.dart';
@@ -64,17 +65,71 @@ void main() {
 
       expect(
         await container.read(reminderSettingsProvider.future),
-        {ReminderItemPresets.vitaminK.id: false},
+        {
+          ReminderItemPresets.vitaminK.id:
+              const ReminderItemSetting(enabled: false)
+        },
       );
     });
   });
 
   group('enabledRemindersProvider', () {
-    test('keeps every preset when the parent never opted out', () async {
+    test('a baby that never touched a switch gets every preset but vitamin D',
+        () async {
+      // B6 (owner decision A, PLAN-v1.4.0 D-R1/D-R2): "no row" resolves to the
+      // item's own default, and vitamin D's default is now off — visible in the
+      // settings list with its switch off, absent from the due list and from the
+      // OS schedule. An explicit row brings it back (next-but-one test below).
       final items = await container.read(enabledRemindersProvider.future);
 
+      expect(
+        items.map((item) => item.id),
+        ReminderItemPresets.buildForBaby(_baby)
+            .where((item) => item.enabledByDefault)
+            .map((item) => item.id),
+      );
       expect(items.map((item) => item.id),
-          ReminderItemPresets.buildForBaby(_baby).map((item) => item.id));
+          isNot(contains(ReminderItemPresets.vitaminD.id)));
+    });
+
+    test('Home shows the effective reminders, not the declared presets (B31)',
+        () async {
+      // B31 was not a wrong reminder, it was a reminder wrong **in one list**:
+      // Home projected `ReminderItemPresets.buildForBaby` while Settings projected
+      // the stored rows, so any state the parent wrote was invisible to the other
+      // surface. M4's answer is one function both consumers call; this test is the
+      // regression, written as concrete expectations rather than as a call to that
+      // function (asserting a function against itself proves nothing).
+      //
+      // The scheduler half — the same effective list reaching the OS plan — is in
+      // `reminder_scheduler_test.dart` ("a removed preset is cancelled from the OS
+      // schedule"), which drives the production scheduler against stored rows.
+      final vitaminK = ReminderItemPresets.vitaminK;
+      final eye = ReminderItemPresets.eyeCleaning;
+      final face = ReminderItemPresets.faceCleaning;
+      mockReminders.labelById[vitaminK.id] = 'la vitamine';
+      mockReminders.frequencyById[eye.id] =
+          const ReminderFrequency.customInterval(days: 3);
+      mockReminders.removedById.add(face.id);
+      mockReminders.endAgeMonthsById[vitaminK.id] = 4;
+
+      final items = await container.read(enabledRemindersProvider.future);
+      final byId = {for (final item in items) item.id: item};
+
+      expect(byId.containsKey(face.id), isFalse,
+          reason:
+              'a removed preset must leave Home; before M4 it was projected from '
+              'the declared presets and came straight back');
+      expect(byId[vitaminK.id]!.labelOverride, 'la vitamine');
+      expect(byId[eye.id]!.frequency,
+          const ReminderFrequency.customInterval(days: 3));
+      // Resolved here, at read time: born 15 January, four months ⇒ 15 May, and a
+      // corrected birthdate would move it with nothing stored to go stale (D-R5).
+      expect(byId[vitaminK.id]!.endsAt, DateTime(2026, 5, 15));
+      // A reminder nobody touched is still absent for the *other* reason (B6's
+      // off-by-default), and stays absent when another item's row is written:
+      // overrides are per (scope, item), never per section.
+      expect(byId.containsKey(ReminderItemPresets.vitaminD.id), isFalse);
     });
 
     test('drops the reminders that were switched off, keeps the others',
@@ -105,7 +160,13 @@ void main() {
 
       final items = await container.read(enabledRemindersProvider.future);
 
-      expect(items, hasLength(4));
+      // The baseline is what no-row yields (vitamin D off since B6), so the
+      // comparison is against that list, not against a hardcoded 4.
+      expect(items.map((item) => item.id), {
+        ReminderItemPresets.vitaminK.id,
+        ReminderItemPresets.eyeCleaning.id,
+        ReminderItemPresets.faceCleaning.id,
+      });
     });
 
     test('disabling every reminder leaves nothing to ring', () async {
@@ -134,7 +195,10 @@ void main() {
       // No back-tracking: the switch must not move backward by even a single frame.
       expect(
         container.read(reminderSettingsProvider).value,
-        {ReminderItemPresets.vitaminD.id: false},
+        {
+          ReminderItemPresets.vitaminD.id:
+              const ReminderItemSetting(enabled: false)
+        },
       );
     });
 
@@ -148,6 +212,85 @@ void main() {
 
       expect(
           mockReminders.enabledById[ReminderItemPresets.vitaminD.id], isTrue);
+    });
+  });
+
+  // BACKLOG B30: the hour lives on the same row as the switch, so the notifier
+  // owns two writes to one row — and the interesting promises are that each
+  // leaves the other alone, and that an hour is not consent (B6).
+  group('ReminderSettingsNotifier per-reminder hour', () {
+    test('picking an hour stores it and updates the cached row at once',
+        () async {
+      await container.read(reminderSettingsProvider.future);
+
+      await container
+          .read(reminderSettingsProvider.notifier)
+          .setTime(ReminderItemPresets.eyeCleaning, hour: 8, minute: 5);
+
+      expect(mockReminders.timeOfDayById[ReminderItemPresets.eyeCleaning.id],
+          '08:05',
+          reason: 'zero-padded, the stored form — never "8:5"');
+      expect(
+        container.read(reminderSettingsProvider).value,
+        {
+          ReminderItemPresets.eyeCleaning.id:
+              const ReminderItemSetting(enabled: true, timeOfDay: '08:05')
+        },
+      );
+    });
+
+    test('picking an hour leaves an existing switch off', () async {
+      mockReminders.enabledById[ReminderItemPresets.eyeCleaning.id] = false;
+      await container.read(reminderSettingsProvider.future);
+
+      await container
+          .read(reminderSettingsProvider.notifier)
+          .setTime(ReminderItemPresets.eyeCleaning, hour: 21, minute: 0);
+
+      expect(mockReminders.enabledById[ReminderItemPresets.eyeCleaning.id],
+          isFalse);
+    });
+
+    test('an hour on the default-off preset does not switch it on', () async {
+      // B6's consent line, one level down: no row exists for vitamin D, the
+      // parent gives it an hour, and the row that gets created must carry the
+      // item's own default — off — not `true`.
+      await container.read(reminderSettingsProvider.future);
+
+      await container
+          .read(reminderSettingsProvider.notifier)
+          .setTime(ReminderItemPresets.vitaminD, hour: 19, minute: 30);
+
+      expect(mockReminders.timeOfDayById[ReminderItemPresets.vitaminD.id],
+          '19:30');
+      expect(
+          mockReminders.enabledById[ReminderItemPresets.vitaminD.id], isFalse,
+          reason: 'an hour is not consent to receive the reminder');
+      // And it still does not surface on Home.
+      final items = await container.read(enabledRemindersProvider.future);
+      expect(items.map((i) => i.id),
+          isNot(contains(ReminderItemPresets.vitaminD.id)));
+    });
+
+    test('inheriting again clears the hour and keeps the row', () async {
+      mockReminders.enabledById[ReminderItemPresets.eyeCleaning.id] = false;
+      mockReminders.timeOfDayById[ReminderItemPresets.eyeCleaning.id] = '08:05';
+      await container.read(reminderSettingsProvider.future);
+
+      await container
+          .read(reminderSettingsProvider.notifier)
+          .useGlobalTime(ReminderItemPresets.eyeCleaning);
+
+      expect(mockReminders.clearItemTimeCallCount, 1);
+      expect(mockReminders.timeOfDayById, isEmpty);
+      expect(
+        container.read(reminderSettingsProvider).value,
+        {
+          ReminderItemPresets.eyeCleaning.id:
+              const ReminderItemSetting(enabled: false)
+        },
+        reason: 'the row stays, the switch stays: only the hour went back',
+      );
     });
   });
 
@@ -167,7 +310,7 @@ void main() {
       expect(after[TrackingType.sante]?.map((status) => status.item.id),
           isNot(contains(ReminderItemPresets.eyeCleaning.id)));
       expect(after[TrackingType.sante]?.map((status) => status.item.id),
-          contains(ReminderItemPresets.vitaminD.id));
+          contains(ReminderItemPresets.vitaminK.id));
     });
 
     test('a disabled reminder is no longer queried at all', () async {
@@ -179,7 +322,7 @@ void main() {
       expect(mockReminders.lookedUpItemIds,
           isNot(contains(ReminderItemPresets.vitaminK.id)));
       expect(mockReminders.lookedUpItemIds,
-          contains(ReminderItemPresets.vitaminD.id));
+          contains(ReminderItemPresets.eyeCleaning.id));
     });
 
     test('switching everything off clears the home screen', () async {
@@ -249,8 +392,11 @@ void main() {
 
     test('they join the presets instead of replacing them', () async {
       storeCream();
-      final presetIds =
-          ReminderItemPresets.buildForBaby(_baby).map((i) => i.id);
+      // The default-on presets: vitamin D is off by default since B6, so it is
+      // not in the enabled list — see 'a baby that never touched a switch…'.
+      final presetIds = ReminderItemPresets.buildForBaby(_baby)
+          .where((i) => i.enabledByDefault)
+          .map((i) => i.id);
 
       final items = await container.read(enabledRemindersProvider.future);
 
@@ -266,7 +412,7 @@ void main() {
       final items = await container.read(enabledRemindersProvider.future);
 
       expect(items.map((i) => i.id), isNot(contains('custom_1')));
-      expect(items.map((i) => i.id), contains(ReminderItemPresets.vitaminD.id));
+      expect(items.map((i) => i.id), contains(ReminderItemPresets.vitaminK.id));
     });
 
     test('a custom reminder is not queried once switched off', () async {

@@ -1,0 +1,75 @@
+M9 gate evidence — v1.4.0 (scripted re-run, 2026-11-26)
+=========================================================
+
+What this directory proves
+--------------------------
+The scripted upgrade gate (integration_test/gate_v140_seed_v132.dart +
+gate_v140_post_upgrade.dart, added by PR #96) ran end to end in one
+continuous cycle on a real device build:
+
+  1. A v1.3.2 binary (git tag v1.3.2, commit 3549375, built in a throwaway
+     worktree) created the old database file: user_version 13, two babies
+     (dave active with Vitamin D switched OFF manually, bob), 2 tracking
+     events, birthdates 2026-10-19 / 2026-10-20 (dave due for his Vitamin K
+     one-shot, bob's due date in the past).
+  2. The v1.4.0 binary (develop tip df9fc25, PR #99 merge) was installed
+     over it with `adb install -r` (data preserved) and
+     POST_NOTIFICATIONS granted.
+  3. The post-upgrade gate passed all four legs in a single process:
+       - 1. continuity: v13 rows survive the schema v13→v14 migration, B6
+         seed (vitamin_d rows only where the user opted), B30, export v5
+         → [GATE] continuity PASS / export v5 PASS
+       - 2. a new baby (carmen, created post-upgrade) shows Vitamin D OFF
+         → [GATE] B6 new-baby PASS
+       - 3a. after the opt-in switch, bob's Vitamin K one-shot (birth +
+         1 month, at the global hour) is armed exactly once in the OS
+         alarm plan → [GATE] one-shot armed PASS
+       - 3b. recording the dose through the sante sheet settles the
+         one-shot: bob's vitamine_k request is gone, dave's due-now K and
+         the daily items remain, neither dave's nor carmen's scope carries
+         vitamine_d → [GATE] one-shot settled PASS
+
+     "All tests passed!" — see the gate's own prints.
+
+Device
+------
+Small_Phone AVD, headless (`make emu-up AVD=Small_Phone`,
+-gpu swiftshader_indirect), Android 14 (SDK 37), arm64-v8a, 720x1280.
+Captures below are 720x1280 (the store's 3:2–9:16 floor).
+
+Why this re-run (and the gate fix in the same branch)
+-----------------------------------------------------
+The original M9 leg ran 2026-11-18/20 against the then-develop reminder UI.
+The reminder rework and the B35 custom-hour panel (PR #97–#99) changed the
+shape of the settings: test 2 now ends on the *pushed* reminder-settings
+route, which has no tab bar. The gate's `ensureHome` only knew how to come
+back from a tab — on a pushed route it found neither `track-miam` nor
+`homeTab`, and legs 3a/3b died on the first assert (reproduced twice on
+2026-11-26). `ensureHome` now pops pushed routes until the scaffold is
+back, then switches to the home tab — the fix is in this branch alongside
+this evidence, and the full four-leg cycle above is the result.
+
+Host-side markers (from the gate)
+---------------------------------
+  - After test 2 (before the opt-in): `adb shell dumpsys alarm |
+    grep -c mamadera` must be 0 — no notification is scheduled for a baby
+    whose owner has not switched the opt-in on.
+  - After test 3a: the alarm plan carries exactly one vitamine_k request
+    for bob, plus dave's due-now K and the daily items (D6 schedules every
+    baby; the one-shot entry itself is the assertion).
+  - After test 3b: bob's vitamine_k is absent from the plan.
+
+Provenance of the images
+------------------------
+Written by the app's own capture() helper
+(`/data/user/0/com.pvjio.mamadera/app_flutter/gate/`, pulled with
+`adb exec-out run-as com.pvjio.mamadera cat`) during the passing run:
+  gate-v140-01-home-after-migration.png   home after the v13→v14 migration
+  gate-v140-02-settings-vitd-off.png      dave's Vitamin D still OFF
+  gate-v140-03-newbaby-vitd-off.png       carmen (new baby) Vitamin D OFF
+  gate-v140-04-optin-on.png               opt-in switch ON, one-shot armed
+  gate-v140-05-after-dose.png             dose recorded, one-shot settled
+
+pixel_10_pro/ (en-*.png, 1280x2856) is the Play Console set recaptured
+on the same build (`make store-shots`, Pixel_10_Pro); small_phone/ is the
+gate's own device record.

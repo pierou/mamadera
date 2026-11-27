@@ -1,0 +1,18 @@
+Nouveautés de Mamadera 1.4.0
+
+Nouvelles fonctionnalités
+- Ajout d'une heure de notification propre à chaque rappel : sans heure choisie, le rappel suit l'heure générale et la liste l'indique « par défaut »
+- Ajout d'une fréquence « Une seule fois » pour un rappel, avec le jour visé
+- Ajout d'une fin pour les rappels : à une date ou à un âge, avec le jour obtenu affiché pendant le réglage
+- Ajout de la modification et de la suppression des rappels proposés : nom, rythme et fin réglables, le rappel supprimé quitte l'accueil et les notifications, et une touche suffit pour le faire revenir depuis la section Supprimés
+- Ajout d'une note facultative à l'enregistrement d'un repas, écrite sur le moment plutôt que reconstituée plus tard
+- Ajout du sélecteur de bébé sur le titre de l'accueil : une touche ouvre la liste des enfants et change de bébé
+- Ajout d'un filtre Mesures dans l'historique, pour ne voir que les poids, tailles et températures
+- Ajout d'une action quand on appuie sur une notification : l'application s'ouvre sur l'accueil du bébé concerné, marque comme pris un rappel sans soin associé, ou ouvre la fiche de soin avec le type déjà choisi
+
+Améliorations
+- Mise à jour des pastilles de filtre de l'historique au style des boutons de l'accueil : bordure de la couleur du type sur un fond teinté
+- Ajout d'une confirmation tactile à chaque enregistrement : repas, sommeil, couche, soin, mesure, bébé et rappel personnalisé
+- Ajout du changement de bébé quand on appuie sur une notification venue d'un autre enfant : l'accueil affiché est celui du bébé concerné avant toute action
+- Modification du rappel de vitamine D : désactivé par défaut sur un profil jamais réglé, les profils existants conservent le réglage que vous leur aviez donné
+- Modification du rappel de vitamine K : proposé une seule fois, un mois après la date de naissance

@@ -50,7 +50,6 @@ TrackingEvent _createSleepEvent(
     babyId: row.babyId,
     duration: row.duration ?? 0.0,
     unit: _unitFromRow(row),
-    quantity: row.quantity,
     notes: encryption.decrypt(row.notes),
   );
 }

@@ -1,0 +1,5 @@
+• Définissez une heure, une fréquence unique et une date de fin pour chaque rappel.
+• Renommez, supprimez ou restaurez un rappel suggéré.
+• Ajoutez une note lorsque vous enregistrez un repas, sur le moment.
+• Appuyez sur une notification pour ouvrir l'écran d'accueil du bébé correspondant.
+• Accédez à la liste des bébés depuis le titre, et filtrez l'historique par mesures.
